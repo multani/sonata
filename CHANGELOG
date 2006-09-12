@@ -1,0 +1,22 @@
+v0.5 - September XX, 2006
+	+ Added album art (and ability to choose from alternatives
+	  if the one automatically selected is incorrect, via right-click)
+	+ Integrate playlist and library into one app
+	+ Change song progress with mousewheel over progressbar
+	+ Change volume with mousewheel over volume button, systray icon
+	+ Change volume icon based on volume level
+	+ Added Replace menu and dir/file icons to library browser
+	+ Removed toolbar, cleaned up interface
+	+ Removed horizontal scrollbar
+	+ Moved config to freedesktop.org standard
+	+ Keep app width constant when (un)expanding
+	+ Keep currently playing song visible in list
+	+ Removed python-empy, glade
+	+ Bug: mpdclient2/app doesn't accept passwords (crash)
+	+ Bug: mdpclient2 - lsinfo skips the first file found after dirs
+	+ Bug: Cannot remove multiple rows from right-click
+	+ Bug: Crash if user has MPD connection but no read access
+	+ Bug: GTK+ treeview search does not work
+	+ Bug: Right-Click checkbox doesnt set value on start
+	+ Bug: Doesn't properly retain view when browsing playlist
+	+ Other bugfixes, tweaks

@@ -1,0 +1,14 @@
+Sonata, a simple GTK+ client for the Music Player Daemon (MPD)
+Copyright 2006 Scott Horowitz <stonecrest@gmail.com>
+
+Thanks to Andrew Conkling, et al, for all their hard work on Pygmy!
+Sonata is a fork of the Pygmy project.
+
+For information on MPD, please see http://musicpd.org.  Their wiki is
+also a great resource: http://mpd.wikicities.com
+
+Installation:
+In the sonata directory, run 'python setup.py install --prefix=/path'
+(where 'path' is '/usr' or '/usr/share', usually).  If you're able
+and willing to create various distribution packages/build scripts,
+please let me know so I can put them on the website.

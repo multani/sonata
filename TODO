@@ -1,0 +1,20 @@
+todo:
+	- check CHANGELOG
+	- keybindings
+	- settings to stop mpd, clear playlist on app exit
+	- don't show tooltip after (un)withdrawing until mouse moves
+	- use threading for album art
+
+Future:
+	why the hell won't the progress bar get any less wide????
+	ability to set art from local image?
+	ability to configure columns for playlist
+	ability to show column headings for sorting
+	switch to pygtk's statusicon (2.10) and remove gnome-python dep
+		- then we can finally use skip_taskbar_hint since we will
+		  be able to reliably detect if the sysicon is displayed
+	retain selection after dnd
+	Playlist file support(?)
+	Stream support(?)
+	Documentation
+	Translations

@@ -1,0 +1,12 @@
+
+[Desktop Entry]
+Name=Sonata
+Comment=A simple GTK+ MPD client
+Exec=avalon
+Terminal=false
+Type=Application
+Icon=sonata
+Categories=GTK;Application;AudioVideo;Player;
+StartupNotify=true
+Version=0.5
+Encoding=UTF-8
