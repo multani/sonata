@@ -5,6 +5,7 @@ v0.5 - September XX, 2006
 	+ Change song progress with mousewheel over progressbar
 	+ Change volume with mousewheel over volume button, systray icon
 	+ Change volume icon based on volume level
+	+ Added playback, etc, shortcuts
 	+ Added Replace menu and dir/file icons to library browser
 	+ Removed toolbar, cleaned up interface
 	+ Removed horizontal scrollbar
@@ -19,4 +20,5 @@ v0.5 - September XX, 2006
 	+ Bug: GTK+ treeview search does not work
 	+ Bug: Right-Click checkbox doesnt set value on start
 	+ Bug: Doesn't properly retain view when browsing playlist
+	+ Added documentation
 	+ Other bugfixes, tweaks

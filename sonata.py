@@ -147,10 +147,22 @@ class Base(mpdclient2.mpd_connection):
             ('quitmenu', gtk.STOCK_QUIT, '_Quit', None, None, self.delete_event),
             ('removemenu', gtk.STOCK_REMOVE, '_Remove', None, None, self.remove),
             ('clearmenu', gtk.STOCK_CLEAR, '_Clear', None, None, self.clear),
-            ('updatemenu', None, '_Update MPD', None, None, self.updatedb),
+            ('updatemenu', None, '_Update Library', None, None, self.updatedb),
             ('preferencemenu', gtk.STOCK_PREFERENCES, '_Preferences...', None, None, self.prefs),
+            ('helpmenu', gtk.STOCK_HELP, '_Help', None, None, self.help),
             ('addmenu', gtk.STOCK_ADD, '_Add', None, None, self.browser_add),
-            ('replacemenu', gtk.STOCK_REDO, '_Replace', None, None, self.browser_replace)
+            ('replacemenu', gtk.STOCK_REDO, '_Replace', None, None, self.browser_replace),
+            ('playlistkey', None, 'Playlist Key', '<Alt>1', None, self.switch_to_playlist),
+            ('librarykey', None, 'Library Key', '<Alt>2', None, self.switch_to_library),
+            ('expandkey', None, 'Expand Key', '<Alt>Down', None, self.expand),
+            ('collapsekey', None, 'Collapse Key', '<Alt>Up', None, self.collapse),
+            ('ppkey', None, 'Play/Pause Key', '<Ctrl>p', None, self.pp),
+            ('stopkey', None, 'Stop Key', '<Ctrl>s', None, self.stop),
+            ('prevkey', None, 'Previous Key', '<Ctrl>Left', None, self.prev),
+            ('nextkey', None, 'Next Key', '<Ctrl>Right', None, self.next),
+            ('lowerkey', None, 'Lower Volume Key', '<Ctrl>minus', None, self.lower_volume),
+            ('raisekey', None, 'Raise Volume Key', '<Ctrl>plus', None, self.raise_volume),
+            ('raisekey2', None, 'Raise Volume Key 2', '<Ctrl>equal', None, self.raise_volume)
             )
 
         toggle_actions = (
@@ -184,6 +196,20 @@ class Base(mpdclient2.mpd_connection):
                 <separator name="FM2"/>
                 <menuitem action="updatemenu"/>
                 <menuitem action="preferencemenu"/>
+                <menuitem action="helpmenu"/>
+              </popup>
+              <popup name="hidden">
+                <menuitem action="playlistkey"/>
+                <menuitem action="librarykey"/>
+                <menuitem action="expandkey"/>
+                <menuitem action="collapsekey"/>
+                <menuitem action="ppkey"/>
+                <menuitem action="stopkey"/>
+                <menuitem action="nextkey"/>
+                <menuitem action="prevkey"/>
+                <menuitem action="lowerkey"/>
+                <menuitem action="raisekey"/>
+                <menuitem action="raisekey2"/>
               </popup>
             </ui>
             """
@@ -679,7 +705,7 @@ class Base(mpdclient2.mpd_connection):
         play_after_replace = False
         if self.status.state == 'play':
             play_after_replace = True
-        self.conn.do.clear()
+        self.clear()
         self.browser_add(widget)
         if play_after_replace:
             self.conn.do.play()
@@ -973,6 +999,16 @@ class Base(mpdclient2.mpd_connection):
         self.x, self.y = self.window.get_position()
         self.volume_hide()
 
+    def expand(self, action):
+        self.expander.set_expanded(False)
+        self.expander_activate(None)
+        self.expander.set_expanded(True)
+
+    def collapse(self, action):
+        self.expander.set_expanded(True)
+        self.expander_activate(None)
+        self.expander.set_expanded(False)
+
     def expander_activate(self, expander):
         self.expanded = False
         if self.expander.get_expanded():
@@ -1171,9 +1207,12 @@ class Base(mpdclient2.mpd_connection):
         # Put images to ListStore
         image_num = 1
         while os.path.exists(filename.replace("<imagenum>", str(image_num))):
-            pix = gtk.gdk.pixbuf_new_from_file(filename.replace("<imagenum>", str(image_num)))
-            pix = pix.scale_simple(150, 150, gtk.gdk.INTERP_HYPER)
-            imagelist.append([image_num, pix])
+            try:
+                pix = gtk.gdk.pixbuf_new_from_file(filename.replace("<imagenum>", str(image_num)))
+                pix = pix.scale_simple(150, 150, gtk.gdk.INTERP_HYPER)
+                imagelist.append([image_num, pix])
+            except:
+                imagelist.append([image_num, None])
             image_num += 1
         num_images = image_num - 1
         if num_images > 0:
@@ -1234,6 +1273,9 @@ class Base(mpdclient2.mpd_connection):
             elif not (self.window.window.get_state() & gtk.gdk.WINDOW_STATE_WITHDRAWN): # window is showing
                 self.window.hide()
                 self.withdrawn = True
+            # This prevents the tooltip from popping up again until the user
+            # leaves and enters the trayicon again
+            self.traytips._remove_timer()
         elif event.button == 2: # Middle button will play/pause
             self.pp(self.trayeventbox)
         elif event.button == 3: # Right button pops up menu
@@ -1254,10 +1296,29 @@ class Base(mpdclient2.mpd_connection):
     def quit_activate(self, widget):
         self.window.destroy()
 
-    # TODO: combine with pp()?
     def playlist_click(self, treeview, path, column):
         iter = self.playlistdata.get_iter(path)
         self.conn.do.playid(self.playlistdata.get_value(iter, 0))
+
+    def switch_to_playlist(self, action):
+        self.notebook.set_current_page(0)
+
+    def switch_to_library(self, action):
+        self.notebook.set_current_page(1)
+
+    def lower_volume(self, action):
+        new_volume = int(self.volumescale.get_adjustment().get_value()) - 10
+        if new_volume < 0:
+            new_volume = 0
+        self.volumescale.get_adjustment().set_value(new_volume)
+        self.on_volumescale_change(self.volumescale, 0, 0)
+
+    def raise_volume(self, action):
+        new_volume = int(self.volumescale.get_adjustment().get_value()) + 10
+        if new_volume > 100:
+            new_volume = 100
+        self.volumescale.get_adjustment().set_value(new_volume)
+        self.on_volumescale_change(self.volumescale, 0, 0)
 
     # Volume control
     def on_volumebutton_clicked(self, widget):
@@ -1275,17 +1336,9 @@ class Base(mpdclient2.mpd_connection):
 
     def on_volumebutton_scroll(self, widget, event):
         if event.direction == gtk.gdk.SCROLL_UP:
-            new_volume = int(self.volumescale.get_adjustment().get_value()) + 10
-            if new_volume > 100:
-                new_volume = 100
-            self.volumescale.get_adjustment().set_value(new_volume)
-            self.on_volumescale_change(self.volumescale, 0, 0)
+            self.raise_volume(None)
         elif event.direction == gtk.gdk.SCROLL_DOWN:
-            new_volume = int(self.volumescale.get_adjustment().get_value()) - 10
-            if new_volume < 0:
-                new_volume = 0
-            self.volumescale.get_adjustment().set_value(new_volume)
-            self.on_volumescale_change(self.volumescale, 0, 0)
+            self.lower_volume(None)
         return
 
     def on_volumescale_scroll(self, widget, event):
@@ -1383,7 +1436,7 @@ class Base(mpdclient2.mpd_connection):
         prefswindow.set_has_separator(False)
         hbox = gtk.HBox()
         prefsnotebook = gtk.Notebook()
-        table = gtk.Table(5, 2)
+        table = gtk.Table(7, 2)
         table.set_row_spacings(7)
         table.set_col_spacings(3)
         table.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
@@ -1427,6 +1480,9 @@ class Base(mpdclient2.mpd_connection):
     def seek(self, song, seektime):
         self.conn.do.seek(song, seektime)
         return
+
+    def help(self, action):
+        browser_load("http://sonata.berlios.de/documentation.html")
 
     def initialize_systrayicon(self):
         # Make system tray 'icon' to sit in the system tray
@@ -1619,3 +1675,18 @@ def removeall(path):
             removeall(fullpath)
             f=os.rmdir
             rmgeneric(fullpath, f)
+
+def browser_load(docslink):
+    test = os.spawnlp(os.P_WAIT, "firefox", "firefox", docslink)
+    if test == 127:
+        test = os.spawnlp(os.P_WAIT, "mozilla", "mozilla", docslink)
+        if test == 127:
+            test = os.spawnlp(os.P_WAIT, "opera", "opera", docslink)
+            if test == 127:
+                test = os.spawnlp(os.P_WAIT, "konquerer", "konqueror", docslink)
+                if test == 127:
+                    test = os.spawnlp(os.P_WAIT, "netscape", "netscape", docslink)
+                    if test == 127:
+                        error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _('Unable to launch a suitable browser.'))
+                        error_dialog.run()
+                        error_dialog.destroy()
