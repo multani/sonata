@@ -708,7 +708,7 @@ class Base(mpdclient2.mpd_connection):
         play_after_replace = False
         if self.status.state == 'play':
             play_after_replace = True
-        self.clear()
+        self.clear(None)
         self.browser_add(widget)
         if play_after_replace:
             self.conn.do.play()
