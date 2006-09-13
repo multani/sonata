@@ -1681,15 +1681,15 @@ def removeall(path):
             rmgeneric(fullpath, f)
 
 def browser_load(docslink):
-    test = os.spawnlp(os.P_WAIT, "firefox", "firefox", docslink)
+    test = os.spawnlp(os.P_NOWAIT, "firefox", "firefox", docslink)
     if test == 127:
-        test = os.spawnlp(os.P_WAIT, "mozilla", "mozilla", docslink)
+        test = os.spawnlp(os.P_NOWAIT, "mozilla", "mozilla", docslink)
         if test == 127:
-            test = os.spawnlp(os.P_WAIT, "opera", "opera", docslink)
+            test = os.spawnlp(os.P_NOWAIT, "opera", "opera", docslink)
             if test == 127:
-                test = os.spawnlp(os.P_WAIT, "konquerer", "konqueror", docslink)
+                test = os.spawnlp(os.P_NOWAIT, "konquerer", "konqueror", docslink)
                 if test == 127:
-                    test = os.spawnlp(os.P_WAIT, "netscape", "netscape", docslink)
+                    test = os.spawnlp(os.P_NOWAIT, "netscape", "netscape", docslink)
                     if test == 127:
                         error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _('Unable to launch a suitable browser.'))
                         error_dialog.run()

@@ -1,3 +1,7 @@
+v0.5.1 - September 13, 2006
+	+ Increment to mpdclient3 to prevent incompatibility issues
+	+ Bug: Running Sonata without systray causes crash
+
 v0.5 - September 12, 2006
 	+ Added album art (and ability to choose from alternatives
 	  if the one automatically selected is incorrect, via right-click)
