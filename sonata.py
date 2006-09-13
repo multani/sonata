@@ -216,7 +216,8 @@ class Base(mpdclient2.mpd_connection):
 
         # Try to connect to MPD:
         self.conn = self.connect()
-        self.conn.do.password(self.password)
+        if self.conn:
+            self.conn.do.password(self.password)
         if self.conn:
             self.status = self.conn.do.status()
             try:
@@ -1045,7 +1046,7 @@ class Base(mpdclient2.mpd_connection):
 
     # This callback allows the user to seek to a specific portion of the song
     def progressbar_button_press_event(self, widget, event):
-        if self.status.state in ['play', 'pause']:
+        if self.status and self.status.state in ['play', 'pause']:
             at, len = [int(c) for c in self.status.time.split(':')]
             try:
                 progressbarsize = self.progressbar.allocation
@@ -1056,7 +1057,7 @@ class Base(mpdclient2.mpd_connection):
         return True
 
     def progressbar_scroll_event(self, widget, event):
-        if self.status.state in ['play', 'pause']:
+        if self.status and self.status.state in ['play', 'pause']:
             try:
                 gobject.source_remove(self.seekidle)
             except:
@@ -1476,7 +1477,8 @@ class Base(mpdclient2.mpd_connection):
                     pass
                 self.password = passwordentry.get_text()
                 self.conn = self.connect()
-                self.conn.do.password(self.password)
+                if self.conn:
+                    self.conn.do.password(self.password)
         prefswindow.destroy()
 
     def seek(self, song, seektime):
