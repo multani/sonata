@@ -42,7 +42,7 @@ except ImportError:
 try:
     import gtk
     import pango
-    import mpdclient2
+    import mpdclient3
 except ImportError, (strerror):
     print >>sys.stderr, "%s.  Please make sure you have this library installed into a directory in Python's path or in the same directory as Sonata.\n" % strerror
     sys.exit(1)
@@ -59,7 +59,7 @@ if gtk.pygtk_version < (2, 6, 0):
     sys.stderr.write("Sonata requires PyGTK 2.6.0 or newer.\n")
     sys.exit(1)
 
-class Connection(mpdclient2.mpd_connection):
+class Connection(mpdclient3.mpd_connection):
     """A connection to the daemon. Will use MPD_HOST/MPD_PORT in preference to the supplied config if available."""
 
     def __init__(self, Base):
@@ -76,8 +76,8 @@ class Connection(mpdclient2.mpd_connection):
         if os.environ.has_key('MPD_PORT'):
             port = int(os.environ['MPD_PORT'])
 
-        mpdclient2.mpd_connection.__init__(self, host, port, password)
-        mpdclient2.connect(host=host, port=port, password=password)
+        mpdclient3.mpd_connection.__init__(self, host, port, password)
+        mpdclient3.connect(host=host, port=port, password=password)
         #if password: self.do.password(password)
 
     def __repr__(self, host, port):
@@ -86,7 +86,7 @@ class Connection(mpdclient2.mpd_connection):
         else:
             return "<Connection to %s:%s>" % (host, port)
 
-class Base(mpdclient2.mpd_connection):
+class Base(mpdclient3.mpd_connection):
     def __init__(self):
         # Initialize vars:
         self.host = 'localhost'
@@ -542,7 +542,7 @@ class Base(mpdclient2.mpd_connection):
     def connect(self):
         try:
             return Connection(self)
-        except (mpdclient2.socket.error, EOFError):
+        except (mpdclient3.socket.error, EOFError):
             return None
 
     def update_status(self):
@@ -559,7 +559,7 @@ class Base(mpdclient2.mpd_connection):
             else:
                 self.status = None
                 self.songinfo = None
-        except (mpdclient2.socket.error, EOFError):
+        except (mpdclient3.socket.error, EOFError):
             self.prevconn = self.conn
             self.prevstatus = self.status
             self.prevsonginfo = self.songinfo
@@ -1501,8 +1501,8 @@ class Base(mpdclient2.mpd_connection):
             self.trayicon = egg.trayicon.TrayIcon("TrayIcon")
             self.trayicon.add(self.trayeventbox)
             self.trayicon.show_all()
-        except NameError:
-            self.systraycheckbutton.set_property('sensitive', False)
+        except:
+            pass
 
     def main(self):
         gtk.main()
