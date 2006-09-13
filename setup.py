@@ -10,7 +10,7 @@ setup(name='Sonata',
         description='GTK+ client for the Music Player Daemon (MPD).',
         author='Scott Horowitz',
         author_email='stonecrest@gmail.com',
-        url='http://avalon.berlios.de',
+        url='http://sonata.berlios.de',
         classifiers=[
             'Development Status :: 4 - Beta',
             'Environment :: X11 Applications',

@@ -1,4 +1,4 @@
-v0.5 - September XX, 2006
+v0.5 - September 12, 2006
 	+ Added album art (and ability to choose from alternatives
 	  if the one automatically selected is incorrect, via right-click)
 	+ Integrate playlist and library into one app
@@ -9,6 +9,7 @@ v0.5 - September XX, 2006
 	+ Added Replace menu and dir/file icons to library browser
 	+ Removed toolbar, cleaned up interface
 	+ Removed horizontal scrollbar
+	+ Don't update systray icon based on playback status
 	+ Moved config to freedesktop.org standard
 	+ Keep app width constant when (un)expanding
 	+ Keep currently playing song visible in list

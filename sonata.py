@@ -255,6 +255,7 @@ class Base(mpdclient2.mpd_connection):
         # Main app:
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title('Sonata')
+        self.window.set_resizable(True)
         self.tooltips = gtk.Tooltips()
         self.UIManager = gtk.UIManager()
         actionGroup = gtk.ActionGroup('Actions')
@@ -364,6 +365,7 @@ class Base(mpdclient2.mpd_connection):
         mainhbox.pack_start(mainvbox, True, True, 3)
         self.window.add(mainhbox)
         self.window.move(self.x, self.y)
+        self.window.set_size_request(270, -1)
         if not self.expanded:
             self.notebook.set_no_show_all(True)
             self.notebook.hide()

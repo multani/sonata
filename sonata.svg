@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="48px"
+   height="48px"
+   id="svg5912"
+   sodipodi:version="0.32"
+   inkscape:version="0.44.1"
+   sodipodi:docbase="/home/will/Desktop"
+   sodipodi:docname="sonata.svg">
+  <defs
+     id="defs5914">
+    <linearGradient
+       id="linearGradient6853">
+      <stop
+         style="stop-color:#000409;stop-opacity:1;"
+         offset="0"
+         id="stop6855" />
+      <stop
+         id="stop7750"
+         offset="0"
+         style="stop-color:#214162;stop-opacity:1;" />
+      <stop
+         style="stop-color:black;stop-opacity:0;"
+         offset="1"
+         id="stop6857" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient6853"
+       id="linearGradient6863"
+       x1="9.5"
+       y1="23.253628"
+       x2="40.495949"
+       y2="33.971363"
+       gradientUnits="userSpaceOnUse"
+       spreadMethod="pad" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient6853"
+       id="linearGradient13461"
+       gradientUnits="userSpaceOnUse"
+       spreadMethod="pad"
+       x1="9.5"
+       y1="23.253628"
+       x2="67.137177"
+       y2="15.138772" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="white"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="6.5312309"
+     inkscape:cx="26.182035"
+     inkscape:cy="18.639582"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     inkscape:grid-bbox="true"
+     inkscape:document-units="px"
+     inkscape:window-width="1171"
+     inkscape:window-height="757"
+     inkscape:window-x="17"
+     inkscape:window-y="111"
+     width="150px"
+     height="150px" />
+  <metadata
+     id="metadata5917">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:subject>
+          <rdf:Bag>
+            <rdf:li>sonata</rdf:li>
+            <rdf:li>music</rdf:li>
+          </rdf:Bag>
+        </dc:subject>
+        <dc:title>Sonata</dc:title>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>William Rea</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/by-sa/2.5/" />
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/by-sa/2.5/">
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/Reproduction" />
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/Distribution" />
+        <cc:requires
+           rdf:resource="http://web.resource.org/cc/Notice" />
+        <cc:requires
+           rdf:resource="http://web.resource.org/cc/Attribution" />
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/DerivativeWorks" />
+        <cc:requires
+           rdf:resource="http://web.resource.org/cc/ShareAlike" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     id="layer1"
+     inkscape:groupmode="layer">
+    <text
+       xml:space="preserve"
+       style="font-size:36px;font-style:normal;font-weight:normal;fill:#729fcf;fill-opacity:1;stroke:url(#linearGradient13461);stroke-width:1px;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1;font-family:Dingbats"
+       id="text5920"
+       y="46.766243"
+       x="5.942318"><tspan
+         style="font-size:62px;fill:#729fcf;fill-opacity:1;stroke:url(#linearGradient13461);stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1;font-family:Arial Unicode MS"
+         sodipodi:role="line"
+         id="tspan5922"
+         y="46.766243"
+         x="5.942318">♪</tspan></text>
+    <g
+       id="g12251">
+      <path
+         style="font-size:36px;font-style:normal;font-weight:normal;opacity:0.09090899;fill:white;fill-opacity:0.71739131;stroke:none;stroke-width:1px;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1;font-family:Dingbats"
+         d=""
+         id="text12278" />
+    </g>
+    <g
+       id="g12308" />
+  </g>
+</svg>
