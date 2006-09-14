@@ -78,13 +78,12 @@ class Connection(mpdclient3.mpd_connection):
 
         mpdclient3.mpd_connection.__init__(self, host, port, password)
         mpdclient3.connect(host=host, port=port, password=password)
-        #if password: self.do.password(password)
 
-    def __repr__(self, host, port):
-        if password:
-            return "<Connection to %s:%s, using password>" % (host, port)
-        else:
-            return "<Connection to %s:%s>" % (host, port)
+    #def __repr__(self, host, port):
+    #	if password:
+    #		return "<Connection to %s:%s, using password>" % (host, port)
+    #	else:
+    #		return "<Connection to %s:%s>" % (host, port)
 
 class Base(mpdclient3.mpd_connection):
     def __init__(self):
@@ -106,6 +105,7 @@ class Base(mpdclient3.mpd_connection):
         self.lastalbumart = None
         self.repeat = False
         self.shuffle = False
+        self.show_covers = True
 
         # Load config:
         conf = ConfigParser.ConfigParser()
@@ -133,6 +133,7 @@ class Base(mpdclient3.mpd_connection):
             self.screen = conf.getint('player', 'screen')
             self.repeat = conf.getboolean('player', 'repeat')
             self.shuffle = conf.getboolean('player', 'shuffle')
+            self.show_covers = conf.getboolean('player', 'covers')
         except:
             pass
 
@@ -273,6 +274,9 @@ class Base(mpdclient3.mpd_connection):
         self.albumimage.set_size_request(75, 75)
         self.albumimage.set_padding(20, 20)
         self.imageeventbox.add(self.albumimage)
+        if not self.show_covers:
+            self.imageeventbox.set_no_show_all(True)
+            self.imageeventbox.hide()
         tophbox.pack_start(self.imageeventbox, False, False, 5)
         topvbox = gtk.VBox()
         toptophbox = gtk.HBox()
@@ -599,10 +603,11 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'screen', self.screen)
         conf.set('player', 'repeat', self.repeat)
         conf.set('player', 'shuffle', self.shuffle)
+        conf.set('player', 'covers', self.show_covers)
         conf.write(file(os.path.expanduser('~/.config/sonata/sonatarc'), 'w'))
 
     def handle_change_conn(self):
-        if self.conn is None:
+        if not self.conn:
             self.ppbutton.set_property('sensitive', False)
             self.stopbutton.set_property('sensitive', False)
             self.prevbutton.set_property('sensitive', False)
@@ -778,6 +783,11 @@ class Base(mpdclient3.mpd_connection):
             else:
                 self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-max", 4))
 
+        if self.conn:
+            if self.prevstatus == None or self.prevstatus.get('updating_db', 0) != self.status.get('updating_db', 0):
+                if not (self.status and self.status.get('updating_db', 0)):
+                    self.browse(root=self.root)
+
     def handle_change_song(self):
         for song in self.playlistdata:
             song[1] = make_unbold(song[1])
@@ -882,6 +892,8 @@ class Base(mpdclient3.mpd_connection):
             self.browser.browse(None, self.browser.root)
 
     def update_album_art(self):
+        if not self.show_covers:
+            return
         if self.conn and self.status and self.status.state in ['play', 'pause']:
             try:
                 while gtk.events_pending():
@@ -1046,15 +1058,16 @@ class Base(mpdclient3.mpd_connection):
 
     # This callback allows the user to seek to a specific portion of the song
     def progressbar_button_press_event(self, widget, event):
-        if self.status and self.status.state in ['play', 'pause']:
-            at, len = [int(c) for c in self.status.time.split(':')]
-            try:
-                progressbarsize = self.progressbar.allocation
-                seektime = int((event.x/progressbarsize.width) * len)
-                self.seek(int(self.status.song), seektime)
-            except:
-                pass
-        return True
+        if event.button == 1:
+            if self.status and self.status.state in ['play', 'pause']:
+                at, len = [int(c) for c in self.status.time.split(':')]
+                try:
+                    progressbarsize = self.progressbar.allocation
+                    seektime = int((event.x/progressbarsize.width) * len)
+                    self.seek(int(self.status.song), seektime)
+                except:
+                    pass
+            return True
 
     def progressbar_scroll_event(self, widget, event):
         if self.status and self.status.state in ['play', 'pause']:
@@ -1461,7 +1474,19 @@ class Base(mpdclient3.mpd_connection):
         blanklabel.set_alignment(0, 0)
         table.attach(blanklabel, 2, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         table.attach(gtk.Label(), 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        prefsnotebook.append_page(table, gtk.Label(str="MPD Options"))
+        table2 = gtk.Table(7, 2)
+        table2.set_row_spacings(7)
+        table2.set_col_spacings(3)
+        display_art = gtk.CheckButton("Show album covers")
+        display_art.set_active(self.show_covers)
+        table2.attach(display_art, 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table2.attach(gtk.Label(), 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table2.attach(gtk.Label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table2.attach(gtk.Label(), 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table2.attach(gtk.Label(), 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table2.attach(gtk.Label(), 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        prefsnotebook.append_page(table2, gtk.Label(str="Interface"))
+        prefsnotebook.append_page(table, gtk.Label(str="Connection"))
         hbox.pack_start(prefsnotebook, False, False, 10)
         prefswindow.vbox.pack_start(hbox, False, False, 10)
         close_button = prefswindow.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
@@ -1476,6 +1501,17 @@ class Base(mpdclient3.mpd_connection):
                 except:
                     pass
                 self.password = passwordentry.get_text()
+                self.show_covers = display_art.get_active()
+                prefswindow.destroy()
+                if self.show_covers:
+                    self.albumimage.set_from_file(self.sonatacd)
+                    self.lastalbumart = None
+                    self.imageeventbox.set_no_show_all(False)
+                    self.imageeventbox.show_all()
+                    self.update_album_art()
+                else:
+                    self.imageeventbox.set_no_show_all(True)
+                    self.imageeventbox.hide()
                 self.conn = self.connect()
                 if self.conn:
                     self.conn.do.password(self.password)
