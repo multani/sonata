@@ -27,5 +27,5 @@ setup(name='Sonata',
                     ('share/applications',
                         ['sonata.desktop']),
                     ('share/pixmaps',
-                        ['sonata.png', 'sonataplaylist.png', 'sonatacd.png'])],
+                        ['sonata.png', 'sonatacd.png'])],
         )

@@ -176,7 +176,8 @@ class Base(mpdclient3.mpd_connection):
             ('nextkey', None, 'Next Key', '<Ctrl>Right', None, self.next),
             ('lowerkey', None, 'Lower Volume Key', '<Ctrl>minus', None, self.lower_volume),
             ('raisekey', None, 'Raise Volume Key', '<Ctrl>plus', None, self.raise_volume),
-            ('raisekey2', None, 'Raise Volume Key 2', '<Ctrl>equal', None, self.raise_volume)
+            ('raisekey2', None, 'Raise Volume Key 2', '<Ctrl>equal', None, self.raise_volume),
+            ('quitkey', None, 'Quit Key', '<Ctrl>q', None, self.delete_event_yes)
             )
 
         toggle_actions = (
@@ -213,6 +214,7 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="helpmenu"/>
               </popup>
               <popup name="hidden">
+                <menuitem action="quitkey"/>
                 <menuitem action="playlistkey"/>
                 <menuitem action="librarykey"/>
                 <menuitem action="expandkey"/>
@@ -251,25 +253,16 @@ class Base(mpdclient3.mpd_connection):
         # Add some icons:
         self.iconfactory = gtk.IconFactory()
         self.sonataset = gtk.IconSet()
-        self.sonataplaylistset = gtk.IconSet()
         sonataicon = 'sonata.png'
-        sonataplaylisticon = 'sonataplaylist.png'
         if os.path.exists(os.path.join(sys.prefix, 'share', 'pixmaps', sonataicon)):
             filename1 = [os.path.join(sys.prefix, 'share', 'pixmaps', sonataicon)]
-            filename2 = [os.path.join(sys.prefix, 'share', 'pixmaps', sonataplaylisticon)]
         elif os.path.exists(os.path.join(os.path.split(__file__)[0], sonataicon)):
             filename1 = [os.path.join(os.path.split(__file__)[0], sonataicon)]
-            filename2 = [os.path.join(os.path.split(__file__)[0], sonataplaylisticon)]
         self.icons1 = [gtk.IconSource() for i in filename1]
-        self.icons2 = [gtk.IconSource() for i in filename2]
         for i, iconsource in enumerate(self.icons1):
             iconsource.set_filename(filename1[i])
             self.sonataset.add_source(iconsource)
-        for i, iconsource in enumerate(self.icons2):
-            iconsource.set_filename(filename2[i])
-            self.sonataplaylistset.add_source(iconsource)
         self.iconfactory.add('sonata', self.sonataset)
-        self.iconfactory.add('sonataplaylist', self.sonataplaylistset)
         self.iconfactory.add_default()
 
         # Main app:
@@ -364,7 +357,7 @@ class Base(mpdclient3.mpd_connection):
         self.playlist.set_enable_search(True)
         self.expanderwindow.add(self.playlist)
         playlisthbox = gtk.HBox()
-        playlisthbox.pack_start(gtk.image_new_from_stock('sonataplaylist', gtk.ICON_SIZE_MENU), False, False, 2)
+        playlisthbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_JUSTIFY_FILL, gtk.ICON_SIZE_MENU), False, False, 2)
         playlisthbox.pack_start(gtk.Label(str="Playlist"), False, False, 2)
         playlisthbox.show_all()
         self.notebook.append_page(self.expanderwindow, playlisthbox)
@@ -544,13 +537,6 @@ class Base(mpdclient3.mpd_connection):
             self.window.set_no_show_all(True)
             self.window.hide()
         self.window.show_all()
-
-        # self.configure accelerators
-        self.accelerators = gtk.AccelGroup()
-        self.window.add_accel_group(self.accelerators)
-        self.accelerators.connect_group(gtk.keysyms.Delete, (), gtk.ACCEL_LOCKED, self.accelerator_activated)
-        self.accelerators.connect_group(ord('i'), gtk.gdk.CONTROL_MASK, gtk.ACCEL_LOCKED, self.accelerator_activated)
-        self.accelerators.connect_group(ord('q'), gtk.gdk.CONTROL_MASK, gtk.ACCEL_LOCKED, self.accelerator_activated)
 
         self.initialize_systrayicon()
 

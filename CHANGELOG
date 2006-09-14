@@ -4,6 +4,8 @@ v0.5.2 - Pending
 	+ Prefs to show album art, stop playback on exit
 	+ Pref to minimize app to systray on close
 	+ Increase iter time if connection timesout (to make gui responsive)
+	+ Use gtk.STOCK_JUSTIFY_FILL instead of custom icon
+	+ More shortcuts (see documentation)
 	+ Minor bugfixes
 
 v0.5.1 - September 13, 2006
