@@ -400,10 +400,6 @@ class Base(mpdclient3.mpd_connection):
             self.notebook.hide()
             self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>Click to expand</small>')
             self.window.set_default_size(self.w, 1)
-            self.UIManager.get_widget('/mainmenu/removemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/addmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
         else:
             self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>Click to collapse</small>')
             self.window.set_default_size(self.w, self.h)
@@ -488,6 +484,15 @@ class Base(mpdclient3.mpd_connection):
         self.progressbar.connect('notify::text', self.progressbarnotify_text)
         self.browser.connect('row_activated', self.browserow)
         self.browser.connect('button_press_event', self.browser_button_press)
+        self.ppbutton.connect('button_press_event', self.popup_menu)
+        self.prevbutton.connect('button_press_event', self.popup_menu)
+        self.stopbutton.connect('button_press_event', self.popup_menu)
+        self.nextbutton.connect('button_press_event', self.popup_menu)
+        self.progresseventbox.connect('button_press_event', self.popup_menu)
+        self.expander.connect('button_press_event', self.popup_menu)
+        self.volumebutton.connect('button_press_event', self.popup_menu)
+        self.window.add_events(gtk.gdk.BUTTON_PRESS_MASK)
+        self.window.connect('button_press_event', self.popup_menu)
 
         self.traytips = TrayIconTips()
         self.traytips.add_widget(self.tipbox)
@@ -643,18 +648,8 @@ class Base(mpdclient3.mpd_connection):
 
     def notebook_clicked(self, notebook, page, page_num):
         if page_num == 0:
-            # Playlist:
-            self.UIManager.get_widget('/mainmenu/removemenu/').show()
-            self.UIManager.get_widget('/mainmenu/clearmenu/').show()
-            self.UIManager.get_widget('/mainmenu/addmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
             gobject.idle_add(self.give_widget_focus, self.playlist)
         elif page_num == 1:
-            # Library:
-            self.UIManager.get_widget('/mainmenu/addmenu/').show()
-            self.UIManager.get_widget('/mainmenu/replacemenu/').show()
-            self.UIManager.get_widget('/mainmenu/removemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
             gobject.idle_add(self.give_widget_focus, self.browser)
 
     def give_widget_focus(self, widget):
@@ -708,6 +703,7 @@ class Base(mpdclient3.mpd_connection):
 
     def browser_button_press(self, widget, event):
         if event.button == 3:
+            self.set_menu_contextual_items_visible()
             self.mainmenu.popup(None, None, None, event.button, event.time)
             # Don't change the selection for a right-click. This
             # will allow the user to select multiple rows and then
@@ -745,6 +741,7 @@ class Base(mpdclient3.mpd_connection):
             return (self.x + 250, self.y + 80, True)
 
     def menukey_press(self, action):
+        self.set_menu_contextual_items_visible()
         self.mainmenu.popup(None, None, self.position_menu, 0, 0)
 
     def handle_change_status(self):
@@ -1062,13 +1059,8 @@ class Base(mpdclient3.mpd_connection):
         # before this current click
         if self.expander.get_expanded():
             self.notebook.hide()
-            self.UIManager.get_widget('/mainmenu/removemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/addmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
         else:
             self.notebook.show_all()
-            self.notebook_clicked(None, None, self.notebook.get_current_page())
         if not (self.conn and self.status and self.status.state in ['play', 'pause']):
             if self.expander.get_expanded():
                 self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>Click to expand</small>')
@@ -1199,6 +1191,7 @@ class Base(mpdclient3.mpd_connection):
 
     def playlist_button_press(self, widget, event):
         if event.button == 3:
+            self.set_menu_contextual_items_visible()
             self.mainmenu.popup(None, None, None, event.button, event.time)
             # Don't change the selection for a right-click. This
             # will allow the user to select multiple rows and then
@@ -1208,12 +1201,8 @@ class Base(mpdclient3.mpd_connection):
                 return True
 
     def playlist_popup_menu(self, widget):
+        self.set_menu_contextual_items_visible()
         self.mainmenu.popup(None, None, None, 3, 0)
-
-    def update_activate(self, widget, event):
-        if event.button == 3:
-            self.updatemenu.popup(None, None, None, event.button, event.time)
-        return False
 
     def updatedb(self, widget):
         if self.conn:
@@ -1223,11 +1212,6 @@ class Base(mpdclient3.mpd_connection):
         if event.button == 3:
             if self.conn and self.status and self.status.state in ['play', 'pause']:
                 self.imagemenu.popup(None, None, None, event.button, event.time)
-        return False
-
-    def stop_activate(self, widget, event):
-        if event.button == 3:
-            self.stopmenu.popup(None, None, None, event.button, event.time)
         return False
 
     def change_cursor(self, type):
@@ -1563,7 +1547,7 @@ class Base(mpdclient3.mpd_connection):
         table2.attach(gtk.Label(), 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         table2.attach(gtk.Label(), 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         prefsnotebook.append_page(table2, gtk.Label(str="Interface"))
-        prefsnotebook.append_page(table, gtk.Label(str="Connection"))
+        prefsnotebook.append_page(table, gtk.Label(str="MPD"))
         hbox.pack_start(prefsnotebook, False, False, 10)
         prefswindow.vbox.pack_start(hbox, False, False, 10)
         close_button = prefswindow.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
@@ -1613,6 +1597,34 @@ class Base(mpdclient3.mpd_connection):
     def seek(self, song, seektime):
         self.conn.do.seek(song, seektime)
         return
+
+    def popup_menu(self, widget, event):
+        if widget == self.window:
+            if event.get_coords()[1] > self.notebook.get_allocation()[1]:
+                return
+        if event.button == 3:
+            self.set_menu_contextual_items_hidden()
+            self.mainmenu.popup(None, None, None, event.button, event.time)
+
+    def set_menu_contextual_items_visible(self):
+        if not self.expanded:
+            self.set_menu_contextual_items_hidden()
+        elif self.notebook.get_current_page() == 0:
+            self.UIManager.get_widget('/mainmenu/removemenu/').show()
+            self.UIManager.get_widget('/mainmenu/clearmenu/').show()
+            self.UIManager.get_widget('/mainmenu/addmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
+        else:
+            self.UIManager.get_widget('/mainmenu/removemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/addmenu/').show()
+            self.UIManager.get_widget('/mainmenu/replacemenu/').show()
+
+    def set_menu_contextual_items_hidden(self):
+        self.UIManager.get_widget('/mainmenu/removemenu/').hide()
+        self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
+        self.UIManager.get_widget('/mainmenu/addmenu/').hide()
+        self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
 
     def help(self, action):
         self.browser_load("http://sonata.berlios.de/documentation.html")

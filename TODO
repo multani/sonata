@@ -1,7 +1,7 @@
 0.5.2
 	more keybindings (w/ support for multimedia keys)
-	non-contextual menu on right click outside of lists
 	update docs
+	move 'menu' shortcut popup to correct pos
 
 Future:
 	use threading for album art
