@@ -2,6 +2,7 @@ v0.5.2 - Pending
 	+ Correctly update interface after updating MPD library
 	+ Try gnome-open/exo-open first for opening help, then fallback
 	+ Prefs to show album art, stop playback on exit
+	+ Increase iter time if connection timesout (to make gui responsive)
 	+ Minor bugfixes
 
 v0.5.1 - September 13, 2006

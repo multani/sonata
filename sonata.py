@@ -107,6 +107,13 @@ class Base(mpdclient3.mpd_connection):
         self.shuffle = False
         self.show_covers = True
         self.stop_on_exit = False
+        # If the connection to MPD times out, this will cause the
+        # interface to freeze while the socket.connect() calls
+        # are repeatedly called every 250ms. Therefore, if we were
+        # not able to make a connection, slow down the iteration
+        # check to once every 15 seconds.
+        self.iterate_time_when_connected = 250
+        self.iterate_time_when_disconnected = 15000
 
         # Load config:
         conf = ConfigParser.ConfigParser()
@@ -222,6 +229,7 @@ class Base(mpdclient3.mpd_connection):
         if self.conn:
             self.conn.do.password(self.password)
         if self.conn:
+            self.iterate_time = self.iterate_time_when_connected
             self.status = self.conn.do.status()
             try:
                 test = self.status.state
@@ -232,6 +240,7 @@ class Base(mpdclient3.mpd_connection):
             except:
                 self.songinfo = None
         else:
+            self.iterate_time = self.iterate_time_when_disconnected
             self.status = None
             self.songinfo = None
 
@@ -541,8 +550,8 @@ class Base(mpdclient3.mpd_connection):
 
         self.initialize_systrayicon()
 
-        # Call self.iterate every 250ms to keep current info displayed
-        gobject.timeout_add(250, self.iterate)
+        # Call self.iterate every self.iterate_time ms to keep current info displayed
+        self.iterate_handler = gobject.timeout_add(self.iterate_time, self.iterate)
 
         self.notebook.set_no_show_all(False)
         self.window.set_no_show_all(False)
@@ -559,6 +568,7 @@ class Base(mpdclient3.mpd_connection):
             if not self.conn:
                 self.conn = self.connect()
             if self.conn:
+                self.iterate_time = self.iterate_time_when_connected
                 self.status = self.conn.do.status()
                 try:
                     test = self.status.state
@@ -566,6 +576,7 @@ class Base(mpdclient3.mpd_connection):
                     self.status = None
                 self.songinfo = self.conn.do.currentsong()
             else:
+                self.iterate_time = self.iterate_time_when_disconnected
                 self.status = None
                 self.songinfo = None
         except (mpdclient3.socket.error, EOFError):
@@ -590,7 +601,7 @@ class Base(mpdclient3.mpd_connection):
         self.prevstatus = self.status
         self.prevsonginfo = self.songinfo
 
-        gobject.timeout_add(250, self.iterate) # Repeat ad infitum..
+        self.iterate_handler = gobject.timeout_add(self.iterate_time, self.iterate) # Repeat ad infitum..
 
     def save_settings(self):
         conf = ConfigParser.ConfigParser()
@@ -1505,22 +1516,26 @@ class Base(mpdclient3.mpd_connection):
                 except:
                     pass
                 self.password = passwordentry.get_text()
+                show_covers_prev = self.show_covers
                 self.show_covers = display_art.get_active()
                 self.stop_on_exit = exit_stop.get_active()
-                prefswindow.destroy()
-                if self.show_covers:
+                if show_covers_prev == False and self.show_covers == True:
                     self.albumimage.set_from_file(self.sonatacd)
                     self.lastalbumart = None
                     self.imageeventbox.set_no_show_all(False)
                     self.imageeventbox.show_all()
                     self.update_album_art()
-                else:
+                elif show_covers_prev == True and self.show_covers == False:
                     self.imageeventbox.set_no_show_all(True)
                     self.imageeventbox.hide()
                 self.conn = self.connect()
                 if self.conn:
+                    self.iterate_time = self.iterate_time_when_connected
                     self.conn.do.password(self.password)
+                    gobject.source_remove(self.iterate_handler)
+                    self.iterate_handler = gobject.timeout_add(self.iterate_time, self.iterate)
                 else:
+                    self.iterate_time = self.iterate_time_when_disconnected
                     self.browserdata.clear()
         prefswindow.destroy()
 
