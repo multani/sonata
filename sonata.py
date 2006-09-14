@@ -227,7 +227,10 @@ class Base(mpdclient3.mpd_connection):
                 test = self.status.state
             except:
                 self.status = None
-            self.songinfo = self.conn.do.currentsong()
+            try:
+                self.songinfo = self.conn.do.currentsong()
+            except:
+                self.songinfo = None
         else:
             self.status = None
             self.songinfo = None
@@ -702,23 +705,24 @@ class Base(mpdclient3.mpd_connection):
                 return True
 
     def browser_add(self, widget):
-        model, selected = self.browser.get_selection().get_selected_rows()
-        if self.root == "/":
-            for path in selected:
-                self.conn.do.add(model.get_value(model.get_iter(path), 1))
-        else:
-            iters = []
-            for path in selected:
-                if path[0] != 0 and path[0] != 1:
+        if self.conn:
+            model, selected = self.browser.get_selection().get_selected_rows()
+            if self.root == "/":
+                for path in selected:
                     self.conn.do.add(model.get_value(model.get_iter(path), 1))
+            else:
+                iters = []
+                for path in selected:
+                    if path[0] != 0 and path[0] != 1:
+                        self.conn.do.add(model.get_value(model.get_iter(path), 1))
 
     def browser_replace(self, widget):
         play_after_replace = False
-        if self.status.state == 'play':
+        if self.status and self.status.state == 'play':
             play_after_replace = True
         self.clear(None)
         self.browser_add(widget)
-        if play_after_replace:
+        if play_after_replace and self.conn:
             self.conn.do.play()
 
     def handle_change_status(self):
@@ -886,13 +890,6 @@ class Base(mpdclient3.mpd_connection):
                         self.playlist.scroll_to_point(-1, top_coord)
                     elif row_rect.y < 0:
                         self.playlist.scroll_to_cell(row)
-
-    def update_browser(self):
-        buttons = self.buttonbox.get_children()
-        if buttons and buttons[0].get_label() == 'Search results':
-            self.browser.findbutton_clicked(None)
-        else:
-            self.browser.browse(None, self.browser.root)
 
     def update_album_art(self):
         if not self.show_covers:
@@ -1523,6 +1520,8 @@ class Base(mpdclient3.mpd_connection):
                 self.conn = self.connect()
                 if self.conn:
                     self.conn.do.password(self.password)
+                else:
+                    self.browserdata.clear()
         prefswindow.destroy()
 
     def seek(self, song, seektime):

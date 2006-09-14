@@ -6,6 +6,7 @@
 # and is provided AS IS, with NO WARRANTY.
 
 import socket
+import sys
 
 # a line is either:
 #
@@ -24,6 +25,7 @@ class socket_talker(object):
         self.current_line = ''
         self.ack = ''
         self.done = True
+        self.sock.close()
 
     # this SUCKS
 
