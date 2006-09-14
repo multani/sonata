@@ -1,6 +1,14 @@
+0.5.2
+	bug: updating library requires a restart
+	progressbar for update?
+	Interface settings
+		- Stop playback on exit
+		- Closing minimizes to systemtray
+		- Display cover art
+	more keybindings (w/ support for multimedia keys)
+
 Future:
 	use threading for album art
-	setting to stop playback on exit, other settings
 	retain selection after dnd
 	ability to set art from local image?
 	ability to configure columns for playlist
@@ -8,7 +16,7 @@ Future:
 	switch to pygtk's statusicon (2.10) and remove gnome-python dep
 		- then we can finally use skip_taskbar_hint since we will
 		  be able to reliably detect if the sysicon is displayed
-	Playlist file support(?)
+	Playlist support (and auto-generation based on dirs?)
 	Stream support(?)
 	Documentation
 	Translations
