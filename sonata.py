@@ -106,6 +106,7 @@ class Base(mpdclient3.mpd_connection):
         self.repeat = False
         self.shuffle = False
         self.show_covers = True
+        self.stop_on_exit = False
 
         # Load config:
         conf = ConfigParser.ConfigParser()
@@ -134,6 +135,7 @@ class Base(mpdclient3.mpd_connection):
             self.repeat = conf.getboolean('player', 'repeat')
             self.shuffle = conf.getboolean('player', 'shuffle')
             self.show_covers = conf.getboolean('player', 'covers')
+            self.stop_on_exit = conf.getboolean('player', 'stop_on_exit')
         except:
             pass
 
@@ -604,6 +606,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'repeat', self.repeat)
         conf.set('player', 'shuffle', self.shuffle)
         conf.set('player', 'covers', self.show_covers)
+        conf.set('player', 'stop_on_exit', self.stop_on_exit)
         conf.write(file(os.path.expanduser('~/.config/sonata/sonatarc'), 'w'))
 
     def handle_change_conn(self):
@@ -1001,6 +1004,8 @@ class Base(mpdclient3.mpd_connection):
     # This one makes sure the program exits when the window is closed
     def delete_event(self, widget, data=None):
         self.save_settings()
+        if self.stop_on_exit:
+            self.stop(None)
         gtk.main_quit()
         return False
 
@@ -1479,9 +1484,11 @@ class Base(mpdclient3.mpd_connection):
         table2.set_col_spacings(3)
         display_art = gtk.CheckButton("Show album covers")
         display_art.set_active(self.show_covers)
-        table2.attach(display_art, 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table2.attach(gtk.Label(), 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table2.attach(gtk.Label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        exit_stop = gtk.CheckButton("Stop playback when exiting Sonata")
+        exit_stop.set_active(self.stop_on_exit)
+        table2.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table2.attach(display_art, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(exit_stop, 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(gtk.Label(), 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         table2.attach(gtk.Label(), 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         table2.attach(gtk.Label(), 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
@@ -1502,6 +1509,7 @@ class Base(mpdclient3.mpd_connection):
                     pass
                 self.password = passwordentry.get_text()
                 self.show_covers = display_art.get_active()
+                self.stop_on_exit = exit_stop.get_active()
                 prefswindow.destroy()
                 if self.show_covers:
                     self.albumimage.set_from_file(self.sonatacd)

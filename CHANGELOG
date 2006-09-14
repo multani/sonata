@@ -1,7 +1,7 @@
 v0.5.2 - Pending
 	+ Correctly update interface after updating MPD library
 	+ Try gnome-open/exo-open first for opening help
-	+ Pref to show album art
+	+ Prefs to show album art, stop playback on exit
 
 v0.5.1 - September 13, 2006
 	+ Increment to mpdclient3 to prevent incompatibility issues

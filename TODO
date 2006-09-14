@@ -1,10 +1,9 @@
 0.5.2
-	progressbar for update?
 	Interface settings
-		- Stop playback on exit
 		- Closing minimizes to systemtray
-		- Display cover art
 	more keybindings (w/ support for multimedia keys)
+	non-contextual menu on right click outside of lists
+	update docs
 
 Future:
 	use threading for album art
