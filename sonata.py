@@ -107,6 +107,8 @@ class Base(mpdclient3.mpd_connection):
         self.shuffle = False
         self.show_covers = True
         self.stop_on_exit = False
+        self.minimize_to_systray = False
+        self.exit_now = False
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
         # are repeatedly called every 250ms. Therefore, if we were
@@ -143,6 +145,7 @@ class Base(mpdclient3.mpd_connection):
             self.shuffle = conf.getboolean('player', 'shuffle')
             self.show_covers = conf.getboolean('player', 'covers')
             self.stop_on_exit = conf.getboolean('player', 'stop_on_exit')
+            self.minimize_to_systray = conf.getboolean('player', 'minimize')
         except:
             pass
 
@@ -154,7 +157,7 @@ class Base(mpdclient3.mpd_connection):
             ('stopmenu', gtk.STOCK_MEDIA_STOP, '_Stop', None, None, self.stop),
             ('prevmenu', gtk.STOCK_MEDIA_PREVIOUS, '_Previous', None, None, self.prev),
             ('nextmenu', gtk.STOCK_MEDIA_NEXT, '_Next', None, None, self.next),
-            ('quitmenu', gtk.STOCK_QUIT, '_Quit', None, None, self.delete_event),
+            ('quitmenu', gtk.STOCK_QUIT, '_Quit', None, None, self.delete_event_yes),
             ('removemenu', gtk.STOCK_REMOVE, '_Remove', None, None, self.remove),
             ('clearmenu', gtk.STOCK_CLEAR, '_Clear', None, None, self.clear),
             ('updatemenu', None, '_Update Library', None, None, self.updatedb),
@@ -540,9 +543,6 @@ class Base(mpdclient3.mpd_connection):
             self.window.set_no_show_all(True)
             self.window.hide()
         self.window.show_all()
-        # Only withdraw if the system tray icon is showing
-        #if self.withdrawn:
-        #	self.window.window.withdraw()
 
         # self.configure accelerators
         self.accelerators = gtk.AccelGroup()
@@ -624,6 +624,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'shuffle', self.shuffle)
         conf.set('player', 'covers', self.show_covers)
         conf.set('player', 'stop_on_exit', self.stop_on_exit)
+        conf.set('player', 'minimize', self.minimize_to_systray)
         conf.write(file(os.path.expanduser('~/.config/sonata/sonatarc'), 'w'))
 
     def handle_change_conn(self):
@@ -1013,8 +1014,15 @@ class Base(mpdclient3.mpd_connection):
     # Gui Callbacks #
     #################
 
+    def delete_event_yes(self, widget):
+        self.exit_now = True
+        self.delete_event(None, None)
+
     # This one makes sure the program exits when the window is closed
     def delete_event(self, widget, data=None):
+        if not self.exit_now and self.minimize_to_systray:
+            self.withdraw_app()
+            return True
         self.save_settings()
         if self.stop_on_exit:
             self.stop(None)
@@ -1297,15 +1305,9 @@ class Base(mpdclient3.mpd_connection):
     def trayaction(self, widget, event):
         if event.button == 1: # Left button shows/hides window(s)
             if self.window.window.get_state() & gtk.gdk.WINDOW_STATE_WITHDRAWN: # window is hidden
-                self.window.move(self.x, self.y)
-                if not self.expanded:
-                    self.notebook.set_no_show_all(True)
-                self.window.show_all()
-                self.notebook.set_no_show_all(False)
-                self.withdrawn = False
+                self.withdraw_app_undo()
             elif not (self.window.window.get_state() & gtk.gdk.WINDOW_STATE_WITHDRAWN): # window is showing
-                self.window.hide()
-                self.withdrawn = True
+                self.withdraw_app()
             # This prevents the tooltip from popping up again until the user
             # leaves and enters the trayicon again
             self.traytips._remove_timer()
@@ -1314,6 +1316,18 @@ class Base(mpdclient3.mpd_connection):
         elif event.button == 3: # Right button pops up menu
             self.traymenu.popup(None, None, None, event.button, event.time)
         return False
+
+    def withdraw_app_undo(self):
+        self.window.move(self.x, self.y)
+        if not self.expanded:
+            self.notebook.set_no_show_all(True)
+        self.window.show_all()
+        self.notebook.set_no_show_all(False)
+        self.withdrawn = False
+
+    def withdraw_app(self):
+        self.window.hide()
+        self.withdrawn = True
 
     # Change volume on mousewheel over systray icon:
     def trayaction_scroll(self, widget, event):
@@ -1492,16 +1506,25 @@ class Base(mpdclient3.mpd_connection):
         table.attach(blanklabel, 2, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         table.attach(gtk.Label(), 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         table2 = gtk.Table(7, 2)
-        table2.set_row_spacings(7)
+        table2.set_row_spacings(5)
         table2.set_col_spacings(3)
         display_art = gtk.CheckButton("Show album covers")
         display_art.set_active(self.show_covers)
-        exit_stop = gtk.CheckButton("Stop playback when exiting Sonata")
+        self.tooltips.set_tip(display_art, "Controls whether album art is automatically downloaded and displayed in the interface.")
+        exit_stop = gtk.CheckButton("Stop playback on exit")
         exit_stop.set_active(self.stop_on_exit)
+        self.tooltips.set_tip(exit_stop, "MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and stop playback upon exit.")
+        minimize = gtk.CheckButton("Closing Sonata minimizes to system tray")
+        minimize.set_active(self.minimize_to_systray)
+        self.tooltips.set_tip(minimize, "If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one.")
+        if self.trayicon_visible:
+            minimize.set_sensitive(True)
+        else:
+            minimize.set_sensitive(False)
         table2.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         table2.attach(display_art, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(exit_stop, 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(gtk.Label(), 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table2.attach(minimize, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(gtk.Label(), 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         table2.attach(gtk.Label(), 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         prefsnotebook.append_page(table2, gtk.Label(str="Interface"))
@@ -1523,6 +1546,7 @@ class Base(mpdclient3.mpd_connection):
                 show_covers_prev = self.show_covers
                 self.show_covers = display_art.get_active()
                 self.stop_on_exit = exit_stop.get_active()
+                self.minimize_to_systray = minimize.get_active()
                 if show_covers_prev == False and self.show_covers == True:
                     self.albumimage.set_from_file(self.sonatacd)
                     self.lastalbumart = None
@@ -1571,7 +1595,9 @@ class Base(mpdclient3.mpd_connection):
             self.trayicon = egg.trayicon.TrayIcon("TrayIcon")
             self.trayicon.add(self.trayeventbox)
             self.trayicon.show_all()
+            self.trayicon_visible = True
         except:
+            self.trayicon_visible = False
             pass
 
     def main(self):

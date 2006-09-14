@@ -1,6 +1,4 @@
 0.5.2
-	Interface settings
-		- Closing minimizes to systemtray
 	more keybindings (w/ support for multimedia keys)
 	non-contextual menu on right click outside of lists
 	update docs
