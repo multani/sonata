@@ -423,6 +423,9 @@ class Base(mpdclient3.mpd_connection):
         self.trayalbumimage = gtk.Image()
         self.trayalbumimage.set_size_request(50, 50)
         self.trayalbumimage.set_padding(5, 5)
+        if not self.show_covers:
+            self.trayalbumimage.set_no_show_all(True)
+            self.trayalbumimage.hide()
         self.tipbox.pack_start(self.trayalbumimage, False, False, 6)
         self.tipbox.pack_start(innerbox, True, True, 6)
 
@@ -868,7 +871,8 @@ class Base(mpdclient3.mpd_connection):
             self.trayalbumimage.hide()
         else:
             self.trayprogressbar.show()
-            self.trayalbumimage.show()
+            if self.show_covers:
+                self.trayalbumimage.show()
 
     def update_wintitle(self):
         if self.conn and self.status and self.status.state in ['play', 'pause']:
@@ -1524,10 +1528,14 @@ class Base(mpdclient3.mpd_connection):
                     self.lastalbumart = None
                     self.imageeventbox.set_no_show_all(False)
                     self.imageeventbox.show_all()
+                    self.trayalbumimage.set_no_show_all(False)
+                    self.trayalbumimage.show_all()
                     self.update_album_art()
                 elif show_covers_prev == True and self.show_covers == False:
                     self.imageeventbox.set_no_show_all(True)
                     self.imageeventbox.hide()
+                    self.trayalbumimage.set_no_show_all(True)
+                    self.trayalbumimage.hide()
                 self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
                 while gtk.events_pending():
                     gtk.main_iteration()
