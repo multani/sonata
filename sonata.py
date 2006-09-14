@@ -33,6 +33,7 @@ import time
 import socket
 import string
 import gc
+import subprocess
 
 try:
     import cPickle as pickle
@@ -1580,7 +1581,7 @@ class Base(mpdclient3.mpd_connection):
         return
 
     def help(self, action):
-        browser_load("http://sonata.berlios.de/documentation.html")
+        self.browser_load("http://sonata.berlios.de/documentation.html")
 
     def initialize_systrayicon(self):
         # Make system tray 'icon' to sit in the system tray
@@ -1599,6 +1600,26 @@ class Base(mpdclient3.mpd_connection):
         except:
             self.trayicon_visible = False
             pass
+
+    def browser_load(self, docslink):
+        try:
+            pid = subprocess.Popen(["gnome-open", docslink]).pid
+        except:
+            try:
+                pid = subprocess.Popen(["exo-open", docslink]).pid
+            except:
+                try:
+                    pid = subprocess.Popen(["firefox", docslink]).pid
+                except:
+                    try:
+                        pid = subprocess.Popen(["mozilla", docslink]).pid
+                    except:
+                        try:
+                            pid = subprocess.Popen(["opera", docslink]).pid
+                        except:
+                            error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, 'Unable to launch a suitable browser.')
+                            error_dialog.run()
+                            error_dialog.destroy()
 
     def main(self):
         gtk.main()
@@ -1775,23 +1796,3 @@ def removeall(path):
             removeall(fullpath)
             f=os.rmdir
             rmgeneric(fullpath, f)
-
-def browser_load(docslink):
-    try:
-        pid = subprocess.Popen(["gnome-open", docslink]).pid
-    except:
-        try:
-            pid = subprocess.Popen(["exo-open", docslink]).pid
-        except:
-            try:
-                pid = subprocess.Popen(["firefox", docslink]).pid
-            except:
-                try:
-                    pid = subprocess.Popen(["mozilla", docslink]).pid
-                except:
-                    try:
-                        pid = subprocess.Popen(["opera", docslink]).pid
-                    except:
-                        error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _('Unable to launch a suitable browser.'))
-                        error_dialog.run()
-                        error_dialog.destroy()

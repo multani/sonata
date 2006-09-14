@@ -8,5 +8,5 @@ Type=Application
 Icon=sonata
 Categories=GTK;Application;AudioVideo;Player;
 StartupNotify=true
-Version=0.5.1
+Version=0.5.2
 Encoding=UTF-8
