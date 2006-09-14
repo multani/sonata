@@ -177,7 +177,8 @@ class Base(mpdclient3.mpd_connection):
             ('lowerkey', None, 'Lower Volume Key', '<Ctrl>minus', None, self.lower_volume),
             ('raisekey', None, 'Raise Volume Key', '<Ctrl>plus', None, self.raise_volume),
             ('raisekey2', None, 'Raise Volume Key 2', '<Ctrl>equal', None, self.raise_volume),
-            ('quitkey', None, 'Quit Key', '<Ctrl>q', None, self.delete_event_yes)
+            ('quitkey', None, 'Quit Key', '<Ctrl>q', None, self.delete_event_yes),
+            ('menukey', None, 'Menu Key', 'Menu', None, self.menukey_press)
             )
 
         toggle_actions = (
@@ -226,6 +227,7 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="lowerkey"/>
                 <menuitem action="raisekey"/>
                 <menuitem action="raisekey2"/>
+                <menuitem action="menukey"/>
               </popup>
             </ui>
             """
@@ -382,11 +384,22 @@ class Base(mpdclient3.mpd_connection):
         self.window.add(mainhbox)
         self.window.move(self.x, self.y)
         self.window.set_size_request(270, -1)
+        self.mainmenu = self.UIManager.get_widget('/mainmenu')
+        self.shufflemenu = self.UIManager.get_widget('/mainmenu/shufflemenu')
+        self.repeatmenu = self.UIManager.get_widget('/mainmenu/repeatmenu')
+        self.imagemenu = self.UIManager.get_widget('/imagemenu')
+        self.traymenu = self.UIManager.get_widget('/traymenu')
+        self.UIManager.get_widget('/mainmenu/addmenu/').hide()
+        self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
         if not self.expanded:
             self.notebook.set_no_show_all(True)
             self.notebook.hide()
             self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>Click to expand</small>')
             self.window.set_default_size(self.w, 1)
+            self.UIManager.get_widget('/mainmenu/removemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/addmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
         else:
             self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>Click to collapse</small>')
             self.window.set_default_size(self.w, self.h)
@@ -396,13 +409,6 @@ class Base(mpdclient3.mpd_connection):
             self.tooltips.set_tip(self.expander, "Click to collapse the player")
         else:
             self.tooltips.set_tip(self.expander, "Click to expand the player")
-        self.mainmenu = self.UIManager.get_widget('/mainmenu')
-        self.shufflemenu = self.UIManager.get_widget('/mainmenu/shufflemenu')
-        self.repeatmenu = self.UIManager.get_widget('/mainmenu/repeatmenu')
-        self.imagemenu = self.UIManager.get_widget('/imagemenu')
-        self.traymenu = self.UIManager.get_widget('/traymenu')
-        self.UIManager.get_widget('/mainmenu/addmenu/').hide()
-        self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
 
         # Systray:
         self.tipbox = gtk.HBox()
@@ -727,6 +733,16 @@ class Base(mpdclient3.mpd_connection):
         if play_after_replace and self.conn:
             self.conn.do.play()
 
+    def position_menu(self, menu):
+        if self.expanded:
+            x, y, width, height = self.playlist.get_allocation()
+            return (self.x + width - 150, self.y + y, True)
+        else:
+            return (self.x + 250, self.y + 80, True)
+
+    def menukey_press(self, action):
+        self.mainmenu.popup(None, None, self.position_menu, 0, 0)
+
     def handle_change_status(self):
         if self.status == None:
             # clean up and bail out
@@ -1038,10 +1054,17 @@ class Base(mpdclient3.mpd_connection):
 
     def expander_activate(self, expander):
         self.expanded = False
+        # Note that get_expanded() will return the state of the expander
+        # before this current click
         if self.expander.get_expanded():
             self.notebook.hide()
+            self.UIManager.get_widget('/mainmenu/removemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/addmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
         else:
             self.notebook.show_all()
+            self.notebook_clicked(None, None, self.notebook.get_current_page())
         if not (self.conn and self.status and self.status.state in ['play', 'pause']):
             if self.expander.get_expanded():
                 self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>Click to expand</small>')
