@@ -2,8 +2,10 @@
 	more keybindings (w/ support for multimedia keys)
 	update docs
 	move 'menu' shortcut popup to correct pos
+	border around album art
 
 Future:
+	optional statusbar (num songs, total length)
 	use threading for album art
 	retain selection after dnd
 	ability to set art from local image?

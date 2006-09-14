@@ -289,7 +289,6 @@ class Base(mpdclient3.mpd_connection):
         self.imageeventbox = gtk.EventBox()
         self.albumimage = gtk.Image()
         self.albumimage.set_size_request(75, 75)
-        self.albumimage.set_padding(20, 20)
         self.imageeventbox.add(self.albumimage)
         if not self.show_covers:
             self.imageeventbox.set_no_show_all(True)
@@ -1601,6 +1600,9 @@ class Base(mpdclient3.mpd_connection):
     def popup_menu(self, widget, event):
         if widget == self.window:
             if event.get_coords()[1] > self.notebook.get_allocation()[1]:
+                return
+            if event.get_coords()[0] >= self.imageeventbox.get_allocation()[0] and event.get_coords()[0] <= self.imageeventbox.get_allocation()[2] and event.get_coords()[1] >= self.imageeventbox.get_allocation()[1] and event.get_coords()[1] <= self.imageeventbox.get_allocation()[3]:
+                # Don't popup menu over album image:
                 return
         if event.button == 3:
             self.set_menu_contextual_items_hidden()
