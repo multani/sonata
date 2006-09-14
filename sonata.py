@@ -110,6 +110,7 @@ class Base(mpdclient3.mpd_connection):
         self.stop_on_exit = False
         self.minimize_to_systray = False
         self.exit_now = False
+        self.ignore_toggle_signal = False
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
         # are repeatedly called every 250ms. Therefore, if we were
@@ -182,6 +183,7 @@ class Base(mpdclient3.mpd_connection):
             )
 
         toggle_actions = (
+            ('showmenu', None, '_Show Player', None, None, self.withdraw_app_toggle, not self.withdrawn),
             ('repeatmenu', None, '_Repeat', None, None, self.repeat_now, self.repeat),
             ('shufflemenu', None, '_Shuffle', None, None, self.shuffle_now, self.shuffle),
                 )
@@ -193,12 +195,14 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="chooseimage_menu"/>
               </popup>
               <popup name="traymenu">
+                <menuitem action="showmenu"/>
+                <separator name="FM1"/>
                 <menuitem action="playmenu"/>
                 <menuitem action="pausemenu"/>
                 <menuitem action="stopmenu"/>
                 <menuitem action="prevmenu"/>
                 <menuitem action="nextmenu"/>
-                <separator name="FM1"/>
+                <separator name="FM2"/>
                 <menuitem action="quitmenu"/>
               </popup>
               <popup name="mainmenu">
@@ -1314,6 +1318,9 @@ class Base(mpdclient3.mpd_connection):
     # What happens when you click on the system tray icon?
     def trayaction(self, widget, event):
         if event.button == 1: # Left button shows/hides window(s)
+            self.ignore_toggle_signal = True
+            prev_state = self.UIManager.get_widget('/traymenu/showmenu').get_active()
+            self.UIManager.get_widget('/traymenu/showmenu').set_active(not prev_state)
             if self.window.window.get_state() & gtk.gdk.WINDOW_STATE_WITHDRAWN: # window is hidden
                 self.withdraw_app_undo()
             elif not (self.window.window.get_state() & gtk.gdk.WINDOW_STATE_WITHDRAWN): # window is showing
@@ -1321,6 +1328,9 @@ class Base(mpdclient3.mpd_connection):
             # This prevents the tooltip from popping up again until the user
             # leaves and enters the trayicon again
             self.traytips._remove_timer()
+            while gtk.events_pending():
+                gtk.main_iteration()
+            gobject.timeout_add(500, self.set_ignore_toggle_signal_false)
         elif event.button == 2: # Middle button will play/pause
             self.pp(self.trayeventbox)
         elif event.button == 3: # Right button pops up menu
@@ -1338,6 +1348,21 @@ class Base(mpdclient3.mpd_connection):
     def withdraw_app(self):
         self.window.hide()
         self.withdrawn = True
+
+    def withdraw_app_toggle(self, action):
+        if self.ignore_toggle_signal:
+            return
+        self.ignore_toggle_signal = True
+        if self.UIManager.get_widget('/traymenu/showmenu').get_active() == True:
+            self.withdraw_app_undo()
+        else:
+            self.withdraw_app()
+        while gtk.events_pending():
+            gtk.main_iteration()
+        gobject.timeout_add(500, self.set_ignore_toggle_signal_false)
+
+    def set_ignore_toggle_signal_false(self):
+        self.ignore_toggle_signal = False
 
     # Change volume on mousewheel over systray icon:
     def trayaction_scroll(self, widget, event):
