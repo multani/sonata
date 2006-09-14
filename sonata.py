@@ -1528,6 +1528,9 @@ class Base(mpdclient3.mpd_connection):
                 elif show_covers_prev == True and self.show_covers == False:
                     self.imageeventbox.set_no_show_all(True)
                     self.imageeventbox.hide()
+                self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
+                while gtk.events_pending():
+                    gtk.main_iteration()
                 self.conn = self.connect()
                 if self.conn:
                     self.iterate_time = self.iterate_time_when_connected
@@ -1537,6 +1540,7 @@ class Base(mpdclient3.mpd_connection):
                 else:
                     self.iterate_time = self.iterate_time_when_disconnected
                     self.browserdata.clear()
+                self.change_cursor(None)
         prefswindow.destroy()
 
     def seek(self, song, seektime):
