@@ -5,6 +5,7 @@
 	dbus - show previous instance if user tries to launch another
 
 Future:
+	connect in background via socket.setblocking(0)
 	support for multimedia keys
 	border around album art?
 	use threading for album art

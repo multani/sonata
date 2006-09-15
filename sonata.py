@@ -130,6 +130,8 @@ class Base(mpdclient3.mpd_connection):
         self.minimize_to_systray = False
         self.exit_now = False
         self.ignore_toggle_signal = False
+        self.initial_run = True
+        show_prefs = False
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
         # are repeatedly called every 250ms. Therefore, if we were
@@ -167,6 +169,7 @@ class Base(mpdclient3.mpd_connection):
             self.show_covers = conf.getboolean('player', 'covers')
             self.stop_on_exit = conf.getboolean('player', 'stop_on_exit')
             self.minimize_to_systray = conf.getboolean('player', 'minimize')
+            self.initial_run = conf.getboolean('player', 'initial_run')
         except:
             pass
 
@@ -259,7 +262,6 @@ class Base(mpdclient3.mpd_connection):
         self.conn = self.connect()
         if self.conn:
             self.conn.do.password(self.password)
-        if self.conn:
             self.iterate_time = self.iterate_time_when_connected
             self.status = self.conn.do.status()
             try:
@@ -271,6 +273,8 @@ class Base(mpdclient3.mpd_connection):
             except:
                 self.songinfo = None
         else:
+            if self.initial_run:
+                show_prefs = True
             self.iterate_time = self.iterate_time_when_disconnected
             self.status = None
             self.songinfo = None
@@ -580,6 +584,13 @@ class Base(mpdclient3.mpd_connection):
         self.window.set_no_show_all(False)
         self.notebook.connect('switch-page', self.notebook_clicked)
 
+        if show_prefs:
+            while gtk.events_pending():
+                gtk.main_iteration()
+            self.prefs(None, True)
+
+        self.initial_run = False
+
     def connect(self):
         try:
             return Connection(self)
@@ -645,6 +656,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'covers', self.show_covers)
         conf.set('player', 'stop_on_exit', self.stop_on_exit)
         conf.set('player', 'minimize', self.minimize_to_systray)
+        conf.set('player', 'initial_run', self.initial_run)
         conf.write(file(os.path.expanduser('~/.config/sonata/sonatarc'), 'w'))
 
     def handle_change_conn(self):
@@ -1071,7 +1083,7 @@ class Base(mpdclient3.mpd_connection):
             self.withdraw_app()
             return True
         self.save_settings()
-        if self.stop_on_exit:
+        if self.conn and self.stop_on_exit:
             self.stop(None)
         gtk.main_quit()
         return False
@@ -1541,7 +1553,7 @@ class Base(mpdclient3.mpd_connection):
                 self.shufflemenu.set_active(False)
                 self.shuffle = False
 
-    def prefs(self, widget):
+    def prefs(self, widget, show_mpd_tab=False):
         prefswindow = gtk.Dialog(_("Preferences"), self.window, flags=gtk.DIALOG_DESTROY_WITH_PARENT)
         prefswindow.set_resizable(False)
         prefswindow.set_has_separator(False)
@@ -1597,6 +1609,10 @@ class Base(mpdclient3.mpd_connection):
         prefswindow.vbox.pack_start(hbox, False, False, 10)
         close_button = prefswindow.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
         prefswindow.show_all()
+        while gtk.events_pending():
+            gtk.main_iteration()
+        if show_mpd_tab:
+            prefsnotebook.set_current_page(1)
         close_button.grab_focus()
         response = prefswindow.run()
         if response == gtk.RESPONSE_CLOSE:
