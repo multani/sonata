@@ -34,6 +34,8 @@ import socket
 import string
 import gc
 import subprocess
+import gettext
+import locale
 
 try:
     import cPickle as pickle
@@ -88,6 +90,12 @@ class Connection(mpdclient3.mpd_connection):
 
 class Base(mpdclient3.mpd_connection):
     def __init__(self):
+
+        try:
+            gettext.install('sonata', '/usr/share/locale', unicode=1)
+        except:
+            gettext.install('sonata', '/usr/local/share/locale', unicode=1)
+
         # Initialize vars:
         self.host = 'localhost'
         self.port = 6600
@@ -153,20 +161,20 @@ class Base(mpdclient3.mpd_connection):
 
         # Popup menus:
         actions = (
-            ('chooseimage_menu', gtk.STOCK_CONVERT, '_Choose...', None, None, self.choose_image),
-            ('playmenu', gtk.STOCK_MEDIA_PLAY, '_Play', None, None, self.pp),
-            ('pausemenu', gtk.STOCK_MEDIA_PAUSE, '_Pause', None, None, self.pp),
-            ('stopmenu', gtk.STOCK_MEDIA_STOP, '_Stop', None, None, self.stop),
-            ('prevmenu', gtk.STOCK_MEDIA_PREVIOUS, '_Previous', None, None, self.prev),
-            ('nextmenu', gtk.STOCK_MEDIA_NEXT, '_Next', None, None, self.next),
-            ('quitmenu', gtk.STOCK_QUIT, '_Quit', None, None, self.delete_event_yes),
-            ('removemenu', gtk.STOCK_REMOVE, '_Remove', None, None, self.remove),
-            ('clearmenu', gtk.STOCK_CLEAR, '_Clear', None, None, self.clear),
-            ('updatemenu', None, '_Update Library', None, None, self.updatedb),
-            ('preferencemenu', gtk.STOCK_PREFERENCES, '_Preferences...', None, None, self.prefs),
-            ('helpmenu', gtk.STOCK_HELP, '_Help', None, None, self.help),
-            ('addmenu', gtk.STOCK_ADD, '_Add', None, None, self.browser_add),
-            ('replacemenu', gtk.STOCK_REDO, '_Replace', None, None, self.browser_replace),
+            ('chooseimage_menu', gtk.STOCK_CONVERT, _('_Choose Alternative...'), None, None, self.choose_image),
+            ('playmenu', gtk.STOCK_MEDIA_PLAY, _('_Play'), None, None, self.pp),
+            ('pausemenu', gtk.STOCK_MEDIA_PAUSE, _('_Pause'), None, None, self.pp),
+            ('stopmenu', gtk.STOCK_MEDIA_STOP, _('_Stop'), None, None, self.stop),
+            ('prevmenu', gtk.STOCK_MEDIA_PREVIOUS, _('_Previous'), None, None, self.prev),
+            ('nextmenu', gtk.STOCK_MEDIA_NEXT, _('_Next'), None, None, self.next),
+            ('quitmenu', gtk.STOCK_QUIT, _('_Quit'), None, None, self.delete_event_yes),
+            ('removemenu', gtk.STOCK_REMOVE, _('_Remove'), None, None, self.remove),
+            ('clearmenu', gtk.STOCK_CLEAR, _('_Clear'), None, None, self.clear),
+            ('updatemenu', None, _('_Update Library'), None, None, self.updatedb),
+            ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'), None, None, self.prefs),
+            ('helpmenu', gtk.STOCK_HELP, _('_Help'), None, None, self.help),
+            ('addmenu', gtk.STOCK_ADD, _('_Add'), None, None, self.browser_add),
+            ('replacemenu', gtk.STOCK_REDO, _('_Replace'), None, None, self.browser_replace),
             ('playlistkey', None, 'Playlist Key', '<Alt>1', None, self.switch_to_playlist),
             ('librarykey', None, 'Library Key', '<Alt>2', None, self.switch_to_library),
             ('expandkey', None, 'Expand Key', '<Alt>Down', None, self.expand),
@@ -183,9 +191,9 @@ class Base(mpdclient3.mpd_connection):
             )
 
         toggle_actions = (
-            ('showmenu', None, '_Show Player', None, None, self.withdraw_app_toggle, not self.withdrawn),
-            ('repeatmenu', None, '_Repeat', None, None, self.repeat_now, self.repeat),
-            ('shufflemenu', None, '_Shuffle', None, None, self.shuffle_now, self.shuffle),
+            ('showmenu', None, _('_Show Player'), None, None, self.withdraw_app_toggle, not self.withdrawn),
+            ('repeatmenu', None, _('_Repeat'), None, None, self.repeat_now, self.repeat),
+            ('shufflemenu', None, _('_Shuffle'), None, None, self.shuffle_now, self.shuffle),
                 )
 
 
@@ -341,7 +349,7 @@ class Base(mpdclient3.mpd_connection):
         self.volumebutton.set_property('can-focus', False)
         toptophbox.pack_start(self.volumebutton, False, False, 0)
         topvbox.pack_start(toptophbox, False, False, 2)
-        self.expander = gtk.Expander("Playlist")
+        self.expander = gtk.Expander(_("Playlist"))
         self.expander.set_expanded(self.expanded)
         self.expander.set_property('can-focus', False)
         self.cursonglabel = gtk.Label()
@@ -363,7 +371,7 @@ class Base(mpdclient3.mpd_connection):
         self.expanderwindow.add(self.playlist)
         playlisthbox = gtk.HBox()
         playlisthbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_JUSTIFY_FILL, gtk.ICON_SIZE_MENU), False, False, 2)
-        playlisthbox.pack_start(gtk.Label(str="Playlist"), False, False, 2)
+        playlisthbox.pack_start(gtk.Label(str=_("Playlist")), False, False, 2)
         playlisthbox.show_all()
         self.notebook.append_page(self.expanderwindow, playlisthbox)
         libbox = gtk.VBox()
@@ -376,10 +384,10 @@ class Base(mpdclient3.mpd_connection):
         self.browser.set_reorderable(True)
         self.browser.set_enable_search(True)
         self.expanderwindow2.add(self.browser)
-        librarylabel = gtk.Label(str="Library")
+        librarylabel = gtk.Label(str=_("Library"))
         libraryhbox = gtk.HBox()
         libraryhbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_HARDDISK, gtk.ICON_SIZE_MENU), False, False, 2)
-        libraryhbox.pack_start(gtk.Label(str="Library"), False, False, 2)
+        libraryhbox.pack_start(gtk.Label(str=_("Library")), False, False, 2)
         libraryhbox.show_all()
         self.notebook.append_page(self.expanderwindow2, libraryhbox)
         mainvbox.pack_start(self.notebook, True, True, 5)
@@ -397,23 +405,23 @@ class Base(mpdclient3.mpd_connection):
         if not self.expanded:
             self.notebook.set_no_show_all(True)
             self.notebook.hide()
-            self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>Click to expand</small>')
+            self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>' + _('Click to expand') + '</small>')
             self.window.set_default_size(self.w, 1)
         else:
-            self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>Click to collapse</small>')
+            self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>' + _('Click to collapse') + '</small>')
             self.window.set_default_size(self.w, self.h)
         if not self.conn:
-            self.progressbar.set_text('Not Connected')
+            self.progressbar.set_text(_('Not Connected'))
         if self.expanded:
-            self.tooltips.set_tip(self.expander, "Click to collapse the player")
+            self.tooltips.set_tip(self.expander, _("Click to collapse the player"))
         else:
-            self.tooltips.set_tip(self.expander, "Click to expand the player")
+            self.tooltips.set_tip(self.expander, _("Click to expand the player"))
 
         # Systray:
         self.tipbox = gtk.HBox()
         innerbox = gtk.VBox()
         self.traycursonglabel = gtk.Label()
-        self.traycursonglabel.set_markup("Playlist")
+        self.traycursonglabel.set_markup(_("Playlist"))
         self.traycursonglabel.set_alignment(0, 1)
         innerbox.pack_start(self.traycursonglabel, True, True, 1)
         self.trayprogressbar = gtk.ProgressBar()
@@ -876,7 +884,7 @@ class Base(mpdclient3.mpd_connection):
             else:
                 self.progressbar.set_text('')
         else:
-            self.progressbar.set_text('Not Connected')
+            self.progressbar.set_text(_('Not Connected'))
         return
 
     def update_cursong(self):
@@ -887,15 +895,15 @@ class Base(mpdclient3.mpd_connection):
                 self.cursonglabel.set_markup('<big><b>' + escape_html(getattr(self.songinfo, 'file', None)) + '</b></big>\n<small>by Unknown</small>')
         else:
             if self.expanded:
-                self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>Click to collapse</small>')
+                self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>' + _('Click to collapse') + '</small>')
             else:
-                self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>Click to expand</small>')
+                self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>' + _('Click to expand') + '</small>')
         # Hide traytip's progressbar when stopped
         if (self.status and self.status.state == 'stop') or not self.conn:
             if not self.conn:
-                self.traycursonglabel.set_label('Not connected')
+                self.traycursonglabel.set_label(_('Not connected'))
             else:
-                self.traycursonglabel.set_label('Stopped')
+                self.traycursonglabel.set_label(_('Stopped'))
             self.trayprogressbar.hide()
             self.trayalbumimage.hide()
         else:
@@ -1087,9 +1095,9 @@ class Base(mpdclient3.mpd_connection):
             self.notebook.show_all()
         if not (self.conn and self.status and self.status.state in ['play', 'pause']):
             if self.expander.get_expanded():
-                self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>Click to expand</small>')
+                self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>' + _('Click to expand') + '</small>')
             else:
-                self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>Click to collapse</small>')
+                self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>' + _('Click to collapse') + '</small>')
         while gtk.events_pending():
             gtk.main_iteration()
         # This is INCREDIBLY hackish.. but it attempts to ensure that
@@ -1106,9 +1114,9 @@ class Base(mpdclient3.mpd_connection):
             self.window.resize(self.w, 1)
         if self.expander.get_expanded():
             self.expanded = True
-            self.tooltips.set_tip(self.expander, "Click to collapse the player")
+            self.tooltips.set_tip(self.expander, _("Click to collapse the player"))
         else:
-            self.tooltips.set_tip(self.expander, "Click to expand the player")
+            self.tooltips.set_tip(self.expander, _("Click to expand the player"))
         return
 
     # This callback allows the user to seek to a specific portion of the song
@@ -1246,8 +1254,8 @@ class Base(mpdclient3.mpd_connection):
         self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
         while gtk.events_pending():
             gtk.main_iteration()
-        choose_dialog = gtk.Dialog("Choose Cover Art", self.window, gtk.DIALOG_MODAL, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
-        choosebutton = choose_dialog.add_button("Choose", gtk.RESPONSE_ACCEPT)
+        choose_dialog = gtk.Dialog(_("Choose Cover Art"), self.window, gtk.DIALOG_MODAL, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
+        choosebutton = choose_dialog.add_button(_("Choose"), gtk.RESPONSE_ACCEPT)
         chooseimage = gtk.Image()
         chooseimage.set_from_stock(gtk.STOCK_CONVERT, gtk.ICON_SIZE_BUTTON)
         choosebutton.set_image(chooseimage)
@@ -1317,8 +1325,8 @@ class Base(mpdclient3.mpd_connection):
             self.change_cursor(None)
             while gtk.events_pending():
                 gtk.main_iteration()
-            error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, "No album art covers were found.")
-            error_dialog.set_title("Choose Cover Art")
+            error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No alternative covers were found."))
+            error_dialog.set_title(_("Choose Cover Art"))
             error_dialog.run()
             error_dialog.destroy()
         gc.collect()
@@ -1521,7 +1529,7 @@ class Base(mpdclient3.mpd_connection):
                 self.shuffle = False
 
     def prefs(self, widget):
-        prefswindow = gtk.Dialog("Preferences", self.window, flags=gtk.DIALOG_DESTROY_WITH_PARENT)
+        prefswindow = gtk.Dialog(_("Preferences"), self.window, flags=gtk.DIALOG_DESTROY_WITH_PARENT)
         prefswindow.set_resizable(False)
         prefswindow.set_has_separator(False)
         hbox = gtk.HBox()
@@ -1532,34 +1540,34 @@ class Base(mpdclient3.mpd_connection):
         table.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         hostentry = gtk.Entry()
         hostentry.set_text(str(self.host))
-        table.attach(gtk.Label("Host:"), 1, 2, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(gtk.Label(_("Host") + ":"), 1, 2, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         table.attach(hostentry, 2, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         portentry = gtk.Entry()
         portentry.set_text(str(self.port))
-        table.attach(gtk.Label("Port:"), 1, 2, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(gtk.Label(_("Port") + ":"), 1, 2, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         table.attach(portentry, 2, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         passwordentry = gtk.Entry()
         passwordentry.set_visibility(False)
         passwordentry.set_text(str(self.password))
-        table.attach(gtk.Label("Password:"), 1, 2, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(gtk.Label(_("Password") + ":"), 1, 2, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         table.attach(passwordentry, 2, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         blanklabel = gtk.Label()
-        blanklabel.set_markup("<small>(Leave blank if none is required)</small>")
+        blanklabel.set_markup("<small>(" + _('Leave blank if none is required') + ")</small>")
         blanklabel.set_alignment(0, 0)
         table.attach(blanklabel, 2, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         table.attach(gtk.Label(), 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         table2 = gtk.Table(7, 2)
         table2.set_row_spacings(5)
         table2.set_col_spacings(3)
-        display_art = gtk.CheckButton("Show album covers")
+        display_art = gtk.CheckButton(_("Show album covers"))
         display_art.set_active(self.show_covers)
-        self.tooltips.set_tip(display_art, "Controls whether album art is automatically downloaded and displayed in the interface.")
-        exit_stop = gtk.CheckButton("Stop playback on exit")
+        self.tooltips.set_tip(display_art, _("If enabled, album art is automatically downloaded and displayed in the interface."))
+        exit_stop = gtk.CheckButton(_("Stop playback on exit"))
         exit_stop.set_active(self.stop_on_exit)
-        self.tooltips.set_tip(exit_stop, "MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and stop playback upon exit.")
-        minimize = gtk.CheckButton("Closing Sonata minimizes to system tray")
+        self.tooltips.set_tip(exit_stop, _("MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit."))
+        minimize = gtk.CheckButton(_("Closing Sonata minimizes to system tray"))
         minimize.set_active(self.minimize_to_systray)
-        self.tooltips.set_tip(minimize, "If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one.")
+        self.tooltips.set_tip(minimize, _("If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."))
         if self.trayicon_visible:
             minimize.set_sensitive(True)
         else:
@@ -1570,8 +1578,8 @@ class Base(mpdclient3.mpd_connection):
         table2.attach(minimize, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(gtk.Label(), 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         table2.attach(gtk.Label(), 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        prefsnotebook.append_page(table2, gtk.Label(str="Interface"))
-        prefsnotebook.append_page(table, gtk.Label(str="MPD"))
+        prefsnotebook.append_page(table2, gtk.Label(str=_("Interface")))
+        prefsnotebook.append_page(table, gtk.Label(str=_("MPD")))
         hbox.pack_start(prefsnotebook, False, False, 10)
         prefswindow.vbox.pack_start(hbox, False, False, 10)
         close_button = prefswindow.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
@@ -1690,7 +1698,7 @@ class Base(mpdclient3.mpd_connection):
                         try:
                             pid = subprocess.Popen(["opera", docslink]).pid
                         except:
-                            error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, 'Unable to launch a suitable browser.')
+                            error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _('Unable to launch a suitable browser.'))
                             error_dialog.run()
                             error_dialog.destroy()
 

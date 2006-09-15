@@ -1,10 +1,6 @@
-0.5.2
-	update docs
-
 0.6
-	Translations
 	Playlist support (tab in notebook)
-	ability to set art from local image
+	ability to set art from local image ("Set from file...")
 	optional statusbar (num songs, total length)
 
 Future:

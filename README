@@ -7,7 +7,7 @@ Sonata is a fork of the Pygmy project.
 REQUIREMENTS:
 	(Required) PyGTK 2.6.0 or newer
 	(Required) GTK 2.6.0 or newer
-	(Required) MPD
+	(Optional) MPD
 	(Optional) Gnome-python-extras for the system tray icon
 
 INSTALLATION:

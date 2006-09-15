@@ -1,0 +1,189 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2006-09-14 23:24-0600\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: sonata.py:164
+msgid "_Choose..."
+msgstr ""
+
+#: sonata.py:165
+msgid "_Play"
+msgstr ""
+
+#: sonata.py:166
+msgid "_Pause"
+msgstr ""
+
+#: sonata.py:167
+msgid "_Stop"
+msgstr ""
+
+#: sonata.py:168
+msgid "_Previous"
+msgstr ""
+
+#: sonata.py:169
+msgid "_Next"
+msgstr ""
+
+#: sonata.py:170
+msgid "_Quit"
+msgstr ""
+
+#: sonata.py:171
+msgid "_Remove"
+msgstr ""
+
+#: sonata.py:172
+msgid "_Clear"
+msgstr ""
+
+#: sonata.py:173
+msgid "_Update Library"
+msgstr ""
+
+#: sonata.py:174
+msgid "_Preferences..."
+msgstr ""
+
+#: sonata.py:175
+msgid "_Help"
+msgstr ""
+
+#: sonata.py:176
+msgid "_Add"
+msgstr ""
+
+#: sonata.py:177
+msgid "_Replace"
+msgstr ""
+
+#: sonata.py:194
+msgid "_Show Player"
+msgstr ""
+
+#: sonata.py:195
+msgid "_Repeat"
+msgstr ""
+
+#: sonata.py:196
+msgid "_Shuffle"
+msgstr ""
+
+#: sonata.py:352 sonata.py:374 sonata.py:424
+msgid "Playlist"
+msgstr ""
+
+#: sonata.py:387 sonata.py:390
+msgid "Library"
+msgstr ""
+
+#: sonata.py:408 sonata.py:900 sonata.py:1098
+msgid "Click to expand"
+msgstr ""
+
+#: sonata.py:411 sonata.py:898 sonata.py:1100
+msgid "Click to collapse"
+msgstr ""
+
+#: sonata.py:414 sonata.py:887
+msgid "Not Connected"
+msgstr ""
+
+#: sonata.py:416 sonata.py:1117
+msgid "Click to collapse the player"
+msgstr ""
+
+#: sonata.py:418 sonata.py:1119
+msgid "Click to expand the player"
+msgstr ""
+
+#: sonata.py:904
+msgid "Not connected"
+msgstr ""
+
+#: sonata.py:906
+msgid "Stopped"
+msgstr ""
+
+#: sonata.py:1257 sonata.py:1329
+msgid "Choose Cover Art"
+msgstr ""
+
+#: sonata.py:1258
+msgid "Choose"
+msgstr ""
+
+#: sonata.py:1532
+msgid "Preferences"
+msgstr ""
+
+#: sonata.py:1543
+msgid "Host"
+msgstr ""
+
+#: sonata.py:1547
+msgid "Port"
+msgstr ""
+
+#: sonata.py:1552
+msgid "Password"
+msgstr ""
+
+#: sonata.py:1555
+msgid "Leave blank if none is required"
+msgstr ""
+
+#: sonata.py:1562
+msgid "Show album covers"
+msgstr ""
+
+#: sonata.py:1564
+msgid ""
+"If enabled, album art is automatically downloaded and displayed in the "
+"interface."
+msgstr ""
+
+#: sonata.py:1565
+msgid "Stop playback on exit"
+msgstr ""
+
+#: sonata.py:1567
+msgid ""
+"MPD allows playback even when the client is not open. If enabled, Sonata "
+"will behave like a more conventional music player and, instead, stop "
+"playback upon exit."
+msgstr ""
+
+#: sonata.py:1568
+msgid "Closing Sonata minimizes to system tray"
+msgstr ""
+
+#: sonata.py:1570
+msgid ""
+"If enabled, closing Sonata will minimize it to the system tray. Note that "
+"it's currently impossible to detect if there actually is a system tray, so "
+"only check this if you have one."
+msgstr ""
+
+#: sonata.py:1581
+msgid "Interface"
+msgstr ""
+
+#: sonata.py:1582
+msgid "MPD"
+msgstr ""

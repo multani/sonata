@@ -1,0 +1,14 @@
+Sonata provides a quick and easy way of creating a translation for 
+your language. If you find this software useful and are capable of
+adding a language that has not yet been translated, it would be
+greatly appreciated.
+
+1. Download the latest locale/message.po file. Please use the SVN
+version, which can be found at:
+http://svn.berlios.de/svnroot/repos/sonata/trunk/locale/messages.po
+
+2. Use poedit (http://www.poedit.org/) to create translations for
+all of the strings.
+
+3. Email stonecrest@gmail.com your translated message.po and wait
+for it to appear in the next version ;-)

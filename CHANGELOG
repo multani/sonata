@@ -5,6 +5,7 @@ v0.5.2 - Pending
 	+ Pref to minimize app to systray on close
 	+ Increase iter time if connection timesout (to make gui responsive)
 	+ Use gtk.STOCK_JUSTIFY_FILL instead of custom icon
+	+ Ability to set translations (see TRANSLATIONS file)
 	+ More shortcuts (see documentation)
 	+ Minor bugfixes
 
