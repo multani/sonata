@@ -1,11 +1,12 @@
 v0.5.2 - Pending
 	+ Correctly update interface after updating MPD library
-	+ Try gnome-open/exo-open first for opening help, then fallback
 	+ Interface prefs: show album art, show volume, sticky, above
 	+ Behavior prefs: minimize to systray, stop playback on exit
 	+ Increase iter time if connection timesout (to make gui responsive)
-	+ Use gtk.STOCK_JUSTIFY_FILL instead of custom icon
+	+ Use gtk.STOCK_JUSTIFY_FILL instead of custom playlist icon
+	+ Try gnome-open/exo-open first for opening help, then fallback
 	+ Ability to set translations (see TRANSLATIONS file)
+	+ Use dbus to prevent multiple instances
 	+ More shortcuts (see documentation)
 	+ Minor bugfixes
 
