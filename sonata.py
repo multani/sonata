@@ -57,6 +57,15 @@ except ImportError:
     # so we'll pass on any errors in loading it
     pass
 
+try:
+    import dbus
+    import dbus.service
+    if getattr(dbus, "version", (0,0,0)) >= (0,41,0):
+        import dbus.glib
+    HAVE_DBUS = True
+except:
+    HAVE_DBUS = False
+
 # Test pygtk version
 if gtk.pygtk_version < (2, 6, 0):
     sys.stderr.write("Sonata requires PyGTK 2.6.0 or newer.\n")
@@ -90,6 +99,8 @@ class Connection(mpdclient3.mpd_connection):
 
 class Base(mpdclient3.mpd_connection):
     def __init__(self):
+
+        start_dbus_interface()
 
         try:
             gettext.install('sonata', '/usr/share/locale', unicode=1)
@@ -1117,6 +1128,8 @@ class Base(mpdclient3.mpd_connection):
             self.tooltips.set_tip(self.expander, _("Click to collapse the player"))
         else:
             self.tooltips.set_tip(self.expander, _("Click to expand the player"))
+        # Put focus to the notebook:
+        self.notebook_clicked(None, None, self.notebook.get_current_page())
         return
 
     # This callback allows the user to seek to a specific portion of the song
@@ -1877,3 +1890,16 @@ def removeall(path):
             removeall(fullpath)
             f=os.rmdir
             rmgeneric(fullpath, f)
+
+if HAVE_DBUS:
+    def start_dbus_interface():
+        try:
+            session_bus = dbus.SessionBus()
+            bus = dbus.SessionBus()
+            retval = dbus.dbus_bindings.bus_request_name(session_bus.get_connection(), "org.MPD.Sonata", dbus.dbus_bindings.NAME_FLAG_DO_NOT_QUEUE)
+            if retval in (dbus.dbus_bindings.REQUEST_NAME_REPLY_PRIMARY_OWNER, dbus.dbus_bindings.REQUEST_NAME_REPLY_ALREADY_OWNER):
+                pass
+            elif retval in (dbus.dbus_bindings.REQUEST_NAME_REPLY_EXISTS, dbus.dbus_bindings.REQUEST_NAME_REPLY_IN_QUEUE):
+                raise SystemExit("An instance of Sonata is already running.")
+        except:
+            pass

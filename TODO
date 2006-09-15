@@ -2,6 +2,7 @@
 	Playlist support (tab in notebook)
 	ability to set art from local image ("Set from file...")
 	optional statusbar (num songs, total length)
+	dbus - show previous instance if user tries to launch another
 
 Future:
 	support for multimedia keys
@@ -14,3 +15,4 @@ Future:
 		- then we can finally use skip_taskbar_hint since we will
 		  be able to reliably detect if the sysicon is displayed
 	Stream support(?)
+	treeview instead of listview? (expanding, collapsing..)
