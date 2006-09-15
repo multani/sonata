@@ -286,14 +286,10 @@ class Base(mpdclient3.mpd_connection):
         mainhbox = gtk.HBox()
         mainvbox = gtk.VBox()
         tophbox = gtk.HBox()
-        frame1 = gtk.Frame()
-        #frame1.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color(0, 0, 0))
-        frame1.set_shadow_type(gtk.SHADOW_NONE)
         self.imageeventbox = gtk.EventBox()
         self.albumimage = gtk.Image()
         self.albumimage.set_size_request(75, 75)
-        frame1.add(self.albumimage)
-        self.imageeventbox.add(frame1)
+        self.imageeventbox.add(self.albumimage)
         if not self.show_covers:
             self.imageeventbox.set_no_show_all(True)
             self.imageeventbox.hide()
@@ -739,7 +735,32 @@ class Base(mpdclient3.mpd_connection):
     def position_menu(self, menu):
         if self.expanded:
             x, y, width, height = self.playlist.get_allocation()
-            return (self.x + width - 150, self.y + y, True)
+            # Find first selected visible row and popup the menu
+            # from there
+            i = 0
+            row_found = False
+            row_y = 0
+            if self.notebook.get_current_page() == 0:
+                rows = self.playlist.get_selection().get_selected_rows()[1]
+                visible_rect = self.playlist.get_visible_rect()
+                while not row_found and i < len(rows):
+                    row = rows[i]
+                    row_rect = self.playlist.get_background_area(row, self.playlistcolumn)
+                    if row_rect.y + row_rect.height <= visible_rect.height and row_rect.y >= 0:
+                        row_found = True
+                        row_y = row_rect.y + 30
+                    i += 1
+            else:
+                rows = self.browser.get_selection().get_selected_rows()[1]
+                visible_rect = self.browser.get_visible_rect()
+                while not row_found and i < len(rows):
+                    row = rows[i]
+                    row_rect = self.browser.get_background_area(row, self.browsercolumn)
+                    if row_rect.y + row_rect.height <= visible_rect.height and row_rect.y >= 0:
+                        row_found = True
+                        row_y = row_rect.y + 30
+                    i += 1
+            return (self.x + width - 150, self.y + y + row_y, True)
         else:
             return (self.x + 250, self.y + 80, True)
 

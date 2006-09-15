@@ -1,20 +1,20 @@
 0.5.2
-	more keybindings (w/ support for multimedia keys)
 	update docs
-	move 'menu' shortcut popup to correct pos
-	border around album art
+
+0.6
+	Translations
+	Playlist support (tab in notebook)
+	ability to set art from local image
+	optional statusbar (num songs, total length)
 
 Future:
-	optional statusbar (num songs, total length)
+	support for multimedia keys
+	border around album art?
 	use threading for album art
 	retain selection after dnd
-	ability to set art from local image?
 	ability to configure columns for playlist
 	ability to show column headings for sorting
 	switch to pygtk's statusicon (2.10) and remove gnome-python dep
 		- then we can finally use skip_taskbar_hint since we will
 		  be able to reliably detect if the sysicon is displayed
-	Playlist support (and auto-generation based on dirs?)
 	Stream support(?)
-	Documentation
-	Translations
