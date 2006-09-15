@@ -1907,8 +1907,9 @@ def removeall(path):
             f=os.rmdir
             rmgeneric(fullpath, f)
 
-if HAVE_DBUS:
-    def start_dbus_interface():
+def start_dbus_interface():
+    if HAVE_DBUS:
+        exit_now = False
         try:
             session_bus = dbus.SessionBus()
             bus = dbus.SessionBus()
@@ -1916,6 +1917,9 @@ if HAVE_DBUS:
             if retval in (dbus.dbus_bindings.REQUEST_NAME_REPLY_PRIMARY_OWNER, dbus.dbus_bindings.REQUEST_NAME_REPLY_ALREADY_OWNER):
                 pass
             elif retval in (dbus.dbus_bindings.REQUEST_NAME_REPLY_EXISTS, dbus.dbus_bindings.REQUEST_NAME_REPLY_IN_QUEUE):
-                raise SystemExit("An instance of Sonata is already running.")
+                exit_now = True
         except:
             pass
+        if exit_now:
+            print "An instance of Sonata is already running."
+            sys.exit()
