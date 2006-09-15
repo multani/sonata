@@ -118,6 +118,8 @@ class Base(mpdclient3.mpd_connection):
         self.expanded = True
         self.visible = True
         self.withdrawn = False
+        self.sticky = False
+        self.ontop = False
         self.screen = 0
         self.prevconn = []
         self.prevstatus = None
@@ -126,6 +128,7 @@ class Base(mpdclient3.mpd_connection):
         self.repeat = False
         self.shuffle = False
         self.show_covers = True
+        self.show_volume = True
         self.stop_on_exit = False
         self.minimize_to_systray = False
         self.exit_now = False
@@ -170,6 +173,9 @@ class Base(mpdclient3.mpd_connection):
             self.stop_on_exit = conf.getboolean('player', 'stop_on_exit')
             self.minimize_to_systray = conf.getboolean('player', 'minimize')
             self.initial_run = conf.getboolean('player', 'initial_run')
+            self.show_volume = conf.getboolean('player', 'volume')
+            self.sticky = conf.getboolean('player', 'sticky')
+            self.ontop = conf.getboolean('player', 'ontop')
         except:
             pass
 
@@ -298,6 +304,10 @@ class Base(mpdclient3.mpd_connection):
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title('Sonata')
         self.window.set_resizable(True)
+        if self.ontop:
+            self.window.set_keep_above(True)
+        if self.sticky:
+            self.window.stick()
         self.tooltips = gtk.Tooltips()
         self.UIManager = gtk.UIManager()
         actionGroup = gtk.ActionGroup('Actions')
@@ -362,6 +372,9 @@ class Base(mpdclient3.mpd_connection):
         self.volumebutton = gtk.ToggleButton("", True)
         self.volumebutton.set_relief(gtk.RELIEF_NONE)
         self.volumebutton.set_property('can-focus', False)
+        if not self.show_volume:
+            self.volumebutton.set_no_show_all(True)
+            self.volumebutton.hide()
         toptophbox.pack_start(self.volumebutton, False, False, 0)
         topvbox.pack_start(toptophbox, False, False, 2)
         self.expander = gtk.Expander(_("Playlist"))
@@ -657,6 +670,9 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'stop_on_exit', self.stop_on_exit)
         conf.set('player', 'minimize', self.minimize_to_systray)
         conf.set('player', 'initial_run', self.initial_run)
+        conf.set('player', 'volume', self.show_volume)
+        conf.set('player', 'sticky', self.sticky)
+        conf.set('player', 'ontop', self.ontop)
         conf.write(file(os.path.expanduser('~/.config/sonata/sonatarc'), 'w'))
 
     def handle_change_conn(self):
@@ -1384,6 +1400,8 @@ class Base(mpdclient3.mpd_connection):
             self.notebook.set_no_show_all(True)
         self.window.show_all()
         self.notebook.set_no_show_all(False)
+        if self.sticky:
+            self.window.stick()
         self.withdrawn = False
 
     def withdraw_app(self):
@@ -1582,28 +1600,39 @@ class Base(mpdclient3.mpd_connection):
         table.attach(blanklabel, 2, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         table.attach(gtk.Label(), 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         table2 = gtk.Table(7, 2)
-        table2.set_row_spacings(5)
-        table2.set_col_spacings(3)
         display_art = gtk.CheckButton(_("Show album covers"))
         display_art.set_active(self.show_covers)
-        self.tooltips.set_tip(display_art, _("If enabled, album art is automatically downloaded and displayed in the interface."))
+        display_volume = gtk.CheckButton(_("Show volume button"))
+        display_volume.set_active(self.show_volume)
+        win_sticky = gtk.CheckButton(_("Show window on all workspaces"))
+        win_sticky.set_active(self.sticky)
+        win_ontop = gtk.CheckButton(_("Keep Sonata above other windows"))
+        win_ontop.set_active(self.ontop)
+        table2.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(display_art, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(display_volume, 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(win_sticky, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(win_ontop, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(gtk.Label(), 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table3 = gtk.Table(7, 2)
         exit_stop = gtk.CheckButton(_("Stop playback on exit"))
         exit_stop.set_active(self.stop_on_exit)
         self.tooltips.set_tip(exit_stop, _("MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit."))
-        minimize = gtk.CheckButton(_("Closing Sonata minimizes to system tray"))
+        minimize = gtk.CheckButton(_("Minimize to system tray"))
         minimize.set_active(self.minimize_to_systray)
         self.tooltips.set_tip(minimize, _("If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."))
         if self.trayicon_visible:
             minimize.set_sensitive(True)
         else:
             minimize.set_sensitive(False)
-        table2.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table2.attach(display_art, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(exit_stop, 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(minimize, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(gtk.Label(), 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table2.attach(gtk.Label(), 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table3.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table3.attach(exit_stop, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table3.attach(minimize, 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table3.attach(gtk.Label(), 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table3.attach(gtk.Label(), 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table3.attach(gtk.Label(), 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         prefsnotebook.append_page(table2, gtk.Label(str=_("Interface")))
+        prefsnotebook.append_page(table3, gtk.Label(str=_("Behavior")))
         prefsnotebook.append_page(table, gtk.Label(str=_("MPD")))
         hbox.pack_start(prefsnotebook, False, False, 10)
         prefswindow.vbox.pack_start(hbox, False, False, 10)
@@ -1612,7 +1641,7 @@ class Base(mpdclient3.mpd_connection):
         while gtk.events_pending():
             gtk.main_iteration()
         if show_mpd_tab:
-            prefsnotebook.set_current_page(1)
+            prefsnotebook.set_current_page(2) # MPD page
         close_button.grab_focus()
         response = prefswindow.run()
         if response == gtk.RESPONSE_CLOSE:
@@ -1624,8 +1653,12 @@ class Base(mpdclient3.mpd_connection):
                     pass
                 self.password = passwordentry.get_text()
                 show_covers_prev = self.show_covers
+                show_volume_prev = self.show_volume
                 self.show_covers = display_art.get_active()
+                self.show_volume = display_volume.get_active()
                 self.stop_on_exit = exit_stop.get_active()
+                self.ontop = win_ontop.get_active()
+                self.sticky = win_sticky.get_active()
                 self.minimize_to_systray = minimize.get_active()
                 if show_covers_prev == False and self.show_covers == True:
                     self.albumimage.set_from_file(self.sonatacd)
@@ -1640,6 +1673,20 @@ class Base(mpdclient3.mpd_connection):
                     self.imageeventbox.hide()
                     self.trayalbumimage.set_no_show_all(True)
                     self.trayalbumimage.hide()
+                if show_volume_prev == False and self.show_volume == True:
+                    self.volumebutton.set_no_show_all(False)
+                    self.volumebutton.show()
+                elif show_volume_prev == True and self.show_volume == False:
+                    self.volumebutton.set_no_show_all(True)
+                    self.volumebutton.hide()
+                if self.ontop:
+                    self.window.set_keep_above(True)
+                else:
+                    self.window.set_keep_above(False)
+                if self.sticky:
+                    self.window.stick()
+                else:
+                    self.window.unstick()
                 self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
                 while gtk.events_pending():
                     gtk.main_iteration()
