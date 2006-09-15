@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2006-09-14 23:24-0600\n"
+"POT-Creation-Date: 2006-09-15 15:52-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,174 +16,192 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: sonata.py:164
-msgid "_Choose..."
+#: sonata.py:184
+msgid "_Choose Alternative..."
 msgstr ""
 
-#: sonata.py:165
+#: sonata.py:185
 msgid "_Play"
 msgstr ""
 
-#: sonata.py:166
+#: sonata.py:186
 msgid "_Pause"
 msgstr ""
 
-#: sonata.py:167
+#: sonata.py:187
 msgid "_Stop"
 msgstr ""
 
-#: sonata.py:168
+#: sonata.py:188
 msgid "_Previous"
 msgstr ""
 
-#: sonata.py:169
+#: sonata.py:189
 msgid "_Next"
 msgstr ""
 
-#: sonata.py:170
+#: sonata.py:190
 msgid "_Quit"
 msgstr ""
 
-#: sonata.py:171
+#: sonata.py:191
 msgid "_Remove"
 msgstr ""
 
-#: sonata.py:172
+#: sonata.py:192
 msgid "_Clear"
 msgstr ""
 
-#: sonata.py:173
+#: sonata.py:193
 msgid "_Update Library"
 msgstr ""
 
-#: sonata.py:174
+#: sonata.py:194
 msgid "_Preferences..."
 msgstr ""
 
-#: sonata.py:175
+#: sonata.py:195
 msgid "_Help"
 msgstr ""
 
-#: sonata.py:176
+#: sonata.py:196
 msgid "_Add"
 msgstr ""
 
-#: sonata.py:177
+#: sonata.py:197
 msgid "_Replace"
 msgstr ""
 
-#: sonata.py:194
+#: sonata.py:214
 msgid "_Show Player"
 msgstr ""
 
-#: sonata.py:195
+#: sonata.py:215
 msgid "_Repeat"
 msgstr ""
 
-#: sonata.py:196
+#: sonata.py:216
 msgid "_Shuffle"
 msgstr ""
 
-#: sonata.py:352 sonata.py:374 sonata.py:424
+#: sonata.py:380 sonata.py:402 sonata.py:452
 msgid "Playlist"
 msgstr ""
 
-#: sonata.py:387 sonata.py:390
+#: sonata.py:415 sonata.py:418
 msgid "Library"
 msgstr ""
 
-#: sonata.py:408 sonata.py:900 sonata.py:1098
+#: sonata.py:436 sonata.py:939 sonata.py:1137
 msgid "Click to expand"
 msgstr ""
 
-#: sonata.py:411 sonata.py:898 sonata.py:1100
+#: sonata.py:439 sonata.py:937 sonata.py:1139
 msgid "Click to collapse"
 msgstr ""
 
-#: sonata.py:414 sonata.py:887
+#: sonata.py:442 sonata.py:926
 msgid "Not Connected"
 msgstr ""
 
-#: sonata.py:416 sonata.py:1117
+#: sonata.py:444 sonata.py:1156
 msgid "Click to collapse the player"
 msgstr ""
 
-#: sonata.py:418 sonata.py:1119
+#: sonata.py:446 sonata.py:1158
 msgid "Click to expand the player"
 msgstr ""
 
-#: sonata.py:904
+#: sonata.py:943
 msgid "Not connected"
 msgstr ""
 
-#: sonata.py:906
+#: sonata.py:945
 msgid "Stopped"
 msgstr ""
 
-#: sonata.py:1257 sonata.py:1329
+#: sonata.py:1298 sonata.py:1370
 msgid "Choose Cover Art"
 msgstr ""
 
-#: sonata.py:1258
+#: sonata.py:1299
 msgid "Choose"
 msgstr ""
 
-#: sonata.py:1532
+#: sonata.py:1369
+msgid "No alternative covers were found."
+msgstr ""
+
+#: sonata.py:1575
 msgid "Preferences"
 msgstr ""
 
-#: sonata.py:1543
+#: sonata.py:1586
 msgid "Host"
 msgstr ""
 
-#: sonata.py:1547
+#: sonata.py:1590
 msgid "Port"
 msgstr ""
 
-#: sonata.py:1552
+#: sonata.py:1595
 msgid "Password"
 msgstr ""
 
-#: sonata.py:1555
+#: sonata.py:1598
 msgid "Leave blank if none is required"
 msgstr ""
 
-#: sonata.py:1562
+#: sonata.py:1603
 msgid "Show album covers"
 msgstr ""
 
-#: sonata.py:1564
-msgid ""
-"If enabled, album art is automatically downloaded and displayed in the "
-"interface."
+#: sonata.py:1605
+msgid "Show volume button"
 msgstr ""
 
-#: sonata.py:1565
+#: sonata.py:1607
+msgid "Show window on all workspaces"
+msgstr ""
+
+#: sonata.py:1609
+msgid "Keep Sonata above other windows"
+msgstr ""
+
+#: sonata.py:1618
 msgid "Stop playback on exit"
 msgstr ""
 
-#: sonata.py:1567
+#: sonata.py:1620
 msgid ""
 "MPD allows playback even when the client is not open. If enabled, Sonata "
 "will behave like a more conventional music player and, instead, stop "
 "playback upon exit."
 msgstr ""
 
-#: sonata.py:1568
-msgid "Closing Sonata minimizes to system tray"
+#: sonata.py:1621
+msgid "Minimize to system tray"
 msgstr ""
 
-#: sonata.py:1570
+#: sonata.py:1623
 msgid ""
 "If enabled, closing Sonata will minimize it to the system tray. Note that "
 "it's currently impossible to detect if there actually is a system tray, so "
 "only check this if you have one."
 msgstr ""
 
-#: sonata.py:1581
+#: sonata.py:1634
 msgid "Interface"
 msgstr ""
 
-#: sonata.py:1582
+#: sonata.py:1635
+msgid "Behavior"
+msgstr ""
+
+#: sonata.py:1636
 msgid "MPD"
+msgstr ""
+
+#: sonata.py:1777
+msgid "Unable to launch a suitable browser."
 msgstr ""
