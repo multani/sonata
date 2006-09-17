@@ -208,7 +208,9 @@ class Base(mpdclient3.mpd_connection):
             ('raisekey2', None, 'Raise Volume Key 2', '<Ctrl>equal', None, self.raise_volume),
             ('quitkey', None, 'Quit Key', '<Ctrl>q', None, self.delete_event_yes),
             ('menukey', None, 'Menu Key', 'Menu', None, self.menukey_press),
-            ('deletekey', None, 'Delete Key', 'Delete', None, self.remove)
+            ('deletekey', None, 'Delete Key', 'Delete', None, self.remove),
+            ('updatekey', None, 'Update Key', '<Ctrl>u', None, self.updatedb),
+            ('updatekey2', None, 'Update Key 2', '<Ctrl><Shift>u', None, self.updatedb_path)
             )
 
         toggle_actions = (
@@ -262,6 +264,8 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="raisekey2"/>
                 <menuitem action="menukey"/>
                 <menuitem action="deletekey"/>
+                <menuitem action="updatekey"/>
+                <menuitem action="updatekey2"/>
               </popup>
             </ui>
             """
@@ -1282,6 +1286,20 @@ class Base(mpdclient3.mpd_connection):
     def updatedb(self, widget):
         if self.conn:
             self.conn.do.update('/')
+
+    def updatedb_path(self, action):
+        if self.conn:
+            if self.notebook.get_current_page() == 1:
+                model, selected = self.browser.get_selection().get_selected_rows()
+                iters = [model.get_iter(path) for path in selected]
+                if len(iters) > 0:
+                    # If there are selected rows, update these paths..
+                    for iter in iters:
+                        self.conn.do.update(self.browserdata.get_value(iter, 1))
+                else:
+                    # If no selection, update the current path...
+                    self.conn.do.update(self.browser.wd)
+
 
     def image_activate(self, widget, event):
         if event.button == 3:

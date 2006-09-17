@@ -1,3 +1,7 @@
+v0.6 - Pending
+	+ Added Ctrl-U and Ctrl-Shift-U for updating library (see docs)
+	+ Bug: Delete key doesn't remove songs from playlist
+
 v0.5.2 - September 15, 2006
 	+ Correctly update interface after updating MPD library
 	+ Interface prefs: show album art, show volume, sticky, above
