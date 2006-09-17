@@ -4,6 +4,8 @@
 	optional statusbar (num songs, total length)
 	dbus - show previous instance if user tries to launch another
 	support for multimedia keys (possible in pure pygtk?)
+	re-show icon if systray is closed/opened (xfce4-paenl -r)
+	ctrl-u to update library, ctrl-shift-u to update selected dirs
 
 Future:
 	connect in background via socket.setblocking(0)
