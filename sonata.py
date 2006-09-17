@@ -36,6 +36,7 @@ import gc
 import subprocess
 import gettext
 import locale
+import shutil
 
 try:
     import cPickle as pickle
@@ -185,7 +186,8 @@ class Base(mpdclient3.mpd_connection):
 
         # Popup menus:
         actions = (
-            ('chooseimage_menu', gtk.STOCK_CONVERT, _('_Choose Alternative...'), None, None, self.choose_image),
+            ('chooseimage_menu', gtk.STOCK_CONVERT, _('_Use Remote Image...'), None, None, self.choose_image),
+            ('localimage_menu', gtk.STOCK_OPEN, _('_Use Local Image...'), None, None, self.choose_image_local),
             ('playmenu', gtk.STOCK_MEDIA_PLAY, _('_Play'), None, None, self.pp),
             ('pausemenu', gtk.STOCK_MEDIA_PAUSE, _('_Pause'), None, None, self.pp),
             ('stopmenu', gtk.STOCK_MEDIA_STOP, _('_Stop'), None, None, self.stop),
@@ -231,6 +233,7 @@ class Base(mpdclient3.mpd_connection):
             <ui>
               <popup name="imagemenu">
                 <menuitem action="chooseimage_menu"/>
+                <menuitem action="localimage_menu"/>
               </popup>
               <popup name="traymenu">
                 <menuitem action="showmenu"/>
@@ -1413,6 +1416,64 @@ class Base(mpdclient3.mpd_connection):
         for i in gtk.gdk.window_get_toplevels():
             i.set_cursor(type)
 
+    def update_preview(self, file_chooser, preview):
+        filename = file_chooser.get_preview_filename()
+        pixbuf = None
+        try:
+            pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(filename, 128, 128)
+        except:
+            pass
+        if pixbuf == None:
+            try:
+                pixbuf = gtk.gdk.PixbufAnimation(filename).get_static_image()
+                width = pixbuf.get_width()
+                height = pixbuf.get_height()
+                if width > height:
+                    pixbuf = pixbuf.scale_simple(128, int(float(height)/width*128), self.zoom_quality)
+                else:
+                    pixbuf = pixbuf.scale_simple(int(float(width)/height*128), 128, self.zoom_quality)
+            except:
+                pass
+        if pixbuf == None:
+            pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, 1, 8, 128, 128)
+            pixbuf.fill(0x00000000)
+        preview.set_from_pixbuf(pixbuf)
+        have_preview = True
+        file_chooser.set_preview_widget_active(have_preview)
+        del pixbuf
+        gc.collect()
+
+    def choose_image_local(self, widget):
+        dialog = gtk.FileChooserDialog(title=_("Open Image"),action=gtk.FILE_CHOOSER_ACTION_OPEN,buttons=(gtk.STOCK_CANCEL,gtk.RESPONSE_CANCEL,gtk.STOCK_OPEN,gtk.RESPONSE_OK))
+        filter = gtk.FileFilter()
+        filter.set_name(_("Images"))
+        filter.add_pixbuf_formats()
+        dialog.add_filter(filter)
+        filter = gtk.FileFilter()
+        filter.set_name(_("All files"))
+        filter.add_pattern("*")
+        dialog.add_filter(filter)
+        preview = gtk.Image()
+        dialog.set_preview_widget(preview)
+        dialog.set_use_preview_label(False)
+        dialog.connect("update-preview", self.update_preview, preview)
+        dialog.set_default_response(gtk.RESPONSE_OK)
+        response = dialog.run()
+        if response == gtk.RESPONSE_OK:
+            filename = dialog.get_filenames()[0]
+            artist = getattr(self.songinfo, 'artist', None)
+            album = getattr(self.songinfo, 'album', None)
+            dest_filename = os.path.expanduser("~/.config/sonata/covers/" + artist + "-" + album + ".jpg")
+            # Remove file if already set:
+            if os.path.exists(dest_filename):
+                os.remove(dest_filename)
+            # Copy file to covers dir:
+            shutil.copyfile(filename, dest_filename)
+            # And finally, set the image in the interface:
+            self.lastalbumart = None
+            self.update_album_art()
+        dialog.destroy()
+
     def choose_image(self, widget):
         self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
         while gtk.events_pending():
@@ -1488,7 +1549,7 @@ class Base(mpdclient3.mpd_connection):
             self.change_cursor(None)
             while gtk.events_pending():
                 gtk.main_iteration()
-            error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No alternative covers were found."))
+            error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No remote covers were found."))
             error_dialog.set_title(_("Choose Cover Art"))
             error_dialog.run()
             error_dialog.destroy()

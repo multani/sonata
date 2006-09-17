@@ -1,5 +1,4 @@
 0.6
-	ability to set art from local image ("Set from file...")
 	optional statusbar (num songs, total length)
 	dbus - show previous instance if user tries to launch another
 	support for multimedia keys (possible in pure pygtk? nope)
