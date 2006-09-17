@@ -1,5 +1,4 @@
 0.6
-	Playlist support (tab in notebook)
 	ability to set art from local image ("Set from file...")
 	optional statusbar (num songs, total length)
 	dbus - show previous instance if user tries to launch another

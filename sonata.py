@@ -140,6 +140,8 @@ class Base(mpdclient3.mpd_connection):
         # are repeatedly called every 250ms. Therefore, if we were
         # not able to make a connection, slow down the iteration
         # check to once every 15 seconds.
+        # Eventually we'd like to ues non-blocking sockets in
+        # mpdclient3.py
         self.iterate_time_when_connected = 250
         self.iterate_time_when_disconnected = 15000
 
@@ -189,14 +191,17 @@ class Base(mpdclient3.mpd_connection):
             ('nextmenu', gtk.STOCK_MEDIA_NEXT, _('_Next'), None, None, self.next),
             ('quitmenu', gtk.STOCK_QUIT, _('_Quit'), None, None, self.delete_event_yes),
             ('removemenu', gtk.STOCK_REMOVE, _('_Remove'), None, None, self.remove),
-            ('clearmenu', gtk.STOCK_CLEAR, _('_Clear'), None, None, self.clear),
+            ('clearmenu', gtk.STOCK_CLEAR, _('_Clear'), '<Ctrl>c', None, self.clear),
+            ('savemenu', gtk.STOCK_SAVE, _('_Save Playlist...'), '<Ctrl>s', None, self.save_playlist),
             ('updatemenu', None, _('_Update Library'), None, None, self.updatedb),
             ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'), None, None, self.prefs),
             ('helpmenu', gtk.STOCK_HELP, _('_Help'), None, None, self.help),
-            ('addmenu', gtk.STOCK_ADD, _('_Add'), None, None, self.browser_add),
-            ('replacemenu', gtk.STOCK_REDO, _('_Replace'), None, None, self.browser_replace),
-            ('playlistkey', None, 'Playlist Key', '<Alt>1', None, self.switch_to_playlist),
+            ('addmenu', gtk.STOCK_ADD, _('_Add'), None, None, self.add_item),
+            ('replacemenu', gtk.STOCK_REDO, _('_Replace'), None, None, self.replace_item),
+            ('rmmenu', gtk.STOCK_DELETE, _('_Delete'), None, None, self.remove),
+            ('currentkey', None, 'Current Playlist Key', '<Alt>1', None, self.switch_to_current),
             ('librarykey', None, 'Library Key', '<Alt>2', None, self.switch_to_library),
+            ('playlistskey', None, 'Playlists Key', '<Alt>3', None, self.switch_to_playlists),
             ('expandkey', None, 'Expand Key', '<Alt>Down', None, self.expand),
             ('collapsekey', None, 'Collapse Key', '<Alt>Up', None, self.collapse),
             ('ppkey', None, 'Play/Pause Key', '<Ctrl>p', None, self.pp),
@@ -241,6 +246,8 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="replacemenu"/>
                 <menuitem action="removemenu"/>
                 <menuitem action="clearmenu"/>
+                <menuitem action="savemenu"/>
+                <menuitem action="rmmenu"/>
                 <separator name="FM1"/>
                 <menuitem action="repeatmenu"/>
                 <menuitem action="shufflemenu"/>
@@ -251,8 +258,9 @@ class Base(mpdclient3.mpd_connection):
               </popup>
               <popup name="hidden">
                 <menuitem action="quitkey"/>
-                <menuitem action="playlistkey"/>
+                <menuitem action="currentkey"/>
                 <menuitem action="librarykey"/>
+                <menuitem action="playlistskey"/>
                 <menuitem action="expandkey"/>
                 <menuitem action="collapsekey"/>
                 <menuitem action="ppkey"/>
@@ -397,18 +405,17 @@ class Base(mpdclient3.mpd_connection):
         self.expanderwindow = gtk.ScrolledWindow()
         self.expanderwindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.expanderwindow.set_shadow_type(gtk.SHADOW_IN)
-        self.playlist = gtk.TreeView()
-        self.playlist.set_headers_visible(False)
-        self.playlist.set_rules_hint(True)
-        self.playlist.set_reorderable(True)
-        self.playlist.set_enable_search(True)
-        self.expanderwindow.add(self.playlist)
+        self.current = gtk.TreeView()
+        self.current.set_headers_visible(False)
+        self.current.set_rules_hint(True)
+        self.current.set_reorderable(True)
+        self.current.set_enable_search(True)
+        self.expanderwindow.add(self.current)
         playlisthbox = gtk.HBox()
-        playlisthbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_JUSTIFY_FILL, gtk.ICON_SIZE_MENU), False, False, 2)
-        playlisthbox.pack_start(gtk.Label(str=_("Playlist")), False, False, 2)
+        playlisthbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_CDROM, gtk.ICON_SIZE_MENU), False, False, 2)
+        playlisthbox.pack_start(gtk.Label(str=_("Current")), False, False, 2)
         playlisthbox.show_all()
         self.notebook.append_page(self.expanderwindow, playlisthbox)
-        libbox = gtk.VBox()
         self.expanderwindow2 = gtk.ScrolledWindow()
         self.expanderwindow2.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.expanderwindow2.set_shadow_type(gtk.SHADOW_IN)
@@ -418,12 +425,25 @@ class Base(mpdclient3.mpd_connection):
         self.browser.set_reorderable(True)
         self.browser.set_enable_search(True)
         self.expanderwindow2.add(self.browser)
-        librarylabel = gtk.Label(str=_("Library"))
         libraryhbox = gtk.HBox()
         libraryhbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_HARDDISK, gtk.ICON_SIZE_MENU), False, False, 2)
         libraryhbox.pack_start(gtk.Label(str=_("Library")), False, False, 2)
         libraryhbox.show_all()
         self.notebook.append_page(self.expanderwindow2, libraryhbox)
+        self.expanderwindow3 = gtk.ScrolledWindow()
+        self.expanderwindow3.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.expanderwindow3.set_shadow_type(gtk.SHADOW_IN)
+        self.playlists = gtk.TreeView()
+        self.playlists.set_headers_visible(False)
+        self.playlists.set_rules_hint(True)
+        self.playlists.set_reorderable(True)
+        self.playlists.set_enable_search(True)
+        self.expanderwindow3.add(self.playlists)
+        playlistshbox = gtk.HBox()
+        playlistshbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_JUSTIFY_FILL, gtk.ICON_SIZE_MENU), False, False, 2)
+        playlistshbox.pack_start(gtk.Label(str=_("Playlists")), False, False, 2)
+        playlistshbox.show_all()
+        self.notebook.append_page(self.expanderwindow3, playlistshbox)
         mainvbox.pack_start(self.notebook, True, True, 5)
         mainhbox.pack_start(mainvbox, True, True, 3)
         self.window.add(mainhbox)
@@ -434,8 +454,6 @@ class Base(mpdclient3.mpd_connection):
         self.repeatmenu = self.UIManager.get_widget('/mainmenu/repeatmenu')
         self.imagemenu = self.UIManager.get_widget('/imagemenu')
         self.traymenu = self.UIManager.get_widget('/traymenu')
-        self.UIManager.get_widget('/mainmenu/addmenu/').hide()
-        self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
         if not self.expanded:
             self.notebook.set_no_show_all(True)
             self.notebook.hide()
@@ -510,11 +528,11 @@ class Base(mpdclient3.mpd_connection):
         self.volumebutton.connect('clicked', self.on_volumebutton_clicked)
         self.volumebutton.connect('scroll-event', self.on_volumebutton_scroll)
         self.expander.connect('activate', self.expander_activate)
-        self.playlist.connect('drag_data_received', self.on_drag_drop)
-        self.playlist.connect('row_activated', self.playlist_click)
-        self.playlist.connect('button_press_event', self.playlist_button_press)
-        self.playlist.connect('popup_menu', self.playlist_popup_menu)
-        self.playlist.connect('drag_end', self.after_drag_drop)
+        self.current.connect('drag_data_received', self.on_drag_drop)
+        self.current.connect('row_activated', self.current_click)
+        self.current.connect('button_press_event', self.current_button_press)
+        self.current.connect('popup_menu', self.current_popup_menu)
+        self.current.connect('drag_end', self.after_drag_drop)
         self.shufflemenu.connect('toggled', self.shuffle_now)
         self.repeatmenu.connect('toggled', self.repeat_now)
         self.volumewindow.connect('focus_out_event', self.on_volumewindow_unfocus)
@@ -525,6 +543,7 @@ class Base(mpdclient3.mpd_connection):
         self.progressbar.connect('notify::text', self.progressbarnotify_text)
         self.browser.connect('row_activated', self.browserow)
         self.browser.connect('button_press_event', self.browser_button_press)
+        self.playlists.connect('button_press_event', self.playlists_button_press)
         self.ppbutton.connect('button_press_event', self.popup_menu)
         self.prevbutton.connect('button_press_event', self.popup_menu)
         self.stopbutton.connect('button_press_event', self.popup_menu)
@@ -547,28 +566,39 @@ class Base(mpdclient3.mpd_connection):
             self.sonatacd = os.path.join(os.path.split(__file__)[0], blankalbum)
         self.albumimage.set_from_file(self.sonatacd)
 
-        # Initialize playlist data and widget
-        self.playlistdata = gtk.ListStore(int, str)
-        self.playlist.set_model(self.playlistdata)
-        self.playlist.set_search_column(1)
-        self.playlist.connect('drag-data-get',  self.playlist_data_get)
-        self.playlistdata.connect('row-changed',  self.playlist_changed)
-        self.playlistcell = gtk.CellRendererText()
-        self.playlistcolumn = gtk.TreeViewColumn('Pango Markup', self.playlistcell, markup=1)
-        self.playlistcolumn.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
-        self.playlist.append_column(self.playlistcolumn)
-        self.playlist.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
-        targets = [('STRING', 0, 0)]
-        self.playlist.enable_model_drag_source(gtk.gdk.BUTTON1_MASK, targets, gtk.gdk.ACTION_MOVE)
-        self.playlist.enable_model_drag_dest(targets, gtk.gdk.ACTION_MOVE)
+        # Initialize current playlist data and widget
+        self.currentdata = gtk.ListStore(int, str)
+        self.current.set_model(self.currentdata)
+        self.current.set_search_column(1)
+        self.current.connect('drag-data-get',  self.current_data_get)
+        self.currentdata.connect('row-changed',  self.current_changed)
+        self.currentcell = gtk.CellRendererText()
+        self.currentcolumn = gtk.TreeViewColumn('Pango Markup', self.currentcell, markup=1)
+        self.currentcolumn.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+        self.current.append_column(self.currentcolumn)
+        self.current.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
+        self.current.enable_model_drag_source(gtk.gdk.BUTTON1_MASK, [('STRING', 0, 0)], gtk.gdk.ACTION_MOVE)
+        self.current.enable_model_drag_dest([('STRING', 0, 0)], gtk.gdk.ACTION_MOVE)
 
-        # Browser
+        # Initialize playlist data and widget
+        self.playlistsdata = gtk.ListStore(str, str)
+        self.playlists.set_model(self.playlistsdata)
+        self.playlists.set_search_column(1)
+        self.playlistsimg = gtk.CellRendererPixbuf()
+        self.playlistscell = gtk.CellRendererText()
+        self.playlistscolumn = gtk.TreeViewColumn()
+        self.playlistscolumn.pack_start(self.playlistsimg, False)
+        self.playlistscolumn.pack_start(self.playlistscell, True)
+        self.playlistscolumn.set_attributes(self.playlistsimg, stock_id=0)
+        self.playlistscolumn.set_attributes(self.playlistscell, markup=1)
+        self.playlists.append_column(self.playlistscolumn)
+        self.playlists.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
+
+        # Initialize browser data and widget
         self.browserposition = {}
         self.root = '/'
         self.browser.wd = '/'
         self.prevstatus = None
-
-        # Initialize browser data and widget
         self.browserdata = gtk.ListStore(str, str, str)
         self.browser.set_model(self.browserdata)
         self.browser.set_search_column(2)
@@ -582,8 +612,6 @@ class Base(mpdclient3.mpd_connection):
         self.browsercolumn.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.browser.append_column(self.browsercolumn)
         self.browser.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
-        self.hadjustment = self.browser.get_hadjustment()
-        self.vadjustment = self.browser.get_vadjustment()
 
         icon = self.window.render_icon('sonata', gtk.ICON_SIZE_DIALOG)
         self.window.set_icon(icon)
@@ -689,7 +717,7 @@ class Base(mpdclient3.mpd_connection):
             self.nextbutton.set_property('sensitive', False)
             self.volumebutton.set_property('sensitive', False)
             self.trayimage.set_from_stock('sonata',  gtk.ICON_SIZE_BUTTON)
-            self.playlistdata.clear()
+            self.currentdata.clear()
         else:
             self.ppbutton.set_property('sensitive', True)
             self.stopbutton.set_property('sensitive', True)
@@ -697,15 +725,63 @@ class Base(mpdclient3.mpd_connection):
             self.nextbutton.set_property('sensitive', True)
             self.volumebutton.set_property('sensitive', True)
             self.browse(root='/')
+            self.playlists_populate()
 
     def notebook_clicked(self, notebook, page, page_num):
         if page_num == 0:
-            gobject.idle_add(self.give_widget_focus, self.playlist)
+            gobject.idle_add(self.give_widget_focus, self.current)
         elif page_num == 1:
             gobject.idle_add(self.give_widget_focus, self.browser)
+        elif page_num == 2:
+            gobject.idle_add(self.give_widget_focus, self.playlists)
 
     def give_widget_focus(self, widget):
         widget.grab_focus()
+
+    def save_playlist(self, action):
+        if self.conn:
+            # Prompt user for playlist name:
+            dialog = gtk.Dialog(_("Save Playlist"), self.window, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT))
+            hbox = gtk.HBox()
+            hbox.pack_start(gtk.Label(_('Playlist name') + ':'), False, False, 5)
+            entry = gtk.Entry()
+            entry.set_activates_default(True)
+            hbox.pack_start(entry, True, True, 5)
+            dialog.vbox.pack_start(hbox)
+            dialog.set_default_response(gtk.RESPONSE_ACCEPT)
+            dialog.vbox.show_all()
+            response = dialog.run()
+            if response == gtk.RESPONSE_ACCEPT:
+                plname = entry.get_text()
+                plname = plname.replace("\\", "")
+                plname = plname.replace("/", "")
+                plname = plname.replace("\"", "")
+                # Make sure this playlist doesn't already exit:
+                for item in self.conn.do.lsinfo():
+                    if item.type == 'playlist':
+                        if item.playlist == plname:
+                            dialog.destroy()
+                            # show error here
+                            error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("A playlist with this name already exists."))
+                            error_dialog.set_title(_("Save Playlist"))
+                            error_dialog.run()
+                            error_dialog.destroy()
+                            return
+                self.conn.do.save(plname)
+                self.playlists_populate()
+            dialog.destroy()
+
+    def playlists_populate(self):
+        if not self.conn:
+            return
+        self.playlistsdata.clear()
+        playlistinfo = []
+        for item in self.conn.do.lsinfo():
+            if item.type == 'playlist':
+                playlistinfo.append(escape_html(item.playlist))
+        playlistinfo.sort(key=lambda x: x.lower()) # Remove case sensitivity
+        for item in playlistinfo:
+            self.playlistsdata.append([gtk.STOCK_JUSTIFY_FILL, item])
 
     def browse(self, widget=None, root='/'):
         if not self.conn:
@@ -715,7 +791,7 @@ class Base(mpdclient3.mpd_connection):
         while self.conn.do.lsinfo(root) == []:
             if self.conn.do.listallinfo(root):
                 # Info exists if we try to browse to a song
-                self.browser_add(self.browser)
+                self.add_item(self.browser)
                 return
             elif root == '/':
                 # Nothing in the library at all
@@ -764,41 +840,59 @@ class Base(mpdclient3.mpd_connection):
             if self.browser.get_selection().count_selected_rows() > 1:
                 return True
 
-    def browser_add(self, widget):
-        if self.conn:
-            model, selected = self.browser.get_selection().get_selected_rows()
-            if self.root == "/":
-                for path in selected:
-                    self.conn.do.add(model.get_value(model.get_iter(path), 1))
-            else:
-                iters = []
-                for path in selected:
-                    if path[0] != 0 and path[0] != 1:
-                        self.conn.do.add(model.get_value(model.get_iter(path), 1))
+    def playlists_button_press(self, widget, event):
+        if event.button == 3:
+            self.set_menu_contextual_items_visible()
+            self.mainmenu.popup(None, None, None, event.button, event.time)
+            # Don't change the selection for a right-click. This
+            # will allow the user to select multiple rows and then
+            # right-click (instead of right-clicking and having
+            # the current selection change to the current row)
+            if self.playlists.get_selection().count_selected_rows() > 1:
+                return True
 
-    def browser_replace(self, widget):
+    def add_item(self, widget):
+        if self.conn:
+            if self.notebook.get_current_page() == 1:
+                # Library
+                model, selected = self.browser.get_selection().get_selected_rows()
+                if self.root == "/":
+                    for path in selected:
+                        self.conn.do.add(model.get_value(model.get_iter(path), 1))
+                else:
+                    iters = []
+                    for path in selected:
+                        if path[0] != 0 and path[0] != 1:
+                            self.conn.do.add(model.get_value(model.get_iter(path), 1))
+            else:
+                # Playlist
+                model, selected = self.playlists.get_selection().get_selected_rows()
+                for path in selected:
+                    self.conn.do.load(model.get_value(model.get_iter(path), 1))
+
+    def replace_item(self, widget):
         play_after_replace = False
         if self.status and self.status.state == 'play':
             play_after_replace = True
         self.clear(None)
-        self.browser_add(widget)
+        self.add_item(widget)
         if play_after_replace and self.conn:
             self.conn.do.play()
 
     def position_menu(self, menu):
         if self.expanded:
-            x, y, width, height = self.playlist.get_allocation()
+            x, y, width, height = self.current.get_allocation()
             # Find first selected visible row and popup the menu
             # from there
             i = 0
             row_found = False
             row_y = 0
             if self.notebook.get_current_page() == 0:
-                rows = self.playlist.get_selection().get_selected_rows()[1]
-                visible_rect = self.playlist.get_visible_rect()
+                rows = self.current.get_selection().get_selected_rows()[1]
+                visible_rect = self.current.get_visible_rect()
                 while not row_found and i < len(rows):
                     row = rows[i]
-                    row_rect = self.playlist.get_background_area(row, self.playlistcolumn)
+                    row_rect = self.current.get_background_area(row, self.currentcolumn)
                     if row_rect.y + row_rect.height <= visible_rect.height and row_rect.y >= 0:
                         row_found = True
                         row_y = row_rect.y + 30
@@ -855,7 +949,7 @@ class Base(mpdclient3.mpd_connection):
                 if self.prevstatus and self.prevstatus.state == 'play':
                     oldrow = int(self.prevsonginfo.pos)
                     try:
-                        self.playlistdata[oldrow][1] = make_unbold(self.playlistdata[oldrow][1])
+                        self.currentdata[oldrow][1] = make_unbold(self.currentdata[oldrow][1])
                     except IndexError: # it's gone, playlist was probably cleared
                         pass
             elif self.status.state == 'pause':
@@ -872,7 +966,7 @@ class Base(mpdclient3.mpd_connection):
                 self.UIManager.get_widget('/traymenu/pausemenu').show()
             if self.status.state in ['play', 'pause']:
                 row = int(self.songinfo.pos)
-                self.playlistdata[row][1] = make_bold(self.playlistdata[row][1])
+                self.currentdata[row][1] = make_bold(self.currentdata[row][1])
             self.update_album_art()
 
         if self.prevstatus is None or self.status.volume != self.prevstatus.volume:
@@ -890,22 +984,23 @@ class Base(mpdclient3.mpd_connection):
             if self.prevstatus == None or self.prevstatus.get('updating_db', 0) != self.status.get('updating_db', 0):
                 if not (self.status and self.status.get('updating_db', 0)):
                     self.browse(root=self.root)
+                    self.playlists_populate()
 
     def handle_change_song(self):
-        for song in self.playlistdata:
+        for song in self.currentdata:
             song[1] = make_unbold(song[1])
 
         if self.status and self.status.state in ['play', 'pause']:
             row = int(self.songinfo.pos)
-            self.playlistdata[row][1] = make_bold(self.playlistdata[row][1])
+            self.currentdata[row][1] = make_bold(self.currentdata[row][1])
             if self.expanded:
-                visible_rect = self.playlist.get_visible_rect()
-                row_rect = self.playlist.get_background_area(row, self.playlistcolumn)
+                visible_rect = self.current.get_visible_rect()
+                row_rect = self.current.get_background_area(row, self.currentcolumn)
                 if row_rect.y + row_rect.height > visible_rect.height:
                     top_coord = (row_rect.y + row_rect.height - visible_rect.height) + visible_rect.y
-                    self.playlist.scroll_to_point(-1, top_coord)
+                    self.current.scroll_to_point(-1, top_coord)
                 elif row_rect.y < 0:
-                    self.playlist.scroll_to_cell(row)
+                    self.current.scroll_to_cell(row)
 
         self.update_cursong()
         self.update_wintitle()
@@ -968,25 +1063,25 @@ class Base(mpdclient3.mpd_connection):
     def update_playlist(self):
         if self.conn:
             self.songs = self.conn.do.playlistinfo()
-            self.playlistdata.clear()
+            self.currentdata.clear()
             for track in self.songs:
                 try:
-                    self.playlistdata.append([int(track.id), escape_html(getattr(track, 'artist', None)) + ": " + escape_html(getattr(track, 'title', None))])
+                    self.currentdata.append([int(track.id), escape_html(getattr(track, 'artist', None)) + ": " + escape_html(getattr(track, 'title', None))])
                 except:
-                    self.playlistdata.append([int(track.id), escape_html(getattr(track, 'file', None))])
+                    self.currentdata.append([int(track.id), escape_html(getattr(track, 'file', None))])
             if self.status.state in ['play', 'pause']:
                 row = int(self.songinfo.pos)
-                self.playlistdata[row][1] = make_bold(self.playlistdata[row][1])
+                self.currentdata[row][1] = make_bold(self.currentdata[row][1])
                 if self.expanded:
                     while gtk.events_pending():
                         gtk.main_iteration()
-                    visible_rect = self.playlist.get_visible_rect()
-                    row_rect = self.playlist.get_background_area(row, self.playlistcolumn)
+                    visible_rect = self.current.get_visible_rect()
+                    row_rect = self.current.get_background_area(row, self.currentcolumn)
                     if row_rect.y + row_rect.height > visible_rect.height:
                         top_coord = (row_rect.y + row_rect.height - visible_rect.height) + visible_rect.y
-                        self.playlist.scroll_to_point(-1, top_coord)
+                        self.current.scroll_to_point(-1, top_coord)
                     elif row_rect.y < 0:
-                        self.playlist.scroll_to_cell(row)
+                        self.current.scroll_to_cell(row)
 
     def update_album_art(self):
         if not self.show_covers:
@@ -1204,7 +1299,7 @@ class Base(mpdclient3.mpd_connection):
 
     def on_drag_drop(self, treeview, drag_context, x, y, selection, info, timestamp):
         model = treeview.get_model()
-        foobar, self._selected = self.playlist.get_selection().get_selected_rows()
+        foobar, self._selected = self.current.get_selection().get_selected_rows()
         data = pickle.loads(selection.data)
         drop_info = treeview.get_dest_row_at_pos(x, y)
 
@@ -1260,15 +1355,15 @@ class Base(mpdclient3.mpd_connection):
         for path in self._selected:
             sel.select_path(path)
 
-    def playlist_changed(self, treemodel, path, iter):
+    def current_changed(self, treemodel, path, iter):
         pass
 
-    def playlist_data_get(self, widget, drag_context, selection, info, timestamp):
-        model, selected = self.playlist.get_selection().get_selected_rows()
+    def current_data_get(self, widget, drag_context, selection, info, timestamp):
+        model, selected = self.current.get_selection().get_selected_rows()
         selection.set(selection.target, 8, pickle.dumps(selected))
         return
 
-    def playlist_button_press(self, widget, event):
+    def current_button_press(self, widget, event):
         if event.button == 3:
             self.set_menu_contextual_items_visible()
             self.mainmenu.popup(None, None, None, event.button, event.time)
@@ -1276,10 +1371,10 @@ class Base(mpdclient3.mpd_connection):
             # will allow the user to select multiple rows and then
             # right-click (instead of right-clicking and having
             # the current selection change to the current row)
-            if self.playlist.get_selection().count_selected_rows() > 1:
+            if self.current.get_selection().count_selected_rows() > 1:
                 return True
 
-    def playlist_popup_menu(self, widget):
+    def current_popup_menu(self, widget):
         self.set_menu_contextual_items_visible()
         self.mainmenu.popup(None, None, None, 3, 0)
 
@@ -1451,15 +1546,18 @@ class Base(mpdclient3.mpd_connection):
     def quit_activate(self, widget):
         self.window.destroy()
 
-    def playlist_click(self, treeview, path, column):
-        iter = self.playlistdata.get_iter(path)
-        self.conn.do.playid(self.playlistdata.get_value(iter, 0))
+    def current_click(self, treeview, path, column):
+        iter = self.currentdata.get_iter(path)
+        self.conn.do.playid(self.currentdata.get_value(iter, 0))
 
-    def switch_to_playlist(self, action):
+    def switch_to_current(self, action):
         self.notebook.set_current_page(0)
 
     def switch_to_library(self, action):
         self.notebook.set_current_page(1)
+
+    def switch_to_playlists(self, action):
+        self.notebook.set_current_page(2)
 
     def lower_volume(self, action):
         new_volume = int(self.volumescale.get_adjustment().get_value()) - 10
@@ -1547,10 +1645,17 @@ class Base(mpdclient3.mpd_connection):
         return
 
     def remove(self, widget):
-        model, selected = self.playlist.get_selection().get_selected_rows()
-        iters = [model.get_iter(path) for path in selected]
-        for iter in iters:
-            self.conn.do.deleteid(self.playlistdata.get_value(iter, 0))
+        if self.notebook.get_current_page() == 0:
+            model, selected = self.current.get_selection().get_selected_rows()
+            iters = [model.get_iter(path) for path in selected]
+            for iter in iters:
+                self.conn.do.deleteid(self.currentdata.get_value(iter, 0))
+        else:
+            model, selected = self.playlists.get_selection().get_selected_rows()
+            iters = [model.get_iter(path) for path in selected]
+            for iter in iters:
+                self.conn.do.rm(self.playlistsdata.get_value(iter, 1))
+                self.playlists_populate()
 
     def randomize(self, widget):
         # Ironically enough, the command to turn shuffle on/off is called
@@ -1737,19 +1842,32 @@ class Base(mpdclient3.mpd_connection):
         elif self.notebook.get_current_page() == 0:
             self.UIManager.get_widget('/mainmenu/removemenu/').show()
             self.UIManager.get_widget('/mainmenu/clearmenu/').show()
+            self.UIManager.get_widget('/mainmenu/savemenu/').show()
             self.UIManager.get_widget('/mainmenu/addmenu/').hide()
             self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
+        elif self.notebook.get_current_page() == 1:
+            self.UIManager.get_widget('/mainmenu/removemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/savemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/addmenu/').show()
+            self.UIManager.get_widget('/mainmenu/replacemenu/').show()
+            self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
         else:
             self.UIManager.get_widget('/mainmenu/removemenu/').hide()
             self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/savemenu/').hide()
             self.UIManager.get_widget('/mainmenu/addmenu/').show()
             self.UIManager.get_widget('/mainmenu/replacemenu/').show()
+            self.UIManager.get_widget('/mainmenu/rmmenu/').show()
 
     def set_menu_contextual_items_hidden(self):
         self.UIManager.get_widget('/mainmenu/removemenu/').hide()
         self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
+        self.UIManager.get_widget('/mainmenu/savemenu/').hide()
         self.UIManager.get_widget('/mainmenu/addmenu/').hide()
         self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
+        self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
 
     def help(self, action):
         self.browser_load("http://sonata.berlios.de/documentation.html")
