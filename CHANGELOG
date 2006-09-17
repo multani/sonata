@@ -1,6 +1,7 @@
 v0.6 - Pending
 	+ Add support for playlists (save, load, queue, delete)
 	+ Add Ctrl-U and Ctrl-Shift-U for updating library (see docs)
+	+ (Re-)display systray icon if tray is (re-)opened
 	+ Fix mpdclient3.py to return all playlist objects
 	+ Bug: Delete key doesn't remove songs from playlist
 

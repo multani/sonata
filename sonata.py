@@ -53,8 +53,10 @@ except ImportError, (strerror):
 try:
     # We'll make the system tray functionality optional...
     import egg.trayicon
+    HAVE_EGG = True
 except ImportError:
     # so we'll pass on any errors in loading it
+    HAVE_EGG = False
     pass
 
 try:
@@ -622,7 +624,8 @@ class Base(mpdclient3.mpd_connection):
             self.window.hide()
         self.window.show_all()
 
-        self.initialize_systrayicon()
+        if HAVE_EGG:
+            self.initialize_systrayicon()
 
         # Call self.iterate every self.iterate_time ms to keep current info displayed
         self.iterate_handler = gobject.timeout_add(self.iterate_time, self.iterate)
@@ -683,6 +686,10 @@ class Base(mpdclient3.mpd_connection):
         self.prevsonginfo = self.songinfo
 
         self.iterate_handler = gobject.timeout_add(self.iterate_time, self.iterate) # Repeat ad infitum..
+
+        if HAVE_EGG:
+            if self.trayicon.get_property('visible') == False:
+                self.initialize_systrayicon()
 
     def save_settings(self):
         conf = ConfigParser.ConfigParser()
@@ -1740,7 +1747,7 @@ class Base(mpdclient3.mpd_connection):
         minimize = gtk.CheckButton(_("Minimize to system tray on close"))
         minimize.set_active(self.minimize_to_systray)
         self.tooltips.set_tip(minimize, _("If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."))
-        if self.trayicon_visible:
+        if HAVE_EGG and self.trayicon.get_property('visible') == True:
             minimize.set_sensitive(True)
         else:
             minimize.set_sensitive(False)
@@ -1885,9 +1892,7 @@ class Base(mpdclient3.mpd_connection):
             self.trayicon = egg.trayicon.TrayIcon("TrayIcon")
             self.trayicon.add(self.trayeventbox)
             self.trayicon.show_all()
-            self.trayicon_visible = True
         except:
-            self.trayicon_visible = False
             pass
 
     def browser_load(self, docslink):
