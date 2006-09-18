@@ -1104,11 +1104,13 @@ class Base(mpdclient3.mpd_connection):
         if not self.show_covers:
             return
         if self.conn and self.status and self.status.state in ['play', 'pause']:
+            while gtk.events_pending():
+                gtk.main_iteration()
+            artist = getattr(self.songinfo, 'artist', None)
+            if not artist: artist = ""
+            album = getattr(self.songinfo, 'album', None)
+            if not album: album = ""
             try:
-                while gtk.events_pending():
-                    gtk.main_iteration()
-                artist = getattr(self.songinfo, 'artist', None)
-                album = getattr(self.songinfo, 'album', None)
                 filename = os.path.expanduser("~/.config/sonata/covers/" + artist + "-" + album + ".jpg")
                 if filename == self.lastalbumart:
                     # No need to update..
@@ -1426,7 +1428,9 @@ class Base(mpdclient3.mpd_connection):
     def image_activate(self, widget, event):
         if event.button == 3:
             if self.conn and self.status and self.status.state in ['play', 'pause']:
-                self.imagemenu.popup(None, None, None, event.button, event.time)
+                artist = getattr(self.songinfo, 'artist', None)
+                if artist:
+                    self.imagemenu.popup(None, None, None, event.button, event.time)
         return False
 
     def change_cursor(self, type):
@@ -1479,7 +1483,9 @@ class Base(mpdclient3.mpd_connection):
         if response == gtk.RESPONSE_OK:
             filename = dialog.get_filenames()[0]
             artist = getattr(self.songinfo, 'artist', None)
+            if not artist: artist = ""
             album = getattr(self.songinfo, 'album', None)
+            if not album: album = ""
             dest_filename = os.path.expanduser("~/.config/sonata/covers/" + artist + "-" + album + ".jpg")
             # Remove file if already set:
             if os.path.exists(dest_filename):
@@ -1507,7 +1513,9 @@ class Base(mpdclient3.mpd_connection):
         scroll.set_policy(gtk.POLICY_NEVER, gtk.POLICY_ALWAYS)
         # Retrieve all images from amazon:
         artist = getattr(self.songinfo, 'artist', None)
+        if not artist: artist = ""
         album = getattr(self.songinfo, 'album', None)
+        if not album: album = ""
         imagelist = gtk.ListStore(int, gtk.gdk.Pixbuf)
         filename = os.path.expanduser("~/.config/sonata/covers/temp/<imagenum>.jpg")
         while gtk.events_pending():
