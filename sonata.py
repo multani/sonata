@@ -565,10 +565,10 @@ class Base(mpdclient3.mpd_connection):
 
         # Connect to mmkeys signals
         keys = mmkeys.MmKeys()
-        keys.connect("mm_prev", self.prev)
-        keys.connect("mm_next", self.next)
-        keys.connect("mm_playpause", self.pp)
-        keys.connect("mm_stop", self.stop)
+        keys.connect("mm_prev", self.mmprev)
+        keys.connect("mm_next", self.mmnext)
+        keys.connect("mm_playpause", self.mmpp)
+        keys.connect("mm_stop", self.mmstop)
 
         # Put blank cd to albumimage widget by default
         blankalbum = 'sonatacd.png'
@@ -1727,6 +1727,22 @@ class Base(mpdclient3.mpd_connection):
     def next(self, widget):
         self.conn.do.next()
         return
+
+    def mmpp(self, keys, key, player):
+        if self.conn:
+            self.pp(None)
+
+    def mmstop(self, keys, key, player):
+        if self.conn:
+            self.stop(None)
+
+    def mmprev(self, keys, key, player):
+        if self.conn:
+            self.prev(None)
+
+    def mmnext(self, keys, key, player):
+        if self.conn:
+            self.next(None)
 
     def show_browser(self, widget):
         self.browser.show()
