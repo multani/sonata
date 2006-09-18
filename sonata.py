@@ -564,11 +564,11 @@ class Base(mpdclient3.mpd_connection):
         self.window.connect('button_press_event', self.popup_menu)
 
         # Connect to mmkeys signals
-        keys = mmkeys.MmKeys()
-        keys.connect("mm_prev", self.mmprev)
-        keys.connect("mm_next", self.mmnext)
-        keys.connect("mm_playpause", self.mmpp)
-        keys.connect("mm_stop", self.mmstop)
+        self.keys = mmkeys.MmKeys()
+        self.keys.connect("mm_prev", self.mmprev)
+        self.keys.connect("mm_next", self.mmnext)
+        self.keys.connect("mm_playpause", self.mmpp)
+        self.keys.connect("mm_stop", self.mmstop)
 
         # Put blank cd to albumimage widget by default
         blankalbum = 'sonatacd.png'
