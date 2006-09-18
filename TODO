@@ -2,6 +2,7 @@
 	optional statusbar (num songs, total length)
 	dbus - show previous instance if user tries to launch another
 	support for multimedia keys (possible in pure pygtk? nope)
+		- requires gcc, python-dev (and pygtk 2.8?)
 	pref to autoplay when using 'replace'?
 
 Future:

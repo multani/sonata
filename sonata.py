@@ -37,6 +37,7 @@ import subprocess
 import gettext
 import locale
 import shutil
+import mmkeys
 
 try:
     import cPickle as pickle
@@ -495,6 +496,9 @@ class Base(mpdclient3.mpd_connection):
             self.trayalbumimage.hide()
         self.tipbox.pack_start(self.trayalbumimage, False, False, 6)
         self.tipbox.pack_start(innerbox, True, True, 6)
+        self.traytips = TrayIconTips()
+        self.traytips.add_widget(self.tipbox)
+        self.tipbox.show_all()
 
         # Volumescale window_resized
         self.volumewindow = gtk.Window(gtk.WINDOW_POPUP)
@@ -559,9 +563,12 @@ class Base(mpdclient3.mpd_connection):
         self.window.add_events(gtk.gdk.BUTTON_PRESS_MASK)
         self.window.connect('button_press_event', self.popup_menu)
 
-        self.traytips = TrayIconTips()
-        self.traytips.add_widget(self.tipbox)
-        self.tipbox.show_all()
+        # Connect to mmkeys signals
+        keys = mmkeys.MmKeys()
+        keys.connect("mm_prev", self.prev)
+        keys.connect("mm_next", self.next)
+        keys.connect("mm_playpause", self.pp)
+        keys.connect("mm_stop", self.stop)
 
         # Put blank cd to albumimage widget by default
         blankalbum = 'sonatacd.png'
@@ -1137,6 +1144,8 @@ class Base(mpdclient3.mpd_connection):
 
     def download_image_to_filename(self, artist, album, dest_filename, all_images=False):
         try:
+            while gtk.events_pending():
+                gtk.main_iteration()
             socket.setdefaulttimeout(5)
             artist = urllib.quote(artist)
             album = urllib.quote(album)
@@ -1151,6 +1160,8 @@ class Base(mpdclient3.mpd_connection):
             # again with just the artist name:
             img_url = f[f.find("http", curr_pos):f.find("jpg", curr_pos) + 3]
             if len(img_url) == 0:
+                while gtk.events_pending():
+                    gtk.main_iteration()
                 search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images"
                 request = urllib2.Request(search_url)
                 request.add_header('Accept-encoding', 'gzip')
@@ -1159,6 +1170,8 @@ class Base(mpdclient3.mpd_connection):
                 img_url = f[f.find("http", curr_pos):f.find("jpg", curr_pos) + 3]
                 # And if that fails, try one last time with just the album name:
                 if len(img_url) == 0:
+                    while gtk.events_pending():
+                        gtk.main_iteration()
                     search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&ResponseGroup=Images&Keywords=" + album
                     request = urllib2.Request(search_url)
                     request.add_header('Accept-encoding', 'gzip')
@@ -1173,11 +1186,15 @@ class Base(mpdclient3.mpd_connection):
                     curr_pos = f.find("<MediumImage>", curr_pos+10)
                     img_url = f[f.find("http", curr_pos):f.find("jpg", curr_pos) + 3]
                     if len(img_url) > 0:
+                        while gtk.events_pending():
+                            gtk.main_iteration()
                         urllib.urlretrieve(img_url, dest_filename.replace("<imagenum>", str(curr_img)))
                         curr_img += 1
                         # Skip the next SmallImage:
                         curr_pos = f.find("<MediumImage>", curr_pos+10)
             else:
+                while gtk.events_pending():
+                    gtk.main_iteration()
                 curr_pos = f.find("<MediumImage>", curr_pos+10)
                 img_url = f[f.find("http", curr_pos):f.find("jpg", curr_pos) + 3]
                 if len(img_url) > 0:
@@ -1488,12 +1505,13 @@ class Base(mpdclient3.mpd_connection):
         scroll = gtk.ScrolledWindow()
         scroll.set_size_request(350, 325)
         scroll.set_policy(gtk.POLICY_NEVER, gtk.POLICY_ALWAYS)
-
         # Retrieve all images from amazon:
         artist = getattr(self.songinfo, 'artist', None)
         album = getattr(self.songinfo, 'album', None)
         imagelist = gtk.ListStore(int, gtk.gdk.Pixbuf)
         filename = os.path.expanduser("~/.config/sonata/covers/temp/<imagenum>.jpg")
+        while gtk.events_pending():
+            gtk.main_iteration()
         if os.path.exists(os.path.dirname(filename)):
             removeall(os.path.dirname(filename))
         if not os.path.exists(os.path.dirname(filename)):
@@ -1503,6 +1521,8 @@ class Base(mpdclient3.mpd_connection):
         image_num = 1
         while os.path.exists(filename.replace("<imagenum>", str(image_num))):
             try:
+                while gtk.events_pending():
+                    gtk.main_iteration()
                 pix = gtk.gdk.pixbuf_new_from_file(filename.replace("<imagenum>", str(image_num)))
                 pix = pix.scale_simple(150, 150, gtk.gdk.INTERP_HYPER)
                 imagelist.append([image_num, pix])

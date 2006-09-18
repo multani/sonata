@@ -3,7 +3,12 @@
 # $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/setup.py $
 # $Id: setup.py 141 2006-09-11 04:51:07Z stonecrest $
 
-from distutils.core import setup
+import os
+
+from distutils.core import setup, Extension
+
+def capture(cmd):
+    return os.popen(cmd).read().strip()
 
 setup(name='Sonata',
         version='0.5.2',
@@ -21,6 +26,11 @@ setup(name='Sonata',
             'Topic :: Multimedia :: Sound :: Players',
             ],
         py_modules = ['sonata'],
+        ext_modules=[Extension(
+        "mmkeys", ["mmkeys/mmkeyspy.c", "mmkeys/mmkeys.c", "mmkeys/mmkeysmodule.c"],
+        extra_compile_args=capture("pkg-config --cflags gtk+-2.0 pygtk-2.0").split(),
+        extra_link_args=capture("pkg-config --libs gtk+-2.0 pygtk-2.0").split()
+         ),],
         scripts = ['sonata', 'mpdclient3.py'],
         data_files=[('share/sonata',
                         ['README', 'CHANGELOG', 'TODO', 'TRANSLATORS']),
