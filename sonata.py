@@ -1736,19 +1736,19 @@ class Base(mpdclient3.mpd_connection):
         self.conn.do.next()
         return
 
-    def mmpp(self, keys, key, player):
+    def mmpp(self, keys, key):
         if self.conn:
             self.pp(None)
 
-    def mmstop(self, keys, key, player):
+    def mmstop(self, keys, key):
         if self.conn:
             self.stop(None)
 
-    def mmprev(self, keys, key, player):
+    def mmprev(self, keys, key):
         if self.conn:
             self.prev(None)
 
-    def mmnext(self, keys, key, player):
+    def mmnext(self, keys, key):
         if self.conn:
             self.next(None)
 
