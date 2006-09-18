@@ -1548,29 +1548,14 @@ class Base(mpdclient3.mpd_connection):
             imagewidget.set_margin(10)
             imagewidget.set_selection_mode(gtk.SELECTION_SINGLE)
             imagewidget.select_path("0")
+            imagewidget.connect('item-activated', self.replace_cover, filename, choose_dialog, artist, album)
             scroll.add(imagewidget)
             choose_dialog.vbox.pack_start(scroll)
             choose_dialog.vbox.show_all()
             self.change_cursor(None)
             response = choose_dialog.run()
             if response == gtk.RESPONSE_ACCEPT:
-                try:
-                    image_num = int(imagewidget.get_selected_items()[0][0] + 1)
-                    filename = filename.replace("<imagenum>", str(image_num))
-                    dest_filename = os.path.expanduser("~/.config/sonata/covers/" + artist + "-" + album + ".jpg")
-                    if os.path.exists(filename):
-                        # Move temp file to actual file:
-                        os.remove(dest_filename)
-                        os.rename(filename, dest_filename)
-                        # And finally, set the image in the interface:
-                        self.lastalbumart = None
-                        self.update_album_art()
-                        # Clean up..
-                        if os.path.exists(os.path.dirname(filename)):
-                            removeall(os.path.dirname(filename))
-                except:
-                    pass
-                choose_dialog.destroy()
+                self.replace_cover(imagewidget, imagewidget.get_selected_items()[0], filename, choose_dialog, artist, album)
             else:
                 choose_dialog.destroy()
         else:
@@ -1582,6 +1567,25 @@ class Base(mpdclient3.mpd_connection):
             error_dialog.run()
             error_dialog.destroy()
         gc.collect()
+
+    def replace_cover(self, iconview, path, filename, dialog, artist, album):
+        try:
+            image_num = int(path[0]) + 1
+            filename = filename.replace("<imagenum>", str(image_num))
+            dest_filename = os.path.expanduser("~/.config/sonata/covers/" + artist + "-" + album + ".jpg")
+            if os.path.exists(filename):
+                # Move temp file to actual file:
+                os.remove(dest_filename)
+                os.rename(filename, dest_filename)
+                # And finally, set the image in the interface:
+                self.lastalbumart = None
+                self.update_album_art()
+                # Clean up..
+                if os.path.exists(os.path.dirname(filename)):
+                    removeall(os.path.dirname(filename))
+        except:
+            pass
+        dialog.destroy()
 
     # What happens when you click on the system tray icon?
     def trayaction(self, widget, event):
