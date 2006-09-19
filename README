@@ -9,6 +9,8 @@ REQUIREMENTS:
 	(Required) GTK 2.6.0 or newer
 	(Optional) MPD
 	(Optional) Gnome-python-extras for the system tray icon
+	(Building) GCC
+	(Building) python-dev (on some distros)
 
 INSTALLATION:
 	Just run 'python setup.py install' as root.
@@ -16,7 +18,8 @@ INSTALLATION:
 FEATURES:
 	+ Expanded and collapsed views
 	+ Automatic album art retrieval (with alternatives)
-	+ Playlist and Library tabs
+	+ Playlist support
 	+ System tray icon with tooltip
 	+ Keyboard friendly
+	+ Support for multimedia keys
 	+ Repeat, shuffle, volume control, etc.

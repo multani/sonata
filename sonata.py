@@ -561,7 +561,7 @@ class Base(mpdclient3.mpd_connection):
         self.expander.connect('button_press_event', self.popup_menu)
         self.volumebutton.connect('button_press_event', self.popup_menu)
         self.window.add_events(gtk.gdk.BUTTON_PRESS_MASK)
-        self.window.connect('button_press_event', self.popup_menu)
+        self.mainwinhandler = self.window.connect('button_press_event', self.popup_menu)
 
         # Connect to mmkeys signals
         self.keys = mmkeys.MmKeys()
@@ -1426,12 +1426,17 @@ class Base(mpdclient3.mpd_connection):
 
 
     def image_activate(self, widget, event):
+        self.window.handler_block(self.mainwinhandler)
         if event.button == 3:
             if self.conn and self.status and self.status.state in ['play', 'pause']:
                 artist = getattr(self.songinfo, 'artist', None)
                 if artist:
                     self.imagemenu.popup(None, None, None, event.button, event.time)
+        gobject.timeout_add(50, self.unblock_window_popup_handler)
         return False
+
+    def unblock_window_popup_handler(self):
+        self.window.handler_unblock(self.mainwinhandler)
 
     def change_cursor(self, type):
         for i in gtk.gdk.window_get_toplevels():
@@ -1944,9 +1949,6 @@ class Base(mpdclient3.mpd_connection):
     def popup_menu(self, widget, event):
         if widget == self.window:
             if event.get_coords()[1] > self.notebook.get_allocation()[1]:
-                return
-            if event.get_coords()[0] >= self.imageeventbox.get_allocation()[0] and event.get_coords()[0] <= self.imageeventbox.get_allocation()[2] and event.get_coords()[1] >= self.imageeventbox.get_allocation()[1] and event.get_coords()[1] <= self.imageeventbox.get_allocation()[3]:
-                # Don't popup menu over album image:
                 return
         if event.button == 3:
             self.set_menu_contextual_items_hidden()

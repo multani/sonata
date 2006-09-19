@@ -1,18 +1,16 @@
-0.6
-	support for multimedia keys (possible in pure pygtk? nope)
-		- requires gcc, python-dev (and pygtk 2.8?)
+v0.7
+	optional statusbar (num songs, total length)
+	library tab -> albums, artists, search
+	ability to configure columns for playlist
+	ability to show column headings for sorting
 
 Future:
-	library tab -> albums, artists, search
-	optional statusbar (num songs, total length)
 	dbus - show previous instance if user tries to launch another
 	connect in background via socket.setblocking(0)
 	border around album art?
 	pref to autoplay when using 'replace'?
 	use threading for album art
 	retain selection after dnd
-	ability to configure columns for playlist
-	ability to show column headings for sorting
 	switch to pygtk's statusicon (2.10) and remove gnome-python dep
 		- then we can finally use skip_taskbar_hint since we will
 		  be able to reliably detect if the sysicon is displayed
