@@ -26,9 +26,22 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import sonata
+try:
+	import dbus
+	import dbus.service
+	if getattr(dbus, "version", (0,0,0)) >= (0,41,0):
+		import dbus.glib
+	HAVE_DBUS = True
+except:
+	HAVE_DBUS = False
 
 if __name__ == "__main__":
-    app = sonata.Base()
+    if HAVE_DBUS:
+        session_bus = dbus.SessionBus()
+        bus_name = dbus.service.BusName('org.MPD', bus=session_bus)
+        app = sonata.BaseDBus(bus_name, '/org/MPD/Sonata')
+    else:
+        app = sonata.Base()
     try:
         app.main()
     except KeyboardInterrupt:

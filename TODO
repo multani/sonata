@@ -5,7 +5,6 @@ v0.7
 	ability to show column headings for sorting
 
 Future:
-	dbus - show previous instance if user tries to launch another
 	connect in background via socket.setblocking(0)
 	border around album art?
 	pref to autoplay when using 'replace'?

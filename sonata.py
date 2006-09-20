@@ -221,7 +221,8 @@ class Base(mpdclient3.mpd_connection):
             ('deletekey', None, 'Delete Key', 'Delete', None, self.remove),
             ('updatekey', None, 'Update Key', '<Ctrl>u', None, self.updatedb),
             ('updatekey2', None, 'Update Key 2', '<Ctrl><Shift>u', None, self.updatedb_path),
-            ('parentdirkey', None, 'Parent Dir Key', 'BackSpace', None, self.parent_dir)
+            ('parentdirkey', None, 'Parent Dir Key', 'BackSpace', None, self.parent_dir),
+            ('hidewinkey', None, 'Hide Window Key', 'Escape', None, self.withdraw_app)
             )
 
         toggle_actions = (
@@ -282,6 +283,7 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="updatekey"/>
                 <menuitem action="updatekey2"/>
                 <menuitem action="parentdirkey"/>
+                <menuitem action="hidewinkey"/>
               </popup>
             </ui>
             """
@@ -1642,10 +1644,16 @@ class Base(mpdclient3.mpd_connection):
         if not self.expanded:
             self.notebook.set_no_show_all(True)
         self.window.show_all()
+        self.window.present() # Helps to raise the window (useful against focus stealing prevention)
+        self.window.grab_focus()
         self.notebook.set_no_show_all(False)
         if self.sticky:
             self.window.stick()
         self.withdrawn = False
+
+    def withdraw_app_on_escape(self, action):
+        if self.minimize_to_systray:
+            self.widthdraw_app()
 
     def withdraw_app(self):
         self.window.hide()
@@ -2052,6 +2060,23 @@ class Base(mpdclient3.mpd_connection):
     def main(self):
         gtk.main()
 
+class BaseDBus(dbus.service.Object, Base):
+    def __init__(self, bus_name, object_path):
+        dbus.service.Object.__init__(self, bus_name, object_path)
+        Base.__init__(self)
+
+    @dbus.service.method('org.MPD.SonataInterface')
+    def show(self):
+        self.window.hide()
+        self.withdraw_app_undo()
+
+    @dbus.service.method('org.MPD.SonataInterface')
+    def toggle(self):
+        if self.window.get_property('visible'):
+            self.withdraw_app()
+        else:
+            self.withdraw_app_undo()
+
 class TrayIconTips(gtk.Window):
     """Custom tooltips derived from gtk.Window() that allow for markup text and multiple widgets, e.g. a progress bar. ;)"""
     MARGIN = 4
@@ -2240,4 +2265,6 @@ def start_dbus_interface():
             pass
         if exit_now:
             print "An instance of Sonata is already running."
+            obj = dbus.SessionBus().get_object('org.MPD', '/org/MPD/Sonata')
+            obj.show(dbus_interface='org.MPD.SonataInterface')
             sys.exit()
