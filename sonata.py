@@ -220,7 +220,8 @@ class Base(mpdclient3.mpd_connection):
             ('menukey', None, 'Menu Key', 'Menu', None, self.menukey_press),
             ('deletekey', None, 'Delete Key', 'Delete', None, self.remove),
             ('updatekey', None, 'Update Key', '<Ctrl>u', None, self.updatedb),
-            ('updatekey2', None, 'Update Key 2', '<Ctrl><Shift>u', None, self.updatedb_path)
+            ('updatekey2', None, 'Update Key 2', '<Ctrl><Shift>u', None, self.updatedb_path),
+            ('parentdirkey', None, 'Parent Dir Key', 'BackSpace', None, self.parent_dir)
             )
 
         toggle_actions = (
@@ -280,6 +281,7 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="deletekey"/>
                 <menuitem action="updatekey"/>
                 <menuitem action="updatekey2"/>
+                <menuitem action="parentdirkey"/>
               </popup>
             </ui>
             """
@@ -608,6 +610,7 @@ class Base(mpdclient3.mpd_connection):
 
         # Initialize browser data and widget
         self.browserposition = {}
+        self.browserselectedpath = {}
         self.root = '/'
         self.browser.wd = '/'
         self.prevstatus = None
@@ -800,6 +803,11 @@ class Base(mpdclient3.mpd_connection):
         for item in playlistinfo:
             self.playlistsdata.append([gtk.STOCK_JUSTIFY_FILL, item])
 
+    def parent_dir(self, action):
+        if self.notebook.get_current_page() == 1:
+            if self.browser.wd != "/":
+                self.browse(None, self.browserdata.get_value(self.browserdata.get_iter((1,)), 1))
+
     def browse(self, widget=None, root='/'):
         if not self.conn:
             return
@@ -818,8 +826,11 @@ class Base(mpdclient3.mpd_connection):
                 root = '/'.join(root.split('/')[:-1]) or '/'
 
         self.root = root
-        # Save row for where we just were
+        # Save position and row for where we just were
         self.browserposition[self.browser.wd] = self.browser.get_visible_rect()[1]
+        model, rows = self.browser.get_selection().get_selected_rows()
+        if len(rows) > 0:
+            self.browserselectedpath[self.browser.wd] = rows[0]
 
         self.browser.wd = root
         self.browserdata.clear()
@@ -842,6 +853,16 @@ class Base(mpdclient3.mpd_connection):
             self.browser.scroll_to_point(0, self.browserposition[self.browser.wd])
         except:
             self.browser.scroll_to_point(0, 0)
+
+        # Select and focus previously selected item if it's not ".." or "/"
+        if self.browser.wd in self.browserselectedpath:
+            try:
+                value_for_selection = self.browserdata.get_value(self.browserdata.get_iter(self.browserselectedpath[self.browser.wd]), 2)
+                if value_for_selection != ".." and value_for_selection != "/":
+                    self.browser.get_selection().select_path(self.browserselectedpath[self.browser.wd])
+                    self.browser.grab_focus()
+            except:
+                pass
 
     def browserow(self, widget, path, column=0):
         self.browse(None, self.browserdata.get_value(self.browserdata.get_iter(path), 1))
@@ -1145,6 +1166,8 @@ class Base(mpdclient3.mpd_connection):
         gc.collect()
 
     def download_image_to_filename(self, artist, album, dest_filename, all_images=False):
+        if artist == "" and album == "":
+            return
         try:
             while gtk.events_pending():
                 gtk.main_iteration()
