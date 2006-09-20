@@ -38,6 +38,7 @@ import gettext
 import locale
 import shutil
 import mmkeys
+import sys, getopt
 
 try:
     import cPickle as pickle
@@ -104,7 +105,23 @@ class Connection(mpdclient3.mpd_connection):
 class Base(mpdclient3.mpd_connection):
     def __init__(self):
 
-        start_dbus_interface()
+        toggle_arg = False
+        # Read any passed options/arguments:
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "", ["toggle"])
+        except getopt.GetoptError:
+            # print help information and exit:
+            sys.exit(2)
+        # If options were passed, perform action on them.
+        if opts != []:
+            for o, a in opts:
+                if o in ("--toggle"):
+                    toggle_arg = True
+                    if not HAVE_DBUS:
+                        print "The --toggle argument requires DBUS. Aborting."
+                        sys.exit()
+
+        start_dbus_interface(toggle_arg)
 
         try:
             gettext.install('sonata', '/usr/share/locale', unicode=1)
@@ -2250,7 +2267,7 @@ def removeall(path):
             f=os.rmdir
             rmgeneric(fullpath, f)
 
-def start_dbus_interface():
+def start_dbus_interface(toggle=False):
     if HAVE_DBUS:
         exit_now = False
         try:
@@ -2264,7 +2281,10 @@ def start_dbus_interface():
         except:
             pass
         if exit_now:
-            print "An instance of Sonata is already running."
             obj = dbus.SessionBus().get_object('org.MPD', '/org/MPD/Sonata')
-            obj.show(dbus_interface='org.MPD.SonataInterface')
+            if toggle:
+                obj.toggle(dbus_interface='org.MPD.SonataInterface')
+            else:
+                print "An instance of Sonata is already running."
+                obj.show(dbus_interface='org.MPD.SonataInterface')
             sys.exit()
