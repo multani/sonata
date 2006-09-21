@@ -37,9 +37,12 @@ except:
 
 if __name__ == "__main__":
     if HAVE_DBUS:
-        session_bus = dbus.SessionBus()
-        bus_name = dbus.service.BusName('org.MPD', bus=session_bus)
-        app = sonata.BaseDBus(bus_name, '/org/MPD/Sonata')
+		try:
+			session_bus = dbus.SessionBus()
+			bus_name = dbus.service.BusName('org.MPD', bus=session_bus)
+			app = sonata.BaseDBus(bus_name, '/org/MPD/Sonata')
+		except:
+			app = sonata.Base()
     else:
         app = sonata.Base()
     try:

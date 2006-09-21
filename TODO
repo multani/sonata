@@ -3,7 +3,6 @@ v0.7
 	library tab -> albums, artists, search
 	ability to configure columns for playlist
 	ability to show column headings for sorting
-	document --toggle
 
 Future:
 	connect in background via socket.setblocking(0)
