@@ -849,7 +849,9 @@ class Base(mpdclient3.mpd_connection):
         self.browserposition[self.browser.wd] = self.browser.get_visible_rect()[1]
         model, rows = self.browser.get_selection().get_selected_rows()
         if len(rows) > 0:
-            self.browserselectedpath[self.browser.wd] = rows[0]
+            value_for_selection = self.browserdata.get_value(self.browserdata.get_iter(rows[0]), 2)
+            if value_for_selection != ".." and value_for_selection != "/":
+                self.browserselectedpath[self.browser.wd] = rows[0]
 
         self.browser.wd = root
         self.browserdata.clear()
@@ -876,10 +878,8 @@ class Base(mpdclient3.mpd_connection):
         # Select and focus previously selected item if it's not ".." or "/"
         if self.browser.wd in self.browserselectedpath:
             try:
-                value_for_selection = self.browserdata.get_value(self.browserdata.get_iter(self.browserselectedpath[self.browser.wd]), 2)
-                if value_for_selection != ".." and value_for_selection != "/":
-                    self.browser.get_selection().select_path(self.browserselectedpath[self.browser.wd])
-                    self.browser.grab_focus()
+                self.browser.get_selection().select_path(self.browserselectedpath[self.browser.wd])
+                self.browser.grab_focus()
             except:
                 pass
 
