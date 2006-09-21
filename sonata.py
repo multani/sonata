@@ -204,8 +204,8 @@ class Base(mpdclient3.mpd_connection):
 
         # Popup menus:
         actions = (
-            ('chooseimage_menu', gtk.STOCK_CONVERT, _('_Use Remote Image...'), None, None, self.choose_image),
-            ('localimage_menu', gtk.STOCK_OPEN, _('_Use Local Image...'), None, None, self.choose_image_local),
+            ('chooseimage_menu', gtk.STOCK_CONVERT, _('Use _Remote Image...'), None, None, self.choose_image),
+            ('localimage_menu', gtk.STOCK_OPEN, _('Use _Local Image...'), None, None, self.choose_image_local),
             ('playmenu', gtk.STOCK_MEDIA_PLAY, _('_Play'), None, None, self.pp),
             ('pausemenu', gtk.STOCK_MEDIA_PAUSE, _('_Pause'), None, None, self.pp),
             ('stopmenu', gtk.STOCK_MEDIA_STOP, _('_Stop'), None, None, self.stop),
@@ -247,7 +247,6 @@ class Base(mpdclient3.mpd_connection):
             ('repeatmenu', None, _('_Repeat'), None, None, self.repeat_now, self.repeat),
             ('shufflemenu', None, _('_Shuffle'), None, None, self.shuffle_now, self.shuffle),
                 )
-
 
         uiDescription = """
             <ui>
@@ -362,7 +361,6 @@ class Base(mpdclient3.mpd_connection):
         tophbox = gtk.HBox()
         self.imageeventbox = gtk.EventBox()
         self.albumimage = gtk.Image()
-        self.albumimage.set_size_request(75, 75)
         self.imageeventbox.add(self.albumimage)
         if not self.show_covers:
             self.imageeventbox.set_no_show_all(True)
@@ -845,13 +843,22 @@ class Base(mpdclient3.mpd_connection):
                 root = '/'.join(root.split('/')[:-1]) or '/'
 
         self.root = root
-        # Save position and row for where we just were
-        self.browserposition[self.browser.wd] = self.browser.get_visible_rect()[1]
-        model, rows = self.browser.get_selection().get_selected_rows()
-        if len(rows) > 0:
-            value_for_selection = self.browserdata.get_value(self.browserdata.get_iter(rows[0]), 2)
-            if value_for_selection != ".." and value_for_selection != "/":
-                self.browserselectedpath[self.browser.wd] = rows[0]
+        # The logic below is more consistent with, e.g., thunar
+        if len(root) > len(self.browser.wd):
+            # Save position and row for where we just were if we've
+            # navigated into a sub-directory:
+            self.browserposition[self.browser.wd] = self.browser.get_visible_rect()[1]
+            model, rows = self.browser.get_selection().get_selected_rows()
+            if len(rows) > 0:
+                value_for_selection = self.browserdata.get_value(self.browserdata.get_iter(rows[0]), 2)
+                if value_for_selection != ".." and value_for_selection != "/":
+                    self.browserselectedpath[self.browser.wd] = rows[0]
+        else:
+            # If we've navigated to a parent directory, don't save
+            # anything so that the user will enter that subdirectory
+            # again at the top position with nothing selected
+            self.browserposition[self.browser.wd] = 0
+            self.browserselectedpath[self.browser.wd] = None
 
         self.browser.wd = root
         self.browserdata.clear()
@@ -878,8 +885,9 @@ class Base(mpdclient3.mpd_connection):
         # Select and focus previously selected item if it's not ".." or "/"
         if self.browser.wd in self.browserselectedpath:
             try:
-                self.browser.get_selection().select_path(self.browserselectedpath[self.browser.wd])
-                self.browser.grab_focus()
+                if self.browserselectedpath[self.browser.wd]:
+                    self.browser.get_selection().select_path(self.browserselectedpath[self.browser.wd])
+                    self.browser.grab_focus()
             except:
                 pass
 
@@ -1469,13 +1477,51 @@ class Base(mpdclient3.mpd_connection):
 
     def image_activate(self, widget, event):
         self.window.handler_block(self.mainwinhandler)
-        if event.button == 3:
+        if event.button == 1:
+            if self.lastalbumart:
+                self.show_cover_large()
+        elif event.button == 3:
             if self.conn and self.status and self.status.state in ['play', 'pause']:
                 artist = getattr(self.songinfo, 'artist', None)
                 if artist:
                     self.imagemenu.popup(None, None, None, event.button, event.time)
         gobject.timeout_add(50, self.unblock_window_popup_handler)
         return False
+
+    def show_cover_large(self):
+        artist = getattr(self.songinfo, 'artist', None)
+        if not artist: artist = ""
+        album = getattr(self.songinfo, 'album', None)
+        if not album: album = ""
+        filename = os.path.expanduser("~/.config/sonata/covers/" + artist + "-" + album + ".jpg")
+        if os.path.exists(filename):
+            coverwindow = gtk.Dialog(_("Cover Art"), self.window, gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE))
+            coverwindow.set_resizable(False)
+            coverwindow.set_has_separator(True)
+            pix = gtk.gdk.pixbuf_new_from_file(filename)
+            if pix.get_width() != 160:
+                print pix.get_width(), pix.get_height()
+                pix = pix.scale_simple(160, int(160/float(pix.get_width())*pix.get_height()), gtk.gdk.INTERP_HYPER)
+                print pix.get_width(), pix.get_height()
+            image = gtk.Image()
+            image.set_from_pixbuf(pix)
+            hbox = gtk.HBox()
+            hbox.pack_start(image, True, True, 20)
+            coverwindow.vbox.pack_start(hbox, False, False, 20)
+            if artist != "":
+                artistlabel = gtk.Label('  ' + artist + '  ')
+            else:
+                artistlabel = gtk.Label(_('  Unknown Artist  '))
+            coverwindow.vbox.pack_start(artistlabel, False, False, 2)
+            if album != "":
+                albumlabel = gtk.Label('  ' + album + '  ')
+            else:
+                albumlabel = gtk.Label(_('  Unknown Album  '))
+            coverwindow.vbox.pack_start(albumlabel, False, False, 2)
+            coverwindow.vbox.pack_start(gtk.Label(), False, False, 0)
+            coverwindow.vbox.show_all()
+            coverwindow.run()
+            coverwindow.destroy()
 
     def unblock_window_popup_handler(self):
         self.window.handler_unblock(self.mainwinhandler)
@@ -1497,9 +1543,9 @@ class Base(mpdclient3.mpd_connection):
                 width = pixbuf.get_width()
                 height = pixbuf.get_height()
                 if width > height:
-                    pixbuf = pixbuf.scale_simple(128, int(float(height)/width*128), self.zoom_quality)
+                    pixbuf = pixbuf.scale_simple(128, int(float(height)/width*128), gtk.gdk.INTERP_HYPER)
                 else:
-                    pixbuf = pixbuf.scale_simple(int(float(width)/height*128), 128, self.zoom_quality)
+                    pixbuf = pixbuf.scale_simple(int(float(width)/height*128), 128, gtk.gdk.INTERP_HYPER)
             except:
                 pass
         if pixbuf == None:
@@ -1808,10 +1854,6 @@ class Base(mpdclient3.mpd_connection):
     def mmnext(self, keys, key):
         if self.conn:
             self.next(None)
-
-    def show_browser(self, widget):
-        self.browser.show()
-        return
 
     def remove(self, widget):
         if self.notebook.get_current_page() == 0:

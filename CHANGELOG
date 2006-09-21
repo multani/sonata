@@ -1,4 +1,5 @@
 v0.7 - Pending
+	+ Show larger image on left-click of cover art
 	+ Retain selection of browsed directories in library
 	+ Backspace shortcut to navigate to parent dir in library
 	+ Show previous instance if user tries to open a second
