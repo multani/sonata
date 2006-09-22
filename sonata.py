@@ -215,7 +215,7 @@ class Base(mpdclient3.mpd_connection):
             ('removemenu', gtk.STOCK_REMOVE, _('_Remove'), None, None, self.remove),
             ('clearmenu', gtk.STOCK_CLEAR, _('_Clear'), '<Ctrl>c', None, self.clear),
             ('savemenu', gtk.STOCK_SAVE, _('_Save Playlist...'), '<Ctrl>s', None, self.save_playlist),
-            ('updatemenu', None, _('_Update Library'), None, None, self.updatedb),
+            ('updatemenu', gtk.STOCK_REFRESH, _('_Update Library'), None, None, self.updatedb),
             ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'), None, None, self.prefs),
             ('helpmenu', gtk.STOCK_HELP, _('_Help'), None, None, self.help),
             ('addmenu', gtk.STOCK_ADD, _('_Add'), None, None, self.add_item),
@@ -272,11 +272,11 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="clearmenu"/>
                 <menuitem action="savemenu"/>
                 <menuitem action="rmmenu"/>
+                <menuitem action="updatemenu"/>
                 <separator name="FM1"/>
                 <menuitem action="repeatmenu"/>
                 <menuitem action="shufflemenu"/>
                 <separator name="FM2"/>
-                <menuitem action="updatemenu"/>
                 <menuitem action="preferencemenu"/>
                 <menuitem action="helpmenu"/>
               </popup>
@@ -2054,6 +2054,7 @@ class Base(mpdclient3.mpd_connection):
             self.UIManager.get_widget('/mainmenu/addmenu/').hide()
             self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
             self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
         elif self.notebook.get_current_page() == 1:
             self.UIManager.get_widget('/mainmenu/removemenu/').hide()
             self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
@@ -2061,6 +2062,7 @@ class Base(mpdclient3.mpd_connection):
             self.UIManager.get_widget('/mainmenu/addmenu/').show()
             self.UIManager.get_widget('/mainmenu/replacemenu/').show()
             self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/updatemenu/').show()
         else:
             self.UIManager.get_widget('/mainmenu/removemenu/').hide()
             self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
@@ -2068,6 +2070,7 @@ class Base(mpdclient3.mpd_connection):
             self.UIManager.get_widget('/mainmenu/addmenu/').show()
             self.UIManager.get_widget('/mainmenu/replacemenu/').show()
             self.UIManager.get_widget('/mainmenu/rmmenu/').show()
+            self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
 
     def set_menu_contextual_items_hidden(self):
         self.UIManager.get_widget('/mainmenu/removemenu/').hide()
@@ -2076,6 +2079,7 @@ class Base(mpdclient3.mpd_connection):
         self.UIManager.get_widget('/mainmenu/addmenu/').hide()
         self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
         self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
+        self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
 
     def help(self, action):
         self.browser_load("http://sonata.berlios.de/documentation.html")
