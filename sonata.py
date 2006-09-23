@@ -1123,7 +1123,7 @@ class Base(mpdclient3.mpd_connection):
     def update_cursong(self):
         if self.conn and self.status and self.status.state in ['play', 'pause']:
             try:
-                self.cursonglabel.set_markup('<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>by ' + escape_html(getattr(self.songinfo, 'artist', None)) + ' ' + _('from') + ' ' + escape_html(getattr(self.songinfo, 'album', None)) + '</small>')
+                self.cursonglabel.set_markup('<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>' + _('by') + ' ' + escape_html(getattr(self.songinfo, 'artist', None)) + ' ' + _('from') + ' ' + escape_html(getattr(self.songinfo, 'album', None)) + '</small>')
             except:
                 self.cursonglabel.set_markup('<big><b>' + escape_html(getattr(self.songinfo, 'file', None)) + '</b></big>\n<small>' + _('by Unknown') + '</small>')
         else:
