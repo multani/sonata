@@ -3,6 +3,8 @@
 # $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/sonata.py $
 # $Id: mirage.py 141 2006-09-11 04:51:07Z stonecrest $
 
+__version__ = "0.7"
+
 __license__ = """
 Sonata, a simple GTK+ client for the Music Player Daemon
 Copyright 2006 Scott Horowitz <stonecrest@gmail.com>
@@ -105,28 +107,36 @@ class Connection(mpdclient3.mpd_connection):
 class Base(mpdclient3.mpd_connection):
     def __init__(self):
 
-        toggle_arg = False
-        # Read any passed options/arguments:
-        try:
-            opts, args = getopt.getopt(sys.argv[1:], "", ["toggle"])
-        except getopt.GetoptError:
-            # print help information and exit:
-            sys.exit(2)
-        # If options were passed, perform action on them.
-        if opts != []:
-            for o, a in opts:
-                if o in ("--toggle"):
-                    toggle_arg = True
-                    if not HAVE_DBUS:
-                        print "The --toggle argument requires DBUS. Aborting."
-                        sys.exit()
-
-        start_dbus_interface(toggle_arg)
-
         try:
             gettext.install('sonata', '/usr/share/locale', unicode=1)
         except:
             gettext.install('sonata', '/usr/local/share/locale', unicode=1)
+
+        toggle_arg = False
+        # Read any passed options/arguments:
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "tv", ["toggle", "version"])
+        except getopt.GetoptError:
+            # print help information and exit:
+            self.print_usage()
+            sys.exit(2)
+        # If options were passed, perform action on them.
+        if opts != []:
+            for o, a in opts:
+                if o in ("-t", "--toggle"):
+                    toggle_arg = True
+                    if not HAVE_DBUS:
+                        print _("The toggle argument requires D-Bus. Aborting.")
+                        self.print_usage()
+                        sys.exit(2)
+                elif o in ("-v", "--version"):
+                    self.print_version()
+                    sys.exit(2)
+                else:
+                    self.print_usage()
+                    sys.exit(2)
+
+        start_dbus_interface(toggle_arg)
 
         # Initialize vars:
         self.host = 'localhost'
@@ -671,6 +681,21 @@ class Base(mpdclient3.mpd_connection):
 
         self.initial_run = False
 
+    def print_version(self):
+        print _("Version: Sonata"), __version__
+        print _("Website: http://sonata.berlios.de")
+
+    def print_usage(self):
+        self.print_version()
+        print ""
+        print _("Usage: sonata [OPTION]")
+        print ""
+        print _("Options") + ":"
+        print "  -h, --help           " + _("Show this help and exit")
+        print "  -v, --version        " + _("Show version information and exit")
+        print "  -t, --toggle         " + _("Toggles whether the app is minimized")
+        print "                       " + _("to tray or visible (requires D-Bus)")
+
     def connect(self):
         try:
             return Connection(self)
@@ -1098,9 +1123,9 @@ class Base(mpdclient3.mpd_connection):
     def update_cursong(self):
         if self.conn and self.status and self.status.state in ['play', 'pause']:
             try:
-                self.cursonglabel.set_markup('<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>by ' + escape_html(getattr(self.songinfo, 'artist', None)) + ' from ' + escape_html(getattr(self.songinfo, 'album', None)) + '</small>')
+                self.cursonglabel.set_markup('<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>by ' + escape_html(getattr(self.songinfo, 'artist', None)) + ' ' + _('from') + ' ' + escape_html(getattr(self.songinfo, 'album', None)) + '</small>')
             except:
-                self.cursonglabel.set_markup('<big><b>' + escape_html(getattr(self.songinfo, 'file', None)) + '</b></big>\n<small>by Unknown</small>')
+                self.cursonglabel.set_markup('<big><b>' + escape_html(getattr(self.songinfo, 'file', None)) + '</b></big>\n<small>' + _('by Unknown') + '</small>')
         else:
             if self.expanded:
                 self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>' + _('Click to collapse') + '</small>')
@@ -1514,12 +1539,12 @@ class Base(mpdclient3.mpd_connection):
             if artist != "":
                 artistlabel = gtk.Label('  ' + artist + '  ')
             else:
-                artistlabel = gtk.Label(_('  Unknown Artist  '))
+                artistlabel = gtk.Label('  ' + _('Unknown Artist') + '  ')
             coverwindow.vbox.pack_start(artistlabel, False, False, 2)
             if album != "":
                 albumlabel = gtk.Label('  ' + album + '  ')
             else:
-                albumlabel = gtk.Label(_('  Unknown Album  '))
+                albumlabel = gtk.Label('  ' + _('Unknown Album') + '  ')
             coverwindow.vbox.pack_start(albumlabel, False, False, 2)
             coverwindow.vbox.pack_start(gtk.Label(), False, False, 0)
             coverwindow.vbox.show_all()
@@ -2334,6 +2359,6 @@ def start_dbus_interface(toggle=False):
             if toggle:
                 obj.toggle(dbus_interface='org.MPD.SonataInterface')
             else:
-                print "An instance of Sonata is already running."
+                print _("An instance of Sonata is already running.")
                 obj.show(dbus_interface='org.MPD.SonataInterface')
             sys.exit()
