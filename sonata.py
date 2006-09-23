@@ -228,8 +228,8 @@ class Base(mpdclient3.mpd_connection):
             ('updatemenu', gtk.STOCK_REFRESH, _('_Update Library'), None, None, self.updatedb),
             ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'), None, None, self.prefs),
             ('helpmenu', gtk.STOCK_HELP, _('_Help'), None, None, self.help),
-            ('addmenu', gtk.STOCK_ADD, _('_Add'), None, None, self.add_item),
-            ('replacemenu', gtk.STOCK_REDO, _('_Replace'), None, None, self.replace_item),
+            ('addmenu', gtk.STOCK_ADD, _('_Add'), 'space', None, self.add_item),
+            ('replacemenu', gtk.STOCK_REDO, _('_Replace'), '<Ctrl>r', None, self.replace_item),
             ('rmmenu', gtk.STOCK_DELETE, _('_Delete'), None, None, self.remove),
             ('currentkey', None, 'Current Playlist Key', '<Alt>1', None, self.switch_to_current),
             ('librarykey', None, 'Library Key', '<Alt>2', None, self.switch_to_library),
@@ -788,6 +788,7 @@ class Base(mpdclient3.mpd_connection):
             self.volumebutton.set_property('sensitive', True)
             self.browse(root='/')
             self.playlists_populate()
+            self.notebook_clicked(self.notebook, 0, self.notebook.get_current_page())
 
     def notebook_clicked(self, notebook, page, page_num):
         if page_num == 0:

@@ -4,8 +4,9 @@ v0.7 - Pending
 	+ Backspace shortcut to navigate to parent dir in library
 	+ Show previous instance if user tries to open a second
 	  instance of Sonata [Mike Massonnet patch]
-	+ --toggle argument to minimize to tray or show (requires D-Bus)
 	+ Add --version, --help; print usage
+	+ --toggle argument to minimize to tray or show (requires D-Bus)
+	+ Added french translation [Floréal M]
 	+ Bug: Unable to delete multiple playlists at once
 	+ Bug: Crash when playing ogg streams [patch]
 
