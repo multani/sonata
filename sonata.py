@@ -1084,8 +1084,11 @@ class Base(mpdclient3.mpd_connection):
             if self.status and self.status.state in ['play', 'pause']:
                 at, len = [int(c) for c in self.status.time.split(':')]
                 at_time = convert_time(at)
-                time = convert_time(int(self.songinfo.time))
-                self.progressbar.set_text(at_time + " / " + time)
+                try:
+                    time = convert_time(int(self.songinfo.time))
+                    self.progressbar.set_text(at_time + " / " + time)
+                except AttributeError:
+                    self.progressbar.set_text(at_time)
             else:
                 self.progressbar.set_text('')
         else:

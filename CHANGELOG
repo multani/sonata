@@ -5,6 +5,7 @@ v0.7 - Pending
 	+ Show previous instance if user tries to open a second
 	  instance of Sonata [Mike Massonnet patch]
 	+ --toggle argument for the app's visibility (requires D-Bus)
+	+ Bug: Crash when playing ogg streams [patch]
 
 v0.6 - September 18, 2006
 	+ Add support for playlists (save, load, queue, delete)
