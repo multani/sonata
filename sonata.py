@@ -1869,7 +1869,7 @@ class Base(mpdclient3.mpd_connection):
             iters = [model.get_iter(path) for path in selected]
             for iter in iters:
                 self.conn.do.rm(self.playlistsdata.get_value(iter, 1))
-                self.playlists_populate()
+            self.playlists_populate()
 
     def randomize(self, widget):
         # Ironically enough, the command to turn shuffle on/off is called
