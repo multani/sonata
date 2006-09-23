@@ -168,12 +168,12 @@ class Base(mpdclient3.mpd_connection):
         show_prefs = False
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
-        # are repeatedly called every 250ms. Therefore, if we were
-        # not able to make a connection, slow down the iteration
+        # are repeatedly executed. Therefore, if we were not
+        # able to make a connection, slow down the iteration
         # check to once every 15 seconds.
         # Eventually we'd like to ues non-blocking sockets in
         # mpdclient3.py
-        self.iterate_time_when_connected = 250
+        self.iterate_time_when_connected = 1000
         self.iterate_time_when_disconnected = 15000
 
         # Load config:
@@ -667,8 +667,7 @@ class Base(mpdclient3.mpd_connection):
         if HAVE_EGG:
             self.initialize_systrayicon()
 
-        # Call self.iterate every self.iterate_time ms to keep current info displayed
-        self.iterate_handler = gobject.timeout_add(self.iterate_time, self.iterate)
+        self.iterate_now()
 
         self.notebook.set_no_show_all(False)
         self.window.set_no_show_all(False)
@@ -745,6 +744,17 @@ class Base(mpdclient3.mpd_connection):
         if HAVE_EGG:
             if self.trayicon.get_property('visible') == False:
                 self.initialize_systrayicon()
+
+    def iterate_now(self):
+        # Since self.iterate_time_when_connected has been
+        # slowed down to 1second instead of 250ms, we'll
+        # call self.iterate_now() whenever the user performs
+        # an action that requires updating the client
+        try:
+            gobject.source_remove(self.iterate_handler)
+        except:
+            pass
+        self.iterate()
 
     def save_settings(self):
         conf = ConfigParser.ConfigParser()
@@ -833,6 +843,7 @@ class Base(mpdclient3.mpd_connection):
                 self.conn.do.save(plname)
                 self.playlists_populate()
             dialog.destroy()
+            self.iterate_now()
 
     def playlists_populate(self):
         if not self.conn:
@@ -960,6 +971,7 @@ class Base(mpdclient3.mpd_connection):
                 model, selected = self.playlists.get_selection().get_selected_rows()
                 for path in selected:
                     self.conn.do.load(model.get_value(model.get_iter(path), 1))
+            self.iterate_now()
 
     def replace_item(self, widget):
         play_after_replace = False
@@ -969,6 +981,7 @@ class Base(mpdclient3.mpd_connection):
         self.add_item(widget)
         if play_after_replace and self.conn:
             self.conn.do.play()
+        self.iterate_now()
 
     def position_menu(self, menu):
         if self.expanded:
@@ -1456,6 +1469,7 @@ class Base(mpdclient3.mpd_connection):
 
         if drag_context.action == gtk.gdk.ACTION_MOVE:
             drag_context.finish(True, True, timestamp)
+        self.iterate_now()
 
     def after_drag_drop(self, treeview, drag_context):
         model = treeview.get_model()
@@ -1489,6 +1503,7 @@ class Base(mpdclient3.mpd_connection):
     def updatedb(self, widget):
         if self.conn:
             self.conn.do.update('/')
+            self.iterate_now()
 
     def updatedb_path(self, action):
         if self.conn:
@@ -1502,7 +1517,7 @@ class Base(mpdclient3.mpd_connection):
                 else:
                     # If no selection, update the current path...
                     self.conn.do.update(self.browser.wd)
-
+                self.iterate_now()
 
     def image_activate(self, widget, event):
         self.window.handler_block(self.mainwinhandler)
@@ -1522,6 +1537,8 @@ class Base(mpdclient3.mpd_connection):
         if not artist: artist = ""
         album = getattr(self.songinfo, 'album', None)
         if not album: album = ""
+        if artist == "" and album == "":
+            return
         filename = os.path.expanduser("~/.config/sonata/covers/" + artist + "-" + album + ".jpg")
         if os.path.exists(filename):
             coverwindow = gtk.Dialog(_("Cover Art"), self.window, gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE))
@@ -1777,6 +1794,7 @@ class Base(mpdclient3.mpd_connection):
     def current_click(self, treeview, path, column):
         iter = self.currentdata.get_iter(path)
         self.conn.do.playid(self.currentdata.get_value(iter, 0))
+        self.iterate_now()
 
     def switch_to_current(self, action):
         self.notebook.set_current_page(0)
@@ -1838,6 +1856,7 @@ class Base(mpdclient3.mpd_connection):
     def on_volumescale_change(self, obj, value, data):
         new_volume = int(obj.get_adjustment().get_value())
         self.conn.do.setvol(new_volume)
+        self.iterate_now()
         return
 
     def on_volumewindow_unfocus(self, obj, data):
@@ -1854,18 +1873,22 @@ class Base(mpdclient3.mpd_connection):
             self.conn.do.play()
         elif self.status.state == 'play':
             self.conn.do.pause(1)
+        self.iterate_now()
         return
 
     def stop(self, widget):
         self.conn.do.stop()
+        self.iterate_now()
         return
 
     def prev(self, widget):
         self.conn.do.previous()
+        self.iterate_now()
         return
 
     def next(self, widget):
         self.conn.do.next()
+        self.iterate_now()
         return
 
     def mmpp(self, keys, key):
@@ -1896,6 +1919,7 @@ class Base(mpdclient3.mpd_connection):
             for iter in iters:
                 self.conn.do.rm(self.playlistsdata.get_value(iter, 1))
             self.playlists_populate()
+        self.iterate_now()
 
     def randomize(self, widget):
         # Ironically enough, the command to turn shuffle on/off is called
@@ -1906,6 +1930,7 @@ class Base(mpdclient3.mpd_connection):
     def clear(self, widget):
         if self.conn:
             self.conn.do.clear()
+            self.iterate_now()
         return
 
     def repeat_now(self, widget):
@@ -2053,8 +2078,7 @@ class Base(mpdclient3.mpd_connection):
                 if self.conn:
                     self.iterate_time = self.iterate_time_when_connected
                     self.conn.do.password(self.password)
-                    gobject.source_remove(self.iterate_handler)
-                    self.iterate_handler = gobject.timeout_add(self.iterate_time, self.iterate)
+                    self.iterate_now()
                 else:
                     self.iterate_time = self.iterate_time_when_disconnected
                     self.browserdata.clear()
@@ -2063,6 +2087,7 @@ class Base(mpdclient3.mpd_connection):
 
     def seek(self, song, seektime):
         self.conn.do.seek(song, seektime)
+        self.iterate_now()
         return
 
     def popup_menu(self, widget, event):

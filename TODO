@@ -4,6 +4,7 @@ v0.7
 	ability to configure columns for playlist
 	ability to show column headings for sorting
 	clean up prefs dialog
+	reduce iterate time, explicitly call iterate after certain things
 
 Future:
 	connect in background via socket.setblocking(0)
