@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2006-09-23 10:49-0600\n"
+"POT-Creation-Date: 2006-09-23 11:07-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -116,6 +116,11 @@ msgstr ""
 msgid "Playlists"
 msgstr ""
 
+#: sonata.py:495 sonata.py:498 sonata.py:1131 sonata.py:1133 sonata.py:1139
+#: sonata.py:1345 sonata.py:1347
+msgid "Stopped"
+msgstr ""
+
 #: sonata.py:495 sonata.py:1133 sonata.py:1345
 msgid "Click to expand"
 msgstr ""
@@ -194,10 +199,6 @@ msgstr ""
 
 #: sonata.py:1137
 msgid "Not connected"
-msgstr ""
-
-#: sonata.py:1139
-msgid "Stopped"
 msgstr ""
 
 #: sonata.py:1526
@@ -310,6 +311,6 @@ msgstr ""
 msgid "Unable to launch a suitable browser."
 msgstr ""
 
-#: sonata.py:2362
+#: sonata.py:2360
 msgid "An instance of Sonata is already running."
 msgstr ""

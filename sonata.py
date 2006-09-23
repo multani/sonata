@@ -492,10 +492,10 @@ class Base(mpdclient3.mpd_connection):
         if not self.expanded:
             self.notebook.set_no_show_all(True)
             self.notebook.hide()
-            self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>' + _('Click to expand') + '</small>')
+            self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to expand') + '</small>')
             self.window.set_default_size(self.w, 1)
         else:
-            self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>' + _('Click to collapse') + '</small>')
+            self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to collapse') + '</small>')
             self.window.set_default_size(self.w, self.h)
         if not self.conn:
             self.progressbar.set_text(_('Not Connected'))
@@ -1128,9 +1128,9 @@ class Base(mpdclient3.mpd_connection):
                 self.cursonglabel.set_markup('<big><b>' + escape_html(getattr(self.songinfo, 'file', None)) + '</b></big>\n<small>' + _('by Unknown') + '</small>')
         else:
             if self.expanded:
-                self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>' + _('Click to collapse') + '</small>')
+                self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to collapse') + '</small>')
             else:
-                self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>' + _('Click to expand') + '</small>')
+                self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to expand') + '</small>')
         # Hide traytip's progressbar when stopped
         if (self.status and self.status.state == 'stop') or not self.conn:
             if not self.conn:
@@ -1342,9 +1342,9 @@ class Base(mpdclient3.mpd_connection):
             self.notebook.show_all()
         if not (self.conn and self.status and self.status.state in ['play', 'pause']):
             if self.expander.get_expanded():
-                self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>' + _('Click to expand') + '</small>')
+                self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to expand') + '</small>')
             else:
-                self.cursonglabel.set_markup('<big><b>Stopped</b></big>\n<small>' + _('Click to collapse') + '</small>')
+                self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to collapse') + '</small>')
         while gtk.events_pending():
             gtk.main_iteration()
         # This is INCREDIBLY hackish.. but it attempts to ensure that
@@ -2318,14 +2318,12 @@ def escape_html(s):
     return s
 
 def rmgeneric(path, __func__):
-
     try:
         __func__(path)
     except OSError, (errno, strerror):
         pass
 
 def removeall(path):
-
     if not os.path.isdir(path):
         return
 
