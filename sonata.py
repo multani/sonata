@@ -161,7 +161,7 @@ class Base(mpdclient3.mpd_connection):
         self.shuffle = False
         self.show_covers = True
         self.show_volume = True
-        self.show_lyrics = True
+        self.show_lyrics = False
         self.stop_on_exit = False
         self.minimize_to_systray = False
         self.exit_now = False
@@ -495,7 +495,7 @@ class Base(mpdclient3.mpd_connection):
         self.lyrics.set_line_wrap(True)
         self.lyrics.set_selectable(True)
         self.lyrics.select_region(0, 0)
-        self.lyrics.set_alignment(0.1, 0)
+        self.lyrics.set_alignment(0, 0)
         self.expanderwindow4.add_with_viewport(self.lyrics)
         lyricseventbox.add(self.expanderwindow4)
         lyricshbox = gtk.HBox()
@@ -503,7 +503,7 @@ class Base(mpdclient3.mpd_connection):
         lyricshbox.pack_start(gtk.Label(str=_("Lyrics")), False, False, 2)
         lyricshbox.show_all()
         self.notebook.append_page(lyricseventbox, lyricshbox)
-        lyricseventbox.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color(0, 0, 0))
+        #lyricseventbox.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color(255, 255, 255))
         mainvbox.pack_start(self.notebook, True, True, 5)
         mainhbox.pack_start(mainvbox, True, True, 3)
         self.window.add(mainhbox)
