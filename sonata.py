@@ -1279,8 +1279,8 @@ class Base(mpdclient3.mpd_connection):
                     opener = urllib2.build_opener()
                     try:
                         f = opener.open(request).read()
-                        begin_pos = f.find("\"</b><BR><BR>", 1) + len("\"</b><BR><BR>")
-                        end_pos = f.find("<BR><BR>[", begin_pos)
+                        begin_pos = f.find("\"</b><BR>", 1) + len("\"</b><BR>")
+                        end_pos = f.find("<BR><BR>", begin_pos)
                         urlnotfound = False
                     except:
                         urlnotfound = True
@@ -1320,6 +1320,7 @@ class Base(mpdclient3.mpd_connection):
                     if end_pos > begin_pos and end_pos != -1 and begin_pos != -1:
                         lyrics = f[begin_pos:end_pos]
                         lyrics = lyrics.replace("<br>", "")
+                        lyrics = lyrics.replace("<BR>", "")
                         self.lyrics.set_text(lyrics)
                         fil = open(filename, "w")
                         fil.write(lyrics)
