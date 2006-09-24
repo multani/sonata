@@ -239,6 +239,7 @@ class Base(mpdclient3.mpd_connection):
             ('currentkey', None, 'Current Playlist Key', '<Alt>1', None, self.switch_to_current),
             ('librarykey', None, 'Library Key', '<Alt>2', None, self.switch_to_library),
             ('playlistskey', None, 'Playlists Key', '<Alt>3', None, self.switch_to_playlists),
+            ('lyricsskey', None, 'Lyrics Key', '<Alt>4', None, self.switch_to_lyrics),
             ('expandkey', None, 'Expand Key', '<Alt>Down', None, self.expand),
             ('collapsekey', None, 'Collapse Key', '<Alt>Up', None, self.collapse),
             ('ppkey', None, 'Play/Pause Key', '<Ctrl>p', None, self.pp),
@@ -1932,6 +1933,10 @@ class Base(mpdclient3.mpd_connection):
     def switch_to_playlists(self, action):
         self.notebook.set_current_page(2)
 
+    def switch_to_lyrics(self, action):
+        if self.show_lyrics:
+            self.notebook.set_current_page(3)
+
     def lower_volume(self, action):
         new_volume = int(self.volumescale.get_adjustment().get_value()) - 10
         if new_volume < 0:
@@ -2242,9 +2247,9 @@ class Base(mpdclient3.mpd_connection):
     def prefs_lyrics_toggled(self, button):
         if button.get_active():
             self.lyricseventbox.set_no_show_all(False)
-            self.lyricseventbox.show()
+            self.lyricseventbox.show_all()
             self.show_lyrics = True
-            self.update_lyrics()
+            #self.update_lyrics()
         else:
             self.lyricseventbox.set_no_show_all(True)
             self.lyricseventbox.hide()
