@@ -162,6 +162,7 @@ class Base(mpdclient3.mpd_connection):
         self.show_covers = True
         self.show_volume = True
         self.show_lyrics = False
+        self.show_search = True
         self.stop_on_exit = False
         self.minimize_to_systray = False
         self.exit_now = False
@@ -214,6 +215,7 @@ class Base(mpdclient3.mpd_connection):
             self.sticky = conf.getboolean('player', 'sticky')
             self.ontop = conf.getboolean('player', 'ontop')
             self.show_lyrics = conf.getboolean('player', 'lyrics')
+            self.show_search = conf.getboolean('player', 'search')
         except:
             pass
 
@@ -229,11 +231,11 @@ class Base(mpdclient3.mpd_connection):
             ('quitmenu', gtk.STOCK_QUIT, _('_Quit'), None, None, self.delete_event_yes),
             ('removemenu', gtk.STOCK_REMOVE, _('_Remove'), None, None, self.remove),
             ('clearmenu', gtk.STOCK_CLEAR, _('_Clear'), '<Ctrl>c', None, self.clear),
-            ('savemenu', gtk.STOCK_SAVE, _('_Save Playlist...'), '<Ctrl>s', None, self.save_playlist),
+            ('savemenu', gtk.STOCK_SAVE, _('_Save Playlist...'), '<Ctrl><Shift>s', None, self.save_playlist),
             ('updatemenu', gtk.STOCK_REFRESH, _('_Update Library'), None, None, self.updatedb),
             ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'), None, None, self.prefs),
             ('helpmenu', gtk.STOCK_HELP, _('_Help'), None, None, self.help),
-            ('addmenu', gtk.STOCK_ADD, _('_Add'), 'space', None, self.add_item),
+            ('addmenu', gtk.STOCK_ADD, _('_Add'), '<Ctrl>d', None, self.add_item),
             ('replacemenu', gtk.STOCK_REDO, _('_Replace'), '<Ctrl>r', None, self.replace_item),
             ('rmmenu', gtk.STOCK_DELETE, _('_Delete'), None, None, self.remove),
             ('currentkey', None, 'Current Playlist Key', '<Alt>1', None, self.switch_to_current),
@@ -251,11 +253,8 @@ class Base(mpdclient3.mpd_connection):
             ('raisekey2', None, 'Raise Volume Key 2', '<Ctrl>equal', None, self.raise_volume),
             ('quitkey', None, 'Quit Key', '<Ctrl>q', None, self.delete_event_yes),
             ('menukey', None, 'Menu Key', 'Menu', None, self.menukey_press),
-            ('deletekey', None, 'Delete Key', 'Delete', None, self.remove),
             ('updatekey', None, 'Update Key', '<Ctrl>u', None, self.updatedb),
-            ('updatekey2', None, 'Update Key 2', '<Ctrl><Shift>u', None, self.updatedb_path),
-            ('parentdirkey', None, 'Parent Dir Key', 'BackSpace', None, self.parent_dir),
-            ('hidewinkey', None, 'Hide Window Key', 'Escape', None, self.withdraw_app)
+            ('updatekey2', None, 'Update Key 2', '<Ctrl><Shift>u', None, self.updatedb_path)
             )
 
         toggle_actions = (
@@ -301,6 +300,7 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="currentkey"/>
                 <menuitem action="librarykey"/>
                 <menuitem action="playlistskey"/>
+                <menuitem action="lyricsskey"/>
                 <menuitem action="expandkey"/>
                 <menuitem action="collapsekey"/>
                 <menuitem action="ppkey"/>
@@ -311,11 +311,8 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="raisekey"/>
                 <menuitem action="raisekey2"/>
                 <menuitem action="menukey"/>
-                <menuitem action="deletekey"/>
                 <menuitem action="updatekey"/>
                 <menuitem action="updatekey2"/>
-                <menuitem action="parentdirkey"/>
-                <menuitem action="hidewinkey"/>
               </popup>
             </ui>
             """
@@ -457,30 +454,42 @@ class Base(mpdclient3.mpd_connection):
         playlisthbox.pack_start(gtk.Label(str=_("Current")), False, False, 2)
         playlisthbox.show_all()
         self.notebook.append_page(self.expanderwindow, playlisthbox)
+        browservbox = gtk.VBox()
         self.expanderwindow2 = gtk.ScrolledWindow()
         self.expanderwindow2.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.expanderwindow2.set_shadow_type(gtk.SHADOW_IN)
-        browervbox = gtk.VBox()
         self.browser = gtk.TreeView()
         self.browser.set_headers_visible(False)
         self.browser.set_rules_hint(True)
         self.browser.set_reorderable(True)
         self.browser.set_enable_search(True)
-        browservbox.pack_start(self.browser, True, True, 2)
-        browerhbox = gtk.HBox()
-        self.searchbutton = gtk.ToggleButton(_('_Search'))
-        self.searchcombo = gtk.ComboBox()
+        self.expanderwindow2.add(self.browser)
+        self.searchbox = gtk.HBox()
+        if not self.show_search:
+            self.searchbox.hide()
+            self.searchbox.set_no_show_all(True)
+        self.searchcombo = gtk.combo_box_new_text()
+        self.searchcombo.append_text(_('Artist'))
+        self.searchcombo.append_text(_('Title'))
+        self.searchcombo.append_text(_('Album'))
+        self.searchcombo.append_text(_('Genre'))
+        self.searchcombo.append_text(_('Filename'))
         self.searchtext = gtk.Entry()
-        browserhbox.pack_start(self.searchbutton, False, False, 2)
-        browserhbox.pack_start(self.searchcombo, False, False, 2)
-        browserhbox.pack_start(self.searchtext, True, True, 2)
-        browservbox.pack_start(browserhbox, False, False, 2)
-        self.expanderwindow2.add(browservbox)
+        self.searchbutton = gtk.Button(_('_End Search'))
+        self.searchbutton.set_image(gtk.image_new_from_stock(gtk.STOCK_CANCEL, gtk.ICON_SIZE_SMALL_TOOLBAR))
+        self.searchbutton.set_size_request(-1, self.searchcombo.size_request()[1])
+        self.searchbutton.set_no_show_all(True)
+        self.searchbutton.hide()
+        self.searchbox.pack_start(self.searchcombo, False, False, 2)
+        self.searchbox.pack_start(self.searchtext, True, True, 2)
+        self.searchbox.pack_start(self.searchbutton, False, False, 2)
+        browservbox.pack_start(self.expanderwindow2, True, True, 2)
+        browservbox.pack_start(self.searchbox, False, False, 2)
         libraryhbox = gtk.HBox()
         libraryhbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_HARDDISK, gtk.ICON_SIZE_MENU), False, False, 2)
         libraryhbox.pack_start(gtk.Label(str=_("Library")), False, False, 2)
         libraryhbox.show_all()
-        self.notebook.append_page(self.expanderwindow2, libraryhbox)
+        self.notebook.append_page(browservbox, libraryhbox)
         self.expanderwindow3 = gtk.ScrolledWindow()
         self.expanderwindow3.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.expanderwindow3.set_shadow_type(gtk.SHADOW_IN)
@@ -592,6 +601,7 @@ class Base(mpdclient3.mpd_connection):
         self.window.connect('delete_event', self.delete_event)
         self.window.connect('window_state_event', self.on_window_state_change)
         self.window.connect('configure_event', self.on_window_configure)
+        self.window.connect('key-press-event', self.topwindow_keypress)
         self.imageeventbox.connect('button_press_event', self.image_activate)
         self.ppbutton.connect('clicked', self.pp)
         self.stopbutton.connect('clicked', self.stop)
@@ -628,6 +638,8 @@ class Base(mpdclient3.mpd_connection):
         self.window.add_events(gtk.gdk.BUTTON_PRESS_MASK)
         self.mainwinhandler = self.window.connect('button_press_event', self.popup_menu)
         self.lyrics.connect('populate-popup', self.lyrics_popup)
+        self.searchtext.connect('activate', self.search)
+        self.searchbutton.connect('clicked', self.search_end)
 
         # Connect to mmkeys signals
         self.keys = mmkeys.MmKeys()
@@ -677,6 +689,7 @@ class Base(mpdclient3.mpd_connection):
         self.browserselectedpath = {}
         self.root = '/'
         self.browser.wd = '/'
+        self.searchcombo.set_active(0)
         self.prevstatus = None
         self.browserdata = gtk.ListStore(str, str, str)
         self.browser.set_model(self.browserdata)
@@ -794,6 +807,16 @@ class Base(mpdclient3.mpd_connection):
             pass
         self.iterate()
 
+    def topwindow_keypress(self, widget, event):
+        shortcut = gtk.accelerator_name(event.keyval, event.state)
+        if shortcut in 'BackSpace':
+            self.parent_dir(None)
+        elif shortcut in 'Escape':
+            if self.minimize_to_systray:
+                self.withdraw_app()
+        elif shortcut in 'Delete':
+            self.remove(None)
+
     def save_settings(self):
         conf = ConfigParser.ConfigParser()
         conf.add_section('connection')
@@ -818,6 +841,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'sticky', self.sticky)
         conf.set('player', 'ontop', self.ontop)
         conf.set('player', 'lyrics', self.show_lyrics)
+        conf.set('player', 'search', self.show_search)
         conf.write(file(os.path.expanduser('~/.config/sonata/sonatarc'), 'w'))
 
     def handle_change_conn(self):
@@ -904,8 +928,10 @@ class Base(mpdclient3.mpd_connection):
 
     def parent_dir(self, action):
         if self.notebook.get_current_page() == 1:
-            if self.browser.wd != "/":
-                self.browse(None, self.browserdata.get_value(self.browserdata.get_iter((1,)), 1))
+            if self.browser.is_focus():
+                if self.browser.wd != "/":
+                    self.browse(None, self.browserdata.get_value(self.browserdata.get_iter((1,)), 1))
+                    return
 
     def browse(self, widget=None, root='/'):
         if not self.conn:
@@ -953,7 +979,10 @@ class Base(mpdclient3.mpd_connection):
                 self.browserdata.append([gtk.STOCK_OPEN, item.directory, escape_html(name)])
             elif item.type == 'file':
                 name = item.file.split('/')[-1]
-                self.browserdata.append(['sonata', item.file, escape_html(name)])
+                try:
+                    self.browserdata.append(['sonata', item.file, escape_html(item.artist + ' - ' + item.title)])
+                except:
+                    self.browserdata.append(['sonata', item.file, escape_html(name)])
 
         # Scroll back to set view for current dir:
         self.browser.realize()
@@ -1904,10 +1933,6 @@ class Base(mpdclient3.mpd_connection):
             self.window.stick()
         self.withdrawn = False
 
-    def withdraw_app_on_escape(self, action):
-        if self.minimize_to_systray:
-            self.widthdraw_app()
-
     def withdraw_app(self):
         self.window.hide()
         self.withdrawn = True
@@ -1950,6 +1975,7 @@ class Base(mpdclient3.mpd_connection):
         self.notebook.set_current_page(2)
 
     def switch_to_lyrics(self, action):
+        print self.show_lyrics
         if self.show_lyrics:
             self.notebook.set_current_page(3)
 
@@ -2056,12 +2082,13 @@ class Base(mpdclient3.mpd_connection):
             self.next(None)
 
     def remove(self, widget):
-        if self.notebook.get_current_page() == 0:
+        page_num = self.notebook.get_current_page()
+        if page_num == 0:
             model, selected = self.current.get_selection().get_selected_rows()
             iters = [model.get_iter(path) for path in selected]
             for iter in iters:
                 self.conn.do.deleteid(self.currentdata.get_value(iter, 0))
-        else:
+        elif page_num == 2:
             model, selected = self.playlists.get_selection().get_selected_rows()
             iters = [model.get_iter(path) for path in selected]
             for iter in iters:
@@ -2151,13 +2178,16 @@ class Base(mpdclient3.mpd_connection):
         display_lyrics = gtk.CheckButton(_("Show lyrics tab"))
         display_lyrics.set_active(self.show_lyrics)
         display_lyrics.connect('toggled', self.prefs_lyrics_toggled)
+        display_search = gtk.CheckButton(_("Show library search"))
+        display_search.set_active(self.show_search)
+        display_search.connect('toggled', self.prefs_search_toggled)
         table2.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(displaylabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(gtk.Label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(display_art, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_lyrics, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_volume, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(gtk.Label(), 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(display_search, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_lyrics, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_volume, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table2.attach(gtk.Label(), 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         # Behavior tab
         table3 = gtk.Table(7, 2, False)
@@ -2271,6 +2301,16 @@ class Base(mpdclient3.mpd_connection):
             self.expanderwindow4.hide()
             self.show_lyrics = False
 
+    def prefs_search_toggled(self, button):
+        if button.get_active():
+            self.searchbox.set_no_show_all(False)
+            self.searchbox.show_all()
+            self.show_search = True
+        else:
+            self.searchbox.set_no_show_all(True)
+            self.searchbox.hide()
+            self.show_search = False
+
     def seek(self, song, seektime):
         self.conn.do.seek(song, seektime)
         self.iterate_now()
@@ -2286,6 +2326,31 @@ class Base(mpdclient3.mpd_connection):
 
     def lyrics_popup(self, textview, menu):
         return True
+
+    def search(self, entry):
+        searchby = self.searchcombo.get_active_text().lower()
+        list = self.conn.do.search(searchby, self.searchtext.get_text())
+        self.browserdata.clear()
+        for item in list:
+            if item.type == 'directory':
+                name = item.directory.split('/')[-1]
+                self.browserdata.append([gtk.STOCK_OPEN, item.directory, escape_html(name)])
+            elif item.type == 'file':
+                name = item.file.split('/')[-1]
+                try:
+                    self.browserdata.append(['sonata', item.file, escape_html(item.artist + ' - ' + item.title)])
+                except:
+                    self.browserdata.append(['sonata', item.file, escape_html(name)])
+        self.browser.grab_focus()
+        self.browser.scroll_to_point(0, 0)
+        self.searchbutton.show()
+        self.searchbutton.set_no_show_all(False)
+
+    def search_end(self, button):
+        self.browse(root='/')
+        self.browser.grab_focus()
+        self.searchbutton.hide()
+        self.searchbutton.set_no_show_all(True)
 
     def set_menu_contextual_items_visible(self):
         if not self.expanded:
