@@ -485,26 +485,26 @@ class Base(mpdclient3.mpd_connection):
         playlistshbox.pack_start(gtk.Label(str=_("Playlists")), False, False, 2)
         playlistshbox.show_all()
         self.notebook.append_page(self.expanderwindow3, playlistshbox)
-        self.lyricseventbox = gtk.EventBox()
         self.expanderwindow4 = gtk.ScrolledWindow()
-        self.expanderwindow4.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+        self.expanderwindow4.set_policy(gtk.POLICY_NEVER, gtk.POLICY_ALWAYS)
         self.expanderwindow4.set_shadow_type(gtk.SHADOW_NONE)
         if not self.show_lyrics:
-            self.lyricseventbox.set_no_show_all(True)
-            self.lyricseventbox.hide()
+            self.expanderwindow4.set_no_show_all(True)
+            self.expanderwindow4.hide()
         self.lyrics = gtk.Label()
         self.lyrics.set_line_wrap(True)
         self.lyrics.set_selectable(True)
         self.lyrics.select_region(0, 0)
-        self.lyrics.set_alignment(0, 0)
+        self.lyrics.set_alignment(0.5, 0)
         self.expanderwindow4.add_with_viewport(self.lyrics)
-        self.lyricseventbox.add(self.expanderwindow4)
+        # Set the bg color the same as the other tabs:
+        bgcolor = self.window.get_style().base[gtk.STATE_NORMAL]
+        self.expanderwindow4.get_child().modify_bg(gtk.STATE_NORMAL, bgcolor)
         lyricshbox = gtk.HBox()
         lyricshbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_JUSTIFY_LEFT, gtk.ICON_SIZE_MENU), False, False, 2)
         lyricshbox.pack_start(gtk.Label(str=_("Lyrics")), False, False, 2)
         lyricshbox.show_all()
-        self.notebook.append_page(self.lyricseventbox, lyricshbox)
-        #lyricseventbox.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color(255, 255, 255))
+        self.notebook.append_page(self.expanderwindow4, lyricshbox)
         mainvbox.pack_start(self.notebook, True, True, 5)
         mainhbox.pack_start(mainvbox, True, True, 3)
         self.window.add(mainhbox)
@@ -1201,6 +1201,8 @@ class Base(mpdclient3.mpd_connection):
         if not self.show_lyrics:
             return
         if self.conn and self.status and self.status.state in ['play', 'pause']:
+            while gtk.events_pending():
+                gtk.main_iteration()
             artist = getattr(self.songinfo, 'artist', None)
             if not artist: artist = ""
             title = getattr(self.songinfo, 'title', None)
@@ -1243,6 +1245,8 @@ class Base(mpdclient3.mpd_connection):
                         urlnotfound = False
                     except:
                         urlnotfound = True
+                    while gtk.events_pending():
+                        gtk.main_iteration()
                     if urlnotfound:
                         # If not found, try artist_name/song_name at oldielyrics.com
                         search_artist = ""
@@ -1272,6 +1276,8 @@ class Base(mpdclient3.mpd_connection):
                         self.lyrics.set_text("\n" + _("Nothing found."))
                         self.lastlyrics = None
                         return
+                    while gtk.events_pending():
+                        gtk.main_iteration()
                     if end_pos > begin_pos and end_pos != -1 and begin_pos != -1:
                         lyrics = f[begin_pos:end_pos]
                         lyrics = lyrics.replace("<br>", "")
@@ -1452,7 +1458,7 @@ class Base(mpdclient3.mpd_connection):
         self.save_settings()
         if self.conn and self.stop_on_exit:
             self.stop(None)
-        gtk.main_quit()
+        sys.exit(2)
         return False
 
     def on_window_state_change(self, widget, event):
@@ -2246,13 +2252,13 @@ class Base(mpdclient3.mpd_connection):
 
     def prefs_lyrics_toggled(self, button):
         if button.get_active():
-            self.lyricseventbox.set_no_show_all(False)
-            self.lyricseventbox.show_all()
+            self.expanderwindow4.set_no_show_all(False)
+            self.expanderwindow4.show_all()
             self.show_lyrics = True
             #self.update_lyrics()
         else:
-            self.lyricseventbox.set_no_show_all(True)
-            self.lyricseventbox.hide()
+            self.expanderwindow4.set_no_show_all(True)
+            self.expanderwindow4.hide()
             self.show_lyrics = False
 
     def seek(self, song, seektime):

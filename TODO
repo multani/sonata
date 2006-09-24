@@ -2,7 +2,6 @@ v0.7
 	library tab -> albums, artists, search
 	ability to configure columns for playlist
 	ability to show column headings for sorting
-	change bg color of lyrics page
 
 Future:
 	optional statusbar (num songs, total length)?
