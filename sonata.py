@@ -156,10 +156,12 @@ class Base(mpdclient3.mpd_connection):
         self.prevstatus = None
         self.prevsonginfo = None
         self.lastalbumart = None
+        self.lastlyrics = None
         self.repeat = False
         self.shuffle = False
         self.show_covers = True
         self.show_volume = True
+        self.show_lyrics = True
         self.stop_on_exit = False
         self.minimize_to_systray = False
         self.exit_now = False
@@ -184,6 +186,8 @@ class Base(mpdclient3.mpd_connection):
             os.mkdir(os.path.expanduser('~/.config/sonata/'))
         if os.path.exists(os.path.expanduser('~/.config/sonata/covers/')) == False:
             os.mkdir(os.path.expanduser('~/.config/sonata/covers'))
+        if os.path.exists(os.path.expanduser('~/.config/sonata/lyrics/')) == False:
+            os.mkdir(os.path.expanduser('~/.config/sonata/lyrics'))
         if os.path.isfile(os.path.expanduser('~/.config/sonata/sonatarc')):
             conf.read(os.path.expanduser('~/.config/sonata/sonatarc'))
         elif os.path.isfile(os.path.expanduser('~/.sonatarc')):
@@ -209,6 +213,7 @@ class Base(mpdclient3.mpd_connection):
             self.show_volume = conf.getboolean('player', 'volume')
             self.sticky = conf.getboolean('player', 'sticky')
             self.ontop = conf.getboolean('player', 'ontop')
+            self.show_lyrics = conf.getboolean('player', 'lyrics')
         except:
             pass
 
@@ -479,6 +484,26 @@ class Base(mpdclient3.mpd_connection):
         playlistshbox.pack_start(gtk.Label(str=_("Playlists")), False, False, 2)
         playlistshbox.show_all()
         self.notebook.append_page(self.expanderwindow3, playlistshbox)
+        lyricseventbox = gtk.EventBox()
+        self.expanderwindow4 = gtk.ScrolledWindow()
+        self.expanderwindow4.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+        self.expanderwindow4.set_shadow_type(gtk.SHADOW_NONE)
+        if not self.show_lyrics:
+            self.expanderwindow4.set_no_show_all(True)
+            self.expanderwindow4.hide()
+        self.lyrics = gtk.Label()
+        self.lyrics.set_line_wrap(True)
+        self.lyrics.set_selectable(True)
+        self.lyrics.select_region(0, 0)
+        self.lyrics.set_alignment(0.1, 0)
+        self.expanderwindow4.add_with_viewport(self.lyrics)
+        lyricseventbox.add(self.expanderwindow4)
+        lyricshbox = gtk.HBox()
+        lyricshbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_JUSTIFY_LEFT, gtk.ICON_SIZE_MENU), False, False, 2)
+        lyricshbox.pack_start(gtk.Label(str=_("Lyrics")), False, False, 2)
+        lyricshbox.show_all()
+        self.notebook.append_page(lyricseventbox, lyricshbox)
+        lyricseventbox.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color(0, 0, 0))
         mainvbox.pack_start(self.notebook, True, True, 5)
         mainhbox.pack_start(mainvbox, True, True, 3)
         self.window.add(mainhbox)
@@ -591,6 +616,7 @@ class Base(mpdclient3.mpd_connection):
         self.volumebutton.connect('button_press_event', self.popup_menu)
         self.window.add_events(gtk.gdk.BUTTON_PRESS_MASK)
         self.mainwinhandler = self.window.connect('button_press_event', self.popup_menu)
+        self.lyrics.connect('populate-popup', self.lyrics_popup)
 
         # Connect to mmkeys signals
         self.keys = mmkeys.MmKeys()
@@ -664,6 +690,9 @@ class Base(mpdclient3.mpd_connection):
             self.window.hide()
         self.window.show_all()
 
+        while gtk.events_pending():
+            gtk.main_iteration()
+
         if HAVE_EGG:
             self.initialize_systrayicon()
 
@@ -674,8 +703,6 @@ class Base(mpdclient3.mpd_connection):
         self.notebook.connect('switch-page', self.notebook_clicked)
 
         if show_prefs:
-            while gtk.events_pending():
-                gtk.main_iteration()
             self.prefs(None, True)
 
         self.initial_run = False
@@ -779,6 +806,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'volume', self.show_volume)
         conf.set('player', 'sticky', self.sticky)
         conf.set('player', 'ontop', self.ontop)
+        conf.set('player', 'lyrics', self.show_lyrics)
         conf.write(file(os.path.expanduser('~/.config/sonata/sonatarc'), 'w'))
 
     def handle_change_conn(self):
@@ -801,15 +829,21 @@ class Base(mpdclient3.mpd_connection):
             self.notebook_clicked(self.notebook, 0, self.notebook.get_current_page())
 
     def notebook_clicked(self, notebook, page, page_num):
+        self.lyrics.set_selectable(False)
         if page_num == 0:
             gobject.idle_add(self.give_widget_focus, self.current)
         elif page_num == 1:
             gobject.idle_add(self.give_widget_focus, self.browser)
         elif page_num == 2:
             gobject.idle_add(self.give_widget_focus, self.playlists)
+        elif page_num == 3:
+            gobject.timeout_add(10, self.set_lyrics_selectable)
 
     def give_widget_focus(self, widget):
         widget.grab_focus()
+
+    def set_lyrics_selectable(self):
+        self.lyrics.set_selectable(True)
 
     def save_playlist(self, action):
         if self.conn:
@@ -915,7 +949,8 @@ class Base(mpdclient3.mpd_connection):
         while gtk.events_pending():
             gtk.main_iteration()
         try:
-            self.browser.scroll_to_point(0, self.browserposition[self.browser.wd])
+            if self.browser.wd in self.browserposition:
+                self.browser.scroll_to_point(0, self.browserposition[self.browser.wd])
         except:
             self.browser.scroll_to_point(0, 0)
 
@@ -1025,6 +1060,7 @@ class Base(mpdclient3.mpd_connection):
             self.update_progressbar()
             self.update_cursong()
             self.update_wintitle()
+            self.update_lyrics()
             self.update_album_art()
             return
 
@@ -1043,6 +1079,7 @@ class Base(mpdclient3.mpd_connection):
             self.update_progressbar()
             self.update_cursong()
             self.update_wintitle()
+            self.update_lyrics()
             if self.status.state == 'stop':
                 self.ppbutton.set_image(gtk.image_new_from_stock(gtk.STOCK_MEDIA_PLAY, gtk.ICON_SIZE_BUTTON))
                 image, label = self.ppbutton.get_children()[0].get_children()[0].get_children()
@@ -1107,6 +1144,7 @@ class Base(mpdclient3.mpd_connection):
                     self.current.scroll_to_cell(row)
 
         self.update_cursong()
+        self.update_lyrics()
         self.update_wintitle()
         self.update_album_art()
 
@@ -1157,6 +1195,96 @@ class Base(mpdclient3.mpd_connection):
             self.trayprogressbar.show()
             if self.show_covers:
                 self.trayalbumimage.show()
+
+    def update_lyrics(self):
+        if not self.show_lyrics:
+            return
+        if self.conn and self.status and self.status.state in ['play', 'pause']:
+            artist = getattr(self.songinfo, 'artist', None)
+            if not artist: artist = ""
+            title = getattr(self.songinfo, 'title', None)
+            if not title: title = ""
+            if artist == "" or title == "":
+                self.lyrics.set_text("")
+                self.lastlyrics = None
+                return
+            else:
+                filename = os.path.expanduser("~/.config/sonata/lyrics/" + artist + "-" + title + ".txt")
+                if filename == self.lastlyrics:
+                    # No need to update
+                    return
+                if os.path.exists(filename):
+                    fil = open(filename, "r")
+                    lyrics = fil.read()
+                    fil.close()
+                    self.lyrics.set_text(lyrics)
+                    self.lastlyrics = filename
+                else:
+                    socket.setdefaulttimeout(2)
+                    # First search artistname/songname at azlyrics.com
+                    search_artist = ""
+                    for i in range(len(artist)):
+                        if artist[i].isalpha() or artist[i].isdigit():
+                            search_artist = search_artist + artist[i]
+                    search_artist = search_artist.lower()
+                    search_title = ""
+                    for i in range(len(title)):
+                        if title[i].isalpha() or title[i].isdigit():
+                            search_title = search_title + title[i]
+                    search_title = search_title.lower()
+                    search_url = "http://www.azlyrics.com/lyrics/" + search_artist + "/" + search_title + ".html"
+                    request = urllib2.Request(search_url)
+                    opener = urllib2.build_opener()
+                    try:
+                        f = opener.open(request).read()
+                        begin_pos = f.find("\"</b><BR><BR>", 1) + len("\"</b><BR><BR>")
+                        end_pos = f.find("<BR><BR>[", begin_pos)
+                        urlnotfound = False
+                    except:
+                        urlnotfound = True
+                    if urlnotfound:
+                        # If not found, try artist_name/song_name at oldielyrics.com
+                        search_artist = ""
+                        for i in range(len(artist)):
+                            if artist[i].isalpha() or artist[i].isdigit():
+                                search_artist = search_artist + artist[i]
+                            elif artist[i] == " ":
+                                search_artist = search_artist + "_"
+                        search_artist = search_artist.lower()
+                        search_title = ""
+                        for i in range(len(title)):
+                            if title[i].isalpha() or title[i].isdigit():
+                                search_title = search_title + title[i]
+                            elif title[i] == " ":
+                                search_title = search_title + "_"
+                        search_title = search_title.lower()
+                        search_url = "http://www.oldielyrics.com/lyrics/" + search_artist + "/" + search_title + ".html"
+                        request = urllib2.Request(search_url)
+                        try:
+                            f = opener.open(request).read()
+                            begin_pos = f.find("song_in_top.js\"></script>", 1) + len("song_in_top.js\"></script>") + 1
+                            end_pos = f.find("<script ", begin_pos)
+                            urlnotfound = False
+                        except:
+                            urlnotfound = True
+                    if urlnotfound:
+                        self.lyrics.set_text("\n" + _("Nothing found."))
+                        self.lastlyrics = None
+                        return
+                    if end_pos > begin_pos and end_pos != -1 and begin_pos != -1:
+                        lyrics = f[begin_pos:end_pos]
+                        lyrics = lyrics.replace("<br>", "")
+                        self.lyrics.set_text(lyrics)
+                        fil = open(filename, "w")
+                        fil.write(lyrics)
+                        fil.close()
+                        self.lastlyrics = filename
+                    else:
+                        self.lyrics.set_text("\n" + _("Nothing found."))
+                        self.lastlyrics = None
+        else:
+            self.lyrics.set_text("")
+            self.lastlyrics = None
 
     def update_wintitle(self):
         if self.conn and self.status and self.status.state in ['play', 'pause']:
@@ -1240,7 +1368,7 @@ class Base(mpdclient3.mpd_connection):
         try:
             while gtk.events_pending():
                 gtk.main_iteration()
-            socket.setdefaulttimeout(5)
+            socket.setdefaulttimeout(2)
             artist = urllib.quote(artist)
             album = urllib.quote(album)
             amazon_key = "12DR2PGAQT303YTEWP02"
@@ -1335,6 +1463,7 @@ class Base(mpdclient3.mpd_connection):
         else: self.w = width
         self.x, self.y = self.window.get_position()
         self.volume_hide()
+        self.lyrics.set_size_request(width - 40, -1)
 
     def expand(self, action):
         self.expander.set_expanded(False)
@@ -1546,9 +1675,7 @@ class Base(mpdclient3.mpd_connection):
             coverwindow.set_has_separator(True)
             pix = gtk.gdk.pixbuf_new_from_file(filename)
             if pix.get_width() != 160:
-                print pix.get_width(), pix.get_height()
                 pix = pix.scale_simple(160, int(160/float(pix.get_width())*pix.get_height()), gtk.gdk.INTERP_HYPER)
-                print pix.get_width(), pix.get_height()
             image = gtk.Image()
             image.set_from_pixbuf(pix)
             hbox = gtk.HBox()
@@ -1961,44 +2088,65 @@ class Base(mpdclient3.mpd_connection):
         prefswindow.set_has_separator(False)
         hbox = gtk.HBox()
         prefsnotebook = gtk.Notebook()
-        table = gtk.Table(7, 2)
-        table.set_row_spacings(7)
+        # MPD tab
+        table = gtk.Table(9, 2, False)
+        #table.set_row_spacings(7)
         table.set_col_spacings(3)
-        table.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        mpdlabel = gtk.Label()
+        mpdlabel.set_markup('<b>' + _('MPD Connection') + '</b>')
+        mpdlabel.set_alignment(0, 1)
         hostentry = gtk.Entry()
         hostentry.set_text(str(self.host))
-        table.attach(gtk.Label(_("Host") + ":"), 1, 2, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(hostentry, 2, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         portentry = gtk.Entry()
         portentry.set_text(str(self.port))
-        table.attach(gtk.Label(_("Port") + ":"), 1, 2, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(portentry, 2, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         passwordentry = gtk.Entry()
         passwordentry.set_visibility(False)
         passwordentry.set_text(str(self.password))
-        table.attach(gtk.Label(_("Password") + ":"), 1, 2, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(passwordentry, 2, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         blanklabel = gtk.Label()
         blanklabel.set_markup("<small>(" + _('Leave blank if none is required') + ")</small>")
         blanklabel.set_alignment(0, 0)
-        table.attach(blanklabel, 2, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(gtk.Label(), 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table2 = gtk.Table(7, 2)
+        table.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(mpdlabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(gtk.Label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(gtk.Label(_("Host") + ":"), 1, 2, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(hostentry, 2, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(gtk.Label(_("Port") + ":"), 1, 2, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(portentry, 2, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(gtk.Label(_("Password") + ":"), 1, 2, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(passwordentry, 2, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(blanklabel, 2, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(gtk.Label(), 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        # Display tab
+        table2 = gtk.Table(7, 2, False)
+        displaylabel = gtk.Label()
+        displaylabel.set_markup('<b>' + _('Display') + '</b>')
+        displaylabel.set_alignment(0, 1)
         display_art = gtk.CheckButton(_("Show album covers"))
         display_art.set_active(self.show_covers)
+        display_art.connect('toggled', self.prefs_art_toggled)
         display_volume = gtk.CheckButton(_("Show volume button"))
         display_volume.set_active(self.show_volume)
+        display_volume.connect('toggled', self.prefs_volume_toggled)
+        display_lyrics = gtk.CheckButton(_("Show lyrics tab"))
+        display_lyrics.set_active(self.show_lyrics)
+        display_lyrics.connect('toggled', self.prefs_lyrics_toggled)
+        table2.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(displaylabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(gtk.Label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(display_art, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_lyrics, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_volume, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(gtk.Label(), 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(gtk.Label(), 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        # Behavior tab
+        table3 = gtk.Table(7, 2, False)
+        behaviorlabel = gtk.Label()
+        behaviorlabel.set_markup('<b>' + _('Behavior') + '</b>')
+        behaviorlabel.set_alignment(0, 1)
         win_sticky = gtk.CheckButton(_("Show window on all workspaces"))
         win_sticky.set_active(self.sticky)
-        win_ontop = gtk.CheckButton(_("Keep Sonata above other windows"))
+        win_ontop = gtk.CheckButton(_("Keep window above other windows"))
         win_ontop.set_active(self.ontop)
-        table2.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(display_art, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(display_volume, 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(win_sticky, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(win_ontop, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(gtk.Label(), 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table3 = gtk.Table(7, 2)
         exit_stop = gtk.CheckButton(_("Stop playback on exit"))
         exit_stop.set_active(self.stop_on_exit)
         self.tooltips.set_tip(exit_stop, _("MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit."))
@@ -2010,12 +2158,14 @@ class Base(mpdclient3.mpd_connection):
         else:
             minimize.set_sensitive(False)
         table3.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table3.attach(exit_stop, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table3.attach(minimize, 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table3.attach(gtk.Label(), 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table3.attach(gtk.Label(), 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table3.attach(gtk.Label(), 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        prefsnotebook.append_page(table2, gtk.Label(str=_("Interface")))
+        table3.attach(behaviorlabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table3.attach(gtk.Label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table3.attach(win_sticky, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table3.attach(win_ontop, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table3.attach(minimize, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table3.attach(exit_stop, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table3.attach(gtk.Label(), 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        prefsnotebook.append_page(table2, gtk.Label(str=_("Display")))
         prefsnotebook.append_page(table3, gtk.Label(str=_("Behavior")))
         prefsnotebook.append_page(table, gtk.Label(str=_("MPD")))
         hbox.pack_start(prefsnotebook, False, False, 10)
@@ -2036,33 +2186,10 @@ class Base(mpdclient3.mpd_connection):
                 except:
                     pass
                 self.password = passwordentry.get_text()
-                show_covers_prev = self.show_covers
-                show_volume_prev = self.show_volume
-                self.show_covers = display_art.get_active()
-                self.show_volume = display_volume.get_active()
                 self.stop_on_exit = exit_stop.get_active()
                 self.ontop = win_ontop.get_active()
                 self.sticky = win_sticky.get_active()
                 self.minimize_to_systray = minimize.get_active()
-                if show_covers_prev == False and self.show_covers == True:
-                    self.albumimage.set_from_file(self.sonatacd)
-                    self.lastalbumart = None
-                    self.imageeventbox.set_no_show_all(False)
-                    self.imageeventbox.show_all()
-                    self.trayalbumimage.set_no_show_all(False)
-                    self.trayalbumimage.show_all()
-                    self.update_album_art()
-                elif show_covers_prev == True and self.show_covers == False:
-                    self.imageeventbox.set_no_show_all(True)
-                    self.imageeventbox.hide()
-                    self.trayalbumimage.set_no_show_all(True)
-                    self.trayalbumimage.hide()
-                if show_volume_prev == False and self.show_volume == True:
-                    self.volumebutton.set_no_show_all(False)
-                    self.volumebutton.show()
-                elif show_volume_prev == True and self.show_volume == False:
-                    self.volumebutton.set_no_show_all(True)
-                    self.volumebutton.hide()
                 if self.ontop:
                     self.window.set_keep_above(True)
                 else:
@@ -2085,6 +2212,44 @@ class Base(mpdclient3.mpd_connection):
                 self.change_cursor(None)
         prefswindow.destroy()
 
+    def prefs_art_toggled(self, button):
+        if button.get_active():
+            self.albumimage.set_from_file(self.sonatacd)
+            self.lastalbumart = None
+            self.imageeventbox.set_no_show_all(False)
+            self.imageeventbox.show_all()
+            self.trayalbumimage.set_no_show_all(False)
+            self.trayalbumimage.show_all()
+            self.show_covers = True
+            self.update_album_art()
+        else:
+            self.imageeventbox.set_no_show_all(True)
+            self.imageeventbox.hide()
+            self.trayalbumimage.set_no_show_all(True)
+            self.trayalbumimage.hide()
+            self.show_covers = False
+
+    def prefs_volume_toggled(self, button):
+        if button.get_active():
+            self.volumebutton.set_no_show_all(False)
+            self.volumebutton.show()
+            self.show_volume = True
+        else:
+            self.volumebutton.set_no_show_all(True)
+            self.volumebutton.hide()
+            self.show_volume = False
+
+    def prefs_lyrics_toggled(self, button):
+        if button.get_active():
+            self.expanderwindow4.set_no_show_all(False)
+            self.expanderwindow4.show()
+            self.show_lyrics = True
+            self.update_lyrics()
+        else:
+            self.expanderwindow4.set_no_show_all(True)
+            self.expanderwindow4.hide()
+            self.show_lyrics = False
+
     def seek(self, song, seektime):
         self.conn.do.seek(song, seektime)
         self.iterate_now()
@@ -2097,6 +2262,9 @@ class Base(mpdclient3.mpd_connection):
         if event.button == 3:
             self.set_menu_contextual_items_hidden()
             self.mainmenu.popup(None, None, None, event.button, event.time)
+
+    def lyrics_popup(self, textview, menu):
+        return True
 
     def set_menu_contextual_items_visible(self):
         if not self.expanded:
