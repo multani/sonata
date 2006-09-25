@@ -749,6 +749,14 @@ class Base(mpdclient3.mpd_connection):
                 except:
                     self.status = None
                 self.songinfo = self.conn.do.currentsong()
+                if self.repeat and self.status.repeat == '0':
+                    self.conn.do.repeat(1)
+                elif not self.repeat and self.status.repeat == '1':
+                    self.conn.do.repeat(0)
+                if self.shuffle and self.status.random == '0':
+                    self.conn.do.random(1)
+                elif not self.shuffle and self.status.random == '1':
+                    self.conn.do.random(0)
             else:
                 self.iterate_time = self.iterate_time_when_disconnected
                 self.status = None
@@ -843,8 +851,6 @@ class Base(mpdclient3.mpd_connection):
             self.prevbutton.set_property('sensitive', True)
             self.nextbutton.set_property('sensitive', True)
             self.volumebutton.set_property('sensitive', True)
-            self.repeat_now(None)
-            self.shuffle_now(None)
             self.browse(root='/')
             self.playlists_populate()
             self.notebook_clicked(self.notebook, 0, self.notebook.get_current_page())
