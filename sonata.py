@@ -1265,69 +1265,50 @@ class Base(mpdclient3.mpd_connection):
                     self.lastlyrics = filename
                 else:
                     socket.setdefaulttimeout(2)
+
                     # First search artistname/songname at azlyrics.com
-                    search_artist = ""
-                    for i in range(len(artist)):
-                        if artist[i].isalpha() or artist[i].isdigit():
-                            search_artist = search_artist + artist[i]
-                    search_artist = search_artist.lower()
-                    search_title = ""
-                    for i in range(len(title)):
-                        if title[i].isalpha() or title[i].isdigit():
-                            search_title = search_title + title[i]
-                    search_title = search_title.lower()
-                    search_url = "http://www.azlyrics.com/lyrics/" + search_artist + "/" + search_title + ".html"
+                    artist = artist.replace(" ", "+")
+                    title = title.replace(" ", "+")
+                    search_url = "http://www.leoslyrics.com/advanced.php?artistmode=0&artist=" + artist + "&albummode=0&album=&songmode=0&song=" + title + "&mode=0"
                     request = urllib2.Request(search_url)
                     opener = urllib2.build_opener()
                     try:
                         f = opener.open(request).read()
-                        begin_pos = f.find("\"</b><BR>", 1) + len("\"</b><BR>")
-                        end_pos = f.find("<BR><BR>", begin_pos)
-                        urlnotfound = False
+                        begin_string = "hid="
+                        begin_pos = f.find(begin_string, 1) + len(begin_string)
+                        end_string = "\""
+                        end_pos = f.find(end_string, begin_pos)
                     except:
-                        urlnotfound = True
-                    while gtk.events_pending():
-                        gtk.main_iteration()
-                    if urlnotfound:
-                        # If not found, try artist_name/song_name at oldielyrics.com
-                        search_artist = ""
-                        for i in range(len(artist)):
-                            if artist[i].isalpha() or artist[i].isdigit():
-                                search_artist = search_artist + artist[i]
-                            elif artist[i] == " ":
-                                search_artist = search_artist + "_"
-                        search_artist = search_artist.lower()
-                        search_title = ""
-                        for i in range(len(title)):
-                            if title[i].isalpha() or title[i].isdigit():
-                                search_title = search_title + title[i]
-                            elif title[i] == " ":
-                                search_title = search_title + "_"
-                        search_title = search_title.lower()
-                        search_url = "http://www.oldielyrics.com/lyrics/" + search_artist + "/" + search_title + ".html"
-                        request = urllib2.Request(search_url)
-                        try:
-                            f = opener.open(request).read()
-                            begin_pos = f.find("song_in_top.js\"></script>", 1) + len("song_in_top.js\"></script>") + 1
-                            end_pos = f.find("<script ", begin_pos)
-                            urlnotfound = False
-                        except:
-                            urlnotfound = True
-                    if urlnotfound:
                         self.lyrics.set_text("\n" + _("Nothing found."))
                         self.lastlyrics = None
                         return
                     while gtk.events_pending():
                         gtk.main_iteration()
-                    if end_pos > begin_pos and end_pos != -1 and begin_pos != -1:
-                        lyrics = f[begin_pos:end_pos]
-                        lyrics = lyrics.replace("<br>", "")
-                        lyrics = lyrics.replace("<BR>", "")
-                        self.lyrics.set_text(lyrics)
-                        fil = open(filename, "w")
-                        fil.write(lyrics)
-                        fil.close()
-                        self.lastlyrics = filename
+                    if end_pos > begin_pos and end_pos != -1 and begin_pos != -1 + len(begin_string):
+                        search_url = "http://www.leoslyrics.com/listlyrics.php?hid=" + f[begin_pos:end_pos]
+                        request = urllib2.Request(search_url)
+                        opener = urllib2.build_opener()
+                        try:
+                            f = opener.open(request).read()
+                            begin_string = "<font face=\"Trebuchet MS, Verdana, Arial\" size=-1>"
+                            begin_pos = f.find(begin_string, 1) + len(begin_string)
+                            end_string = "</font>"
+                            end_pos = f.find(end_string, begin_pos)
+                        except:
+                            self.lyrics.set_text("\n" + _("Nothing found."))
+                            self.lastlyrics = None
+                            return
+                        if end_pos > begin_pos and end_pos != -1 and begin_pos != -1 + len(begin_string):
+                            lyrics = f[begin_pos:end_pos]
+                            lyrics = lyrics.replace("<br />", "")
+                            lyrics = lyrics.replace("<BR />", "")
+                            lyrics = lyrics.replace("    ", "")
+                            lyrics = urllib.unquote(lyrics)
+                            self.lyrics.set_markup(lyrics)
+                            fil = open(filename, "w")
+                            fil.write(lyrics)
+                            fil.close()
+                            self.lastlyrics = filename
                     else:
                         self.lyrics.set_text("\n" + _("Nothing found."))
                         self.lastlyrics = None
