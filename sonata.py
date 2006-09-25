@@ -859,6 +859,8 @@ class Base(mpdclient3.mpd_connection):
             self.prevbutton.set_property('sensitive', True)
             self.nextbutton.set_property('sensitive', True)
             self.volumebutton.set_property('sensitive', True)
+            self.repeat_now(None)
+            self.shuffle_now(None)
             self.browse(root='/')
             self.playlists_populate()
             self.notebook_clicked(self.notebook, 0, self.notebook.get_current_page())
@@ -1420,6 +1422,7 @@ class Base(mpdclient3.mpd_connection):
             album = urllib.quote(album)
             amazon_key = "12DR2PGAQT303YTEWP02"
             search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images&Keywords=" + album
+            print search_url
             request = urllib2.Request(search_url)
             request.add_header('Accept-encoding', 'gzip')
             opener = urllib2.build_opener()
@@ -1432,6 +1435,7 @@ class Base(mpdclient3.mpd_connection):
                 while gtk.events_pending():
                     gtk.main_iteration()
                 search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images"
+                print search_url
                 request = urllib2.Request(search_url)
                 request.add_header('Accept-encoding', 'gzip')
                 opener = urllib2.build_opener()
@@ -1442,6 +1446,7 @@ class Base(mpdclient3.mpd_connection):
                     while gtk.events_pending():
                         gtk.main_iteration()
                     search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&ResponseGroup=Images&Keywords=" + album
+                    print search_url
                     request = urllib2.Request(search_url)
                     request.add_header('Accept-encoding', 'gzip')
                     opener = urllib2.build_opener()
