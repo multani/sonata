@@ -2167,7 +2167,8 @@ class Base(mpdclient3.mpd_connection):
             self.imageeventbox.set_no_show_all(False)
             self.imageeventbox.show_all()
             self.trayalbumeventbox.set_no_show_all(False)
-            self.trayalbumeventbox.show_all()
+            if self.conn and self.status and self.status.state in ['play', 'pause']:
+                self.trayalbumeventbox.show_all()
             self.show_covers = True
             self.update_album_art()
         else:
