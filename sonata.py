@@ -2092,25 +2092,25 @@ class Base(mpdclient3.mpd_connection):
         close_button.grab_focus()
         response = prefswindow.run()
         if response == gtk.RESPONSE_CLOSE:
-            if hostentry.get_text() != self.host or portentry.get_text() != self.port or passwordentry.get_text() != self.password:
+            self.stop_on_exit = exit_stop.get_active()
+            self.ontop = win_ontop.get_active()
+            self.sticky = win_sticky.get_active()
+            self.minimize_to_systray = minimize.get_active()
+            if self.ontop:
+                self.window.set_keep_above(True)
+            else:
+                self.window.set_keep_above(False)
+            if self.sticky:
+                self.window.stick()
+            else:
+                self.window.unstick()
+            if hostentry.get_text() != self.host or portentry.get_text() != str(self.port) or passwordentry.get_text() != self.password:
                 self.host = hostentry.get_text()
                 try:
                     self.port = int(portentry.get_text())
                 except:
                     pass
                 self.password = passwordentry.get_text()
-                self.stop_on_exit = exit_stop.get_active()
-                self.ontop = win_ontop.get_active()
-                self.sticky = win_sticky.get_active()
-                self.minimize_to_systray = minimize.get_active()
-                if self.ontop:
-                    self.window.set_keep_above(True)
-                else:
-                    self.window.set_keep_above(False)
-                if self.sticky:
-                    self.window.stick()
-                else:
-                    self.window.unstick()
                 self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
                 while gtk.events_pending():
                     gtk.main_iteration()
@@ -2122,7 +2122,7 @@ class Base(mpdclient3.mpd_connection):
                 else:
                     self.iterate_time = self.iterate_time_when_disconnected
                     self.browserdata.clear()
-                self.change_cursor(None)
+            self.change_cursor(None)
         prefswindow.destroy()
 
     def prefs_art_toggled(self, button):
