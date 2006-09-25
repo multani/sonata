@@ -1,6 +1,5 @@
 v0.7 - Pending
 	+ Ability to search library by type (can be disabled in prefs)
-	+ Added automatic lyrics retrieval (can be disabled in prefs)
 	+ Show larger image on left-click of cover art
 	+ Reduce pygmy's default polling time to 1 second
 	+ Retain selection of browsed directories in library

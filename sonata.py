@@ -156,12 +156,10 @@ class Base(mpdclient3.mpd_connection):
         self.prevstatus = None
         self.prevsonginfo = None
         self.lastalbumart = None
-        self.lastlyrics = None
         self.repeat = False
         self.shuffle = False
         self.show_covers = True
         self.show_volume = True
-        self.show_lyrics = False
         self.show_search = True
         self.stop_on_exit = False
         self.minimize_to_systray = False
@@ -187,8 +185,6 @@ class Base(mpdclient3.mpd_connection):
             os.mkdir(os.path.expanduser('~/.config/sonata/'))
         if os.path.exists(os.path.expanduser('~/.config/sonata/covers/')) == False:
             os.mkdir(os.path.expanduser('~/.config/sonata/covers'))
-        if os.path.exists(os.path.expanduser('~/.config/sonata/lyrics/')) == False:
-            os.mkdir(os.path.expanduser('~/.config/sonata/lyrics'))
         if os.path.isfile(os.path.expanduser('~/.config/sonata/sonatarc')):
             conf.read(os.path.expanduser('~/.config/sonata/sonatarc'))
         elif os.path.isfile(os.path.expanduser('~/.sonatarc')):
@@ -214,7 +210,6 @@ class Base(mpdclient3.mpd_connection):
             self.show_volume = conf.getboolean('player', 'volume')
             self.sticky = conf.getboolean('player', 'sticky')
             self.ontop = conf.getboolean('player', 'ontop')
-            self.show_lyrics = conf.getboolean('player', 'lyrics')
             self.show_search = conf.getboolean('player', 'search')
         except:
             pass
@@ -241,7 +236,6 @@ class Base(mpdclient3.mpd_connection):
             ('currentkey', None, 'Current Playlist Key', '<Alt>1', None, self.switch_to_current),
             ('librarykey', None, 'Library Key', '<Alt>2', None, self.switch_to_library),
             ('playlistskey', None, 'Playlists Key', '<Alt>3', None, self.switch_to_playlists),
-            ('lyricsskey', None, 'Lyrics Key', '<Alt>4', None, self.switch_to_lyrics),
             ('expandkey', None, 'Expand Key', '<Alt>Down', None, self.expand),
             ('collapsekey', None, 'Collapse Key', '<Alt>Up', None, self.collapse),
             ('ppkey', None, 'Play/Pause Key', '<Ctrl>p', None, self.pp),
@@ -300,7 +294,6 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="currentkey"/>
                 <menuitem action="librarykey"/>
                 <menuitem action="playlistskey"/>
-                <menuitem action="lyricsskey"/>
                 <menuitem action="expandkey"/>
                 <menuitem action="collapsekey"/>
                 <menuitem action="ppkey"/>
@@ -504,26 +497,6 @@ class Base(mpdclient3.mpd_connection):
         playlistshbox.pack_start(gtk.Label(str=_("Playlists")), False, False, 2)
         playlistshbox.show_all()
         self.notebook.append_page(self.expanderwindow3, playlistshbox)
-        self.expanderwindow4 = gtk.ScrolledWindow()
-        self.expanderwindow4.set_policy(gtk.POLICY_NEVER, gtk.POLICY_ALWAYS)
-        self.expanderwindow4.set_shadow_type(gtk.SHADOW_NONE)
-        if not self.show_lyrics:
-            self.expanderwindow4.set_no_show_all(True)
-            self.expanderwindow4.hide()
-        self.lyrics = gtk.Label()
-        self.lyrics.set_line_wrap(True)
-        self.lyrics.set_selectable(True)
-        self.lyrics.select_region(0, 0)
-        self.lyrics.set_alignment(0.5, 0)
-        self.expanderwindow4.add_with_viewport(self.lyrics)
-        # Set the bg color the same as the other tabs:
-        bgcolor = self.window.get_style().base[gtk.STATE_NORMAL]
-        self.expanderwindow4.get_child().modify_bg(gtk.STATE_NORMAL, bgcolor)
-        lyricshbox = gtk.HBox()
-        lyricshbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_JUSTIFY_LEFT, gtk.ICON_SIZE_MENU), False, False, 2)
-        lyricshbox.pack_start(gtk.Label(str=_("Lyrics")), False, False, 2)
-        lyricshbox.show_all()
-        self.notebook.append_page(self.expanderwindow4, lyricshbox)
         mainvbox.pack_start(self.notebook, True, True, 5)
         mainhbox.pack_start(mainvbox, True, True, 3)
         self.window.add(mainhbox)
@@ -637,7 +610,6 @@ class Base(mpdclient3.mpd_connection):
         self.volumebutton.connect('button_press_event', self.popup_menu)
         self.window.add_events(gtk.gdk.BUTTON_PRESS_MASK)
         self.mainwinhandler = self.window.connect('button_press_event', self.popup_menu)
-        self.lyrics.connect('populate-popup', self.lyrics_popup)
         self.searchtext.connect('activate', self.search)
         self.searchbutton.connect('clicked', self.search_end)
 
@@ -840,7 +812,6 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'volume', self.show_volume)
         conf.set('player', 'sticky', self.sticky)
         conf.set('player', 'ontop', self.ontop)
-        conf.set('player', 'lyrics', self.show_lyrics)
         conf.set('player', 'search', self.show_search)
         conf.write(file(os.path.expanduser('~/.config/sonata/sonatarc'), 'w'))
 
@@ -866,21 +837,15 @@ class Base(mpdclient3.mpd_connection):
             self.notebook_clicked(self.notebook, 0, self.notebook.get_current_page())
 
     def notebook_clicked(self, notebook, page, page_num):
-        self.lyrics.set_selectable(False)
         if page_num == 0:
             gobject.idle_add(self.give_widget_focus, self.current)
         elif page_num == 1:
             gobject.idle_add(self.give_widget_focus, self.browser)
         elif page_num == 2:
             gobject.idle_add(self.give_widget_focus, self.playlists)
-        elif page_num == 3:
-            gobject.timeout_add(10, self.set_lyrics_selectable)
 
     def give_widget_focus(self, widget):
         widget.grab_focus()
-
-    def set_lyrics_selectable(self):
-        self.lyrics.set_selectable(True)
 
     def save_playlist(self, action):
         if self.conn:
@@ -1102,7 +1067,6 @@ class Base(mpdclient3.mpd_connection):
             self.update_progressbar()
             self.update_cursong()
             self.update_wintitle()
-            self.update_lyrics()
             self.update_album_art()
             return
 
@@ -1121,7 +1085,6 @@ class Base(mpdclient3.mpd_connection):
             self.update_progressbar()
             self.update_cursong()
             self.update_wintitle()
-            self.update_lyrics()
             if self.status.state == 'stop':
                 self.ppbutton.set_image(gtk.image_new_from_stock(gtk.STOCK_MEDIA_PLAY, gtk.ICON_SIZE_BUTTON))
                 image, label = self.ppbutton.get_children()[0].get_children()[0].get_children()
@@ -1186,7 +1149,6 @@ class Base(mpdclient3.mpd_connection):
                     self.current.scroll_to_cell(row)
 
         self.update_cursong()
-        self.update_lyrics()
         self.update_wintitle()
         self.update_album_art()
 
@@ -1237,84 +1199,6 @@ class Base(mpdclient3.mpd_connection):
             self.trayprogressbar.show()
             if self.show_covers:
                 self.trayalbumimage.show()
-
-    def update_lyrics(self):
-        if not self.show_lyrics:
-            return
-        if self.conn and self.status and self.status.state in ['play', 'pause']:
-            while gtk.events_pending():
-                gtk.main_iteration()
-            artist = getattr(self.songinfo, 'artist', None)
-            if not artist: artist = ""
-            title = getattr(self.songinfo, 'title', None)
-            if not title: title = ""
-            if artist == "" or title == "":
-                self.lyrics.set_text("")
-                self.lastlyrics = None
-                return
-            else:
-                filename = os.path.expanduser("~/.config/sonata/lyrics/" + artist + "-" + title + ".txt")
-                if filename == self.lastlyrics:
-                    # No need to update
-                    return
-                if os.path.exists(filename):
-                    fil = open(filename, "r")
-                    lyrics = fil.read()
-                    fil.close()
-                    self.lyrics.set_text(lyrics)
-                    self.lastlyrics = filename
-                else:
-                    socket.setdefaulttimeout(2)
-
-                    # First search artistname/songname at azlyrics.com
-                    artist = artist.replace(" ", "+")
-                    title = title.replace(" ", "+")
-                    search_url = "http://www.leoslyrics.com/advanced.php?artistmode=0&artist=" + artist + "&albummode=0&album=&songmode=0&song=" + title + "&mode=0"
-                    request = urllib2.Request(search_url)
-                    opener = urllib2.build_opener()
-                    try:
-                        f = opener.open(request).read()
-                        begin_string = "hid="
-                        begin_pos = f.find(begin_string, 1) + len(begin_string)
-                        end_string = "\""
-                        end_pos = f.find(end_string, begin_pos)
-                    except:
-                        self.lyrics.set_text("\n" + _("Nothing found."))
-                        self.lastlyrics = None
-                        return
-                    while gtk.events_pending():
-                        gtk.main_iteration()
-                    if end_pos > begin_pos and end_pos != -1 and begin_pos != -1 + len(begin_string):
-                        search_url = "http://www.leoslyrics.com/listlyrics.php?hid=" + f[begin_pos:end_pos]
-                        request = urllib2.Request(search_url)
-                        opener = urllib2.build_opener()
-                        try:
-                            f = opener.open(request).read()
-                            begin_string = "<font face=\"Trebuchet MS, Verdana, Arial\" size=-1>"
-                            begin_pos = f.find(begin_string, 1) + len(begin_string)
-                            end_string = "</font>"
-                            end_pos = f.find(end_string, begin_pos)
-                        except:
-                            self.lyrics.set_text("\n" + _("Nothing found."))
-                            self.lastlyrics = None
-                            return
-                        if end_pos > begin_pos and end_pos != -1 and begin_pos != -1 + len(begin_string):
-                            lyrics = f[begin_pos:end_pos]
-                            lyrics = lyrics.replace("<br />", "")
-                            lyrics = lyrics.replace("<BR />", "")
-                            lyrics = lyrics.replace("    ", "")
-                            lyrics = urllib.unquote(lyrics)
-                            self.lyrics.set_markup(lyrics)
-                            fil = open(filename, "w")
-                            fil.write(lyrics)
-                            fil.close()
-                            self.lastlyrics = filename
-                    else:
-                        self.lyrics.set_text("\n" + _("Nothing found."))
-                        self.lastlyrics = None
-        else:
-            self.lyrics.set_text("")
-            self.lastlyrics = None
 
     def update_wintitle(self):
         if self.conn and self.status and self.status.state in ['play', 'pause']:
@@ -1496,7 +1380,6 @@ class Base(mpdclient3.mpd_connection):
         else: self.w = width
         self.x, self.y = self.window.get_position()
         self.volume_hide()
-        self.lyrics.set_size_request(width - 40, -1)
 
     def expand(self, action):
         self.expander.set_expanded(False)
@@ -1961,11 +1844,6 @@ class Base(mpdclient3.mpd_connection):
     def switch_to_playlists(self, action):
         self.notebook.set_current_page(2)
 
-    def switch_to_lyrics(self, action):
-        print self.show_lyrics
-        if self.show_lyrics:
-            self.notebook.set_current_page(3)
-
     def lower_volume(self, action):
         new_volume = int(self.volumescale.get_adjustment().get_value()) - 10
         if new_volume < 0:
@@ -2162,9 +2040,6 @@ class Base(mpdclient3.mpd_connection):
         display_volume = gtk.CheckButton(_("Show volume button"))
         display_volume.set_active(self.show_volume)
         display_volume.connect('toggled', self.prefs_volume_toggled)
-        display_lyrics = gtk.CheckButton(_("Show lyrics tab"))
-        display_lyrics.set_active(self.show_lyrics)
-        display_lyrics.connect('toggled', self.prefs_lyrics_toggled)
         display_search = gtk.CheckButton(_("Show library search"))
         display_search.set_active(self.show_search)
         display_search.connect('toggled', self.prefs_search_toggled)
@@ -2173,8 +2048,8 @@ class Base(mpdclient3.mpd_connection):
         table2.attach(gtk.Label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(display_art, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table2.attach(display_search, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_lyrics, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_volume, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_volume, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(gtk.Label(), 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table2.attach(gtk.Label(), 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         # Behavior tab
         table3 = gtk.Table(7, 2, False)
@@ -2277,17 +2152,6 @@ class Base(mpdclient3.mpd_connection):
             self.volumebutton.hide()
             self.show_volume = False
 
-    def prefs_lyrics_toggled(self, button):
-        if button.get_active():
-            self.expanderwindow4.set_no_show_all(False)
-            self.expanderwindow4.show_all()
-            self.show_lyrics = True
-            #self.update_lyrics()
-        else:
-            self.expanderwindow4.set_no_show_all(True)
-            self.expanderwindow4.hide()
-            self.show_lyrics = False
-
     def prefs_search_toggled(self, button):
         if button.get_active():
             self.searchbox.set_no_show_all(False)
@@ -2310,9 +2174,6 @@ class Base(mpdclient3.mpd_connection):
         if event.button == 3:
             self.set_menu_contextual_items_hidden()
             self.mainmenu.popup(None, None, None, event.button, event.time)
-
-    def lyrics_popup(self, textview, menu):
-        return True
 
     def search(self, entry):
         searchby = self.searchcombo.get_active_text().lower()
