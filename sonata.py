@@ -523,31 +523,45 @@ class Base(mpdclient3.mpd_connection):
             self.tooltips.set_tip(self.expander, _("Click to expand the player"))
 
         # Systray:
+        self.outtertipbox = gtk.VBox()
         self.tipbox = gtk.HBox()
+        self.trayalbumeventbox = gtk.EventBox()
+        self.trayalbumeventbox.set_size_request(90, 90)
+        self.trayalbumimage = gtk.Image()
+        self.trayalbumimage.set_size_request(75, 75)
+        if not self.show_covers:
+            self.trayalbumeventbox.set_no_show_all(True)
+            self.trayalbumeventbox.hide()
+        self.trayalbumeventbox.add(self.trayalbumimage)
+        self.trayalbumeventbox.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#4a6984"))
+        self.tipbox.pack_start(self.trayalbumeventbox, False, False, 1)
         innerbox = gtk.VBox()
         self.traycursonglabel = gtk.Label()
         self.traycursonglabel.set_markup(_("Playlist"))
         self.traycursonglabel.set_alignment(0, 1)
-        innerbox.pack_start(self.traycursonglabel, True, True, 1)
+        label1 = gtk.Label()
+        label1.set_markup('<span size="10"> </span>')
+        innerbox.pack_start(label1)
+        innerbox.pack_start(self.traycursonglabel, True, True, 0)
         self.trayprogressbar = gtk.ProgressBar()
         self.trayprogressbar.set_orientation(gtk.PROGRESS_LEFT_TO_RIGHT)
         self.trayprogressbar.set_fraction(0)
         self.trayprogressbar.set_pulse_step(0.05)
         self.trayprogressbar.set_ellipsize(pango.ELLIPSIZE_NONE)
-        innerbox.pack_start(self.trayprogressbar, True, True, 3)
-        self.trayalbumimage = gtk.Image()
-        self.trayalbumimage.set_size_request(50, 50)
-        self.trayalbumimage.set_padding(5, 5)
-        if not self.show_covers:
-            self.trayalbumimage.set_no_show_all(True)
-            self.trayalbumimage.hide()
-        self.tipbox.pack_start(self.trayalbumimage, False, False, 6)
+        label2 = gtk.Label()
+        label2.set_markup('<span size="10"> </span>')
+        innerbox.pack_start(label2)
+        innerbox.pack_start(self.trayprogressbar, False, False, 0)
+        label3 = gtk.Label()
+        label3.set_markup('<span size="10"> </span>')
+        innerbox.pack_start(label3)
         self.tipbox.pack_start(innerbox, True, True, 6)
+        self.outtertipbox.pack_start(self.tipbox, False, False, 1)
         self.traytips = TrayIconTips()
-        self.traytips.add_widget(self.tipbox)
-        self.tipbox.show_all()
+        self.traytips.add_widget(self.outtertipbox)
+        self.outtertipbox.show_all()
 
-        # Volumescale window_resized
+        # Volumescale window
         self.volumewindow = gtk.Window(gtk.WINDOW_POPUP)
         self.volumewindow.set_skip_taskbar_hint(True)
         self.volumewindow.set_skip_pager_hint(True)
@@ -958,6 +972,8 @@ class Base(mpdclient3.mpd_connection):
         try:
             if self.browser.wd in self.browserposition:
                 self.browser.scroll_to_point(0, self.browserposition[self.browser.wd])
+            else:
+                self.browser.scroll_to_point(0, 0)
         except:
             self.browser.scroll_to_point(0, 0)
 
@@ -1022,7 +1038,12 @@ class Base(mpdclient3.mpd_connection):
         self.clear(None)
         self.add_item(widget)
         if play_after_replace and self.conn:
-            self.conn.do.play()
+            # Play first song:
+            try:
+                iter = self.currentdata.get_iter((0,0))
+                self.conn.do.playid(self.currentdata.get_value(iter, 0))
+            except:
+                pass
         self.iterate_now()
 
     def position_menu(self, menu):
@@ -1181,7 +1202,8 @@ class Base(mpdclient3.mpd_connection):
             try:
                 self.cursonglabel.set_markup('<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>' + _('by') + ' ' + escape_html(getattr(self.songinfo, 'artist', None)) + ' ' + _('from') + ' ' + escape_html(getattr(self.songinfo, 'album', None)) + '</small>')
             except:
-                self.cursonglabel.set_markup('<big><b>' + escape_html(getattr(self.songinfo, 'file', None)) + '</b></big>\n<small>' + _('by Unknown') + '</small>')
+                name = getattr(self.songinfo, 'file', None).split('/')[-1]
+                self.cursonglabel.set_markup('<big><b>' + escape_html(name) + '</b></big>\n<small>' + _('by Unknown') + '</small>')
         else:
             if self.expanded:
                 self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to collapse') + '</small>')
@@ -1194,11 +1216,11 @@ class Base(mpdclient3.mpd_connection):
             else:
                 self.traycursonglabel.set_label(_('Stopped'))
             self.trayprogressbar.hide()
-            self.trayalbumimage.hide()
+            self.trayalbumeventbox.hide()
         else:
             self.trayprogressbar.show()
             if self.show_covers:
-                self.trayalbumimage.show()
+                self.trayalbumeventbox.show()
 
     def update_wintitle(self):
         if self.conn and self.status and self.status.state in ['play', 'pause']:
@@ -1217,7 +1239,8 @@ class Base(mpdclient3.mpd_connection):
                 try:
                     self.currentdata.append([int(track.id), escape_html(getattr(track, 'artist', None)) + ": " + escape_html(getattr(track, 'title', None))])
                 except:
-                    self.currentdata.append([int(track.id), escape_html(getattr(track, 'file', None))])
+                    name = getattr(track, 'file', None).split('/')[-1]
+                    self.currentdata.append([int(track.id), escape_html(name)])
             if self.status.state in ['play', 'pause']:
                 row = int(self.songinfo.pos)
                 self.currentdata[row][1] = make_bold(self.currentdata[row][1])
@@ -1251,7 +1274,6 @@ class Base(mpdclient3.mpd_connection):
                     pix = gtk.gdk.pixbuf_new_from_file(filename)
                     pix = pix.scale_simple(75, 75, gtk.gdk.INTERP_HYPER)
                     self.albumimage.set_from_pixbuf(pix)
-                    pix = pix.scale_simple(50, 50, gtk.gdk.INTERP_HYPER)
                     self.trayalbumimage.set_from_pixbuf(pix)
                     self.lastalbumart = filename
                     del pix
@@ -1261,18 +1283,20 @@ class Base(mpdclient3.mpd_connection):
                         pix = gtk.gdk.pixbuf_new_from_file(filename)
                         pix = pix.scale_simple(75, 75, gtk.gdk.INTERP_HYPER)
                         self.albumimage.set_from_pixbuf(pix)
-                        pix = pix.scale_simple(50, 50, gtk.gdk.INTERP_HYPER)
                         self.trayalbumimage.set_from_pixbuf(pix)
                         self.lastalbumart = filename
                         del pix
                     else:
                         self.albumimage.set_from_file(self.sonatacd)
+                        self.trayalbumimage.set_from_file(self.sonatacd)
                         self.lastalbumart = None
             except:
                 self.albumimage.set_from_file(self.sonatacd)
+                self.trayalbumimage.set_from_file(self.sonatacd)
                 self.lastalbumart = None
         else:
             self.albumimage.set_from_file(self.sonatacd)
+            self.trayalbumimage.set_from_file(self.sonatacd)
             self.lastalbumart = None
         gc.collect()
 
@@ -1287,7 +1311,6 @@ class Base(mpdclient3.mpd_connection):
             album = urllib.quote(album)
             amazon_key = "12DR2PGAQT303YTEWP02"
             search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images&Keywords=" + album
-            print search_url
             request = urllib2.Request(search_url)
             request.add_header('Accept-encoding', 'gzip')
             opener = urllib2.build_opener()
@@ -1300,7 +1323,6 @@ class Base(mpdclient3.mpd_connection):
                 while gtk.events_pending():
                     gtk.main_iteration()
                 search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images"
-                print search_url
                 request = urllib2.Request(search_url)
                 request.add_header('Accept-encoding', 'gzip')
                 opener = urllib2.build_opener()
@@ -1311,7 +1333,6 @@ class Base(mpdclient3.mpd_connection):
                     while gtk.events_pending():
                         gtk.main_iteration()
                     search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&ResponseGroup=Images&Keywords=" + album
-                    print search_url
                     request = urllib2.Request(search_url)
                     request.add_header('Accept-encoding', 'gzip')
                     opener = urllib2.build_opener()
@@ -1342,7 +1363,7 @@ class Base(mpdclient3.mpd_connection):
             pass
 
     def labelnotify(self, *args):
-        self.traycursonglabel.set_label(self.cursonglabel.get_label())
+        self.traycursonglabel.set_label(self.cursonglabel.get_label().replace(_('from'),'\n' + _('from')))
         if self.traytips.get_property('visible'):
             self.traytips._real_display(self.trayeventbox)
 
@@ -2131,15 +2152,15 @@ class Base(mpdclient3.mpd_connection):
             self.lastalbumart = None
             self.imageeventbox.set_no_show_all(False)
             self.imageeventbox.show_all()
-            self.trayalbumimage.set_no_show_all(False)
-            self.trayalbumimage.show_all()
+            self.trayalbumeventbox.set_no_show_all(False)
+            self.trayalbumeventbox.show_all()
             self.show_covers = True
             self.update_album_art()
         else:
             self.imageeventbox.set_no_show_all(True)
             self.imageeventbox.hide()
-            self.trayalbumimage.set_no_show_all(True)
-            self.trayalbumimage.hide()
+            self.trayalbumeventbox.set_no_show_all(True)
+            self.trayalbumeventbox.hide()
             self.show_covers = False
 
     def prefs_volume_toggled(self, button):
