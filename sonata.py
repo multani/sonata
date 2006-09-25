@@ -603,7 +603,6 @@ class Base(mpdclient3.mpd_connection):
         self.current.connect('row_activated', self.current_click)
         self.current.connect('button_press_event', self.current_button_press)
         self.current.connect('popup_menu', self.current_popup_menu)
-        self.current.connect('drag_end', self.after_drag_drop)
         self.shufflemenu.connect('toggled', self.shuffle_now)
         self.repeatmenu.connect('toggled', self.repeat_now)
         self.volumewindow.connect('focus_out_event', self.on_volumewindow_unfocus)
@@ -1537,11 +1536,7 @@ class Base(mpdclient3.mpd_connection):
             drag_context.finish(True, True, timestamp)
         self.iterate_now()
 
-    def after_drag_drop(self, treeview, drag_context):
-        model = treeview.get_model()
-        sel = treeview.get_selection()
-        for path in self._selected:
-            sel.select_path(path)
+        treeview.get_selection().select_path(destpath)
 
     def current_changed(self, treemodel, path, iter):
         pass
