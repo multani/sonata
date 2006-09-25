@@ -1602,31 +1602,41 @@ class Base(mpdclient3.mpd_connection):
             return
         filename = os.path.expanduser("~/.config/sonata/covers/" + artist + "-" + album + ".jpg")
         if os.path.exists(filename):
-            coverwindow = gtk.Dialog(_("Cover Art"), self.window, gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE))
+            coverwindow = gtk.Dialog(_("Cover Art"), self.window, gtk.DIALOG_DESTROY_WITH_PARENT, None)
             coverwindow.set_resizable(False)
-            coverwindow.set_has_separator(True)
+            coverwindow.set_has_separator(False)
             pix = gtk.gdk.pixbuf_new_from_file(filename)
             if pix.get_width() != 160:
                 pix = pix.scale_simple(160, int(160/float(pix.get_width())*pix.get_height()), gtk.gdk.INTERP_HYPER)
+            eventbox = gtk.EventBox()
+            eventbox.connect('button-press-event', self.close_coverwindow, coverwindow)
             image = gtk.Image()
             image.set_from_pixbuf(pix)
+            eventbox.add(image)
             hbox = gtk.HBox()
-            hbox.pack_start(image, True, True, 20)
-            coverwindow.vbox.pack_start(hbox, False, False, 20)
+            hbox.pack_start(eventbox, True, True, 10)
+            coverwindow.vbox.pack_start(hbox, False, False, 10)
+            artistlabel = gtk.Label()
             if artist != "":
-                artistlabel = gtk.Label('  ' + artist + '  ')
+                artistlabel.set_markup('<big><b> ' + artist + ' </b></big>')
             else:
-                artistlabel = gtk.Label('  ' + _('Unknown Artist') + '  ')
+                artistlabel.set_markup('<big><b> ' + _('Unknown Artist') + ' </b></big>')
             coverwindow.vbox.pack_start(artistlabel, False, False, 2)
+            albumlabel = gtk.Label()
             if album != "":
-                albumlabel = gtk.Label('  ' + album + '  ')
+                albumlabel.set_markup(' ' + album + ' ')
             else:
-                albumlabel = gtk.Label('  ' + _('Unknown Album') + '  ')
+                albumlabel.set_markup(' ' + _('Unknown Album') + ' ')
             coverwindow.vbox.pack_start(albumlabel, False, False, 2)
-            coverwindow.vbox.pack_start(gtk.Label(), False, False, 0)
+            label = gtk.Label()
+            label.set_markup('<span size="10"> </span>')
+            coverwindow.vbox.pack_start(label, False, False, 0)
             coverwindow.vbox.show_all()
             coverwindow.run()
             coverwindow.destroy()
+
+    def close_coverwindow(self, widget, event, coverwindow):
+        coverwindow.destroy()
 
     def unblock_window_popup_handler(self):
         self.window.handler_unblock(self.mainwinhandler)
