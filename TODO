@@ -1,9 +1,9 @@
 v0.7
 	ability to configure columns for playlist
 	ability to show column headings for sorting
+	popup notification on a new song (enable/disable, delay)
 
 Future:
-	optional statusbar (num songs, total length)?
 	connect in background via socket.setblocking(0)
 	border around album art?
 	pref to autoplay when using 'replace'?
@@ -14,3 +14,4 @@ Future:
 		  be able to reliably detect if the sysicon is displayed
 	Stream support(?)
 	treeview instead of listview? (expanding, collapsing..)
+	optional statusbar (num songs, total length, etc)?

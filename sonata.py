@@ -1792,7 +1792,10 @@ class Base(mpdclient3.mpd_connection):
 
     # What happens when you click on the system tray icon?
     def trayaction(self, widget, event):
-        if event.button == 1: # Left button shows/hides window(s)
+        if event.button == 1 and not self.ignore_toggle_signal: # Left button shows/hides window(s)
+            # This prevents the user clicking twice in a row quickly
+            # and having the second click not revert to the intial
+            # state
             self.ignore_toggle_signal = True
             prev_state = self.UIManager.get_widget('/traymenu/showmenu').get_active()
             self.UIManager.get_widget('/traymenu/showmenu').set_active(not prev_state)
@@ -1805,7 +1808,7 @@ class Base(mpdclient3.mpd_connection):
             self.traytips._remove_timer()
             while gtk.events_pending():
                 gtk.main_iteration()
-            gobject.timeout_add(500, self.set_ignore_toggle_signal_false)
+            gobject.timeout_add(100, self.set_ignore_toggle_signal_false)
         elif event.button == 2: # Middle button will play/pause
             self.pp(self.trayeventbox)
         elif event.button == 3: # Right button pops up menu
