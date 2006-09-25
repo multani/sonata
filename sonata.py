@@ -557,9 +557,9 @@ class Base(mpdclient3.mpd_connection):
         innerbox.pack_start(label3)
         self.tipbox.pack_start(innerbox, True, True, 6)
         self.outtertipbox.pack_start(self.tipbox, False, False, 1)
+        self.outtertipbox.show_all()
         self.traytips = TrayIconTips()
         self.traytips.add_widget(self.outtertipbox)
-        self.outtertipbox.show_all()
 
         # Volumescale window
         self.volumewindow = gtk.Window(gtk.WINDOW_POPUP)
@@ -1220,6 +1220,7 @@ class Base(mpdclient3.mpd_connection):
                 self.traycursonglabel.set_label(_('Not connected'))
             else:
                 self.traycursonglabel.set_label(_('Stopped'))
+            self.traytips.set_size_request(-1, -1)
             self.trayprogressbar.hide()
             self.trayalbumeventbox.hide()
         else:
@@ -1369,6 +1370,10 @@ class Base(mpdclient3.mpd_connection):
 
     def labelnotify(self, *args):
         self.traycursonglabel.set_label(self.cursonglabel.get_label().replace(_('from'),'\n' + _('from')))
+        if self.show_covers:
+            self.traytips.set_size_request(300, -1)
+        else:
+            self.traytips.set_size_request(200, -1)
         if self.traytips.get_property('visible'):
             self.traytips._real_display(self.trayeventbox)
 
@@ -2170,6 +2175,7 @@ class Base(mpdclient3.mpd_connection):
             if self.conn and self.status and self.status.state in ['play', 'pause']:
                 self.trayalbumeventbox.show_all()
             self.show_covers = True
+            self.update_cursong()
             self.update_album_art()
         else:
             self.imageeventbox.set_no_show_all(True)
@@ -2177,6 +2183,7 @@ class Base(mpdclient3.mpd_connection):
             self.trayalbumeventbox.set_no_show_all(True)
             self.trayalbumeventbox.hide()
             self.show_covers = False
+            self.update_cursong()
 
     def prefs_volume_toggled(self, button):
         if button.get_active():

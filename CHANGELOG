@@ -4,6 +4,7 @@ v0.7 - Pending
 	+ Reduce (pygmy's) default polling time to 1 second
 	+ Retain selection of browsed directories in library
 	+ Retain selection after drag-n-drop
+	+ Keep width of tooltip fixed
 	+ Show previous instance of app if user tries to open a second
 	  instance [Mike Massonnet patch]
 	+ Add --version, --help; print usage

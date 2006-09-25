@@ -1,5 +1,3 @@
-repeat, shuffle
-
 v0.8
 	Stream support
 	popup notification on a new song (enable/disable, delay)
