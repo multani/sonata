@@ -1,10 +1,12 @@
 v0.7
 	does resize/shuffle sometimes get turned on without me doing
 		anything or am i going insane?
+	update docs/screenshots
+	changelog date
+	update website/README features
 
 v0.8
 	Stream support
-	popup notification on a new song (enable/disable, delay)
 	ability to configure display for current playlist ("%a - %t", etc)
 	allow drag-n-drop of multiple items
 
