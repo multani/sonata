@@ -1,6 +1,5 @@
 v0.7
 	popup notification
-		- shows up in the wrong pos when playing from a stopped state
 		- update when changed in prefs
 	does resize/shuffle sometimes get turned on without me doing
 		anything or am i going insane?

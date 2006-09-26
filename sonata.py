@@ -2158,6 +2158,9 @@ class Base(mpdclient3.mpd_connection):
         notification_options.set_active(self.popup_option)
         if not self.show_notification:
             notifhbox.set_sensitive(False)
+        if not (HAVE_EGG and self.trayicon.get_property('visible') == True):
+            notifhbox.set_sensitive(False)
+            display_notification.set_sensitive(False)
         display_notification.connect('toggled', self.prefs_notif_toggled, notifhbox)
         notifhbox.pack_start(notification_options, False, False, 0)
         table2.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
@@ -2461,6 +2464,7 @@ class TrayIconTips(gtk.Window):
         screen = widget.get_screen()
         x, y = widget.window.get_origin()
         w, h = self.size_request()
+        h = 92
 
         if widget.flags() & gtk.NO_WINDOW:
             x += widget.allocation.x
