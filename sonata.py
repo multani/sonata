@@ -178,7 +178,7 @@ class Base(mpdclient3.mpd_connection):
         # check to once every 15 seconds.
         # Eventually we'd like to ues non-blocking sockets in
         # mpdclient3.py
-        self.iterate_time_when_connected = 1000
+        self.iterate_time_when_connected = 750
         self.iterate_time_when_disconnected = 15000
 
         # Load config:
@@ -2156,6 +2156,7 @@ class Base(mpdclient3.mpd_connection):
             else:
                 notification_options.append_text(i)
         notification_options.set_active(self.popup_option)
+        notification_options.connect('changed', self.prefs_notiftime_changed)
         if not self.show_notification:
             notifhbox.set_sensitive(False)
         if not (HAVE_EGG and self.trayicon.get_property('visible') == True):
@@ -2227,7 +2228,6 @@ class Base(mpdclient3.mpd_connection):
             self.ontop = win_ontop.get_active()
             self.sticky = win_sticky.get_active()
             self.minimize_to_systray = minimize.get_active()
-            self.popup_option = notification_options.get_active()
             if self.ontop:
                 self.window.set_keep_above(True)
             else:
@@ -2301,9 +2301,19 @@ class Base(mpdclient3.mpd_connection):
         if button.get_active():
             notifhbox.set_sensitive(True)
             self.show_notification = True
+            self.labelnotify()
         else:
             notifhbox.set_sensitive(False)
             self.show_notification = False
+            try:
+                gobject.source_remove(self.traytips.notif_handler)
+            except:
+                pass
+            self.traytips.hide()
+
+    def prefs_notiftime_changed(self, combobox):
+        self.popup_option = combobox.get_active()
+        self.labelnotify()
 
     def seek(self, song, seektime):
         self.conn.do.seek(song, seektime)
