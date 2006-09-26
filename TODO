@@ -1,7 +1,15 @@
+v0.7
+	popup notification
+		- shows up in the wrong pos when playing from a stopped state
+		- update when changed in prefs
+	does resize/shuffle sometimes get turned on without me doing
+		anything or am i going insane?
+
 v0.8
 	Stream support
 	popup notification on a new song (enable/disable, delay)
-	ability to configure display for current playlist ("%a - %b", etc)
+	ability to configure display for current playlist ("%a - %t", etc)
+	allow drag-n-drop of multiple items
 
 Future:
 	connect in background via socket.setblocking(0)

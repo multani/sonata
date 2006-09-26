@@ -139,6 +139,7 @@ class Base(mpdclient3.mpd_connection):
         start_dbus_interface(toggle_arg)
 
         # Initialize vars:
+        socket.setdefaulttimeout(2)
         self.host = 'localhost'
         self.port = 6600
         self.password = ''
@@ -161,8 +162,11 @@ class Base(mpdclient3.mpd_connection):
         self.show_covers = True
         self.show_volume = True
         self.show_search = True
+        self.show_notification = False
         self.stop_on_exit = False
         self.minimize_to_systray = False
+        self.popuptimes = ['2', '3', '5', '10', '15', '30', _('Entire song')]
+        self.popup_option = 2
         self.exit_now = False
         self.ignore_toggle_signal = False
         self.initial_run = True
@@ -211,6 +215,8 @@ class Base(mpdclient3.mpd_connection):
             self.sticky = conf.getboolean('player', 'sticky')
             self.ontop = conf.getboolean('player', 'ontop')
             self.show_search = conf.getboolean('player', 'search')
+            self.show_notification = conf.getboolean('player', 'notification')
+            self.popup_option = conf.getint('player', 'popup_time')
         except:
             pass
 
@@ -834,6 +840,8 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'sticky', self.sticky)
         conf.set('player', 'ontop', self.ontop)
         conf.set('player', 'search', self.show_search)
+        conf.set('player', 'notification', self.show_notification)
+        conf.set('player', 'popup_time', self.popup_option)
         conf.write(file(os.path.expanduser('~/.config/sonata/sonatarc'), 'w'))
 
     def handle_change_conn(self):
@@ -1312,7 +1320,6 @@ class Base(mpdclient3.mpd_connection):
         try:
             while gtk.events_pending():
                 gtk.main_iteration()
-            socket.setdefaulttimeout(2)
             artist = urllib.quote(artist)
             album = urllib.quote(album)
             amazon_key = "12DR2PGAQT303YTEWP02"
@@ -1374,7 +1381,27 @@ class Base(mpdclient3.mpd_connection):
             self.traytips.set_size_request(300, -1)
         else:
             self.traytips.set_size_request(200, -1)
-        if self.traytips.get_property('visible'):
+        if self.show_notification:
+            try:
+                gobject.source_remove(self.traytips.notif_handler)
+            except:
+                pass
+            if self.conn and self.status and self.status.state in ['play', 'pause']:
+                try:
+                    self.traytips._real_display(self.trayeventbox)
+                    if self.popup_option != len(self.popuptimes)-1:
+                        timeout = int(self.popuptimes[self.popup_option])*1000
+                        self.traytips.notif_handler = gobject.timeout_add(timeout, self.traytips.hide)
+                    else:
+                        # -1 indicates that the timeout should be forever.
+                        # We don't want to pass None, because then Sonata
+                        # would think that there is no current notification
+                        self.traytips.notif_handler = -1
+                except:
+                    pass
+            else:
+                self.traytips.hide()
+        elif self.traytips.get_property('visible'):
             self.traytips._real_display(self.trayeventbox)
 
     def progressbarnotify_fraction(self, *args):
@@ -1821,7 +1848,8 @@ class Base(mpdclient3.mpd_connection):
                 self.withdraw_app()
             # This prevents the tooltip from popping up again until the user
             # leaves and enters the trayicon again
-            self.traytips._remove_timer()
+            if self.traytips.notif_handler == None:
+                self.traytips._remove_timer()
             while gtk.events_pending():
                 gtk.main_iteration()
             gobject.timeout_add(100, self.set_ignore_toggle_signal_false)
@@ -2048,27 +2076,56 @@ class Base(mpdclient3.mpd_connection):
         mpdlabel = gtk.Label()
         mpdlabel.set_markup('<b>' + _('MPD Connection') + '</b>')
         mpdlabel.set_alignment(0, 1)
+        hostbox = gtk.HBox()
+        hostlabel = gtk.Label(_("Host") + ":")
+        hostlabel.set_alignment(0, 0.5)
+        hostbox.pack_start(hostlabel, False, False, 0)
         hostentry = gtk.Entry()
         hostentry.set_text(str(self.host))
+        hostbox.pack_start(hostentry, True, True, 10)
+        portbox = gtk.HBox()
+        portlabel = gtk.Label(_("Port") + ":")
+        portlabel.set_alignment(0, 0.5)
+        portbox.pack_start(portlabel, False, False, 0)
         portentry = gtk.Entry()
         portentry.set_text(str(self.port))
+        portbox.pack_start(portentry, True, True, 10)
+        passwordbox = gtk.HBox()
+        passwordlabel = gtk.Label(_("Password") + ":")
+        passwordlabel.set_alignment(0, 0.5)
+        passwordbox.pack_start(passwordlabel, False, False, 0)
         passwordentry = gtk.Entry()
         passwordentry.set_visibility(False)
         passwordentry.set_text(str(self.password))
+        passwordbox.pack_start(passwordentry, True, True, 10)
+        blankbox = gtk.HBox()
         blanklabel = gtk.Label()
-        blanklabel.set_markup("<small>(" + _('Leave blank if none is required') + ")</small>")
-        blanklabel.set_alignment(0, 0)
+        blankbox.pack_start(blanklabel, False, False, 0)
+        blanklabel2 = gtk.Label()
+        blanklabel2.set_markup("<small>(" + _('Leave blank if none is required') + ")</small>")
+        blanklabel2.set_alignment(0, 0.3)
+        blankbox.pack_start(blanklabel2, False, False, 10)
+        max_label_width = 0
+        if hostlabel.size_request()[0] > max_label_width: max_label_width = hostlabel.size_request()[0]
+        if portlabel.size_request()[0] > max_label_width: max_label_width = portlabel.size_request()[0]
+        if passwordlabel.size_request()[0] > max_label_width: max_label_width = passwordlabel.size_request()[0]
+        if blanklabel.size_request()[0] > max_label_width: max_label_width = blanklabel.size_request()[0]
+        hostlabel.set_size_request(max_label_width, -1)
+        portlabel.set_size_request(max_label_width, -1)
+        passwordlabel.set_size_request(max_label_width, -1)
+        blanklabel.set_size_request(max_label_width, -1)
         table.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(mpdlabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(mpdlabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table.attach(gtk.Label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(gtk.Label(_("Host") + ":"), 1, 2, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(hostentry, 2, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(gtk.Label(_("Port") + ":"), 1, 2, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(portentry, 2, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(gtk.Label(_("Password") + ":"), 1, 2, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(passwordentry, 2, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(blanklabel, 2, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(hostbox, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table.attach(portbox, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table.attach(passwordbox, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table.attach(blankbox, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table.attach(gtk.Label(), 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(gtk.Label(), 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(gtk.Label(), 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(gtk.Label(), 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         # Display tab
         table2 = gtk.Table(7, 2, False)
         displaylabel = gtk.Label()
@@ -2080,21 +2137,45 @@ class Base(mpdclient3.mpd_connection):
         display_volume = gtk.CheckButton(_("Show volume button"))
         display_volume.set_active(self.show_volume)
         display_volume.connect('toggled', self.prefs_volume_toggled)
-        display_search = gtk.CheckButton(_("Show library search"))
+        display_search = gtk.CheckButton(_("Show library searchbar"))
         display_search.set_active(self.show_search)
         display_search.connect('toggled', self.prefs_search_toggled)
+        displaylabel2 = gtk.Label()
+        displaylabel2.set_markup('<b>' + _('Notification') + '</b>')
+        displaylabel2.set_alignment(0, 1)
+        display_notification = gtk.CheckButton(_("Popup notification on song changes"))
+        display_notification.set_active(self.show_notification)
+        notifhbox = gtk.HBox()
+        notifhbox.pack_start(gtk.Label(_('Display for') + ':  '), False, False, 0)
+        notification_options = gtk.combo_box_new_text()
+        for i in self.popuptimes:
+            if i == '1':
+                notification_options.append_text(i + ' ' + _('second'))
+            elif i != _('Entire song'):
+                notification_options.append_text(i + ' ' + _('seconds'))
+            else:
+                notification_options.append_text(i)
+        notification_options.set_active(self.popup_option)
+        if not self.show_notification:
+            notifhbox.set_sensitive(False)
+        display_notification.connect('toggled', self.prefs_notif_toggled, notifhbox)
+        notifhbox.pack_start(notification_options, False, False, 0)
         table2.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(displaylabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(gtk.Label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(display_art, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_search, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_volume, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(gtk.Label(), 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(gtk.Label(), 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(display_volume, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_search, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(gtk.Label(), 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(displaylabel2, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(gtk.Label(), 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(display_notification, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(notifhbox, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 75, 0)
+        table2.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         # Behavior tab
-        table3 = gtk.Table(7, 2, False)
+        table3 = gtk.Table()
         behaviorlabel = gtk.Label()
-        behaviorlabel.set_markup('<b>' + _('Behavior') + '</b>')
+        behaviorlabel.set_markup('<b>' + _('Window Behavior') + '</b>')
         behaviorlabel.set_alignment(0, 1)
         win_sticky = gtk.CheckButton(_("Show window on all workspaces"))
         win_sticky.set_active(self.sticky)
@@ -2110,14 +2191,21 @@ class Base(mpdclient3.mpd_connection):
             minimize.set_sensitive(True)
         else:
             minimize.set_sensitive(False)
+        behaviorlabel2 = gtk.Label()
+        behaviorlabel2.set_markup('<b>' + _('Miscellaneous') + '</b>')
+        behaviorlabel2.set_alignment(0, 1)
         table3.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table3.attach(behaviorlabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table3.attach(gtk.Label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table3.attach(win_sticky, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table3.attach(win_ontop, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table3.attach(minimize, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(exit_stop, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(gtk.Label(), 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table3.attach(gtk.Label(), 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table3.attach(behaviorlabel2, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table3.attach(gtk.Label(), 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table3.attach(exit_stop, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table3.attach(gtk.Label(), 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table3.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         prefsnotebook.append_page(table2, gtk.Label(str=_("Display")))
         prefsnotebook.append_page(table3, gtk.Label(str=_("Behavior")))
         prefsnotebook.append_page(table, gtk.Label(str=_("MPD")))
@@ -2136,6 +2224,7 @@ class Base(mpdclient3.mpd_connection):
             self.ontop = win_ontop.get_active()
             self.sticky = win_sticky.get_active()
             self.minimize_to_systray = minimize.get_active()
+            self.popup_option = notification_options.get_active()
             if self.ontop:
                 self.window.set_keep_above(True)
             else:
@@ -2204,6 +2293,14 @@ class Base(mpdclient3.mpd_connection):
             self.searchbox.set_no_show_all(True)
             self.searchbox.hide()
             self.show_search = False
+
+    def prefs_notif_toggled(self, button, notifhbox):
+        if button.get_active():
+            notifhbox.set_sensitive(True)
+            self.show_notification = True
+        else:
+            notifhbox.set_sensitive(False)
+            self.show_notification = False
 
     def seek(self, song, seektime):
         self.conn.do.seek(song, seektime)
@@ -2357,6 +2454,7 @@ class TrayIconTips(gtk.Window):
 
         self._show_timeout_id = -1
         self.timer_tag = None
+        self.notif_handler = None
 
     # from gtktooltips.c:gtk_tooltips_draw_tips
     def _calculate_pos(self, widget):
@@ -2396,6 +2494,8 @@ class TrayIconTips(gtk.Window):
         widget.connect_after("event-after", self._motion_cb)
 
     def _motion_cb (self, widget, event):
+        if self.notif_handler != None:
+            return
         if event.type == gtk.gdk.LEAVE_NOTIFY:
             self._remove_timer()
         if event.type == gtk.gdk.ENTER_NOTIFY:
@@ -2426,9 +2526,7 @@ class TrayIconTips(gtk.Window):
 
     def _real_display(self, widget):
         x, y = self._calculate_pos(widget)
-        w, h = self.size_request()
         self.move(x, y)
-        self.resize(w, h)
         self.show()
 
     # Public API
@@ -2440,6 +2538,7 @@ class TrayIconTips(gtk.Window):
         gtk.Window.hide(self)
         gobject.source_remove(self._show_timeout_id)
         self._show_timeout_id = -1
+        self.notif_handler = None
 
     def display(self, widget):
         if not self._label.get_text():

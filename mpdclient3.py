@@ -20,7 +20,7 @@ class socket_talker(object):
         self.host = host
         self.port = port
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.settimeout(4)
+        self.sock.settimeout(2)
         self.sock.connect((host, port))
         self.file = self.sock.makefile("rb+")
         self.current_line = ''
