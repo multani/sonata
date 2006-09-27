@@ -3,7 +3,7 @@
 # $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/sonata.py $
 # $Id: mirage.py 141 2006-09-11 04:51:07Z stonecrest $
 
-__version__ = "0.7"
+__version__ = "0.7.1"
 
 __license__ = """
 Sonata, a simple GTK+ client for the Music Player Daemon
@@ -2440,23 +2440,6 @@ class Base(mpdclient3.mpd_connection):
     def main(self):
         gtk.main()
 
-class BaseDBus(dbus.service.Object, Base):
-    def __init__(self, bus_name, object_path):
-        dbus.service.Object.__init__(self, bus_name, object_path)
-        Base.__init__(self)
-
-    @dbus.service.method('org.MPD.SonataInterface')
-    def show(self):
-        self.window.hide()
-        self.withdraw_app_undo()
-
-    @dbus.service.method('org.MPD.SonataInterface')
-    def toggle(self):
-        if self.window.get_property('visible'):
-            self.withdraw_app()
-        else:
-            self.withdraw_app_undo()
-
 class TrayIconTips(gtk.Window):
     """Custom tooltips derived from gtk.Window() that allow for markup text and multiple widgets, e.g. a progress bar. ;)"""
     MARGIN = 4
@@ -2651,3 +2634,21 @@ def start_dbus_interface(toggle=False):
                 print _("An instance of Sonata is already running.")
                 obj.show(dbus_interface='org.MPD.SonataInterface')
             sys.exit()
+
+if HAVE_DBUS:
+    class BaseDBus(dbus.service.Object, Base):
+        def __init__(self, bus_name, object_path):
+            dbus.service.Object.__init__(self, bus_name, object_path)
+            Base.__init__(self)
+
+        @dbus.service.method('org.MPD.SonataInterface')
+        def show(self):
+            self.window.hide()
+            self.withdraw_app_undo()
+
+        @dbus.service.method('org.MPD.SonataInterface')
+        def toggle(self):
+            if self.window.get_property('visible'):
+                self.withdraw_app()
+            else:
+                self.withdraw_app_undo()
