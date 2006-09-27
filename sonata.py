@@ -1230,7 +1230,7 @@ class Base(mpdclient3.mpd_connection):
                 name = getattr(self.songinfo, 'file', None).split('/')[-1]
                 newlabel = '<big><b>' + escape_html(name) + '</b></big>\n<small>' + _('by Unknown') + '</small>'
                 if newlabel != self.cursonglabel.get_label():
-                    self.cursonglabel.set_markup()
+                    self.cursonglabel.set_markup(newlabel)
         else:
             if self.expanded:
                 self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to collapse') + '</small>')
