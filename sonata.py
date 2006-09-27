@@ -1214,18 +1214,28 @@ class Base(mpdclient3.mpd_connection):
 
     def update_cursong(self):
         if self.conn and self.status and self.status.state in ['play', 'pause']:
+            # We must show the trayprogressbar and trayalbumeventbox
+            # before changing self.cursonglabel (and consequently calling
+            # self.labelnotify() in order to ensure that the notification
+            # popup will have the correct height when being displayed for
+            # the first time after a stopped state.
+            self.trayprogressbar.show()
+            if self.show_covers:
+                self.trayalbumeventbox.show()
             try:
-                self.cursonglabel.set_markup('<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>' + _('by') + ' ' + escape_html(getattr(self.songinfo, 'artist', None)) + ' ' + _('from') + ' ' + escape_html(getattr(self.songinfo, 'album', None)) + '</small>')
+                newlabel = '<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>' + _('by') + ' ' + escape_html(getattr(self.songinfo, 'artist', None)) + ' ' + _('from') + ' ' + escape_html(getattr(self.songinfo, 'album', None)) + '</small>'
+                if newlabel != self.cursonglabel.get_label():
+                    self.cursonglabel.set_markup(newlabel)
             except:
                 name = getattr(self.songinfo, 'file', None).split('/')[-1]
-                self.cursonglabel.set_markup('<big><b>' + escape_html(name) + '</b></big>\n<small>' + _('by Unknown') + '</small>')
+                newlabel = '<big><b>' + escape_html(name) + '</b></big>\n<small>' + _('by Unknown') + '</small>'
+                if newlabel != self.cursonglabel.get_label():
+                    self.cursonglabel.set_markup()
         else:
             if self.expanded:
                 self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to collapse') + '</small>')
             else:
                 self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to expand') + '</small>')
-        # Hide traytip's progressbar when stopped
-        if (self.status and self.status.state == 'stop') or not self.conn:
             if not self.conn:
                 self.traycursonglabel.set_label(_('Not connected'))
             else:
@@ -1233,10 +1243,6 @@ class Base(mpdclient3.mpd_connection):
             self.traytips.set_size_request(-1, -1)
             self.trayprogressbar.hide()
             self.trayalbumeventbox.hide()
-        else:
-            self.trayprogressbar.show()
-            if self.show_covers:
-                self.trayalbumeventbox.show()
 
     def update_wintitle(self):
         if self.conn and self.status and self.status.state in ['play', 'pause']:
@@ -2476,7 +2482,6 @@ class TrayIconTips(gtk.Window):
         screen = widget.get_screen()
         x, y = widget.window.get_origin()
         w, h = self.size_request()
-        h = 92
 
         if widget.flags() & gtk.NO_WINDOW:
             x += widget.allocation.x

@@ -20,6 +20,8 @@ FEATURES:
 	+ Automatic album art retrieval (with alternatives)
 	+ Playlist support
 	+ System tray icon with tooltip
+	+ Optional popup notification
+	+ Library searching by artist, song, etc.
 	+ Keyboard friendly
 	+ Support for multimedia keys
 	+ Repeat, shuffle, volume control, etc.
