@@ -1222,15 +1222,26 @@ class Base(mpdclient3.mpd_connection):
             self.trayprogressbar.show()
             if self.show_covers:
                 self.trayalbumeventbox.show()
+            newlabelfound = False
             try:
+                # Try song/artist/album:
                 newlabel = '<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>' + _('by') + ' ' + escape_html(getattr(self.songinfo, 'artist', None)) + ' ' + _('from') + ' ' + escape_html(getattr(self.songinfo, 'album', None)) + '</small>'
-                if newlabel != self.cursonglabel.get_label():
-                    self.cursonglabel.set_markup(newlabel)
+                newlabelfound = True
             except:
-                name = getattr(self.songinfo, 'file', None).split('/')[-1]
-                newlabel = '<big><b>' + escape_html(name) + '</b></big>\n<small>' + _('by Unknown') + '</small>'
-                if newlabel != self.cursonglabel.get_label():
-                    self.cursonglabel.set_markup(newlabel)
+                pass
+            if not newlabelfound:
+                try:
+                    # Fallback, try song/artist:
+                    newlabel = '<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>' + _('by') + ' ' + escape_html(getattr(self.songinfo, 'artist', None)) + '</small>'
+                    newlabelfound = True
+                except:
+                    pass
+                if not newlabelfound:
+                    # Fallback, use file name:
+                    name = getattr(self.songinfo, 'file', None).split('/')[-1]
+                    newlabel = '<big><b>' + escape_html(name) + '</b></big>\n<small>' + _('by Unknown') + '</small>'
+            if newlabel != self.cursonglabel.get_label():
+                self.cursonglabel.set_markup(newlabel)
         else:
             if self.expanded:
                 self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to collapse') + '</small>')
