@@ -700,7 +700,7 @@ class Base(mpdclient3.mpd_connection):
         self.window.set_icon(icon)
 
         self.handle_change_status()
-        if self.withdrawn:
+        if self.withdrawn and HAVE_EGG:
             self.window.set_no_show_all(True)
             self.window.hide()
         self.window.show_all()
@@ -853,7 +853,10 @@ class Base(mpdclient3.mpd_connection):
             self.prevbutton.set_property('sensitive', False)
             self.nextbutton.set_property('sensitive', False)
             self.volumebutton.set_property('sensitive', False)
-            self.trayimage.set_from_stock('sonata',  gtk.ICON_SIZE_BUTTON)
+            try:
+                self.trayimage.set_from_stock('sonata',  gtk.ICON_SIZE_BUTTON)
+            except:
+                pass
             self.currentdata.clear()
         else:
             self.ppbutton.set_property('sensitive', True)
@@ -1891,8 +1894,9 @@ class Base(mpdclient3.mpd_connection):
         self.withdrawn = False
 
     def withdraw_app(self):
-        self.window.hide()
-        self.withdrawn = True
+        if HAVE_EGG:
+            self.window.hide()
+            self.withdrawn = True
 
     def withdraw_app_toggle(self, action):
         if self.ignore_toggle_signal:
@@ -2229,8 +2233,11 @@ class Base(mpdclient3.mpd_connection):
         table3.attach(exit_stop, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table3.attach(gtk.Label(), 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table3.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        # Format tab
+        table4 = gtk.Table(9, 2, False)
         prefsnotebook.append_page(table2, gtk.Label(str=_("Display")))
         prefsnotebook.append_page(table3, gtk.Label(str=_("Behavior")))
+        prefsnotebook.append_page(table4, gtk.Label(str=_("Format")))
         prefsnotebook.append_page(table, gtk.Label(str=_("MPD")))
         hbox.pack_start(prefsnotebook, False, False, 10)
         prefswindow.vbox.pack_start(hbox, False, False, 10)
@@ -2239,7 +2246,7 @@ class Base(mpdclient3.mpd_connection):
         while gtk.events_pending():
             gtk.main_iteration()
         if show_mpd_tab:
-            prefsnotebook.set_current_page(2) # MPD page
+            prefsnotebook.set_current_page(3) # MPD page
         close_button.grab_focus()
         response = prefswindow.run()
         if response == gtk.RESPONSE_CLOSE:

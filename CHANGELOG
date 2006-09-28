@@ -1,3 +1,6 @@
+v0.7.2 - Pending
+	+ Bug: Fix crash if changing connection w/o gnome-python-extras
+
 v0.7.1 - September 27, 2006
 	+ Bug: Fix crash if dbus is not installed
 	+ Bug: Fix crash if song does not have some id3 info specified
