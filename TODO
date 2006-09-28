@@ -2,8 +2,9 @@ v0.8
 	Add to > Next song, bottom, top?
 	pref to update db on opening sonata?
 	Stream support
-	ability to configure display for current playlist ("%a - %t", etc)
 	allow drag-n-drop of multiple items
+	allow multiple columns
+	song properties (metadata)
 
 Future:
 	connect in background via socket.setblocking(0)

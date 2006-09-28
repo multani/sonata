@@ -170,6 +170,9 @@ class Base(mpdclient3.mpd_connection):
         self.exit_now = False
         self.ignore_toggle_signal = False
         self.initial_run = True
+        self.currentformat = "%A - %S"
+        self.libraryformat = "%A - %S"
+        self.titleformat = "[Sonata] %A - %S"
         show_prefs = False
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
@@ -217,6 +220,9 @@ class Base(mpdclient3.mpd_connection):
             self.show_search = conf.getboolean('player', 'search')
             self.show_notification = conf.getboolean('player', 'notification')
             self.popup_option = conf.getint('player', 'popup_time')
+            self.currentformat = conf.get('format', 'current')
+            self.libraryformat = conf.get('format', 'library')
+            self.titleformat = conf.get('format', 'title')
         except:
             pass
 
@@ -844,6 +850,10 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'search', self.show_search)
         conf.set('player', 'notification', self.show_notification)
         conf.set('player', 'popup_time', self.popup_option)
+        conf.add_section('format')
+        conf.set('format', 'current', self.currentformat)
+        conf.set('format', 'library', self.libraryformat)
+        conf.set('format', 'title', self.titleformat)
         conf.write(file(os.path.expanduser('~/.config/sonata/sonatarc'), 'w'))
 
     def handle_change_conn(self):
@@ -977,11 +987,7 @@ class Base(mpdclient3.mpd_connection):
                 name = item.directory.split('/')[-1]
                 self.browserdata.append([gtk.STOCK_OPEN, item.directory, escape_html(name)])
             elif item.type == 'file':
-                name = item.file.split('/')[-1]
-                try:
-                    self.browserdata.append(['sonata', item.file, escape_html(item.artist + ' - ' + item.title)])
-                except:
-                    self.browserdata.append(['sonata', item.file, escape_html(name)])
+                self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item)])
 
         # Scroll back to set view for current dir:
         self.browser.realize()
@@ -1003,6 +1009,50 @@ class Base(mpdclient3.mpd_connection):
                     self.browser.grab_focus()
             except:
                 pass
+
+    def parse_formatting(self, format, item):
+        if self.song_has_metadata(item):
+            text = format
+            if "%A" in text:
+                try:
+                    text = text.replace("%A", item.artist)
+                except:
+                    return escape_html(item.file.split('/')[-1])
+            if "%B" in text:
+                try:
+                    text = text.replace("%B", item.album)
+                except:
+                    text = text.replace("%B", "Unknown")
+            if "%S" in text:
+                try:
+                    text = text.replace("%S", item.title)
+                except:
+                    return escape_html(item.file.split('/')[-1])
+            if "%T" in text:
+                try:
+                    text = text.replace("%T", item.track)
+                except:
+                    text = text.replace("%T", "?")
+            if "%F" in text:
+                text = text.replace("%F", item.file)
+            if "%P" in text:
+                text = text.replace("%P", item.file.split('/')[-1])
+            return escape_html(text)
+        else:
+            return escape_html(item.file.split('/')[-1])
+
+    def song_has_metadata(self, item):
+        try:
+            test = item.title
+            return True
+        except:
+            pass
+        try:
+            test = item.artist
+            return True
+        except:
+            pass
+        return False
 
     def browserow(self, widget, path, column=0):
         self.browse(None, self.browserdata.get_value(self.browserdata.get_iter(path), 1))
@@ -1260,10 +1310,7 @@ class Base(mpdclient3.mpd_connection):
 
     def update_wintitle(self):
         if self.conn and self.status and self.status.state in ['play', 'pause']:
-            try:
-                self.window.set_property('title', getattr(self.songinfo, 'artist', None) + ': ' + getattr(self.songinfo, 'title', None) + ' - Sonata')
-            except:
-                self.window.set_property('title', getattr(self.songinfo, 'file', None) + ' - Sonata')
+            self.window.set_property('title', self.parse_formatting(self.titleformat, self.songinfo))
         else:
             self.window.set_property('title', 'Sonata')
 
@@ -1272,11 +1319,7 @@ class Base(mpdclient3.mpd_connection):
             self.songs = self.conn.do.playlistinfo()
             self.currentdata.clear()
             for track in self.songs:
-                try:
-                    self.currentdata.append([int(track.id), escape_html(getattr(track, 'artist', None)) + ": " + escape_html(getattr(track, 'title', None))])
-                except:
-                    name = getattr(track, 'file', None).split('/')[-1]
-                    self.currentdata.append([int(track.id), escape_html(name)])
+                self.currentdata.append([int(track.id), self.parse_formatting(self.currentformat, track)])
             if self.status.state in ['play', 'pause']:
                 row = int(self.songinfo.pos)
                 self.currentdata[row][1] = make_bold(self.currentdata[row][1])
@@ -2094,7 +2137,6 @@ class Base(mpdclient3.mpd_connection):
         prefsnotebook = gtk.Notebook()
         # MPD tab
         table = gtk.Table(9, 2, False)
-        #table.set_row_spacings(7)
         table.set_col_spacings(3)
         mpdlabel = gtk.Label()
         mpdlabel.set_markup('<b>' + _('MPD Connection') + '</b>')
@@ -2128,7 +2170,7 @@ class Base(mpdclient3.mpd_connection):
         blanklabel2.set_markup("<small>(" + _('Leave blank if none is required') + ")</small>")
         blanklabel2.set_alignment(0, 0.3)
         blankbox.pack_start(blanklabel2, False, False, 10)
-        max_label_width = 0
+        max_label_width = 0     # Set all label widths the same
         if hostlabel.size_request()[0] > max_label_width: max_label_width = hostlabel.size_request()[0]
         if portlabel.size_request()[0] > max_label_width: max_label_width = portlabel.size_request()[0]
         if passwordlabel.size_request()[0] > max_label_width: max_label_width = passwordlabel.size_request()[0]
@@ -2235,6 +2277,61 @@ class Base(mpdclient3.mpd_connection):
         table3.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         # Format tab
         table4 = gtk.Table(9, 2, False)
+        table4.set_col_spacings(3)
+        formatlabel = gtk.Label()
+        formatlabel.set_markup('<b>' + _('Song Formatting') + '</b>')
+        formatlabel.set_alignment(0, 1)
+        currentformatbox = gtk.HBox()
+        currentlabel = gtk.Label(_("Current playlist:"))
+        currentlabel.set_alignment(0, 0.5)
+        currentoptions = gtk.Entry()
+        currentoptions.set_text(self.currentformat)
+        currentformatbox.pack_start(currentlabel, False, False, 0)
+        currentformatbox.pack_start(currentoptions, False, False, 10)
+        libraryformatbox = gtk.HBox()
+        librarylabel = gtk.Label(_("Library:"))
+        librarylabel.set_alignment(0, 0.5)
+        libraryoptions = gtk.Entry()
+        libraryoptions.set_text(self.libraryformat)
+        libraryformatbox.pack_start(librarylabel, False, False, 0)
+        libraryformatbox.pack_start(libraryoptions, False, False, 10)
+        titleformatbox = gtk.HBox()
+        titlelabel = gtk.Label(_("Window title:"))
+        titlelabel.set_alignment(0, 0.5)
+        titleoptions = gtk.Entry()
+        titleoptions.set_text(self.titleformat)
+        titleformatbox.pack_start(titlelabel, False, False, 0)
+        titleformatbox.pack_start(titleoptions, False, False, 10)
+        max_label_width = 0     # Set all label widths the same
+        if currentlabel.size_request()[0] > max_label_width: max_label_width = currentlabel.size_request()[0]
+        if librarylabel.size_request()[0] > max_label_width: max_label_width = librarylabel.size_request()[0]
+        if titlelabel.size_request()[0] > max_label_width: max_label_width = titlelabel.size_request()[0]
+        currentlabel.set_size_request(max_label_width, -1)
+        librarylabel.set_size_request(max_label_width, -1)
+        titlelabel.set_size_request(max_label_width, -1)
+        availableheading = gtk.Label()
+        availableheading.set_markup('<small>Available options:</small>')
+        availableheading.set_alignment(0, 0)
+        availableformatbox = gtk.HBox()
+        availableformatting = gtk.Label()
+        availableformatting.set_markup('<small><span font_family="Monospace">%A</span> - Artist name\n<span font_family="Monospace">%B</span> - Album name\n<span font_family="Monospace">%S</span> - Song name</small>')
+        availableformatting.set_alignment(0, 0)
+        availableformatting2 = gtk.Label()
+        availableformatting2.set_markup('<small><span font_family="Monospace">%T</span> - Track number\n<span font_family="Monospace">%F</span> - File name\n<span font_family="Monospace">%P</span> - File path</small>')
+        availableformatting2.set_alignment(0, 0)
+        availableformatbox.pack_start(availableformatting)
+        availableformatbox.pack_start(availableformatting2)
+        table4.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table4.attach(formatlabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table4.attach(gtk.Label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table4.attach(currentformatbox, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table4.attach(libraryformatbox, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table4.attach(titleformatbox, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table4.attach(gtk.Label(), 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table4.attach(availableheading, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table4.attach(availableformatbox, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table4.attach(gtk.Label(), 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table4.attach(gtk.Label(), 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         prefsnotebook.append_page(table2, gtk.Label(str=_("Display")))
         prefsnotebook.append_page(table3, gtk.Label(str=_("Behavior")))
         prefsnotebook.append_page(table4, gtk.Label(str=_("Format")))
@@ -2254,6 +2351,15 @@ class Base(mpdclient3.mpd_connection):
             self.ontop = win_ontop.get_active()
             self.sticky = win_sticky.get_active()
             self.minimize_to_systray = minimize.get_active()
+            if self.currentformat != currentoptions.get_text():
+                self.currentformat = currentoptions.get_text()
+                self.update_playlist()
+            if self.libraryformat != libraryoptions.get_text():
+                self.libraryformat = libraryoptions.get_text()
+                self.browse(root=self.browser.wd)
+            if self.titleformat != titleoptions.get_text():
+                self.titleformat = titleoptions.get_text()
+                self.update_wintitle()
             if self.ontop:
                 self.window.set_keep_above(True)
             else:
