@@ -1406,6 +1406,12 @@ class Base(mpdclient3.mpd_connection):
                     gtk.threads_leave()
                     del pix
                 else:
+                    # Default to sonatacd:
+                    gtk.threads_enter()
+                    self.albumimage.set_from_file(self.sonatacd)
+                    self.trayalbumimage.set_from_file(self.sonatacd)
+                    self.lastalbumart = None
+                    gtk.threads_leave()
                     self.download_image_to_filename(artist, album, filename)
                     if os.path.exists(filename):
                         gtk.threads_enter()
@@ -1421,12 +1427,6 @@ class Base(mpdclient3.mpd_connection):
                         self.lastalbumart = filename
                         gtk.threads_leave()
                         del pix
-                    else:
-                        gtk.threads_enter()
-                        self.albumimage.set_from_file(self.sonatacd)
-                        self.trayalbumimage.set_from_file(self.sonatacd)
-                        self.lastalbumart = None
-                        gtk.threads_leave()
             except:
                 gtk.threads_enter()
                 self.albumimage.set_from_file(self.sonatacd)
@@ -1456,6 +1456,8 @@ class Base(mpdclient3.mpd_connection):
             opener = urllib2.build_opener()
             f = opener.open(request).read()
             curr_pos = 200    # Skip header..
+            if self.stop_art_update:
+                return
             # Check if any results were returned; if not, search
             # again with just the artist name:
             img_url = f[f.find("http", curr_pos):f.find("jpg", curr_pos) + 3]
@@ -1466,6 +1468,8 @@ class Base(mpdclient3.mpd_connection):
                 opener = urllib2.build_opener()
                 f = opener.open(request).read()
                 img_url = f[f.find("http", curr_pos):f.find("jpg", curr_pos) + 3]
+                if self.stop_art_update:
+                    return
                 # And if that fails, try one last time with just the album name:
                 if len(img_url) == 0:
                     search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&ResponseGroup=Images&Keywords=" + album
@@ -1474,6 +1478,8 @@ class Base(mpdclient3.mpd_connection):
                     opener = urllib2.build_opener()
                     f = opener.open(request).read()
                     img_url = f[f.find("http", curr_pos):f.find("jpg", curr_pos) + 3]
+                    if self.stop_art_update:
+                        return
             if all_images:
                 curr_img = 1
                 img_url = " "
@@ -1490,6 +1496,8 @@ class Base(mpdclient3.mpd_connection):
                 curr_pos = f.find("<MediumImage>", curr_pos+10)
                 img_url = f[f.find("http", curr_pos):f.find("jpg", curr_pos) + 3]
                 if len(img_url) > 0:
+                    if self.stop_art_update:
+                        return
                     urllib.urlretrieve(img_url, dest_filename)
         except:
             pass
@@ -1867,9 +1875,10 @@ class Base(mpdclient3.mpd_connection):
         dialog.destroy()
 
     def choose_image(self, widget):
-        self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
-        while gtk.events_pending():
+        self.stop_art_update = True
+        while self.updating_art or gtk.events_pending():
             gtk.main_iteration()
+        self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
         choose_dialog = gtk.Dialog(_("Choose Cover Art"), self.window, gtk.DIALOG_MODAL, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
         choosebutton = choose_dialog.add_button(_("Choose"), gtk.RESPONSE_ACCEPT)
         chooseimage = gtk.Image()
@@ -1893,6 +1902,7 @@ class Base(mpdclient3.mpd_connection):
             removeall(os.path.dirname(filename))
         if not os.path.exists(os.path.dirname(filename)):
             os.mkdir(os.path.dirname(filename))
+        self.stop_art_update = False
         self.download_image_to_filename(artist, album, filename, True)
         # Put images to ListStore
         image_num = 1
