@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import sonata
+import sys
 try:
 	import dbus
 	import dbus.service
@@ -41,6 +42,8 @@ if __name__ == "__main__":
 			session_bus = dbus.SessionBus()
 			bus_name = dbus.service.BusName('org.MPD', bus=session_bus)
 			app = sonata.BaseDBus(bus_name, '/org/MPD/Sonata')
+		except SystemExit:
+			sys.exit()
 		except:
 			app = sonata.Base()
     else:

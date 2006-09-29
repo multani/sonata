@@ -119,7 +119,7 @@ class Base(mpdclient3.mpd_connection):
         except getopt.GetoptError:
             # print help information and exit:
             self.print_usage()
-            sys.exit(2)
+            sys.exit()
         # If options were passed, perform action on them.
         if opts != []:
             for o, a in opts:
@@ -128,13 +128,13 @@ class Base(mpdclient3.mpd_connection):
                     if not HAVE_DBUS:
                         print _("The toggle argument requires D-Bus. Aborting.")
                         self.print_usage()
-                        sys.exit(2)
+                        sys.exit()
                 elif o in ("-v", "--version"):
                     self.print_version()
-                    sys.exit(2)
+                    sys.exit()
                 else:
                     self.print_usage()
-                    sys.exit(2)
+                    sys.exit()
 
         start_dbus_interface(toggle_arg)
 
@@ -1513,7 +1513,7 @@ class Base(mpdclient3.mpd_connection):
         self.save_settings()
         if self.conn and self.stop_on_exit:
             self.stop(None)
-        sys.exit(2)
+        sys.exit()
         return False
 
     def on_window_state_change(self, widget, event):
