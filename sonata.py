@@ -197,34 +197,56 @@ class Base(mpdclient3.mpd_connection):
         elif os.path.isfile(os.path.expanduser('~/.sonatarc')):
             conf.read(os.path.expanduser('~/.sonatarc'))
             os.remove(os.path.expanduser('~/.sonatarc'))
-        try:
+        if conf.has_option('connection', 'host'):
             self.host = conf.get('connection', 'host')
+        if conf.has_option('connection', 'port'):
             self.port = int(conf.get('connection', 'port'))
+        if conf.has_option('connection', 'password'):
             self.password = conf.get('connection', 'password')
+        if conf.has_option('player', 'x'):
             self.x = conf.getint('player', 'x')
+        if conf.has_option('player', 'y'):
             self.y = conf.getint('player', 'y')
+        if conf.has_option('player', 'w'):
             self.w = conf.getint('player', 'w')
+        if conf.has_option('player', 'h'):
             self.h = conf.getint('player', 'h')
+        if conf.has_option('player', 'expanded'):
             self.expanded = conf.getboolean('player', 'expanded')
+        if conf.has_option('player', 'withdrawn'):
             self.withdrawn = conf.getboolean('player', 'withdrawn')
+        if conf.has_option('player', 'screen'):
             self.screen = conf.getint('player', 'screen')
+        if conf.has_option('player', 'repeat'):
             self.repeat = conf.getboolean('player', 'repeat')
+        if conf.has_option('player', 'shuffle'):
             self.shuffle = conf.getboolean('player', 'shuffle')
+        if conf.has_option('player', 'covers'):
             self.show_covers = conf.getboolean('player', 'covers')
+        if conf.has_option('player', 'stop_on_exit'):
             self.stop_on_exit = conf.getboolean('player', 'stop_on_exit')
+        if conf.has_option('player', 'minimize'):
             self.minimize_to_systray = conf.getboolean('player', 'minimize')
+        if conf.has_option('player', 'initial_run'):
             self.initial_run = conf.getboolean('player', 'initial_run')
+        if conf.has_option('player', 'volume'):
             self.show_volume = conf.getboolean('player', 'volume')
+        if conf.has_option('player', 'sticky'):
             self.sticky = conf.getboolean('player', 'sticky')
+        if conf.has_option('player', 'ontop'):
             self.ontop = conf.getboolean('player', 'ontop')
+        if conf.has_option('player', 'search'):
             self.show_search = conf.getboolean('player', 'search')
+        if conf.has_option('player', 'notification'):
             self.show_notification = conf.getboolean('player', 'notification')
+        if conf.has_option('player', 'popup_time'):
             self.popup_option = conf.getint('player', 'popup_time')
+        if conf.has_option('format', 'current'):
             self.currentformat = conf.get('format', 'current')
+        if conf.has_option('format', 'library'):
             self.libraryformat = conf.get('format', 'library')
+        if conf.has_option('format', 'title'):
             self.titleformat = conf.get('format', 'title')
-        except:
-            pass
 
         # Popup menus:
         actions = (
@@ -1032,7 +1054,7 @@ class Base(mpdclient3.mpd_connection):
                 try:
                     text = text.replace("%T", item.track)
                 except:
-                    text = text.replace("%T", "?")
+                    text = text.replace("%T", "0")
             if "%F" in text:
                 text = text.replace("%F", item.file)
             if "%P" in text:
@@ -1443,9 +1465,9 @@ class Base(mpdclient3.mpd_connection):
     def labelnotify(self, *args):
         self.traycursonglabel.set_label(self.cursonglabel.get_label().replace(_('from'),'\n' + _('from')))
         if self.show_covers:
-            self.traytips.set_size_request(300, -1)
+            self.traytips.set_size_request(350, -1)
         else:
-            self.traytips.set_size_request(200, -1)
+            self.traytips.set_size_request(250, -1)
         if self.show_notification:
             try:
                 gobject.source_remove(self.traytips.notif_handler)
