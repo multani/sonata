@@ -41,6 +41,7 @@ import locale
 import shutil
 import mmkeys
 import sys, getopt
+import threading
 
 try:
     import cPickle as pickle
@@ -138,8 +139,12 @@ class Base(mpdclient3.mpd_connection):
 
         start_dbus_interface(toggle_arg)
 
+        gtk.gdk.threads_init()
+
         # Initialize vars:
         socket.setdefaulttimeout(2)
+        self.stop_art_update = False
+        self.updating_art = False
         self.host = 'localhost'
         self.port = 6600
         self.password = ''
@@ -1178,7 +1183,11 @@ class Base(mpdclient3.mpd_connection):
             self.update_progressbar()
             self.update_cursong()
             self.update_wintitle()
-            self.update_album_art()
+            self.stop_art_update = True
+            while self.updating_art:
+                gtk.main_iteration()
+            thread = threading.Thread(target=self.update_album_art)
+            thread.start()
             return
 
         # Update progress frequently if we're playing
@@ -1224,7 +1233,11 @@ class Base(mpdclient3.mpd_connection):
             if self.status.state in ['play', 'pause']:
                 row = int(self.songinfo.pos)
                 self.currentdata[row][1] = make_bold(self.currentdata[row][1])
-            self.update_album_art()
+            self.stop_art_update = True
+            while self.updating_art:
+                gtk.main_iteration()
+            thread = threading.Thread(target=self.update_album_art)
+            thread.start()
 
         if self.prevstatus is None or self.status.volume != self.prevstatus.volume:
             self.volumescale.get_adjustment().set_value(int(self.status.volume))
@@ -1261,7 +1274,11 @@ class Base(mpdclient3.mpd_connection):
 
         self.update_cursong()
         self.update_wintitle()
-        self.update_album_art()
+        self.stop_art_update = True
+        while self.updating_art:
+            gtk.main_iteration()
+        thread = threading.Thread(target=self.update_album_art)
+        thread.start()
 
     def update_progressbar(self):
         if self.conn and self.status and self.status.state in ['play', 'pause']:
@@ -1357,11 +1374,12 @@ class Base(mpdclient3.mpd_connection):
                         self.current.scroll_to_cell(row)
 
     def update_album_art(self):
+        self.stop_art_update = False
         if not self.show_covers:
+            self.updating_art = False
             return
+        self.updating_art = True
         if self.conn and self.status and self.status.state in ['play', 'pause']:
-            while gtk.events_pending():
-                gtk.main_iteration()
             artist = getattr(self.songinfo, 'artist', None)
             if not artist: artist = ""
             album = getattr(self.songinfo, 'album', None)
@@ -1370,43 +1388,65 @@ class Base(mpdclient3.mpd_connection):
                 filename = os.path.expanduser("~/.config/sonata/covers/" + artist + "-" + album + ".jpg")
                 if filename == self.lastalbumart:
                     # No need to update..
+                    self.stop_art_update = False
+                    self.updating_art = False
                     return
                 if os.path.exists(filename):
+                    gtk.threads_enter()
                     pix = gtk.gdk.pixbuf_new_from_file(filename)
                     pix = pix.scale_simple(75, 75, gtk.gdk.INTERP_HYPER)
+                    if self.stop_art_update:
+                        gtk.threads_leave()
+                        self.stop_art_update = False
+                        self.updating_art = False
+                        return
                     self.albumimage.set_from_pixbuf(pix)
                     self.trayalbumimage.set_from_pixbuf(pix)
                     self.lastalbumart = filename
+                    gtk.threads_leave()
                     del pix
                 else:
                     self.download_image_to_filename(artist, album, filename)
                     if os.path.exists(filename):
+                        gtk.threads_enter()
                         pix = gtk.gdk.pixbuf_new_from_file(filename)
                         pix = pix.scale_simple(75, 75, gtk.gdk.INTERP_HYPER)
+                        if self.stop_art_update:
+                            gtk.threads_leave()
+                            self.stop_art_update = False
+                            self.updating_art = False
+                            return
                         self.albumimage.set_from_pixbuf(pix)
                         self.trayalbumimage.set_from_pixbuf(pix)
                         self.lastalbumart = filename
+                        gtk.threads_leave()
                         del pix
                     else:
+                        gtk.threads_enter()
                         self.albumimage.set_from_file(self.sonatacd)
                         self.trayalbumimage.set_from_file(self.sonatacd)
                         self.lastalbumart = None
+                        gtk.threads_leave()
             except:
+                gtk.threads_enter()
                 self.albumimage.set_from_file(self.sonatacd)
                 self.trayalbumimage.set_from_file(self.sonatacd)
                 self.lastalbumart = None
+                gtk.threads_leave()
         else:
+            gtk.threads_enter()
             self.albumimage.set_from_file(self.sonatacd)
             self.trayalbumimage.set_from_file(self.sonatacd)
             self.lastalbumart = None
+            gtk.threads_leave()
         gc.collect()
+        self.updating_art = False
+        self.stop_art_update = False
 
     def download_image_to_filename(self, artist, album, dest_filename, all_images=False):
         if artist == "" and album == "":
             return
         try:
-            while gtk.events_pending():
-                gtk.main_iteration()
             artist = urllib.quote(artist)
             album = urllib.quote(album)
             amazon_key = "12DR2PGAQT303YTEWP02"
@@ -1420,8 +1460,6 @@ class Base(mpdclient3.mpd_connection):
             # again with just the artist name:
             img_url = f[f.find("http", curr_pos):f.find("jpg", curr_pos) + 3]
             if len(img_url) == 0:
-                while gtk.events_pending():
-                    gtk.main_iteration()
                 search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images"
                 request = urllib2.Request(search_url)
                 request.add_header('Accept-encoding', 'gzip')
@@ -1430,8 +1468,6 @@ class Base(mpdclient3.mpd_connection):
                 img_url = f[f.find("http", curr_pos):f.find("jpg", curr_pos) + 3]
                 # And if that fails, try one last time with just the album name:
                 if len(img_url) == 0:
-                    while gtk.events_pending():
-                        gtk.main_iteration()
                     search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&ResponseGroup=Images&Keywords=" + album
                     request = urllib2.Request(search_url)
                     request.add_header('Accept-encoding', 'gzip')
@@ -1446,15 +1482,11 @@ class Base(mpdclient3.mpd_connection):
                     curr_pos = f.find("<MediumImage>", curr_pos+10)
                     img_url = f[f.find("http", curr_pos):f.find("jpg", curr_pos) + 3]
                     if len(img_url) > 0:
-                        while gtk.events_pending():
-                            gtk.main_iteration()
                         urllib.urlretrieve(img_url, dest_filename.replace("<imagenum>", str(curr_img)))
                         curr_img += 1
                         # Skip the next SmallImage:
                         curr_pos = f.find("<MediumImage>", curr_pos+10)
             else:
-                while gtk.events_pending():
-                    gtk.main_iteration()
                 curr_pos = f.find("<MediumImage>", curr_pos+10)
                 img_url = f[f.find("http", curr_pos):f.find("jpg", curr_pos) + 3]
                 if len(img_url) > 0:
@@ -1827,7 +1859,11 @@ class Base(mpdclient3.mpd_connection):
             shutil.copyfile(filename, dest_filename)
             # And finally, set the image in the interface:
             self.lastalbumart = None
-            self.update_album_art()
+            self.stop_art_update = True
+            while self.updating_art:
+                gtk.main_iteration()
+            thread = threading.Thread(target=self.update_album_art)
+            thread.start()
         dialog.destroy()
 
     def choose_image(self, widget):
@@ -1912,7 +1948,11 @@ class Base(mpdclient3.mpd_connection):
                 os.rename(filename, dest_filename)
                 # And finally, set the image in the interface:
                 self.lastalbumart = None
-                self.update_album_art()
+                self.stop_art_update = True
+                while self.updating_art:
+                    gtk.main_iteration()
+                thread = threading.Thread(target=self.update_album_art)
+                thread.start()
                 # Clean up..
                 if os.path.exists(os.path.dirname(filename)):
                     removeall(os.path.dirname(filename))
@@ -2422,7 +2462,11 @@ class Base(mpdclient3.mpd_connection):
                 self.trayalbumeventbox.show_all()
             self.show_covers = True
             self.update_cursong()
-            self.update_album_art()
+            self.stop_art_update = True
+            while self.updating_art:
+                gtk.main_iteration()
+            thread = threading.Thread(target=self.update_album_art)
+            thread.start()
         else:
             self.imageeventbox.set_no_show_all(True)
             self.imageeventbox.hide()
@@ -2709,7 +2753,9 @@ class TrayIconTips(gtk.Window):
 
 if __name__ == "__main__":
     base = Base()
+    gtk.threads_enter()
     base.main()
+    gtk.threads_leave()
 
 def convert_time(raw):
     # Converts raw time to 'hh:mm:ss' with leading zeros as appropriate
