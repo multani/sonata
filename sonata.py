@@ -2556,7 +2556,7 @@ class Base(mpdclient3.mpd_connection):
         self.searchbutton.set_no_show_all(False)
 
     def search_end(self, button):
-        self.browse(root='/')
+        self.browse(root=self.browser.wd)
         self.browser.grab_focus()
         self.searchbutton.hide()
         self.searchbutton.set_no_show_all(True)

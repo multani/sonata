@@ -1,8 +1,9 @@
-v0.7.2 - Pending
+v0.8 - Pending
 	+ Allow user formatting of current playlist, library, and title
 	+ Fetch album art in background (non-blocking)
+	+ Correctly retain previous library state when ending search
 	+ Bug: Fix crash if changing connection w/o gnome-python-extras
-	+ Bug: Prevent --help, --version, etc usage from printing twice
+	+ Bug: Prevent --help, etc. usage from printing twice
 
 v0.7.1 - September 27, 2006
 	+ Bug: Fix crash if dbus is not installed

@@ -3,12 +3,11 @@ v0.8
 	pref to update db on opening sonata?
 	Stream support
 	allow drag-n-drop of multiple items
-	allow multiple columns
+	allow multiple columns?
 	song properties (metadata)
 
 Future:
 	connect in background via socket.setblocking(0)
-	border around album art?
 	switch to pygtk's statusicon (2.10) and remove gnome-python dep
 		- then we can finally use skip_taskbar_hint since we will
 		  be able to reliably detect if the sysicon is displayed
