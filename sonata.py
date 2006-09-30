@@ -641,6 +641,7 @@ class Base(mpdclient3.mpd_connection):
         self.current.connect('drag_data_received', self.on_drag_drop)
         self.current.connect('row_activated', self.current_click)
         self.current.connect('button_press_event', self.current_button_press)
+        self.current.connect('button_release_event', self.current_button_released)
         self.current.connect('popup_menu', self.current_popup_menu)
         self.shufflemenu.connect('toggled', self.shuffle_now)
         self.repeatmenu.connect('toggled', self.repeat_now)
@@ -1009,6 +1010,7 @@ class Base(mpdclient3.mpd_connection):
 
         self.browser.wd = root
         self.browserdata.clear()
+        self.browser.freeze_child_notify()
         if self.root != '/':
             self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
             self.browserdata.append([gtk.STOCK_OPEN, '/'.join(root.split('/')[:-1]) or '/', '..'])
@@ -1018,6 +1020,7 @@ class Base(mpdclient3.mpd_connection):
                 self.browserdata.append([gtk.STOCK_OPEN, item.directory, escape_html(name)])
             elif item.type == 'file':
                 self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item)])
+        self.browser.thaw_child_notify()
 
         # Scroll back to set view for current dir:
         self.browser.realize()
@@ -1360,8 +1363,10 @@ class Base(mpdclient3.mpd_connection):
         if self.conn:
             self.songs = self.conn.do.playlistinfo()
             self.currentdata.clear()
+            self.current.freeze_child_notify()
             for track in self.songs:
                 self.currentdata.append([int(track.id), self.parse_formatting(self.currentformat, track)])
+            self.current.thaw_child_notify()
             if self.status.state in ['play', 'pause']:
                 row = int(self.songinfo.pos)
                 self.currentdata[row][1] = make_bold(self.currentdata[row][1])
@@ -1725,6 +1730,9 @@ class Base(mpdclient3.mpd_connection):
             # the current selection change to the current row)
             if self.current.get_selection().count_selected_rows() > 1:
                 return True
+
+    def current_button_released(self, widget, event):
+        return
 
     def current_popup_menu(self, widget):
         self.set_menu_contextual_items_visible()

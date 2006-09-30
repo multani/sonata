@@ -1,9 +1,9 @@
 v0.8
 	pref to update db on opening sonata?
 	Stream support
-	allow (better) drag-n-drop of multiple items
 	allow multiple columns?
 	song properties (metadata)
+	make selection, dnd, more like thunar
 
 Future:
 	Add to > Next song, top, random - too slow...
