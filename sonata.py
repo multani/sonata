@@ -598,6 +598,7 @@ class Base(mpdclient3.mpd_connection):
         self.browser.connect('row_activated', self.browserow)
         self.browser.connect('button_press_event', self.browser_button_press)
         self.playlists.connect('button_press_event', self.playlists_button_press)
+        self.playlists.connect('row_activated', self.playlists_activated)
         self.ppbutton.connect('button_press_event', self.popup_menu)
         self.prevbutton.connect('button_press_event', self.popup_menu)
         self.stopbutton.connect('button_press_event', self.popup_menu)
@@ -1044,6 +1045,9 @@ class Base(mpdclient3.mpd_connection):
         playlistinfo.sort(key=lambda x: x.lower()) # Remove case sensitivity
         for item in playlistinfo:
             self.playlistsdata.append([gtk.STOCK_JUSTIFY_FILL, item])
+
+    def playlists_activated(self, treeview, path, column):
+        self.add_item(None)
 
     def parent_dir(self, action):
         if self.notebook.get_current_page() == 1:
