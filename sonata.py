@@ -1268,11 +1268,7 @@ class Base(mpdclient3.mpd_connection):
             self.update_progressbar()
             self.update_cursong()
             self.update_wintitle()
-            self.stop_art_update = True
-            while self.updating_art:
-                gtk.main_iteration()
-            thread = threading.Thread(target=self.update_album_art)
-            thread.start()
+            self.update_album_art()
             return
 
         # Update progress frequently if we're playing
@@ -1318,11 +1314,7 @@ class Base(mpdclient3.mpd_connection):
             if self.status.state in ['play', 'pause']:
                 row = int(self.songinfo.pos)
                 self.currentdata[row][1] = make_bold(self.currentdata[row][1])
-            self.stop_art_update = True
-            while self.updating_art:
-                gtk.main_iteration()
-            thread = threading.Thread(target=self.update_album_art)
-            thread.start()
+            self.update_album_art()
 
         if self.prevstatus is None or self.status.volume != self.prevstatus.volume:
             self.volumescale.get_adjustment().set_value(int(self.status.volume))
@@ -1359,11 +1351,7 @@ class Base(mpdclient3.mpd_connection):
 
         self.update_cursong()
         self.update_wintitle()
-        self.stop_art_update = True
-        while self.updating_art:
-            gtk.main_iteration()
-        thread = threading.Thread(target=self.update_album_art)
-        thread.start()
+        self.update_album_art()
 
     def update_progressbar(self):
         if self.conn and self.status and self.status.state in ['play', 'pause']:
@@ -1459,6 +1447,13 @@ class Base(mpdclient3.mpd_connection):
                         self.current.scroll_to_cell(row)
 
     def update_album_art(self):
+        self.stop_art_update = True
+        while self.updating_art:
+            gtk.main_iteration()
+        thread = threading.Thread(target=self.update_album_art2)
+        thread.start()
+
+    def update_album_art2(self):
         self.stop_art_update = False
         if not self.show_covers:
             self.updating_art = False
@@ -1958,11 +1953,7 @@ class Base(mpdclient3.mpd_connection):
             shutil.copyfile(filename, dest_filename)
             # And finally, set the image in the interface:
             self.lastalbumart = None
-            self.stop_art_update = True
-            while self.updating_art:
-                gtk.main_iteration()
-            thread = threading.Thread(target=self.update_album_art)
-            thread.start()
+            self.update_album_art()
         dialog.destroy()
 
     def choose_image(self, widget):
@@ -2049,11 +2040,7 @@ class Base(mpdclient3.mpd_connection):
                 os.rename(filename, dest_filename)
                 # And finally, set the image in the interface:
                 self.lastalbumart = None
-                self.stop_art_update = True
-                while self.updating_art:
-                    gtk.main_iteration()
-                thread = threading.Thread(target=self.update_album_art)
-                thread.start()
+                self.update_album_art()
                 # Clean up..
                 if os.path.exists(os.path.dirname(filename)):
                     removeall(os.path.dirname(filename))
@@ -2564,11 +2551,7 @@ class Base(mpdclient3.mpd_connection):
                 self.trayalbumeventbox.show_all()
             self.show_covers = True
             self.update_cursong()
-            self.stop_art_update = True
-            while self.updating_art:
-                gtk.main_iteration()
-            thread = threading.Thread(target=self.update_album_art)
-            thread.start()
+            self.update_album_art()
         else:
             self.imageeventbox.set_no_show_all(True)
             self.imageeventbox.hide()

@@ -5,6 +5,7 @@ v0.8
 	song properties (metadata)
 	make selection, dnd, more like thunar
 	connect/disconnect/autoconnect & shortcut
+	dbus not working?
 
 Future:
 	Add to > Next song, top, random - too slow...
