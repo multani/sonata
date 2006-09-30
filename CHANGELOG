@@ -1,9 +1,11 @@
 v0.8 - Pending
 	+ Allow user formatting of current playlist, library, and title
+	+ --info, --status displays current song info or MPD status
 	+ Fetch album art in background (non-blocking)
 	+ Correctly retain previous library state when ending search
 	+ Bug: Fix crash if changing connection w/o gnome-python-extras
-	+ Bug: Prevent --help, etc. usage from printing twice
+	+ Bug: Prevent --help, --toggle, etc. from happening twice if
+	  dbus is installed
 
 v0.7.1 - September 27, 2006
 	+ Bug: Fix crash if dbus is not installed

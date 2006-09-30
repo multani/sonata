@@ -116,7 +116,7 @@ class Base(mpdclient3.mpd_connection):
         toggle_arg = False
         # Read any passed options/arguments:
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "tv", ["toggle", "version"])
+            opts, args = getopt.getopt(sys.argv[1:], "tvsi", ["toggle", "version", "status", "info"])
         except getopt.GetoptError:
             # print help information and exit:
             self.print_usage()
@@ -132,6 +132,12 @@ class Base(mpdclient3.mpd_connection):
                         sys.exit()
                 elif o in ("-v", "--version"):
                     self.print_version()
+                    sys.exit()
+                elif o in ("-i", "--info"):
+                    self.print_status("info")
+                    sys.exit()
+                elif o in ("-s", "--status"):
+                    self.print_status("status")
                     sys.exit()
                 else:
                     self.print_usage()
@@ -189,69 +195,7 @@ class Base(mpdclient3.mpd_connection):
         self.iterate_time_when_connected = 500
         self.iterate_time_when_disconnected = 15000
 
-        # Load config:
-        conf = ConfigParser.ConfigParser()
-        if os.path.exists(os.path.expanduser('~/.config/')) == False:
-            os.mkdir(os.path.expanduser('~/.config/'))
-        if os.path.exists(os.path.expanduser('~/.config/sonata/')) == False:
-            os.mkdir(os.path.expanduser('~/.config/sonata/'))
-        if os.path.exists(os.path.expanduser('~/.config/sonata/covers/')) == False:
-            os.mkdir(os.path.expanduser('~/.config/sonata/covers'))
-        if os.path.isfile(os.path.expanduser('~/.config/sonata/sonatarc')):
-            conf.read(os.path.expanduser('~/.config/sonata/sonatarc'))
-        elif os.path.isfile(os.path.expanduser('~/.sonatarc')):
-            conf.read(os.path.expanduser('~/.sonatarc'))
-            os.remove(os.path.expanduser('~/.sonatarc'))
-        if conf.has_option('connection', 'host'):
-            self.host = conf.get('connection', 'host')
-        if conf.has_option('connection', 'port'):
-            self.port = int(conf.get('connection', 'port'))
-        if conf.has_option('connection', 'password'):
-            self.password = conf.get('connection', 'password')
-        if conf.has_option('player', 'x'):
-            self.x = conf.getint('player', 'x')
-        if conf.has_option('player', 'y'):
-            self.y = conf.getint('player', 'y')
-        if conf.has_option('player', 'w'):
-            self.w = conf.getint('player', 'w')
-        if conf.has_option('player', 'h'):
-            self.h = conf.getint('player', 'h')
-        if conf.has_option('player', 'expanded'):
-            self.expanded = conf.getboolean('player', 'expanded')
-        if conf.has_option('player', 'withdrawn'):
-            self.withdrawn = conf.getboolean('player', 'withdrawn')
-        if conf.has_option('player', 'screen'):
-            self.screen = conf.getint('player', 'screen')
-        if conf.has_option('player', 'repeat'):
-            self.repeat = conf.getboolean('player', 'repeat')
-        if conf.has_option('player', 'shuffle'):
-            self.shuffle = conf.getboolean('player', 'shuffle')
-        if conf.has_option('player', 'covers'):
-            self.show_covers = conf.getboolean('player', 'covers')
-        if conf.has_option('player', 'stop_on_exit'):
-            self.stop_on_exit = conf.getboolean('player', 'stop_on_exit')
-        if conf.has_option('player', 'minimize'):
-            self.minimize_to_systray = conf.getboolean('player', 'minimize')
-        if conf.has_option('player', 'initial_run'):
-            self.initial_run = conf.getboolean('player', 'initial_run')
-        if conf.has_option('player', 'volume'):
-            self.show_volume = conf.getboolean('player', 'volume')
-        if conf.has_option('player', 'sticky'):
-            self.sticky = conf.getboolean('player', 'sticky')
-        if conf.has_option('player', 'ontop'):
-            self.ontop = conf.getboolean('player', 'ontop')
-        if conf.has_option('player', 'search'):
-            self.show_search = conf.getboolean('player', 'search')
-        if conf.has_option('player', 'notification'):
-            self.show_notification = conf.getboolean('player', 'notification')
-        if conf.has_option('player', 'popup_time'):
-            self.popup_option = conf.getint('player', 'popup_time')
-        if conf.has_option('format', 'current'):
-            self.currentformat = conf.get('format', 'current')
-        if conf.has_option('format', 'library'):
-            self.libraryformat = conf.get('format', 'library')
-        if conf.has_option('format', 'title'):
-            self.titleformat = conf.get('format', 'title')
+        self.settings_load()
 
         # Popup menus:
         actions = (
@@ -768,8 +712,78 @@ class Base(mpdclient3.mpd_connection):
         print _("Options") + ":"
         print "  -h, --help           " + _("Show this help and exit")
         print "  -v, --version        " + _("Show version information and exit")
+        print "  -s, --status         " + _("Display current song info")
         print "  -t, --toggle         " + _("Toggles whether the app is minimized")
         print "                       " + _("to tray or visible (requires D-Bus)")
+
+    def print_status(self, type):
+        self.settings_load()
+        self.conn = None
+        self.conn = self.connect()
+        if self.conn:
+            self.conn.do.password(self.password)
+            self.status = self.conn.do.status()
+            try:
+                test = self.status.state
+            except:
+                self.status = None
+            try:
+                self.songinfo = self.conn.do.currentsong()
+            except:
+                self.songinfo = None
+            if type == "info":
+                if self.status and self.status.state in ['play', 'pause']:
+                    try:
+                        print _("Artist") + ": " + self.songinfo.artist
+                    except:
+                        pass
+                    try:
+                        print _("Song") + ": " + self.songinfo.title
+                    except:
+                        pass
+                    try:
+                        print _("Album") + ": " + self.songinfo.album
+                    except:
+                        pass
+                    try:
+                        print _("Track") + ": " + self.songinfo.track
+                    except:
+                        pass
+                    try:
+                        print _("File") + ": " + self.songinfo.file
+                    except:
+                        pass
+                    at, len = [int(c) for c in self.status.time.split(':')]
+                    at_time = convert_time(at)
+                    try:
+                        time = convert_time(int(self.songinfo.time))
+                        print _("Time") + ": " + at_time + "/" + time
+                    except AttributeError:
+                        print _("Time") + ": " + at_time
+                else:
+                    print _("MPD stopped")
+            elif type == "status":
+                if self.status:
+                    try:
+                        if self.status.state == 'play':
+                            print _("State") + ": " + _("Playing")
+                        elif self.status.state == 'pause':
+                            print _("State") + ": " + _("Paused")
+                        elif self.status.state == 'stop':
+                            print _("State") + ": " + _("Stopped")
+                        if self.status.repeat == '0':
+                            print _("Repeat") + ": " + _("Off")
+                        else:
+                            print _("Repeat") + ": " + _("On")
+                        if self.status.random == '0':
+                            print _("Shuffle") + ": " + _("Off")
+                        else:
+                            print _("Shuffle") + ": " + _("On")
+                        print _("Volume") + ": " + self.status.volume
+                    except:
+                        pass
+        else:
+            print _("Unable to connect to MPD.\nPlease check your Sonata preferences.")
 
     def connect(self):
         try:
@@ -855,7 +869,72 @@ class Base(mpdclient3.mpd_connection):
         elif shortcut in 'Delete':
             self.remove(None)
 
-    def save_settings(self):
+    def settings_load(self):
+        # Load config:
+        conf = ConfigParser.ConfigParser()
+        if os.path.exists(os.path.expanduser('~/.config/')) == False:
+            os.mkdir(os.path.expanduser('~/.config/'))
+        if os.path.exists(os.path.expanduser('~/.config/sonata/')) == False:
+            os.mkdir(os.path.expanduser('~/.config/sonata/'))
+        if os.path.exists(os.path.expanduser('~/.config/sonata/covers/')) == False:
+            os.mkdir(os.path.expanduser('~/.config/sonata/covers'))
+        if os.path.isfile(os.path.expanduser('~/.config/sonata/sonatarc')):
+            conf.read(os.path.expanduser('~/.config/sonata/sonatarc'))
+        elif os.path.isfile(os.path.expanduser('~/.sonatarc')):
+            conf.read(os.path.expanduser('~/.sonatarc'))
+            os.remove(os.path.expanduser('~/.sonatarc'))
+        if conf.has_option('connection', 'host'):
+            self.host = conf.get('connection', 'host')
+        if conf.has_option('connection', 'port'):
+            self.port = int(conf.get('connection', 'port'))
+        if conf.has_option('connection', 'password'):
+            self.password = conf.get('connection', 'password')
+        if conf.has_option('player', 'x'):
+            self.x = conf.getint('player', 'x')
+        if conf.has_option('player', 'y'):
+            self.y = conf.getint('player', 'y')
+        if conf.has_option('player', 'w'):
+            self.w = conf.getint('player', 'w')
+        if conf.has_option('player', 'h'):
+            self.h = conf.getint('player', 'h')
+        if conf.has_option('player', 'expanded'):
+            self.expanded = conf.getboolean('player', 'expanded')
+        if conf.has_option('player', 'withdrawn'):
+            self.withdrawn = conf.getboolean('player', 'withdrawn')
+        if conf.has_option('player', 'screen'):
+            self.screen = conf.getint('player', 'screen')
+        if conf.has_option('player', 'repeat'):
+            self.repeat = conf.getboolean('player', 'repeat')
+        if conf.has_option('player', 'shuffle'):
+            self.shuffle = conf.getboolean('player', 'shuffle')
+        if conf.has_option('player', 'covers'):
+            self.show_covers = conf.getboolean('player', 'covers')
+        if conf.has_option('player', 'stop_on_exit'):
+            self.stop_on_exit = conf.getboolean('player', 'stop_on_exit')
+        if conf.has_option('player', 'minimize'):
+            self.minimize_to_systray = conf.getboolean('player', 'minimize')
+        if conf.has_option('player', 'initial_run'):
+            self.initial_run = conf.getboolean('player', 'initial_run')
+        if conf.has_option('player', 'volume'):
+            self.show_volume = conf.getboolean('player', 'volume')
+        if conf.has_option('player', 'sticky'):
+            self.sticky = conf.getboolean('player', 'sticky')
+        if conf.has_option('player', 'ontop'):
+            self.ontop = conf.getboolean('player', 'ontop')
+        if conf.has_option('player', 'search'):
+            self.show_search = conf.getboolean('player', 'search')
+        if conf.has_option('player', 'notification'):
+            self.show_notification = conf.getboolean('player', 'notification')
+        if conf.has_option('player', 'popup_time'):
+            self.popup_option = conf.getint('player', 'popup_time')
+        if conf.has_option('format', 'current'):
+            self.currentformat = conf.get('format', 'current')
+        if conf.has_option('format', 'library'):
+            self.libraryformat = conf.get('format', 'library')
+        if conf.has_option('format', 'title'):
+            self.titleformat = conf.get('format', 'title')
+
+    def settings_save(self):
         conf = ConfigParser.ConfigParser()
         conf.add_section('connection')
         conf.set('connection', 'host', self.host)
@@ -1398,53 +1477,53 @@ class Base(mpdclient3.mpd_connection):
                     self.updating_art = False
                     return
                 if os.path.exists(filename):
-                    gtk.threads_enter()
+                    gtk.gdk.threads_enter()
                     pix = gtk.gdk.pixbuf_new_from_file(filename)
                     pix = pix.scale_simple(75, 75, gtk.gdk.INTERP_HYPER)
                     if self.stop_art_update:
-                        gtk.threads_leave()
+                        gtk.gdk.threads_leave()
                         self.stop_art_update = False
                         self.updating_art = False
                         return
                     self.albumimage.set_from_pixbuf(pix)
                     self.trayalbumimage.set_from_pixbuf(pix)
                     self.lastalbumart = filename
-                    gtk.threads_leave()
+                    gtk.gdk.threads_leave()
                     del pix
                 else:
                     # Default to sonatacd:
-                    gtk.threads_enter()
+                    gtk.gdk.threads_enter()
                     self.albumimage.set_from_file(self.sonatacd)
                     self.trayalbumimage.set_from_file(self.sonatacd)
                     self.lastalbumart = None
-                    gtk.threads_leave()
+                    gtk.gdk.threads_leave()
                     self.download_image_to_filename(artist, album, filename)
                     if os.path.exists(filename):
-                        gtk.threads_enter()
+                        gtk.gdk.threads_enter()
                         pix = gtk.gdk.pixbuf_new_from_file(filename)
                         pix = pix.scale_simple(75, 75, gtk.gdk.INTERP_HYPER)
                         if self.stop_art_update:
-                            gtk.threads_leave()
+                            gtk.gdk.threads_leave()
                             self.stop_art_update = False
                             self.updating_art = False
                             return
                         self.albumimage.set_from_pixbuf(pix)
                         self.trayalbumimage.set_from_pixbuf(pix)
                         self.lastalbumart = filename
-                        gtk.threads_leave()
+                        gtk.gdk.threads_leave()
                         del pix
             except:
-                gtk.threads_enter()
+                gtk.gdk.threads_enter()
                 self.albumimage.set_from_file(self.sonatacd)
                 self.trayalbumimage.set_from_file(self.sonatacd)
                 self.lastalbumart = None
-                gtk.threads_leave()
+                gtk.gdk.threads_leave()
         else:
-            gtk.threads_enter()
+            gtk.gdk.threads_enter()
             self.albumimage.set_from_file(self.sonatacd)
             self.trayalbumimage.set_from_file(self.sonatacd)
             self.lastalbumart = None
-            gtk.threads_leave()
+            gtk.gdk.threads_leave()
         gc.collect()
         self.updating_art = False
         self.stop_art_update = False
@@ -1556,7 +1635,7 @@ class Base(mpdclient3.mpd_connection):
         if not self.exit_now and self.minimize_to_systray:
             self.withdraw_app()
             return True
-        self.save_settings()
+        self.settings_save()
         if self.conn and self.stop_on_exit:
             self.stop(None)
         sys.exit()
@@ -2416,10 +2495,10 @@ class Base(mpdclient3.mpd_connection):
         table4.attach(availableformatbox, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table4.attach(gtk.Label(), 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table4.attach(gtk.Label(), 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        prefsnotebook.append_page(table, gtk.Label(str=_("MPD")))
         prefsnotebook.append_page(table2, gtk.Label(str=_("Display")))
         prefsnotebook.append_page(table3, gtk.Label(str=_("Behavior")))
         prefsnotebook.append_page(table4, gtk.Label(str=_("Format")))
-        prefsnotebook.append_page(table, gtk.Label(str=_("MPD")))
         hbox.pack_start(prefsnotebook, False, False, 10)
         prefswindow.vbox.pack_start(hbox, False, False, 10)
         close_button = prefswindow.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
@@ -2427,7 +2506,7 @@ class Base(mpdclient3.mpd_connection):
         while gtk.events_pending():
             gtk.main_iteration()
         if show_mpd_tab:
-            prefsnotebook.set_current_page(3) # MPD page
+            prefsnotebook.set_current_page(0) # MPD page
         close_button.grab_focus()
         response = prefswindow.run()
         if response == gtk.RESPONSE_CLOSE:
@@ -2470,6 +2549,7 @@ class Base(mpdclient3.mpd_connection):
                 else:
                     self.iterate_time = self.iterate_time_when_disconnected
                     self.browserdata.clear()
+            self.settings_save()
             self.change_cursor(None)
         prefswindow.destroy()
 
@@ -2775,9 +2855,9 @@ class TrayIconTips(gtk.Window):
 
 if __name__ == "__main__":
     base = Base()
-    gtk.threads_enter()
+    gtk.gdk.threads_enter()
     base.main()
-    gtk.threads_leave()
+    gtk.gdk.threads_leave()
 
 def convert_time(raw):
     # Converts raw time to 'hh:mm:ss' with leading zeros as appropriate

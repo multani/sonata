@@ -4,6 +4,7 @@ v0.8
 	allow multiple columns?
 	song properties (metadata)
 	make selection, dnd, more like thunar
+	connect/disconnect/autoconnect & shortcut
 
 Future:
 	Add to > Next song, top, random - too slow...
