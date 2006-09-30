@@ -1716,9 +1716,7 @@ class Base(mpdclient3.mpd_connection):
         return
 
     def current_button_press(self, widget, event):
-        if event.button == 1:
-            return True
-        elif event.button == 3:
+        if event.button == 3:
             self.set_menu_contextual_items_visible()
             self.mainmenu.popup(None, None, None, event.button, event.time)
             # Don't change the selection for a right-click. This
