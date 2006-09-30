@@ -1,5 +1,6 @@
 v0.8 - Pending
 	+ Allow user formatting of current playlist, library, and title
+	+ Pref to update MPD library on start
 	+ --info, --status displays current song info or MPD status
 	+ Fetch album art in background (non-blocking)
 	+ Correctly retain previous library state when ending search

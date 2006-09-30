@@ -175,6 +175,7 @@ class Base(mpdclient3.mpd_connection):
         self.show_search = True
         self.show_notification = False
         self.stop_on_exit = False
+        self.update_on_start = False
         self.minimize_to_systray = False
         self.popuptimes = ['2', '3', '5', '10', '15', '30', _('Entire song')]
         self.popup_option = 2
@@ -690,6 +691,9 @@ class Base(mpdclient3.mpd_connection):
         if HAVE_EGG:
             self.initialize_systrayicon()
 
+        if self.update_on_start:
+            self.updatedb(None)
+
         self.iterate_now()
 
         self.notebook.set_no_show_all(False)
@@ -928,6 +932,8 @@ class Base(mpdclient3.mpd_connection):
             self.show_notification = conf.getboolean('player', 'notification')
         if conf.has_option('player', 'popup_time'):
             self.popup_option = conf.getint('player', 'popup_time')
+        if conf.has_option('player', 'update_on_start'):
+            self.update_on_start = conf.getboolean('player', 'update_on_start')
         if conf.has_option('format', 'current'):
             self.currentformat = conf.get('format', 'current')
         if conf.has_option('format', 'library'):
@@ -961,6 +967,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'search', self.show_search)
         conf.set('player', 'notification', self.show_notification)
         conf.set('player', 'popup_time', self.popup_option)
+        conf.set('player', 'update_on_start', self.update_on_start)
         conf.add_section('format')
         conf.set('format', 'current', self.currentformat)
         conf.set('format', 'library', self.libraryformat)
@@ -1035,16 +1042,15 @@ class Base(mpdclient3.mpd_connection):
             self.iterate_now()
 
     def playlists_populate(self):
-        if not self.conn:
-            return
-        self.playlistsdata.clear()
-        playlistinfo = []
-        for item in self.conn.do.lsinfo():
-            if item.type == 'playlist':
-                playlistinfo.append(escape_html(item.playlist))
-        playlistinfo.sort(key=lambda x: x.lower()) # Remove case sensitivity
-        for item in playlistinfo:
-            self.playlistsdata.append([gtk.STOCK_JUSTIFY_FILL, item])
+        if self.conn:
+            self.playlistsdata.clear()
+            playlistinfo = []
+            for item in self.conn.do.lsinfo():
+                if item.type == 'playlist':
+                    playlistinfo.append(escape_html(item.playlist))
+            playlistinfo.sort(key=lambda x: x.lower()) # Remove case sensitivity
+            for item in playlistinfo:
+                self.playlistsdata.append([gtk.STOCK_JUSTIFY_FILL, item])
 
     def playlists_activated(self, treeview, path, column):
         self.add_item(None)
@@ -1107,8 +1113,9 @@ class Base(mpdclient3.mpd_connection):
 
         # Scroll back to set view for current dir:
         self.browser.realize()
-        while gtk.events_pending():
-            gtk.main_iteration()
+        gobject.idle_add(self.browser_set_view)
+
+    def browser_set_view(self):
         try:
             if self.browser.wd in self.browserposition:
                 self.browser.scroll_to_point(0, self.browserposition[self.browser.wd])
@@ -2404,6 +2411,8 @@ class Base(mpdclient3.mpd_connection):
         win_sticky.set_active(self.sticky)
         win_ontop = gtk.CheckButton(_("Keep window above other windows"))
         win_ontop.set_active(self.ontop)
+        update_start = gtk.CheckButton(_("Update MPD library on start"))
+        update_start.set_active(self.update_on_start)
         exit_stop = gtk.CheckButton(_("Stop playback on exit"))
         exit_stop.set_active(self.stop_on_exit)
         self.tooltips.set_tip(exit_stop, _("MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit."))
@@ -2426,8 +2435,8 @@ class Base(mpdclient3.mpd_connection):
         table3.attach(gtk.Label(), 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table3.attach(behaviorlabel2, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table3.attach(gtk.Label(), 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table3.attach(exit_stop, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(gtk.Label(), 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table3.attach(update_start, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table3.attach(exit_stop, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table3.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         # Format tab
         table4 = gtk.Table(9, 2, False)
@@ -2505,6 +2514,7 @@ class Base(mpdclient3.mpd_connection):
             self.ontop = win_ontop.get_active()
             self.sticky = win_sticky.get_active()
             self.minimize_to_systray = minimize.get_active()
+            self.update_on_start = update_start.get_active()
             if self.currentformat != currentoptions.get_text():
                 self.currentformat = currentoptions.get_text()
                 self.update_playlist()
