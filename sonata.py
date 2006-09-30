@@ -186,7 +186,7 @@ class Base(mpdclient3.mpd_connection):
         # check to once every 15 seconds.
         # Eventually we'd like to ues non-blocking sockets in
         # mpdclient3.py
-        self.iterate_time_when_connected = 750
+        self.iterate_time_when_connected = 500
         self.iterate_time_when_disconnected = 15000
 
         # Load config:
@@ -828,15 +828,18 @@ class Base(mpdclient3.mpd_connection):
             if self.trayicon.get_property('visible') == False:
                 self.initialize_systrayicon()
 
+    def iterate_stop(self):
+        try:
+            gobject.source_remove(self.iterate_handler)
+        except:
+            pass
+
     def iterate_now(self):
         # Since self.iterate_time_when_connected has been
         # slowed down to 1second instead of 250ms, we'll
         # call self.iterate_now() whenever the user performs
         # an action that requires updating the client
-        try:
-            gobject.source_remove(self.iterate_handler)
-        except:
-            pass
+        self.iterate_stop()
         self.iterate()
 
     def topwindow_keypress(self, widget, event):
@@ -1363,8 +1366,6 @@ class Base(mpdclient3.mpd_connection):
                 row = int(self.songinfo.pos)
                 self.currentdata[row][1] = make_bold(self.currentdata[row][1])
                 if self.expanded:
-                    while gtk.events_pending():
-                        gtk.main_iteration()
                     visible_rect = self.current.get_visible_rect()
                     row_rect = self.current.get_background_area(row, self.currentcolumn)
                     if row_rect.y + row_rect.height > visible_rect.height:
@@ -1701,7 +1702,10 @@ class Base(mpdclient3.mpd_connection):
             drag_context.finish(True, True, timestamp)
         self.iterate_now()
 
-        treeview.get_selection().select_path(destpath)
+        row = destpath[0]
+        for i in range(len(drag_sources)):
+            treeview.get_selection().select_path(row)
+            row = row + 1
 
     def current_changed(self, treemodel, path, iter):
         pass

@@ -75,28 +75,28 @@ commands = {
     # the key of the first key/val pair in it; otherwise, it will be set to
     # results_type_name.
 
-    ("kill",          0): ('%s', ZERO, '', []),
-    ("outputs",       0): ('%s', MANY, 'outputs', ['outputid']),
-    ("clear",         0): ('%s', ZERO, '', []),
-    ("currentsong",   0): ('%s', ONE, '', []),
-    ("shuffle",       0): ('%s', ZERO, '', []),
-    ("next",          0): ('%s', ZERO, '', []),
-    ("previous",      0): ('%s', ZERO, '', []),
-    ("stop",          0): ('%s', ZERO, '', []),
-    ("clearerror",    0): ('%s', ZERO, '', []),
-    ("close",         0): ('%s', ZERO, '', []),
-    ("commands",      0): ('%s', MANY, 'commands', ['command']),
-    ("notcommands",   0): ('%s', MANY, 'notcommands', ['command']),
-    ("ping",          0): ('%s', ZERO, '', []),
-    ("stats",         0): ('%s', ONE, 'stats', []),
-    ("status",        0): ('%s', ONE, 'status', []),
-    ("play",          0): ('%s', ZERO, '', []),
-    ("playlistinfo",  0): ('%s', MANY, '', plitem_delim),
-    ("playlistid",    0): ('%s', MANY, '', plitem_delim),
-    ("lsinfo",        0): ('%s', MANY, '', plitem_delim),
-    ("update",        0): ('%s', ZERO, '', []),
-    ("listall",       0): ('%s', MANY, '', plitem_delim),
-    ("listallinfo",   0): ('%s', MANY, '', plitem_delim),
+    ("kill",              0): ('%s', ZERO, '', []),
+    ("outputs",           0): ('%s', MANY, 'outputs', ['outputid']),
+    ("clear",             0): ('%s', ZERO, '', []),
+    ("currentsong",       0): ('%s', ONE, '', []),
+    ("shuffle",           0): ('%s', ZERO, '', []),
+    ("next",              0): ('%s', ZERO, '', []),
+    ("previous",          0): ('%s', ZERO, '', []),
+    ("stop",              0): ('%s', ZERO, '', []),
+    ("clearerror",        0): ('%s', ZERO, '', []),
+    ("close",             0): ('%s', ZERO, '', []),
+    ("commands",          0): ('%s', MANY, 'commands', ['command']),
+    ("notcommands",       0): ('%s', MANY, 'notcommands', ['command']),
+    ("ping",              0): ('%s', ZERO, '', []),
+    ("stats",             0): ('%s', ONE, 'stats', []),
+    ("status",            0): ('%s', ONE, 'status', []),
+    ("play",              0): ('%s', ZERO, '', []),
+    ("playlistinfo",      0): ('%s', MANY, '', plitem_delim),
+    ("playlistid",        0): ('%s', MANY, '', plitem_delim),
+    ("lsinfo",            0): ('%s', MANY, '', plitem_delim),
+    ("update",            0): ('%s', ZERO, '', []),
+    ("listall",           0): ('%s', MANY, '', plitem_delim),
+    ("listallinfo",       0): ('%s', MANY, '', plitem_delim),
 
     ("disableoutput", 1): ("%s %d", ZERO, '', []),
     ("enableoutput",  1): ("%s %d", ZERO, '', []),
@@ -111,6 +111,7 @@ commands = {
     ("repeat",        1): ('%s %d', ZERO, '', []), # <int state>
     ("setvol",        1): ('%s %d', ZERO, '', []), # <int vol>
     ("plchanges",     1): ('%s %d', MANY, '', plitem_delim), # <playlist version>
+    ("plchangesposid",1): ('%s %d', MANY, '', plitem_delim), # <playlist version>
     ("pause",         1): ('%s %d', ZERO, '', []), # <bool pause>
 
     ("update",      1): ('%s "%s"', ONE, 'update', []), # <string path>

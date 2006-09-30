@@ -1,12 +1,12 @@
 v0.8
-	Add to > Next song, bottom, top?
 	pref to update db on opening sonata?
 	Stream support
-	allow drag-n-drop of multiple items
+	allow (better) drag-n-drop of multiple items
 	allow multiple columns?
 	song properties (metadata)
 
 Future:
+	Add to > Next song, top, random - too slow...
 	connect in background via socket.setblocking(0)
 	switch to pygtk's statusicon (2.10) and remove gnome-python dep
 		- then we can finally use skip_taskbar_hint since we will
