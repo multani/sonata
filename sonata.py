@@ -581,6 +581,7 @@ class Base(mpdclient3.mpd_connection):
         self.window.connect('window_state_event', self.on_window_state_change)
         self.window.connect('configure_event', self.on_window_configure)
         self.window.connect('key-press-event', self.topwindow_keypress)
+        self.window.connect('focus-out-event', self.on_window_lost_focus)
         self.imageeventbox.connect('button_press_event', self.image_activate)
         self.ppbutton.connect('clicked', self.pp)
         self.stopbutton.connect('clicked', self.stop)
@@ -1692,6 +1693,9 @@ class Base(mpdclient3.mpd_connection):
         return False
 
     def on_window_state_change(self, widget, event):
+        self.volume_hide()
+
+    def on_window_lost_focus(self, widget, event):
         self.volume_hide()
 
     def on_window_configure(self, widget, event):
