@@ -2124,7 +2124,8 @@ class Base(mpdclient3.mpd_connection):
                 gtk.main_iteration()
             gobject.timeout_add(100, self.set_ignore_toggle_signal_false)
         elif event.button == 2: # Middle button will play/pause
-            self.pp(self.trayeventbox)
+            if self.conn:
+                self.pp(self.trayeventbox)
         elif event.button == 3: # Right button pops up menu
             self.traymenu.popup(None, None, None, event.button, event.time)
         return False
@@ -2212,10 +2213,11 @@ class Base(mpdclient3.mpd_connection):
         return
 
     def on_volumebutton_scroll(self, widget, event):
-        if event.direction == gtk.gdk.SCROLL_UP:
-            self.raise_volume(None)
-        elif event.direction == gtk.gdk.SCROLL_DOWN:
-            self.lower_volume(None)
+        if self.conn:
+            if event.direction == gtk.gdk.SCROLL_UP:
+                self.raise_volume(None)
+            elif event.direction == gtk.gdk.SCROLL_DOWN:
+                self.lower_volume(None)
         return
 
     def on_volumescale_scroll(self, widget, event):
@@ -2247,43 +2249,43 @@ class Base(mpdclient3.mpd_connection):
 
     # Control callbacks
     def pp(self, widget):
-        if self.status.state in ('stop', 'pause'):
-            self.conn.do.play()
-        elif self.status.state == 'play':
-            self.conn.do.pause(1)
-        self.iterate_now()
+        if self.conn and self.status:
+            if self.status.state in ('stop', 'pause'):
+                self.conn.do.play()
+            elif self.status.state == 'play':
+                self.conn.do.pause(1)
+            self.iterate_now()
         return
 
     def stop(self, widget):
-        self.conn.do.stop()
-        self.iterate_now()
+        if self.conn:
+            self.conn.do.stop()
+            self.iterate_now()
         return
 
     def prev(self, widget):
-        self.conn.do.previous()
-        self.iterate_now()
+        if self.conn:
+            self.conn.do.previous()
+            self.iterate_now()
         return
 
     def next(self, widget):
-        self.conn.do.next()
-        self.iterate_now()
+        if self.conn:
+            self.conn.do.next()
+            self.iterate_now()
         return
 
     def mmpp(self, keys, key):
-        if self.conn:
-            self.pp(None)
+        self.pp(None)
 
     def mmstop(self, keys, key):
-        if self.conn:
-            self.stop(None)
+        self.stop(None)
 
     def mmprev(self, keys, key):
-        if self.conn:
-            self.prev(None)
+        self.prev(None)
 
     def mmnext(self, keys, key):
-        if self.conn:
-            self.next(None)
+        self.next(None)
 
     def remove(self, widget):
         page_num = self.notebook.get_current_page()
