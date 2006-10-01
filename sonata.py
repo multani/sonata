@@ -599,7 +599,6 @@ class Base(mpdclient3.mpd_connection):
         self.current.connect('popup_menu', self.current_popup_menu)
         self.shufflemenu.connect('toggled', self.shuffle_now)
         self.repeatmenu.connect('toggled', self.repeat_now)
-        self.volumewindow.connect('focus_out_event', self.on_volumewindow_unfocus)
         self.volumescale.connect('change_value', self.on_volumescale_change)
         self.volumescale.connect('scroll-event', self.on_volumescale_scroll)
         self.cursonglabel.connect('notify::label', self.labelnotify)
@@ -2242,10 +2241,6 @@ class Base(mpdclient3.mpd_connection):
         self.conn.do.setvol(new_volume)
         self.iterate_now()
         return
-
-    def on_volumewindow_unfocus(self, obj, data):
-        self.volume_hide()
-        return True
 
     def volume_hide(self):
         self.volumebutton.set_active(False)
