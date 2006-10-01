@@ -1,11 +1,10 @@
 v0.8
-	Stream support
-	allow multiple columns?
 	song properties (metadata)
 	make selection, dnd, more like thunar
-	connect/disconnect/autoconnect & shortcut
 
 Future:
+	allow multiple columns?
+	Stream support
 	Add to > Next song, top, random - too slow...
 	connect in background via socket.setblocking(0)
 	switch to pygtk's statusicon (2.10) and remove gnome-python dep

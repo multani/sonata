@@ -185,6 +185,8 @@ class Base(mpdclient3.mpd_connection):
         self.currentformat = "%A - %S"
         self.libraryformat = "%A - %S"
         self.titleformat = "[Sonata] %A - %S"
+        self.autoconnect = False
+        self.user_connect = False
         show_prefs = False
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
@@ -197,6 +199,8 @@ class Base(mpdclient3.mpd_connection):
         self.iterate_time_when_disconnected = 15000
 
         self.settings_load()
+        if self.autoconnect:
+            self.user_connect = True
 
         # Popup menus:
         actions = (
@@ -232,7 +236,9 @@ class Base(mpdclient3.mpd_connection):
             ('quitkey', None, 'Quit Key', '<Ctrl>q', None, self.delete_event_yes),
             ('menukey', None, 'Menu Key', 'Menu', None, self.menukey_press),
             ('updatekey', None, 'Update Key', '<Ctrl>u', None, self.updatedb),
-            ('updatekey2', None, 'Update Key 2', '<Ctrl><Shift>u', None, self.updatedb_path)
+            ('updatekey2', None, 'Update Key 2', '<Ctrl><Shift>u', None, self.updatedb_path),
+            ('connectkey', None, 'Connect Key', '<Alt>c', None, self.connectkey_pressed),
+            ('disconnectkey', None, 'Disconnect Key', '<Alt>d', None, self.disconnectkey_pressed)
             )
 
         toggle_actions = (
@@ -290,6 +296,8 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="menukey"/>
                 <menuitem action="updatekey"/>
                 <menuitem action="updatekey2"/>
+                <menuitem action="connectkey"/>
+                <menuitem action="disconnectkey"/>
               </popup>
             </ui>
             """
@@ -791,10 +799,43 @@ class Base(mpdclient3.mpd_connection):
             print _("Unable to connect to MPD.\nPlease check your Sonata preferences.")
 
     def connect(self):
-        try:
-            return Connection(self)
-        except (mpdclient3.socket.error, EOFError):
+        if self.user_connect:
+            try:
+                return Connection(self)
+            except (mpdclient3.socket.error, EOFError):
+                return None
+        else:
             return None
+
+    def connectbutton_clicked(self, connectbutton, disconnectbutton):
+        self.connectkey_pressed(None)
+        if self.conn:
+            connectbutton.set_sensitive(False)
+            disconnectbutton.set_sensitive(True)
+        else:
+            connectbutton.set_sensitive(True)
+            disconnectbutton.set_sensitive(False)
+
+    def connectkey_pressed(self, event):
+        self.user_connect = True
+        self.conn = self.connect()
+        self.iterate_now()
+
+    def disconnectbutton_clicked(self, disconnectbutton, connectbutton):
+        self.disconnectkey_pressed(None)
+        connectbutton.set_sensitive(True)
+        disconnectbutton.set_sensitive(False)
+
+    def disconnectkey_pressed(self, event):
+        self.user_connect = False
+        try:
+            self.conn.do.close()
+        except:
+            pass
+        # I'm not sure why this doesn't automatically happen, so
+        # we'll do it manually for the time being
+        self.browserdata.clear()
+        self.playlistsdata.clear()
 
     def update_status(self):
         try:
@@ -894,6 +935,8 @@ class Base(mpdclient3.mpd_connection):
             self.port = int(conf.get('connection', 'port'))
         if conf.has_option('connection', 'password'):
             self.password = conf.get('connection', 'password')
+        if conf.has_option('connection', 'auto'):
+            self.autoconnect = conf.getboolean('connection', 'auto')
         if conf.has_option('player', 'x'):
             self.x = conf.getint('player', 'x')
         if conf.has_option('player', 'y'):
@@ -947,6 +990,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('connection', 'host', self.host)
         conf.set('connection', 'port', self.port)
         conf.set('connection', 'password', self.password)
+        conf.set('connection', 'auto', self.autoconnect)
         conf.add_section('player')
         conf.set('player', 'w', self.w)
         conf.set('player', 'h', self.h)
@@ -2340,6 +2384,24 @@ class Base(mpdclient3.mpd_connection):
         portlabel.set_size_request(max_label_width, -1)
         passwordlabel.set_size_request(max_label_width, -1)
         blanklabel.set_size_request(max_label_width, -1)
+        autoconnect = gtk.CheckButton(_("Autoconnect on start"))
+        autoconnect.set_active(self.autoconnect)
+        connectbox = gtk.HBox()
+        connectbutton = gtk.Button(" " + _("_Connect"))
+        connectbutton.set_image(gtk.image_new_from_stock(gtk.STOCK_CONNECT, gtk.ICON_SIZE_BUTTON))
+        disconnectbutton = gtk.Button(" " + _("_Disconnect"))
+        disconnectbutton.set_image(gtk.image_new_from_stock(gtk.STOCK_DISCONNECT, gtk.ICON_SIZE_BUTTON))
+        connectbox.pack_start(connectbutton, False, False, 0)
+        connectbox.pack_start(gtk.Label(), True, True, 0)
+        connectbox.pack_start(disconnectbutton, False, False, 0)
+        if self.conn:
+            connectbutton.set_sensitive(False)
+            disconnectbutton.set_sensitive(True)
+        else:
+            connectbutton.set_sensitive(True)
+            disconnectbutton.set_sensitive(False)
+        connectbutton.connect('clicked', self.connectbutton_clicked, disconnectbutton)
+        disconnectbutton.connect('clicked', self.disconnectbutton_clicked, connectbutton)
         table.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         table.attach(mpdlabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table.attach(gtk.Label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
@@ -2348,9 +2410,9 @@ class Base(mpdclient3.mpd_connection):
         table.attach(passwordbox, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table.attach(blankbox, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table.attach(gtk.Label(), 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(gtk.Label(), 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(autoconnect, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table.attach(gtk.Label(), 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(gtk.Label(), 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(connectbox, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         # Display tab
         table2 = gtk.Table(7, 2, False)
@@ -2515,6 +2577,7 @@ class Base(mpdclient3.mpd_connection):
             self.sticky = win_sticky.get_active()
             self.minimize_to_systray = minimize.get_active()
             self.update_on_start = update_start.get_active()
+            self.autoconnect = autoconnect.get_active()
             if self.currentformat != currentoptions.get_text():
                 self.currentformat = currentoptions.get_text()
                 self.update_playlist()

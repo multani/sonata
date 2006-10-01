@@ -2,6 +2,7 @@ v0.8 - Pending
 	+ Allow user formatting of current playlist, library, and title
 	+ Pref to update MPD library on start
 	+ --info, --status displays current song info or MPD status
+	+ Pref to autoconnect on start, connect/disconnect buttons
 	+ Fetch album art in background (non-blocking)
 	+ Correctly retain previous library state when ending search
 	+ Bug: Fix crash if changing connection w/o gnome-python-extras
