@@ -409,6 +409,7 @@ class Base(mpdclient3.mpd_connection):
         self.volumebutton = gtk.ToggleButton("", True)
         self.volumebutton.set_relief(gtk.RELIEF_NONE)
         self.volumebutton.set_property('can-focus', False)
+        self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-med", 4))
         if not self.show_volume:
             self.volumebutton.set_no_show_all(True)
             self.volumebutton.hide()
