@@ -2981,7 +2981,7 @@ def start_dbus_interface(toggle=False):
             elif retval in (dbus.dbus_bindings.REQUEST_NAME_REPLY_EXISTS, dbus.dbus_bindings.REQUEST_NAME_REPLY_IN_QUEUE):
                 exit_now = True
         except:
-            pass
+            print _("Sonata failed to connect to the D-BUS session bus: Unable to determine the address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for help)")
         if exit_now:
             obj = dbus.SessionBus().get_object('org.MPD', '/org/MPD/Sonata')
             if toggle:
