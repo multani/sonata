@@ -213,7 +213,7 @@ class Base(mpdclient3.mpd_connection):
             ('nextmenu', gtk.STOCK_MEDIA_NEXT, _('_Next'), None, None, self.next),
             ('quitmenu', gtk.STOCK_QUIT, _('_Quit'), None, None, self.delete_event_yes),
             ('removemenu', gtk.STOCK_REMOVE, _('_Remove'), None, None, self.remove),
-            ('clearmenu', gtk.STOCK_CLEAR, _('_Clear'), '<Ctrl>c', None, self.clear),
+            ('clearmenu', gtk.STOCK_CLEAR, _('_Clear'), '<Ctrl>Delete', None, self.clear),
             ('savemenu', gtk.STOCK_SAVE, _('_Save Playlist...'), '<Ctrl><Shift>s', None, self.save_playlist),
             ('updatemenu', gtk.STOCK_REFRESH, _('_Update Library'), None, None, self.updatedb),
             ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'), None, None, self.prefs),
@@ -238,7 +238,8 @@ class Base(mpdclient3.mpd_connection):
             ('updatekey', None, 'Update Key', '<Ctrl>u', None, self.updatedb),
             ('updatekey2', None, 'Update Key 2', '<Ctrl><Shift>u', None, self.updatedb_path),
             ('connectkey', None, 'Connect Key', '<Alt>c', None, self.connectkey_pressed),
-            ('disconnectkey', None, 'Disconnect Key', '<Alt>d', None, self.disconnectkey_pressed)
+            ('disconnectkey', None, 'Disconnect Key', '<Alt>d', None, self.disconnectkey_pressed),
+            ('clearexceptkey', None, 'Clear Key', '<Ctrl><Shift>Delete', None, self.clear_except_current)
             )
 
         toggle_actions = (
@@ -298,6 +299,7 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="updatekey2"/>
                 <menuitem action="connectkey"/>
                 <menuitem action="disconnectkey"/>
+                <menuitem action="clearexceptkey"/>
               </popup>
             </ui>
             """
@@ -617,9 +619,11 @@ class Base(mpdclient3.mpd_connection):
         self.expander.connect('button_press_event', self.popup_menu)
         self.volumebutton.connect('button_press_event', self.popup_menu)
         self.window.add_events(gtk.gdk.BUTTON_PRESS_MASK)
-        self.mainwinhandler = self.window.connect('button_press_event', self.popup_menu)
+        self.mainwinhandler = self.window.connect('button_press_event', self.on_window_click)
         self.searchtext.connect('activate', self.search)
         self.searchbutton.connect('clicked', self.search_end)
+        self.notebook.connect('button_press_event', self.on_notebook_click)
+        self.searchtext.connect('button_press_event', self.on_searchtext_click)
 
         # Connect to mmkeys signals
         self.keys = mmkeys.MmKeys()
@@ -707,7 +711,7 @@ class Base(mpdclient3.mpd_connection):
 
         self.notebook.set_no_show_all(False)
         self.window.set_no_show_all(False)
-        self.notebook.connect('switch-page', self.notebook_clicked)
+        self.notebook.connect('switch-page', self.notebook_tab_clicked)
 
         if show_prefs:
             self.prefs(None, True)
@@ -1039,9 +1043,9 @@ class Base(mpdclient3.mpd_connection):
             self.volumebutton.set_property('sensitive', True)
             self.browse(root='/')
             self.playlists_populate()
-            self.notebook_clicked(self.notebook, 0, self.notebook.get_current_page())
+            self.notebook_tab_clicked(self.notebook, 0, self.notebook.get_current_page())
 
-    def notebook_clicked(self, notebook, page, page_num):
+    def notebook_tab_clicked(self, notebook, page, page_num):
         if page_num == 0:
             gobject.idle_add(self.give_widget_focus, self.current)
         elif page_num == 1:
@@ -1226,6 +1230,7 @@ class Base(mpdclient3.mpd_connection):
         self.browse(None, self.browserdata.get_value(self.browserdata.get_iter(path), 1))
 
     def browser_button_press(self, widget, event):
+        self.volume_hide()
         if event.button == 3:
             self.set_menu_contextual_items_visible()
             self.mainmenu.popup(None, None, None, event.button, event.time)
@@ -1237,6 +1242,7 @@ class Base(mpdclient3.mpd_connection):
                 return True
 
     def playlists_button_press(self, widget, event):
+        self.volume_hide()
         if event.button == 3:
             self.set_menu_contextual_items_visible()
             self.mainmenu.popup(None, None, None, event.button, event.time)
@@ -1748,7 +1754,7 @@ class Base(mpdclient3.mpd_connection):
         else:
             self.tooltips.set_tip(self.expander, _("Click to expand the player"))
         # Put focus to the notebook:
-        self.notebook_clicked(None, None, self.notebook.get_current_page())
+        self.notebook_tab_clicked(None, None, self.notebook.get_current_page())
         return
 
     # This callback allows the user to seek to a specific portion of the song
@@ -1854,6 +1860,7 @@ class Base(mpdclient3.mpd_connection):
         return
 
     def current_button_press(self, widget, event):
+        self.volume_hide()
         if event.button == 3:
             self.set_menu_contextual_items_visible()
             self.mainmenu.popup(None, None, None, event.button, event.time)
@@ -1893,6 +1900,7 @@ class Base(mpdclient3.mpd_connection):
     def image_activate(self, widget, event):
         self.window.handler_block(self.mainwinhandler)
         if event.button == 1:
+            self.volume_hide()
             if self.lastalbumart:
                 self.show_cover_large()
         elif event.button == 3:
@@ -2288,19 +2296,20 @@ class Base(mpdclient3.mpd_connection):
         self.next(None)
 
     def remove(self, widget):
-        page_num = self.notebook.get_current_page()
-        if page_num == 0:
-            model, selected = self.current.get_selection().get_selected_rows()
-            iters = [model.get_iter(path) for path in selected]
-            for iter in iters:
-                self.conn.do.deleteid(self.currentdata.get_value(iter, 0))
-        elif page_num == 2:
-            model, selected = self.playlists.get_selection().get_selected_rows()
-            iters = [model.get_iter(path) for path in selected]
-            for iter in iters:
-                self.conn.do.rm(self.playlistsdata.get_value(iter, 1))
-            self.playlists_populate()
-        self.iterate_now()
+        if self.conn:
+            page_num = self.notebook.get_current_page()
+            if page_num == 0:
+                model, selected = self.current.get_selection().get_selected_rows()
+                iters = [model.get_iter(path) for path in selected]
+                for iter in iters:
+                    self.conn.do.deleteid(self.currentdata.get_value(iter, 0))
+            elif page_num == 2:
+                model, selected = self.playlists.get_selection().get_selected_rows()
+                iters = [model.get_iter(path) for path in selected]
+                for iter in iters:
+                    self.conn.do.rm(self.playlistsdata.get_value(iter, 1))
+                self.playlists_populate()
+            self.iterate_now()
 
     def randomize(self, widget):
         # Ironically enough, the command to turn shuffle on/off is called
@@ -2312,6 +2321,27 @@ class Base(mpdclient3.mpd_connection):
         if self.conn:
             self.conn.do.clear()
             self.iterate_now()
+        return
+
+    def clear_except_current(self, widget):
+        # Requires command_list_*
+        # Removes all songs in the current playlist other than
+        # the currently playing song.
+        #if self.conn:
+            #if self.status and self.status.state in ['play', 'pause']:
+                #self.iterate_stop()
+                 #Remove all songs above current playing song:
+                #currpos = int(self.songinfo.pos)
+                #numitems = int(self.status.playlistlength)
+                #i = 0
+                #while i < numitems:
+                    #if i != currpos:
+                        #print self.currentdata.get_value(self.currentdata.get_iter(i), 0)
+                        #self.conn.do.deleteid(self.currentdata.get_value(self.currentdata.get_iter(i), 0))
+                    #i = i + 1
+            #else:
+                #self.conn.do.clear()
+            #self.iterate_now()
         return
 
     def repeat_now(self, widget):
@@ -2681,6 +2711,20 @@ class Base(mpdclient3.mpd_connection):
         self.conn.do.seek(song, seektime)
         self.iterate_now()
         return
+
+    def on_notebook_click(self, widget, event):
+        if event.button == 1:
+            self.volume_hide()
+
+    def on_searchtext_click(self, widget, event):
+        if event.button == 1:
+            self.volume_hide()
+
+    def on_window_click(self, widget, event):
+        if event.button == 1:
+            self.volume_hide()
+        elif event.button == 3:
+            self.popup_menu(self.window, event)
 
     def popup_menu(self, widget, event):
         if widget == self.window:

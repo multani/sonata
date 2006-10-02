@@ -1,4 +1,7 @@
 v0.8
+	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
+	artwork - schindler's list didn't fetch the right artwork despite
+		it being the first item in the remote images list
 	song properties (metadata)
 	make selection, dnd, more like thunar
 
