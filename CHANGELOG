@@ -8,6 +8,7 @@ v0.8 - Pending
 	+ Bug: Fix crash if changing connection w/o gnome-python-extras
 	+ Bug: Prevent --help, --toggle, etc. from happening twice if
 	  dbus is installed
+	+ Bug: Some shortcuts don't work with numslock enabled
 
 v0.7.1 - September 27, 2006
 	+ Bug: Fix crash if dbus is not installed

@@ -910,6 +910,7 @@ class Base(mpdclient3.mpd_connection):
 
     def topwindow_keypress(self, widget, event):
         shortcut = gtk.accelerator_name(event.keyval, event.state)
+        shortcut = shortcut.replace("<Mod2>", "")
         # These shortcuts were moved here so that they don't
         # interfere with searching the library
         if shortcut in 'BackSpace':
