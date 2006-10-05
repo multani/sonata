@@ -1,15 +1,16 @@
+v0.7.2
+	song properties (metadata)
+	location of notification (sys tray, corners)
+	hide/show playback buttons
+
 v0.8
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
-	ability to hide playback buttons
-	artwork - schindler's list didn't fetch the right artwork despite
-		it being the first item in the remote images list
-	song properties (metadata)
+		Add to > Next song, top, random - too slow...
+	Stream support
 	make selection, dnd, more like thunar
 
 Future:
 	allow multiple columns?
-	Stream support
-	Add to > Next song, top, random - too slow...
 	connect in background via socket.setblocking(0)
 	switch to pygtk's statusicon (2.10) and remove gnome-python dep
 		- then we can finally use skip_taskbar_hint since we will

@@ -735,6 +735,7 @@ class Base(mpdclient3.mpd_connection):
         print "                       " + _("to tray or visible (requires D-Bus)")
 
     def print_status(self, type):
+        self.user_connect = True
         self.settings_load()
         self.conn = None
         self.conn = self.connect()
