@@ -814,7 +814,16 @@ class Base(mpdclient3.mpd_connection):
         else:
             return None
 
-    def connectbutton_clicked(self, connectbutton, disconnectbutton):
+    def connectbutton_clicked(self, connectbutton, disconnectbutton, hostentry, portentry, passwordentry):
+        connectbutton.set_sensitive(False)
+        disconnectbutton.set_sensitive(True)
+        if hostentry.get_text() != self.host or portentry.get_text() != str(self.port) or passwordentry.get_text() != self.password:
+            self.host = hostentry.get_text()
+            try:
+                self.port = int(portentry.get_text())
+            except:
+                pass
+            self.password = passwordentry.get_text()
         self.connectkey_pressed(None)
         if self.conn:
             connectbutton.set_sensitive(False)
@@ -2430,7 +2439,7 @@ class Base(mpdclient3.mpd_connection):
         autoconnect = gtk.CheckButton(_("Autoconnect on start"))
         autoconnect.set_active(self.autoconnect)
         connectbox = gtk.HBox()
-        connectbutton = gtk.Button(" " + _("_Connect"))
+        connectbutton = gtk.Button(" " + _("C_onnect"))
         connectbutton.set_image(gtk.image_new_from_stock(gtk.STOCK_CONNECT, gtk.ICON_SIZE_BUTTON))
         disconnectbutton = gtk.Button(" " + _("_Disconnect"))
         disconnectbutton.set_image(gtk.image_new_from_stock(gtk.STOCK_DISCONNECT, gtk.ICON_SIZE_BUTTON))
@@ -2443,7 +2452,7 @@ class Base(mpdclient3.mpd_connection):
         else:
             connectbutton.set_sensitive(True)
             disconnectbutton.set_sensitive(False)
-        connectbutton.connect('clicked', self.connectbutton_clicked, disconnectbutton)
+        connectbutton.connect('clicked', self.connectbutton_clicked, disconnectbutton, hostentry, portentry, passwordentry)
         disconnectbutton.connect('clicked', self.disconnectbutton_clicked, connectbutton)
         table.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         table.attach(mpdlabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
@@ -2613,6 +2622,7 @@ class Base(mpdclient3.mpd_connection):
         table4.attach(availableformatbox, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table4.attach(gtk.Label(), 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table4.attach(gtk.Label(), 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table4.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         prefsnotebook.append_page(table, gtk.Label(str=_("MPD")))
         prefsnotebook.append_page(table2, gtk.Label(str=_("Display")))
         prefsnotebook.append_page(table3, gtk.Label(str=_("Behavior")))
