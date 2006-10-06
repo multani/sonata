@@ -1195,7 +1195,7 @@ class Base(mpdclient3.mpd_connection):
                 try:
                     text = text.replace("%A", item.artist)
                 except:
-                    return escape_html(item.file.split('/')[-1])
+                    return self.filename_or_fullpath(item.file)
             if "%B" in text:
                 try:
                     text = text.replace("%B", item.album)
@@ -1205,7 +1205,7 @@ class Base(mpdclient3.mpd_connection):
                 try:
                     text = text.replace("%S", item.title)
                 except:
-                    return escape_html(item.file.split('/')[-1])
+                    return self.filename_or_fullpath(item.file)
             if "%T" in text:
                 try:
                     text = text.replace("%T", item.track)
@@ -1217,12 +1217,15 @@ class Base(mpdclient3.mpd_connection):
                 text = text.replace("%P", item.file.split('/')[-1])
             return escape_html(text)
         else:
-            if len(item.file.split('/')[-1]) == 0 or item.file[:7] == 'http://' or item.file[:6] == 'ftp://':
-                # Use path and file name:
-                return escape_html(item.file)
-            else:
-                # Use file name only:
-                return escape_html(item.file.split('/')[-1])
+            return self.filename_or_fullpath(item.file)
+
+    def filename_or_fullpath(self, file):
+        if len(file.split('/')[-1]) == 0 or file[:7] == 'http://' or file[:6] == 'ftp://':
+            # Use path and file name:
+            return escape_html(file)
+        else:
+            # Use file name only:
+            return escape_html(file.split('/')[-1])
 
     def song_has_metadata(self, item):
         try:
@@ -1469,7 +1472,7 @@ class Base(mpdclient3.mpd_connection):
                     pass
                 if not newlabelfound:
                     # Fallback, use file name:
-                    name = getattr(self.songinfo, 'file', None).split('/')[-1]
+                    name = self.filename_or_fullpath(self.songinfo.file)
                     newlabel = '<big><b>' + escape_html(name) + '</b></big>\n<small>' + _('by Unknown') + '</small>'
             if newlabel != self.cursonglabel.get_label():
                 self.cursonglabel.set_markup(newlabel)
@@ -2767,11 +2770,7 @@ class Base(mpdclient3.mpd_connection):
                 name = item.directory.split('/')[-1]
                 self.browserdata.append([gtk.STOCK_OPEN, item.directory, escape_html(name)])
             elif item.type == 'file':
-                name = item.file.split('/')[-1]
-                try:
-                    self.browserdata.append(['sonata', item.file, escape_html(item.artist + ' - ' + item.title)])
-                except:
-                    self.browserdata.append(['sonata', item.file, escape_html(name)])
+                self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item)])
         self.browser.grab_focus()
         self.browser.scroll_to_point(0, 0)
         self.searchbutton.show()

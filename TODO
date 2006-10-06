@@ -1,7 +1,6 @@
 v0.7.2
 	song properties (metadata)
 	hide/show playback buttons
-	stream names
 
 v0.8
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
