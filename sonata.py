@@ -1217,7 +1217,12 @@ class Base(mpdclient3.mpd_connection):
                 text = text.replace("%P", item.file.split('/')[-1])
             return escape_html(text)
         else:
-            return escape_html(item.file.split('/')[-1])
+            if len(item.file.split('/')[-1]) == 0 or item.file[:7] == 'http://' or item.file[:6] == 'ftp://':
+                # Use path and file name:
+                return escape_html(item.file)
+            else:
+                # Use file name only:
+                return escape_html(item.file.split('/')[-1])
 
     def song_has_metadata(self, item):
         try:

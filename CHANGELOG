@@ -7,6 +7,7 @@ v0.8 - Pending
 	+ Pref to autoconnect on start, connect/disconnect buttons
 	+ Fetch album art in background (non-blocking)
 	+ Correctly retain previous library state when ending search
+	+ Bug: Display path when filename is empty or http/ftp prefixes
 	+ Bug: Fix crash if changing connection w/o gnome-python-extras
 	+ Bug: Prevent --help, --toggle, etc. from happening twice if
 	  dbus is installed
