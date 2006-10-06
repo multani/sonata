@@ -523,15 +523,24 @@ class Base(mpdclient3.mpd_connection):
         self.outtertipbox = gtk.VBox()
         self.tipbox = gtk.HBox()
         self.trayalbumeventbox = gtk.EventBox()
-        self.trayalbumeventbox.set_size_request(90, 90)
-        self.trayalbumimage = gtk.Image()
-        self.trayalbumimage.set_size_request(75, 75)
+        self.trayalbumeventbox.set_size_request(57, 90)
+        self.trayalbumimage1 = gtk.Image()
+        self.trayalbumimage1.set_size_request(50, 75)
+        self.trayalbumimage1.set_alignment(1, 0.5)
+        self.trayalbumeventbox.add(self.trayalbumimage1)
+        self.trayalbumeventbox.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#4a6984"))
+        hiddenlbl = gtk.Label()
+        hiddenlbl.set_size_request(1, -1)
+        self.tipbox.pack_start(hiddenlbl, False, False, 0)
+        self.tipbox.pack_start(self.trayalbumeventbox, False, False, 0)
+        self.trayalbumimage2 = gtk.Image()
+        self.trayalbumimage2.set_size_request(25, 75)
+        self.tipbox.pack_start(self.trayalbumimage2, False, False, 0)
         if not self.show_covers:
             self.trayalbumeventbox.set_no_show_all(True)
             self.trayalbumeventbox.hide()
-        self.trayalbumeventbox.add(self.trayalbumimage)
-        self.trayalbumeventbox.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#4a6984"))
-        self.tipbox.pack_start(self.trayalbumeventbox, False, False, 1)
+            self.trayalbumimage2.set_no_show_all(True)
+            self.trayalbumimage2.hide()
         innerbox = gtk.VBox()
         self.traycursonglabel = gtk.Label()
         self.traycursonglabel.set_markup(_("Playlist"))
@@ -556,6 +565,10 @@ class Base(mpdclient3.mpd_connection):
         self.outtertipbox.pack_start(self.tipbox, False, False, 1)
         self.outtertipbox.show_all()
         self.traytips.add_widget(self.outtertipbox)
+        if self.show_covers:
+            self.traytips.set_size_request(350, -1)
+        else:
+            self.traytips.set_size_request(250, -1)
 
         # Volumescale window
         self.volumewindow = gtk.Window(gtk.WINDOW_POPUP)
@@ -1465,6 +1478,7 @@ class Base(mpdclient3.mpd_connection):
             self.trayprogressbar.show()
             if self.show_covers:
                 self.trayalbumeventbox.show()
+                self.trayalbumimage2.show()
             newlabelfound = False
             try:
                 # Try song/artist/album:
@@ -1497,6 +1511,7 @@ class Base(mpdclient3.mpd_connection):
             self.traytips.set_size_request(-1, -1)
             self.trayprogressbar.hide()
             self.trayalbumeventbox.hide()
+            self.trayalbumimage2.hide()
 
     def update_wintitle(self):
         if self.conn and self.status and self.status.state in ['play', 'pause']:
@@ -1534,6 +1549,14 @@ class Base(mpdclient3.mpd_connection):
         thread = threading.Thread(target=self.update_album_art2)
         thread.start()
 
+    def set_tooltip_art(self, pix):
+        pix1 = pix.subpixbuf(0, 0, 50, 75)
+        pix2 = pix.subpixbuf(50, 0, 25, 75)
+        self.trayalbumimage1.set_from_pixbuf(pix1)
+        self.trayalbumimage2.set_from_pixbuf(pix2)
+        del pix1
+        del pix2
+
     def update_album_art2(self):
         self.stop_art_update = False
         if not self.show_covers:
@@ -1562,7 +1585,7 @@ class Base(mpdclient3.mpd_connection):
                         self.updating_art = False
                         return
                     self.albumimage.set_from_pixbuf(pix)
-                    self.trayalbumimage.set_from_pixbuf(pix)
+                    self.set_tooltip_art(pix)
                     self.lastalbumart = filename
                     gtk.gdk.threads_leave()
                     del pix
@@ -1570,7 +1593,7 @@ class Base(mpdclient3.mpd_connection):
                     # Default to sonatacd:
                     gtk.gdk.threads_enter()
                     self.albumimage.set_from_file(self.sonatacd)
-                    self.trayalbumimage.set_from_file(self.sonatacd)
+                    self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
                     self.lastalbumart = None
                     gtk.gdk.threads_leave()
                     self.download_image_to_filename(artist, album, filename)
@@ -1584,20 +1607,20 @@ class Base(mpdclient3.mpd_connection):
                             self.updating_art = False
                             return
                         self.albumimage.set_from_pixbuf(pix)
-                        self.trayalbumimage.set_from_pixbuf(pix)
+                        self.set_tooltip_art(pix)
                         self.lastalbumart = filename
                         gtk.gdk.threads_leave()
                         del pix
             except:
                 gtk.gdk.threads_enter()
                 self.albumimage.set_from_file(self.sonatacd)
-                self.trayalbumimage.set_from_file(self.sonatacd)
+                self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
                 self.lastalbumart = None
                 gtk.gdk.threads_leave()
         else:
             gtk.gdk.threads_enter()
             self.albumimage.set_from_file(self.sonatacd)
-            self.trayalbumimage.set_from_file(self.sonatacd)
+            self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
             self.lastalbumart = None
             gtk.gdk.threads_leave()
         gc.collect()
@@ -2685,21 +2708,27 @@ class Base(mpdclient3.mpd_connection):
 
     def prefs_art_toggled(self, button):
         if button.get_active():
+            self.traytips.set_size_request(350, -1)
             self.albumimage.set_from_file(self.sonatacd)
             self.lastalbumart = None
             self.imageeventbox.set_no_show_all(False)
             self.imageeventbox.show_all()
             self.trayalbumeventbox.set_no_show_all(False)
+            self.trayalbumimage2.set_no_show_all(False)
             if self.conn and self.status and self.status.state in ['play', 'pause']:
                 self.trayalbumeventbox.show_all()
+                self.trayalbumimage2.show_all()
             self.show_covers = True
             self.update_cursong()
             self.update_album_art()
         else:
+            self.traytips.set_size_request(250, -1)
             self.imageeventbox.set_no_show_all(True)
             self.imageeventbox.hide()
             self.trayalbumeventbox.set_no_show_all(True)
             self.trayalbumeventbox.hide()
+            self.trayalbumimage2.set_no_show_all(True)
+            self.trayalbumimage2.hide()
             self.show_covers = False
             self.update_cursong()
 
