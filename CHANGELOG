@@ -1,5 +1,7 @@
 v0.8 - Pending
 	+ Allow user formatting of current playlist, library, and title
+	+ Pref for song notification location
+	+ Allow song notification for users without gnome-python-extras
 	+ Pref to update MPD library on start
 	+ --info, --status displays current song info or MPD status
 	+ Pref to autoconnect on start, connect/disconnect buttons

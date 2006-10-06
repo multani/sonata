@@ -178,6 +178,7 @@ class Base(mpdclient3.mpd_connection):
         self.update_on_start = False
         self.minimize_to_systray = False
         self.popuptimes = ['2', '3', '5', '10', '15', '30', _('Entire song')]
+        self.popuplocations = [_('System tray'), _('Top Left'), _('Top Right'), _('Bottom Left'), _('Bottom Right')]
         self.popup_option = 2
         self.exit_now = False
         self.ignore_toggle_signal = False
@@ -185,7 +186,7 @@ class Base(mpdclient3.mpd_connection):
         self.currentformat = "%A - %S"
         self.libraryformat = "%A - %S"
         self.titleformat = "[Sonata] %A - %S"
-        self.autoconnect = False
+        self.autoconnect = True
         self.user_connect = False
         show_prefs = False
         # If the connection to MPD times out, this will cause the
@@ -198,6 +199,7 @@ class Base(mpdclient3.mpd_connection):
         self.iterate_time_when_connected = 500
         self.iterate_time_when_disconnected = 15000
 
+        self.traytips = TrayIconTips()
         self.settings_load()
         if self.autoconnect:
             self.user_connect = True
@@ -553,7 +555,6 @@ class Base(mpdclient3.mpd_connection):
         self.tipbox.pack_start(innerbox, True, True, 6)
         self.outtertipbox.pack_start(self.tipbox, False, False, 1)
         self.outtertipbox.show_all()
-        self.traytips = TrayIconTips()
         self.traytips.add_widget(self.outtertipbox)
 
         # Volumescale window
@@ -984,6 +985,8 @@ class Base(mpdclient3.mpd_connection):
             self.popup_option = conf.getint('player', 'popup_time')
         if conf.has_option('player', 'update_on_start'):
             self.update_on_start = conf.getboolean('player', 'update_on_start')
+        if conf.has_option('player', 'notif_location'):
+            self.traytips.notifications_location = conf.getint('player', 'notif_location')
         if conf.has_option('format', 'current'):
             self.currentformat = conf.get('format', 'current')
         if conf.has_option('format', 'library'):
@@ -1019,6 +1022,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'notification', self.show_notification)
         conf.set('player', 'popup_time', self.popup_option)
         conf.set('player', 'update_on_start', self.update_on_start)
+        conf.set('player', 'notif_location', self.traytips.notifications_location)
         conf.add_section('format')
         conf.set('format', 'current', self.currentformat)
         conf.set('format', 'library', self.libraryformat)
@@ -1404,14 +1408,7 @@ class Base(mpdclient3.mpd_connection):
         if self.status and self.status.state in ['play', 'pause']:
             row = int(self.songinfo.pos)
             self.currentdata[row][1] = make_bold(self.currentdata[row][1])
-            if self.expanded:
-                visible_rect = self.current.get_visible_rect()
-                row_rect = self.current.get_background_area(row, self.currentcolumn)
-                if row_rect.y + row_rect.height > visible_rect.height:
-                    top_coord = (row_rect.y + row_rect.height - visible_rect.height) + visible_rect.y
-                    self.current.scroll_to_point(-1, top_coord)
-                elif row_rect.y < 0:
-                    self.current.scroll_to_cell(row)
+            gobject.idle_add(self.keep_song_visible_in_list, row)
 
         self.update_cursong()
         self.update_wintitle()
@@ -1501,14 +1498,17 @@ class Base(mpdclient3.mpd_connection):
             if self.status.state in ['play', 'pause']:
                 row = int(self.songinfo.pos)
                 self.currentdata[row][1] = make_bold(self.currentdata[row][1])
-                if self.expanded:
-                    visible_rect = self.current.get_visible_rect()
-                    row_rect = self.current.get_background_area(row, self.currentcolumn)
-                    if row_rect.y + row_rect.height > visible_rect.height:
-                        top_coord = (row_rect.y + row_rect.height - visible_rect.height) + visible_rect.y
-                        self.current.scroll_to_point(-1, top_coord)
-                    elif row_rect.y < 0:
-                        self.current.scroll_to_cell(row)
+                gobject.idle_add(self.keep_song_visible_in_list, row)
+
+    def keep_song_visible_in_list(self, row):
+        if self.expanded:
+            visible_rect = self.current.get_visible_rect()
+            row_rect = self.current.get_background_area(row, self.currentcolumn)
+            if row_rect.y + row_rect.height > visible_rect.height:
+                top_coord = (row_rect.y + row_rect.height - visible_rect.height) + visible_rect.y
+                self.current.scroll_to_point(-1, top_coord)
+            elif row_rect.y < 0:
+                self.current.scroll_to_cell(row)
 
     def update_album_art(self):
         self.stop_art_update = True
@@ -1658,18 +1658,19 @@ class Base(mpdclient3.mpd_connection):
             except:
                 pass
             if self.conn and self.status and self.status.state in ['play', 'pause']:
-                try:
-                    self.traytips._real_display(self.trayeventbox)
-                    if self.popup_option != len(self.popuptimes)-1:
-                        timeout = int(self.popuptimes[self.popup_option])*1000
-                        self.traytips.notif_handler = gobject.timeout_add(timeout, self.traytips.hide)
-                    else:
-                        # -1 indicates that the timeout should be forever.
-                        # We don't want to pass None, because then Sonata
-                        # would think that there is no current notification
-                        self.traytips.notif_handler = -1
-                except:
-                    pass
+                #try:
+                self.traytips.use_notifications_location = True
+                self.traytips._real_display(None)
+                if self.popup_option != len(self.popuptimes)-1:
+                    timeout = int(self.popuptimes[self.popup_option])*1000
+                    self.traytips.notif_handler = gobject.timeout_add(timeout, self.traytips.hide)
+                else:
+                    # -1 indicates that the timeout should be forever.
+                    # We don't want to pass None, because then Sonata
+                    # would think that there is no current notification
+                    self.traytips.notif_handler = -1
+                #except:
+                #	pass
             else:
                 self.traytips.hide()
         elif self.traytips.get_property('visible'):
@@ -2468,7 +2469,9 @@ class Base(mpdclient3.mpd_connection):
         display_notification = gtk.CheckButton(_("Popup notification on song changes"))
         display_notification.set_active(self.show_notification)
         notifhbox = gtk.HBox()
-        notifhbox.pack_start(gtk.Label(_('Display for') + ':  '), False, False, 0)
+        notiflabel = gtk.Label(_('Display for') + ':  ')
+        notiflabel.set_alignment(1, 0.5)
+        notifhbox.pack_start(notiflabel, False, False, 0)
         notification_options = gtk.combo_box_new_text()
         for i in self.popuptimes:
             if i == '1':
@@ -2479,13 +2482,23 @@ class Base(mpdclient3.mpd_connection):
                 notification_options.append_text(i)
         notification_options.set_active(self.popup_option)
         notification_options.connect('changed', self.prefs_notiftime_changed)
-        if not self.show_notification:
-            notifhbox.set_sensitive(False)
-        if not (HAVE_EGG and self.trayicon.get_property('visible') == True):
-            notifhbox.set_sensitive(False)
-            display_notification.set_sensitive(False)
-        display_notification.connect('toggled', self.prefs_notif_toggled, notifhbox)
+        notifhbox2 = gtk.HBox()
+        notiflabel2 = gtk.Label(_('Location') + ':  ')
+        notiflabel2.set_alignment(1, 0.5)
+        notifhbox2.pack_start(notiflabel2, False, False, 0)
+        notification_locs = gtk.combo_box_new_text()
+        for i in self.popuplocations:
+            notification_locs.append_text(i)
+        notification_locs.set_active(self.traytips.notifications_location)
+        notification_locs.connect('changed', self.prefs_notiflocation_changed)
+        display_notification.connect('toggled', self.prefs_notif_toggled, notifhbox, notifhbox2)
         notifhbox.pack_start(notification_options, False, False, 0)
+        notifhbox2.pack_start(notification_locs, False, False, 0)
+        max_label_width = 0     # Set label widths the same
+        if notiflabel.size_request()[0] > max_label_width: max_label_width = notiflabel.size_request()[0]
+        if notiflabel2.size_request()[0] > max_label_width: max_label_width = notiflabel2.size_request()[0]
+        notiflabel.set_size_request(max_label_width, -1)
+        notiflabel2.set_size_request(max_label_width, -1)
         table2.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(displaylabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(gtk.Label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
@@ -2497,7 +2510,8 @@ class Base(mpdclient3.mpd_connection):
         table2.attach(gtk.Label(), 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(display_notification, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table2.attach(notifhbox, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 75, 0)
-        table2.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(notifhbox2, 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 75, 0)
+        table2.attach(gtk.Label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         # Behavior tab
         table3 = gtk.Table()
         behaviorlabel = gtk.Label()
@@ -2691,13 +2705,14 @@ class Base(mpdclient3.mpd_connection):
             self.searchbox.hide()
             self.show_search = False
 
-    def prefs_notif_toggled(self, button, notifhbox):
+    def prefs_notif_toggled(self, button, notifhbox, notifhbox2):
         if button.get_active():
             notifhbox.set_sensitive(True)
+            notifhbox2.set_sensitive(True)
             self.show_notification = True
-            self.labelnotify()
         else:
             notifhbox.set_sensitive(False)
+            notifhbox2.set_sensitive(False)
             self.show_notification = False
             try:
                 gobject.source_remove(self.traytips.notif_handler)
@@ -2705,9 +2720,11 @@ class Base(mpdclient3.mpd_connection):
                 pass
             self.traytips.hide()
 
+    def prefs_notiflocation_changed(self, combobox):
+        self.traytips.notifications_location = combobox.get_active()
+
     def prefs_notiftime_changed(self, combobox):
         self.popup_option = combobox.get_active()
-        self.labelnotify()
 
     def seek(self, song, seektime):
         self.conn.do.seek(song, seektime)
@@ -2859,40 +2876,64 @@ class TrayIconTips(gtk.Window):
         self._show_timeout_id = -1
         self.timer_tag = None
         self.notif_handler = None
+        self.use_notifications_location = False
+        self.notifications_location = 0
 
     # from gtktooltips.c:gtk_tooltips_draw_tips
     def _calculate_pos(self, widget):
-        screen = widget.get_screen()
-        x, y = widget.window.get_origin()
+        try:
+            x, y = widget.window.get_origin()
+            if widget.flags() & gtk.NO_WINDOW:
+                x += widget.allocation.x
+                y += widget.allocation.y
+        except:
+            pass
         w, h = self.size_request()
 
-        if widget.flags() & gtk.NO_WINDOW:
-            x += widget.allocation.x
-            y += widget.allocation.y
-
+        screen = self.get_screen()
         pointer_screen, px, py, _ = screen.get_display().get_pointer()
         if pointer_screen != screen:
             px = x
             py = y
-
         monitor_num = screen.get_monitor_at_point(px, py)
         monitor = screen.get_monitor_geometry(monitor_num)
 
-        # If the tooltip goes off the screen horizontally, realign it so that
-        # it all displays.
-        if (x + w) > monitor.width:
-            x = monitor.width - w
+        try:
+            # If the tooltip goes off the screen horizontally, realign it so that
+            # it all displays.
+            if (x + w) > monitor.width:
+                x = monitor.width - w
+            # If the tooltip goes off the screen vertically (i.e. the system tray
+            # icon is on the bottom of the screen), realign the icon so that it
+            # shows above the icon.
+            if ((y + h + widget.allocation.height + self.MARGIN) >
+                monitor.y + monitor.height):
+                y = y - h - self.MARGIN
+            else:
+                y = y + widget.allocation.height + self.MARGIN
+        except:
+            pass
 
-        # If the tooltip goes off the screen vertically (i.e. the system tray
-        # icon is on the bottom of the screen), realign the icon so that it
-        # shows above the icon.
-        if ((y + h + widget.allocation.height + self.MARGIN) >
-            monitor.y + monitor.height):
-            y = y - h - self.MARGIN
-        else:
-            y = y + widget.allocation.height + self.MARGIN
-
-        return x, y
+        if self.use_notifications_location == False:
+            try:
+                return x, y
+            except:
+                #Fallback to top-left:
+                return 0, 0
+        elif self.notifications_location == 0:
+            try:
+                return x, y
+            except:
+                #Fallback to top-left:
+                return 0, 0
+        elif self.notifications_location == 1:
+            return 0, 0
+        elif self.notifications_location == 2:
+            return monitor.width - w, 0
+        elif self.notifications_location == 3:
+            return 0, monitor.height - h
+        elif self.notifications_location == 4:
+            return monitor.width - w, monitor.height - h
 
     def _event_handler (self, widget):
         widget.connect_after("event-after", self._motion_cb)
@@ -2909,6 +2950,7 @@ class TrayIconTips(gtk.Window):
         self.timer_tag = gobject.timeout_add(500, self._tips_timeout, widget)
 
     def _tips_timeout (self, widget):
+        self.use_notifications_location = False
         gtk.gdk.threads_enter()
         self._real_display(widget)
         gtk.gdk.threads_leave()

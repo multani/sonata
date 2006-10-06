@@ -1,11 +1,11 @@
 v0.7.2
 	song properties (metadata)
-	location of notification (sys tray, corners)
 	hide/show playback buttons
+	stream names
 
 v0.8
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
-		Add to > Next song, top, random - too slow...
+		Add to > Next song, top, random
 	Stream support
 	make selection, dnd, more like thunar
 
