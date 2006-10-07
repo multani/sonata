@@ -2226,8 +2226,6 @@ class Base(mpdclient3.mpd_connection):
             self.withdraw_app_undo()
         else:
             self.withdraw_app()
-        while gtk.events_pending():
-            gtk.main_iteration()
         gobject.timeout_add(500, self.set_ignore_toggle_signal_false)
 
     def set_ignore_toggle_signal_false(self):
