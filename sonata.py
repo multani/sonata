@@ -174,6 +174,7 @@ class Base(mpdclient3.mpd_connection):
         self.show_volume = True
         self.show_search = True
         self.show_notification = False
+        self.show_playback = True
         self.stop_on_exit = False
         self.update_on_start = False
         self.minimize_to_systray = False
@@ -394,9 +395,18 @@ class Base(mpdclient3.mpd_connection):
         image, label = self.nextbutton.get_children()[0].get_children()[0].get_children()
         label.set_text('')
         toptophbox.pack_start(self.nextbutton, False, False, 0)
+        if not self.show_playback:
+            self.prevbutton.set_no_show_all(True)
+            self.ppbutton.set_no_show_all(True)
+            self.stopbutton.set_no_show_all(True)
+            self.nextbutton.set_no_show_all(True)
+            self.prevbutton.hide()
+            self.ppbutton.hide()
+            self.stopbutton.hide()
+            self.nextbutton.hide()
         progressbox = gtk.VBox()
         self.progresslabel = gtk.Label()
-        self.progresslabel.set_markup('<span size="10"> </span>')
+        self.progresslabel.set_size_request(-1, 6)
         progressbox.pack_start(self.progresslabel)
         self.progresseventbox = gtk.EventBox()
         self.progressbar = gtk.ProgressBar()
@@ -407,7 +417,7 @@ class Base(mpdclient3.mpd_connection):
         self.progresseventbox.add(self.progressbar)
         progressbox.pack_start(self.progresseventbox, False, False, 0)
         self.progresslabel2 = gtk.Label()
-        self.progresslabel2.set_markup('<span size="10"> </span>')
+        self.progresslabel2.set_size_request(-1, 6)
         progressbox.pack_start(self.progresslabel2)
         toptophbox.pack_start(progressbox, True, True, 0)
         self.volumebutton = gtk.ToggleButton("", True)
@@ -530,7 +540,7 @@ class Base(mpdclient3.mpd_connection):
         self.trayalbumeventbox.add(self.trayalbumimage1)
         self.trayalbumeventbox.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#4a6984"))
         hiddenlbl = gtk.Label()
-        hiddenlbl.set_size_request(1, -1)
+        hiddenlbl.set_size_request(2, -1)
         self.tipbox.pack_start(hiddenlbl, False, False, 0)
         self.tipbox.pack_start(self.trayalbumeventbox, False, False, 0)
         self.trayalbumimage2 = gtk.Image()
@@ -562,7 +572,7 @@ class Base(mpdclient3.mpd_connection):
         label3.set_markup('<span size="10"> </span>')
         innerbox.pack_start(label3)
         self.tipbox.pack_start(innerbox, True, True, 6)
-        self.outtertipbox.pack_start(self.tipbox, False, False, 1)
+        self.outtertipbox.pack_start(self.tipbox, False, False, 2)
         self.outtertipbox.show_all()
         self.traytips.add_widget(self.outtertipbox)
         if self.show_covers:
@@ -1009,6 +1019,8 @@ class Base(mpdclient3.mpd_connection):
             self.update_on_start = conf.getboolean('player', 'update_on_start')
         if conf.has_option('player', 'notif_location'):
             self.traytips.notifications_location = conf.getint('player', 'notif_location')
+        if conf.has_option('player', 'playback'):
+            self.show_playback = conf.getboolean('player', 'playback')
         if conf.has_option('format', 'current'):
             self.currentformat = conf.get('format', 'current')
         if conf.has_option('format', 'library'):
@@ -1045,6 +1057,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'popup_time', self.popup_option)
         conf.set('player', 'update_on_start', self.update_on_start)
         conf.set('player', 'notif_location', self.traytips.notifications_location)
+        conf.set('player', 'playback', self.show_playback)
         conf.add_section('format')
         conf.set('format', 'current', self.currentformat)
         conf.set('format', 'library', self.libraryformat)
@@ -2196,11 +2209,13 @@ class Base(mpdclient3.mpd_connection):
         if self.sticky:
             self.window.stick()
         self.withdrawn = False
+        self.UIManager.get_widget('/traymenu/showmenu').set_active(True)
 
     def withdraw_app(self):
         if HAVE_EGG:
             self.window.hide()
             self.withdrawn = True
+            self.UIManager.get_widget('/traymenu/showmenu').set_active(False)
 
     def withdraw_app_toggle(self, action):
         if self.ignore_toggle_signal:
@@ -2497,6 +2512,9 @@ class Base(mpdclient3.mpd_connection):
         display_art = gtk.CheckButton(_("Show album covers"))
         display_art.set_active(self.show_covers)
         display_art.connect('toggled', self.prefs_art_toggled)
+        display_playback = gtk.CheckButton(_("Show playback buttons"))
+        display_playback.set_active(self.show_playback)
+        display_playback.connect('toggled', self.prefs_playback_toggled)
         display_volume = gtk.CheckButton(_("Show volume button"))
         display_volume.set_active(self.show_volume)
         display_volume.connect('toggled', self.prefs_volume_toggled)
@@ -2543,15 +2561,16 @@ class Base(mpdclient3.mpd_connection):
         table2.attach(displaylabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(gtk.Label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(display_art, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_volume, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_search, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(gtk.Label(), 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(displaylabel2, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(gtk.Label(), 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(display_notification, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(notifhbox, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 75, 0)
-        table2.attach(notifhbox2, 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 75, 0)
-        table2.attach(gtk.Label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(display_playback, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_volume, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_search, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(gtk.Label(), 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(displaylabel2, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(gtk.Label(), 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(display_notification, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(notifhbox, 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 75, 0)
+        table2.attach(notifhbox2, 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 75, 0)
+        table2.attach(gtk.Label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         # Behavior tab
         table3 = gtk.Table()
         behaviorlabel = gtk.Label()
@@ -2705,6 +2724,28 @@ class Base(mpdclient3.mpd_connection):
             self.settings_save()
             self.change_cursor(None)
         prefswindow.destroy()
+
+    def prefs_playback_toggled(self, button):
+        if button.get_active():
+            self.show_playback = True
+            self.prevbutton.set_no_show_all(False)
+            self.ppbutton.set_no_show_all(False)
+            self.stopbutton.set_no_show_all(False)
+            self.nextbutton.set_no_show_all(False)
+            self.prevbutton.show_all()
+            self.ppbutton.show_all()
+            self.stopbutton.show_all()
+            self.nextbutton.show_all()
+        else:
+            self.show_playback = False
+            self.prevbutton.set_no_show_all(True)
+            self.ppbutton.set_no_show_all(True)
+            self.stopbutton.set_no_show_all(True)
+            self.nextbutton.set_no_show_all(True)
+            self.prevbutton.hide()
+            self.ppbutton.hide()
+            self.stopbutton.hide()
+            self.nextbutton.hide()
 
     def prefs_art_toggled(self, button):
         if button.get_active():
