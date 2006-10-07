@@ -113,6 +113,8 @@ class Base(mpdclient3.mpd_connection):
         except:
             gettext.install('sonata', '/usr/local/share/locale', unicode=1)
 
+        self.traytips = TrayIconTips()
+
         toggle_arg = False
         # Read any passed options/arguments:
         try:
@@ -200,7 +202,6 @@ class Base(mpdclient3.mpd_connection):
         self.iterate_time_when_connected = 500
         self.iterate_time_when_disconnected = 15000
 
-        self.traytips = TrayIconTips()
         self.settings_load()
         if self.autoconnect:
             self.user_connect = True
@@ -1711,19 +1712,19 @@ class Base(mpdclient3.mpd_connection):
             except:
                 pass
             if self.conn and self.status and self.status.state in ['play', 'pause']:
-                #try:
-                self.traytips.use_notifications_location = True
-                self.traytips._real_display(None)
-                if self.popup_option != len(self.popuptimes)-1:
-                    timeout = int(self.popuptimes[self.popup_option])*1000
-                    self.traytips.notif_handler = gobject.timeout_add(timeout, self.traytips.hide)
-                else:
-                    # -1 indicates that the timeout should be forever.
-                    # We don't want to pass None, because then Sonata
-                    # would think that there is no current notification
-                    self.traytips.notif_handler = -1
-                #except:
-                #	pass
+                try:
+                    self.traytips.use_notifications_location = True
+                    self.traytips._real_display(self.trayeventbox)
+                    if self.popup_option != len(self.popuptimes)-1:
+                        timeout = int(self.popuptimes[self.popup_option])*1000
+                        self.traytips.notif_handler = gobject.timeout_add(timeout, self.traytips.hide)
+                    else:
+                        # -1 indicates that the timeout should be forever.
+                        # We don't want to pass None, because then Sonata
+                        # would think that there is no current notification
+                        self.traytips.notif_handler = -1
+                except:
+                    pass
             else:
                 self.traytips.hide()
         elif self.traytips.get_property('visible'):
@@ -2501,9 +2502,11 @@ class Base(mpdclient3.mpd_connection):
         table.attach(blankbox, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table.attach(gtk.Label(), 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         table.attach(autoconnect, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table.attach(gtk.Label(), 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(connectbox, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(connectbox, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table.attach(gtk.Label(), 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table.attach(gtk.Label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table.attach(gtk.Label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         # Display tab
         table2 = gtk.Table(7, 2, False)
         displaylabel = gtk.Label()
@@ -2557,6 +2560,9 @@ class Base(mpdclient3.mpd_connection):
         if notiflabel2.size_request()[0] > max_label_width: max_label_width = notiflabel2.size_request()[0]
         notiflabel.set_size_request(max_label_width, -1)
         notiflabel2.set_size_request(max_label_width, -1)
+        if not self.show_notification:
+            notifhbox.set_sensitive(False)
+            notifhbox2.set_sensitive(False)
         table2.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(displaylabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(gtk.Label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
@@ -2607,6 +2613,9 @@ class Base(mpdclient3.mpd_connection):
         table3.attach(update_start, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table3.attach(exit_stop, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table3.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table3.attach(gtk.Label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table3.attach(gtk.Label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table3.attach(gtk.Label(), 1, 3, 15, 16, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         # Format tab
         table4 = gtk.Table(9, 2, False)
         table4.set_col_spacings(3)
@@ -2665,6 +2674,9 @@ class Base(mpdclient3.mpd_connection):
         table4.attach(gtk.Label(), 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table4.attach(gtk.Label(), 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table4.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table4.attach(gtk.Label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table4.attach(gtk.Label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table4.attach(gtk.Label(), 1, 3, 15, 16, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         prefsnotebook.append_page(table, gtk.Label(str=_("MPD")))
         prefsnotebook.append_page(table2, gtk.Label(str=_("Display")))
         prefsnotebook.append_page(table3, gtk.Label(str=_("Behavior")))

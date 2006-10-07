@@ -1,3 +1,6 @@
+docs
+screenshots
+
 v0.8
 	song properties (metadata)
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
