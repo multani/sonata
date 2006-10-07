@@ -2808,6 +2808,7 @@ class Base(mpdclient3.mpd_connection):
             notifhbox.set_sensitive(True)
             notifhbox2.set_sensitive(True)
             self.show_notification = True
+            self.labelnotify()
         else:
             notifhbox.set_sensitive(False)
             notifhbox2.set_sensitive(False)
@@ -2820,9 +2821,11 @@ class Base(mpdclient3.mpd_connection):
 
     def prefs_notiflocation_changed(self, combobox):
         self.traytips.notifications_location = combobox.get_active()
+        self.labelnotify()
 
     def prefs_notiftime_changed(self, combobox):
         self.popup_option = combobox.get_active()
+        self.labelnotify()
 
     def seek(self, song, seektime):
         self.conn.do.seek(song, seektime)
