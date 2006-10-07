@@ -1,0 +1,394 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Sonata 0.7.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2006-09-18 19:09-0600\n"
+"PO-Revision-Date: 2006-10-06 20:37-0000\n"
+"Last-Translator: badDron <andrew@infonet.by>\n"
+"Language-Team: badDron <andrew@infonet.by>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Russian\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: sonata.py:129
+msgid "The toggle argument requires D-Bus. Aborting."
+msgstr ""
+
+#: sonata.py:168
+#: sonata.py:2156
+msgid "Entire song"
+msgstr "Всегда"
+
+#: sonata.py:225
+msgid "Use _Remote Image..."
+msgstr "Изображение из _Интернет"
+
+#: sonata.py:226
+msgid "Use _Local Image..."
+msgstr "_Локальное изображение"
+
+#: sonata.py:227
+msgid "_Play"
+msgstr "_Пуск"
+
+#: sonata.py:228
+msgid "_Pause"
+msgstr "Пауза"
+
+#: sonata.py:229
+msgid "_Stop"
+msgstr "_Стоп"
+
+#: sonata.py:230
+msgid "_Previous"
+msgstr "_Следующия дорожка"
+
+#: sonata.py:231
+msgid "_Next"
+msgstr "_Предыдущая дорожка"
+
+#: sonata.py:232
+msgid "_Quit"
+msgstr "_Выход"
+
+#: sonata.py:233
+msgid "_Remove"
+msgstr "_Удалить"
+
+#: sonata.py:234
+msgid "_Clear"
+msgstr "_Очистить"
+
+#: sonata.py:235
+msgid "_Save Playlist..."
+msgstr "_Сохранить список"
+
+#: sonata.py:236
+msgid "_Update Library"
+msgstr "_Обновить библиотеку"
+
+#: sonata.py:237
+msgid "_Preferences..."
+msgstr "_Настройки..."
+
+#: sonata.py:238
+msgid "_Help"
+msgstr "Помощь"
+
+#: sonata.py:239
+msgid "_Add"
+msgstr "_Добавить"
+
+#: sonata.py:240
+msgid "_Replace"
+msgstr "_Заменить"
+
+#: sonata.py:241
+msgid "_Delete"
+msgstr "_Удалить"
+
+#: sonata.py:261
+msgid "_Show Player"
+msgstr "_Показать окно плеера"
+
+#: sonata.py:262
+msgid "_Repeat"
+msgstr "_Повтор"
+
+#: sonata.py:263
+msgid "_Shuffle"
+msgstr "Произвольно"
+
+#: sonata.py:431
+#: sonata.py:546
+msgid "Playlist"
+msgstr "Список"
+
+#: sonata.py:453
+msgid "Current"
+msgstr "Текущий список"
+
+#: sonata.py:471
+msgid "Artist"
+msgstr "Исполнитель"
+
+#: sonata.py:472
+msgid "Title"
+msgstr "Название"
+
+#: sonata.py:473
+msgid "Album"
+msgstr "Альбом"
+
+#: sonata.py:474
+msgid "Genre"
+msgstr "Жанр"
+
+#: sonata.py:475
+msgid "Filename"
+msgstr "Имя файла"
+
+#: sonata.py:477
+msgid "_End Search"
+msgstr "_Завершить поиск"
+
+#: sonata.py:489
+msgid "Library"
+msgstr "Библиотека"
+
+#: sonata.py:503
+msgid "Playlists"
+msgstr "Списки"
+
+#: sonata.py:519
+#: sonata.py:522
+#: sonata.py:1224
+#: sonata.py:1226
+#: sonata.py:1232
+#: sonata.py:1464
+#: sonata.py:1466
+msgid "Stopped"
+msgstr "Остановлено"
+
+#: sonata.py:519
+#: sonata.py:1226
+#: sonata.py:1464
+msgid "Click to expand"
+msgstr "Развернуть плеер"
+
+#: sonata.py:522
+#: sonata.py:1224
+#: sonata.py:1466
+msgid "Click to collapse"
+msgstr "Свернуть плеер"
+
+#: sonata.py:525
+#: sonata.py:1212
+msgid "Not Connected"
+msgstr "Нет соединения"
+
+#: sonata.py:527
+#: sonata.py:1483
+msgid "Click to collapse the player"
+msgstr "Нажмите, чтобы свернуть плеер"
+
+#: sonata.py:529
+#: sonata.py:1485
+msgid "Click to expand the player"
+msgstr "Нажмите, чтобы развернуть плеер"
+
+#: sonata.py:726
+msgid "Version: Sonata"
+msgstr "Версия: Sonata"
+
+#: sonata.py:727
+msgid "Website: http://sonata.berlios.de"
+msgstr "Веб-сайт: http://sonata.berlios.de"
+
+#: sonata.py:732
+msgid "Usage: sonata [OPTION]"
+msgstr "Использование: sonata [OPTION]"
+
+#: sonata.py:734
+msgid "Options"
+msgstr "Настройки"
+
+#: sonata.py:735
+msgid "Show this help and exit"
+msgstr "Показать справку и выйти"
+
+#: sonata.py:736
+msgid "Show version information and exit"
+msgstr "Показать версию и выйти"
+
+#: sonata.py:737
+msgid "Toggles whether the app is minimized"
+msgstr "Определяет будет ли приложение свернуто"
+
+#: sonata.py:738
+msgid "to tray or visible (requires D-Bus)"
+msgstr "в трей или видимо (требует D-Bus)"
+
+#: sonata.py:882
+#: sonata.py:904
+msgid "Save Playlist"
+msgstr "Сохранить список"
+
+#: sonata.py:884
+msgid "Playlist name"
+msgstr "Имя списка"
+
+#: sonata.py:903
+msgid "A playlist with this name already exists."
+msgstr "Список с этим именем уже существует"
+
+#: sonata.py:1218
+msgid "by"
+msgstr "исполняет"
+
+#: sonata.py:1218
+#: sonata.py:1381
+msgid "from"
+msgstr "альбом"
+
+#: sonata.py:1221
+msgid "by Unknown"
+msgstr "Незвестный исполнитель"
+
+#: sonata.py:1230
+msgid "Not connected"
+msgstr "Нет соединения"
+
+#: sonata.py:1645
+msgid "Cover Art"
+msgstr "Обложка"
+
+#: sonata.py:1663
+msgid "Unknown Artist"
+msgstr "Неизвестный исполнитель"
+
+#: sonata.py:1669
+msgid "Unknown Album"
+msgstr "Неизвестный альбом"
+
+#: sonata.py:1716
+msgid "Open Image"
+msgstr "Открыть изображение"
+
+#: sonata.py:1718
+msgid "Images"
+msgstr "Изображения"
+
+#: sonata.py:1722
+msgid "All files"
+msgstr "Все файлы"
+
+#: sonata.py:1752
+#: sonata.py:1814
+msgid "Choose Cover Art"
+msgstr "Выбрать обложку"
+
+#: sonata.py:1753
+msgid "Choose"
+msgstr "Выбрать"
+
+#: sonata.py:1813
+msgid "No remote covers were found."
+msgstr "Не найдено подходящей обложки"
+
+#: sonata.py:2069
+msgid "Preferences"
+msgstr "Настройки"
+
+#: sonata.py:2079
+msgid "MPD Connection"
+msgstr "Подключение к MPD"
+
+#: sonata.py:2082
+msgid "Host"
+msgstr "Хост"
+
+#: sonata.py:2089
+msgid "Port"
+msgstr "Порт"
+
+#: sonata.py:2096
+msgid "Password"
+msgstr "Пароль"
+
+#: sonata.py:2107
+msgid "Leave blank if none is required"
+msgstr "Оставьте пустым если не требуется"
+
+#: sonata.py:2134
+#: sonata.py:2215
+msgid "Display"
+msgstr "Интерфейс"
+
+#: sonata.py:2136
+msgid "Show album covers"
+msgstr "Показывать обложки"
+
+#: sonata.py:2139
+msgid "Show volume button"
+msgstr "Показывать кнопку громкости"
+
+#: sonata.py:2142
+msgid "Show library searchbar"
+msgstr "Показывать поиск по библиотеке"
+
+#: sonata.py:2146
+msgid "Notification"
+msgstr "Уведомление"
+
+#: sonata.py:2148
+msgid "Popup notification on song changes"
+msgstr "Всплывающее уведомление при смене песни"
+
+#: sonata.py:2151
+msgid "Display for"
+msgstr "Показывать"
+
+#: sonata.py:2155
+msgid "second"
+msgstr "секунда"
+
+#: sonata.py:2157
+msgid "seconds"
+msgstr "секунд"
+
+#: sonata.py:2184
+msgid "Window Behavior"
+msgstr "Обрамление окна"
+
+#: sonata.py:2186
+msgid "Show window on all workspaces"
+msgstr "Показывать окно на всех рабочих столах"
+
+#: sonata.py:2188
+msgid "Keep window above other windows"
+msgstr "Всегда наверху"
+
+#: sonata.py:2190
+msgid "Stop playback on exit"
+msgstr "Останавливать воспроизведение при выходе"
+
+#: sonata.py:2192
+msgid "MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit."
+msgstr "MPD позволяет проигрывание даже если клиент не запущен. Если включено, Sonata будет похожа на обычный проигрыватель, и останавливать воспроизведение при выходе."
+
+#: sonata.py:2193
+msgid "Minimize to system tray on close"
+msgstr "Сворачивать в трей при закрытии"
+
+#: sonata.py:2195
+msgid "If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."
+msgstr "Если отмечено, при закрытии Sonata будет сворачиваться в трей. Имейте в виду, что на данный момент невозможно определить, есть ли у Вас трей, так что отмечайте только если вы уверены, что он есть :)"
+
+#: sonata.py:2201
+msgid "Miscellaneous"
+msgstr "Разное"
+
+#: sonata.py:2216
+msgid "Behavior"
+msgstr "Оболочка"
+
+#: sonata.py:2217
+msgid "MPD"
+msgstr "MPD"
+
+#: sonata.py:2430
+msgid "Unable to launch a suitable browser."
+msgstr "Не получается запустить подходящий браузер"
+
+#: sonata.py:2646
+msgid "An instance of Sonata is already running."
+msgstr "Sonata уже запущен"
+
