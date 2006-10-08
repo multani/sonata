@@ -3,7 +3,7 @@
 # $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/sonata.py $
 # $Id: mirage.py 141 2006-09-11 04:51:07Z stonecrest $
 
-__version__ = "0.7.1"
+__version__ = "0.8"
 
 __license__ = """
 Sonata, a simple GTK+ client for the Music Player Daemon
@@ -57,11 +57,9 @@ except ImportError, (strerror):
     sys.exit(1)
 
 try:
-    # We'll make the system tray functionality optional...
     import egg.trayicon
     HAVE_EGG = True
 except ImportError:
-    # so we'll pass on any errors in loading it
     HAVE_EGG = False
     pass
 
@@ -1347,25 +1345,23 @@ class Base(mpdclient3.mpd_connection):
             row_found = False
             row_y = 0
             if self.notebook.get_current_page() == 0:
-                rows = self.current.get_selection().get_selected_rows()[1]
-                visible_rect = self.current.get_visible_rect()
-                while not row_found and i < len(rows):
-                    row = rows[i]
-                    row_rect = self.current.get_background_area(row, self.currentcolumn)
-                    if row_rect.y + row_rect.height <= visible_rect.height and row_rect.y >= 0:
-                        row_found = True
-                        row_y = row_rect.y + 30
-                    i += 1
-            else:
-                rows = self.browser.get_selection().get_selected_rows()[1]
-                visible_rect = self.browser.get_visible_rect()
-                while not row_found and i < len(rows):
-                    row = rows[i]
-                    row_rect = self.browser.get_background_area(row, self.browsercolumn)
-                    if row_rect.y + row_rect.height <= visible_rect.height and row_rect.y >= 0:
-                        row_found = True
-                        row_y = row_rect.y + 30
-                    i += 1
+                widget = self.current
+                column = self.currentcolumn
+            elif self.notebook.get_current_page() == 1:
+                widget = self.browser
+                column = self.browsercolumn
+            elif self.notebook.get_current_page() == 2:
+                widget = self.playlists
+                column = self.playlistscolumn
+            rows = widget.get_selection().get_selected_rows()[1]
+            visible_rect = widget.get_visible_rect()
+            while not row_found and i < len(rows):
+                row = rows[i]
+                row_rect = widget.get_background_area(row, column)
+                if row_rect.y + row_rect.height <= visible_rect.height and row_rect.y >= 0:
+                    row_found = True
+                    row_y = row_rect.y + 30
+                i += 1
             return (self.x + width - 150, self.y + y + row_y, True)
         else:
             return (self.x + 250, self.y + 80, True)
