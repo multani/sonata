@@ -648,6 +648,8 @@ class Base(mpdclient3.mpd_connection):
         self.notebook.connect('button_press_event', self.on_notebook_click)
         self.searchtext.connect('button_press_event', self.on_searchtext_click)
 
+        self.initialize_systrayicon()
+
         # Connect to mmkeys signals
         self.keys = mmkeys.MmKeys()
         self.keys.connect("mm_prev", self.mmprev)
@@ -723,9 +725,6 @@ class Base(mpdclient3.mpd_connection):
 
         while gtk.events_pending():
             gtk.main_iteration()
-
-        if HAVE_EGG:
-            self.initialize_systrayicon()
 
         if self.update_on_start:
             self.updatedb(None)
