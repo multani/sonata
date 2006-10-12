@@ -886,14 +886,17 @@ class Base(mpdclient3.mpd_connection):
                 except:
                     self.status = None
                 self.songinfo = self.conn.do.currentsong()
-                if self.repeat and self.status.repeat == '0':
-                    self.conn.do.repeat(1)
-                elif not self.repeat and self.status.repeat == '1':
-                    self.conn.do.repeat(0)
-                if self.shuffle and self.status.random == '0':
-                    self.conn.do.random(1)
-                elif not self.shuffle and self.status.random == '1':
-                    self.conn.do.random(0)
+                try:
+                    if self.repeat and self.status.repeat == '0':
+                        self.conn.do.repeat(1)
+                    elif not self.repeat and self.status.repeat == '1':
+                        self.conn.do.repeat(0)
+                    if self.shuffle and self.status.random == '0':
+                        self.conn.do.random(1)
+                    elif not self.shuffle and self.status.random == '1':
+                        self.conn.do.random(0)
+                except:
+                    pass
             else:
                 self.iterate_time = self.iterate_time_when_disconnected
                 self.status = None
