@@ -1,11 +1,10 @@
-translations
-
 v0.9
 	song properties (metadata)
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
 		Add to > Next song, top, random
 	Stream support
 	make selection, dnd, more like thunar
+	make remote images non-blocking
 	break up main app vs notification window translations (see email)
 
 Future:
