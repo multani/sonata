@@ -886,7 +886,7 @@ class Base(mpdclient3.mpd_connection):
                 except:
                     self.status = None
                 self.songinfo = self.conn.do.currentsong()
-                try:
+                if self.status:
                     if self.repeat and self.status.repeat == '0':
                         self.conn.do.repeat(1)
                     elif not self.repeat and self.status.repeat == '1':
@@ -895,8 +895,6 @@ class Base(mpdclient3.mpd_connection):
                         self.conn.do.random(1)
                     elif not self.shuffle and self.status.random == '1':
                         self.conn.do.random(0)
-                except:
-                    pass
             else:
                 self.iterate_time = self.iterate_time_when_disconnected
                 self.status = None
@@ -948,12 +946,12 @@ class Base(mpdclient3.mpd_connection):
         shortcut = shortcut.replace("<Mod2>", "")
         # These shortcuts were moved here so that they don't
         # interfere with searching the library
-        if shortcut in 'BackSpace':
+        if shortcut == 'BackSpace':
             self.parent_dir(None)
-        elif shortcut in 'Escape':
+        elif shortcut == 'Escape':
             if self.minimize_to_systray:
                 self.withdraw_app()
-        elif shortcut in 'Delete':
+        elif shortcut == 'Delete':
             self.remove(None)
 
     def settings_load(self):
