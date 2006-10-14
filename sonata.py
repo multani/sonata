@@ -856,6 +856,8 @@ class Base(mpdclient3.mpd_connection):
     def connectkey_pressed(self, event):
         self.user_connect = True
         self.conn = self.connect()
+        if self.conn:
+            self.conn.do.password(self.password)
         self.iterate_now()
 
     def disconnectbutton_clicked(self, disconnectbutton, connectbutton):
@@ -878,6 +880,8 @@ class Base(mpdclient3.mpd_connection):
         try:
             if not self.conn:
                 self.conn = self.connect()
+                if self.conn:
+                    self.conn.do.password(self.password)
             if self.conn:
                 self.iterate_time = self.iterate_time_when_connected
                 self.status = self.conn.do.status()

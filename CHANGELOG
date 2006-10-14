@@ -1,6 +1,8 @@
 v0.8.1 - Pending
 	+ Add Polish translation (Tomasz Dominikowski)
+	+ Bug: Correctly send mpd password when using manual connect
 	+ Bug: Prevent certain keys from causing events
+	+ Bug: Prevent potential crash if not able to obtain mpd status
 
 v0.8 - October 7, 2006
 	+ Allow user formatting of current playlist, library, and title
