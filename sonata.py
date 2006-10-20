@@ -3,7 +3,7 @@
 # $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/sonata.py $
 # $Id: mirage.py 141 2006-09-11 04:51:07Z stonecrest $
 
-__version__ = "0.8"
+__version__ = "0.8.1"
 
 __license__ = """
 Sonata, a simple GTK+ client for the Music Player Daemon
@@ -2189,8 +2189,6 @@ class Base(mpdclient3.mpd_connection):
             # leaves and enters the trayicon again
             if self.traytips.notif_handler == None:
                 self.traytips._remove_timer()
-            while gtk.events_pending():
-                gtk.main_iteration()
             gobject.timeout_add(100, self.set_ignore_toggle_signal_false)
         elif event.button == 2: # Middle button will play/pause
             if self.conn:

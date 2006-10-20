@@ -11,7 +11,7 @@ def capture(cmd):
     return os.popen(cmd).read().strip()
 
 setup(name='Sonata',
-        version='0.8',
+        version='0.8.1',
         description='GTK+ client for the Music Player Daemon (MPD).',
         author='Scott Horowitz',
         author_email='stonecrest@gmail.com',
