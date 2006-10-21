@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # py-libmpdclient2 is written by Nick Welch <mack@incise.org>, 2005.
 #
 # This software is in the public domain
