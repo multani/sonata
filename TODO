@@ -7,6 +7,7 @@ v0.9
 	make remote images non-blocking
 	break up main app vs notification window translations (see email)
 	sonata --play, --pause, --stop, etc
+	check for local artwork
 
 Future:
 	allow multiple columns?

@@ -750,7 +750,8 @@ class Base(mpdclient3.mpd_connection):
         print _("Options") + ":"
         print "  -h, --help           " + _("Show this help and exit")
         print "  -v, --version        " + _("Show version information and exit")
-        print "  -s, --status         " + _("Display current song info")
+        print "  -i, --info           " + _("Display current song info")
+        print "  -s, --status         " + _("Display MPD status")
         print "  -t, --toggle         " + _("Toggles whether the app is minimized")
         print "                       " + _("to tray or visible (requires D-Bus)")
 
@@ -2059,8 +2060,11 @@ class Base(mpdclient3.mpd_connection):
         dialog.set_preview_widget(preview)
         dialog.set_use_preview_label(False)
         dialog.connect("update-preview", self.update_preview, preview)
+        dialog.connect("response", self.choose_image_local_response)
         dialog.set_default_response(gtk.RESPONSE_OK)
-        response = dialog.run()
+        dialog.show()
+
+    def choose_image_local_response(self, dialog, response):
         if response == gtk.RESPONSE_OK:
             filename = dialog.get_filenames()[0]
             artist = getattr(self.songinfo, 'artist', None)
