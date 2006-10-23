@@ -146,6 +146,7 @@ class Base(mpdclient3.mpd_connection):
         gtk.gdk.threads_init()
 
         # Initialize vars:
+        self.musicdir = "/home/user/music/"
         socket.setdefaulttimeout(2)
         self.stop_art_update = False
         self.updating_art = False
@@ -979,6 +980,8 @@ class Base(mpdclient3.mpd_connection):
             self.password = conf.get('connection', 'password')
         if conf.has_option('connection', 'auto'):
             self.autoconnect = conf.getboolean('connection', 'auto')
+        if conf.has_option('connection', 'musicdir'):
+            self.musicdir = conf.get('connection', 'musicdir')
         if conf.has_option('player', 'x'):
             self.x = conf.getint('player', 'x')
         if conf.has_option('player', 'y'):
@@ -1037,6 +1040,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('connection', 'port', self.port)
         conf.set('connection', 'password', self.password)
         conf.set('connection', 'auto', self.autoconnect)
+        conf.set('connection', 'musicdir', self.musicdir)
         conf.add_section('player')
         conf.set('player', 'w', self.w)
         conf.set('player', 'h', self.h)
@@ -1581,29 +1585,22 @@ class Base(mpdclient3.mpd_connection):
             if not artist: artist = ""
             album = getattr(self.songinfo, 'album', None)
             if not album: album = ""
-            try:
-                filename = os.path.expanduser("~/.config/sonata/covers/" + artist + "-" + album + ".jpg")
-                if filename == self.lastalbumart:
-                    # No need to update..
-                    self.stop_art_update = False
-                    self.updating_art = False
-                    return
-                if os.path.exists(filename):
-                    gtk.gdk.threads_enter()
-                    pix = gtk.gdk.pixbuf_new_from_file(filename)
-                    pix = pix.scale_simple(75, 75, gtk.gdk.INTERP_HYPER)
-                    if self.stop_art_update:
-                        gtk.gdk.threads_leave()
-                        self.stop_art_update = False
-                        self.updating_art = False
-                        return
-                    self.albumimage.set_from_pixbuf(pix)
-                    self.set_tooltip_art(pix)
-                    self.lastalbumart = filename
-                    gtk.gdk.threads_leave()
-                    del pix
+            #try:
+            filename = os.path.expanduser("~/.config/sonata/covers/" + artist + "-" + album + ".jpg")
+            if filename == self.lastalbumart:
+                # No need to update..
+                self.stop_art_update = False
+                self.updating_art = False
+                return
+            if os.path.exists(filename):
+                self.set_image_for_cover(filename)
+            else:
+                #Check for some local images:
+                songdir = os.path.dirname(self.songinfo.file)
+                if os.path.exists(self.musicdir + songdir + "/cover.jpg"):
+                    shutil.copyfile(self.musicdir + songdir + "/cover.jpg", filename)
+                    self.set_image_for_cover(filename)
                 else:
-                    # Default to sonatacd:
                     gtk.gdk.threads_enter()
                     self.albumimage.set_from_file(self.sonatacd)
                     self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
@@ -1611,25 +1608,13 @@ class Base(mpdclient3.mpd_connection):
                     gtk.gdk.threads_leave()
                     self.download_image_to_filename(artist, album, filename)
                     if os.path.exists(filename):
-                        gtk.gdk.threads_enter()
-                        pix = gtk.gdk.pixbuf_new_from_file(filename)
-                        pix = pix.scale_simple(75, 75, gtk.gdk.INTERP_HYPER)
-                        if self.stop_art_update:
-                            gtk.gdk.threads_leave()
-                            self.stop_art_update = False
-                            self.updating_art = False
-                            return
-                        self.albumimage.set_from_pixbuf(pix)
-                        self.set_tooltip_art(pix)
-                        self.lastalbumart = filename
-                        gtk.gdk.threads_leave()
-                        del pix
-            except:
-                gtk.gdk.threads_enter()
-                self.albumimage.set_from_file(self.sonatacd)
-                self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
-                self.lastalbumart = None
-                gtk.gdk.threads_leave()
+                        self.set_image_for_cover(filename)
+            #except:
+            #	gtk.gdk.threads_enter()
+            #	self.albumimage.set_from_file(self.sonatacd)
+            #	self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
+            #	self.lastalbumart = None
+            #	gtk.gdk.threads_leave()
         else:
             gtk.gdk.threads_enter()
             self.albumimage.set_from_file(self.sonatacd)
@@ -1639,6 +1624,21 @@ class Base(mpdclient3.mpd_connection):
         gc.collect()
         self.updating_art = False
         self.stop_art_update = False
+
+    def set_image_for_cover(self, filename):
+        gtk.gdk.threads_enter()
+        pix = gtk.gdk.pixbuf_new_from_file(filename)
+        pix = pix.scale_simple(75, 75, gtk.gdk.INTERP_HYPER)
+        if self.stop_art_update:
+            gtk.gdk.threads_leave()
+            self.stop_art_update = False
+            self.updating_art = False
+            return
+        self.albumimage.set_from_pixbuf(pix)
+        self.set_tooltip_art(pix)
+        self.lastalbumart = filename
+        gtk.gdk.threads_leave()
+        del pix
 
     def download_image_to_filename(self, artist, album, dest_filename, all_images=False):
         if artist == "" and album == "":
@@ -2449,6 +2449,13 @@ class Base(mpdclient3.mpd_connection):
         portentry = gtk.Entry()
         portentry.set_text(str(self.port))
         portbox.pack_start(portentry, True, True, 10)
+        dirbox = gtk.HBox()
+        dirlabel = gtk.Label(_("Music dir") + ":")
+        dirlabel.set_alignment(0, 0.5)
+        dirbox.pack_start(dirlabel, False, False, 0)
+        direntry = gtk.Entry()
+        direntry.set_text(str(self.musicdir))
+        dirbox.pack_start(direntry, True, True, 10)
         passwordbox = gtk.HBox()
         passwordlabel = gtk.Label(_("Password") + ":")
         passwordlabel.set_alignment(0, 0.5)
@@ -2456,23 +2463,17 @@ class Base(mpdclient3.mpd_connection):
         passwordentry = gtk.Entry()
         passwordentry.set_visibility(False)
         passwordentry.set_text(str(self.password))
+        self.tooltips.set_tip(passwordentry, _("Leave blank if no password is required."))
         passwordbox.pack_start(passwordentry, True, True, 10)
-        blankbox = gtk.HBox()
-        blanklabel = gtk.Label()
-        blankbox.pack_start(blanklabel, False, False, 0)
-        blanklabel2 = gtk.Label()
-        blanklabel2.set_markup("<small>(" + _('Leave blank if none is required') + ")</small>")
-        blanklabel2.set_alignment(0, 0.3)
-        blankbox.pack_start(blanklabel2, False, False, 10)
         max_label_width = 0     # Set all label widths the same
         if hostlabel.size_request()[0] > max_label_width: max_label_width = hostlabel.size_request()[0]
         if portlabel.size_request()[0] > max_label_width: max_label_width = portlabel.size_request()[0]
         if passwordlabel.size_request()[0] > max_label_width: max_label_width = passwordlabel.size_request()[0]
-        if blanklabel.size_request()[0] > max_label_width: max_label_width = blanklabel.size_request()[0]
+        if dirlabel.size_request()[0] > max_label_width: max_label_width = dirlabel.size_request()[0]
         hostlabel.set_size_request(max_label_width, -1)
         portlabel.set_size_request(max_label_width, -1)
         passwordlabel.set_size_request(max_label_width, -1)
-        blanklabel.set_size_request(max_label_width, -1)
+        dirlabel.set_size_request(max_label_width, -1)
         autoconnect = gtk.CheckButton(_("Autoconnect on start"))
         autoconnect.set_active(self.autoconnect)
         connectbox = gtk.HBox()
@@ -2497,12 +2498,12 @@ class Base(mpdclient3.mpd_connection):
         table.attach(hostbox, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table.attach(portbox, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table.attach(passwordbox, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table.attach(blankbox, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table.attach(gtk.Label(), 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(dirbox, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table.attach(gtk.Label(), 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table.attach(autoconnect, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table.attach(connectbox, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table.attach(gtk.Label(), 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         table.attach(gtk.Label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table.attach(gtk.Label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         # Display tab
@@ -2693,6 +2694,9 @@ class Base(mpdclient3.mpd_connection):
             self.stop_on_exit = exit_stop.get_active()
             self.ontop = win_ontop.get_active()
             self.sticky = win_sticky.get_active()
+            self.musicdir = direntry.get_text()
+            if self.musicdir[-1] != "/":
+                self.musicdir = self.musicdir + "/"
             self.minimize_to_systray = minimize.get_active()
             self.update_on_start = update_start.get_active()
             self.autoconnect = autoconnect.get_active()

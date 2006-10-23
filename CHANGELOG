@@ -1,3 +1,6 @@
+v0.9 - Pending
+	+ Use local artwork (cover.jpg) if it exists
+
 v0.8.1 - October 19, 2006
 	+ Add Polish translation (Tomasz Dominikowski)
 	+ Bug: Correctly send mpd password when using manual connect
