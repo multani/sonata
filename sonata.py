@@ -1585,36 +1585,39 @@ class Base(mpdclient3.mpd_connection):
             if not artist: artist = ""
             album = getattr(self.songinfo, 'album', None)
             if not album: album = ""
-            #try:
-            filename = os.path.expanduser("~/.config/sonata/covers/" + artist + "-" + album + ".jpg")
-            if filename == self.lastalbumart:
-                # No need to update..
-                self.stop_art_update = False
-                self.updating_art = False
-                return
-            if os.path.exists(filename):
-                self.set_image_for_cover(filename)
-            else:
-                #Check for some local images:
-                songdir = os.path.dirname(self.songinfo.file)
-                if os.path.exists(self.musicdir + songdir + "/cover.jpg"):
-                    shutil.copyfile(self.musicdir + songdir + "/cover.jpg", filename)
+            try:
+                filename = os.path.expanduser("~/.config/sonata/covers/" + artist + "-" + album + ".jpg")
+                if filename == self.lastalbumart:
+                    # No need to update..
+                    self.stop_art_update = False
+                    self.updating_art = False
+                    return
+                if os.path.exists(filename):
                     self.set_image_for_cover(filename)
                 else:
-                    gtk.gdk.threads_enter()
-                    self.albumimage.set_from_file(self.sonatacd)
-                    self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
-                    self.lastalbumart = None
-                    gtk.gdk.threads_leave()
-                    self.download_image_to_filename(artist, album, filename)
-                    if os.path.exists(filename):
+                    #Check for some local images:
+                    songdir = os.path.dirname(self.songinfo.file)
+                    if os.path.exists(self.musicdir + songdir + "/cover.jpg"):
+                        shutil.copyfile(self.musicdir + songdir + "/cover.jpg", filename)
                         self.set_image_for_cover(filename)
-            #except:
-            #	gtk.gdk.threads_enter()
-            #	self.albumimage.set_from_file(self.sonatacd)
-            #	self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
-            #	self.lastalbumart = None
-            #	gtk.gdk.threads_leave()
+                    elif os.path.exists(self.musicdir + songdir + "/folder.jpg"):
+                        shutil.copyfile(self.musicdir + songdir + "/folder.jpg", filename)
+                        self.set_image_for_cover(filename)
+                    else:
+                        gtk.gdk.threads_enter()
+                        self.albumimage.set_from_file(self.sonatacd)
+                        self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
+                        self.lastalbumart = None
+                        gtk.gdk.threads_leave()
+                        self.download_image_to_filename(artist, album, filename)
+                        if os.path.exists(filename):
+                            self.set_image_for_cover(filename)
+            except:
+                gtk.gdk.threads_enter()
+                self.albumimage.set_from_file(self.sonatacd)
+                self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
+                self.lastalbumart = None
+                gtk.gdk.threads_leave()
         else:
             gtk.gdk.threads_enter()
             self.albumimage.set_from_file(self.sonatacd)
