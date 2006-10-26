@@ -1500,6 +1500,7 @@ class Base(mpdclient3.mpd_connection):
             try:
                 # Try song/artist/album:
                 newlabel = '<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>' + _('by') + ' ' + escape_html(getattr(self.songinfo, 'artist', None)) + ' ' + _('from') + ' ' + escape_html(getattr(self.songinfo, 'album', None)) + '</small>'
+                newlabel_tray = '<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>' + _('by') + ' ' + escape_html(getattr(self.songinfo, 'artist', None)) + '\n' + _('from') + ' ' + escape_html(getattr(self.songinfo, 'album', None)) + '</small>'
                 newlabelfound = True
             except:
                 pass
@@ -1507,6 +1508,7 @@ class Base(mpdclient3.mpd_connection):
                 try:
                     # Fallback, try song/artist:
                     newlabel = '<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>' + _('by') + ' ' + escape_html(getattr(self.songinfo, 'artist', None)) + '</small>'
+                    newlabel_tray = newlabel
                     newlabelfound = True
                 except:
                     pass
@@ -1514,8 +1516,11 @@ class Base(mpdclient3.mpd_connection):
                     # Fallback, use file name:
                     name = self.filename_or_fullpath(self.songinfo.file)
                     newlabel = '<big><b>' + escape_html(name) + '</b></big>\n<small>' + _('by Unknown') + '</small>'
+                    newlabel_tray = newlabel
             if newlabel != self.cursonglabel.get_label():
                 self.cursonglabel.set_markup(newlabel)
+            if newlabel_tray != self.traycursonglabel.get_label():
+                self.traycursonglabel.set_markup(newlabel_tray)
         else:
             if self.expanded:
                 self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to collapse') + '</small>')
@@ -1703,7 +1708,6 @@ class Base(mpdclient3.mpd_connection):
             pass
 
     def labelnotify(self, *args):
-        self.traycursonglabel.set_label(self.cursonglabel.get_label().replace(_('from'),'\n' + _('from')))
         if self.show_covers:
             self.traytips.set_size_request(350, -1)
         else:
