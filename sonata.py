@@ -1,5 +1,5 @@
 # $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/sonata.py $
-# $Id: mirage.py 141 2006-09-11 04:51:07Z stonecrest $
+# $Id: sonata.py 141 2006-09-11 04:51:07Z stonecrest $
 
 __version__ = "0.8.1"
 

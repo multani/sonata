@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Sonata 0.8\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2006-10-06 20:44-0600\n"
-"PO-Revision-Date: 2006-10-10 13:17+0100\n"
+"PO-Revision-Date: 2006-10-26 13:33+0100\n"
 "Last-Translator: Tomasz Dominikowski <dominikowski@gmail.com>\n"
 "Language-Team: Tomasz Dominikowski <dominikowski@gmail.com>\n"
 "MIME-Version: 1.0\n"
@@ -296,7 +296,7 @@ msgstr "Włączone"
 #: sonata.py:823
 #: sonata.py:825
 msgid "Shuffle"
-msgstr "Odwarzanie losowe"
+msgstr "Odtwarzanie losowe"
 
 #: sonata.py:826
 msgid "Volume"
@@ -326,7 +326,7 @@ msgstr "Lista odtwarzania o tej nazwie już istnieje."
 #: sonata.py:1499
 #: sonata.py:1506
 msgid "by"
-msgstr "przez"
+msgstr "-"
 
 #: sonata.py:1499
 #: sonata.py:1704
@@ -335,11 +335,11 @@ msgstr "z"
 
 #: sonata.py:1513
 msgid "by Unknown"
-msgstr "przez Nieznany"
+msgstr "- Nieznany"
 
 #: sonata.py:1522
 msgid "Not connected"
-msgstr "Nie ołączony"
+msgstr "Nie połączony"
 
 #: sonata.py:1980
 msgid "Cover Art"
@@ -445,7 +445,7 @@ msgstr "Wyskakujące powiadomienie podczas zmiany utworu"
 
 #: sonata.py:2533
 msgid "Display for"
-msgstr "Wyświetlaj dla"
+msgstr "Wyświetlaj przez"
 
 #: sonata.py:2539
 msgid "second"
