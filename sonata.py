@@ -1603,11 +1603,9 @@ class Base(mpdclient3.mpd_connection):
                     #Check for some local images:
                     songdir = os.path.dirname(self.songinfo.file)
                     if os.path.exists(self.musicdir + songdir + "/cover.jpg"):
-                        shutil.copyfile(self.musicdir + songdir + "/cover.jpg", filename)
-                        self.set_image_for_cover(filename)
+                        self.set_image_for_cover(self.musicdir + songdir + "/cover.jpg")
                     elif os.path.exists(self.musicdir + songdir + "/folder.jpg"):
-                        shutil.copyfile(self.musicdir + songdir + "/folder.jpg", filename)
-                        self.set_image_for_cover(filename)
+                        self.set_image_for_cover(self.musicdir + songdir + "/folder.jpg")
                     else:
                         gtk.gdk.threads_enter()
                         self.albumimage.set_from_file(self.sonatacd)
