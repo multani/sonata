@@ -735,7 +735,7 @@ class Base(mpdclient3.mpd_connection):
         self.notebook.connect('switch-page', self.notebook_tab_clicked)
 
         if show_prefs:
-            self.prefs(None, True)
+            self.prefs(None)
 
         self.initial_run = False
 
@@ -1795,16 +1795,16 @@ class Base(mpdclient3.mpd_connection):
                 self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to expand') + '</small>')
             else:
                 self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to collapse') + '</small>')
-        while gtk.events_pending():
-            gtk.main_iteration()
         # This is INCREDIBLY hackish.. but it attempts to ensure that
         # self.notebook is actually visible before resizing. If not,
         # it can cause the expanded playlist to be a smaller height
         # than self.h. If you can fix this, I'll love you forever.
-        gobject.timeout_add(10, self.resize_window)
-        return
+        gobject.idle_add(self.resize_window1)
 
-    def resize_window(self):
+    def resize_window1(self):
+        gobject.timeout_add(1, self.resize_window2)
+
+    def resize_window2(self):
         if self.expander.get_expanded():
             self.window.resize(self.w, self.h)
         else:
@@ -2089,7 +2089,7 @@ class Base(mpdclient3.mpd_connection):
 
     def choose_image(self, widget):
         self.stop_art_update = True
-        while self.updating_art or gtk.events_pending():
+        while self.updating_art:
             gtk.main_iteration()
         self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
         choose_dialog = gtk.Dialog(_("Choose Cover Art"), self.window, gtk.DIALOG_MODAL, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
@@ -2109,8 +2109,6 @@ class Base(mpdclient3.mpd_connection):
         if not album: album = ""
         imagelist = gtk.ListStore(int, gtk.gdk.Pixbuf)
         filename = os.path.expanduser("~/.config/sonata/covers/temp/<imagenum>.jpg")
-        while gtk.events_pending():
-            gtk.main_iteration()
         if os.path.exists(os.path.dirname(filename)):
             removeall(os.path.dirname(filename))
         if not os.path.exists(os.path.dirname(filename)):
@@ -2121,8 +2119,6 @@ class Base(mpdclient3.mpd_connection):
         image_num = 1
         while os.path.exists(filename.replace("<imagenum>", str(image_num))):
             try:
-                while gtk.events_pending():
-                    gtk.main_iteration()
                 pix = gtk.gdk.pixbuf_new_from_file(filename.replace("<imagenum>", str(image_num)))
                 pix = pix.scale_simple(150, 150, gtk.gdk.INTERP_HYPER)
                 imagelist.append([image_num, pix])
@@ -2152,8 +2148,6 @@ class Base(mpdclient3.mpd_connection):
                 choose_dialog.destroy()
         else:
             self.change_cursor(None)
-            while gtk.events_pending():
-                gtk.main_iteration()
             error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No remote covers were found."))
             error_dialog.set_title(_("Choose Cover Art"))
             error_dialog.run()
@@ -2428,7 +2422,7 @@ class Base(mpdclient3.mpd_connection):
                 self.shufflemenu.set_active(False)
                 self.shuffle = False
 
-    def prefs(self, widget, show_mpd_tab=False):
+    def prefs(self, widget):
         prefswindow = gtk.Dialog(_("Preferences"), self.window, flags=gtk.DIALOG_DESTROY_WITH_PARENT)
         prefswindow.set_resizable(False)
         prefswindow.set_has_separator(False)
@@ -2689,10 +2683,6 @@ class Base(mpdclient3.mpd_connection):
         prefswindow.vbox.pack_start(hbox, False, False, 10)
         close_button = prefswindow.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
         prefswindow.show_all()
-        while gtk.events_pending():
-            gtk.main_iteration()
-        if show_mpd_tab:
-            prefsnotebook.set_current_page(0) # MPD page
         close_button.grab_focus()
         response = prefswindow.run()
         if response == gtk.RESPONSE_CLOSE:
@@ -2730,8 +2720,6 @@ class Base(mpdclient3.mpd_connection):
                     pass
                 self.password = passwordentry.get_text()
                 self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
-                while gtk.events_pending():
-                    gtk.main_iteration()
                 self.conn = self.connect()
                 if self.conn:
                     self.iterate_time = self.iterate_time_when_connected
