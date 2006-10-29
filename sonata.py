@@ -2853,18 +2853,23 @@ class Base(mpdclient3.mpd_connection):
 
     def search(self, entry):
         searchby = self.searchcombo.get_active_text().lower()
-        list = self.conn.do.search(searchby, self.searchtext.get_text())
-        self.browserdata.clear()
-        for item in list:
-            if item.type == 'directory':
-                name = item.directory.split('/')[-1]
-                self.browserdata.append([gtk.STOCK_OPEN, item.directory, escape_html(name)])
-            elif item.type == 'file':
-                self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item)])
-        self.browser.grab_focus()
-        self.browser.scroll_to_point(0, 0)
-        self.searchbutton.show()
-        self.searchbutton.set_no_show_all(False)
+        if self.searchtext.get_text() != "":
+            list = self.conn.do.search(searchby, self.searchtext.get_text())
+            self.browserdata.clear()
+            for item in list:
+                if item.type == 'directory':
+                    name = item.directory.split('/')[-1]
+                    self.browserdata.append([gtk.STOCK_OPEN, item.directory, escape_html(name)])
+                elif item.type == 'file':
+                    self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item)])
+            self.browser.grab_focus()
+            self.browser.scroll_to_point(0, 0)
+            self.searchbutton.show()
+            self.searchbutton.set_no_show_all(False)
+        else:
+            self.browserdata.clear()
+            self.searchbutton.show()
+            self.searchbutton.set_no_show_all(False)
 
     def search_end(self, button):
         self.browse(root=self.browser.wd)
