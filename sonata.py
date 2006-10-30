@@ -1466,7 +1466,7 @@ class Base(mpdclient3.mpd_connection):
             at, len = [float(c) for c in self.status.time.split(':')]
             try:
                 self.progressbar.set_fraction(at/len)
-            except ZeroDivisionError:
+            except:
                 self.progressbar.set_fraction(0)
         else:
             self.progressbar.set_fraction(0)
@@ -1477,7 +1477,7 @@ class Base(mpdclient3.mpd_connection):
                 try:
                     time = convert_time(int(self.songinfo.time))
                     self.progressbar.set_text(at_time + " / " + time)
-                except AttributeError:
+                except:
                     self.progressbar.set_text(at_time)
             else:
                 self.progressbar.set_text('')
