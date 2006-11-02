@@ -1250,7 +1250,7 @@ class Base(mpdclient3.mpd_connection):
                 name = item.directory.split('/')[-1]
                 self.browserdata.append([gtk.STOCK_OPEN, item.directory, escape_html(name)])
             elif item.type == 'file':
-                self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item)])
+                self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
         self.browser.thaw_child_notify()
 
         # Scroll back to set view for current dir:
@@ -1275,7 +1275,7 @@ class Base(mpdclient3.mpd_connection):
             except:
                 pass
 
-    def parse_formatting(self, format, item):
+    def parse_formatting(self, format, item, use_escape_html):
         if self.song_has_metadata(item):
             text = format
             if "%A" in text:
@@ -1302,7 +1302,10 @@ class Base(mpdclient3.mpd_connection):
                 text = text.replace("%F", item.file)
             if "%P" in text:
                 text = text.replace("%P", item.file.split('/')[-1])
-            return escape_html(text)
+            if use_escape_html:
+                return escape_html(text)
+            else:
+                return text
         else:
             return self.filename_or_fullpath(item.file)
 
@@ -1583,7 +1586,7 @@ class Base(mpdclient3.mpd_connection):
 
     def update_wintitle(self):
         if self.conn and self.status and self.status.state in ['play', 'pause']:
-            self.window.set_property('title', self.parse_formatting(self.titleformat, self.songinfo))
+            self.window.set_property('title', self.parse_formatting(self.titleformat, self.songinfo, False))
         else:
             self.window.set_property('title', 'Sonata')
 
@@ -1593,7 +1596,7 @@ class Base(mpdclient3.mpd_connection):
             self.currentdata.clear()
             self.current.freeze_child_notify()
             for track in self.songs:
-                self.currentdata.append([int(track.id), self.parse_formatting(self.currentformat, track)])
+                self.currentdata.append([int(track.id), self.parse_formatting(self.currentformat, track, True)])
             self.current.thaw_child_notify()
             if self.status.state in ['play', 'pause']:
                 row = int(self.songinfo.pos)
@@ -2909,7 +2912,7 @@ class Base(mpdclient3.mpd_connection):
                     name = item.directory.split('/')[-1]
                     self.browserdata.append([gtk.STOCK_OPEN, item.directory, escape_html(name)])
                 elif item.type == 'file':
-                    self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item)])
+                    self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
             self.browser.grab_focus()
             self.browser.scroll_to_point(0, 0)
             self.searchbutton.show()
