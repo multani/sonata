@@ -114,7 +114,7 @@ class Base(mpdclient3.mpd_connection):
         toggle_arg = False
         # Read any passed options/arguments:
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "tvsi", ["toggle", "version", "status", "info"])
+            opts, args = getopt.getopt(sys.argv[1:], "tv", ["toggle", "version", "status", "info", "play", "pause", "stop", "next", "prev", "pp"])
         except getopt.GetoptError:
             # print help information and exit:
             self.print_usage()
@@ -131,15 +131,38 @@ class Base(mpdclient3.mpd_connection):
                 elif o in ("-v", "--version"):
                     self.print_version()
                     sys.exit()
-                elif o in ("-i", "--info"):
-                    self.print_status("info")
-                    sys.exit()
-                elif o in ("-s", "--status"):
-                    self.print_status("status")
-                    sys.exit()
                 else:
                     self.print_usage()
                     sys.exit()
+        if args != []:
+            for a in args:
+                if a in ("play"):
+                    self.single_connect_for_passed_arg("play")
+                    sys.exit()
+                elif a in ("pause"):
+                    self.single_connect_for_passed_arg("pause")
+                    sys.exit()
+                elif a in ("stop"):
+                    self.single_connect_for_passed_arg("stop")
+                    sys.exit()
+                elif a in ("next"):
+                    self.single_connect_for_passed_arg("next")
+                    sys.exit()
+                elif a in ("prev"):
+                    self.single_connect_for_passed_arg("prev")
+                    sys.exit()
+                elif a in ("pp"):
+                    self.single_connect_for_passed_arg("toggle")
+                    sys.exit()
+                elif a in ("info"):
+                    self.single_connect_for_passed_arg("info")
+                    sys.exit()
+                elif a in ("status"):
+                    self.single_connect_for_passed_arg("status")
+                    sys.exit()
+                else:
+                    self.print_usage()
+                    self.exit()
 
         start_dbus_interface(toggle_arg)
 
@@ -751,12 +774,18 @@ class Base(mpdclient3.mpd_connection):
         print _("Options") + ":"
         print "  -h, --help           " + _("Show this help and exit")
         print "  -v, --version        " + _("Show version information and exit")
-        print "  -i, --info           " + _("Display current song info")
-        print "  -s, --status         " + _("Display MPD status")
         print "  -t, --toggle         " + _("Toggles whether the app is minimized")
         print "                       " + _("to tray or visible (requires D-Bus)")
+        print "  play                 " + _("Play song in playlist")
+        print "  pause                " + _("Pause currently playing song")
+        print "  stop                 " + _("Stop currently playing song")
+        print "  next                 " + _("Play next song in playlist")
+        print "  prev                 " + _("Play previous song in playlist")
+        print "  pp                   " + _("Toggle play/pause; plays if stopped")
+        print "  info                 " + _("Display current song info")
+        print "  status               " + _("Display MPD status")
 
-    def print_status(self, type):
+    def single_connect_for_passed_arg(self, type):
         self.user_connect = True
         self.settings_load()
         self.conn = None
@@ -772,7 +801,24 @@ class Base(mpdclient3.mpd_connection):
                 self.songinfo = self.conn.do.currentsong()
             except:
                 self.songinfo = None
-            if type == "info":
+            if type == "play":
+                self.conn.do.play()
+            elif type == "pause":
+                self.conn.do.pause(1)
+            elif type == "stop":
+                self.conn.do.stop()
+            elif type == "next":
+                self.conn.do.next()
+            elif type == "prev":
+                self.conn.do.previous()
+            elif type == "toggle":
+                self.status = self.conn.do.status()
+                if self.status:
+                    if self.status.state in ['play']:
+                        self.conn.do.pause(1)
+                    elif self.status.state in ['pause', 'stop']:
+                        self.conn.do.play()
+            elif type == "info":
                 if self.status and self.status.state in ['play', 'pause']:
                     try:
                         print _("Artist") + ": " + self.songinfo.artist
