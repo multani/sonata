@@ -6,6 +6,8 @@ v0.9
 	make selection, dnd, more like thunar
 	make remote images non-blocking
 	sonata --play, --pause, --stop, etc
+	preserve aspect ratio of images (up to max of 160x160)
+	show notification on unpause
 
 Future:
 	allow multiple columns?

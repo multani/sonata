@@ -2316,6 +2316,8 @@ class Base(mpdclient3.mpd_connection):
         if self.conn and self.status:
             if self.status.state in ('stop', 'pause'):
                 self.conn.do.play()
+                # Forces the notification to popup if specified
+                self.labelnotify()
             elif self.status.state == 'play':
                 self.conn.do.pause(1)
             self.iterate_now()
