@@ -745,8 +745,7 @@ class Base(mpdclient3.mpd_connection):
             self.window.hide()
         self.window.show_all()
 
-        while gtk.events_pending():
-            gtk.main_iteration()
+        gtk.main_iteration()
 
         if self.update_on_start:
             self.updatedb(None)
@@ -1712,14 +1711,14 @@ class Base(mpdclient3.mpd_connection):
                 return
             # Check if any results were returned; if not, search
             # again with just the artist name:
-            img_url = f[f.find("http", curr_pos):f.find("jpg", curr_pos) + 3]
+            img_url = f[f.find("<URL>", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
             if len(img_url) == 0:
                 search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images"
                 request = urllib2.Request(search_url)
                 request.add_header('Accept-encoding', 'gzip')
                 opener = urllib2.build_opener()
                 f = opener.open(request).read()
-                img_url = f[f.find("http", curr_pos):f.find("jpg", curr_pos) + 3]
+                img_url = f[f.find("<URL>", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
                 if self.stop_art_update:
                     return
                 # And if that fails, try one last time with just the album name:
@@ -1729,7 +1728,7 @@ class Base(mpdclient3.mpd_connection):
                     request.add_header('Accept-encoding', 'gzip')
                     opener = urllib2.build_opener()
                     f = opener.open(request).read()
-                    img_url = f[f.find("http", curr_pos):f.find("jpg", curr_pos) + 3]
+                    img_url = f[f.find("<URL>", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
                     if self.stop_art_update:
                         return
             if all_images:
@@ -1738,7 +1737,7 @@ class Base(mpdclient3.mpd_connection):
                 while len(img_url) > 0 and curr_pos > 0:
                     img_url = ""
                     curr_pos = f.find("<MediumImage>", curr_pos+10)
-                    img_url = f[f.find("http", curr_pos):f.find("jpg", curr_pos) + 3]
+                    img_url = f[f.find("<URL>", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
                     if len(img_url) > 0:
                         urllib.urlretrieve(img_url, dest_filename.replace("<imagenum>", str(curr_img)))
                         curr_img += 1
@@ -1746,10 +1745,11 @@ class Base(mpdclient3.mpd_connection):
                         curr_pos = f.find("<MediumImage>", curr_pos+10)
             else:
                 curr_pos = f.find("<MediumImage>", curr_pos+10)
-                img_url = f[f.find("http", curr_pos):f.find("jpg", curr_pos) + 3]
+                img_url = f[f.find("<URL>", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
                 if len(img_url) > 0:
                     if self.stop_art_update:
                         return
+                    print img_url
                     urllib.urlretrieve(img_url, dest_filename)
         except:
             pass

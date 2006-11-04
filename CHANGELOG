@@ -2,6 +2,7 @@ v0.9 - Pending
 	+ Use local artwork (cover.jpg, folder.jpg) first, if it exists
 	  (requires music_directory to be specified in preferences)
 	+ Popup song notification on un-pause
+	+ Bug: Prevent infrequent crash when fetching album art
 
 v0.8.1 - October 19, 2006
 	+ Add Polish translation (Tomasz Dominikowski)
