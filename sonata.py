@@ -1010,8 +1010,8 @@ class Base(mpdclient3.mpd_connection):
             os.mkdir(os.path.expanduser('~/.config/'))
         if os.path.exists(os.path.expanduser('~/.config/sonata/')) == False:
             os.mkdir(os.path.expanduser('~/.config/sonata/'))
-        if os.path.exists(os.path.expanduser('~/.config/sonata/covers/')) == False:
-            os.mkdir(os.path.expanduser('~/.config/sonata/covers'))
+        if os.path.exists(os.path.expanduser('~/.covers/')) == False:
+            os.mkdir(os.path.expanduser('~/.covers/'))
         if os.path.isfile(os.path.expanduser('~/.config/sonata/sonatarc')):
             conf.read(os.path.expanduser('~/.config/sonata/sonatarc'))
         elif os.path.isfile(os.path.expanduser('~/.sonatarc')):
@@ -1639,7 +1639,7 @@ class Base(mpdclient3.mpd_connection):
             album = getattr(self.songinfo, 'album', None)
             if not album: album = ""
             try:
-                filename = os.path.expanduser("~/.config/sonata/covers/" + artist + "-" + album + ".jpg")
+                filename = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
                 if filename == self.lastalbumart:
                     # No need to update..
                     self.stop_art_update = False
@@ -1702,6 +1702,7 @@ class Base(mpdclient3.mpd_connection):
             album = urllib.quote(album)
             amazon_key = "12DR2PGAQT303YTEWP02"
             search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images&Keywords=" + album
+            print search_url
             request = urllib2.Request(search_url)
             request.add_header('Accept-encoding', 'gzip')
             opener = urllib2.build_opener()
@@ -1736,20 +1737,19 @@ class Base(mpdclient3.mpd_connection):
                 img_url = " "
                 while len(img_url) > 0 and curr_pos > 0:
                     img_url = ""
-                    curr_pos = f.find("<MediumImage>", curr_pos+10)
+                    curr_pos = f.find("<LargeImage>", curr_pos+10)
                     img_url = f[f.find("<URL>", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
                     if len(img_url) > 0:
                         urllib.urlretrieve(img_url, dest_filename.replace("<imagenum>", str(curr_img)))
                         curr_img += 1
                         # Skip the next SmallImage:
-                        curr_pos = f.find("<MediumImage>", curr_pos+10)
+                        curr_pos = f.find("<LargeImage>", curr_pos+10)
             else:
-                curr_pos = f.find("<MediumImage>", curr_pos+10)
+                curr_pos = f.find("<LargeImage>", curr_pos+10)
                 img_url = f[f.find("<URL>", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
                 if len(img_url) > 0:
                     if self.stop_art_update:
                         return
-                    print img_url
                     urllib.urlretrieve(img_url, dest_filename)
         except:
             pass
@@ -2028,43 +2028,67 @@ class Base(mpdclient3.mpd_connection):
         if not album: album = ""
         if artist == "" and album == "":
             return
-        filename = os.path.expanduser("~/.config/sonata/covers/" + artist + "-" + album + ".jpg")
-        if os.path.exists(filename):
-            coverwindow = gtk.Dialog(_("Cover Art"), self.window, gtk.DIALOG_DESTROY_WITH_PARENT, None)
-            coverwindow.set_resizable(False)
-            coverwindow.set_has_separator(False)
-            pix = gtk.gdk.pixbuf_new_from_file(filename)
-            if pix.get_width() != 160:
-                pix = pix.scale_simple(160, int(160/float(pix.get_width())*pix.get_height()), gtk.gdk.INTERP_HYPER)
-            eventbox = gtk.EventBox()
-            eventbox.connect('button-press-event', self.close_coverwindow, coverwindow)
-            image = gtk.Image()
-            image.set_from_pixbuf(pix)
-            eventbox.add(image)
-            hbox = gtk.HBox()
-            hbox.pack_start(eventbox, True, True, 10)
-            coverwindow.vbox.pack_start(hbox, False, False, 10)
-            artistlabel = gtk.Label()
-            if artist != "":
-                artistlabel.set_markup('<big><b> ' + artist + ' </b></big>')
-            else:
-                artistlabel.set_markup('<big><b> ' + _('Unknown Artist') + ' </b></big>')
-            coverwindow.vbox.pack_start(artistlabel, False, False, 2)
-            albumlabel = gtk.Label()
-            if album != "":
-                albumlabel.set_markup(' ' + album + ' ')
-            else:
-                albumlabel.set_markup(' ' + _('Unknown Album') + ' ')
-            coverwindow.vbox.pack_start(albumlabel, False, False, 2)
-            label = gtk.Label()
-            label.set_markup('<span size="10"> </span>')
-            coverwindow.vbox.pack_start(label, False, False, 0)
-            coverwindow.vbox.show_all()
-            coverwindow.run()
-            coverwindow.destroy()
+        #Check for some local images:
+        songdir = os.path.dirname(self.songinfo.file)
+        if os.path.exists(self.musicdir + songdir + "/cover.jpg"):
+            filename =  self.musicdir + songdir + "/cover.jpg"
+        elif os.path.exists(self.musicdir + songdir + "/folder.jpg"):
+            filename =  self.musicdir + songdir + "/folder.jpg"
+        elif os.path.exists(os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")):
+            filename = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
+        else:
+            return
+        coverwindow = gtk.Dialog(_("Cover Art"), self.window, gtk.DIALOG_DESTROY_WITH_PARENT, None)
+        coverwindow.set_resizable(False)
+        coverwindow.set_has_separator(False)
+        pix = gtk.gdk.pixbuf_new_from_file(filename)
+        (pix, w, h) = self.get_pixbuf_of_size(pix, 300)
+        eventbox = gtk.EventBox()
+        eventbox.connect('button-press-event', self.close_coverwindow, coverwindow)
+        image = gtk.Image()
+        image.set_from_pixbuf(pix)
+        eventbox.add(image)
+        hbox = gtk.HBox()
+        hbox.pack_start(eventbox, True, True, 10)
+        coverwindow.vbox.pack_start(hbox, False, False, 10)
+        artistlabel = gtk.Label()
+        if artist != "":
+            artistlabel.set_markup('<big><b> ' + artist + ' </b></big>')
+        else:
+            artistlabel.set_markup('<big><b> ' + _('Unknown Artist') + ' </b></big>')
+        coverwindow.vbox.pack_start(artistlabel, False, False, 2)
+        albumlabel = gtk.Label()
+        if album != "":
+            albumlabel.set_markup(' ' + album + ' ')
+        else:
+            albumlabel.set_markup(' ' + _('Unknown Album') + ' ')
+        coverwindow.vbox.pack_start(albumlabel, False, False, 2)
+        label = gtk.Label()
+        label.set_markup('<span size="10"> </span>')
+        coverwindow.vbox.pack_start(label, False, False, 0)
+        coverwindow.vbox.show_all()
+        coverwindow.run()
+        coverwindow.destroy()
 
     def close_coverwindow(self, widget, event, coverwindow):
         coverwindow.destroy()
+
+    def get_pixbuf_of_size(self, pixbuf, size):
+        # Creates a pixbuf that fits in the specified square of sizexsize
+        # while preserving the aspect ratio
+        # Returns tuple: (scaled_pixbuf, actual_width, actual_height)
+        image_width = pixbuf.get_width()
+        image_height = pixbuf.get_height()
+        if image_width-size > image_height-size:
+            if image_width > size:
+                image_height = int(size/float(image_width)*image_height)
+                image_width = size
+        else:
+            if image_height > size:
+                image_width = int(size/float(image_height)*image_width)
+                image_height = size
+        crop_pixbuf = pixbuf.scale_simple(image_width, image_height, gtk.gdk.INTERP_HYPER)
+        return (crop_pixbuf, image_width, image_height)
 
     def unblock_window_popup_handler(self):
         self.window.handler_unblock(self.mainwinhandler)
@@ -2125,7 +2149,7 @@ class Base(mpdclient3.mpd_connection):
             if not artist: artist = ""
             album = getattr(self.songinfo, 'album', None)
             if not album: album = ""
-            dest_filename = os.path.expanduser("~/.config/sonata/covers/" + artist + "-" + album + ".jpg")
+            dest_filename = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
             # Remove file if already set:
             if os.path.exists(dest_filename):
                 os.remove(dest_filename)
@@ -2157,7 +2181,7 @@ class Base(mpdclient3.mpd_connection):
         album = getattr(self.songinfo, 'album', None)
         if not album: album = ""
         imagelist = gtk.ListStore(int, gtk.gdk.Pixbuf)
-        filename = os.path.expanduser("~/.config/sonata/covers/temp/<imagenum>.jpg")
+        filename = os.path.expanduser("~/.covers/temp/<imagenum>.jpg")
         if os.path.exists(os.path.dirname(filename)):
             removeall(os.path.dirname(filename))
         if not os.path.exists(os.path.dirname(filename)):
@@ -2207,7 +2231,7 @@ class Base(mpdclient3.mpd_connection):
         try:
             image_num = int(path[0]) + 1
             filename = filename.replace("<imagenum>", str(image_num))
-            dest_filename = os.path.expanduser("~/.config/sonata/covers/" + artist + "-" + album + ".jpg")
+            dest_filename = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
             if os.path.exists(filename):
                 # Move temp file to actual file:
                 os.remove(dest_filename)
