@@ -363,6 +363,10 @@ class Base(mpdclient3.mpd_connection):
             self.sonataset.add_source(iconsource)
         self.iconfactory.add('sonata', self.sonataset)
         self.iconfactory.add_default()
+        # Remove the old sonata covers dir (cleanup)
+        if os.path.exists(os.path.expanduser('~/.config/sonata/covers/')):
+            removeall(os.path.expanduser('~/.config/sonata/covers/'))
+            os.rmdir(os.path.expanduser('~/.config/sonata/covers/'))
 
         # Main app:
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
