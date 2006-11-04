@@ -5,9 +5,7 @@ v0.9
 	Stream support
 	make selection, dnd, more like thunar
 	make remote images non-blocking
-	preserve aspect ratio of images (up to max of 160x160)
 	use pygtk's systemtray support
-	crossfading
 
 Future:
 	allow multiple columns?

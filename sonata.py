@@ -190,6 +190,8 @@ class Base(mpdclient3.mpd_connection):
         self.prevstatus = None
         self.prevsonginfo = None
         self.lastalbumart = None
+        self.crossfade = -1
+        self.crossfade_options = ['1', '2', '3', '5', '10', '15']
         self.repeat = False
         self.shuffle = False
         self.show_covers = True
@@ -332,6 +334,10 @@ class Base(mpdclient3.mpd_connection):
         self.conn = self.connect()
         if self.conn:
             self.conn.do.password(self.password)
+            if self.crossfade == -1:
+                self.conn.do.crossfade(0)
+            else:
+                self.conn.do.crossfade(int(self.crossfade_options[self.crossfade]))
             self.iterate_time = self.iterate_time_when_connected
             self.status = self.conn.do.status()
             try:
@@ -1075,6 +1081,8 @@ class Base(mpdclient3.mpd_connection):
             self.traytips.notifications_location = conf.getint('player', 'notif_location')
         if conf.has_option('player', 'playback'):
             self.show_playback = conf.getboolean('player', 'playback')
+        if conf.has_option('player', 'crossfade'):
+            self.crossfade = conf.getint('player', 'crossfade')
         if conf.has_option('format', 'current'):
             self.currentformat = conf.get('format', 'current')
         if conf.has_option('format', 'library'):
@@ -1113,6 +1121,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'update_on_start', self.update_on_start)
         conf.set('player', 'notif_location', self.traytips.notifications_location)
         conf.set('player', 'playback', self.show_playback)
+        conf.set('player', 'crossfade', self.crossfade)
         conf.add_section('format')
         conf.set('format', 'current', self.currentformat)
         conf.set('format', 'library', self.libraryformat)
@@ -2543,6 +2552,28 @@ class Base(mpdclient3.mpd_connection):
         passwordentry.set_text(str(self.password))
         self.tooltips.set_tip(passwordentry, _("Leave blank if no password is required."))
         passwordbox.pack_start(passwordentry, True, True, 10)
+        crossfadelabel = gtk.Label()
+        crossfadelabel.set_markup('<b>' + _('Crossfade') + '</b>')
+        crossfadelabel.set_alignment(0, 1)
+        crossfadebox = gtk.HBox()
+        crossfadecheck = gtk.CheckButton(_("Enable crossfade"))
+        crossfadecombo = gtk.combo_box_new_text()
+        crossfadecheck.connect('toggled', self.crossfadecheck_toggle, crossfadecombo)
+        for i in self.crossfade_options:
+            if i == 1:
+                crossfadecombo.append_text(i + ' ' + _('second'))
+            else:
+                crossfadecombo.append_text(i + ' ' + _('seconds'))
+        if self.crossfade == -1:
+            crossfadecombo.set_sensitive(False)
+            crossfadecombo.set_active(0)
+            crossfadecheck.set_active(False)
+        else:
+            crossfadecombo.set_sensitive(True)
+            crossfadecombo.set_active(self.crossfade)
+            crossfadecheck.set_active(True)
+        crossfadebox.pack_start(crossfadecheck)
+        crossfadebox.pack_start(crossfadecombo)
         max_label_width = 0     # Set all label widths the same
         if hostlabel.size_request()[0] > max_label_width: max_label_width = hostlabel.size_request()[0]
         if portlabel.size_request()[0] > max_label_width: max_label_width = portlabel.size_request()[0]
@@ -2577,12 +2608,12 @@ class Base(mpdclient3.mpd_connection):
         table.attach(portbox, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table.attach(passwordbox, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table.attach(dirbox, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table.attach(gtk.Label(), 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table.attach(autoconnect, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table.attach(connectbox, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table.attach(gtk.Label(), 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(gtk.Label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table.attach(autoconnect, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table.attach(connectbox, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table.attach(gtk.Label(), 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table.attach(crossfadelabel, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table.attach(crossfadebox, 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table.attach(gtk.Label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
         # Display tab
         table2 = gtk.Table(7, 2, False)
@@ -2791,6 +2822,12 @@ class Base(mpdclient3.mpd_connection):
                 self.window.stick()
             else:
                 self.window.unstick()
+            if crossfadecheck.get_active():
+                self.crossfade = crossfadecombo.get_active()
+                self.conn.do.crossfade(int(self.crossfade_options[self.crossfade]))
+            else:
+                self.crossfade = -1
+                self.conn.do.crossfade(0)
             if hostentry.get_text() != self.host or portentry.get_text() != str(self.port) or passwordentry.get_text() != self.password:
                 self.host = hostentry.get_text()
                 try:
@@ -2894,6 +2931,12 @@ class Base(mpdclient3.mpd_connection):
             except:
                 pass
             self.traytips.hide()
+
+    def crossfadecheck_toggle(self, button, combobox):
+        if button.get_active():
+            combobox.set_sensitive(True)
+        else:
+            combobox.set_sensitive(False)
 
     def prefs_notiflocation_changed(self, combobox):
         self.traytips.notifications_location = combobox.get_active()

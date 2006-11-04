@@ -1,6 +1,7 @@
 v0.9 - Pending
 	+ Use local artwork (cover.jpg, folder.jpg) first, if it exists
 	  (requires music_directory to be specified in preferences)
+	+ Allow crossfading (mixing) between songs
 	+ Fetch higher-resolution cover art
 	+ Popup song notification on un-pause
 	+ Store cover art in ~/.covers for consistency with gmpc
