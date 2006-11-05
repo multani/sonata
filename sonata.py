@@ -1488,6 +1488,10 @@ class Base(mpdclient3.mpd_connection):
                 label.set_text('')
                 self.UIManager.get_widget('/traymenu/playmenu').hide()
                 self.UIManager.get_widget('/traymenu/pausemenu').show()
+                if self.prevstatus != None:
+                    if self.prevstatus.state == 'pause':
+                        # Forces the notification to popup if specified
+                        self.labelnotify()
             if self.status.state in ['play', 'pause']:
                 row = int(self.songinfo.pos)
                 self.currentdata[row][1] = make_bold(self.currentdata[row][1])
@@ -2419,8 +2423,6 @@ class Base(mpdclient3.mpd_connection):
         if self.conn and self.status:
             if self.status.state in ('stop', 'pause'):
                 self.conn.do.play()
-                # Forces the notification to popup if specified
-                self.labelnotify()
             elif self.status.state == 'play':
                 self.conn.do.pause(1)
             self.iterate_now()
