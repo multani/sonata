@@ -190,6 +190,7 @@ class Base(mpdclient3.mpd_connection):
         self.prevstatus = None
         self.prevsonginfo = None
         self.lastalbumart = None
+        self.downloading_art = False
         self.crossfade = -1
         self.crossfade_options = ['1', '2', '3', '5', '10', '15']
         self.repeat = False
@@ -1626,6 +1627,8 @@ class Base(mpdclient3.mpd_connection):
                 self.current.scroll_to_cell(row)
 
     def update_album_art(self):
+        if self.downloading_art:
+            return
         self.stop_art_update = True
         while self.updating_art:
             gtk.main_iteration()
@@ -1701,16 +1704,22 @@ class Base(mpdclient3.mpd_connection):
             self.stop_art_update = False
             self.updating_art = False
             return
-        self.albumimage.set_from_pixbuf(pix)
-        self.set_tooltip_art(pix)
+        try:
+            self.albumimage.set_from_pixbuf(pix)
+            self.set_tooltip_art(pix)
+        except:
+            pass
         self.lastalbumart = filename
         gtk.gdk.threads_leave()
         del pix
 
     def download_image_to_filename(self, artist, album, dest_filename, all_images=False):
-        if artist == "" and album == "":
+        if len(artist) == 0 and len(album) == 0:
             return
         try:
+            if self.downloading_art:
+                return
+            self.downloading_art = True
             artist = urllib.quote(artist)
             album = urllib.quote(album)
             amazon_key = "12DR2PGAQT303YTEWP02"
@@ -1721,6 +1730,7 @@ class Base(mpdclient3.mpd_connection):
             f = opener.open(request).read()
             curr_pos = 200    # Skip header..
             if self.stop_art_update:
+                self.downloading_art = False
                 return
             # Check if any results were returned; if not, search
             # again with just the artist name:
@@ -1733,6 +1743,7 @@ class Base(mpdclient3.mpd_connection):
                 f = opener.open(request).read()
                 img_url = f[f.find("<URL>", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
                 if self.stop_art_update:
+                    self.downloading_art = False
                     return
                 # And if that fails, try one last time with just the album name:
                 if len(img_url) == 0:
@@ -1743,6 +1754,7 @@ class Base(mpdclient3.mpd_connection):
                     f = opener.open(request).read()
                     img_url = f[f.find("<URL>", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
                     if self.stop_art_update:
+                        self.downloading_art = False
                         return
             if all_images:
                 curr_img = 1
@@ -1754,17 +1766,19 @@ class Base(mpdclient3.mpd_connection):
                     if len(img_url) > 0:
                         urllib.urlretrieve(img_url, dest_filename.replace("<imagenum>", str(curr_img)))
                         curr_img += 1
-                        # Skip the next SmallImage:
+                        # Skip the next LargeImage:
                         curr_pos = f.find("<LargeImage>", curr_pos+10)
             else:
                 curr_pos = f.find("<LargeImage>", curr_pos+10)
                 img_url = f[f.find("<URL>", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
                 if len(img_url) > 0:
                     if self.stop_art_update:
+                        self.downloading_art = False
                         return
                     urllib.urlretrieve(img_url, dest_filename)
         except:
             pass
+        self.downloading_art = False
 
     def labelnotify(self, *args):
         if self.show_covers:
