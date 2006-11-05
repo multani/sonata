@@ -169,7 +169,7 @@ class Base(mpdclient3.mpd_connection):
         gtk.gdk.threads_init()
 
         # Initialize vars:
-        self.musicdir = "/home/user/music/"
+        self.musicdir = os.path.expanduser("~/music")
         socket.setdefaulttimeout(2)
         self.stop_art_update = False
         self.updating_art = False
@@ -2152,6 +2152,10 @@ class Base(mpdclient3.mpd_connection):
         dialog.connect("update-preview", self.update_preview, preview)
         dialog.connect("response", self.choose_image_local_response)
         dialog.set_default_response(gtk.RESPONSE_OK)
+        songdir = os.path.dirname(self.songinfo.file)
+        currdir = self.musicdir + songdir
+        if os.path.exists(currdir):
+            dialog.set_current_folder(currdir)
         dialog.show()
 
     def choose_image_local_response(self, dialog, response):
@@ -2799,8 +2803,10 @@ class Base(mpdclient3.mpd_connection):
             self.ontop = win_ontop.get_active()
             self.sticky = win_sticky.get_active()
             self.musicdir = direntry.get_text()
-            if self.musicdir[-1] != "/":
-                self.musicdir = self.musicdir + "/"
+            self.musicdir = os.path.expanduser(self.musicdir)
+            if len(self.musicdir) > 0:
+                if self.musicdir[-1] != "/":
+                    self.musicdir = self.musicdir + "/"
             self.minimize_to_systray = minimize.get_active()
             self.update_on_start = update_start.get_active()
             self.autoconnect = autoconnect.get_active()

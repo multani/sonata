@@ -6,6 +6,7 @@ v0.9
 	make selection, dnd, more like thunar
 	make remote images non-blocking
 	use pygtk's systemtray support
+	don't make library case sensitive
 
 Future:
 	allow multiple columns?
