@@ -1715,7 +1715,6 @@ class Base(mpdclient3.mpd_connection):
             album = urllib.quote(album)
             amazon_key = "12DR2PGAQT303YTEWP02"
             search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images&Keywords=" + album
-            print search_url
             request = urllib2.Request(search_url)
             request.add_header('Accept-encoding', 'gzip')
             opener = urllib2.build_opener()
@@ -2556,11 +2555,11 @@ class Base(mpdclient3.mpd_connection):
         crossfadelabel.set_markup('<b>' + _('Crossfade') + '</b>')
         crossfadelabel.set_alignment(0, 1)
         crossfadebox = gtk.HBox()
-        crossfadecheck = gtk.CheckButton(_("Enable crossfade"))
+        crossfadecheck = gtk.CheckButton(_("Enable"))
         crossfadecombo = gtk.combo_box_new_text()
         crossfadecheck.connect('toggled', self.crossfadecheck_toggle, crossfadecombo)
         for i in self.crossfade_options:
-            if i == 1:
+            if i == '1':
                 crossfadecombo.append_text(i + ' ' + _('second'))
             else:
                 crossfadecombo.append_text(i + ' ' + _('seconds'))
