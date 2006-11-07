@@ -95,12 +95,6 @@ class Connection(mpdclient3.mpd_connection):
         mpdclient3.mpd_connection.__init__(self, host, port, password)
         mpdclient3.connect(host=host, port=port, password=password)
 
-    #def __repr__(self, host, port):
-    #	if password:
-    #		return "<Connection to %s:%s, using password>" % (host, port)
-    #	else:
-    #		return "<Connection to %s:%s>" % (host, port)
-
 class Base(mpdclient3.mpd_connection):
     def __init__(self):
 
@@ -171,8 +165,6 @@ class Base(mpdclient3.mpd_connection):
         # Initialize vars:
         self.musicdir = os.path.expanduser("~/music")
         socket.setdefaulttimeout(2)
-        self.stop_art_update = False
-        self.updating_art = False
         self.host = 'localhost'
         self.port = 6600
         self.password = ''
@@ -190,7 +182,6 @@ class Base(mpdclient3.mpd_connection):
         self.prevstatus = None
         self.prevsonginfo = None
         self.lastalbumart = None
-        self.downloading_art = False
         self.crossfade = -1
         self.crossfade_options = ['1', '2', '3', '5', '10', '15']
         self.repeat = False
@@ -1631,11 +1622,7 @@ class Base(mpdclient3.mpd_connection):
                 self.current.scroll_to_cell(row)
 
     def update_album_art(self):
-        if self.downloading_art:
-            return
         self.stop_art_update = True
-        while self.updating_art:
-            gtk.main_iteration()
         thread = threading.Thread(target=self.update_album_art2)
         thread.start()
 
@@ -1650,9 +1637,7 @@ class Base(mpdclient3.mpd_connection):
     def update_album_art2(self):
         self.stop_art_update = False
         if not self.show_covers:
-            self.updating_art = False
             return
-        self.updating_art = True
         if self.conn and self.status and self.status.state in ['play', 'pause']:
             artist = getattr(self.songinfo, 'artist', None)
             if not artist: artist = ""
@@ -1663,7 +1648,6 @@ class Base(mpdclient3.mpd_connection):
                 if filename == self.lastalbumart:
                     # No need to update..
                     self.stop_art_update = False
-                    self.updating_art = False
                     return
                 if os.path.exists(filename):
                     self.set_image_for_cover(filename)
@@ -1678,8 +1662,8 @@ class Base(mpdclient3.mpd_connection):
                         gtk.gdk.threads_enter()
                         self.albumimage.set_from_file(self.sonatacd)
                         self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
-                        self.lastalbumart = None
                         gtk.gdk.threads_leave()
+                        self.lastalbumart = None
                         self.download_image_to_filename(artist, album, filename)
                         if os.path.exists(filename):
                             self.set_image_for_cover(filename)
@@ -1687,43 +1671,56 @@ class Base(mpdclient3.mpd_connection):
                 gtk.gdk.threads_enter()
                 self.albumimage.set_from_file(self.sonatacd)
                 self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
-                self.lastalbumart = None
                 gtk.gdk.threads_leave()
+                self.lastalbumart = None
         else:
             gtk.gdk.threads_enter()
             self.albumimage.set_from_file(self.sonatacd)
             self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
-            self.lastalbumart = None
             gtk.gdk.threads_leave()
+            self.lastalbumart = None
         gc.collect()
-        self.updating_art = False
-        self.stop_art_update = False
 
     def set_image_for_cover(self, filename):
-        gtk.gdk.threads_enter()
-        pix = gtk.gdk.pixbuf_new_from_file(filename)
-        pix = pix.scale_simple(75, 75, gtk.gdk.INTERP_HYPER)
-        if self.stop_art_update:
+        if self.filename_is_for_current_song(filename):
+            gtk.gdk.threads_enter()
+            pix = gtk.gdk.pixbuf_new_from_file(filename)
+            pix = pix.scale_simple(75, 75, gtk.gdk.INTERP_HYPER)
+            try:
+                self.albumimage.set_from_pixbuf(pix)
+                self.set_tooltip_art(pix)
+            except:
+                pass
             gtk.gdk.threads_leave()
-            self.stop_art_update = False
-            self.updating_art = False
-            return
-        try:
-            self.albumimage.set_from_pixbuf(pix)
-            self.set_tooltip_art(pix)
-        except:
-            pass
-        self.lastalbumart = filename
-        gtk.gdk.threads_leave()
-        del pix
+            self.lastalbumart = filename
+            del pix
+
+    def filename_is_for_current_song(self, filename):
+        # Since there can be multiple threads that are getting album art,
+        # this will ensure that only the artwork for the currently playing
+        # song is displayed
+        if self.conn and self.status and self.status.state in ['play', 'pause']:
+            artist = getattr(self.songinfo, 'artist', None)
+            if not artist: artist = ""
+            album = getattr(self.songinfo, 'album', None)
+            if not album: album = ""
+            currfilename = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
+            if filename == currfilename:
+                return True
+            songdir = os.path.dirname(self.songinfo.file)
+            currfilename = self.musicdir + songdir + "/cover.jpg"
+            if filename == currfilename:
+                return True
+            currfilename = self.musicdir + songdir + "/folder.jpg"
+            if filename == currfilename:
+                return True
+        # If we got this far, no match:
+        return False
 
     def download_image_to_filename(self, artist, album, dest_filename, all_images=False):
         if len(artist) == 0 and len(album) == 0:
             return
         try:
-            if self.downloading_art:
-                return
-            self.downloading_art = True
             artist = urllib.quote(artist)
             album = urllib.quote(album)
             amazon_key = "12DR2PGAQT303YTEWP02"
@@ -1733,9 +1730,6 @@ class Base(mpdclient3.mpd_connection):
             opener = urllib2.build_opener()
             f = opener.open(request).read()
             curr_pos = 200    # Skip header..
-            if self.stop_art_update:
-                self.downloading_art = False
-                return
             # Check if any results were returned; if not, search
             # again with just the artist name:
             img_url = f[f.find("<URL>", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
@@ -1746,9 +1740,6 @@ class Base(mpdclient3.mpd_connection):
                 opener = urllib2.build_opener()
                 f = opener.open(request).read()
                 img_url = f[f.find("<URL>", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
-                if self.stop_art_update:
-                    self.downloading_art = False
-                    return
                 # And if that fails, try one last time with just the album name:
                 if len(img_url) == 0:
                     search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&ResponseGroup=Images&Keywords=" + album
@@ -1757,9 +1748,6 @@ class Base(mpdclient3.mpd_connection):
                     opener = urllib2.build_opener()
                     f = opener.open(request).read()
                     img_url = f[f.find("<URL>", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
-                    if self.stop_art_update:
-                        self.downloading_art = False
-                        return
             if all_images:
                 curr_img = 1
                 img_url = " "
@@ -1776,13 +1764,9 @@ class Base(mpdclient3.mpd_connection):
                 curr_pos = f.find("<LargeImage>", curr_pos+10)
                 img_url = f[f.find("<URL>", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
                 if len(img_url) > 0:
-                    if self.stop_art_update:
-                        self.downloading_art = False
-                        return
                     urllib.urlretrieve(img_url, dest_filename)
         except:
             pass
-        self.downloading_art = False
 
     def labelnotify(self, *args):
         if self.show_covers:
@@ -2195,9 +2179,6 @@ class Base(mpdclient3.mpd_connection):
         dialog.destroy()
 
     def choose_image(self, widget):
-        self.stop_art_update = True
-        while self.updating_art:
-            gtk.main_iteration()
         self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
         choose_dialog = gtk.Dialog(_("Choose Cover Art"), self.window, gtk.DIALOG_MODAL, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
         choosebutton = choose_dialog.add_button(_("Choose"), gtk.RESPONSE_ACCEPT)
@@ -2220,7 +2201,6 @@ class Base(mpdclient3.mpd_connection):
             removeall(os.path.dirname(filename))
         if not os.path.exists(os.path.dirname(filename)):
             os.mkdir(os.path.dirname(filename))
-        self.stop_art_update = False
         self.download_image_to_filename(artist, album, filename, True)
         # Put images to ListStore
         image_num = 1
