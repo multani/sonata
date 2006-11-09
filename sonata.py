@@ -98,6 +98,8 @@ class Connection(mpdclient3.mpd_connection):
 class Base(mpdclient3.mpd_connection):
     def __init__(self):
 
+        gtk.gdk.threads_init()
+
         try:
             gettext.install('sonata', '/usr/share/locale', unicode=1)
         except:
@@ -159,8 +161,6 @@ class Base(mpdclient3.mpd_connection):
                     self.exit()
 
         start_dbus_interface(toggle_arg)
-
-        gtk.gdk.threads_init()
 
         # Initialize vars:
         self.musicdir = os.path.expanduser("~/music")
@@ -2175,7 +2175,8 @@ class Base(mpdclient3.mpd_connection):
             shutil.copyfile(filename, dest_filename)
             # And finally, set the image in the interface:
             self.lastalbumart = None
-            self.update_album_art()
+            # When called from a signal handler, we must use idle_add (see FAQ 20.15)
+            gobject.idle_add(self.update_album_art)
         dialog.destroy()
 
     def choose_image(self, widget):
@@ -2252,7 +2253,8 @@ class Base(mpdclient3.mpd_connection):
                 os.rename(filename, dest_filename)
                 # And finally, set the image in the interface:
                 self.lastalbumart = None
-                self.update_album_art()
+                # When called from a signal handler, we must use idle_add (see FAQ 20.15)
+                gobject.idle_add(self.update_album_art)
                 # Clean up..
                 if os.path.exists(os.path.dirname(filename)):
                     removeall(os.path.dirname(filename))
@@ -2885,7 +2887,8 @@ class Base(mpdclient3.mpd_connection):
                 self.trayalbumimage2.show_all()
             self.show_covers = True
             self.update_cursong()
-            self.update_album_art()
+            # When called from a signal handler, we must use idle_add (see FAQ 20.15)
+            gobject.idle_add(self.update_album_art)
         else:
             self.traytips.set_size_request(250, -1)
             self.imageeventbox.set_no_show_all(True)
@@ -3171,9 +3174,11 @@ class TrayIconTips(gtk.Window):
 
     def _tips_timeout (self, widget):
         self.use_notifications_location = False
-        gtk.gdk.threads_enter()
+        # Since this is called from a timeout, we should not use threads_enter()
+        # and threads_leave() (see FAQ 20.15)
+        #gtk.gdk.threads_enter()
         self._real_display(widget)
-        gtk.gdk.threads_leave()
+        #gtk.gdk.threads_leave()
 
     def _remove_timer(self):
         self.hide()
