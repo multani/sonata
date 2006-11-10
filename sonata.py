@@ -1907,10 +1907,10 @@ class Base(mpdclient3.mpd_connection):
         at, len = [int(c) for c in self.status.time.split(':')]
         try:
             if direction == gtk.gdk.SCROLL_UP:
-                seektime = int(self.status.time.split(":")[0]) - 10
+                seektime = int(self.status.time.split(":")[0]) - 5
                 if seektime < 0: seektime = 0
             elif direction == gtk.gdk.SCROLL_DOWN:
-                seektime = int(self.status.time.split(":")[0]) + 10
+                seektime = int(self.status.time.split(":")[0]) + 5
                 if seektime > self.songinfo.time:
                     seektime = self.songinfo.time
             self.seek(int(self.status.song), seektime)
@@ -2342,14 +2342,14 @@ class Base(mpdclient3.mpd_connection):
         self.notebook.set_current_page(2)
 
     def lower_volume(self, action):
-        new_volume = int(self.volumescale.get_adjustment().get_value()) - 10
+        new_volume = int(self.volumescale.get_adjustment().get_value()) - 5
         if new_volume < 0:
             new_volume = 0
         self.volumescale.get_adjustment().set_value(new_volume)
         self.on_volumescale_change(self.volumescale, 0, 0)
 
     def raise_volume(self, action):
-        new_volume = int(self.volumescale.get_adjustment().get_value()) + 10
+        new_volume = int(self.volumescale.get_adjustment().get_value()) + 5
         if new_volume > 100:
             new_volume = 100
         self.volumescale.get_adjustment().set_value(new_volume)
@@ -2379,12 +2379,12 @@ class Base(mpdclient3.mpd_connection):
 
     def on_volumescale_scroll(self, widget, event):
         if event.direction == gtk.gdk.SCROLL_UP:
-            new_volume = int(self.volumescale.get_adjustment().get_value()) + 10
+            new_volume = int(self.volumescale.get_adjustment().get_value()) + 5
             if new_volume > 100:
                 new_volume = 100
             self.volumescale.get_adjustment().set_value(new_volume)
         elif event.direction == gtk.gdk.SCROLL_DOWN:
-            new_volume = int(self.volumescale.get_adjustment().get_value()) - 10
+            new_volume = int(self.volumescale.get_adjustment().get_value()) - 5
             if new_volume < 0:
                 new_volume = 0
             self.volumescale.get_adjustment().set_value(new_volume)
