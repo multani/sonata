@@ -38,7 +38,7 @@ import gettext
 import locale
 import shutil
 import mmkeys
-import sys, getopt
+import getopt
 import threading
 
 try:
@@ -158,7 +158,7 @@ class Base(mpdclient3.mpd_connection):
                     sys.exit()
                 else:
                     self.print_usage()
-                    self.exit()
+                    sys.exit()
 
         start_dbus_interface(toggle_arg)
 
