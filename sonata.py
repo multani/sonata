@@ -206,6 +206,7 @@ class Base(mpdclient3.mpd_connection):
         self.autoconnect = True
         self.user_connect = False
         show_prefs = False
+        self.coverwindow_visible = False
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
         # are repeatedly executed. Therefore, if we were not
@@ -683,10 +684,13 @@ class Base(mpdclient3.mpd_connection):
 
         # Put blank cd to albumimage widget by default
         blankalbum = 'sonatacd.png'
+        blankalbum_large = 'sonatacd_large.png'
         if os.path.exists(os.path.join(sys.prefix, 'share', 'pixmaps', blankalbum)):
             self.sonatacd = os.path.join(sys.prefix, 'share', 'pixmaps', blankalbum)
+            self.sonatacd_large = os.path.join(sys.prefix, 'share', 'pixmaps', blankalbum_large)
         elif os.path.exists(os.path.join(os.path.split(__file__)[0], blankalbum)):
             self.sonatacd = os.path.join(os.path.split(__file__)[0], blankalbum)
+            self.sonatacd_large = os.path.join(os.path.split(__file__)[0], blankalbum_large)
         self.albumimage.set_from_file(self.sonatacd)
 
         # Initialize current playlist data and widget
@@ -822,11 +826,11 @@ class Base(mpdclient3.mpd_connection):
             elif type == "info":
                 if self.status and self.status.state in ['play', 'pause']:
                     try:
-                        print _("Artist") + ": " + self.songinfo.artist
+                        print _("Title") + ": " + self.songinfo.title
                     except:
                         pass
                     try:
-                        print _("Song") + ": " + self.songinfo.title
+                        print _("Artist") + ": " + self.songinfo.artist
                     except:
                         pass
                     try:
@@ -834,19 +838,27 @@ class Base(mpdclient3.mpd_connection):
                     except:
                         pass
                     try:
+                        print _("Date") + ": " + self.songinfo.date
+                    except:
+                        pass
+                    try:
                         print _("Track") + ": " + self.songinfo.track
                     except:
                         pass
                     try:
-                        print _("File") + ": " + self.songinfo.file
+                        print _("Genre") + ": " + self.songinfo.genre
+                    except:
+                        pass
+                    try:
+                        print _("File") + ": " + os.path.basename(self.songinfo.file)
                     except:
                         pass
                     at, len = [int(c) for c in self.status.time.split(':')]
                     at_time = convert_time(at)
                     try:
                         time = convert_time(int(self.songinfo.time))
-                        print _("Time") + ": " + at_time + "/" + time
-                    except AttributeError:
+                        print _("Time") + ": " + at_time + " / " + time
+                    except:
                         print _("Time") + ": " + at_time
                 else:
                     print _("MPD stopped")
@@ -960,6 +972,7 @@ class Base(mpdclient3.mpd_connection):
 
     def iterate(self):
         self.update_status()
+        self.update_coverwindow(update_all=False)
 
         if self.conn != self.prevconn:
             self.handle_change_conn()
@@ -1517,6 +1530,8 @@ class Base(mpdclient3.mpd_connection):
         self.update_cursong()
         self.update_wintitle()
         self.update_album_art()
+        self.update_coverwindow()
+        self.update_coverwindow(update_all=True)
 
     def update_progressbar(self):
         if self.conn and self.status and self.status.state in ['play', 'pause']:
@@ -1661,6 +1676,8 @@ class Base(mpdclient3.mpd_connection):
                     else:
                         gtk.gdk.threads_enter()
                         self.albumimage.set_from_file(self.sonatacd)
+                        if self.coverwindow_visible:
+                            self.coverwindow_image.set_from_file(self.sonatacd_large)
                         self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
                         gtk.gdk.threads_leave()
                         self.lastalbumart = None
@@ -1670,12 +1687,16 @@ class Base(mpdclient3.mpd_connection):
             except:
                 gtk.gdk.threads_enter()
                 self.albumimage.set_from_file(self.sonatacd)
+                if self.coverwindow_visible:
+                    self.coverwindow_image.set_from_file(self.sonatacd_large)
                 self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
                 gtk.gdk.threads_leave()
                 self.lastalbumart = None
         else:
             gtk.gdk.threads_enter()
             self.albumimage.set_from_file(self.sonatacd)
+            if self.coverwindow_visible:
+                self.coverwindow_image.set_from_file(self.sonatacd_large)
             self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
             gtk.gdk.threads_leave()
             self.lastalbumart = None
@@ -1685,15 +1706,24 @@ class Base(mpdclient3.mpd_connection):
         if self.filename_is_for_current_song(filename):
             gtk.gdk.threads_enter()
             pix = gtk.gdk.pixbuf_new_from_file(filename)
-            pix = pix.scale_simple(75, 75, gtk.gdk.INTERP_HYPER)
+            pix1 = pix.scale_simple(75, 75, gtk.gdk.INTERP_HYPER)
+            if self.coverwindow_visible:
+                (pix2, w, h) = self.get_pixbuf_of_size(pix, 300)
             try:
-                self.albumimage.set_from_pixbuf(pix)
-                self.set_tooltip_art(pix)
+                self.albumimage.set_from_pixbuf(pix1)
+                self.set_tooltip_art(pix1)
+                if self.coverwindow_visible:
+                    self.coverwindow_image.set_from_pixbuf(pix2)
             except:
                 pass
             gtk.gdk.threads_leave()
             self.lastalbumart = filename
-            del pix
+            try:
+                del pix
+                del pix1
+                del pix2
+            except:
+                pass
 
     def filename_is_for_current_song(self, filename):
         # Since there can be multiple threads that are getting album art,
@@ -2025,8 +2055,7 @@ class Base(mpdclient3.mpd_connection):
         self.window.handler_block(self.mainwinhandler)
         if event.button == 1:
             self.volume_hide()
-            if self.lastalbumart:
-                self.show_cover_large()
+            self.coverwindow_show()
         elif event.button == 3:
             if self.conn and self.status and self.status.state in ['play', 'pause']:
                 artist = getattr(self.songinfo, 'artist', None)
@@ -2035,57 +2064,133 @@ class Base(mpdclient3.mpd_connection):
         gobject.timeout_add(50, self.unblock_window_popup_handler)
         return False
 
-    def show_cover_large(self):
-        artist = getattr(self.songinfo, 'artist', None)
-        if not artist: artist = ""
-        album = getattr(self.songinfo, 'album', None)
-        if not album: album = ""
-        if artist == "" and album == "":
-            return
-        #Check for some local images:
-        songdir = os.path.dirname(self.songinfo.file)
-        if os.path.exists(self.musicdir + songdir + "/cover.jpg"):
-            filename =  self.musicdir + songdir + "/cover.jpg"
-        elif os.path.exists(self.musicdir + songdir + "/folder.jpg"):
-            filename =  self.musicdir + songdir + "/folder.jpg"
-        elif os.path.exists(os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")):
-            filename = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
-        else:
-            return
-        coverwindow = gtk.Dialog(_("Cover Art"), self.window, gtk.DIALOG_DESTROY_WITH_PARENT, None)
-        coverwindow.set_resizable(False)
-        coverwindow.set_has_separator(False)
-        pix = gtk.gdk.pixbuf_new_from_file(filename)
-        (pix, w, h) = self.get_pixbuf_of_size(pix, 300)
-        eventbox = gtk.EventBox()
-        eventbox.connect('button-press-event', self.close_coverwindow, coverwindow)
-        image = gtk.Image()
-        image.set_from_pixbuf(pix)
-        eventbox.add(image)
+    def coverwindow_show(self):
+        self.coverwindow = gtk.Dialog(_("Song Info"), None, gtk.DIALOG_DESTROY_WITH_PARENT, None)
+        closebutton = self.coverwindow.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_ACCEPT)
+        closebutton.connect('clicked', self.coverwindow_hide)
+        self.coverwindow.set_resizable(False)
+        self.coverwindow.set_has_separator(True)
+        self.coverwindow_image = gtk.Image()
+        evbox = gtk.EventBox()
+        evbox.add(self.coverwindow_image)
+        evbox.set_size_request(305, 305)
+        self.coverwindow.vbox.pack_start(evbox, True, True, 0)
+        vbox_left = gtk.VBox()
+        titlelabel = gtk.Label(_("Title") + ":")
+        titlelabel.set_alignment(1, 1)
+        artistlabel = gtk.Label(_("Artist") + ":")
+        artistlabel.set_alignment(1, 1)
+        albumlabel = gtk.Label(_("Album") + ":")
+        albumlabel.set_alignment(1, 1)
+        datelabel = gtk.Label(_("Date") + ":")
+        datelabel.set_alignment(1, 1)
+        tracklabel = gtk.Label(_("Track") + ":")
+        tracklabel.set_alignment(1, 1)
+        genrelabel = gtk.Label(_("Genre") + ":")
+        genrelabel.set_alignment(1, 1)
+        filelabel = gtk.Label(_("File") + ":")
+        filelabel.set_alignment(1, 1)
+        timelabel = gtk.Label(_("Time") + ":")
+        timelabel.set_alignment(1, 1)
+        vbox_left.pack_start(titlelabel, False, False, 2)
+        vbox_left.pack_start(artistlabel, False, False, 2)
+        vbox_left.pack_start(albumlabel, False, False, 2)
+        vbox_left.pack_start(datelabel, False, False, 2)
+        vbox_left.pack_start(tracklabel, False, False, 2)
+        vbox_left.pack_start(genrelabel, False, False, 2)
+        vbox_left.pack_start(filelabel, False, False, 2)
+        vbox_left.pack_start(timelabel, False, False, 2)
+        vbox_right = gtk.VBox()
+        self.coverwindow_titlelabel = gtk.Label()
+        self.coverwindow_titlelabel.set_alignment(0, 1)
+        self.coverwindow_artistlabel = gtk.Label()
+        self.coverwindow_artistlabel.set_alignment(0, 1)
+        self.coverwindow_albumlabel = gtk.Label()
+        self.coverwindow_albumlabel.set_alignment(0, 1)
+        self.coverwindow_datelabel = gtk.Label()
+        self.coverwindow_datelabel.set_alignment(0, 1)
+        self.coverwindow_tracklabel = gtk.Label()
+        self.coverwindow_tracklabel.set_alignment(0, 1)
+        self.coverwindow_genrelabel = gtk.Label()
+        self.coverwindow_genrelabel.set_alignment(0, 1)
+        self.coverwindow_filelabel = gtk.Label()
+        self.coverwindow_filelabel.set_alignment(0, 1)
+        self.coverwindow_timelabel = gtk.Label()
+        self.coverwindow_timelabel.set_alignment(0, 1)
+        vbox_right.pack_start(self.coverwindow_titlelabel, False, False, 2)
+        vbox_right.pack_start(self.coverwindow_artistlabel, False, False, 2)
+        vbox_right.pack_start(self.coverwindow_albumlabel, False, False, 2)
+        vbox_right.pack_start(self.coverwindow_datelabel, False, False, 2)
+        vbox_right.pack_start(self.coverwindow_tracklabel, False, False, 2)
+        vbox_right.pack_start(self.coverwindow_genrelabel, False, False, 2)
+        vbox_right.pack_start(self.coverwindow_filelabel, False, False, 2)
+        vbox_right.pack_start(self.coverwindow_timelabel, False, False, 2)
         hbox = gtk.HBox()
-        hbox.pack_start(eventbox, True, True, 10)
-        coverwindow.vbox.pack_start(hbox, False, False, 10)
-        artistlabel = gtk.Label()
-        if artist != "":
-            artistlabel.set_markup('<big><b> ' + artist + ' </b></big>')
-        else:
-            artistlabel.set_markup('<big><b> ' + _('Unknown Artist') + ' </b></big>')
-        coverwindow.vbox.pack_start(artistlabel, False, False, 2)
-        albumlabel = gtk.Label()
-        if album != "":
-            albumlabel.set_markup(' ' + album + ' ')
-        else:
-            albumlabel.set_markup(' ' + _('Unknown Album') + ' ')
-        coverwindow.vbox.pack_start(albumlabel, False, False, 2)
+        hbox.pack_start(gtk.Label(), False, False, 5)
+        hbox.pack_start(vbox_left, False, False, 3)
+        hbox.pack_start(vbox_right, False, False, 3)
+        hbox.pack_start(gtk.Label(), False, False, 5)
+        self.coverwindow.vbox.pack_start(hbox, False, False, 2)
         label = gtk.Label()
         label.set_markup('<span size="10"> </span>')
-        coverwindow.vbox.pack_start(label, False, False, 0)
-        coverwindow.vbox.show_all()
-        coverwindow.run()
-        coverwindow.destroy()
+        self.coverwindow.vbox.pack_start(label, False, False, 2)
+        self.coverwindow.vbox.show_all()
+        self.coverwindow_visible = True
+        self.lastalbumart = ""
+        self.update_album_art()
+        self.update_coverwindow(True, update_all=True)
 
-    def close_coverwindow(self, widget, event, coverwindow):
-        coverwindow.destroy()
+    def coverwindow_hide(self, button):
+        if self.coverwindow_visible:
+            self.coverwindow.destroy()
+            self.coverwindow_visible = False
+
+    def update_coverwindow(self, show_after_update=False, update_all=False):
+        if self.conn:
+            if self.coverwindow_visible:
+                if self.status and self.status.state in ['play', 'pause']:
+                    at, len = [int(c) for c in self.status.time.split(':')]
+                    at_time = convert_time(at)
+                    try:
+                        time = convert_time(int(self.songinfo.time))
+                        self.coverwindow_timelabel.set_markup(at_time + " / " + time)
+                    except:
+                        self.coverwindow_timelabel.set_markup(at_time)
+                    if update_all:
+                        try:
+                            self.coverwindow_titlelabel.set_text(self.songinfo.title)
+                        except:
+                            self.coverwindow_titlelabel.set_text(_('Unknown'))
+                        try:
+                            self.coverwindow_artistlabel.set_text(self.songinfo.artist)
+                        except:
+                            self.coverwindow_artistlabel.set_text(_('Unknown'))
+                        try:
+                            self.coverwindow_albumlabel.set_text(self.songinfo.album)
+                        except:
+                            self.coverwindow_albumlabel.set_text(_('Unknown'))
+                        try:
+                            self.coverwindow_datelabel.set_text(self.songinfo.date)
+                        except:
+                            self.coverwindow_datelabel.set_text(_('Unknown'))
+                        try:
+                            self.coverwindow_tracklabel.set_text(self.songinfo.track)
+                        except:
+                            self.coverwindow_tracklabel.set_text(_('Unknown'))
+                        try:
+                            self.coverwindow_genrelabel.set_text(self.songinfo.genre)
+                        except:
+                            self.coverwindow_genrelabel.set_text(_('Unknown'))
+                        try:
+                            self.coverwindow_filelabel.set_text(os.path.basename(self.songinfo.file))
+                        except:
+                            self.coverwindow_filelabel.set_text(_('Unknown'))
+                    if show_after_update:
+                        gobject.idle_add(self.coverwindow_show_now)
+
+    def coverwindow_show_now(self):
+        self.coverwindow.show_all()
+        self.coverwindow_visible = True
 
     def get_pixbuf_of_size(self, pixbuf, size):
         # Creates a pixbuf that fits in the specified square of sizexsize
@@ -2877,6 +2982,8 @@ class Base(mpdclient3.mpd_connection):
         if button.get_active():
             self.traytips.set_size_request(350, -1)
             self.albumimage.set_from_file(self.sonatacd)
+            if self.coverwindow_visible:
+                self.coverwindow_image.set_from_file(self.sonatacd_large)
             self.lastalbumart = None
             self.imageeventbox.set_no_show_all(False)
             self.imageeventbox.show_all()

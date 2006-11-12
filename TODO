@@ -1,5 +1,4 @@
 v0.9
-	song properties (metadata)
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
 		Add to > Next song, top, random
 	Stream support
