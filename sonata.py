@@ -1380,26 +1380,13 @@ class Base(mpdclient3.mpd_connection):
         if self.root != '/':
             self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
             self.browserdata.append([gtk.STOCK_OPEN, '/'.join(root.split('/')[:-1]) or '/', '..'])
-        dirlist = []
-        filelist = []
         for item in self.conn.do.lsinfo(root):
             if item.type == 'directory':
                 name = item.directory.split('/')[-1]
-                dict = {}
-                dict["name"] = escape_html(name)
-                dict["path"] = item.directory
-                dirlist.append(dict)
+                self.browserdata.append([gtk.STOCK_OPEN, item.directory, escape_html(name)])
             elif item.type == 'file':
-                dict = {}
-                dict["name"] = self.parse_formatting(self.libraryformat, item, True)
-                dict["path"] = item.file
-                filelist.append(dict)
-        dirlist.sort(key=lambda x: x["name"].lower()) # Remove case sensitivity
-        filelist.sort(key=lambda x: x["name"].lower()) # Remove case sensitivity
-        for item in dirlist:
-            self.browserdata.append([gtk.STOCK_OPEN, item["path"], item["name"]])
-        for item in filelist:
-            self.browserdata.append(['sonata', item["path"], item["name"]])
+                self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
+
         self.browser.thaw_child_notify()
 
         # Scroll back to set view for current dir:
@@ -1456,7 +1443,10 @@ class Base(mpdclient3.mpd_connection):
             else:
                 return text
         else:
-            return self.filename_or_fullpath(item.file)
+            if use_escape_html:
+                return escape_html(self.filename_or_fullpath(item.file))
+            else:
+                return self.filename_or_fullpath(item.file)
 
     def filename_or_fullpath(self, file):
         if len(file.split('/')[-1]) == 0 or file[:7] == 'http://' or file[:6] == 'ftp://':
@@ -1786,7 +1776,7 @@ class Base(mpdclient3.mpd_connection):
                 # we want to display the stream name:
                 for i in range(len(self.stream_uris)):
                     if track.file == self.stream_uris[i]:
-                        item = self.stream_names[i]
+                        item = escape_html(self.stream_names[i])
                 self.currentdata.append([int(track.id), item])
             self.current.thaw_child_notify()
             if self.status.state in ['play', 'pause']:
