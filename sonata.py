@@ -1452,6 +1452,8 @@ class Base(mpdclient3.mpd_connection):
             self.update_album_art()
             return
 
+        self.update_coverwindow(update_all=True)
+
         # Update progress frequently if we're playing
         if self.status.state in ['play', 'pause']:
             self.update_progressbar()
@@ -2101,21 +2103,21 @@ class Base(mpdclient3.mpd_connection):
         vbox_left.pack_start(filelabel, False, False, 2)
         vbox_left.pack_start(timelabel, False, False, 2)
         vbox_right = gtk.VBox()
-        self.coverwindow_titlelabel = gtk.Label()
+        self.coverwindow_titlelabel = gtk.Label("")
         self.coverwindow_titlelabel.set_alignment(0, 1)
-        self.coverwindow_artistlabel = gtk.Label()
+        self.coverwindow_artistlabel = gtk.Label("")
         self.coverwindow_artistlabel.set_alignment(0, 1)
-        self.coverwindow_albumlabel = gtk.Label()
+        self.coverwindow_albumlabel = gtk.Label("")
         self.coverwindow_albumlabel.set_alignment(0, 1)
-        self.coverwindow_datelabel = gtk.Label()
+        self.coverwindow_datelabel = gtk.Label("")
         self.coverwindow_datelabel.set_alignment(0, 1)
-        self.coverwindow_tracklabel = gtk.Label()
+        self.coverwindow_tracklabel = gtk.Label("")
         self.coverwindow_tracklabel.set_alignment(0, 1)
-        self.coverwindow_genrelabel = gtk.Label()
+        self.coverwindow_genrelabel = gtk.Label("")
         self.coverwindow_genrelabel.set_alignment(0, 1)
-        self.coverwindow_filelabel = gtk.Label()
+        self.coverwindow_filelabel = gtk.Label("")
         self.coverwindow_filelabel.set_alignment(0, 1)
-        self.coverwindow_timelabel = gtk.Label()
+        self.coverwindow_timelabel = gtk.Label("")
         self.coverwindow_timelabel.set_alignment(0, 1)
         vbox_right.pack_start(self.coverwindow_titlelabel, False, False, 2)
         vbox_right.pack_start(self.coverwindow_artistlabel, False, False, 2)
@@ -2153,9 +2155,9 @@ class Base(mpdclient3.mpd_connection):
                     at_time = convert_time(at)
                     try:
                         time = convert_time(int(self.songinfo.time))
-                        self.coverwindow_timelabel.set_markup(at_time + " / " + time)
+                        self.coverwindow_timelabel.set_text(at_time + " / " + time)
                     except:
-                        self.coverwindow_timelabel.set_markup(at_time)
+                        self.coverwindow_timelabel.set_text(at_time)
                     if update_all:
                         try:
                             self.coverwindow_titlelabel.set_text(self.songinfo.title)
@@ -2187,6 +2189,15 @@ class Base(mpdclient3.mpd_connection):
                             self.coverwindow_filelabel.set_text(_('Unknown'))
                     if show_after_update:
                         gobject.idle_add(self.coverwindow_show_now)
+                else:
+                    self.coverwindow_timelabel.set_text("")
+                    self.coverwindow_titlelabel.set_text("")
+                    self.coverwindow_artistlabel.set_text("")
+                    self.coverwindow_albumlabel.set_text("")
+                    self.coverwindow_datelabel.set_text("")
+                    self.coverwindow_tracklabel.set_text("")
+                    self.coverwindow_genrelabel.set_text("")
+                    self.coverwindow_filelabel.set_text("")
 
     def coverwindow_show_now(self):
         self.coverwindow.show_all()
