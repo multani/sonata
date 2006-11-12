@@ -4,6 +4,7 @@ v0.9 - Pending
 	+ Allow crossfading (mixing) between songs
 	+ Fetch higher-resolution cover art
 	+ Popup song notification on un-pause
+	+ Pick up tooltip album background color from gtk theme
 	+ Store cover art in ~/.covers for consistency with gmpc
 	+ Bug: Prevent infrequent crash when fetching album art
 

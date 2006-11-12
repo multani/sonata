@@ -561,7 +561,7 @@ class Base(mpdclient3.mpd_connection):
         self.trayalbumimage1.set_size_request(50, 75)
         self.trayalbumimage1.set_alignment(1, 0.5)
         self.trayalbumeventbox.add(self.trayalbumimage1)
-        self.trayalbumeventbox.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#4a6984"))
+        self.trayalbumeventbox.set_state(gtk.STATE_SELECTED)
         hiddenlbl = gtk.Label()
         hiddenlbl.set_size_request(2, -1)
         self.tipbox.pack_start(hiddenlbl, False, False, 0)
