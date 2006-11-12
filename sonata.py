@@ -1427,12 +1427,12 @@ class Base(mpdclient3.mpd_connection):
                 try:
                     text = text.replace("%A", item.artist)
                 except:
-                    return self.filename_or_fullpath(item.file)
+                    text = text.replace("%A", _('Unknown'))
             if "%B" in text:
                 try:
                     text = text.replace("%B", item.album)
                 except:
-                    text = text.replace("%B", "Unknown")
+                    text = text.replace("%B", _('Unknown'))
             if "%S" in text:
                 try:
                     text = text.replace("%S", item.title)
@@ -1735,15 +1735,18 @@ class Base(mpdclient3.mpd_connection):
                 except:
                     pass
                 if not newlabelfound:
-                    # Fallback, use file name:
-                    name = self.filename_or_fullpath(self.songinfo.file)
-                    # Check if the item is one of the user's streams; if so,
-                    # we want to display the stream name:
-                    for i in range(len(self.stream_uris)):
-                        if name == self.stream_uris[i]:
-                            name = self.stream_names[i]
-                    newlabel = '<big><b>' + escape_html(name) + '</b></big>\n<small>' + _('by Unknown') + '</small>'
-                    newlabel_tray = newlabel
+                    try:
+                        # Fallback, try song:
+                        newlabel = '<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>' + _('by') + ' ' + _('Unknown') + '</small>'
+                        newlabel_tray = newlabel
+                        newlabelfound = True
+                    except:
+                        pass
+                    if not newlabelfound:
+                        # Fallback, use file name:
+                        name = self.filename_or_fullpath(self.songinfo.file)
+                        newlabel = '<big><b>' + escape_html(name) + '</b></big>\n<small>' + _('by Unknown') + '</small>'
+                        newlabel_tray = newlabel
             if newlabel != self.cursonglabel.get_label():
                 self.cursonglabel.set_markup(newlabel)
             if newlabel_tray != self.traycursonglabel.get_label():
@@ -1778,7 +1781,7 @@ class Base(mpdclient3.mpd_connection):
                 # Check if the item is one of the user's streams; if so,
                 # we want to display the stream name:
                 for i in range(len(self.stream_uris)):
-                    if item == self.stream_uris[i]:
+                    if track.file == self.stream_uris[i]:
                         item = self.stream_names[i]
                 self.currentdata.append([int(track.id), item])
             self.current.thaw_child_notify()
