@@ -1,4 +1,5 @@
 v0.9 - Pending
+	+ Added stream support
 	+ Use local artwork (cover.jpg, folder.jpg) first, if it exists
 	  (requires music_directory to be specified in preferences)
 	+ Allow crossfading (mixing) between songs

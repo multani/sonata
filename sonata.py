@@ -163,6 +163,10 @@ class Base(mpdclient3.mpd_connection):
         start_dbus_interface(toggle_arg)
 
         # Initialize vars:
+        self.TAB_CURRENT = 0
+        self.TAB_LIBRARY = 1
+        self.TAB_PLAYLISTS = 2
+        self.TAB_STREAMS = 3
         self.musicdir = os.path.expanduser("~/music")
         socket.setdefaulttimeout(2)
         self.host = 'localhost'
@@ -205,8 +209,10 @@ class Base(mpdclient3.mpd_connection):
         self.titleformat = "[Sonata] %A - %S"
         self.autoconnect = True
         self.user_connect = False
-        show_prefs = False
+        self.stream_names = []
+        self.stream_uris = []
         self.coverwindow_visible = False
+        show_prefs = False
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
         # are repeatedly executed. Therefore, if we were not
@@ -237,12 +243,14 @@ class Base(mpdclient3.mpd_connection):
             ('updatemenu', gtk.STOCK_REFRESH, _('_Update Library'), None, None, self.updatedb),
             ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'), None, None, self.prefs),
             ('helpmenu', gtk.STOCK_HELP, _('_Help'), None, None, self.help),
+            ('newmenu', gtk.STOCK_NEW, _('_New'), '<Ctrl>n', None, self.new_stream),
             ('addmenu', gtk.STOCK_ADD, _('_Add'), '<Ctrl>d', None, self.add_item),
             ('replacemenu', gtk.STOCK_REDO, _('_Replace'), '<Ctrl>r', None, self.replace_item),
             ('rmmenu', gtk.STOCK_DELETE, _('_Delete'), None, None, self.remove),
             ('currentkey', None, 'Current Playlist Key', '<Alt>1', None, self.switch_to_current),
             ('librarykey', None, 'Library Key', '<Alt>2', None, self.switch_to_library),
             ('playlistskey', None, 'Playlists Key', '<Alt>3', None, self.switch_to_playlists),
+            ('streamskey', None, 'Streams Key', '<Alt>4', None, self.switch_to_streams),
             ('expandkey', None, 'Expand Key', '<Alt>Down', None, self.expand),
             ('collapsekey', None, 'Collapse Key', '<Alt>Up', None, self.collapse),
             ('ppkey', None, 'Play/Pause Key', '<Ctrl>p', None, self.pp),
@@ -287,6 +295,7 @@ class Base(mpdclient3.mpd_connection):
               <popup name="mainmenu">
                 <menuitem action="addmenu"/>
                 <menuitem action="replacemenu"/>
+                <menuitem action="newmenu"/>
                 <menuitem action="removemenu"/>
                 <menuitem action="clearmenu"/>
                 <menuitem action="savemenu"/>
@@ -304,6 +313,7 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="currentkey"/>
                 <menuitem action="librarykey"/>
                 <menuitem action="playlistskey"/>
+                <menuitem action="streamskey"/>
                 <menuitem action="expandkey"/>
                 <menuitem action="collapsekey"/>
                 <menuitem action="ppkey"/>
@@ -528,6 +538,20 @@ class Base(mpdclient3.mpd_connection):
         playlistshbox.pack_start(gtk.Label(str=_("Playlists")), False, False, 2)
         playlistshbox.show_all()
         self.notebook.append_page(self.expanderwindow3, playlistshbox)
+        self.expanderwindow4 = gtk.ScrolledWindow()
+        self.expanderwindow4.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.expanderwindow4.set_shadow_type(gtk.SHADOW_IN)
+        self.streams = gtk.TreeView()
+        self.streams.set_headers_visible(False)
+        self.streams.set_rules_hint(True)
+        self.streams.set_reorderable(True)
+        self.streams.set_enable_search(True)
+        self.expanderwindow4.add(self.streams)
+        streamshbox = gtk.HBox()
+        streamshbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_NETWORK, gtk.ICON_SIZE_MENU), False, False, 2)
+        streamshbox.pack_start(gtk.Label(str=_("Streams")), False, False, 2)
+        streamshbox.show_all()
+        self.notebook.append_page(self.expanderwindow4, streamshbox)
         mainvbox.pack_start(self.notebook, True, True, 5)
         mainhbox.pack_start(mainvbox, True, True, 3)
         self.window.add(mainhbox)
@@ -659,6 +683,8 @@ class Base(mpdclient3.mpd_connection):
         self.browser.connect('button_press_event', self.browser_button_press)
         self.playlists.connect('button_press_event', self.playlists_button_press)
         self.playlists.connect('row_activated', self.playlists_activated)
+        self.streams.connect('button_press_event', self.streams_button_press)
+        self.streams.connect('row_activated', self.streams_activated)
         self.ppbutton.connect('button_press_event', self.popup_menu)
         self.prevbutton.connect('button_press_event', self.popup_menu)
         self.stopbutton.connect('button_press_event', self.popup_menu)
@@ -721,6 +747,20 @@ class Base(mpdclient3.mpd_connection):
         self.playlists.append_column(self.playlistscolumn)
         self.playlists.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
 
+        # Initialize streams data and widget
+        self.streamsdata = gtk.ListStore(str, str, str)
+        self.streams.set_model(self.streamsdata)
+        self.streams.set_search_column(1)
+        self.streamsimg = gtk.CellRendererPixbuf()
+        self.streamscell = gtk.CellRendererText()
+        self.streamscolumn = gtk.TreeViewColumn()
+        self.streamscolumn.pack_start(self.streamsimg, False)
+        self.streamscolumn.pack_start(self.streamscell, True)
+        self.streamscolumn.set_attributes(self.streamsimg, stock_id=0)
+        self.streamscolumn.set_attributes(self.streamscell, markup=1)
+        self.streams.append_column(self.streamscolumn)
+        self.streams.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
+
         # Initialize browser data and widget
         self.browserposition = {}
         self.browserselectedpath = {}
@@ -744,6 +784,8 @@ class Base(mpdclient3.mpd_connection):
 
         icon = self.window.render_icon('sonata', gtk.ICON_SIZE_DIALOG)
         self.window.set_icon(icon)
+
+        self.streams_populate()
 
         self.handle_change_status()
         if self.withdrawn and HAVE_EGG:
@@ -1094,6 +1136,13 @@ class Base(mpdclient3.mpd_connection):
             self.libraryformat = conf.get('format', 'library')
         if conf.has_option('format', 'title'):
             self.titleformat = conf.get('format', 'title')
+        if conf.has_option('streams', 'num_streams'):
+            num_streams = conf.getint('streams', 'num_streams')
+            self.stream_names = []
+            self.stream_uris = []
+            for i in range(num_streams):
+                self.stream_names.append(conf.get('streams', 'names[' + str(i) + ']'))
+                self.stream_uris.append(conf.get('streams', 'uris[' + str(i) + ']'))
 
     def settings_save(self):
         conf = ConfigParser.ConfigParser()
@@ -1131,6 +1180,11 @@ class Base(mpdclient3.mpd_connection):
         conf.set('format', 'current', self.currentformat)
         conf.set('format', 'library', self.libraryformat)
         conf.set('format', 'title', self.titleformat)
+        conf.add_section('streams')
+        conf.set('streams', 'num_streams', len(self.stream_names))
+        for i in range(len(self.stream_names)):
+            conf.set('streams', 'names[' + str(i) + ']', self.stream_names[i])
+            conf.set('streams', 'uris[' + str(i) + ']', self.stream_uris[i])
         conf.write(file(os.path.expanduser('~/.config/sonata/sonatarc'), 'w'))
 
     def handle_change_conn(self):
@@ -1156,15 +1210,60 @@ class Base(mpdclient3.mpd_connection):
             self.notebook_tab_clicked(self.notebook, 0, self.notebook.get_current_page())
 
     def notebook_tab_clicked(self, notebook, page, page_num):
-        if page_num == 0:
+        if page_num == self.TAB_CURRENT:
             gobject.idle_add(self.give_widget_focus, self.current)
-        elif page_num == 1:
+        elif page_num == self.TAB_LIBRARY:
             gobject.idle_add(self.give_widget_focus, self.browser)
-        elif page_num == 2:
+        elif page_num == self.TAB_PLAYLISTS:
             gobject.idle_add(self.give_widget_focus, self.playlists)
+        elif page_num == self.TAB_STREAMS:
+            gobject.idle_add(self.give_widget_focus, self.streams)
 
     def give_widget_focus(self, widget):
         widget.grab_focus()
+
+    def new_stream(self, action):
+        # Prompt user for playlist name:
+        dialog = gtk.Dialog(_("New Stream"), self.window, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
+        hbox = gtk.HBox()
+        namelabel = gtk.Label(_('Stream name') + ':')
+        hbox.pack_start(namelabel, False, False, 5)
+        nameentry = gtk.Entry()
+        hbox.pack_start(nameentry, True, True, 5)
+        hbox2 = gtk.HBox()
+        urllabel = gtk.Label(_('Stream URL') + ':')
+        hbox2.pack_start(urllabel, False, False, 5)
+        urlentry = gtk.Entry()
+        hbox2.pack_start(urlentry, True, True, 5)
+        # Make labels the same length for alignment
+        max_label_width = 0
+        if namelabel.size_request()[0] > max_label_width: max_label_width = namelabel.size_request()[0]
+        if urllabel.size_request()[0] > max_label_width: max_label_width = urllabel.size_request()[0]
+        namelabel.set_size_request(max_label_width, -1)
+        urllabel.set_size_request(max_label_width, -1)
+        dialog.vbox.pack_start(hbox)
+        dialog.vbox.pack_start(hbox2)
+        dialog.vbox.show_all()
+        response = dialog.run()
+        if response == gtk.RESPONSE_ACCEPT:
+            name = nameentry.get_text()
+            uri = urlentry.get_text()
+            if len(name) > 0 and len(uri) > 0:
+                # Make sure this stream name doesn't already exit:
+                for item in self.stream_names:
+                    if item == name:
+                        dialog.destroy()
+                        # show error here
+                        error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("A stream with this name already exists."))
+                        error_dialog.set_title(_("New Stream"))
+                        error_dialog.run()
+                        error_dialog.destroy()
+                        return
+                self.stream_names.append(name)
+                self.stream_uris.append(uri)
+                self.streams_populate()
+        dialog.destroy()
+        self.iterate_now()
 
     def save_playlist(self, action):
         if self.conn:
@@ -1211,11 +1310,26 @@ class Base(mpdclient3.mpd_connection):
             for item in playlistinfo:
                 self.playlistsdata.append([gtk.STOCK_JUSTIFY_FILL, item])
 
+    def streams_populate(self):
+        self.streamsdata.clear()
+        streamsinfo = []
+        for i in range(len(self.stream_names)):
+            dict = {}
+            dict["name"] = escape_html(self.stream_names[i])
+            dict["uri"] = escape_html(self.stream_uris[i])
+            streamsinfo.append(dict)
+        streamsinfo.sort(key=lambda x: x["name"].lower()) # Remove case sensitivity
+        for item in streamsinfo:
+            self.streamsdata.append([gtk.STOCK_NETWORK, item["name"], item["uri"]])
+
     def playlists_activated(self, treeview, path, column):
         self.add_item(None)
 
+    def streams_activated(self, treeview, path, column):
+        self.add_item(None)
+
     def parent_dir(self, action):
-        if self.notebook.get_current_page() == 1:
+        if self.notebook.get_current_page() == self.TAB_LIBRARY:
             if self.browser.is_focus():
                 if self.browser.wd != "/":
                     self.browse(None, self.browserdata.get_value(self.browserdata.get_iter((1,)), 1))
@@ -1262,12 +1376,26 @@ class Base(mpdclient3.mpd_connection):
         if self.root != '/':
             self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
             self.browserdata.append([gtk.STOCK_OPEN, '/'.join(root.split('/')[:-1]) or '/', '..'])
+        dirlist = []
+        filelist = []
         for item in self.conn.do.lsinfo(root):
             if item.type == 'directory':
                 name = item.directory.split('/')[-1]
-                self.browserdata.append([gtk.STOCK_OPEN, item.directory, escape_html(name)])
+                dict = {}
+                dict["name"] = escape_html(name)
+                dict["path"] = item.directory
+                dirlist.append(dict)
             elif item.type == 'file':
-                self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
+                dict = {}
+                dict["name"] = self.parse_formatting(self.libraryformat, item, True)
+                dict["path"] = item
+                filelist.append(dict)
+        dirlist.sort(key=lambda x: x["name"].lower()) # Remove case sensitivity
+        filelist.sort(key=lambda x: x["name"].lower()) # Remove case sensitivity
+        for item in dirlist:
+            self.browserdata.append([gtk.STOCK_OPEN, item["path"], item["name"]])
+        for item in filelist:
+            self.browserdata.append(['sonata', item["path"], item["name"]])
         self.browser.thaw_child_notify()
 
         # Scroll back to set view for current dir:
@@ -1374,9 +1502,21 @@ class Base(mpdclient3.mpd_connection):
             if self.playlists.get_selection().count_selected_rows() > 1:
                 return True
 
+    def streams_button_press(self, widget, event):
+        self.volume_hide()
+        if event.button == 3:
+            self.set_menu_contextual_items_visible()
+            self.mainmenu.popup(None, None, None, event.button, event.time)
+            # Don't change the selection for a right-click. This
+            # will allow the user to select multiple rows and then
+            # right-click (instead of right-clicking and having
+            # the current selection change to the current row)
+            if self.streams.get_selection().count_selected_rows() > 1:
+                return True
+
     def add_item(self, widget):
         if self.conn:
-            if self.notebook.get_current_page() == 1:
+            if self.notebook.get_current_page() == self.TAB_LIBRARY:
                 # Library
                 model, selected = self.browser.get_selection().get_selected_rows()
                 if self.root == "/":
@@ -1387,11 +1527,16 @@ class Base(mpdclient3.mpd_connection):
                     for path in selected:
                         if path[0] != 0 and path[0] != 1:
                             self.conn.do.add(model.get_value(model.get_iter(path), 1))
-            else:
+            elif self.notebook.get_current_page() == self.TAB_PLAYLISTS:
                 # Playlist
                 model, selected = self.playlists.get_selection().get_selected_rows()
                 for path in selected:
                     self.conn.do.load(model.get_value(model.get_iter(path), 1))
+            elif self.notebook.get_current_page() == self.TAB_STREAMS:
+                # Streams
+                model, selected = self.streams.get_selection().get_selected_rows()
+                for path in selected:
+                    self.conn.do.add(model.get_value(model.get_iter(path), 2))
             self.iterate_now()
 
     def replace_item(self, widget):
@@ -1417,15 +1562,18 @@ class Base(mpdclient3.mpd_connection):
             i = 0
             row_found = False
             row_y = 0
-            if self.notebook.get_current_page() == 0:
+            if self.notebook.get_current_page() == self.TAB_CURRENT:
                 widget = self.current
                 column = self.currentcolumn
-            elif self.notebook.get_current_page() == 1:
+            elif self.notebook.get_current_page() == self.TAB_LIBRARY:
                 widget = self.browser
                 column = self.browsercolumn
-            elif self.notebook.get_current_page() == 2:
+            elif self.notebook.get_current_page() == self.TAB_PLAYLISTS:
                 widget = self.playlists
                 column = self.playlistscolumn
+            elif self.notebook.get_current_page() == self.TAB_STREAMS:
+                widget = self.streams
+                column = self.streamscolumn
             rows = widget.get_selection().get_selected_rows()[1]
             visible_rect = widget.get_visible_rect()
             while not row_found and i < len(rows):
@@ -1563,7 +1711,7 @@ class Base(mpdclient3.mpd_connection):
         if self.conn and self.status and self.status.state in ['play', 'pause']:
             # We must show the trayprogressbar and trayalbumeventbox
             # before changing self.cursonglabel (and consequently calling
-            # self.labelnotify() in order to ensure that the notification
+            # self.labelnotify()) in order to ensure that the notification
             # popup will have the correct height when being displayed for
             # the first time after a stopped state.
             self.trayprogressbar.show()
@@ -1589,6 +1737,11 @@ class Base(mpdclient3.mpd_connection):
                 if not newlabelfound:
                     # Fallback, use file name:
                     name = self.filename_or_fullpath(self.songinfo.file)
+                    # Check if the item is one of the user's streams; if so,
+                    # we want to display the stream name:
+                    for i in range(len(self.stream_uris)):
+                        if name == self.stream_uris[i]:
+                            name = self.stream_names[i]
                     newlabel = '<big><b>' + escape_html(name) + '</b></big>\n<small>' + _('by Unknown') + '</small>'
                     newlabel_tray = newlabel
             if newlabel != self.cursonglabel.get_label():
@@ -1621,7 +1774,13 @@ class Base(mpdclient3.mpd_connection):
             self.currentdata.clear()
             self.current.freeze_child_notify()
             for track in self.songs:
-                self.currentdata.append([int(track.id), self.parse_formatting(self.currentformat, track, True)])
+                item = self.parse_formatting(self.currentformat, track, True)
+                # Check if the item is one of the user's streams; if so,
+                # we want to display the stream name:
+                for i in range(len(self.stream_uris)):
+                    if item == self.stream_uris[i]:
+                        item = self.stream_names[i]
+                self.currentdata.append([int(track.id), item])
             self.current.thaw_child_notify()
             if self.status.state in ['play', 'pause']:
                 row = int(self.songinfo.pos)
@@ -2041,7 +2200,7 @@ class Base(mpdclient3.mpd_connection):
 
     def updatedb_path(self, action):
         if self.conn:
-            if self.notebook.get_current_page() == 1:
+            if self.notebook.get_current_page() == self.TAB_LIBRARY:
                 model, selected = self.browser.get_selection().get_selected_rows()
                 iters = [model.get_iter(path) for path in selected]
                 if len(iters) > 0:
@@ -2457,6 +2616,9 @@ class Base(mpdclient3.mpd_connection):
     def switch_to_playlists(self, action):
         self.notebook.set_current_page(2)
 
+    def switch_to_streams(self, action):
+        self.notebook.set_current_page(3)
+
     def lower_volume(self, action):
         new_volume = int(self.volumescale.get_adjustment().get_value()) - 5
         if new_volume < 0:
@@ -2559,17 +2721,26 @@ class Base(mpdclient3.mpd_connection):
     def remove(self, widget):
         if self.conn:
             page_num = self.notebook.get_current_page()
-            if page_num == 0:
+            if page_num == self.TAB_CURRENT:
                 model, selected = self.current.get_selection().get_selected_rows()
                 iters = [model.get_iter(path) for path in selected]
                 for iter in iters:
                     self.conn.do.deleteid(self.currentdata.get_value(iter, 0))
-            elif page_num == 2:
+            elif page_num == self.TAB_PLAYLISTS:
                 model, selected = self.playlists.get_selection().get_selected_rows()
                 iters = [model.get_iter(path) for path in selected]
                 for iter in iters:
                     self.conn.do.rm(self.playlistsdata.get_value(iter, 1))
                 self.playlists_populate()
+            elif page_num == self.TAB_STREAMS:
+                model, selected = self.streams.get_selection().get_selected_rows()
+                iters = [model.get_iter(path) for path in selected]
+                for iter in iters:
+                    for i in range(len(self.stream_names)):
+                        if self.streamsdata.get_value(iter, 1) == escape_html(self.stream_names[i]):
+                            self.stream_names.pop(i)
+                            self.stream_uris.pop(i)
+                self.streams_populate()
             self.iterate_now()
 
     def randomize(self, widget):
@@ -3122,7 +3293,7 @@ class Base(mpdclient3.mpd_connection):
     def set_menu_contextual_items_visible(self):
         if not self.expanded:
             self.set_menu_contextual_items_hidden()
-        elif self.notebook.get_current_page() == 0:
+        elif self.notebook.get_current_page() == self.TAB_CURRENT:
             self.UIManager.get_widget('/mainmenu/removemenu/').show()
             self.UIManager.get_widget('/mainmenu/clearmenu/').show()
             self.UIManager.get_widget('/mainmenu/savemenu/').show()
@@ -3130,7 +3301,8 @@ class Base(mpdclient3.mpd_connection):
             self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
             self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
             self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
-        elif self.notebook.get_current_page() == 1:
+            self.UIManager.get_widget('/mainmenu/newmenu/').hide()
+        elif self.notebook.get_current_page() == self.TAB_LIBRARY:
             self.UIManager.get_widget('/mainmenu/removemenu/').hide()
             self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
             self.UIManager.get_widget('/mainmenu/savemenu/').hide()
@@ -3138,6 +3310,7 @@ class Base(mpdclient3.mpd_connection):
             self.UIManager.get_widget('/mainmenu/replacemenu/').show()
             self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
             self.UIManager.get_widget('/mainmenu/updatemenu/').show()
+            self.UIManager.get_widget('/mainmenu/newmenu/').hide()
         else:
             self.UIManager.get_widget('/mainmenu/removemenu/').hide()
             self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
@@ -3146,6 +3319,10 @@ class Base(mpdclient3.mpd_connection):
             self.UIManager.get_widget('/mainmenu/replacemenu/').show()
             self.UIManager.get_widget('/mainmenu/rmmenu/').show()
             self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
+            if self.notebook.get_current_page() == self.TAB_STREAMS:
+                self.UIManager.get_widget('/mainmenu/newmenu/').show()
+            else:
+                self.UIManager.get_widget('/mainmenu/newmenu/').hide()
 
     def set_menu_contextual_items_hidden(self):
         self.UIManager.get_widget('/mainmenu/removemenu/').hide()
@@ -3155,6 +3332,7 @@ class Base(mpdclient3.mpd_connection):
         self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
         self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
         self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
+        self.UIManager.get_widget('/mainmenu/newmenu/').hide()
 
     def help(self, action):
         self.browser_load("http://sonata.berlios.de/documentation.html")

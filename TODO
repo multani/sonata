@@ -1,11 +1,10 @@
 v0.9
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
 		Add to > Next song, top, random
-	Stream support
 	make selection, dnd, more like thunar
-	make remote images non-blocking
+	make remote images non-blocking (add search bar at bottom?)
 	use pygtk's systemtray support
-	don't make library case sensitive?
+	remove case sensitivity for library
 
 Future:
 	allow multiple columns?
