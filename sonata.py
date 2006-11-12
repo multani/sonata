@@ -1392,7 +1392,7 @@ class Base(mpdclient3.mpd_connection):
             elif item.type == 'file':
                 dict = {}
                 dict["name"] = self.parse_formatting(self.libraryformat, item, True)
-                dict["path"] = item
+                dict["path"] = item.file
                 filelist.append(dict)
         dirlist.sort(key=lambda x: x["name"].lower()) # Remove case sensitivity
         filelist.sort(key=lambda x: x["name"].lower()) # Remove case sensitivity
