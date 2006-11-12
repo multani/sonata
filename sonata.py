@@ -921,7 +921,11 @@ class Base(mpdclient3.mpd_connection):
                             print _("Shuffle") + ": " + _("Off")
                         else:
                             print _("Shuffle") + ": " + _("On")
-                        print _("Volume") + ": " + self.status.volume
+                        print _("Volume") + ": " + self.status.volume + "/100"
+                        if self.status.xfade == '1':
+                            print _('Crossfade') + ": " + self.status.xfade + ' ' + _('second')
+                        else:
+                            print _('Crossfade') + ": " + self.status.xfade + ' ' + _('seconds')
                     except:
                         pass
         else:
