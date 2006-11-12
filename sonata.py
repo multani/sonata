@@ -2168,10 +2168,11 @@ class Base(mpdclient3.mpd_connection):
             drag_context.finish(True, True, timestamp)
         self.iterate_now()
 
-        row = destpath[0]
-        for i in range(len(drag_sources)):
-            treeview.get_selection().select_path(row)
-            row = row + 1
+        if destpath:
+            row = destpath[0]
+            for i in range(len(drag_sources)):
+                treeview.get_selection().select_path(row)
+                row = row + 1
 
     def current_changed(self, treemodel, path, iter):
         pass
@@ -2242,7 +2243,6 @@ class Base(mpdclient3.mpd_connection):
         evbox = gtk.EventBox()
         evbox.add(self.coverwindow_image)
         evbox.set_size_request(305, 305)
-        self.coverwindow.vbox.pack_start(evbox, True, True, 0)
         vbox_left = gtk.VBox()
         titlelabel = gtk.Label(_("Title") + ":")
         titlelabel.set_alignment(1, 1)
@@ -2260,6 +2260,9 @@ class Base(mpdclient3.mpd_connection):
         filelabel.set_alignment(1, 1)
         timelabel = gtk.Label(_("Time") + ":")
         timelabel.set_alignment(1, 1)
+        label1 = gtk.Label()
+        label1.set_markup('<span size="10"> </span>')
+        vbox_left.pack_start(label1, False, False, 2)
         vbox_left.pack_start(titlelabel, False, False, 2)
         vbox_left.pack_start(artistlabel, False, False, 2)
         vbox_left.pack_start(albumlabel, False, False, 2)
@@ -2285,6 +2288,9 @@ class Base(mpdclient3.mpd_connection):
         self.coverwindow_filelabel.set_alignment(0, 1)
         self.coverwindow_timelabel = gtk.Label("")
         self.coverwindow_timelabel.set_alignment(0, 1)
+        label2 = gtk.Label()
+        label2.set_markup('<span size="10"> </span>')
+        vbox_right.pack_start(label2, False, False, 2)
         vbox_right.pack_start(self.coverwindow_titlelabel, False, False, 2)
         vbox_right.pack_start(self.coverwindow_artistlabel, False, False, 2)
         vbox_right.pack_start(self.coverwindow_albumlabel, False, False, 2)
@@ -2295,13 +2301,14 @@ class Base(mpdclient3.mpd_connection):
         vbox_right.pack_start(self.coverwindow_timelabel, False, False, 2)
         hbox = gtk.HBox()
         hbox.pack_start(gtk.Label(), False, False, 5)
-        hbox.pack_start(vbox_left, False, False, 3)
-        hbox.pack_start(vbox_right, False, False, 3)
-        hbox.pack_start(gtk.Label(), False, False, 5)
+        hbox.pack_start(evbox, False, False, 3)
+        hbox.pack_start(vbox_left, False, False, 5)
+        hbox.pack_start(vbox_right, True, True, 3)
+        hbox.pack_start(gtk.Label(), False, False, 3)
         self.coverwindow.vbox.pack_start(hbox, False, False, 2)
-        label = gtk.Label()
-        label.set_markup('<span size="10"> </span>')
-        self.coverwindow.vbox.pack_start(label, False, False, 2)
+        label3 = gtk.Label()
+        label3.set_markup('<span size="10"> </span>')
+        self.coverwindow.vbox.pack_start(label3, False, False, 2)
         self.coverwindow.vbox.show_all()
         self.coverwindow_visible = True
         self.lastalbumart = ""
