@@ -28,10 +28,9 @@ import sys
 import os
 import gobject
 import ConfigParser
-import urllib, urllib2, httplib
+import urllib, urllib2
 import time
 import socket
-import string
 import gc
 import subprocess
 import gettext
@@ -2252,6 +2251,7 @@ class Base(mpdclient3.mpd_connection):
         self.coverwindow.set_resizable(False)
         self.coverwindow.set_has_separator(True)
         self.coverwindow_image = gtk.Image()
+        self.coverwindow_image.set_alignment(0.5, 0)
         evbox = gtk.EventBox()
         evbox.add(self.coverwindow_image)
         evbox.set_size_request(305, 305)
@@ -2318,9 +2318,6 @@ class Base(mpdclient3.mpd_connection):
         hbox.pack_start(vbox_right, True, True, 3)
         hbox.pack_start(gtk.Label(), False, False, 3)
         self.coverwindow.vbox.pack_start(hbox, False, False, 2)
-        label3 = gtk.Label()
-        label3.set_markup('<span size="10"> </span>')
-        self.coverwindow.vbox.pack_start(label3, False, False, 2)
         self.coverwindow.vbox.show_all()
         self.coverwindow_visible = True
         self.lastalbumart = ""
