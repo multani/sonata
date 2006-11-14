@@ -5,6 +5,7 @@ v0.9 - Pending
 	+ Allow crossfading (mixing) between songs
 	+ Fetch higher-resolution cover art
 	+ Improved song info viewer
+	+ Make remote images window non-blocking
 	+ Popup song notification on un-pause
 	+ Pick up tooltip album background color from gtk theme
 	+ Store cover art in ~/.covers for consistency with gmpc

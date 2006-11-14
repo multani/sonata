@@ -1,8 +1,9 @@
 v0.9
-	make remote images non-blocking (add search bar at bottom?)
+	add search bar to remote images window
 	how does a user without art access the extra info?
 	make popup window tabbed? (art, info, lyrics, ...)
-	support for PLS, M3U, etc (http://www.scvi.net/pls.htm)
+	support for PLS, M3U, etc (http://www.scvi.net/pls.htm) if mpd
+		doesn't support it natively
 
 Future:
 	use pygtk's systemtray support

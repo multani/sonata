@@ -212,6 +212,7 @@ class Base(mpdclient3.mpd_connection):
         self.stream_names = []
         self.stream_uris = []
         self.coverwindow_visible = False
+        self.downloading_image = False
         show_prefs = False
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
@@ -1906,10 +1907,11 @@ class Base(mpdclient3.mpd_connection):
         # If we got this far, no match:
         return False
 
-    def download_image_to_filename(self, artist, album, dest_filename, all_images=False):
+    def download_image_to_filename(self, artist, album, dest_filename, all_images=False, populate_imagelist=False):
         if len(artist) == 0 and len(album) == 0:
             return
         try:
+            self.downloading_image = True
             artist = urllib.quote(artist)
             album = urllib.quote(album)
             amazon_key = "12DR2PGAQT303YTEWP02"
@@ -1945,7 +1947,25 @@ class Base(mpdclient3.mpd_connection):
                     curr_pos = f.find("<LargeImage>", curr_pos+10)
                     img_url = f[f.find("<URL>", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
                     if len(img_url) > 0:
-                        urllib.urlretrieve(img_url, dest_filename.replace("<imagenum>", str(curr_img)))
+                        if self.stop_art_update:
+                            self.downloading_image = False
+                            return
+                        dest_filename_curr = dest_filename.replace("<imagenum>", str(curr_img))
+                        urllib.urlretrieve(img_url, dest_filename_curr)
+                        if populate_imagelist:
+                            # This populates self.imagelist for the remote image window
+                            gtk.gdk.threads_enter()
+                            if os.path.exists(dest_filename_curr):
+                                pix = gtk.gdk.pixbuf_new_from_file(dest_filename_curr)
+                                pix = pix.scale_simple(150, 150, gtk.gdk.INTERP_HYPER)
+                                if self.stop_art_update:
+                                    gtk.gdk.threads_leave()
+                                    self.downloading_image = False
+                                    return
+                                self.imagelist.append([curr_img, pix])
+                                del pix
+                                self.remotefilelist.append(dest_filename_curr)
+                            gtk.gdk.threads_leave()
                         curr_img += 1
                         # Skip the next LargeImage:
                         curr_pos = f.find("<LargeImage>", curr_pos+10)
@@ -1956,6 +1976,7 @@ class Base(mpdclient3.mpd_connection):
                     urllib.urlretrieve(img_url, dest_filename)
         except:
             pass
+        self.downloading_image = False
 
     def labelnotify(self, *args):
         if self.show_covers:
@@ -2460,7 +2481,6 @@ class Base(mpdclient3.mpd_connection):
         dialog.destroy()
 
     def choose_image(self, widget):
-        self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
         choose_dialog = gtk.Dialog(_("Choose Cover Art"), self.window, gtk.DIALOG_MODAL, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
         choosebutton = choose_dialog.add_button(_("Choose"), gtk.RESPONSE_ACCEPT)
         chooseimage = gtk.Image()
@@ -2471,62 +2491,63 @@ class Base(mpdclient3.mpd_connection):
         scroll = gtk.ScrolledWindow()
         scroll.set_size_request(350, 325)
         scroll.set_policy(gtk.POLICY_NEVER, gtk.POLICY_ALWAYS)
+        self.imagelist = gtk.ListStore(int, gtk.gdk.Pixbuf)
+        imagewidget = gtk.IconView(self.imagelist)
+        imagewidget.set_pixbuf_column(1)
+        imagewidget.set_columns(2)
+        imagewidget.set_item_width(150)
+        imagewidget.set_spacing(5)
+        imagewidget.set_margin(10)
+        imagewidget.set_selection_mode(gtk.SELECTION_SINGLE)
+        imagewidget.select_path("0")
+        imagewidget.connect('item-activated', self.replace_cover, choose_dialog)
+        scroll.add(imagewidget)
+        choose_dialog.vbox.pack_start(scroll)
+        choose_dialog.connect('response', self.choose_image_response, imagewidget, choose_dialog)
+        choose_dialog.show_all()
+        self.remotefilelist = []
+        self.choose_image_update()
+
+    def choose_image_update(self):
+        self.stop_art_update = True
+        while self.downloading_image:
+            gtk.main_iteration()
+        thread = threading.Thread(target=self.choose_image_update2)
+        thread.start()
+
+    def choose_image_update2(self):
+        self.stop_art_update = False
         # Retrieve all images from amazon:
-        artist = getattr(self.songinfo, 'artist', None)
-        if not artist: artist = ""
-        album = getattr(self.songinfo, 'album', None)
-        if not album: album = ""
-        imagelist = gtk.ListStore(int, gtk.gdk.Pixbuf)
+        self.remote_artist = getattr(self.songinfo, 'artist', "")
+        self.remote_album = getattr(self.songinfo, 'album', "")
+        if len(self.remote_artist) == 0 and len(self.remote_album) == 0:
+            gtk.gdk.threads_enter()
+            error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No artist or album name found."))
+            error_dialog.set_title(_("Choose Cover Art"))
+            error_dialog.run()
+            error_dialog.destroy()
+            gtk.gdk.threads_leave()
+            return
         filename = os.path.expanduser("~/.covers/temp/<imagenum>.jpg")
         if os.path.exists(os.path.dirname(filename)):
             removeall(os.path.dirname(filename))
         if not os.path.exists(os.path.dirname(filename)):
             os.mkdir(os.path.dirname(filename))
-        self.download_image_to_filename(artist, album, filename, True)
-        # Put images to ListStore
-        image_num = 1
-        while os.path.exists(filename.replace("<imagenum>", str(image_num))):
-            try:
-                pix = gtk.gdk.pixbuf_new_from_file(filename.replace("<imagenum>", str(image_num)))
-                pix = pix.scale_simple(150, 150, gtk.gdk.INTERP_HYPER)
-                imagelist.append([image_num, pix])
-            except:
-                imagelist.append([image_num, None])
-            image_num += 1
-        num_images = image_num - 1
-        if num_images > 0:
-            del pix
-            imagewidget = gtk.IconView(imagelist)
-            imagewidget.set_pixbuf_column(1)
-            imagewidget.set_columns(2)
-            imagewidget.set_item_width(150)
-            imagewidget.set_spacing(5)
-            imagewidget.set_margin(10)
-            imagewidget.set_selection_mode(gtk.SELECTION_SINGLE)
-            imagewidget.select_path("0")
-            imagewidget.connect('item-activated', self.replace_cover, filename, choose_dialog, artist, album)
-            scroll.add(imagewidget)
-            choose_dialog.vbox.pack_start(scroll)
-            choose_dialog.vbox.show_all()
-            self.change_cursor(None)
-            response = choose_dialog.run()
-            if response == gtk.RESPONSE_ACCEPT:
-                self.replace_cover(imagewidget, imagewidget.get_selected_items()[0], filename, choose_dialog, artist, album)
-            else:
-                choose_dialog.destroy()
-        else:
-            self.change_cursor(None)
-            error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No remote covers were found."))
-            error_dialog.set_title(_("Choose Cover Art"))
-            error_dialog.run()
-            error_dialog.destroy()
+        self.download_image_to_filename(self.remote_artist, self.remote_album, filename, True, True)
         gc.collect()
 
-    def replace_cover(self, iconview, path, filename, dialog, artist, album):
+    def choose_image_response(self, dialog, response_id, imagewidget, choose_dialog):
+        self.stop_art_update = True
+        if response_id == gtk.RESPONSE_ACCEPT:
+            self.replace_cover(imagewidget, imagewidget.get_selected_items()[0], choose_dialog)
+        dialog.destroy()
+
+    def replace_cover(self, iconview, path, dialog):
+        self.stop_art_update = True
         try:
-            image_num = int(path[0]) + 1
-            filename = filename.replace("<imagenum>", str(image_num))
-            dest_filename = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
+            image_num = int(path[0])
+            filename = self.remotefilelist[image_num]
+            dest_filename = os.path.expanduser("~/.covers/" + self.remote_artist + "-" + self.remote_album + ".jpg")
             if os.path.exists(filename):
                 # Move temp file to actual file:
                 os.remove(dest_filename)
@@ -2541,6 +2562,8 @@ class Base(mpdclient3.mpd_connection):
         except:
             pass
         dialog.destroy()
+        while self.downloading_image:
+            gtk.main_iteration()
 
     # What happens when you click on the system tray icon?
     def trayaction(self, widget, event):
