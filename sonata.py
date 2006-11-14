@@ -2485,6 +2485,7 @@ class Base(mpdclient3.mpd_connection):
         choosebutton.set_image(chooseimage)
         choose_dialog.set_has_separator(False)
         choose_dialog.set_default(choosebutton)
+        choose_dialog.set_resizable(False)
         scroll = gtk.ScrolledWindow()
         scroll.set_size_request(350, 325)
         scroll.set_policy(gtk.POLICY_NEVER, gtk.POLICY_ALWAYS)
@@ -2499,25 +2500,55 @@ class Base(mpdclient3.mpd_connection):
         imagewidget.select_path("0")
         imagewidget.connect('item-activated', self.replace_cover, choose_dialog)
         scroll.add(imagewidget)
-        choose_dialog.vbox.pack_start(scroll)
+        choose_dialog.vbox.pack_start(scroll, False, False, 0)
+        searchexpander = gtk.expander_new_with_mnemonic(_("Edit search terms"))
+        vbox = gtk.VBox()
+        hbox1 = gtk.HBox()
+        artistlabel = gtk.Label(_("Artist") + ": ")
+        hbox1.pack_start(artistlabel)
+        self.remote_artistentry = gtk.Entry()
+        self.remote_artistentry.connect('activate', self.choose_image_update)
+        hbox1.pack_start(self.remote_artistentry, True, True, 5)
+        hbox2 = gtk.HBox()
+        albumlabel = gtk.Label(_("Album") + ": ")
+        hbox2.pack_start(albumlabel)
+        self.remote_albumentry = gtk.Entry()
+        self.remote_albumentry.connect('activate', self.choose_image_update)
+        hbox2.pack_start(self.remote_albumentry, True, True, 5)
+        max_label_width = 0
+        if artistlabel.size_request()[0] > max_label_width: max_label_width = artistlabel.size_request()[0]
+        if albumlabel.size_request()[0] > max_label_width: max_label_width = albumlabel.size_request()[0]
+        artistlabel.set_size_request(max_label_width, -1)
+        albumlabel.set_size_request(max_label_width, -1)
+        artistlabel.set_alignment(1, 0.5)
+        albumlabel.set_alignment(1, 0.5)
+        vbox.pack_start(hbox1)
+        vbox.pack_start(hbox2)
+        searchexpander.add(vbox)
+        choose_dialog.vbox.pack_start(searchexpander, True, True, 0)
         choose_dialog.connect('response', self.choose_image_response, imagewidget, choose_dialog)
         choose_dialog.show_all()
         self.remotefilelist = []
+        self.remote_artist = getattr(self.songinfo, 'artist', "")
+        self.remote_album = getattr(self.songinfo, 'album', "")
+        self.remote_artistentry.set_text(self.remote_artist)
+        self.remote_albumentry.set_text(self.remote_album)
         self.choose_image_update()
 
-    def choose_image_update(self):
+    def choose_image_update(self, entry=None):
         self.stop_art_update = True
         while self.downloading_image:
             gtk.main_iteration()
+        self.imagelist.clear()
         thread = threading.Thread(target=self.choose_image_update2)
         thread.start()
 
     def choose_image_update2(self):
         self.stop_art_update = False
         # Retrieve all images from amazon:
-        self.remote_artist = getattr(self.songinfo, 'artist', "")
-        self.remote_album = getattr(self.songinfo, 'album', "")
-        if len(self.remote_artist) == 0 and len(self.remote_album) == 0:
+        artist_search = self.remote_artistentry.get_text()
+        album_search = self.remote_albumentry.get_text()
+        if len(artist_search) == 0 and len(album_search) == 0:
             gtk.gdk.threads_enter()
             error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No artist or album name found."))
             error_dialog.set_title(_("Choose Cover Art"))
@@ -2530,13 +2561,16 @@ class Base(mpdclient3.mpd_connection):
             removeall(os.path.dirname(filename))
         if not os.path.exists(os.path.dirname(filename)):
             os.mkdir(os.path.dirname(filename))
-        self.download_image_to_filename(self.remote_artist, self.remote_album, filename, True, True)
+        self.download_image_to_filename(artist_search, album_search, filename, True, True)
         gc.collect()
 
     def choose_image_response(self, dialog, response_id, imagewidget, choose_dialog):
         self.stop_art_update = True
         if response_id == gtk.RESPONSE_ACCEPT:
-            self.replace_cover(imagewidget, imagewidget.get_selected_items()[0], choose_dialog)
+            try:
+                self.replace_cover(imagewidget, imagewidget.get_selected_items()[0], choose_dialog)
+            except:
+                pass
         dialog.destroy()
 
     def replace_cover(self, iconview, path, dialog):

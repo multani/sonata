@@ -1,5 +1,4 @@
 v0.9
-	add search bar to remote images window
 	how does a user without art access the extra info?
 	make popup window tabbed? (art, info, lyrics, ...)
 	support for PLS, M3U, etc (http://www.scvi.net/pls.htm) if mpd

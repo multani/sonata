@@ -4,6 +4,7 @@ v0.9 - Pending
 	  (requires music_directory to be specified in preferences)
 	+ Allow crossfading (mixing) between songs
 	+ Fetch higher-resolution cover art
+	+ Allow specifying search terms for remote album art
 	+ Improved song info viewer
 	+ Make remote images window non-blocking
 	+ Popup song notification on un-pause
