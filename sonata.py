@@ -1266,6 +1266,7 @@ class Base(mpdclient3.mpd_connection):
                 self.stream_names.append(name)
                 self.stream_uris.append(uri)
                 self.streams_populate()
+                self.settings_save()
         dialog.destroy()
         self.iterate_now()
 

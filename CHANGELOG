@@ -9,6 +9,7 @@ v0.9 - Pending
 	+ Pick up tooltip album background color from gtk theme
 	+ Store cover art in ~/.covers for consistency with gmpc
 	+ Bug: Prevent infrequent crash when fetching album art
+	+ Bug: Intermittent interface freezes due to threading
 
 v0.8.1 - October 19, 2006
 	+ Add Polish translation (Tomasz Dominikowski)
