@@ -2575,23 +2575,23 @@ class Base(mpdclient3.mpd_connection):
 
     def replace_cover(self, iconview, path, dialog):
         self.stop_art_update = True
-        try:
-            image_num = int(path[0])
-            filename = self.remotefilelist[image_num]
-            dest_filename = os.path.expanduser("~/.covers/" + self.remote_artist + "-" + self.remote_album + ".jpg")
-            if os.path.exists(filename):
-                # Move temp file to actual file:
+        image_num = int(path[0])
+        filename = self.remotefilelist[image_num]
+        dest_filename = os.path.expanduser("~/.covers/" + self.remote_artist + "-" + self.remote_album + ".jpg")
+        if os.path.exists(filename):
+            # Move temp file to actual file:
+            try:
                 os.remove(dest_filename)
-                os.rename(filename, dest_filename)
-                # And finally, set the image in the interface:
-                self.lastalbumart = None
-                # When called from a signal handler, we must use idle_add (see FAQ 20.15)
-                gobject.idle_add(self.update_album_art)
-                # Clean up..
-                if os.path.exists(os.path.dirname(filename)):
-                    removeall(os.path.dirname(filename))
-        except:
-            pass
+            except:
+                pass
+            os.rename(filename, dest_filename)
+            # And finally, set the image in the interface:
+            self.lastalbumart = None
+            # When called from a signal handler, we must use idle_add (see FAQ 20.15)
+            gobject.idle_add(self.update_album_art)
+            # Clean up..
+            if os.path.exists(os.path.dirname(filename)):
+                removeall(os.path.dirname(filename))
         dialog.destroy()
         while self.downloading_image:
             gtk.main_iteration()
