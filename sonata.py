@@ -2245,11 +2245,12 @@ class Base(mpdclient3.mpd_connection):
         return False
 
     def coverwindow_show(self):
-        self.coverwindow = gtk.Dialog(_("Song Info"), None, gtk.DIALOG_DESTROY_WITH_PARENT, None)
-        closebutton = self.coverwindow.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_ACCEPT)
-        closebutton.connect('clicked', self.coverwindow_hide)
+        if self.coverwindow_visible:
+            self.coverwindow.present()
+            return
+        self.coverwindow = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        self.coverwindow.set_title(_('Song Info'))
         self.coverwindow.set_resizable(False)
-        self.coverwindow.set_has_separator(True)
         self.coverwindow_image = gtk.Image()
         self.coverwindow_image.set_alignment(0.5, 0)
         evbox = gtk.EventBox()
@@ -2317,14 +2318,17 @@ class Base(mpdclient3.mpd_connection):
         hbox.pack_start(vbox_left, False, False, 5)
         hbox.pack_start(vbox_right, True, True, 3)
         hbox.pack_start(gtk.Label(), False, False, 3)
-        self.coverwindow.vbox.pack_start(hbox, False, False, 2)
-        self.coverwindow.vbox.show_all()
+        vbox = gtk.VBox()
+        vbox.pack_start(hbox, False, False, 2)
+        self.coverwindow.add(vbox)
+        self.coverwindow.show_all()
         self.coverwindow_visible = True
+        self.coverwindow.connect('delete_event', self.coverwindow_hide)
         self.lastalbumart = ""
         self.update_album_art()
         self.update_coverwindow(True, update_all=True)
 
-    def coverwindow_hide(self, button):
+    def coverwindow_hide(self, button, data=None):
         if self.coverwindow_visible:
             self.coverwindow.destroy()
             self.coverwindow_visible = False
