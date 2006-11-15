@@ -12,6 +12,7 @@ v0.9 - Pending
 	+ Store cover art in ~/.covers for consistency with gmpc
 	+ Bug: Prevent infrequent crash when fetching album art
 	+ Bug: Intermittent interface freezes due to threading
+	+ Bug: Unable to delete playlists with ampersand, etc.
 
 v0.8.1 - October 19, 2006
 	+ Add Polish translation (Tomasz Dominikowski)

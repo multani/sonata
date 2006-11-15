@@ -3,6 +3,8 @@ v0.9
 	make popup window tabbed? (art, info, lyrics, ...)
 	support for PLS, M3U, etc (http://www.scvi.net/pls.htm) if mpd
 		doesn't support it natively
+	update docs, screenshots on website
+	update features list
 
 Future:
 	use pygtk's systemtray support

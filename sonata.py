@@ -2789,7 +2789,7 @@ class Base(mpdclient3.mpd_connection):
                 model, selected = self.playlists.get_selection().get_selected_rows()
                 iters = [model.get_iter(path) for path in selected]
                 for iter in iters:
-                    self.conn.do.rm(self.playlistsdata.get_value(iter, 1))
+                    self.conn.do.rm(unescape_html(self.playlistsdata.get_value(iter, 1)))
                 self.playlists_populate()
             elif page_num == self.TAB_STREAMS:
                 model, selected = self.streams.get_selection().get_selected_rows()
@@ -3613,6 +3613,12 @@ def escape_html(s):
     s = s.replace('&', '&amp;')
     s = s.replace('<', '&lt;')
     s = s.replace('>', '&gt;')
+    return s
+
+def unescape_html(s):
+    s = s.replace('&amp;', '&')
+    s = s.replace('&lt;', '<')
+    s = s.replace('&gt;', '>')
     return s
 
 def rmgeneric(path, __func__):
