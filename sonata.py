@@ -244,6 +244,7 @@ class Base(mpdclient3.mpd_connection):
             ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'), None, None, self.prefs),
             ('helpmenu', gtk.STOCK_HELP, _('_Help'), None, None, self.help),
             ('newmenu', gtk.STOCK_NEW, _('_New'), '<Ctrl>n', None, self.new_stream),
+            ('editmenu', gtk.STOCK_EDIT, _('_Edit'), None, None, self.edit_stream),
             ('addmenu', gtk.STOCK_ADD, _('_Add'), '<Ctrl>d', None, self.add_item),
             ('replacemenu', gtk.STOCK_REDO, _('_Replace'), '<Ctrl>r', None, self.replace_item),
             ('rmmenu', gtk.STOCK_DELETE, _('_Delete'), None, None, self.remove),
@@ -296,6 +297,7 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="addmenu"/>
                 <menuitem action="replacemenu"/>
                 <menuitem action="newmenu"/>
+                <menuitem action="editmenu"/>
                 <menuitem action="removemenu"/>
                 <menuitem action="clearmenu"/>
                 <menuitem action="savemenu"/>
@@ -1226,18 +1228,41 @@ class Base(mpdclient3.mpd_connection):
     def give_widget_focus(self, widget):
         widget.grab_focus()
 
-    def new_stream(self, action):
+    def edit_stream(self, action):
+        model, selected = self.streams.get_selection().get_selected_rows()
+        try:
+            streamname = model.get_value(model.get_iter(selected[0]), 1)
+            for i in range(len(self.stream_names)):
+                if self.stream_names[i] == streamname:
+                    self.new_stream(action, i)
+                    return
+        except:
+            pass
+
+    def new_stream(self, action, stream_num=-1):
+        if stream_num > -1:
+            edit_mode = True
+        else:
+            edit_mode = False
         # Prompt user for playlist name:
-        dialog = gtk.Dialog(_("New Stream"), self.window, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
+        dialog = gtk.Dialog(None, self.window, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
+        if edit_mode:
+            dialog.set_title(_("Edit Stream"))
+        else:
+            dialog.set_title(_("New Stream"))
         hbox = gtk.HBox()
         namelabel = gtk.Label(_('Stream name') + ':')
         hbox.pack_start(namelabel, False, False, 5)
         nameentry = gtk.Entry()
+        if edit_mode:
+            nameentry.set_text(self.stream_names[stream_num])
         hbox.pack_start(nameentry, True, True, 5)
         hbox2 = gtk.HBox()
         urllabel = gtk.Label(_('Stream URL') + ':')
         hbox2.pack_start(urllabel, False, False, 5)
         urlentry = gtk.Entry()
+        if edit_mode:
+            urlentry.set_text(self.stream_uris[stream_num])
         hbox2.pack_start(urlentry, True, True, 5)
         # Make labels the same length for alignment
         max_label_width = 0
@@ -1263,6 +1288,9 @@ class Base(mpdclient3.mpd_connection):
                         error_dialog.run()
                         error_dialog.destroy()
                         return
+                if edit_mode:
+                    self.stream_names.pop(stream_num)
+                    self.stream_uris.pop(stream_num)
                 self.stream_names.append(name)
                 self.stream_uris.append(uri)
                 self.streams_populate()
@@ -1538,6 +1566,15 @@ class Base(mpdclient3.mpd_connection):
         play_after_replace = False
         if self.status and self.status.state == 'play':
             play_after_replace = True
+        # Only clear if an item is selected:
+        if self.notebook.get_current_page() == self.TAB_LIBRARY:
+            num_selected = self.browser.get_selection().count_selected_rows()
+        elif self.notebook.get_current_page() == self.TAB_PLAYLISTS:
+            num_selected = self.playlists.get_selection().count_selected_rows()
+        elif self.notebook.get_current_page() == self.TAB_STREAMS:
+            num_selected = self.streams.get_selection().count_selected_rows()
+        if num_selected == 0:
+            return
         self.clear(None)
         self.add_item(widget)
         if play_after_replace and self.conn:
@@ -3356,38 +3393,24 @@ class Base(mpdclient3.mpd_connection):
         self.searchbutton.set_no_show_all(True)
 
     def set_menu_contextual_items_visible(self):
+        self.set_menu_contextual_items_hidden()
         if not self.expanded:
-            self.set_menu_contextual_items_hidden()
+            return
         elif self.notebook.get_current_page() == self.TAB_CURRENT:
             self.UIManager.get_widget('/mainmenu/removemenu/').show()
             self.UIManager.get_widget('/mainmenu/clearmenu/').show()
             self.UIManager.get_widget('/mainmenu/savemenu/').show()
-            self.UIManager.get_widget('/mainmenu/addmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/newmenu/').hide()
         elif self.notebook.get_current_page() == self.TAB_LIBRARY:
-            self.UIManager.get_widget('/mainmenu/removemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/savemenu/').hide()
             self.UIManager.get_widget('/mainmenu/addmenu/').show()
             self.UIManager.get_widget('/mainmenu/replacemenu/').show()
-            self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
             self.UIManager.get_widget('/mainmenu/updatemenu/').show()
-            self.UIManager.get_widget('/mainmenu/newmenu/').hide()
         else:
-            self.UIManager.get_widget('/mainmenu/removemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/savemenu/').hide()
             self.UIManager.get_widget('/mainmenu/addmenu/').show()
             self.UIManager.get_widget('/mainmenu/replacemenu/').show()
             self.UIManager.get_widget('/mainmenu/rmmenu/').show()
-            self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
             if self.notebook.get_current_page() == self.TAB_STREAMS:
                 self.UIManager.get_widget('/mainmenu/newmenu/').show()
-            else:
-                self.UIManager.get_widget('/mainmenu/newmenu/').hide()
+                self.UIManager.get_widget('/mainmenu/editmenu/').show()
 
     def set_menu_contextual_items_hidden(self):
         self.UIManager.get_widget('/mainmenu/removemenu/').hide()
@@ -3398,6 +3421,7 @@ class Base(mpdclient3.mpd_connection):
         self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
         self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
         self.UIManager.get_widget('/mainmenu/newmenu/').hide()
+        self.UIManager.get_widget('/mainmenu/editmenu/').hide()
 
     def help(self, action):
         self.browser_load("http://sonata.berlios.de/documentation.html")
