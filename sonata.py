@@ -213,6 +213,7 @@ class Base(mpdclient3.mpd_connection):
         self.coverwindow_visible = False
         self.downloading_image = False
         self.search_terms = [_('Artist'), _('Title'), _('Album'), _('Genre'), _('Filename')]
+        self.search_terms_mpd = ['artist', 'title', 'album', 'genre', 'filename']
         show_prefs = False
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
@@ -3406,7 +3407,7 @@ class Base(mpdclient3.mpd_connection):
             self.mainmenu.popup(None, None, None, event.button, event.time)
 
     def search(self, entry):
-        searchby = self.search_terms[self.searchcombo.get_active()]
+        searchby = self.search_terms_mpd[self.searchcombo.get_active()]
         if self.searchtext.get_text() != "":
             list = self.conn.do.search(searchby, self.searchtext.get_text())
             self.browserdata.clear()
