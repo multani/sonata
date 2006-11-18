@@ -1,13 +1,12 @@
 v0.9
-	how does a user without art access the extra info?
 	make popup window tabbed? (art, info, lyrics, ...)
 	support for PLS, M3U, etc (http://www.scvi.net/pls.htm) if mpd
 		doesn't support it natively
+	goddamn annoying height problem
 	update docs, screenshots on website
 	update features list
 
 Future:
-	use pygtk's systemtray support
 	make selection, dnd, more like thunar
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
 		Add to > Next song, top, random

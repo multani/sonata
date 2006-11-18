@@ -17,8 +17,8 @@ INSTALLATION:
 
 FEATURES:
 	+ Expanded and collapsed views
-	+ Automatic album art retrieval (with alternatives)
-	+ Playlist support
+	+ Automatic remote or local album art (with alternatives)
+	+ Playlist and stream support
 	+ System tray icon with tooltip
 	+ Optional popup notification
 	+ Library searching by artist, song, etc.

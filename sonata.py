@@ -2092,39 +2092,38 @@ class Base(mpdclient3.mpd_connection):
         self.expander.set_expanded(False)
 
     def expander_activate(self, expander):
+        #self.expanderwindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_NEVER)
+        currheight = self.window.get_size()[1]
         self.expanded = False
         # Note that get_expanded() will return the state of the expander
         # before this current click
-        if self.expander.get_expanded():
-            self.notebook.hide()
-        else:
+        window_about_to_be_expanded = not self.expander.get_expanded()
+        if window_about_to_be_expanded:
             self.notebook.show_all()
+        else:
+            self.notebook.hide()
         if not (self.conn and self.status and self.status.state in ['play', 'pause']):
-            if self.expander.get_expanded():
-                self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to expand') + '</small>')
-            else:
+            if window_about_to_be_expanded:
                 self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to collapse') + '</small>')
-        # This is INCREDIBLY hackish.. but it attempts to ensure that
-        # self.notebook is actually visible before resizing. If not,
-        # it can cause the expanded playlist to be a smaller height
-        # than self.h. If you can fix this, I'll love you forever.
-        gobject.idle_add(self.resize_window1)
-
-    def resize_window1(self):
-        gobject.timeout_add(1, self.resize_window2)
-
-    def resize_window2(self):
-        if self.expander.get_expanded():
+            else:
+                self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to expand') + '</small>')
+        # Now we wait for the height of the player to increase, so that
+        # we know the list is visible. This is pretty hacky, but works.
+        if window_about_to_be_expanded:
+            while self.window.get_size()[1] == currheight:
+                gtk.main_iteration()
+            # Notebook is visible, now resize:
             self.window.resize(self.w, self.h)
         else:
             self.window.resize(self.w, 1)
-        if self.expander.get_expanded():
+        if window_about_to_be_expanded:
             self.expanded = True
             self.tooltips.set_tip(self.expander, _("Click to collapse the player"))
         else:
             self.tooltips.set_tip(self.expander, _("Click to expand the player"))
         # Put focus to the notebook:
         self.notebook_tab_clicked(None, None, self.notebook.get_current_page())
+        #self.expanderwindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         return
 
     # This callback allows the user to seek to a specific portion of the song

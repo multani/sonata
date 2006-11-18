@@ -13,6 +13,7 @@ v0.9 - Pending
 	+ Bug: Prevent infrequent crash when fetching album art
 	+ Bug: Intermittent interface freezes due to threading
 	+ Bug: Unable to delete playlists with ampersand, etc.
+	+ Bug: Player can become the wrong height on expand
 
 v0.8.1 - October 19, 2006
 	+ Add Polish translation (Tomasz Dominikowski)
