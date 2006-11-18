@@ -1944,8 +1944,11 @@ class Base(mpdclient3.mpd_connection):
         return False
 
     def download_image_to_filename(self, artist, album, dest_filename, all_images=False, populate_imagelist=False):
+        # Returns False if no images found
+        imgfound = False
         if len(artist) == 0 and len(album) == 0:
-            return
+            self.downloading_image = False
+            return imgfound
         try:
             self.downloading_image = True
             artist = urllib.quote(artist)
@@ -1978,6 +1981,9 @@ class Base(mpdclient3.mpd_connection):
             if all_images:
                 curr_img = 1
                 img_url = " "
+                if len(img_url) == 0:
+                    self.downloading_image = False
+                    return imgfound
                 while len(img_url) > 0 and curr_pos > 0:
                     img_url = ""
                     curr_pos = f.find("<LargeImage>", curr_pos+10)
@@ -1985,8 +1991,8 @@ class Base(mpdclient3.mpd_connection):
                     if len(img_url) > 0:
                         if self.stop_art_update:
                             self.downloading_image = False
-                            return
-                        dest_filename_curr = dest_filename.replace("<imagenum>", str(curr_img))
+                            return imgfound
+                        dest_filename_curr = dest_filename.replace("<imagenum>", str(curr_img+1))
                         urllib.urlretrieve(img_url, dest_filename_curr)
                         if populate_imagelist:
                             # This populates self.imagelist for the remote image window
@@ -1997,11 +2003,13 @@ class Base(mpdclient3.mpd_connection):
                                 if self.stop_art_update:
                                     gtk.gdk.threads_leave()
                                     self.downloading_image = False
-                                    return
-                                self.imagelist.append([curr_img, pix])
+                                    return imgfound
+                                self.imagelist.append([curr_img+1, pix])
                                 del pix
                                 self.remotefilelist.append(dest_filename_curr)
+                                imgfound = True
                             gtk.gdk.threads_leave()
+                            self.change_cursor(None, True)
                         curr_img += 1
                         # Skip the next LargeImage:
                         curr_pos = f.find("<LargeImage>", curr_pos+10)
@@ -2010,9 +2018,11 @@ class Base(mpdclient3.mpd_connection):
                 img_url = f[f.find("<URL>", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
                 if len(img_url) > 0:
                     urllib.urlretrieve(img_url, dest_filename)
+                    imgfound = True
         except:
             pass
         self.downloading_image = False
+        return imgfound
 
     def labelnotify(self, *args):
         if self.show_covers:
@@ -2445,9 +2455,13 @@ class Base(mpdclient3.mpd_connection):
     def unblock_window_popup_handler(self):
         self.window.handler_unblock(self.mainwinhandler)
 
-    def change_cursor(self, type):
+    def change_cursor(self, type, use_gtk_threads=False):
+        if use_gtk_threads:
+            gtk.gdk.threads_enter()
         for i in gtk.gdk.window_get_toplevels():
             i.set_cursor(type)
+        if use_gtk_threads:
+            gtk.gdk.threads_leave()
 
     def update_preview(self, file_chooser, preview):
         filename = file_chooser.get_preview_filename()
@@ -2570,6 +2584,7 @@ class Base(mpdclient3.mpd_connection):
         choose_dialog.vbox.pack_start(searchexpander, True, True, 0)
         choose_dialog.connect('response', self.choose_image_response, imagewidget, choose_dialog)
         choose_dialog.show_all()
+        self.chooseimage_visible = True
         self.remotefilelist = []
         self.remote_artist = getattr(self.songinfo, 'artist', "")
         self.remote_album = getattr(self.songinfo, 'album', "")
@@ -2586,6 +2601,7 @@ class Base(mpdclient3.mpd_connection):
         thread.start()
 
     def choose_image_update2(self):
+        self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
         self.stop_art_update = False
         # Retrieve all images from amazon:
         artist_search = self.remote_artistentry.get_text()
@@ -2603,8 +2619,17 @@ class Base(mpdclient3.mpd_connection):
             removeall(os.path.dirname(filename))
         if not os.path.exists(os.path.dirname(filename)):
             os.mkdir(os.path.dirname(filename))
-        self.download_image_to_filename(artist_search, album_search, filename, True, True)
+        imgfound = self.download_image_to_filename(artist_search, album_search, filename, True, True)
+        self.change_cursor(None)
         gc.collect()
+        if self.chooseimage_visible:
+            if not imgfound:
+                gtk.gdk.threads_enter()
+                error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No cover art found."))
+                error_dialog.set_title(_("Choose Cover Art"))
+                error_dialog.run()
+                error_dialog.destroy()
+                gtk.gdk.threads_leave()
 
     def choose_image_response(self, dialog, response_id, imagewidget, choose_dialog):
         self.stop_art_update = True
@@ -2613,6 +2638,8 @@ class Base(mpdclient3.mpd_connection):
                 self.replace_cover(imagewidget, imagewidget.get_selected_items()[0], choose_dialog)
             except:
                 pass
+        self.change_cursor(None)
+        self.chooseimage_visible = False
         dialog.destroy()
 
     def replace_cover(self, iconview, path, dialog):
@@ -2634,6 +2661,7 @@ class Base(mpdclient3.mpd_connection):
             # Clean up..
             if os.path.exists(os.path.dirname(filename)):
                 removeall(os.path.dirname(filename))
+        self.chooseimage_visible = False
         dialog.destroy()
         while self.downloading_image:
             gtk.main_iteration()
