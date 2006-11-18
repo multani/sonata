@@ -2512,16 +2512,14 @@ class Base(mpdclient3.mpd_connection):
         currdir = self.musicdir + songdir
         if os.path.exists(currdir):
             dialog.set_current_folder(currdir)
+        self.local_artist = getattr(self.songinfo, 'artist', "")
+        self.local_album = getattr(self.songinfo, 'album', "")
         dialog.show()
 
     def choose_image_local_response(self, dialog, response):
         if response == gtk.RESPONSE_OK:
             filename = dialog.get_filenames()[0]
-            artist = getattr(self.songinfo, 'artist', None)
-            if not artist: artist = ""
-            album = getattr(self.songinfo, 'album', None)
-            if not album: album = ""
-            dest_filename = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
+            dest_filename = os.path.expanduser("~/.covers/" + self.local_artist + "-" + self.local_album + ".jpg")
             # Remove file if already set:
             if os.path.exists(dest_filename):
                 os.remove(dest_filename)

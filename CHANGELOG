@@ -14,6 +14,7 @@ v0.9 - Pending
 	+ Bug: Intermittent interface freezes due to threading
 	+ Bug: Unable to delete playlists with ampersand, etc.
 	+ Bug: Player can become the wrong height on expand
+	+ Bug: Ensure local art is correctly applied on song changes
 
 v0.8.1 - October 19, 2006
 	+ Add Polish translation (Tomasz Dominikowski)
