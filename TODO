@@ -1,5 +1,4 @@
 v0.9
-	make popup window tabbed? (art, info, lyrics, ...)
 	support for PLS, M3U, etc (http://www.scvi.net/pls.htm) if mpd
 		doesn't support it natively
 	update docs, screenshots on website
@@ -15,3 +14,4 @@ Future:
 		- then we can finally use skip_taskbar_hint since we will
 		  be able to reliably detect if the sysicon is displayed
 	optional statusbar (num songs, total length, etc)?
+	lyrics? last.fm?
