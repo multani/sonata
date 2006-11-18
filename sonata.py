@@ -1992,7 +1992,7 @@ class Base(mpdclient3.mpd_connection):
                         if self.stop_art_update:
                             self.downloading_image = False
                             return imgfound
-                        dest_filename_curr = dest_filename.replace("<imagenum>", str(curr_img+1))
+                        dest_filename_curr = dest_filename.replace("<imagenum>", str(curr_img))
                         urllib.urlretrieve(img_url, dest_filename_curr)
                         if populate_imagelist:
                             # This populates self.imagelist for the remote image window
@@ -2004,10 +2004,12 @@ class Base(mpdclient3.mpd_connection):
                                     gtk.gdk.threads_leave()
                                     self.downloading_image = False
                                     return imgfound
-                                self.imagelist.append([curr_img+1, pix])
+                                self.imagelist.append([curr_img, pix])
                                 del pix
                                 self.remotefilelist.append(dest_filename_curr)
                                 imgfound = True
+                                if curr_img == 1:
+                                    self.allow_art_search = True
                             gtk.gdk.threads_leave()
                             self.change_cursor(None, True)
                         curr_img += 1
@@ -2590,9 +2592,13 @@ class Base(mpdclient3.mpd_connection):
         self.remote_album = getattr(self.songinfo, 'album', "")
         self.remote_artistentry.set_text(self.remote_artist)
         self.remote_albumentry.set_text(self.remote_album)
+        self.allow_art_search = True
         self.choose_image_update()
 
     def choose_image_update(self, entry=None):
+        if not self.allow_art_search:
+            return
+        self.allow_art_search = False
         self.stop_art_update = True
         while self.downloading_image:
             gtk.main_iteration()
@@ -2624,6 +2630,7 @@ class Base(mpdclient3.mpd_connection):
         gc.collect()
         if self.chooseimage_visible:
             if not imgfound:
+                self.allow_art_search = True
                 gtk.gdk.threads_enter()
                 error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No cover art found."))
                 error_dialog.set_title(_("Choose Cover Art"))
