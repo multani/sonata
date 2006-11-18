@@ -2098,7 +2098,6 @@ class Base(mpdclient3.mpd_connection):
         self.expander.set_expanded(False)
 
     def expander_activate(self, expander):
-        #self.expanderwindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_NEVER)
         currheight = self.window.get_size()[1]
         self.expanded = False
         # Note that get_expanded() will return the state of the expander
@@ -2128,8 +2127,7 @@ class Base(mpdclient3.mpd_connection):
         else:
             self.tooltips.set_tip(self.expander, _("Click to expand the player"))
         # Put focus to the notebook:
-        self.notebook_tab_clicked(None, None, self.notebook.get_current_page())
-        #self.expanderwindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.on_notebook_page_change(None, None, self.notebook.get_current_page())
         return
 
     # This callback allows the user to seek to a specific portion of the song
