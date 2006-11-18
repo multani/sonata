@@ -212,6 +212,7 @@ class Base(mpdclient3.mpd_connection):
         self.stream_uris = []
         self.coverwindow_visible = False
         self.downloading_image = False
+        self.search_terms = [_('Artist'), _('Title'), _('Album'), _('Genre'), _('Filename')]
         show_prefs = False
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
@@ -507,11 +508,8 @@ class Base(mpdclient3.mpd_connection):
             self.searchbox.hide()
             self.searchbox.set_no_show_all(True)
         self.searchcombo = gtk.combo_box_new_text()
-        self.searchcombo.append_text(_('Artist'))
-        self.searchcombo.append_text(_('Title'))
-        self.searchcombo.append_text(_('Album'))
-        self.searchcombo.append_text(_('Genre'))
-        self.searchcombo.append_text(_('Filename'))
+        for item in self.search_terms:
+            self.searchcombo.append_text(item)
         self.searchtext = gtk.Entry()
         self.searchbutton = gtk.Button(_('_End Search'))
         self.searchbutton.set_image(gtk.image_new_from_stock(gtk.STOCK_CANCEL, gtk.ICON_SIZE_SMALL_TOOLBAR))
@@ -3408,7 +3406,7 @@ class Base(mpdclient3.mpd_connection):
             self.mainmenu.popup(None, None, None, event.button, event.time)
 
     def search(self, entry):
-        searchby = self.searchcombo.get_active_text().lower()
+        searchby = self.search_terms[self.searchcombo.get_active()]
         if self.searchtext.get_text() != "":
             list = self.conn.do.search(searchby, self.searchtext.get_text())
             self.browserdata.clear()
