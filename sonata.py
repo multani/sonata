@@ -484,6 +484,7 @@ class Base(mpdclient3.mpd_connection):
         self.current.set_rules_hint(True)
         self.current.set_reorderable(True)
         self.current.set_enable_search(True)
+        self.current_selection = self.current.get_selection()
         self.expanderwindow.add(self.current)
         playlisthbox = gtk.HBox()
         playlisthbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_CDROM, gtk.ICON_SIZE_MENU), False, False, 2)
@@ -499,6 +500,7 @@ class Base(mpdclient3.mpd_connection):
         self.browser.set_rules_hint(True)
         self.browser.set_reorderable(True)
         self.browser.set_enable_search(True)
+        self.browser_selection = self.browser.get_selection()
         self.expanderwindow2.add(self.browser)
         self.searchbox = gtk.HBox()
         if not self.show_search:
@@ -534,6 +536,7 @@ class Base(mpdclient3.mpd_connection):
         self.playlists.set_rules_hint(True)
         self.playlists.set_reorderable(True)
         self.playlists.set_enable_search(True)
+        self.playlists_selection = self.playlists.get_selection()
         self.expanderwindow3.add(self.playlists)
         playlistshbox = gtk.HBox()
         playlistshbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_JUSTIFY_FILL, gtk.ICON_SIZE_MENU), False, False, 2)
@@ -548,6 +551,7 @@ class Base(mpdclient3.mpd_connection):
         self.streams.set_rules_hint(True)
         self.streams.set_reorderable(True)
         self.streams.set_enable_search(True)
+        self.streams_selection = self.streams.get_selection()
         self.expanderwindow4.add(self.streams)
         streamshbox = gtk.HBox()
         streamshbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_NETWORK, gtk.ICON_SIZE_MENU), False, False, 2)
@@ -674,6 +678,7 @@ class Base(mpdclient3.mpd_connection):
         self.current.connect('button_press_event', self.current_button_press)
         self.current.connect('button_release_event', self.current_button_released)
         self.current.connect('popup_menu', self.current_popup_menu)
+        self.current_selection.connect('changed', self.treeview_selection_changed)
         self.shufflemenu.connect('toggled', self.shuffle_now)
         self.repeatmenu.connect('toggled', self.repeat_now)
         self.volumescale.connect('change_value', self.on_volumescale_change)
@@ -683,10 +688,13 @@ class Base(mpdclient3.mpd_connection):
         self.progressbar.connect('notify::text', self.progressbarnotify_text)
         self.browser.connect('row_activated', self.browserow)
         self.browser.connect('button_press_event', self.browser_button_press)
+        self.browser_selection.connect('changed', self.treeview_selection_changed)
         self.playlists.connect('button_press_event', self.playlists_button_press)
         self.playlists.connect('row_activated', self.playlists_activated)
+        self.playlists_selection.connect('changed', self.treeview_selection_changed)
         self.streams.connect('button_press_event', self.streams_button_press)
         self.streams.connect('row_activated', self.streams_activated)
+        self.streams_selection.connect('changed', self.treeview_selection_changed)
         self.ppbutton.connect('button_press_event', self.popup_menu)
         self.prevbutton.connect('button_press_event', self.popup_menu)
         self.stopbutton.connect('button_press_event', self.popup_menu)
@@ -699,6 +707,7 @@ class Base(mpdclient3.mpd_connection):
         self.searchtext.connect('activate', self.search)
         self.searchbutton.connect('clicked', self.search_end)
         self.notebook.connect('button_press_event', self.on_notebook_click)
+        self.notebook.connect('switch-page', self.on_notebook_page_change)
         self.searchtext.connect('button_press_event', self.on_searchtext_click)
 
         self.initialize_systrayicon()
@@ -731,7 +740,7 @@ class Base(mpdclient3.mpd_connection):
         self.currentcolumn = gtk.TreeViewColumn('Pango Markup', self.currentcell, markup=1)
         self.currentcolumn.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.current.append_column(self.currentcolumn)
-        self.current.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
+        self.current_selection.set_mode(gtk.SELECTION_MULTIPLE)
         self.current.enable_model_drag_source(gtk.gdk.BUTTON1_MASK, [('STRING', 0, 0)], gtk.gdk.ACTION_MOVE)
         self.current.enable_model_drag_dest([('STRING', 0, 0)], gtk.gdk.ACTION_MOVE)
 
@@ -747,7 +756,7 @@ class Base(mpdclient3.mpd_connection):
         self.playlistscolumn.set_attributes(self.playlistsimg, stock_id=0)
         self.playlistscolumn.set_attributes(self.playlistscell, markup=1)
         self.playlists.append_column(self.playlistscolumn)
-        self.playlists.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
+        self.playlists_selection.set_mode(gtk.SELECTION_MULTIPLE)
 
         # Initialize streams data and widget
         self.streamsdata = gtk.ListStore(str, str, str)
@@ -761,7 +770,7 @@ class Base(mpdclient3.mpd_connection):
         self.streamscolumn.set_attributes(self.streamsimg, stock_id=0)
         self.streamscolumn.set_attributes(self.streamscell, markup=1)
         self.streams.append_column(self.streamscolumn)
-        self.streams.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
+        self.streams_selection.set_mode(gtk.SELECTION_MULTIPLE)
 
         # Initialize browser data and widget
         self.browserposition = {}
@@ -782,7 +791,7 @@ class Base(mpdclient3.mpd_connection):
         self.browsercolumn.set_attributes(self.browsercell, markup=2)
         self.browsercolumn.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.browser.append_column(self.browsercolumn)
-        self.browser.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
+        self.browser_selection.set_mode(gtk.SELECTION_MULTIPLE)
 
         icon = self.window.render_icon('sonata', gtk.ICON_SIZE_DIALOG)
         self.window.set_icon(icon)
@@ -804,7 +813,6 @@ class Base(mpdclient3.mpd_connection):
 
         self.notebook.set_no_show_all(False)
         self.window.set_no_show_all(False)
-        self.notebook.connect('switch-page', self.notebook_tab_clicked)
 
         if show_prefs:
             self.prefs(None)
@@ -1213,23 +1221,13 @@ class Base(mpdclient3.mpd_connection):
             self.volumebutton.set_property('sensitive', True)
             self.browse(root='/')
             self.playlists_populate()
-            self.notebook_tab_clicked(self.notebook, 0, self.notebook.get_current_page())
-
-    def notebook_tab_clicked(self, notebook, page, page_num):
-        if page_num == self.TAB_CURRENT:
-            gobject.idle_add(self.give_widget_focus, self.current)
-        elif page_num == self.TAB_LIBRARY:
-            gobject.idle_add(self.give_widget_focus, self.browser)
-        elif page_num == self.TAB_PLAYLISTS:
-            gobject.idle_add(self.give_widget_focus, self.playlists)
-        elif page_num == self.TAB_STREAMS:
-            gobject.idle_add(self.give_widget_focus, self.streams)
+            self.on_notebook_page_change(self.notebook, 0, self.notebook.get_current_page())
 
     def give_widget_focus(self, widget):
         widget.grab_focus()
 
     def edit_stream(self, action):
-        model, selected = self.streams.get_selection().get_selected_rows()
+        model, selected = self.streams_selection.get_selected_rows()
         try:
             streamname = model.get_value(model.get_iter(selected[0]), 1)
             for i in range(len(self.stream_names)):
@@ -1391,7 +1389,7 @@ class Base(mpdclient3.mpd_connection):
             # Save position and row for where we just were if we've
             # navigated into a sub-directory:
             self.browserposition[self.browser.wd] = self.browser.get_visible_rect()[1]
-            model, rows = self.browser.get_selection().get_selected_rows()
+            model, rows = self.browser_selection.get_selected_rows()
             if len(rows) > 0:
                 value_for_selection = self.browserdata.get_value(self.browserdata.get_iter(rows[0]), 2)
                 if value_for_selection != ".." and value_for_selection != "/":
@@ -1435,7 +1433,7 @@ class Base(mpdclient3.mpd_connection):
         if self.browser.wd in self.browserselectedpath:
             try:
                 if self.browserselectedpath[self.browser.wd]:
-                    self.browser.get_selection().select_path(self.browserselectedpath[self.browser.wd])
+                    self.browser_selection.select_path(self.browserselectedpath[self.browser.wd])
                     self.browser.grab_focus()
             except:
                 pass
@@ -1504,44 +1502,41 @@ class Base(mpdclient3.mpd_connection):
     def browser_button_press(self, widget, event):
         self.volume_hide()
         if event.button == 3:
-            self.set_menu_contextual_items_visible()
             self.mainmenu.popup(None, None, None, event.button, event.time)
             # Don't change the selection for a right-click. This
             # will allow the user to select multiple rows and then
             # right-click (instead of right-clicking and having
             # the current selection change to the current row)
-            if self.browser.get_selection().count_selected_rows() > 1:
+            if self.browser_selection.count_selected_rows() > 1:
                 return True
 
     def playlists_button_press(self, widget, event):
         self.volume_hide()
         if event.button == 3:
-            self.set_menu_contextual_items_visible()
             self.mainmenu.popup(None, None, None, event.button, event.time)
             # Don't change the selection for a right-click. This
             # will allow the user to select multiple rows and then
             # right-click (instead of right-clicking and having
             # the current selection change to the current row)
-            if self.playlists.get_selection().count_selected_rows() > 1:
+            if self.playlists_selection.count_selected_rows() > 1:
                 return True
 
     def streams_button_press(self, widget, event):
         self.volume_hide()
         if event.button == 3:
-            self.set_menu_contextual_items_visible()
             self.mainmenu.popup(None, None, None, event.button, event.time)
             # Don't change the selection for a right-click. This
             # will allow the user to select multiple rows and then
             # right-click (instead of right-clicking and having
             # the current selection change to the current row)
-            if self.streams.get_selection().count_selected_rows() > 1:
+            if self.streams_selection.count_selected_rows() > 1:
                 return True
 
     def add_item(self, widget):
         if self.conn:
             if self.notebook.get_current_page() == self.TAB_LIBRARY:
                 # Library
-                model, selected = self.browser.get_selection().get_selected_rows()
+                model, selected = self.browser_selection.get_selected_rows()
                 if self.root == "/":
                     for path in selected:
                         self.conn.do.add(model.get_value(model.get_iter(path), 1))
@@ -1552,12 +1547,12 @@ class Base(mpdclient3.mpd_connection):
                             self.conn.do.add(model.get_value(model.get_iter(path), 1))
             elif self.notebook.get_current_page() == self.TAB_PLAYLISTS:
                 # Playlist
-                model, selected = self.playlists.get_selection().get_selected_rows()
+                model, selected = self.playlists_selection.get_selected_rows()
                 for path in selected:
                     self.conn.do.load(model.get_value(model.get_iter(path), 1))
             elif self.notebook.get_current_page() == self.TAB_STREAMS:
                 # Streams
-                model, selected = self.streams.get_selection().get_selected_rows()
+                model, selected = self.streams_selection.get_selected_rows()
                 for path in selected:
                     self.conn.do.add(model.get_value(model.get_iter(path), 2))
             self.iterate_now()
@@ -1568,11 +1563,11 @@ class Base(mpdclient3.mpd_connection):
             play_after_replace = True
         # Only clear if an item is selected:
         if self.notebook.get_current_page() == self.TAB_LIBRARY:
-            num_selected = self.browser.get_selection().count_selected_rows()
+            num_selected = self.browser_selection.count_selected_rows()
         elif self.notebook.get_current_page() == self.TAB_PLAYLISTS:
-            num_selected = self.playlists.get_selection().count_selected_rows()
+            num_selected = self.playlists_selection.count_selected_rows()
         elif self.notebook.get_current_page() == self.TAB_STREAMS:
-            num_selected = self.streams.get_selection().count_selected_rows()
+            num_selected = self.streams_selection.count_selected_rows()
         if num_selected == 0:
             return
         self.clear(None)
@@ -1620,7 +1615,6 @@ class Base(mpdclient3.mpd_connection):
             return (self.x + 250, self.y + 80, True)
 
     def menukey_press(self, action):
-        self.set_menu_contextual_items_visible()
         self.mainmenu.popup(None, None, self.position_menu, 0, 0)
 
     def handle_change_status(self):
@@ -2176,7 +2170,7 @@ class Base(mpdclient3.mpd_connection):
 
     def on_drag_drop(self, treeview, drag_context, x, y, selection, info, timestamp):
         model = treeview.get_model()
-        foobar, self._selected = self.current.get_selection().get_selected_rows()
+        foobar, self._selected = self.current_selection.get_selected_rows()
         data = pickle.loads(selection.data)
         drop_info = treeview.get_dest_row_at_pos(x, y)
 
@@ -2237,27 +2231,28 @@ class Base(mpdclient3.mpd_connection):
         pass
 
     def current_data_get(self, widget, drag_context, selection, info, timestamp):
-        model, selected = self.current.get_selection().get_selected_rows()
+        model, selected = self.current_selection.get_selected_rows()
         selection.set(selection.target, 8, pickle.dumps(selected))
         return
+
+    def treeview_selection_changed(self, treeselection):
+        self.set_menu_contextual_items_visible()
 
     def current_button_press(self, widget, event):
         self.volume_hide()
         if event.button == 3:
-            self.set_menu_contextual_items_visible()
             self.mainmenu.popup(None, None, None, event.button, event.time)
             # Don't change the selection for a right-click. This
             # will allow the user to select multiple rows and then
             # right-click (instead of right-clicking and having
             # the current selection change to the current row)
-            if self.current.get_selection().count_selected_rows() > 1:
+            if self.current_selection.count_selected_rows() > 1:
                 return True
 
     def current_button_released(self, widget, event):
         return
 
     def current_popup_menu(self, widget):
-        self.set_menu_contextual_items_visible()
         self.mainmenu.popup(None, None, None, 3, 0)
 
     def updatedb(self, widget):
@@ -2268,7 +2263,7 @@ class Base(mpdclient3.mpd_connection):
     def updatedb_path(self, action):
         if self.conn:
             if self.notebook.get_current_page() == self.TAB_LIBRARY:
-                model, selected = self.browser.get_selection().get_selected_rows()
+                model, selected = self.browser_selection.get_selected_rows()
                 iters = [model.get_iter(path) for path in selected]
                 if len(iters) > 0:
                     # If there are selected rows, update these paths..
@@ -2856,24 +2851,27 @@ class Base(mpdclient3.mpd_connection):
         if self.conn:
             page_num = self.notebook.get_current_page()
             if page_num == self.TAB_CURRENT:
-                model, selected = self.current.get_selection().get_selected_rows()
+                model, selected = self.current_selection.get_selected_rows()
                 iters = [model.get_iter(path) for path in selected]
                 for iter in iters:
                     self.conn.do.deleteid(self.currentdata.get_value(iter, 0))
             elif page_num == self.TAB_PLAYLISTS:
-                model, selected = self.playlists.get_selection().get_selected_rows()
+                model, selected = self.playlists_selection.get_selected_rows()
                 iters = [model.get_iter(path) for path in selected]
                 for iter in iters:
                     self.conn.do.rm(unescape_html(self.playlistsdata.get_value(iter, 1)))
                 self.playlists_populate()
             elif page_num == self.TAB_STREAMS:
-                model, selected = self.streams.get_selection().get_selected_rows()
+                model, selected = self.streams_selection.get_selected_rows()
                 iters = [model.get_iter(path) for path in selected]
                 for iter in iters:
+                    stream_removed = False
                     for i in range(len(self.stream_names)):
-                        if self.streamsdata.get_value(iter, 1) == escape_html(self.stream_names[i]):
-                            self.stream_names.pop(i)
-                            self.stream_uris.pop(i)
+                        if not stream_removed:
+                            if self.streamsdata.get_value(iter, 1) == escape_html(self.stream_names[i]):
+                                self.stream_names.pop(i)
+                                self.stream_uris.pop(i)
+                                stream_removed = True
                 self.streams_populate()
             self.iterate_now()
 
@@ -3382,6 +3380,17 @@ class Base(mpdclient3.mpd_connection):
         if event.button == 1:
             self.volume_hide()
 
+    def on_notebook_page_change(self, notebook, page, page_num):
+        if page_num == self.TAB_CURRENT:
+            gobject.idle_add(self.give_widget_focus, self.current)
+        elif page_num == self.TAB_LIBRARY:
+            gobject.idle_add(self.give_widget_focus, self.browser)
+        elif page_num == self.TAB_PLAYLISTS:
+            gobject.idle_add(self.give_widget_focus, self.playlists)
+        elif page_num == self.TAB_STREAMS:
+            gobject.idle_add(self.give_widget_focus, self.streams)
+        gobject.idle_add(self.set_menu_contextual_items_visible)
+
     def on_searchtext_click(self, widget, event):
         if event.button == 1:
             self.volume_hide()
@@ -3429,20 +3438,28 @@ class Base(mpdclient3.mpd_connection):
         if not self.expanded:
             return
         elif self.notebook.get_current_page() == self.TAB_CURRENT:
-            self.UIManager.get_widget('/mainmenu/removemenu/').show()
+            if self.current_selection.count_selected_rows() > 0:
+                self.UIManager.get_widget('/mainmenu/removemenu/').show()
             self.UIManager.get_widget('/mainmenu/clearmenu/').show()
             self.UIManager.get_widget('/mainmenu/savemenu/').show()
         elif self.notebook.get_current_page() == self.TAB_LIBRARY:
-            self.UIManager.get_widget('/mainmenu/addmenu/').show()
-            self.UIManager.get_widget('/mainmenu/replacemenu/').show()
+            if self.browser_selection.count_selected_rows() > 0:
+                self.UIManager.get_widget('/mainmenu/addmenu/').show()
+                self.UIManager.get_widget('/mainmenu/replacemenu/').show()
             self.UIManager.get_widget('/mainmenu/updatemenu/').show()
-        else:
-            self.UIManager.get_widget('/mainmenu/addmenu/').show()
-            self.UIManager.get_widget('/mainmenu/replacemenu/').show()
-            self.UIManager.get_widget('/mainmenu/rmmenu/').show()
-            if self.notebook.get_current_page() == self.TAB_STREAMS:
-                self.UIManager.get_widget('/mainmenu/newmenu/').show()
-                self.UIManager.get_widget('/mainmenu/editmenu/').show()
+        elif self.notebook.get_current_page() == self.TAB_PLAYLISTS:
+            if self.playlists_selection.count_selected_rows() > 0:
+                self.UIManager.get_widget('/mainmenu/addmenu/').show()
+                self.UIManager.get_widget('/mainmenu/replacemenu/').show()
+                self.UIManager.get_widget('/mainmenu/rmmenu/').show()
+        elif self.notebook.get_current_page() == self.TAB_STREAMS:
+            if self.streams_selection.count_selected_rows() > 0:
+                self.UIManager.get_widget('/mainmenu/addmenu/').show()
+                self.UIManager.get_widget('/mainmenu/replacemenu/').show()
+                self.UIManager.get_widget('/mainmenu/rmmenu/').show()
+                if self.streams_selection.count_selected_rows() == 1:
+                    self.UIManager.get_widget('/mainmenu/editmenu/').show()
+            self.UIManager.get_widget('/mainmenu/newmenu/').show()
 
     def set_menu_contextual_items_hidden(self):
         self.UIManager.get_widget('/mainmenu/removemenu/').hide()
