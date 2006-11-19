@@ -4,14 +4,15 @@ v0.9
 	update docs, screenshots on website
 	update features list
 
-Future:
+v1.0
 	make selection, dnd, more like thunar
-	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
-		Add to > Next song, top, random
-	allow multiple columns?
-	connect in background via socket.setblocking(0)
 	switch to pygtk's statusicon (2.10) and remove gnome-python dep
 		- then we can finally use skip_taskbar_hint since we will
 		  be able to reliably detect if the sysicon is displayed
 	optional statusbar (num songs, total length, etc)?
+
+Future:
+	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
+		Add to > Next song, top, random
+	connect in background via socket.setblocking(0)
 	lyrics? last.fm?

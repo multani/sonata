@@ -451,7 +451,7 @@ class Base(mpdclient3.mpd_connection):
         self.progressbar.set_orientation(gtk.PROGRESS_LEFT_TO_RIGHT)
         self.progressbar.set_fraction(0)
         self.progressbar.set_pulse_step(0.05)
-        self.progressbar.set_ellipsize(pango.ELLIPSIZE_NONE)
+        self.progressbar.set_ellipsize(pango.ELLIPSIZE_END)
         self.progresseventbox.add(self.progressbar)
         progressbox.pack_start(self.progresseventbox, False, False, 0)
         self.progresslabel2 = gtk.Label()
