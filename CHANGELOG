@@ -10,6 +10,7 @@ v0.9 - Pending
 	+ Popup song notification on un-pause
 	+ Pick up tooltip album background color from gtk theme
 	+ Store cover art in ~/.covers for consistency with gmpc
+	+ Add German translation (Paul Johnson)
 	+ Bug: Prevent infrequent crash when fetching album art
 	+ Bug: Intermittent interface freezes due to threading
 	+ Bug: Unable to delete playlists with ampersand, etc.
