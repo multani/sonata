@@ -3440,6 +3440,7 @@ class Base(mpdclient3.mpd_connection):
         self.browser.grab_focus()
         self.searchbutton.hide()
         self.searchbutton.set_no_show_all(True)
+        self.searchtext.set_text("")
 
     def set_menu_contextual_items_visible(self):
         self.set_menu_contextual_items_hidden()
