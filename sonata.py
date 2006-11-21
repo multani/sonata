@@ -1727,7 +1727,7 @@ class Base(mpdclient3.mpd_connection):
                 except:
                     self.progressbar.set_text(at_time)
             else:
-                self.progressbar.set_text('')
+                self.progressbar.set_text(' ')
         else:
             self.progressbar.set_text(_('Not Connected'))
         return
@@ -1843,10 +1843,10 @@ class Base(mpdclient3.mpd_connection):
         if not self.show_covers:
             return
         if self.conn and self.status and self.status.state in ['play', 'pause']:
-            artist = getattr(self.songinfo, 'artist', None)
-            if not artist: artist = ""
-            album = getattr(self.songinfo, 'album', None)
-            if not album: album = ""
+            artist = getattr(self.songinfo, 'artist', "")
+            artist = artist.replace("/", "")
+            album = getattr(self.songinfo, 'album', "")
+            album = album.replace("/", "")
             try:
                 filename = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
                 if filename == self.lastalbumart:
@@ -1919,10 +1919,10 @@ class Base(mpdclient3.mpd_connection):
         # this will ensure that only the artwork for the currently playing
         # song is displayed
         if self.conn and self.status and self.status.state in ['play', 'pause']:
-            artist = getattr(self.songinfo, 'artist', None)
-            if not artist: artist = ""
-            album = getattr(self.songinfo, 'album', None)
-            if not album: album = ""
+            artist = getattr(self.songinfo, 'artist', "")
+            artist = artist.replace("/", "")
+            album = getattr(self.songinfo, 'album', "")
+            album = album.replace("/", "")
             currfilename = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
             if filename == currfilename:
                 return True
@@ -2516,7 +2516,9 @@ class Base(mpdclient3.mpd_connection):
         if os.path.exists(currdir):
             dialog.set_current_folder(currdir)
         self.local_artist = getattr(self.songinfo, 'artist', "")
+        self.local_artist = self.local_artist.replace("/", "")
         self.local_album = getattr(self.songinfo, 'album', "")
+        self.local_album = self.local_album.replace("/", "")
         dialog.show()
 
     def choose_image_local_response(self, dialog, response):
@@ -2590,7 +2592,9 @@ class Base(mpdclient3.mpd_connection):
         self.chooseimage_visible = True
         self.remotefilelist = []
         self.remote_artist = getattr(self.songinfo, 'artist', "")
+        self.remote_artist = self.remote_artist.replace("/", "")
         self.remote_album = getattr(self.songinfo, 'album', "")
+        self.remote_album = self.remote_album.replace("/", "")
         self.remote_artistentry.set_text(self.remote_artist)
         self.remote_albumentry.set_text(self.remote_album)
         self.allow_art_search = True

@@ -1,3 +1,6 @@
+v0.9.1 - Pending
+	+ Bug: Cannot set album art for album/artist with "/" in name
+
 v0.9 - November 19, 2006
 	+ Added stream support
 	+ Use local artwork (cover.jpg, folder.jpg) first, if it exists

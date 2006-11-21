@@ -1,10 +1,6 @@
-v0.9
-	support for PLS, M3U, etc (http://www.scvi.net/pls.htm) if mpd
-		doesn't support it natively
-	update docs, screenshots on website
-	update features list
-
 v1.0
+	support for PLS, M3U, etc (http://www.scvi.net/pls.htm) if mpd
+		doesn't support it natively (feature request filed)
 	make selection, dnd, more like thunar
 	switch to pygtk's statusicon (2.10) and remove gnome-python dep
 		- then we can finally use skip_taskbar_hint since we will
