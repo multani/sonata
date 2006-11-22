@@ -1,5 +1,6 @@
 v0.9.1 - Pending
 	+ Bug: Cannot set album art for album/artist with "/" in name
+	+ Bug: Prevent interface jumping because of progress bar font
 
 v0.9 - November 19, 2006
 	+ Added stream support
