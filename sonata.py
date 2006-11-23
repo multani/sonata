@@ -1437,7 +1437,7 @@ class Base(mpdclient3.mpd_connection):
             except:
                 pass
 
-    def parse_formatting(self, format, item, use_escape_html):
+    def parse_formatting(self, format, item, use_escape_html, wintitle=False):
         if self.song_has_metadata(item):
             text = format
             if "%A" in text:
@@ -1460,10 +1460,29 @@ class Base(mpdclient3.mpd_connection):
                     text = text.replace("%T", item.track)
                 except:
                     text = text.replace("%T", "0")
+            if "%G" in text:
+                try:
+                    text = text.replace("%G", item.genre)
+                except:
+                    text = text.replace("%G", _('Unknown'))
             if "%F" in text:
                 text = text.replace("%F", item.file)
             if "%P" in text:
                 text = text.replace("%P", item.file.split('/')[-1])
+            if "%L" in text:
+                try:
+                    time = convert_time(int(item.time))
+                    text = text.replace("%L", time)
+                except:
+                    text = text.replace("%L", "?")
+            if wintitle:
+                if "%E" in text:
+                    try:
+                        at, len = [int(c) for c in self.status.time.split(':')]
+                        at_time = convert_time(at)
+                        text = text.replace("%E", at_time)
+                    except:
+                        text = text.replace("%E", "?")
             if use_escape_html:
                 return escape_html(text)
             else:
@@ -1635,6 +1654,10 @@ class Base(mpdclient3.mpd_connection):
         if self.prevstatus == None or self.prevstatus.playlist != self.status.playlist:
             self.update_playlist()
 
+        # If elapsed time is shown in the window title, we need to update more often:
+        if "%E" in self.titleformat:
+            self.update_wintitle()
+
         # If state changes
         if self.prevstatus == None or self.prevstatus.state != self.status.state:
 
@@ -1792,7 +1815,7 @@ class Base(mpdclient3.mpd_connection):
 
     def update_wintitle(self):
         if self.conn and self.status and self.status.state in ['play', 'pause']:
-            self.window.set_property('title', self.parse_formatting(self.titleformat, self.songinfo, False))
+            self.window.set_property('title', self.parse_formatting(self.titleformat, self.songinfo, False, True))
         else:
             self.window.set_property('title', 'Sonata')
 
@@ -3195,10 +3218,10 @@ class Base(mpdclient3.mpd_connection):
         availableheading.set_alignment(0, 0)
         availableformatbox = gtk.HBox()
         availableformatting = gtk.Label()
-        availableformatting.set_markup('<small><span font_family="Monospace">%A</span> - Artist name\n<span font_family="Monospace">%B</span> - Album name\n<span font_family="Monospace">%S</span> - Song name</small>')
+        availableformatting.set_markup('<small><span font_family="Monospace">%A</span> - ' + _('Artist name') + '\n<span font_family="Monospace">%B</span> - ' + _('Album name') + '\n<span font_family="Monospace">%S</span> - ' + _('Song name') + '\n<span font_family="Monospace">%T</span> - ' + _('Track number') + '\n<span font_family="Monospace">%G</span> - ' + _('Genre') + '</small>')
         availableformatting.set_alignment(0, 0)
         availableformatting2 = gtk.Label()
-        availableformatting2.set_markup('<small><span font_family="Monospace">%T</span> - Track number\n<span font_family="Monospace">%F</span> - File name\n<span font_family="Monospace">%P</span> - File path</small>')
+        availableformatting2.set_markup('<small><span font_family="Monospace">%F</span> - ' + _('File name') + '\n<span font_family="Monospace">%P</span> - ' + _('File path') + '\n<span font_family="Monospace">%L</span> - ' + _('Song length') + '\n<span font_family="Monospace">%E</span> - ' + _('Elapsed time (title only)') + '</small>')
         availableformatting2.set_alignment(0, 0)
         availableformatbox.pack_start(availableformatting)
         availableformatbox.pack_start(availableformatting2)

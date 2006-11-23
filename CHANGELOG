@@ -1,4 +1,5 @@
 v0.9.1 - Pending
+	+ More formatting options for text (genre, song length, elapsed time)
 	+ Bug: Cannot set album art for album/artist with "/" in name
 	+ Bug: Prevent interface jumping because of progress bar font
 
