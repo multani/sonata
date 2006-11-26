@@ -1465,6 +1465,11 @@ class Base(mpdclient3.mpd_connection):
                     text = text.replace("%G", item.genre)
                 except:
                     text = text.replace("%G", _('Unknown'))
+            if "%Y" in text:
+                try:
+                    text = text.replace("%Y", item.date)
+                except:
+                    text = text.replace("%Y", "?")
             if "%F" in text:
                 text = text.replace("%F", item.file)
             if "%P" in text:
@@ -3219,10 +3224,10 @@ class Base(mpdclient3.mpd_connection):
         availableheading.set_alignment(0, 0)
         availableformatbox = gtk.HBox()
         availableformatting = gtk.Label()
-        availableformatting.set_markup('<small><span font_family="Monospace">%A</span> - ' + _('Artist name') + '\n<span font_family="Monospace">%B</span> - ' + _('Album name') + '\n<span font_family="Monospace">%S</span> - ' + _('Song name') + '\n<span font_family="Monospace">%T</span> - ' + _('Track number') + '\n<span font_family="Monospace">%G</span> - ' + _('Genre') + '</small>')
+        availableformatting.set_markup('<small><span font_family="Monospace">%A</span> - ' + _('Artist name') + '\n<span font_family="Monospace">%B</span> - ' + _('Album name') + '\n<span font_family="Monospace">%S</span> - ' + _('Song name') + '\n<span font_family="Monospace">%T</span> - ' + _('Track number') + '\n<span font_family="Monospace">%Y</span> - ' + _('Year') + '</small>')
         availableformatting.set_alignment(0, 0)
         availableformatting2 = gtk.Label()
-        availableformatting2.set_markup('<small><span font_family="Monospace">%F</span> - ' + _('File name') + '\n<span font_family="Monospace">%P</span> - ' + _('File path') + '\n<span font_family="Monospace">%L</span> - ' + _('Song length') + '\n<span font_family="Monospace">%E</span> - ' + _('Elapsed time (title only)') + '</small>')
+        availableformatting2.set_markup('<small><span font_family="Monospace">%G</span> - ' + _('Genre') + '\n<span font_family="Monospace">%F</span> - ' + _('File name') + '\n<span font_family="Monospace">%P</span> - ' + _('File path') + '\n<span font_family="Monospace">%L</span> - ' + _('Song length') + '\n<span font_family="Monospace">%E</span> - ' + _('Elapsed time (title only)') + '</small>')
         availableformatting2.set_alignment(0, 0)
         availableformatbox.pack_start(availableformatting)
         availableformatbox.pack_start(availableformatting2)
