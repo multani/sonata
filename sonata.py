@@ -53,12 +53,21 @@ except ImportError, (strerror):
     print >>sys.stderr, "%s.  Please make sure you have this library installed into a directory in Python's path or in the same directory as Sonata.\n" % strerror
     sys.exit(1)
 
+
 try:
     import egg.trayicon
     HAVE_EGG = True
+    HAVE_STATUS_ICON = False
 except ImportError:
     HAVE_EGG = False
     pass
+
+if not HAVE_EGG:
+    if gtk.pygtk_version >= (2, 10, 0):
+        # Revert to pygtk status icon:
+        HAVE_STATUS_ICON = True
+    else:
+        HAVE_STATUS_ICON = False
 
 try:
     import dbus
@@ -798,7 +807,7 @@ class Base(mpdclient3.mpd_connection):
         self.streams_populate()
 
         self.handle_change_status()
-        if self.withdrawn and HAVE_EGG:
+        if self.withdrawn and (HAVE_EGG or (HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible())):
             self.window.set_no_show_all(True)
             self.window.hide()
         self.window.show_all()
@@ -1042,7 +1051,10 @@ class Base(mpdclient3.mpd_connection):
 
         self.iterate_handler = gobject.timeout_add(self.iterate_time, self.iterate) # Repeat ad infitum..
 
-        if HAVE_EGG:
+        if HAVE_STATUS_ICON:
+            if self.statusicon.is_embedded() and not self.statusicon.get_visible():
+                self.initialize_systrayicon()
+        elif HAVE_EGG:
             if self.trayicon.get_property('visible') == False:
                 self.initialize_systrayicon()
 
@@ -1775,7 +1787,8 @@ class Base(mpdclient3.mpd_connection):
             try:
                 # Try song/artist/album:
                 newlabel = '<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>' + _('by') + ' ' + escape_html(getattr(self.songinfo, 'artist', None)) + ' ' + _('from') + ' ' + escape_html(getattr(self.songinfo, 'album', None)) + '</small>'
-                newlabel_tray = '<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>' + _('by') + ' ' + escape_html(getattr(self.songinfo, 'artist', None)) + '\n' + _('from') + ' ' + escape_html(getattr(self.songinfo, 'album', None)) + '</small>'
+                newlabel_tray_gtk = getattr(self.songinfo, 'title', None) + ' ' + _('by') + ' ' + getattr(self.songinfo, 'artist', None) + ' ' + _('from') + ' ' + getattr(self.songinfo, 'album', None)
+                newlabel_tray_egg = '<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>' + _('by') + ' ' + escape_html(getattr(self.songinfo, 'artist', None)) + '\n' + _('from') + ' ' + escape_html(getattr(self.songinfo, 'album', None)) + '</small>'
                 newlabelfound = True
             except:
                 pass
@@ -1783,7 +1796,8 @@ class Base(mpdclient3.mpd_connection):
                 try:
                     # Fallback, try song/artist:
                     newlabel = '<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>' + _('by') + ' ' + escape_html(getattr(self.songinfo, 'artist', None)) + '</small>'
-                    newlabel_tray = newlabel
+                    newlabel_tray_gtk = getattr(self.songinfo, 'title', None) + ' ' + _('by') + ' ' + getattr(self.songinfo, 'artist', None)
+                    newlabel_tray_egg = newlabel
                     newlabelfound = True
                 except:
                     pass
@@ -1791,7 +1805,8 @@ class Base(mpdclient3.mpd_connection):
                     try:
                         # Fallback, try song:
                         newlabel = '<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>' + _('by') + ' ' + _('Unknown') + '</small>'
-                        newlabel_tray = newlabel
+                        newlabel_tray_gtk = getattr(self.songinfo, 'title', None) + ' ' + _('by') + ' ' + _('Unknown')
+                        newlabel_tray_egg = newlabel
                         newlabelfound = True
                     except:
                         pass
@@ -1799,20 +1814,29 @@ class Base(mpdclient3.mpd_connection):
                         # Fallback, use file name:
                         name = self.filename_or_fullpath(self.songinfo.file)
                         newlabel = '<big><b>' + escape_html(name) + '</b></big>\n<small>' + _('by Unknown') + '</small>'
-                        newlabel_tray = newlabel
+                        newlabel_try_gtk = name + ' ' + _('by Unknown')
+                        newlabel_tray_egg = newlabel
             if newlabel != self.cursonglabel.get_label():
                 self.cursonglabel.set_markup(newlabel)
-            if newlabel_tray != self.traycursonglabel.get_label():
-                self.traycursonglabel.set_markup(newlabel_tray)
+            if HAVE_STATUS_ICON:
+                self.statusicon.set_tooltip(newlabel_tray_gtk)
+            if newlabel_tray_egg != self.traycursonglabel.get_label():
+                self.traycursonglabel.set_markup(newlabel_tray_egg)
         else:
             if self.expanded:
                 self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to collapse') + '</small>')
             else:
                 self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to expand') + '</small>')
             if not self.conn:
-                self.traycursonglabel.set_label(_('Not connected'))
+                if HAVE_STATUS_ICON:
+                    self.statusicon.set_tooltip(_('Not connected'))
+                else:
+                    self.traycursonglabel.set_label(_('Not connected'))
             else:
-                self.traycursonglabel.set_label(_('Stopped'))
+                if HAVE_STATUS_ICON:
+                    self.statusicon.set_tooltip(_('Stopped'))
+                else:
+                    self.traycursonglabel.set_label(_('Stopped'))
             self.traytips.set_size_request(-1, -1)
             self.trayprogressbar.hide()
             self.trayalbumeventbox.hide()
@@ -2060,7 +2084,10 @@ class Base(mpdclient3.mpd_connection):
             if self.conn and self.status and self.status.state in ['play', 'pause']:
                 try:
                     self.traytips.use_notifications_location = True
-                    self.traytips._real_display(self.trayeventbox)
+                    if HAVE_STATUS_ICON:
+                        self.traytips._real_display(self.statusicon)
+                    else:
+                        self.traytips._real_display(self.trayeventbox)
                     if self.popup_option != len(self.popuptimes)-1:
                         timeout = int(self.popuptimes[self.popup_option])*1000
                         self.traytips.notif_handler = gobject.timeout_add(timeout, self.traytips.hide)
@@ -2707,6 +2734,27 @@ class Base(mpdclient3.mpd_connection):
         while self.downloading_image:
             gtk.main_iteration()
 
+    def trayaction_menu(self, status_icon, button, activate_time):
+        self.traymenu.popup(None, None, None, button, activate_time)
+
+    def trayaction_activate(self, status_icon):
+        if not self.ignore_toggle_signal:
+            # This prevents the user clicking twice in a row quickly
+            # and having the second click not revert to the intial
+            # state
+            self.ignore_toggle_signal = True
+            prev_state = self.UIManager.get_widget('/traymenu/showmenu').get_active()
+            self.UIManager.get_widget('/traymenu/showmenu').set_active(not prev_state)
+            if self.window.window.get_state() & gtk.gdk.WINDOW_STATE_WITHDRAWN: # window is hidden
+                self.withdraw_app_undo()
+            elif not (self.window.window.get_state() & gtk.gdk.WINDOW_STATE_WITHDRAWN): # window is showing
+                self.withdraw_app()
+            # This prevents the tooltip from popping up again until the user
+            # leaves and enters the trayicon again
+            if self.traytips.notif_handler == None:
+                self.traytips._remove_timer()
+            gobject.timeout_add(100, self.set_ignore_toggle_signal_false)
+
     # What happens when you click on the system tray icon?
     def trayaction(self, widget, event):
         if event.button == 1 and not self.ignore_toggle_signal: # Left button shows/hides window(s)
@@ -2746,7 +2794,7 @@ class Base(mpdclient3.mpd_connection):
         self.UIManager.get_widget('/traymenu/showmenu').set_active(True)
 
     def withdraw_app(self):
-        if HAVE_EGG:
+        if HAVE_EGG or HAVE_STATUS_ICON:
             self.window.hide()
             self.withdrawn = True
             self.UIManager.get_widget('/traymenu/showmenu').set_active(False)
@@ -3163,7 +3211,9 @@ class Base(mpdclient3.mpd_connection):
         minimize = gtk.CheckButton(_("Minimize to system tray on close"))
         minimize.set_active(self.minimize_to_systray)
         self.tooltips.set_tip(minimize, _("If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."))
-        if HAVE_EGG and self.trayicon.get_property('visible') == True:
+        if HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible():
+            minimize.set_sensitive(True)
+        elif HAVE_EGG and self.trayicon.get_property('visible') == True:
             minimize.set_sensitive(True)
         else:
             minimize.set_sensitive(False)
@@ -3519,19 +3569,26 @@ class Base(mpdclient3.mpd_connection):
 
     def initialize_systrayicon(self):
         # Make system tray 'icon' to sit in the system tray
-        self.trayeventbox = gtk.EventBox()
-        self.trayeventbox.connect('button_press_event', self.trayaction)
-        self.trayeventbox.connect('scroll-event', self.trayaction_scroll)
-        self.traytips.set_tip(self.trayeventbox)
-        self.trayimage = gtk.Image()
-        self.trayimage.set_from_stock('sonata', gtk.ICON_SIZE_BUTTON)
-        self.trayeventbox.add(self.trayimage)
-        try:
-            self.trayicon = egg.trayicon.TrayIcon("TrayIcon")
-            self.trayicon.add(self.trayeventbox)
-            self.trayicon.show_all()
-        except:
-            pass
+        if HAVE_STATUS_ICON:
+            self.statusicon = gtk.StatusIcon()
+            self.statusicon.set_from_stock('sonata')
+            self.statusicon.set_visible(True)
+            self.statusicon.connect('popup_menu', self.trayaction_menu)
+            self.statusicon.connect('activate', self.trayaction_activate)
+        elif HAVE_EGG:
+            self.trayeventbox = gtk.EventBox()
+            self.trayeventbox.connect('button_press_event', self.trayaction)
+            self.trayeventbox.connect('scroll-event', self.trayaction_scroll)
+            self.traytips.set_tip(self.trayeventbox)
+            self.trayimage = gtk.Image()
+            self.trayimage.set_from_stock('sonata', gtk.ICON_SIZE_BUTTON)
+            self.trayeventbox.add(self.trayimage)
+            try:
+                self.trayicon = egg.trayicon.TrayIcon("TrayIcon")
+                self.trayicon.add(self.trayeventbox)
+                self.trayicon.show_all()
+            except:
+                pass
 
     def browser_load(self, docslink):
         try:
@@ -3580,13 +3637,22 @@ class TrayIconTips(gtk.Window):
 
     # from gtktooltips.c:gtk_tooltips_draw_tips
     def _calculate_pos(self, widget):
-        try:
-            x, y = widget.window.get_origin()
-            if widget.flags() & gtk.NO_WINDOW:
-                x += widget.allocation.x
-                y += widget.allocation.y
-        except:
-            pass
+        if HAVE_STATUS_ICON:
+            icon_screen, icon_rect, icon_orient = widget.get_geometry()
+            x = icon_rect[0]
+            y = icon_rect[1]
+            width = icon_rect[2]
+            height = icon_rect[3]
+        else:
+            try:
+                x, y = widget.window.get_origin()
+                if widget.flags() & gtk.NO_WINDOW:
+                    x += widget.allocation.x
+                    y += widget.allocation.y
+                width = widget.allocation.width
+                height = widget.allocation.height
+            except:
+                pass
         w, h = self.size_request()
 
         screen = self.get_screen()
@@ -3605,11 +3671,11 @@ class TrayIconTips(gtk.Window):
             # If the tooltip goes off the screen vertically (i.e. the system tray
             # icon is on the bottom of the screen), realign the icon so that it
             # shows above the icon.
-            if ((y + h + widget.allocation.height + self.MARGIN) >
+            if ((y + h + height + self.MARGIN) >
                 monitor.y + monitor.height):
                 y = y - h - self.MARGIN
             else:
-                y = y + widget.allocation.height + self.MARGIN
+                y = y + height + self.MARGIN
         except:
             pass
 

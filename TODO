@@ -2,9 +2,7 @@ v1.0
 	support for PLS, M3U, etc (http://www.scvi.net/pls.htm) if mpd
 		doesn't support it natively (feature request filed)
 	make selection, dnd, more like thunar
-	switch to pygtk's statusicon (2.10) and remove gnome-python dep
-		- then we can finally use skip_taskbar_hint since we will
-		  be able to reliably detect if the sysicon is displayed
+	GtkStatusIcon - manually check if mouse is over icon (argh)
 	optional statusbar (num songs, total length, etc)?
 	ability to set an album art by drag & drop
 	if song's folder contains one graphical file set, this file as album art
