@@ -4,7 +4,6 @@ v1.0
 	make selection, dnd, more like thunar
 	GtkStatusIcon - manually check if mouse is over icon (argh)
 	optional statusbar (num songs, total length, etc)?
-	ability to set an album art by drag & drop
 	if song's folder contains one graphical file set, this file as album art
 
 Future:

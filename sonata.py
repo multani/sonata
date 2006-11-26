@@ -410,6 +410,7 @@ class Base(mpdclient3.mpd_connection):
         mainvbox = gtk.VBox()
         tophbox = gtk.HBox()
         self.imageeventbox = gtk.EventBox()
+        self.imageeventbox.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT | gtk.DEST_DEFAULT_DROP, [("text/uri-list", 0, 80)], gtk.gdk.ACTION_DEFAULT)
         self.albumimage = gtk.Image()
         self.imageeventbox.add(self.albumimage)
         if not self.show_covers:
@@ -672,6 +673,8 @@ class Base(mpdclient3.mpd_connection):
         self.window.connect('key-press-event', self.topwindow_keypress)
         self.window.connect('focus-out-event', self.on_window_lost_focus)
         self.imageeventbox.connect('button_press_event', self.image_activate)
+        self.imageeventbox.connect('drag_motion', self.image_motion_cb)
+        self.imageeventbox.connect('drag_data_received', self.image_drop_cb)
         self.ppbutton.connect('clicked', self.pp)
         self.stopbutton.connect('clicked', self.stop)
         self.prevbutton.connect('clicked', self.prev)
@@ -2327,7 +2330,6 @@ class Base(mpdclient3.mpd_connection):
                 self.iterate_now()
 
     def image_activate(self, widget, event):
-        print "hi"
         self.window.handler_block(self.mainwinhandler)
         if event.button == 1:
             self.volume_hide()
@@ -2339,6 +2341,42 @@ class Base(mpdclient3.mpd_connection):
                     self.imagemenu.popup(None, None, None, event.button, event.time)
         gobject.timeout_add(50, self.unblock_window_popup_handler)
         return False
+
+    def image_motion_cb(self, widget, context, x, y, time):
+        context.drag_status(gtk.gdk.ACTION_COPY, time)
+        return True
+
+    def image_drop_cb(self, widget, context, x, y, selection, info, time):
+        if self.conn and self.status and self.status.state in ['play', 'pause']:
+            uri = selection.data.strip()
+            path = urllib.url2pathname(uri)
+            paths = path.rsplit('\n')
+            for i, path in enumerate(paths):
+                paths[i] = path.rstrip('\r')
+                # Clean up (remove preceding "file://" or "file:")
+                if paths[i].startswith('file://'):
+                    paths[i] = paths[i][7:]
+                elif paths[i].startswith('file:'):
+                    paths[i] = paths[i][5:]
+                paths[i] = os.path.abspath(paths[i])
+                if self.valid_image(paths[i]):
+                    artist = getattr(self.songinfo, 'artist', "")
+                    artist = artist.replace("/", "")
+                    album = getattr(self.songinfo, 'album', "")
+                    album = album.replace("/", "")
+                    dest_filename = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
+                    shutil.copyfile(paths[i], dest_filename)
+                    self.lastalbumart = None
+                    # When called from a signal handler, we must use idle_add (see FAQ 20.15)
+                    gobject.idle_add(self.update_album_art)
+                    return
+
+    def valid_image(self, file):
+        test = gtk.gdk.pixbuf_get_file_info(file)
+        if test == None:
+            return False
+        else:
+            return True
 
     def coverwindow_show(self):
         if self.coverwindow_visible:
