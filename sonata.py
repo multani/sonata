@@ -893,7 +893,7 @@ class Base(mpdclient3.mpd_connection):
                     except:
                         pass
                     try:
-                        print _("Track") + ": " + self.songinfo.track
+                        print _("Track") + ": " + str(int(self.songinfo.track.split('/')[0]))
                     except:
                         pass
                     try:
@@ -1457,7 +1457,7 @@ class Base(mpdclient3.mpd_connection):
                     return self.filename_or_fullpath(item.file)
             if "%T" in text:
                 try:
-                    text = text.replace("%T", item.track)
+                    text = text.replace("%T", str(int(item.track.split('/')[0])))
                 except:
                     text = text.replace("%T", "0")
             if "%G" in text:
@@ -2295,6 +2295,7 @@ class Base(mpdclient3.mpd_connection):
                 self.iterate_now()
 
     def image_activate(self, widget, event):
+        print "hi"
         self.window.handler_block(self.mainwinhandler)
         if event.button == 1:
             self.volume_hide()
@@ -2433,7 +2434,7 @@ class Base(mpdclient3.mpd_connection):
                         except:
                             self.coverwindow_datelabel.set_text(_('Unknown'))
                         try:
-                            self.coverwindow_tracklabel.set_text(self.songinfo.track)
+                            self.coverwindow_tracklabel.set_text(str(int(self.songinfo.track.split('/')[0])))
                         except:
                             self.coverwindow_tracklabel.set_text(_('Unknown'))
                         try:

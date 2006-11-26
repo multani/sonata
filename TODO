@@ -6,6 +6,9 @@ v1.0
 		- then we can finally use skip_taskbar_hint since we will
 		  be able to reliably detect if the sysicon is displayed
 	optional statusbar (num songs, total length, etc)?
+	add year to format tab
+	ability to set an album art by drag & drop
+	if song's folder contains one graphical file set, this file as album art
 
 Future:
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
