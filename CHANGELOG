@@ -1,7 +1,8 @@
 v0.9.1 - Pending
-	+ Revert to using GtkStatusIcon if gnome-python-extras isn't installed
+	+ Revert to GtkStatusIcon if gnome-python-extras isn't installed
 	+ Allow drag-n-drop of images to set album art
-	+ More text formatting options (genre, song length, elapsed time, year)
+	+ If there is only one image in the song's dir, set as art (Ivan)
+	+ Formatting options (genre, song length, elapsed time, year) (Ivan)
 	+ Bug: Cannot set album art for album/artist with "/" in name
 	+ Bug: Prevent interface jumping because of progress bar font
 

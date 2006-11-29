@@ -1,10 +1,10 @@
 v1.0
-	support for PLS, M3U, etc (http://www.scvi.net/pls.htm) if mpd
-		doesn't support it natively (feature request filed)
+	support for PLS, M3U, etc (http://www.scvi.net/pls.htm)
 	make selection, dnd, more like thunar
 	GtkStatusIcon - manually check if mouse is over icon (argh)
 	optional statusbar (num songs, total length, etc)?
-	if song's folder contains one graphical file set, this file as album art
+	check that gtk has jpeg/gif image support (gtk.gdk.pixbuf_get_formats())
+	playlist sorting
 
 Future:
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)

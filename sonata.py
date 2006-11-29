@@ -1918,16 +1918,21 @@ class Base(mpdclient3.mpd_connection):
                     elif os.path.exists(self.musicdir + songdir + "/folder.jpg"):
                         self.set_image_for_cover(self.musicdir + songdir + "/folder.jpg")
                     else:
-                        gtk.gdk.threads_enter()
-                        self.albumimage.set_from_file(self.sonatacd)
-                        if self.coverwindow_visible:
-                            self.coverwindow_image.set_from_file(self.sonatacd_large)
-                        self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
-                        gtk.gdk.threads_leave()
-                        self.lastalbumart = None
-                        self.download_image_to_filename(artist, album, filename)
-                        if os.path.exists(filename):
-                            self.set_image_for_cover(filename)
+                        #Check if there's only a single graphical file in the local dir:
+                        self.single_img_in_dir = self.get_single_img_in_path(songdir)
+                        if self.single_img_in_dir:
+                            self.set_image_for_cover(self.musicdir + songdir + "/" + self.single_img_in_dir)
+                        else:
+                            gtk.gdk.threads_enter()
+                            self.albumimage.set_from_file(self.sonatacd)
+                            if self.coverwindow_visible:
+                                self.coverwindow_image.set_from_file(self.sonatacd_large)
+                            self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
+                            gtk.gdk.threads_leave()
+                            self.lastalbumart = None
+                            self.download_image_to_filename(artist, album, filename)
+                            if os.path.exists(filename):
+                                self.set_image_for_cover(filename)
             except:
                 gtk.gdk.threads_enter()
                 self.albumimage.set_from_file(self.sonatacd)
@@ -1945,6 +1950,18 @@ class Base(mpdclient3.mpd_connection):
             gtk.gdk.threads_leave()
             self.lastalbumart = None
         gc.collect()
+
+    def get_single_img_in_path(self, songdir):
+        single_img = None
+        for file in os.listdir(self.musicdir + songdir):
+            # Check against gtk+ supported image formats
+            for i in gtk.gdk.pixbuf_get_formats():
+                if os.path.splitext(file)[1].replace(".","") in i['extensions']:
+                    if single_img == None:
+                        single_img = file
+                    else:
+                        return False
+        return single_img
 
     def set_image_for_cover(self, filename):
         if self.filename_is_for_current_song(filename):
@@ -1986,6 +2003,9 @@ class Base(mpdclient3.mpd_connection):
             if filename == currfilename:
                 return True
             currfilename = self.musicdir + songdir + "/folder.jpg"
+            if filename == currfilename:
+                return True
+            currfilename = self.musicdir + songdir + "/" + self.single_img_in_dir
             if filename == currfilename:
                 return True
         # If we got this far, no match:
