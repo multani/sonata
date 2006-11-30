@@ -175,6 +175,10 @@ class Base(mpdclient3.mpd_connection):
         self.TAB_LIBRARY = 1
         self.TAB_PLAYLISTS = 2
         self.TAB_STREAMS = 3
+        self.ART_LOCAL = 0
+        self.ART_REMOTE = 1
+        self.ART_LOCAL_REMOTE = 2
+        self.ART_REMOTE_LOCAL = 3
         self.musicdir = os.path.expanduser("~/music")
         socket.setdefaulttimeout(2)
         self.host = 'localhost'
@@ -199,6 +203,7 @@ class Base(mpdclient3.mpd_connection):
         self.repeat = False
         self.shuffle = False
         self.show_covers = True
+        self.covers_pref = self.ART_LOCAL_REMOTE
         self.show_volume = True
         self.show_search = True
         self.show_notification = False
@@ -809,7 +814,7 @@ class Base(mpdclient3.mpd_connection):
 
         self.streams_populate()
 
-        self.handle_change_status()
+        self.handle_change_status(False)
         if self.withdrawn and (HAVE_EGG or (HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible())):
             self.window.set_no_show_all(True)
             self.window.hide()
@@ -1044,9 +1049,9 @@ class Base(mpdclient3.mpd_connection):
         if self.conn != self.prevconn:
             self.handle_change_conn()
         if self.status != self.prevstatus:
-            self.handle_change_status()
+            self.handle_change_status(True)
         if self.songinfo != self.prevsonginfo:
-            self.handle_change_song()
+            self.handle_change_song(True)
 
         self.prevconn = self.conn
         self.prevstatus = self.status
@@ -1158,6 +1163,8 @@ class Base(mpdclient3.mpd_connection):
             self.show_playback = conf.getboolean('player', 'playback')
         if conf.has_option('player', 'crossfade'):
             self.crossfade = conf.getint('player', 'crossfade')
+        if conf.has_option('player', 'covers_pref'):
+            self.covers_pref = conf.getint('player', 'covers_pref')
         if conf.has_option('format', 'current'):
             self.currentformat = conf.get('format', 'current')
         if conf.has_option('format', 'library'):
@@ -1204,6 +1211,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'notif_location', self.traytips.notifications_location)
         conf.set('player', 'playback', self.show_playback)
         conf.set('player', 'crossfade', self.crossfade)
+        conf.set('player', 'covers_pref', self.covers_pref)
         conf.add_section('format')
         conf.set('format', 'current', self.currentformat)
         conf.set('format', 'library', self.libraryformat)
@@ -1655,13 +1663,13 @@ class Base(mpdclient3.mpd_connection):
     def menukey_press(self, action):
         self.mainmenu.popup(None, None, self.position_menu, 0, 0)
 
-    def handle_change_status(self):
+    def handle_change_status(self, use_threads_star):
         if self.status == None:
             # clean up and bail out
             self.update_progressbar()
             self.update_cursong()
             self.update_wintitle()
-            self.update_album_art()
+            self.update_album_art(use_threads_star)
             return
 
         self.update_coverwindow(update_all=True)
@@ -1717,7 +1725,7 @@ class Base(mpdclient3.mpd_connection):
             if self.status.state in ['play', 'pause']:
                 row = int(self.songinfo.pos)
                 self.currentdata[row][1] = make_bold(self.currentdata[row][1])
-            self.update_album_art()
+            self.update_album_art(use_threads_star)
 
         if self.prevstatus is None or self.status.volume != self.prevstatus.volume:
             self.volumescale.get_adjustment().set_value(int(self.status.volume))
@@ -1736,7 +1744,7 @@ class Base(mpdclient3.mpd_connection):
                     self.browse(root=self.root)
                     self.playlists_populate()
 
-    def handle_change_song(self):
+    def handle_change_song(self, use_threads_star):
         for song in self.currentdata:
             song[1] = make_unbold(song[1])
 
@@ -1747,7 +1755,7 @@ class Base(mpdclient3.mpd_connection):
 
         self.update_cursong()
         self.update_wintitle()
-        self.update_album_art()
+        self.update_album_art(use_threads_star)
         self.update_coverwindow()
         self.update_coverwindow(update_all=True)
 
@@ -1880,9 +1888,9 @@ class Base(mpdclient3.mpd_connection):
             elif row_rect.y < 0:
                 self.current.scroll_to_cell(row)
 
-    def update_album_art(self):
+    def update_album_art(self, use_threads_star):
         self.stop_art_update = True
-        thread = threading.Thread(target=self.update_album_art2)
+        thread = threading.Thread(target=self.update_album_art2, args=[use_threads_star])
         thread.start()
 
     def set_tooltip_art(self, pix):
@@ -1893,7 +1901,10 @@ class Base(mpdclient3.mpd_connection):
         del pix1
         del pix2
 
-    def update_album_art2(self):
+    def update_album_art2(self, use_threads_star):
+        # As per FAQ 20.15, we should only use gtk.threads_enter() and
+        # threads_leave() if it's called from an idle, timeout, or input
+        # handler
         self.stop_art_update = False
         if not self.show_covers:
             return
@@ -1908,48 +1919,65 @@ class Base(mpdclient3.mpd_connection):
                     # No need to update..
                     self.stop_art_update = False
                     return
+                self.lastalbumart = None
+                songdir = os.path.dirname(self.songinfo.file)
                 if os.path.exists(filename):
-                    self.set_image_for_cover(filename)
+                    self.set_image_for_cover(filename, use_threads_star)
                 else:
-                    #Check for some local images:
-                    songdir = os.path.dirname(self.songinfo.file)
-                    if os.path.exists(self.musicdir + songdir + "/cover.jpg"):
-                        self.set_image_for_cover(self.musicdir + songdir + "/cover.jpg")
-                    elif os.path.exists(self.musicdir + songdir + "/folder.jpg"):
-                        self.set_image_for_cover(self.musicdir + songdir + "/folder.jpg")
+                    if self.covers_pref == self.ART_LOCAL or self.covers_pref == self.ART_LOCAL_REMOTE:
+                        self.check_local_images(songdir, use_threads_star)
                     else:
-                        #Check if there's only a single graphical file in the local dir:
-                        self.single_img_in_dir = self.get_single_img_in_path(songdir)
-                        if self.single_img_in_dir:
-                            self.set_image_for_cover(self.musicdir + songdir + "/" + self.single_img_in_dir)
-                        else:
-                            gtk.gdk.threads_enter()
-                            self.albumimage.set_from_file(self.sonatacd)
-                            if self.coverwindow_visible:
-                                self.coverwindow_image.set_from_file(self.sonatacd_large)
-                            self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
-                            gtk.gdk.threads_leave()
-                            self.lastalbumart = None
-                            self.download_image_to_filename(artist, album, filename)
-                            if os.path.exists(filename):
-                                self.set_image_for_cover(filename)
+                        self.check_remote_images(artist, album, filename, use_threads_star)
+                    if not self.lastalbumart:
+                        if self.covers_pref == self.ART_LOCAL_REMOTE:
+                            self.check_remote_images(artist, album, filename, use_threads_star)
+                        elif self.covers_pref == self.ART_REMOTE_LOCAL:
+                            self.check_local_images(songdir, use_threads_star)
             except:
-                gtk.gdk.threads_enter()
+                if use_threads_star:
+                    gtk.gdk.threads_enter()
                 self.albumimage.set_from_file(self.sonatacd)
                 if self.coverwindow_visible:
                     self.coverwindow_image.set_from_file(self.sonatacd_large)
                 self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
-                gtk.gdk.threads_leave()
+                if use_threads_star:
+                    gtk.gdk.threads_leave()
                 self.lastalbumart = None
         else:
-            gtk.gdk.threads_enter()
+            if use_threads_star:
+                gtk.gdk.threads_enter()
             self.albumimage.set_from_file(self.sonatacd)
             if self.coverwindow_visible:
                 self.coverwindow_image.set_from_file(self.sonatacd_large)
             self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
-            gtk.gdk.threads_leave()
+            if use_threads_star:
+                gtk.gdk.threads_leave()
             self.lastalbumart = None
         gc.collect()
+
+    def check_local_images(self, songdir, use_threads_star):
+        if os.path.exists(self.musicdir + songdir + "/cover.jpg"):
+            self.set_image_for_cover(self.musicdir + songdir + "/cover.jpg", use_threads_star)
+        elif os.path.exists(self.musicdir + songdir + "/folder.jpg"):
+            self.set_image_for_cover(self.musicdir + songdir + "/folder.jpg", use_threads_star)
+        else:
+            self.single_img_in_dir = self.get_single_img_in_path(songdir)
+            if self.single_img_in_dir:
+                self.set_image_for_cover(self.musicdir + songdir + "/" + self.single_img_in_dir)
+
+    def check_remote_images(self, artist, album, filename, use_threads_star=False):
+        if use_threads_star:
+            gtk.gdk.threads_enter()
+        self.albumimage.set_from_file(self.sonatacd)
+        if self.coverwindow_visible:
+            self.coverwindow_image.set_from_file(self.sonatacd_large)
+        self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
+        if use_threads_star:
+            gtk.gdk.threads_leave()
+        self.lastalbumart = None
+        self.download_image_to_filename(artist, album, filename, use_threads_star)
+        if os.path.exists(filename):
+            self.set_image_for_cover(filename, use_threads_star)
 
     def get_single_img_in_path(self, songdir):
         single_img = None
@@ -1963,9 +1991,10 @@ class Base(mpdclient3.mpd_connection):
                         return False
         return single_img
 
-    def set_image_for_cover(self, filename):
+    def set_image_for_cover(self, filename, use_threads_star):
         if self.filename_is_for_current_song(filename):
-            gtk.gdk.threads_enter()
+            if use_threads_star:
+                gtk.gdk.threads_enter()
             pix = gtk.gdk.pixbuf_new_from_file(filename)
             pix1 = pix.scale_simple(75, 75, gtk.gdk.INTERP_HYPER)
             if self.coverwindow_visible:
@@ -1977,7 +2006,8 @@ class Base(mpdclient3.mpd_connection):
                     self.coverwindow_image.set_from_pixbuf(pix2)
             except:
                 pass
-            gtk.gdk.threads_leave()
+            if use_threads_star:
+                gtk.gdk.threads_leave()
             self.lastalbumart = filename
             try:
                 del pix
@@ -2011,7 +2041,7 @@ class Base(mpdclient3.mpd_connection):
         # If we got this far, no match:
         return False
 
-    def download_image_to_filename(self, artist, album, dest_filename, all_images=False, populate_imagelist=False):
+    def download_image_to_filename(self, artist, album, dest_filename, use_threads_star, all_images=False, populate_imagelist=False):
         # Returns False if no images found
         imgfound = False
         if len(artist) == 0 and len(album) == 0:
@@ -2064,12 +2094,14 @@ class Base(mpdclient3.mpd_connection):
                         urllib.urlretrieve(img_url, dest_filename_curr)
                         if populate_imagelist:
                             # This populates self.imagelist for the remote image window
-                            gtk.gdk.threads_enter()
+                            if use_threads_star:
+                                gtk.gdk.threads_enter()
                             if os.path.exists(dest_filename_curr):
                                 pix = gtk.gdk.pixbuf_new_from_file(dest_filename_curr)
                                 pix = pix.scale_simple(150, 150, gtk.gdk.INTERP_HYPER)
                                 if self.stop_art_update:
-                                    gtk.gdk.threads_leave()
+                                    if use_threads_star:
+                                        gtk.gdk.threads_leave()
                                     self.downloading_image = False
                                     return imgfound
                                 self.imagelist.append([curr_img, pix])
@@ -2078,7 +2110,8 @@ class Base(mpdclient3.mpd_connection):
                                 imgfound = True
                                 if curr_img == 1:
                                     self.allow_art_search = True
-                            gtk.gdk.threads_leave()
+                            if use_threads_star:
+                                gtk.gdk.threads_leave()
                             self.change_cursor(None, True)
                         curr_img += 1
                         # Skip the next LargeImage:
@@ -2353,11 +2386,18 @@ class Base(mpdclient3.mpd_connection):
         self.window.handler_block(self.mainwinhandler)
         if event.button == 1:
             self.volume_hide()
-            self.coverwindow_show()
+            self.coverwindow_show(False)
         elif event.button == 3:
             if self.conn and self.status and self.status.state in ['play', 'pause']:
+                self.UIManager.get_widget('/imagemenu/chooseimage_menu/').hide()
+                self.UIManager.get_widget('/imagemenu/localimage_menu/').hide()
+                if self.covers_pref != self.ART_LOCAL:
+                    self.UIManager.get_widget('/imagemenu/chooseimage_menu/').show()
+                if self.covers_pref != self.ART_REMOTE:
+                    self.UIManager.get_widget('/imagemenu/localimage_menu/').show()
                 artist = getattr(self.songinfo, 'artist', None)
-                if artist:
+                album = getattr(self.songinfo, 'album', None)
+                if artist or album:
                     self.imagemenu.popup(None, None, None, event.button, event.time)
         gobject.timeout_add(50, self.unblock_window_popup_handler)
         return False
@@ -2387,8 +2427,7 @@ class Base(mpdclient3.mpd_connection):
                     dest_filename = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
                     shutil.copyfile(paths[i], dest_filename)
                     self.lastalbumart = None
-                    # When called from a signal handler, we must use idle_add (see FAQ 20.15)
-                    gobject.idle_add(self.update_album_art)
+                    self.update_album_art(False)
                     return
 
     def valid_image(self, file):
@@ -2398,7 +2437,7 @@ class Base(mpdclient3.mpd_connection):
         else:
             return True
 
-    def coverwindow_show(self):
+    def coverwindow_show(self, use_threads_star):
         if self.coverwindow_visible:
             self.coverwindow.present()
             return
@@ -2487,7 +2526,7 @@ class Base(mpdclient3.mpd_connection):
         self.coverwindow_visible = True
         self.coverwindow.connect('delete_event', self.coverwindow_hide)
         self.lastalbumart = ""
-        self.update_album_art()
+        self.update_album_art(use_threads_star)
         self.update_coverwindow(True, update_all=True)
 
     def coverwindow_hide(self, button, data=None):
@@ -2646,8 +2685,7 @@ class Base(mpdclient3.mpd_connection):
             shutil.copyfile(filename, dest_filename)
             # And finally, set the image in the interface:
             self.lastalbumart = None
-            # When called from a signal handler, we must use idle_add (see FAQ 20.15)
-            gobject.idle_add(self.update_album_art)
+            self.update_album_art(False)
         dialog.destroy()
 
     def choose_image(self, widget):
@@ -2671,7 +2709,7 @@ class Base(mpdclient3.mpd_connection):
         imagewidget.set_margin(10)
         imagewidget.set_selection_mode(gtk.SELECTION_SINGLE)
         imagewidget.select_path("0")
-        imagewidget.connect('item-activated', self.replace_cover, choose_dialog)
+        imagewidget.connect('item-activated', self.replace_cover, choose_dialog, False)
         scroll.add(imagewidget)
         choose_dialog.vbox.pack_start(scroll, False, False, 0)
         searchexpander = gtk.expander_new_with_mnemonic(_("Edit search terms"))
@@ -2714,7 +2752,7 @@ class Base(mpdclient3.mpd_connection):
         self.allow_art_search = True
         self.choose_image_update()
 
-    def choose_image_update(self, entry=None):
+    def choose_image_update(self, entry=None, use_threads_star=False):
         if not self.allow_art_search:
             return
         self.allow_art_search = False
@@ -2722,53 +2760,57 @@ class Base(mpdclient3.mpd_connection):
         while self.downloading_image:
             gtk.main_iteration()
         self.imagelist.clear()
-        thread = threading.Thread(target=self.choose_image_update2)
+        thread = threading.Thread(target=self.choose_image_update2, args=[use_threads_star])
         thread.start()
 
-    def choose_image_update2(self):
+    def choose_image_update2(self, use_threads_star):
         self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
         self.stop_art_update = False
         # Retrieve all images from amazon:
         artist_search = self.remote_artistentry.get_text()
         album_search = self.remote_albumentry.get_text()
         if len(artist_search) == 0 and len(album_search) == 0:
-            gtk.gdk.threads_enter()
+            if use_threads_star:
+                gtk.gdk.threads_enter()
             error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No artist or album name found."))
             error_dialog.set_title(_("Choose Cover Art"))
             error_dialog.run()
             error_dialog.destroy()
-            gtk.gdk.threads_leave()
+            if use_threads_star:
+                gtk.gdk.threads_leave()
             return
         filename = os.path.expanduser("~/.covers/temp/<imagenum>.jpg")
         if os.path.exists(os.path.dirname(filename)):
             removeall(os.path.dirname(filename))
         if not os.path.exists(os.path.dirname(filename)):
             os.mkdir(os.path.dirname(filename))
-        imgfound = self.download_image_to_filename(artist_search, album_search, filename, True, True)
+        imgfound = self.download_image_to_filename(artist_search, album_search, filename, use_threads_star, True, True)
         self.change_cursor(None)
         gc.collect()
         if self.chooseimage_visible:
             if not imgfound:
                 self.allow_art_search = True
-                gtk.gdk.threads_enter()
+                if use_threads_star:
+                    gtk.gdk.threads_enter()
                 error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No cover art found."))
                 error_dialog.set_title(_("Choose Cover Art"))
                 error_dialog.run()
                 error_dialog.destroy()
-                gtk.gdk.threads_leave()
+                if use_threads_star:
+                    gtk.gdk.threads_leave()
 
     def choose_image_response(self, dialog, response_id, imagewidget, choose_dialog):
         self.stop_art_update = True
         if response_id == gtk.RESPONSE_ACCEPT:
             try:
-                self.replace_cover(imagewidget, imagewidget.get_selected_items()[0], choose_dialog)
+                self.replace_cover(imagewidget, imagewidget.get_selected_items()[0], choose_dialog, False)
             except:
                 pass
         self.change_cursor(None)
         self.chooseimage_visible = False
         dialog.destroy()
 
-    def replace_cover(self, iconview, path, dialog):
+    def replace_cover(self, iconview, path, dialog, use_threads_star):
         self.stop_art_update = True
         image_num = int(path[0])
         filename = self.remotefilelist[image_num]
@@ -2782,8 +2824,7 @@ class Base(mpdclient3.mpd_connection):
             os.rename(filename, dest_filename)
             # And finally, set the image in the interface:
             self.lastalbumart = None
-            # When called from a signal handler, we must use idle_add (see FAQ 20.15)
-            gobject.idle_add(self.update_album_art)
+            self.update_album_art(use_threads_star)
             # Clean up..
             if os.path.exists(os.path.dirname(filename)):
                 removeall(os.path.dirname(filename))
@@ -3187,16 +3228,26 @@ class Base(mpdclient3.mpd_connection):
         displaylabel = gtk.Label()
         displaylabel.set_markup('<b>' + _('Display') + '</b>')
         displaylabel.set_alignment(0, 1)
-        display_art = gtk.CheckButton(_("Show album covers"))
+        display_art_hbox = gtk.HBox()
+        display_art = gtk.CheckButton(_("Enable album art"))
         display_art.set_active(self.show_covers)
-        display_art.connect('toggled', self.prefs_art_toggled)
-        display_playback = gtk.CheckButton(_("Show playback buttons"))
+        display_art_hbox.pack_start(display_art)
+        display_art_combo = gtk.combo_box_new_text()
+        display_art_combo.append_text(_("Local only"))
+        display_art_combo.append_text(_("Remote only"))
+        display_art_combo.append_text(_("Local, then remote"))
+        display_art_combo.append_text(_("Remote, then local"))
+        display_art_combo.set_active(self.covers_pref)
+        display_art_combo.set_sensitive(self.show_covers)
+        display_art_hbox.pack_start(display_art_combo, False, False, 5)
+        display_art.connect('toggled', self.prefs_art_toggled, display_art_combo)
+        display_playback = gtk.CheckButton(_("Enable playback buttons"))
         display_playback.set_active(self.show_playback)
         display_playback.connect('toggled', self.prefs_playback_toggled)
-        display_volume = gtk.CheckButton(_("Show volume button"))
+        display_volume = gtk.CheckButton(_("Enable volume button"))
         display_volume.set_active(self.show_volume)
         display_volume.connect('toggled', self.prefs_volume_toggled)
-        display_search = gtk.CheckButton(_("Show library searchbar"))
+        display_search = gtk.CheckButton(_("Enable library searchbar"))
         display_search.set_active(self.show_search)
         display_search.connect('toggled', self.prefs_search_toggled)
         displaylabel2 = gtk.Label()
@@ -3241,10 +3292,10 @@ class Base(mpdclient3.mpd_connection):
         table2.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(displaylabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(gtk.Label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(display_art, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_playback, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_volume, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_search, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_playback, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_volume, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_search, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_art_hbox, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table2.attach(gtk.Label(), 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(displaylabel2, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(gtk.Label(), 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
@@ -3367,6 +3418,7 @@ class Base(mpdclient3.mpd_connection):
         if response == gtk.RESPONSE_CLOSE:
             self.stop_on_exit = exit_stop.get_active()
             self.ontop = win_ontop.get_active()
+            self.covers_pref = display_art_combo.get_active()
             self.sticky = win_sticky.get_active()
             self.musicdir = direntry.get_text()
             self.musicdir = os.path.expanduser(self.musicdir)
@@ -3441,8 +3493,9 @@ class Base(mpdclient3.mpd_connection):
             self.stopbutton.hide()
             self.nextbutton.hide()
 
-    def prefs_art_toggled(self, button):
+    def prefs_art_toggled(self, button, art_combo):
         if button.get_active():
+            art_combo.set_sensitive(True)
             self.traytips.set_size_request(350, -1)
             self.albumimage.set_from_file(self.sonatacd)
             if self.coverwindow_visible:
@@ -3457,9 +3510,9 @@ class Base(mpdclient3.mpd_connection):
                 self.trayalbumimage2.show_all()
             self.show_covers = True
             self.update_cursong()
-            # When called from a signal handler, we must use idle_add (see FAQ 20.15)
-            gobject.idle_add(self.update_album_art)
+            self.update_album_art(False)
         else:
+            art_combo.set_sensitive(False)
             self.traytips.set_size_request(250, -1)
             self.imageeventbox.set_no_show_all(True)
             self.imageeventbox.hide()

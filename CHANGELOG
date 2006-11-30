@@ -2,6 +2,8 @@ v0.9.1 - Pending
 	+ Revert to GtkStatusIcon if gnome-python-extras isn't installed
 	+ Allow drag-n-drop of images to set album art
 	+ If there is only one image in the song's dir, set as art (Ivan)
+	+ Options for choosing album art (local only, remote only, local
+	  then remote, or remote then local)
 	+ Formatting options (genre, song length, elapsed time, year) (Ivan)
 	+ Bug: Cannot set album art for album/artist with "/" in name
 	+ Bug: Prevent interface jumping because of progress bar font
