@@ -1963,7 +1963,7 @@ class Base(mpdclient3.mpd_connection):
         else:
             self.single_img_in_dir = self.get_single_img_in_path(songdir)
             if self.single_img_in_dir:
-                self.set_image_for_cover(self.musicdir + songdir + "/" + self.single_img_in_dir)
+                self.set_image_for_cover(self.musicdir + songdir + "/" + self.single_img_in_dir, use_threads_star)
 
     def check_remote_images(self, artist, album, filename, use_threads_star=False):
         if use_threads_star:
@@ -1984,7 +1984,7 @@ class Base(mpdclient3.mpd_connection):
         for file in os.listdir(self.musicdir + songdir):
             # Check against gtk+ supported image formats
             for i in gtk.gdk.pixbuf_get_formats():
-                if os.path.splitext(file)[1].replace(".","") in i['extensions']:
+                if os.path.splitext(file)[1].replace(".","").lower in i['extensions']:
                     if single_img == None:
                         single_img = file
                     else:

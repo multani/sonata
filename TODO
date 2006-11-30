@@ -4,7 +4,7 @@ v1.0
 	GtkStatusIcon - manually check if mouse is over icon (argh)
 	optional statusbar (num songs, total length, etc)?
 	check that gtk has jpeg/gif image support (gtk.gdk.pixbuf_get_formats())
-	playlist sorting
+	playlist sorting (Sort > By Song Name, By Artist, ..., Reverse Order)
 
 Future:
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
