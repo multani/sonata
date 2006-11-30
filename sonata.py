@@ -1984,7 +1984,7 @@ class Base(mpdclient3.mpd_connection):
         for file in os.listdir(self.musicdir + songdir):
             # Check against gtk+ supported image formats
             for i in gtk.gdk.pixbuf_get_formats():
-                if os.path.splitext(file)[1].replace(".","").lower in i['extensions']:
+                if os.path.splitext(file)[1].replace(".","").lower() in i['extensions']:
                     if single_img == None:
                         single_img = file
                     else:
