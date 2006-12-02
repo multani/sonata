@@ -1,7 +1,7 @@
 v1.0
 	support for PLS, M3U, etc (http://www.scvi.net/pls.htm)
 	make selection, dnd, more like thunar
-	GtkStatusIcon - manually check if mouse is over icon (argh)
+	GtkStatusIcon - manually check if mouse is over icon? (argh)
 	optional statusbar (num songs, total length, etc)?
 	check that gtk has jpeg/gif image support (gtk.gdk.pixbuf_get_formats())
 	playlist sorting (Sort > By Song Name, By Artist, ..., Reverse Order)

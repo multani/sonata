@@ -205,9 +205,9 @@ class Base(mpdclient3.mpd_connection):
         self.show_covers = True
         self.covers_pref = self.ART_LOCAL_REMOTE
         self.show_volume = True
-        self.show_search = True
         self.show_notification = False
         self.show_playback = True
+        self.show_statusbar = False
         self.stop_on_exit = False
         self.update_on_start = False
         self.minimize_to_systray = False
@@ -520,9 +520,6 @@ class Base(mpdclient3.mpd_connection):
         self.browser_selection = self.browser.get_selection()
         self.expanderwindow2.add(self.browser)
         self.searchbox = gtk.HBox()
-        if not self.show_search:
-            self.searchbox.hide()
-            self.searchbox.set_no_show_all(True)
         self.searchcombo = gtk.combo_box_new_text()
         for item in self.search_terms:
             self.searchcombo.append_text(item)
@@ -573,6 +570,12 @@ class Base(mpdclient3.mpd_connection):
         streamshbox.show_all()
         self.notebook.append_page(self.expanderwindow4, streamshbox)
         mainvbox.pack_start(self.notebook, True, True, 5)
+        self.statusbar = gtk.Statusbar()
+        self.statusbar.set_has_resize_grip(True)
+        if not self.show_statusbar:
+            self.statusbar.hide()
+            self.statusbar.set_no_show_all(True)
+        mainvbox.pack_start(self.statusbar, False, False, 0)
         mainhbox.pack_start(mainvbox, True, True, 3)
         self.window.add(mainhbox)
         self.window.move(self.x, self.y)
@@ -1146,12 +1149,12 @@ class Base(mpdclient3.mpd_connection):
             self.initial_run = conf.getboolean('player', 'initial_run')
         if conf.has_option('player', 'volume'):
             self.show_volume = conf.getboolean('player', 'volume')
+        if conf.has_option('player', 'statusbar'):
+            self.show_statusbar = conf.getboolean('player', 'statusbar')
         if conf.has_option('player', 'sticky'):
             self.sticky = conf.getboolean('player', 'sticky')
         if conf.has_option('player', 'ontop'):
             self.ontop = conf.getboolean('player', 'ontop')
-        if conf.has_option('player', 'search'):
-            self.show_search = conf.getboolean('player', 'search')
         if conf.has_option('player', 'notification'):
             self.show_notification = conf.getboolean('player', 'notification')
         if conf.has_option('player', 'popup_time'):
@@ -1203,9 +1206,9 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'minimize', self.minimize_to_systray)
         conf.set('player', 'initial_run', self.initial_run)
         conf.set('player', 'volume', self.show_volume)
+        conf.set('player', 'statusbar', self.show_statusbar)
         conf.set('player', 'sticky', self.sticky)
         conf.set('player', 'ontop', self.ontop)
-        conf.set('player', 'search', self.show_search)
         conf.set('player', 'notification', self.show_notification)
         conf.set('player', 'popup_time', self.popup_option)
         conf.set('player', 'update_on_start', self.update_on_start)
@@ -1671,17 +1674,19 @@ class Base(mpdclient3.mpd_connection):
             self.update_cursong()
             self.update_wintitle()
             self.update_album_art()
+            self.update_statusbar()
             return
 
         self.update_coverwindow(update_all=True)
 
-        # Update progress frequently if we're playing
-        if self.status.state in ['play', 'pause']:
-            self.update_progressbar()
-
         # Display current playlist
         if self.prevstatus == None or self.prevstatus.playlist != self.status.playlist:
             self.update_playlist()
+
+        # Update progress frequently if we're playing
+        if self.status.state in ['play', 'pause']:
+            self.update_progressbar()
+            self.update_statusbar()
 
         # If elapsed time is shown in the window title, we need to update more often:
         if "%E" in self.titleformat:
@@ -1694,6 +1699,7 @@ class Base(mpdclient3.mpd_connection):
             self.update_progressbar()
             self.update_cursong()
             self.update_wintitle()
+            self.update_statusbar()
             if self.status.state == 'stop':
                 self.ppbutton.set_image(gtk.image_new_from_stock(gtk.STOCK_MEDIA_PLAY, gtk.ICON_SIZE_BUTTON))
                 image, label = self.ppbutton.get_children()[0].get_children()[0].get_children()
@@ -1783,6 +1789,35 @@ class Base(mpdclient3.mpd_connection):
         else:
             self.progressbar.set_text(_('Not Connected'))
         return
+
+    def update_statusbar(self):
+        if self.conn and self.show_statusbar:
+            total_time = 0
+            total_songs = 0
+            total_elapsed = 0
+            if self.status and self.status.state in ['play', 'pause']:
+                currsong = int(self.songinfo.pos)
+            else:
+                currsong = 0
+            for track in self.songs:
+                if total_songs == currsong:
+                    total_elapsed = total_time
+                total_songs = total_songs + 1
+                try:
+                    total_time = total_time + int(track.time)
+                except:
+                    pass
+            if self.status and self.status.state in ['play', 'pause']:
+                try:
+                    at, len = [int(c) for c in self.status.time.split(':')]
+                    total_elapsed = total_elapsed + at
+                except:
+                    pass
+            total_elapsed = convert_time(total_elapsed)
+            status_text = _('Songs') + ': ' + str(total_songs) + '    ' + _('Elapsed') + ': ' + str(total_elapsed) + '    ' + _('Total') + ': ' + convert_time(total_time)
+            self.statusbar.push(self.statusbar.get_context_id(""), status_text)
+        elif self.show_statusbar:
+            self.statusbar.push(self.statusbar.get_context_id(""), "")
 
     def update_cursong(self):
         if self.conn and self.status and self.status.state in ['play', 'pause']:
@@ -1875,9 +1910,10 @@ class Base(mpdclient3.mpd_connection):
                 self.currentdata.append([int(track.id), item])
             self.current.thaw_child_notify()
             if self.status.state in ['play', 'pause']:
-                row = int(self.songinfo.pos)
-                self.currentdata[row][1] = make_bold(self.currentdata[row][1])
-                gobject.idle_add(self.keep_song_visible_in_list, row)
+                currsong = int(self.songinfo.pos)
+                self.currentdata[currsong][1] = make_bold(self.currentdata[currsong][1])
+                gobject.idle_add(self.keep_song_visible_in_list, currsong)
+            self.update_statusbar()
 
     def keep_song_visible_in_list(self, row):
         if self.expanded:
@@ -3207,9 +3243,9 @@ class Base(mpdclient3.mpd_connection):
         display_volume = gtk.CheckButton(_("Enable volume button"))
         display_volume.set_active(self.show_volume)
         display_volume.connect('toggled', self.prefs_volume_toggled)
-        display_search = gtk.CheckButton(_("Enable library searchbar"))
-        display_search.set_active(self.show_search)
-        display_search.connect('toggled', self.prefs_search_toggled)
+        display_statusbar = gtk.CheckButton(_("Enable statusbar"))
+        display_statusbar.set_active(self.show_statusbar)
+        display_statusbar.connect('toggled', self.prefs_statusbar_toggled)
         displaylabel2 = gtk.Label()
         displaylabel2.set_markup('<b>' + _('Notification') + '</b>')
         displaylabel2.set_alignment(0, 1)
@@ -3254,7 +3290,7 @@ class Base(mpdclient3.mpd_connection):
         table2.attach(gtk.Label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(display_playback, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table2.attach(display_volume, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_search, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_statusbar, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table2.attach(display_art_hbox, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table2.attach(gtk.Label(), 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(displaylabel2, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
@@ -3410,7 +3446,8 @@ class Base(mpdclient3.mpd_connection):
                 self.conn.do.crossfade(int(self.crossfade_options[self.crossfade]))
             else:
                 self.crossfade = -1
-                self.conn.do.crossfade(0)
+                if self.conn:
+                    self.conn.do.crossfade(0)
             if hostentry.get_text() != self.host or portentry.get_text() != str(self.port) or passwordentry.get_text() != self.password:
                 self.host = hostentry.get_text()
                 try:
@@ -3493,15 +3530,15 @@ class Base(mpdclient3.mpd_connection):
             self.volumebutton.hide()
             self.show_volume = False
 
-    def prefs_search_toggled(self, button):
+    def prefs_statusbar_toggled(self, button):
         if button.get_active():
-            self.searchbox.set_no_show_all(False)
-            self.searchbox.show_all()
-            self.show_search = True
+            self.statusbar.set_no_show_all(False)
+            self.statusbar.show_all()
+            self.show_statusbar = True
         else:
-            self.searchbox.set_no_show_all(True)
-            self.searchbox.hide()
-            self.show_search = False
+            self.statusbar.set_no_show_all(True)
+            self.statusbar.hide()
+            self.show_statusbar = False
 
     def prefs_notif_toggled(self, button, notifhbox, notifhbox2):
         if button.get_active():
