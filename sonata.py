@@ -226,6 +226,7 @@ class Base(mpdclient3.mpd_connection):
         self.downloading_image = False
         self.search_terms = [_('Artist'), _('Title'), _('Album'), _('Genre'), _('Filename')]
         self.search_terms_mpd = ['artist', 'title', 'album', 'genre', 'filename']
+        self.sonata_loaded = False
         show_prefs = False
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
@@ -825,6 +826,7 @@ class Base(mpdclient3.mpd_connection):
             self.updatedb(None)
 
         self.iterate_now()
+        self.gc_collect()
 
         self.notebook.set_no_show_all(False)
         self.window.set_no_show_all(False)
@@ -833,6 +835,10 @@ class Base(mpdclient3.mpd_connection):
             self.prefs(None)
 
         self.initial_run = False
+
+        # Ensure that sonata is loaded before we display the notif window
+        self.sonata_loaded = True
+        self.labelnotify()
 
     def print_version(self):
         print _("Version: Sonata"), __version__
@@ -1064,7 +1070,13 @@ class Base(mpdclient3.mpd_connection):
         elif HAVE_EGG:
             if self.trayicon.get_property('visible') == False:
                 self.initialize_systrayicon()
+
+
+    def gc_collect(self):
+        # Rather than having gc.collect() called every self.iterate_time
+        # (which causes high cpu usage), we will call it once ever 5 secs
         gc.collect()
+        gobject.timeout_add(5000, self.gc_collect)
 
     def iterate_stop(self):
         try:
@@ -2129,36 +2141,37 @@ class Base(mpdclient3.mpd_connection):
         return imgfound
 
     def labelnotify(self, *args):
-        if self.show_covers:
-            self.traytips.set_size_request(350, -1)
-        else:
-            self.traytips.set_size_request(250, -1)
-        if self.show_notification:
-            try:
-                gobject.source_remove(self.traytips.notif_handler)
-            except:
-                pass
-            if self.conn and self.status and self.status.state in ['play', 'pause']:
+        if self.sonata_loaded:
+            if self.show_covers:
+                self.traytips.set_size_request(350, -1)
+            else:
+                self.traytips.set_size_request(250, -1)
+            if self.show_notification:
                 try:
-                    self.traytips.use_notifications_location = True
-                    if HAVE_STATUS_ICON:
-                        self.traytips._real_display(self.statusicon)
-                    else:
-                        self.traytips._real_display(self.trayeventbox)
-                    if self.popup_option != len(self.popuptimes)-1:
-                        timeout = int(self.popuptimes[self.popup_option])*1000
-                        self.traytips.notif_handler = gobject.timeout_add(timeout, self.traytips.hide)
-                    else:
-                        # -1 indicates that the timeout should be forever.
-                        # We don't want to pass None, because then Sonata
-                        # would think that there is no current notification
-                        self.traytips.notif_handler = -1
+                    gobject.source_remove(self.traytips.notif_handler)
                 except:
                     pass
-            else:
-                self.traytips.hide()
-        elif self.traytips.get_property('visible'):
-            self.traytips._real_display(self.trayeventbox)
+                if self.conn and self.status and self.status.state in ['play', 'pause']:
+                    try:
+                        self.traytips.use_notifications_location = True
+                        if HAVE_STATUS_ICON:
+                            self.traytips._real_display(self.statusicon)
+                        else:
+                            self.traytips._real_display(self.trayeventbox)
+                        if self.popup_option != len(self.popuptimes)-1:
+                            timeout = int(self.popuptimes[self.popup_option])*1000
+                            self.traytips.notif_handler = gobject.timeout_add(timeout, self.traytips.hide)
+                        else:
+                            # -1 indicates that the timeout should be forever.
+                            # We don't want to pass None, because then Sonata
+                            # would think that there is no current notification
+                            self.traytips.notif_handler = -1
+                    except:
+                        pass
+                else:
+                    self.traytips.hide()
+            elif self.traytips.get_property('visible'):
+                self.traytips._real_display(self.trayeventbox)
 
     def progressbarnotify_fraction(self, *args):
         self.trayprogressbar.set_fraction(self.progressbar.get_fraction())
