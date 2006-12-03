@@ -2792,8 +2792,11 @@ class Base(mpdclient3.mpd_connection):
                 self.allow_art_search = True
                 error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No cover art found."))
                 error_dialog.set_title(_("Choose Cover Art"))
-                error_dialog.run()
-                error_dialog.destroy()
+                error_dialog.connect('response', self.choose_image_dialog_response)
+                error_dialog.show()
+
+    def choose_image_dialog_response(self, dialog, response_id):
+        dialog.destroy()
 
     def choose_image_response(self, dialog, response_id, imagewidget, choose_dialog):
         self.stop_art_update = True
