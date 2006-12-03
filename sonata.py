@@ -2777,8 +2777,8 @@ class Base(mpdclient3.mpd_connection):
         if len(artist_search) == 0 and len(album_search) == 0:
             error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No artist or album name found."))
             error_dialog.set_title(_("Choose Cover Art"))
-            error_dialog.run()
-            error_dialog.destroy()
+            error_dialog.connect('response', self.choose_image_dialog_response)
+            error_dialog.show()
             return
         filename = os.path.expanduser("~/.covers/temp/<imagenum>.jpg")
         if os.path.exists(os.path.dirname(filename)):
