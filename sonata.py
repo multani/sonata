@@ -200,8 +200,6 @@ class Base(mpdclient3.mpd_connection):
         self.lastalbumart = None
         self.crossfade = -1
         self.crossfade_options = ['1', '2', '3', '5', '10', '15']
-        self.repeat = False
-        self.shuffle = False
         self.show_covers = True
         self.covers_pref = self.ART_LOCAL_REMOTE
         self.show_volume = True
@@ -283,13 +281,12 @@ class Base(mpdclient3.mpd_connection):
             ('updatekey2', None, 'Update Key 2', '<Ctrl><Shift>u', None, self.updatedb_path),
             ('connectkey', None, 'Connect Key', '<Alt>c', None, self.connectkey_pressed),
             ('disconnectkey', None, 'Disconnect Key', '<Alt>d', None, self.disconnectkey_pressed),
-            ('clearexceptkey', None, 'Clear Key', '<Ctrl><Shift>Delete', None, self.clear_except_current)
             )
 
         toggle_actions = (
             ('showmenu', None, _('_Show Player'), None, None, self.withdraw_app_toggle, not self.withdrawn),
-            ('repeatmenu', None, _('_Repeat'), None, None, self.repeat_now, self.repeat),
-            ('shufflemenu', None, _('_Shuffle'), None, None, self.shuffle_now, self.shuffle),
+            ('repeatmenu', None, _('_Repeat'), None, None, self.repeat_now, False),
+            ('shufflemenu', None, _('_Shuffle'), None, None, self.shuffle_now, False),
                 )
 
         uiDescription = """
@@ -346,7 +343,6 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="updatekey2"/>
                 <menuitem action="connectkey"/>
                 <menuitem action="disconnectkey"/>
-                <menuitem action="clearexceptkey"/>
               </popup>
             </ui>
             """
@@ -1025,14 +1021,14 @@ class Base(mpdclient3.mpd_connection):
                     self.status = None
                 self.songinfo = self.conn.do.currentsong()
                 if self.status:
-                    if self.repeat and self.status.repeat == '0':
-                        self.conn.do.repeat(1)
-                    elif not self.repeat and self.status.repeat == '1':
-                        self.conn.do.repeat(0)
-                    if self.shuffle and self.status.random == '0':
-                        self.conn.do.random(1)
-                    elif not self.shuffle and self.status.random == '1':
-                        self.conn.do.random(0)
+                    if self.status.repeat == '0':
+                        self.repeatmenu.set_active(False)
+                    elif self.status.repeat == '1':
+                        self.repeatmenu.set_active(True)
+                    if self.status.random == '0':
+                        self.shufflemenu.set_active(False)
+                    elif self.status.random == '1':
+                        self.shufflemenu.set_active(True)
             else:
                 self.iterate_time = self.iterate_time_when_disconnected
                 self.status = None
@@ -1135,10 +1131,6 @@ class Base(mpdclient3.mpd_connection):
             self.withdrawn = conf.getboolean('player', 'withdrawn')
         if conf.has_option('player', 'screen'):
             self.screen = conf.getint('player', 'screen')
-        if conf.has_option('player', 'repeat'):
-            self.repeat = conf.getboolean('player', 'repeat')
-        if conf.has_option('player', 'shuffle'):
-            self.shuffle = conf.getboolean('player', 'shuffle')
         if conf.has_option('player', 'covers'):
             self.show_covers = conf.getboolean('player', 'covers')
         if conf.has_option('player', 'stop_on_exit'):
@@ -1199,8 +1191,6 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'expanded', self.expanded)
         conf.set('player', 'withdrawn', self.withdrawn)
         conf.set('player', 'screen', self.screen)
-        conf.set('player', 'repeat', self.repeat)
-        conf.set('player', 'shuffle', self.shuffle)
         conf.set('player', 'covers', self.show_covers)
         conf.set('player', 'stop_on_exit', self.stop_on_exit)
         conf.set('player', 'minimize', self.minimize_to_systray)
@@ -3074,48 +3064,19 @@ class Base(mpdclient3.mpd_connection):
             self.iterate_now()
         return
 
-    def clear_except_current(self, widget):
-        # Requires command_list_*
-        # Removes all songs in the current playlist other than
-        # the currently playing song.
-        #if self.conn:
-            #if self.status and self.status.state in ['play', 'pause']:
-                #self.iterate_stop()
-                 #Remove all songs above current playing song:
-                #currpos = int(self.songinfo.pos)
-                #numitems = int(self.status.playlistlength)
-                #i = 0
-                #while i < numitems:
-                    #if i != currpos:
-                        #print self.currentdata.get_value(self.currentdata.get_iter(i), 0)
-                        #self.conn.do.deleteid(self.currentdata.get_value(self.currentdata.get_iter(i), 0))
-                    #i = i + 1
-            #else:
-                #self.conn.do.clear()
-            #self.iterate_now()
-        return
-
     def repeat_now(self, widget):
         if self.conn:
-            if self.status.repeat == '0':
-                self.repeatmenu.set_active(True)
-                self.repeat = True
+            if widget.get_active():
                 self.conn.do.repeat(1)
-            elif self.status.repeat == '1':
-                self.repeatmenu.set_active(False)
-                self.repeat = False
+            else:
                 self.conn.do.repeat(0)
 
     def shuffle_now(self, widget):
         if self.conn:
-            if self.status.random == '0':
+            if widget.get_active():
                 self.conn.do.random(1)
-                self.shufflemenu.set_active(True)
-                self.shuffle = True
-            elif self.status.random == '1':
+            else:
                 self.conn.do.random(0)
-                self.shufflemenu.set_active(False)
-                self.shuffle = False
 
     def prefs(self, widget):
         prefswindow = gtk.Dialog(_("Preferences"), self.window, flags=gtk.DIALOG_DESTROY_WITH_PARENT)

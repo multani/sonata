@@ -6,6 +6,7 @@ v0.9.1 - Pending
 	+ Options for choosing album art (local only, remote only, local
 	  then remote, or remote then local)
 	+ Formatting options (genre, song length, elapsed time, year) (Ivan)
+	+ Play friendler with other clients for shuffle/repeat
 	+ Bug: Cannot set album art for album/artist with "/" in name
 	+ Bug: Prevent interface jumping because of progress bar font
 
