@@ -227,6 +227,7 @@ class Base(mpdclient3.mpd_connection):
         self.search_terms = [_('Artist'), _('Title'), _('Album'), _('Genre'), _('Filename')]
         self.search_terms_mpd = ['artist', 'title', 'album', 'genre', 'filename']
         self.sonata_loaded = False
+        self.call_gc_collect = False
         show_prefs = False
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
@@ -826,7 +827,6 @@ class Base(mpdclient3.mpd_connection):
             self.updatedb(None)
 
         self.iterate_now()
-        self.gc_collect()
 
         self.notebook.set_no_show_all(False)
         self.window.set_no_show_all(False)
@@ -1071,12 +1071,9 @@ class Base(mpdclient3.mpd_connection):
             if self.trayicon.get_property('visible') == False:
                 self.initialize_systrayicon()
 
-
-    def gc_collect(self):
-        # Rather than having gc.collect() called every self.iterate_time
-        # (which causes high cpu usage), we will call it once ever 5 secs
-        gc.collect()
-        gobject.timeout_add(5000, self.gc_collect)
+        if self.call_gc_collect:
+            gc.collect()
+            self.call_gc_collect = False
 
     def iterate_stop(self):
         try:
@@ -1969,6 +1966,7 @@ class Base(mpdclient3.mpd_connection):
                             self.check_remote_images(artist, album, filename)
                         elif self.covers_pref == self.ART_REMOTE_LOCAL:
                             self.check_local_images(songdir)
+                self.call_gc_collect = True
             except:
                 self.albumimage.set_from_file(self.sonatacd)
                 if self.coverwindow_visible:
@@ -2655,6 +2653,7 @@ class Base(mpdclient3.mpd_connection):
         have_preview = True
         file_chooser.set_preview_widget_active(have_preview)
         del pixbuf
+        self.call_gc_collect = True
 
     def choose_image_local(self, widget):
         dialog = gtk.FileChooserDialog(title=_("Open Image"),action=gtk.FILE_CHOOSER_ACTION_OPEN,buttons=(gtk.STOCK_CANCEL,gtk.RESPONSE_CANCEL,gtk.STOCK_OPEN,gtk.RESPONSE_OK))
@@ -2797,6 +2796,7 @@ class Base(mpdclient3.mpd_connection):
                 error_dialog.set_title(_("Choose Cover Art"))
                 error_dialog.connect('response', self.choose_image_dialog_response)
                 error_dialog.show()
+        self.call_gc_collect = True
 
     def choose_image_dialog_response(self, dialog, response_id):
         dialog.destroy()
