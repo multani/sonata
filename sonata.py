@@ -1834,7 +1834,7 @@ class Base(mpdclient3.mpd_connection):
             try:
                 # Try song/artist/album:
                 newlabel = '<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>' + _('by') + ' ' + escape_html(getattr(self.songinfo, 'artist', None)) + ' ' + _('from') + ' ' + escape_html(getattr(self.songinfo, 'album', None)) + '</small>'
-                newlabel_tray_gtk = getattr(self.songinfo, 'title', None) + ' ' + _('by') + ' ' + getattr(self.songinfo, 'artist', None) + ' ' + _('from') + ' ' + getattr(self.songinfo, 'album', None)
+                newlabel_tray_gtk = getattr(self.songinfo, 'title', None) + '\n' + _('by') + ' ' + getattr(self.songinfo, 'artist', None) + '\n' + _('from') + ' ' + getattr(self.songinfo, 'album', None)
                 newlabel_tray_egg = '<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>' + _('by') + ' ' + escape_html(getattr(self.songinfo, 'artist', None)) + '\n' + _('from') + ' ' + escape_html(getattr(self.songinfo, 'album', None)) + '</small>'
                 newlabelfound = True
             except:
@@ -1843,7 +1843,7 @@ class Base(mpdclient3.mpd_connection):
                 try:
                     # Fallback, try song/artist:
                     newlabel = '<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>' + _('by') + ' ' + escape_html(getattr(self.songinfo, 'artist', None)) + '</small>'
-                    newlabel_tray_gtk = getattr(self.songinfo, 'title', None) + ' ' + _('by') + ' ' + getattr(self.songinfo, 'artist', None)
+                    newlabel_tray_gtk = getattr(self.songinfo, 'title', None) + '\n' + _('by') + ' ' + getattr(self.songinfo, 'artist', None)
                     newlabel_tray_egg = newlabel
                     newlabelfound = True
                 except:
@@ -1861,7 +1861,7 @@ class Base(mpdclient3.mpd_connection):
                         # Fallback, use file name:
                         name = self.filename_or_fullpath(self.songinfo.file)
                         newlabel = '<big><b>' + escape_html(name) + '</b></big>\n<small>' + _('by Unknown') + '</small>'
-                        newlabel_try_gtk = name + ' ' + _('by Unknown')
+                        newlabel_try_gtk = name + '\n' + _('by Unknown')
                         newlabel_tray_egg = newlabel
             if newlabel != self.cursonglabel.get_label():
                 self.cursonglabel.set_markup(newlabel)
