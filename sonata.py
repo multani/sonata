@@ -1686,7 +1686,6 @@ class Base(mpdclient3.mpd_connection):
         # Update progress frequently if we're playing
         if self.status.state in ['play', 'pause']:
             self.update_progressbar()
-            self.update_statusbar()
 
         # If elapsed time is shown in the window title, we need to update more often:
         if "%E" in self.titleformat:
@@ -1794,27 +1793,28 @@ class Base(mpdclient3.mpd_connection):
         if self.conn and self.show_statusbar:
             total_time = 0
             total_songs = 0
-            total_elapsed = 0
-            if self.status and self.status.state in ['play', 'pause']:
-                currsong = int(self.songinfo.pos)
-            else:
-                currsong = 0
             for track in self.songs:
-                if total_songs == currsong:
-                    total_elapsed = total_time
                 total_songs = total_songs + 1
                 try:
                     total_time = total_time + int(track.time)
                 except:
                     pass
-            if self.status and self.status.state in ['play', 'pause']:
-                try:
-                    at, len = [int(c) for c in self.status.time.split(':')]
-                    total_elapsed = total_elapsed + at
-                except:
-                    pass
-            total_elapsed = convert_time(total_elapsed)
-            status_text = _('Songs') + ': ' + str(total_songs) + '    ' + _('Elapsed') + ': ' + str(total_elapsed) + '    ' + _('Total') + ': ' + convert_time(total_time)
+            total_time = convert_time(total_time)
+            hours = None
+            try:
+                mins = total_time.split(":")[-2]
+                hours = total_time.split(":")[-3]
+            except:
+                pass
+            if mins.startswith('0') and len(mins) > 1:
+                mins = mins[1:]
+            if hours and hours.startswith('0'):
+                hours = hours[1:]
+            # Show text:
+            if hours:
+                status_text = str(total_songs) + ' ' + _('songs') + ', ' + hours + ' ' + _('hours and') + ' ' + mins + ' ' + _('minutes')
+            else:
+                status_text = str(total_songs) + ' ' + _('songs') + ', ' + mins + ' ' + _('minutes')
             self.statusbar.push(self.statusbar.get_context_id(""), status_text)
         elif self.show_statusbar:
             self.statusbar.push(self.statusbar.get_context_id(""), "")
@@ -3519,10 +3519,12 @@ class Base(mpdclient3.mpd_connection):
             self.statusbar.set_no_show_all(False)
             self.statusbar.show_all()
             self.show_statusbar = True
+            self.update_statusbar()
         else:
             self.statusbar.set_no_show_all(True)
             self.statusbar.hide()
             self.show_statusbar = False
+            self.update_statusbar()
 
     def prefs_notif_toggled(self, button, notifhbox, notifhbox2):
         if button.get_active():
@@ -3868,8 +3870,12 @@ def convert_time(raw):
     # Converts raw time to 'hh:mm:ss' with leading zeros as appropriate
     h, m, s = ['%02d' % c for c in (raw/3600, (raw%3600)/60, raw%60)]
     if h == '00':
+        if m.startswith('0'):
+            m = m[1:]
         return m + ':' + s
     else:
+        if h.startswith('0'):
+            h = h[1:]
         return h + ':' + m + ':' + s
 
 def make_bold(s):
