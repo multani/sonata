@@ -228,6 +228,7 @@ class Base(mpdclient3.mpd_connection):
         self.search_terms_mpd = ['artist', 'title', 'album', 'genre', 'filename']
         self.sonata_loaded = False
         self.call_gc_collect = False
+        self.single_img_in_dir = None
         show_prefs = False
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
@@ -1860,7 +1861,7 @@ class Base(mpdclient3.mpd_connection):
                         # Fallback, use file name:
                         name = self.filename_or_fullpath(self.songinfo.file)
                         newlabel = '<big><b>' + escape_html(name) + '</b></big>\n<small>' + _('by Unknown') + '</small>'
-                        newlabel_try_gtk = name + '\n' + _('by Unknown')
+                        newlabel_tray_gtk = name + '\n' + _('by Unknown')
                         newlabel_tray_egg = newlabel
             if newlabel != self.cursonglabel.get_label():
                 self.cursonglabel.set_markup(newlabel)
@@ -1955,50 +1956,51 @@ class Base(mpdclient3.mpd_connection):
                 self.lastalbumart = None
                 songdir = os.path.dirname(self.songinfo.file)
                 if os.path.exists(filename):
-                    self.set_image_for_cover(filename)
+                    gobject.idle_add(self.set_image_for_cover, filename)
                 else:
                     if self.covers_pref == self.ART_LOCAL or self.covers_pref == self.ART_LOCAL_REMOTE:
-                        self.check_local_images(songdir)
+                        imgfound = self.check_local_images(songdir)
                     else:
-                        self.check_remote_images(artist, album, filename)
-                    if not self.lastalbumart:
+                        imgfound = self.check_remote_images(artist, album, filename)
+                    if not imgfound:
                         if self.covers_pref == self.ART_LOCAL_REMOTE:
                             self.check_remote_images(artist, album, filename)
                         elif self.covers_pref == self.ART_REMOTE_LOCAL:
                             self.check_local_images(songdir)
-                self.call_gc_collect = True
             except:
-                self.albumimage.set_from_file(self.sonatacd)
-                if self.coverwindow_visible:
-                    self.coverwindow_image.set_from_file(self.sonatacd_large)
-                self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
-                self.lastalbumart = None
+                self.set_default_icon_for_art(True)
         else:
-            self.albumimage.set_from_file(self.sonatacd)
-            if self.coverwindow_visible:
-                self.coverwindow_image.set_from_file(self.sonatacd_large)
-            self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
-            self.lastalbumart = None
+            self.set_default_icon_for_art(True)
 
     def check_local_images(self, songdir):
         if os.path.exists(self.musicdir + songdir + "/cover.jpg"):
-            self.set_image_for_cover(self.musicdir + songdir + "/cover.jpg")
+            gobject.idle_add(self.set_image_for_cover, self.musicdir + songdir + "/cover.jpg")
+            return True
         elif os.path.exists(self.musicdir + songdir + "/folder.jpg"):
-            self.set_image_for_cover(self.musicdir + songdir + "/folder.jpg")
+            gobject.idle_add(self.set_image_for_cover, self.musicdir + songdir + "/folder.jpg")
+            return True
         else:
             self.single_img_in_dir = self.get_single_img_in_path(songdir)
             if self.single_img_in_dir:
-                self.set_image_for_cover(self.musicdir + songdir + "/" + self.single_img_in_dir)
+                gobject.idle_add(self.set_image_for_cover, self.musicdir + songdir + "/" + self.single_img_in_dir)
+                return True
+        return False
 
     def check_remote_images(self, artist, album, filename):
-        self.albumimage.set_from_file(self.sonatacd)
-        if self.coverwindow_visible:
-            self.coverwindow_image.set_from_file(self.sonatacd_large)
-        self.set_tooltip_art(gtk.gdk.pixbuf_new_from_file(self.sonatacd))
-        self.lastalbumart = None
+        self.set_default_icon_for_art(True)
         self.download_image_to_filename(artist, album, filename)
         if os.path.exists(filename):
-            self.set_image_for_cover(filename)
+            gobject.idle_add(self.set_image_for_cover, filename)
+            return True
+        return False
+
+    def set_default_icon_for_art(self, set_lastalbumart_none=False):
+        gobject.idle_add(self.albumimage.set_from_file, self.sonatacd)
+        if self.coverwindow_visible:
+            gobject.idle_add(self.coverwindow_image.set_from_file, self.sonatacd_large)
+        gobject.idle_add(self.set_tooltip_art, gtk.gdk.pixbuf_new_from_file(self.sonatacd))
+        if set_lastalbumart_none:
+            self.lastalbumart = None
 
     def get_single_img_in_path(self, songdir):
         single_img = None
@@ -2032,6 +2034,7 @@ class Base(mpdclient3.mpd_connection):
                 del pix2
             except:
                 pass
+            self.call_gc_collect = True
 
     def filename_is_for_current_song(self, filename):
         # Since there can be multiple threads that are getting album art,
@@ -2052,9 +2055,10 @@ class Base(mpdclient3.mpd_connection):
             currfilename = self.musicdir + songdir + "/folder.jpg"
             if filename == currfilename:
                 return True
-            currfilename = self.musicdir + songdir + "/" + self.single_img_in_dir
-            if filename == currfilename:
-                return True
+            if self.single_img_in_dir:
+                currfilename = self.musicdir + songdir + "/" + self.single_img_in_dir
+                if filename == currfilename:
+                    return True
         # If we got this far, no match:
         return False
 
@@ -2767,20 +2771,17 @@ class Base(mpdclient3.mpd_connection):
         while self.downloading_image:
             gtk.main_iteration()
         self.imagelist.clear()
+        self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
         thread = threading.Thread(target=self.choose_image_update2)
         thread.start()
 
     def choose_image_update2(self):
-        self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
         self.stop_art_update = False
         # Retrieve all images from amazon:
         artist_search = self.remote_artistentry.get_text()
         album_search = self.remote_albumentry.get_text()
         if len(artist_search) == 0 and len(album_search) == 0:
-            error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No artist or album name found."))
-            error_dialog.set_title(_("Choose Cover Art"))
-            error_dialog.connect('response', self.choose_image_dialog_response)
-            error_dialog.show()
+            gobject.idle_add(self.choose_image_no_artist_or_album_dialog)
             return
         filename = os.path.expanduser("~/.covers/temp/<imagenum>.jpg")
         if os.path.exists(os.path.dirname(filename)):
@@ -2791,12 +2792,21 @@ class Base(mpdclient3.mpd_connection):
         self.change_cursor(None)
         if self.chooseimage_visible:
             if not imgfound:
+                gobject.idle_add(self.choose_image_no_art_found)
                 self.allow_art_search = True
-                error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No cover art found."))
-                error_dialog.set_title(_("Choose Cover Art"))
-                error_dialog.connect('response', self.choose_image_dialog_response)
-                error_dialog.show()
         self.call_gc_collect = True
+
+    def choose_image_no_artist_or_album_dialog(self):
+        error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No artist or album name found."))
+        error_dialog.set_title(_("Choose Cover Art"))
+        error_dialog.connect('response', self.choose_image_dialog_response)
+        error_dialog.show()
+
+    def choose_image_no_art_found(self):
+        error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No cover art found."))
+        error_dialog.set_title(_("Choose Cover Art"))
+        error_dialog.connect('response', self.choose_image_dialog_response)
+        error_dialog.show()
 
     def choose_image_dialog_response(self, dialog, response_id):
         dialog.destroy()
@@ -3471,10 +3481,7 @@ class Base(mpdclient3.mpd_connection):
         if button.get_active():
             art_combo.set_sensitive(True)
             self.traytips.set_size_request(350, -1)
-            self.albumimage.set_from_file(self.sonatacd)
-            if self.coverwindow_visible:
-                self.coverwindow_image.set_from_file(self.sonatacd_large)
-            self.lastalbumart = None
+            self.set_default_icon_for_art(True)
             self.imageeventbox.set_no_show_all(False)
             self.imageeventbox.show_all()
             self.trayalbumeventbox.set_no_show_all(False)
