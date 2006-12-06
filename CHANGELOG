@@ -1,5 +1,5 @@
 v0.9.1 - Pending
-	+ Ability to sort current playlist
+	+ Ability to sort current playlist (by metadata, random, reverse)
 	+ Revert to gtk's StatusIcon if gnome-python-extras isn't installed
 	+ Optional statusbar
 	+ Allow drag-n-drop of images to set album art

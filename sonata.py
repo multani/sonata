@@ -39,7 +39,6 @@ import shutil
 import mmkeys
 import getopt
 import threading
-import random
 
 try:
     import cPickle as pickle
@@ -744,7 +743,6 @@ class Base(mpdclient3.mpd_connection):
         self.notebook.connect('button_press_event', self.on_notebook_click)
         self.notebook.connect('switch-page', self.on_notebook_page_change)
         self.searchtext.connect('button_press_event', self.on_searchtext_click)
-
         self.initialize_systrayicon()
 
         # Connect to mmkeys signals
@@ -833,18 +831,14 @@ class Base(mpdclient3.mpd_connection):
 
         self.streams_populate()
 
-        self.handle_change_status()
+        self.iterate_now()
         if self.withdrawn and (HAVE_EGG or (HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible())):
             self.window.set_no_show_all(True)
             self.window.hide()
         self.window.show_all()
 
-        gtk.main_iteration()
-
         if self.update_on_start:
             self.updatedb(None)
-
-        self.iterate_now()
 
         self.notebook.set_no_show_all(False)
         self.window.set_no_show_all(False)
@@ -1779,7 +1773,6 @@ class Base(mpdclient3.mpd_connection):
         self.update_cursong()
         self.update_wintitle()
         self.update_album_art()
-        self.update_coverwindow()
         self.update_coverwindow(update_all=True)
 
     def update_progressbar(self):
@@ -2352,22 +2345,19 @@ class Base(mpdclient3.mpd_connection):
             self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
             while gtk.events_pending():
                 gtk.main_iteration()
-            row = 1
-            while row < len(self.songs):
-                iter = self.currentdata.get_iter((row,0))
-                self.conn.do.moveid(self.currentdata.get_value(iter, 0), 0)
-                row = row + 1
+            top = 0
+            bot = len(self.songs)-1
+            while top < bot:
+                self.conn.do.swap(top, bot)
+                top = top + 1
+                bot = bot - 1
 
     def sort_random(self, action):
         if self.conn:
             self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
             while gtk.events_pending():
                 gtk.main_iteration()
-            row = 0
-            while row < len(self.songs):
-                iter = self.currentdata.get_iter((row,0))
-                self.conn.do.moveid(self.currentdata.get_value(iter, 0), random.randint(0, row))
-                row = row + 1
+            self.conn.do.shuffle()
 
     def on_drag_drop(self, treeview, drag_context, x, y, selection, info, timestamp):
         model = treeview.get_model()
