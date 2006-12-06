@@ -2,10 +2,10 @@ v1.0
 	support for PLS, M3U, etc (http://www.scvi.net/pls.htm)
 	make selection, dnd, more like thunar
 	GtkStatusIcon - manually check if mouse is over icon? (argh)
-	playlist sorting (Sort > By Song Name, By Artist, ..., Reverse Order)
 
 Future:
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
 		Add to > Next song, top, random
 	connect in background via socket.setblocking(0)
 	lyrics? last.fm?
+	ability to edit tags

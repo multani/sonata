@@ -246,6 +246,7 @@ class Base(mpdclient3.mpd_connection):
 
         # Popup menus:
         actions = (
+            ('sortmenu', gtk.STOCK_SORT_ASCENDING, _('_Sort')),
             ('chooseimage_menu', gtk.STOCK_CONVERT, _('Use _Remote Image...'), None, None, self.choose_image),
             ('localimage_menu', gtk.STOCK_OPEN, _('Use _Local Image...'), None, None, self.choose_image_local),
             ('playmenu', gtk.STOCK_MEDIA_PLAY, _('_Play'), None, None, self.pp),
@@ -265,6 +266,11 @@ class Base(mpdclient3.mpd_connection):
             ('addmenu', gtk.STOCK_ADD, _('_Add'), '<Ctrl>d', None, self.add_item),
             ('replacemenu', gtk.STOCK_REDO, _('_Replace'), '<Ctrl>r', None, self.replace_item),
             ('rmmenu', gtk.STOCK_DELETE, _('_Delete'), None, None, self.remove),
+            ('sortbyartist', None, _('By') + ' ' + _('Artist'), None, None, self.sort_by_artist),
+            ('sortbyalbum', None, _('By') + ' ' + _('Album'), None, None, self.sort_by_album),
+            ('sortbytitle', None, _('By') + ' ' + _('Song Title'), None, None, self.sort_by_title),
+            ('sortbyfile', None, _('By') + ' ' + _('File Name'), None, None, self.sort_by_file),
+            ('sortreverse', None, _('Reverse List'), None, None, self.sort_reverse),
             ('currentkey', None, 'Current Playlist Key', '<Alt>1', None, self.switch_to_current),
             ('librarykey', None, 'Library Key', '<Alt>2', None, self.switch_to_library),
             ('playlistskey', None, 'Playlists Key', '<Alt>3', None, self.switch_to_playlists),
@@ -319,6 +325,14 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="savemenu"/>
                 <menuitem action="rmmenu"/>
                 <menuitem action="updatemenu"/>
+                <menu action="sortmenu">
+                  <menuitem action="sortbytitle"/>
+                  <menuitem action="sortbyartist"/>
+                  <menuitem action="sortbyalbum"/>
+                  <menuitem action="sortbyfile"/>
+                  <separator name="FM3"/>
+                  <menuitem action="sortreverse"/>
+                </menu>
                 <separator name="FM1"/>
                 <menuitem action="repeatmenu"/>
                 <menuitem action="shufflemenu"/>
@@ -2295,6 +2309,53 @@ class Base(mpdclient3.mpd_connection):
         except:
             pass
 
+    def sort_by_artist(self, action):
+        self.sort('artist')
+
+    def sort_by_album(self, action):
+        self.sort('album')
+
+    def sort_by_title(self, action):
+        self.sort('title')
+
+    def sort_by_file(self, action):
+        self.sort('file')
+
+    def sort(self, type):
+        if self.conn:
+            self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
+            while gtk.events_pending():
+                gtk.main_iteration()
+            list = []
+            for track in self.songs:
+                dict = {}
+                # Those items that don't have the specified tag will be put at
+                # the end of the list (hence the 'zzzzzzz'):
+                dict["sortby"] = getattr(track, type, 'zzzzzzzz')
+                if type == 'file':
+                    dict["sortby"] = dict["sortby"].split('/')[-1]
+                dict["id"] = track.id
+                list.append(dict)
+            list.sort(key=lambda x: x["sortby"].lower()) # Remove case sensitivity
+            # Now that we have the order, move the songs as appropriate:
+            pos = 0
+            for item in list:
+                self.conn.do.moveid(int(item["id"]), pos)
+                pos = pos + 1
+            self.change_cursor(None)
+
+    def sort_reverse(self, action):
+        if self.conn:
+            self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
+            while gtk.events_pending():
+                gtk.main_iteration()
+            row = 1
+            while row < len(self.songs):
+                iter = self.currentdata.get_iter((row,0))
+                self.conn.do.moveid(self.currentdata.get_value(iter, 0), 0)
+                row = row + 1
+            self.change_cursor(None)
+
     def on_drag_drop(self, treeview, drag_context, x, y, selection, info, timestamp):
         model = treeview.get_model()
         foobar, self._selected = self.current_selection.get_selected_rows()
@@ -2329,7 +2390,7 @@ class Base(mpdclient3.mpd_connection):
                     model.insert_after(iter, [index, text])
                     self.conn.do.moveid(id, dest + 1)
             else:
-                dest = len(self.conn.do.playlistinfo()) - 1
+                dest = len(self.songs) - 1
                 self.conn.do.moveid(id, dest)
                 model.append([0, text])
             # now fixup
@@ -3632,6 +3693,7 @@ class Base(mpdclient3.mpd_connection):
                 self.UIManager.get_widget('/mainmenu/removemenu/').show()
             self.UIManager.get_widget('/mainmenu/clearmenu/').show()
             self.UIManager.get_widget('/mainmenu/savemenu/').show()
+            self.UIManager.get_widget('/mainmenu/sortmenu/').show()
         elif self.notebook.get_current_page() == self.TAB_LIBRARY:
             if self.browser_selection.count_selected_rows() > 0:
                 self.UIManager.get_widget('/mainmenu/addmenu/').show()
@@ -3661,6 +3723,7 @@ class Base(mpdclient3.mpd_connection):
         self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
         self.UIManager.get_widget('/mainmenu/newmenu/').hide()
         self.UIManager.get_widget('/mainmenu/editmenu/').hide()
+        self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
 
     def help(self, action):
         self.browser_load("http://sonata.berlios.de/documentation.html")

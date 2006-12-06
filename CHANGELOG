@@ -1,5 +1,6 @@
 v0.9.1 - Pending
-	+ Revert to GtkStatusIcon if gnome-python-extras isn't installed
+	+ Ability to sort current playlist
+	+ Revert to gtk's StatusIcon if gnome-python-extras isn't installed
 	+ Optional statusbar
 	+ Allow drag-n-drop of images to set album art
 	+ If there is only one image in the song's dir, set as art (Ivan)
