@@ -39,6 +39,7 @@ import shutil
 import mmkeys
 import getopt
 import threading
+import random
 
 try:
     import cPickle as pickle
@@ -271,6 +272,7 @@ class Base(mpdclient3.mpd_connection):
             ('sortbytitle', None, _('By') + ' ' + _('Song Title'), None, None, self.sort_by_title),
             ('sortbyfile', None, _('By') + ' ' + _('File Name'), None, None, self.sort_by_file),
             ('sortreverse', None, _('Reverse List'), None, None, self.sort_reverse),
+            ('sortrandom', None, _('Random'), None, None, self.sort_random),
             ('currentkey', None, 'Current Playlist Key', '<Alt>1', None, self.switch_to_current),
             ('librarykey', None, 'Library Key', '<Alt>2', None, self.switch_to_library),
             ('playlistskey', None, 'Playlists Key', '<Alt>3', None, self.switch_to_playlists),
@@ -331,6 +333,7 @@ class Base(mpdclient3.mpd_connection):
                   <menuitem action="sortbyalbum"/>
                   <menuitem action="sortbyfile"/>
                   <separator name="FM3"/>
+                  <menuitem action="sortrandom"/>
                   <menuitem action="sortreverse"/>
                 </menu>
                 <separator name="FM1"/>
@@ -1928,6 +1931,7 @@ class Base(mpdclient3.mpd_connection):
                 self.currentdata[currsong][1] = make_bold(self.currentdata[currsong][1])
                 gobject.idle_add(self.keep_song_visible_in_list, currsong)
             self.update_statusbar()
+            gobject.idle_add(self.change_cursor, None)
 
     def keep_song_visible_in_list(self, row):
         if self.expanded:
@@ -2141,7 +2145,7 @@ class Base(mpdclient3.mpd_connection):
                                 imgfound = True
                                 if curr_img == 1:
                                     self.allow_art_search = True
-                            self.change_cursor(None, True)
+                            self.change_cursor(None)
                         curr_img += 1
                         # Skip the next LargeImage:
                         curr_pos = f.find("<LargeImage>", curr_pos+10)
@@ -2342,7 +2346,6 @@ class Base(mpdclient3.mpd_connection):
             for item in list:
                 self.conn.do.moveid(int(item["id"]), pos)
                 pos = pos + 1
-            self.change_cursor(None)
 
     def sort_reverse(self, action):
         if self.conn:
@@ -2354,7 +2357,17 @@ class Base(mpdclient3.mpd_connection):
                 iter = self.currentdata.get_iter((row,0))
                 self.conn.do.moveid(self.currentdata.get_value(iter, 0), 0)
                 row = row + 1
-            self.change_cursor(None)
+
+    def sort_random(self, action):
+        if self.conn:
+            self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
+            while gtk.events_pending():
+                gtk.main_iteration()
+            row = 0
+            while row < len(self.songs):
+                iter = self.currentdata.get_iter((row,0))
+                self.conn.do.moveid(self.currentdata.get_value(iter, 0), random.randint(0, row))
+                row = row + 1
 
     def on_drag_drop(self, treeview, drag_context, x, y, selection, info, timestamp):
         model = treeview.get_model()
@@ -2692,7 +2705,7 @@ class Base(mpdclient3.mpd_connection):
     def unblock_window_popup_handler(self):
         self.window.handler_unblock(self.mainwinhandler)
 
-    def change_cursor(self, type, use_gtk_threads=False):
+    def change_cursor(self, type):
         for i in gtk.gdk.window_get_toplevels():
             i.set_cursor(type)
 
