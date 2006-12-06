@@ -29,7 +29,6 @@ import os
 import gobject
 import ConfigParser
 import urllib, urllib2
-import time
 import socket
 import gc
 import subprocess
@@ -229,6 +228,7 @@ class Base(mpdclient3.mpd_connection):
         self.sonata_loaded = False
         self.call_gc_collect = False
         self.single_img_in_dir = None
+        self.total_time = 0
         show_prefs = False
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
@@ -1709,7 +1709,6 @@ class Base(mpdclient3.mpd_connection):
             self.update_progressbar()
             self.update_cursong()
             self.update_wintitle()
-            self.update_statusbar()
             if self.status.state == 'stop':
                 self.ppbutton.set_image(gtk.image_new_from_stock(gtk.STOCK_MEDIA_PLAY, gtk.ICON_SIZE_BUTTON))
                 image, label = self.ppbutton.get_children()[0].get_children()[0].get_children()
@@ -1800,31 +1799,26 @@ class Base(mpdclient3.mpd_connection):
         return
 
     def update_statusbar(self):
-        if self.conn and self.show_statusbar:
-            total_time = 0
-            total_songs = 0
-            for track in self.songs:
-                total_songs = total_songs + 1
-                try:
-                    total_time = total_time + int(track.time)
-                except:
-                    pass
-            total_time = convert_time(total_time)
+        if self.conn and self.status and self.show_statusbar:
             hours = None
+            mins = None
+            total_time = convert_time(self.total_time)
             try:
                 mins = total_time.split(":")[-2]
                 hours = total_time.split(":")[-3]
             except:
                 pass
-            if mins.startswith('0') and len(mins) > 1:
-                mins = mins[1:]
+            if mins and mins.startswith('0') and len(mins) > 1:
+                    mins = mins[1:]
             if hours and hours.startswith('0'):
                 hours = hours[1:]
             # Show text:
             if hours:
-                status_text = str(total_songs) + ' ' + _('songs') + ', ' + hours + ' ' + _('hours and') + ' ' + mins + ' ' + _('minutes')
+                status_text = str(self.status.playlistlength) + ' ' + _('songs') + ', ' + hours + ' ' + _('hours and') + ' ' + mins + ' ' + _('minutes')
+            elif mins:
+                status_text = str(self.status.playlistlength) + ' ' + _('songs') + ', ' + mins + ' ' + _('minutes')
             else:
-                status_text = str(total_songs) + ' ' + _('songs') + ', ' + mins + ' ' + _('minutes')
+                status_text = ""
             self.statusbar.push(self.statusbar.get_context_id(""), status_text)
         elif self.show_statusbar:
             self.statusbar.push(self.statusbar.get_context_id(""), "")
@@ -1908,6 +1902,7 @@ class Base(mpdclient3.mpd_connection):
     def update_playlist(self):
         if self.conn:
             self.songs = self.conn.do.playlistinfo()
+            self.total_time = 0
             self.currentdata.clear()
             self.current.freeze_child_notify()
             for track in self.songs:
@@ -1917,6 +1912,7 @@ class Base(mpdclient3.mpd_connection):
                 for i in range(len(self.stream_uris)):
                     if track.file == self.stream_uris[i]:
                         item = escape_html(self.stream_names[i])
+                    self.total_time = self.total_time + int(track.time)
                 self.currentdata.append([int(track.id), item])
             self.current.thaw_child_notify()
             if self.status.state in ['play', 'pause']:
@@ -1924,7 +1920,7 @@ class Base(mpdclient3.mpd_connection):
                 self.currentdata[currsong][1] = make_bold(self.currentdata[currsong][1])
                 gobject.idle_add(self.keep_song_visible_in_list, currsong)
             self.update_statusbar()
-            gobject.idle_add(self.change_cursor, None)
+            self.change_cursor(None)
 
     def keep_song_visible_in_list(self, row):
         if self.expanded:
