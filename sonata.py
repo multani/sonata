@@ -2230,8 +2230,11 @@ class Base(mpdclient3.mpd_connection):
         # before this current click
         window_about_to_be_expanded = not self.expander.get_expanded()
         if window_about_to_be_expanded:
+            if self.show_statusbar:
+                self.statusbar.show()
             self.notebook.show_all()
         else:
+            self.statusbar.hide()
             self.notebook.hide()
         if not (self.conn and self.status and self.status.state in ['play', 'pause']):
             if window_about_to_be_expanded:
@@ -3517,7 +3520,8 @@ class Base(mpdclient3.mpd_connection):
     def prefs_statusbar_toggled(self, button):
         if button.get_active():
             self.statusbar.set_no_show_all(False)
-            self.statusbar.show_all()
+            if self.expanded:
+                self.statusbar.show_all()
             self.show_statusbar = True
             self.update_statusbar()
         else:

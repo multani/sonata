@@ -1,6 +1,6 @@
 v0.9.1 - Pending
 	+ Revert to GtkStatusIcon if gnome-python-extras isn't installed
-	+ Add optional statusbar
+	+ Optional statusbar
 	+ Allow drag-n-drop of images to set album art
 	+ If there is only one image in the song's dir, set as art (Ivan)
 	+ Options for choosing album art (local only, remote only, local
