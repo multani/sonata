@@ -1903,8 +1903,8 @@ class Base(mpdclient3.mpd_connection):
         if self.conn:
             self.songs = self.conn.do.playlistinfo()
             self.total_time = 0
-            self.currentdata.clear()
             self.current.freeze_child_notify()
+            self.currentdata.clear()
             for track in self.songs:
                 item = self.parse_formatting(self.currentformat, track, True)
                 # Check if the item is one of the user's streams; if so,
