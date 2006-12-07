@@ -1410,7 +1410,8 @@ class Base(mpdclient3.mpd_connection):
             return
 
         # Handle special cases
-        while self.conn.do.lsinfo(root) == []:
+        lsinfo = self.conn.do.lsinfo(root)
+        while lsinfo == []:
             if self.conn.do.listallinfo(root):
                 # Info exists if we try to browse to a song
                 self.add_item(self.browser)
@@ -1446,7 +1447,7 @@ class Base(mpdclient3.mpd_connection):
         if self.root != '/':
             self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
             self.browserdata.append([gtk.STOCK_OPEN, '/'.join(root.split('/')[:-1]) or '/', '..'])
-        for item in self.conn.do.lsinfo(root):
+        for item in lsinfo:
             if item.type == 'directory':
                 name = item.directory.split('/')[-1]
                 self.browserdata.append([gtk.STOCK_OPEN, item.directory, escape_html(name)])
