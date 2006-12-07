@@ -1439,8 +1439,8 @@ class Base(mpdclient3.mpd_connection):
             self.browserselectedpath[self.browser.wd] = None
 
         self.browser.wd = root
-        self.browserdata.clear()
         self.browser.freeze_child_notify()
+        self.browserdata.clear()
         if self.root != '/':
             self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
             self.browserdata.append([gtk.STOCK_OPEN, '/'.join(root.split('/')[:-1]) or '/', '..'])
@@ -1450,7 +1450,6 @@ class Base(mpdclient3.mpd_connection):
                 self.browserdata.append([gtk.STOCK_OPEN, item.directory, escape_html(name)])
             elif item.type == 'file':
                 self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
-
         self.browser.thaw_child_notify()
 
         # Scroll back to set view for current dir:
@@ -1808,15 +1807,29 @@ class Base(mpdclient3.mpd_connection):
                 hours = total_time.split(":")[-3]
             except:
                 pass
-            if mins and mins.startswith('0') and len(mins) > 1:
+            if mins:
+                if mins.startswith('0') and len(mins) > 1:
                     mins = mins[1:]
-            if hours and hours.startswith('0'):
-                hours = hours[1:]
-            # Show text:
+                if mins == "1":
+                    mins_text = _('minute')
+                else:
+                    mins_text = _('minutes')
             if hours:
-                status_text = str(self.status.playlistlength) + ' ' + _('songs') + ', ' + hours + ' ' + _('hours and') + ' ' + mins + ' ' + _('minutes')
+                if hours.startswith('0'):
+                    hours = hours[1:]
+                if hours == "1":
+                    hours_text = _('hour and')
+                else:
+                    hours_text = _('hours and')
+            # Show text:
+            if self.status.playlistlength == "1":
+                songs_text = _('song')
+            else:
+                songs_text = _('songs')
+            if hours:
+                status_text = str(self.status.playlistlength) + ' ' + songs_text + ', ' + hours + ' ' + hours_text + ' ' + mins + ' ' + mins_text
             elif mins:
-                status_text = str(self.status.playlistlength) + ' ' + _('songs') + ', ' + mins + ' ' + _('minutes')
+                status_text = str(self.status.playlistlength) + ' ' + songs_text + ', ' + mins + ' ' + mins_text
             else:
                 status_text = ""
             self.statusbar.push(self.statusbar.get_context_id(""), status_text)
@@ -1912,7 +1925,7 @@ class Base(mpdclient3.mpd_connection):
                 for i in range(len(self.stream_uris)):
                     if track.file == self.stream_uris[i]:
                         item = escape_html(self.stream_names[i])
-                    self.total_time = self.total_time + int(track.time)
+                self.total_time = self.total_time + int(track.time)
                 self.currentdata.append([int(track.id), item])
             self.current.thaw_child_notify()
             if self.status.state in ['play', 'pause']:
@@ -3425,7 +3438,7 @@ class Base(mpdclient3.mpd_connection):
         librarylabel.set_size_request(max_label_width, -1)
         titlelabel.set_size_request(max_label_width, -1)
         availableheading = gtk.Label()
-        availableheading.set_markup('<small>Available options:</small>')
+        availableheading.set_markup('<small>' + _('Available options') + ':</small>')
         availableheading.set_alignment(0, 0)
         availableformatbox = gtk.HBox()
         availableformatting = gtk.Label()
