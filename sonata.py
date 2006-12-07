@@ -229,6 +229,7 @@ class Base(mpdclient3.mpd_connection):
         self.call_gc_collect = False
         self.single_img_in_dir = None
         self.total_time = 0
+        self.prev_boldrow = None
         show_prefs = False
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
@@ -851,6 +852,7 @@ class Base(mpdclient3.mpd_connection):
         # Ensure that sonata is loaded before we display the notif window
         self.sonata_loaded = True
         self.labelnotify()
+        self.keep_song_visible_in_list()
 
     def print_version(self):
         print _("Version: Sonata"), __version__
@@ -1760,13 +1762,14 @@ class Base(mpdclient3.mpd_connection):
                     self.playlists_populate()
 
     def handle_change_song(self):
-        for song in self.currentdata:
-            song[1] = make_unbold(song[1])
+        if self.prev_boldrow:
+            self.currentdata[self.prev_boldrow][1] = make_unbold(self.currentdata[self.prev_boldrow][1])
 
         if self.status and self.status.state in ['play', 'pause']:
             row = int(self.songinfo.pos)
             self.currentdata[row][1] = make_bold(self.currentdata[row][1])
-            gobject.idle_add(self.keep_song_visible_in_list, row)
+            self.keep_song_visible_in_list()
+            self.prev_boldrow = row
 
         self.update_cursong()
         self.update_wintitle()
@@ -1931,19 +1934,23 @@ class Base(mpdclient3.mpd_connection):
             if self.status.state in ['play', 'pause']:
                 currsong = int(self.songinfo.pos)
                 self.currentdata[currsong][1] = make_bold(self.currentdata[currsong][1])
-                gobject.idle_add(self.keep_song_visible_in_list, currsong)
+                self.keep_song_visible_in_list()
             self.update_statusbar()
             self.change_cursor(None)
 
-    def keep_song_visible_in_list(self, row):
+    def keep_song_visible_in_list(self):
         if self.expanded:
-            visible_rect = self.current.get_visible_rect()
-            row_rect = self.current.get_background_area(row, self.currentcolumn)
-            if row_rect.y + row_rect.height > visible_rect.height:
-                top_coord = (row_rect.y + row_rect.height - visible_rect.height) + visible_rect.y
-                self.current.scroll_to_point(-1, top_coord)
-            elif row_rect.y < 0:
-                self.current.scroll_to_cell(row)
+            try:
+                row = self.songinfo.pos
+                visible_rect = self.current.get_visible_rect()
+                row_rect = self.current.get_background_area(row, self.currentcolumn)
+                if row_rect.y + row_rect.height > visible_rect.height:
+                    top_coord = (row_rect.y + row_rect.height - visible_rect.height) + visible_rect.y
+                    self.current.scroll_to_point(-1, top_coord)
+                elif row_rect.y < 0:
+                    self.current.scroll_to_cell(row)
+            except:
+                pass
 
     def update_album_art(self):
         self.stop_art_update = True
