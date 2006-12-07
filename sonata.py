@@ -229,7 +229,7 @@ class Base(mpdclient3.mpd_connection):
         self.call_gc_collect = False
         self.single_img_in_dir = None
         self.total_time = 0
-        self.prev_boldrow = None
+        self.prev_boldrow = -1
         show_prefs = False
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
@@ -1743,6 +1743,7 @@ class Base(mpdclient3.mpd_connection):
             if self.status.state in ['play', 'pause']:
                 row = int(self.songinfo.pos)
                 self.currentdata[row][1] = make_bold(self.currentdata[row][1])
+                self.prev_boldrow = row
             self.update_album_art()
 
         if self.prevstatus is None or self.status.volume != self.prevstatus.volume:
@@ -1763,8 +1764,10 @@ class Base(mpdclient3.mpd_connection):
                     self.playlists_populate()
 
     def handle_change_song(self):
-        if self.prev_boldrow:
+        try:
             self.currentdata[self.prev_boldrow][1] = make_unbold(self.currentdata[self.prev_boldrow][1])
+        except:
+            pass
 
         if self.status and self.status.state in ['play', 'pause']:
             row = int(self.songinfo.pos)
@@ -1936,6 +1939,7 @@ class Base(mpdclient3.mpd_connection):
                 currsong = int(self.songinfo.pos)
                 self.currentdata[currsong][1] = make_bold(self.currentdata[currsong][1])
                 self.keep_song_visible_in_list()
+                self.prev_boldrow = currsong
             self.update_statusbar()
             self.change_cursor(None)
 
