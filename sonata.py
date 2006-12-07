@@ -230,6 +230,8 @@ class Base(mpdclient3.mpd_connection):
         self.single_img_in_dir = None
         self.total_time = 0
         self.prev_boldrow = -1
+        self.use_infofile = False
+        self.infofile_path = '/tmp/xmms-info'
         show_prefs = False
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
@@ -1184,6 +1186,10 @@ class Base(mpdclient3.mpd_connection):
             self.crossfade = conf.getint('player', 'crossfade')
         if conf.has_option('player', 'covers_pref'):
             self.covers_pref = conf.getint('player', 'covers_pref')
+        if conf.has_option('player', 'use_infofile'):
+            self.use_infofile = conf.getboolean('player', 'use_infofile')
+        if conf.has_option('player', 'infofile_path'):
+            self.infofile_path = conf.get('player', 'infofile_path')
         if conf.has_option('format', 'current'):
             self.currentformat = conf.get('format', 'current')
         if conf.has_option('format', 'library'):
@@ -1229,6 +1235,8 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'playback', self.show_playback)
         conf.set('player', 'crossfade', self.crossfade)
         conf.set('player', 'covers_pref', self.covers_pref)
+        conf.set('player', 'use_infofile', self.use_infofile)
+        conf.set('player', 'infofile_path', self.infofile_path)
         conf.add_section('format')
         conf.set('format', 'current', self.currentformat)
         conf.set('format', 'library', self.libraryformat)
@@ -1912,6 +1920,7 @@ class Base(mpdclient3.mpd_connection):
             self.trayprogressbar.hide()
             self.trayalbumeventbox.hide()
             self.trayalbumimage2.hide()
+        self.update_infofile()
 
     def update_wintitle(self):
         if self.conn and self.status and self.status.state in ['play', 'pause']:
@@ -2212,6 +2221,44 @@ class Base(mpdclient3.mpd_connection):
 
     def progressbarnotify_text(self, *args):
         self.trayprogressbar.set_text(self.progressbar.get_text())
+
+    def update_infofile(self):
+        if self.use_infofile is True:
+            try:
+                info_file = open(self.infofile_path, 'w')
+
+                if self.status.state in ['play']:
+                    info_file.write('Status: ' + 'Playing' + '\n')
+                elif self.status.state in ['pause']:
+                    info_file.write('Status: ' + 'Paused' + '\n')
+                elif self.status.state in ['stop']:
+                    info_file.write('Status: ' + 'Stopped' + '\n')
+                try:
+                    info_file.write('Title: ' + self.songinfo.artist + ' - ' + self.songinfo.title + '\n')
+                except:
+                    try:
+                        info_file.write('Title: ' + self.songinfo.title + '\n') # No Arist in streams
+                    except:
+                        info_file.write('Title: No - ID Tag\n')
+                try:
+                    info_file.write('Album: ' + self.songinfo.album + '\n')
+                except:
+                    info_file.write('Album: No Data\n')
+                try:
+                    info_file.write('Track: ' + self.songinfo.track + '\n')
+                except:
+                    info_file.write('Track: 0\n')
+                try:
+                    info_file.write('File: ' + self.songinfo.file + '\n')
+                except:
+                    info_file.write('File: No_Data\n')
+                info_file.write('Time: ' + self.songinfo.time + '\n')
+                info_file.write('Volume: ' + self.status.volume + '\n')
+                info_file.write('Repeat: ' + self.status.repeat + '\n')
+                info_file.write('Shuffle: ' + self.status.random + '\n')
+                info_file.close()
+            except:
+                pass
 
     #################
     # Gui Callbacks #
@@ -3385,6 +3432,7 @@ class Base(mpdclient3.mpd_connection):
         win_ontop.set_active(self.ontop)
         update_start = gtk.CheckButton(_("Update MPD library on start"))
         update_start.set_active(self.update_on_start)
+        self.tooltips.set_tip(update_start, _("If enabled, Sonata will automatically update your MPD library when it starts up."))
         exit_stop = gtk.CheckButton(_("Stop playback on exit"))
         exit_stop.set_active(self.stop_on_exit)
         self.tooltips.set_tip(exit_stop, _("MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit."))
@@ -3397,6 +3445,18 @@ class Base(mpdclient3.mpd_connection):
             minimize.set_sensitive(True)
         else:
             minimize.set_sensitive(False)
+        infofilebox = gtk.HBox()
+        infofile_usage = gtk.CheckButton(_("Write status file:"))
+        infofile_usage.set_active(self.use_infofile)
+        self.tooltips.set_tip(infofile_usage, _("If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)"))
+        infopath_options = gtk.Entry()
+        infopath_options.set_text(self.infofile_path)
+        self.tooltips.set_tip(infopath_options, _("If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)"))
+        if not self.use_infofile:
+            infopath_options.set_sensitive(False)
+        infofile_usage.connect('toggled', self.prefs_infofile_toggled, infopath_options)
+        infofilebox.pack_start(infofile_usage, False, False, 3)
+        infofilebox.pack_start(infopath_options, True, True, 3)
         behaviorlabel2 = gtk.Label()
         behaviorlabel2.set_markup('<b>' + _('Miscellaneous') + '</b>')
         behaviorlabel2.set_alignment(0, 1)
@@ -3411,10 +3471,10 @@ class Base(mpdclient3.mpd_connection):
         table3.attach(gtk.Label(), 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table3.attach(update_start, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table3.attach(exit_stop, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table3.attach(infofilebox, 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table3.attach(gtk.Label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table3.attach(gtk.Label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table3.attach(gtk.Label(), 1, 3, 15, 16, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table3.attach(gtk.Label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table3.attach(gtk.Label(), 1, 3, 15, 16, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 45, 0)
         # Format tab
         table4 = gtk.Table(9, 2, False)
         table4.set_col_spacings(3)
@@ -3523,6 +3583,9 @@ class Base(mpdclient3.mpd_connection):
                 self.crossfade = -1
                 if self.conn:
                     self.conn.do.crossfade(0)
+            if self.infofile_path != infopath_options.get_text():
+                self.infofile_path = os.path.expanduser(infopath_options.get_text())
+                if self.use_infofile: self.update_infofile()
             if hostentry.get_text() != self.host or portentry.get_text() != str(self.port) or passwordentry.get_text() != self.password:
                 self.host = hostentry.get_text()
                 try:
@@ -3644,6 +3707,15 @@ class Base(mpdclient3.mpd_connection):
     def prefs_notiftime_changed(self, combobox):
         self.popup_option = combobox.get_active()
         self.labelnotify()
+
+    def prefs_infofile_toggled(self, button, infofileformatbox):
+        if button.get_active():
+            infofileformatbox.set_sensitive(True)
+            self.use_infofile = True
+            self.update_infofile()
+        else:
+            infofileformatbox.set_sensitive(False)
+            self.use_infofile = False
 
     def seek(self, song, seektime):
         self.conn.do.seek(song, seektime)

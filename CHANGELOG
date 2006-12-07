@@ -1,14 +1,16 @@
-v0.9.1 - Pending
+v1.0 - Pending
 	+ Ability to sort current playlist (by metadata, random, reverse)
+	+ Optional statusbar (playlist length, time)
+	+ Pref to write xmms-info like status file to use with IM, IRC.. (amon)
 	+ Revert to gtk's StatusIcon if gnome-python-extras isn't installed
-	+ Optional statusbar
 	+ Allow drag-n-drop of images to set album art
 	+ If there is only one image in the song's dir, set as art (Ivan)
 	+ Options for choosing album art (local only, remote only, local
 	  then remote, or remote then local)
 	+ Formatting options (genre, song length, elapsed time, year) (Ivan)
 	+ Play friendler with other clients for shuffle/repeat
-	+ Reduced startup time for large playlists
+	+ Reduced startup time
+	+ Bug: Fixed occassional interface freezes due to threading (really!)
 	+ Bug: Cannot set album art for album/artist with "/" in name
 	+ Bug: Prevent interface jumping because of progress bar font
 
