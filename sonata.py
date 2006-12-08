@@ -771,7 +771,6 @@ class Base(mpdclient3.mpd_connection):
         self.current.set_model(self.currentdata)
         self.current.set_search_column(1)
         self.current.connect('drag-data-get',  self.current_data_get)
-        self.currentdata.connect('row-changed',  self.current_changed)
         self.currentcell = gtk.CellRendererText()
         self.currentcolumn = gtk.TreeViewColumn('Pango Markup', self.currentcell, markup=1)
         self.currentcolumn.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
@@ -779,6 +778,7 @@ class Base(mpdclient3.mpd_connection):
         self.current_selection.set_mode(gtk.SELECTION_MULTIPLE)
         self.current.enable_model_drag_source(gtk.gdk.BUTTON1_MASK, [('STRING', 0, 0)], gtk.gdk.ACTION_MOVE)
         self.current.enable_model_drag_dest([('STRING', 0, 0)], gtk.gdk.ACTION_MOVE)
+        self.current.set_fixed_height_mode(True)
 
         # Initialize playlist data and widget
         self.playlistsdata = gtk.ListStore(str, str)
@@ -828,6 +828,7 @@ class Base(mpdclient3.mpd_connection):
         self.browsercolumn.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.browser.append_column(self.browsercolumn)
         self.browser_selection.set_mode(gtk.SELECTION_MULTIPLE)
+        self.browser.set_fixed_height_mode(True)
 
         icon = self.window.render_icon('sonata', gtk.ICON_SIZE_DIALOG)
         self.window.set_icon(icon)
@@ -1934,6 +1935,7 @@ class Base(mpdclient3.mpd_connection):
             self.total_time = 0
             self.current.freeze_child_notify()
             self.currentdata.clear()
+            self.current.set_model(None)
             for track in self.songs:
                 item = self.parse_formatting(self.currentformat, track, True)
                 # Check if the item is one of the user's streams; if so,
@@ -1941,8 +1943,12 @@ class Base(mpdclient3.mpd_connection):
                 for i in range(len(self.stream_uris)):
                     if track.file == self.stream_uris[i]:
                         item = escape_html(self.stream_names[i])
-                self.total_time = self.total_time + int(track.time)
+                try:
+                    self.total_time = self.total_time + int(track.time)
+                except:
+                    pass
                 self.currentdata.append([int(track.id), item])
+            self.current.set_model(self.currentdata)
             self.current.thaw_child_notify()
             if self.status.state in ['play', 'pause']:
                 currsong = int(self.songinfo.pos)
@@ -2252,7 +2258,10 @@ class Base(mpdclient3.mpd_connection):
                     info_file.write('File: ' + self.songinfo.file + '\n')
                 except:
                     info_file.write('File: No_Data\n')
-                info_file.write('Time: ' + self.songinfo.time + '\n')
+                try:
+                    info_file.write('Time: ' + self.songinfo.time + '\n')
+                except:
+                    info_file.write('Time: 0\n')
                 info_file.write('Volume: ' + self.status.volume + '\n')
                 info_file.write('Repeat: ' + self.status.repeat + '\n')
                 info_file.write('Shuffle: ' + self.status.random + '\n')
@@ -2485,9 +2494,6 @@ class Base(mpdclient3.mpd_connection):
             for i in range(len(drag_sources)):
                 treeview.get_selection().select_path(row)
                 row = row + 1
-
-    def current_changed(self, treemodel, path, iter):
-        pass
 
     def current_data_get(self, widget, drag_context, selection, info, timestamp):
         model, selected = self.current_selection.get_selected_rows()

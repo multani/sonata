@@ -4,7 +4,7 @@ v1.0
 	GtkStatusIcon - manually check if mouse is over icon? (argh)
 	make current song label, notif/tooltip available in formatting
 		- allow ( ) for if logic, | to separate lines?
-	make xmms-info strings translatable?
+	remove pickle
 
 Future:
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)

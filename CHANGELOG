@@ -10,7 +10,7 @@ v1.0 - Pending
 	+ Formatting options (genre, song length, elapsed time, year) (Ivan)
 	+ Play friendler with other clients for shuffle/repeat
 	+ Reduced startup time
-	+ Bug: Fixed occassional interface freezes due to threading (really!)
+	+ Bug: Fixed more occassional interface freezes due to threading
 	+ Bug: Cannot set album art for album/artist with "/" in name
 	+ Bug: Prevent interface jumping because of progress bar font
 
