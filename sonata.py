@@ -35,9 +35,14 @@ import subprocess
 import gettext
 import locale
 import shutil
-import mmkeys
 import getopt
 import threading
+
+try:
+    import mmkeys
+    HAVE_MMKEYS = True
+except:
+    HAVE_MMKEYS = False
 
 try:
     import cPickle as pickle
@@ -51,7 +56,6 @@ try:
 except ImportError, (strerror):
     print >>sys.stderr, "%s.  Please make sure you have this library installed into a directory in Python's path or in the same directory as Sonata.\n" % strerror
     sys.exit(1)
-
 
 try:
     import egg.trayicon
@@ -76,6 +80,15 @@ try:
     HAVE_DBUS = True
 except:
     HAVE_DBUS = False
+
+try:
+    import sugar
+    HAVE_STATUS_ICON = False
+    HAVE_SUGAR = True
+    VOLUME_ICON_SIZE = 3
+except:
+    HAVE_SUGAR = False
+    VOLUME_ICON_SIZE = 4
 
 # Test pygtk version
 if gtk.pygtk_version < (2, 6, 0):
@@ -103,7 +116,7 @@ class Connection(mpdclient3.mpd_connection):
         mpdclient3.connect(host=host, port=port, password=password)
 
 class Base(mpdclient3.mpd_connection):
-    def __init__(self):
+    def __init__(self, window=None, sugar=False):
 
         gtk.gdk.threads_init()
 
@@ -116,56 +129,57 @@ class Base(mpdclient3.mpd_connection):
 
         toggle_arg = False
         # Read any passed options/arguments:
-        try:
-            opts, args = getopt.getopt(sys.argv[1:], "tv", ["toggle", "version", "status", "info", "play", "pause", "stop", "next", "prev", "pp"])
-        except getopt.GetoptError:
-            # print help information and exit:
-            self.print_usage()
-            sys.exit()
-        # If options were passed, perform action on them.
-        if opts != []:
-            for o, a in opts:
-                if o in ("-t", "--toggle"):
-                    toggle_arg = True
-                    if not HAVE_DBUS:
-                        print _("The toggle argument requires D-Bus. Aborting.")
+        if not sugar:
+            try:
+                opts, args = getopt.getopt(sys.argv[1:], "tv", ["toggle", "version", "status", "info", "play", "pause", "stop", "next", "prev", "pp"])
+            except getopt.GetoptError:
+                # print help information and exit:
+                self.print_usage()
+                sys.exit()
+            # If options were passed, perform action on them.
+            if opts != []:
+                for o, a in opts:
+                    if o in ("-t", "--toggle"):
+                        toggle_arg = True
+                        if not HAVE_DBUS:
+                            print _("The toggle argument requires D-Bus. Aborting.")
+                            self.print_usage()
+                            sys.exit()
+                    elif o in ("-v", "--version"):
+                        self.print_version()
+                        sys.exit()
+                    else:
                         self.print_usage()
                         sys.exit()
-                elif o in ("-v", "--version"):
-                    self.print_version()
-                    sys.exit()
-                else:
-                    self.print_usage()
-                    sys.exit()
-        if args != []:
-            for a in args:
-                if a in ("play"):
-                    self.single_connect_for_passed_arg("play")
-                    sys.exit()
-                elif a in ("pause"):
-                    self.single_connect_for_passed_arg("pause")
-                    sys.exit()
-                elif a in ("stop"):
-                    self.single_connect_for_passed_arg("stop")
-                    sys.exit()
-                elif a in ("next"):
-                    self.single_connect_for_passed_arg("next")
-                    sys.exit()
-                elif a in ("prev"):
-                    self.single_connect_for_passed_arg("prev")
-                    sys.exit()
-                elif a in ("pp"):
-                    self.single_connect_for_passed_arg("toggle")
-                    sys.exit()
-                elif a in ("info"):
-                    self.single_connect_for_passed_arg("info")
-                    sys.exit()
-                elif a in ("status"):
-                    self.single_connect_for_passed_arg("status")
-                    sys.exit()
-                else:
-                    self.print_usage()
-                    sys.exit()
+            if args != []:
+                for a in args:
+                    if a in ("play"):
+                        self.single_connect_for_passed_arg("play")
+                        sys.exit()
+                    elif a in ("pause"):
+                        self.single_connect_for_passed_arg("pause")
+                        sys.exit()
+                    elif a in ("stop"):
+                        self.single_connect_for_passed_arg("stop")
+                        sys.exit()
+                    elif a in ("next"):
+                        self.single_connect_for_passed_arg("next")
+                        sys.exit()
+                    elif a in ("prev"):
+                        self.single_connect_for_passed_arg("prev")
+                        sys.exit()
+                    elif a in ("pp"):
+                        self.single_connect_for_passed_arg("toggle")
+                        sys.exit()
+                    elif a in ("info"):
+                        self.single_connect_for_passed_arg("info")
+                        sys.exit()
+                    elif a in ("status"):
+                        self.single_connect_for_passed_arg("status")
+                        sys.exit()
+                    else:
+                        self.print_usage()
+                        sys.exit()
 
         start_dbus_interface(toggle_arg)
 
@@ -402,6 +416,8 @@ class Base(mpdclient3.mpd_connection):
             filename1 = [os.path.join(sys.prefix, 'share', 'pixmaps', sonataicon)]
         elif os.path.exists(os.path.join(os.path.split(__file__)[0], sonataicon)):
             filename1 = [os.path.join(os.path.split(__file__)[0], sonataicon)]
+        elif os.path.exists(os.path.join(os.path.split(__file__)[0], 'share', sonataicon)):
+            filename1 = [os.path.join(os.path.split(__file__)[0], 'share', sonataicon)]
         self.icons1 = [gtk.IconSource() for i in filename1]
         for i, iconsource in enumerate(self.icons1):
             iconsource.set_filename(filename1[i])
@@ -414,13 +430,23 @@ class Base(mpdclient3.mpd_connection):
             os.rmdir(os.path.expanduser('~/.config/sonata/covers/'))
 
         # Main app:
-        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        self.window.set_title('Sonata')
-        self.window.set_resizable(True)
-        if self.ontop:
-            self.window.set_keep_above(True)
-        if self.sticky:
-            self.window.stick()
+        if window is None:
+            self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+            self.window_owner = True
+        else:
+            self.window = window
+            self.window_owner = False
+
+        if self.window_owner:
+            self.window.set_title('Sonata')
+            self.window.set_resizable(True)
+            if self.ontop:
+                self.window.set_keep_above(True)
+            if self.sticky:
+                self.window.stick()
+        if HAVE_SUGAR:
+            theme = gtk.icon_theme_get_default()
+            theme.append_search_path(os.path.join(os.path.split(__file__)[0], 'share'))
         self.tooltips = gtk.Tooltips()
         self.UIManager = gtk.UIManager()
         actionGroup = gtk.ActionGroup('Actions')
@@ -494,7 +520,7 @@ class Base(mpdclient3.mpd_connection):
         self.volumebutton = gtk.ToggleButton("", True)
         self.volumebutton.set_relief(gtk.RELIEF_NONE)
         self.volumebutton.set_property('can-focus', False)
-        self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-med", 4))
+        self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-med", VOLUME_ICON_SIZE))
         if not self.show_volume:
             self.volumebutton.set_no_show_all(True)
             self.volumebutton.hide()
@@ -596,8 +622,9 @@ class Base(mpdclient3.mpd_connection):
         mainvbox.pack_start(self.statusbar, False, False, 0)
         mainhbox.pack_start(mainvbox, True, True, 3)
         self.window.add(mainhbox)
-        self.window.move(self.x, self.y)
-        self.window.set_size_request(270, -1)
+        if self.window_owner:
+            self.window.move(self.x, self.y)
+            self.window.set_size_request(270, -1)
         self.mainmenu = self.UIManager.get_widget('/mainmenu')
         self.shufflemenu = self.UIManager.get_widget('/mainmenu/shufflemenu')
         self.repeatmenu = self.UIManager.get_widget('/mainmenu/repeatmenu')
@@ -607,10 +634,12 @@ class Base(mpdclient3.mpd_connection):
             self.notebook.set_no_show_all(True)
             self.notebook.hide()
             self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to expand') + '</small>')
-            self.window.set_default_size(self.w, 1)
+            if self.window_owner:
+                self.window.set_default_size(self.w, 1)
         else:
             self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to collapse') + '</small>')
-            self.window.set_default_size(self.w, self.h)
+            if self.window_owner:
+                self.window.set_default_size(self.w, self.h)
         if not self.conn:
             self.progressbar.set_text(_('Not Connected'))
         if self.expanded:
@@ -686,7 +715,10 @@ class Base(mpdclient3.mpd_connection):
         self.volumescale.set_update_policy(gtk.UPDATE_CONTINUOUS)
         self.volumescale.set_inverted(True)
         self.volumescale.set_adjustment(gtk.Adjustment(0, 0, 100, 0, 0, 0))
-        self.volumescale.set_size_request(-1, 103)
+        if HAVE_SUGAR:
+            self.volumescale.set_size_request(-1, 203)
+        else:
+            self.volumescale.set_size_request(-1, 103)
         volbox.pack_start(self.volumescale, True, True, 0)
         volbox.pack_start(gtk.Label("-"), False, False, 0)
         frame.add(volbox)
@@ -749,11 +781,12 @@ class Base(mpdclient3.mpd_connection):
         self.initialize_systrayicon()
 
         # Connect to mmkeys signals
-        self.keys = mmkeys.MmKeys()
-        self.keys.connect("mm_prev", self.mmprev)
-        self.keys.connect("mm_next", self.mmnext)
-        self.keys.connect("mm_playpause", self.mmpp)
-        self.keys.connect("mm_stop", self.mmstop)
+        if HAVE_MMKEYS:
+            self.keys = mmkeys.MmKeys()
+            self.keys.connect("mm_prev", self.mmprev)
+            self.keys.connect("mm_next", self.mmnext)
+            self.keys.connect("mm_playpause", self.mmpp)
+            self.keys.connect("mm_stop", self.mmstop)
 
         # Put blank cd to albumimage widget by default
         blankalbum = 'sonatacd.png'
@@ -764,6 +797,9 @@ class Base(mpdclient3.mpd_connection):
         elif os.path.exists(os.path.join(os.path.split(__file__)[0], blankalbum)):
             self.sonatacd = os.path.join(os.path.split(__file__)[0], blankalbum)
             self.sonatacd_large = os.path.join(os.path.split(__file__)[0], blankalbum_large)
+        elif os.path.exists(os.path.join(os.path.split(__file__)[0], 'share', blankalbum)):
+            self.sonatacd = os.path.join(os.path.split(__file__)[0], 'share', blankalbum)
+            self.sonatacd_large = os.path.join(os.path.split(__file__)[0], 'share', blankalbum_large)
         self.albumimage.set_from_file(self.sonatacd)
 
         # Initialize current playlist data and widget
@@ -830,15 +866,17 @@ class Base(mpdclient3.mpd_connection):
         self.browser_selection.set_mode(gtk.SELECTION_MULTIPLE)
         self.browser.set_fixed_height_mode(True)
 
-        icon = self.window.render_icon('sonata', gtk.ICON_SIZE_DIALOG)
-        self.window.set_icon(icon)
+        if self.window_owner:
+            icon = self.window.render_icon('sonata', gtk.ICON_SIZE_DIALOG)
+            self.window.set_icon(icon)
 
         self.streams_populate()
 
         self.iterate_now()
-        if self.withdrawn and (HAVE_EGG or (HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible())):
-            self.window.set_no_show_all(True)
-            self.window.hide()
+        if self.window_owner:
+            if self.withdrawn and (HAVE_EGG or (HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible())):
+                self.window.set_no_show_all(True)
+                self.window.hide()
         self.window.show_all()
 
         if self.update_on_start:
@@ -1758,13 +1796,13 @@ class Base(mpdclient3.mpd_connection):
         if self.prevstatus is None or self.status.volume != self.prevstatus.volume:
             self.volumescale.get_adjustment().set_value(int(self.status.volume))
             if int(self.status.volume) == 0:
-                self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-mute", 4))
+                self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-mute", VOLUME_ICON_SIZE))
             elif int(self.status.volume) < 30:
-                self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-min", 4))
+                self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-min", VOLUME_ICON_SIZE))
             elif int(self.status.volume) <= 70:
-                self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-med", 4))
+                self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-med", VOLUME_ICON_SIZE))
             else:
-                self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-max", 4))
+                self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-max", VOLUME_ICON_SIZE))
 
         if self.conn:
             if self.prevstatus == None or self.prevstatus.get('updating_db', 0) != self.status.get('updating_db', 0):
@@ -1924,10 +1962,11 @@ class Base(mpdclient3.mpd_connection):
         self.update_infofile()
 
     def update_wintitle(self):
-        if self.conn and self.status and self.status.state in ['play', 'pause']:
-            self.window.set_property('title', self.parse_formatting(self.titleformat, self.songinfo, False, True))
-        else:
-            self.window.set_property('title', 'Sonata')
+        if self.window_owner:
+            if self.conn and self.status and self.status.state in ['play', 'pause']:
+                self.window.set_property('title', self.parse_formatting(self.titleformat, self.songinfo, False, True))
+            else:
+                self.window.set_property('title', 'Sonata')
 
     def update_playlist(self):
         if self.conn:
@@ -2331,13 +2370,14 @@ class Base(mpdclient3.mpd_connection):
                 self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to expand') + '</small>')
         # Now we wait for the height of the player to increase, so that
         # we know the list is visible. This is pretty hacky, but works.
-        if window_about_to_be_expanded:
-            while self.window.get_size()[1] == currheight:
-                gtk.main_iteration()
-            # Notebook is visible, now resize:
-            self.window.resize(self.w, self.h)
-        else:
-            self.window.resize(self.w, 1)
+        if self.window_owner:
+            if window_about_to_be_expanded:
+                while self.window.get_size()[1] == currheight:
+                    gtk.main_iteration()
+                # Notebook is visible, now resize:
+                self.window.resize(self.w, self.h)
+            else:
+                self.window.resize(self.w, 1)
         if window_about_to_be_expanded:
             self.expanded = True
             self.tooltips.set_tip(self.expander, _("Click to collapse the player"))
@@ -3574,14 +3614,15 @@ class Base(mpdclient3.mpd_connection):
             if self.titleformat != titleoptions.get_text():
                 self.titleformat = titleoptions.get_text()
                 self.update_wintitle()
-            if self.ontop:
-                self.window.set_keep_above(True)
-            else:
-                self.window.set_keep_above(False)
-            if self.sticky:
-                self.window.stick()
-            else:
-                self.window.unstick()
+            if self.window_owner:
+                if self.ontop:
+                    self.window.set_keep_above(True)
+                else:
+                    self.window.set_keep_above(False)
+                if self.sticky:
+                    self.window.stick()
+                else:
+                    self.window.unstick()
             if crossfadecheck.get_active():
                 self.crossfade = crossfadecombo.get_active()
                 self.conn.do.crossfade(int(self.crossfade_options[self.crossfade]))
@@ -4117,9 +4158,9 @@ def start_dbus_interface(toggle=False):
 
 if HAVE_DBUS:
     class BaseDBus(dbus.service.Object, Base):
-        def __init__(self, bus_name, object_path):
+        def __init__(self, bus_name, object_path, window=None, sugar=False):
             dbus.service.Object.__init__(self, bus_name, object_path)
-            Base.__init__(self)
+            Base.__init__(self, window, sugar)
 
         @dbus.service.method('org.MPD.SonataInterface')
         def show(self):
