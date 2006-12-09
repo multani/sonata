@@ -1648,13 +1648,21 @@ class Base(mpdclient3.mpd_connection):
                 # Library
                 model, selected = self.browser_selection.get_selected_rows()
                 if self.root == "/":
-                    for path in selected:
-                        self.conn.do.add(model.get_value(model.get_iter(path), 1))
-                else:
-                    iters = []
-                    for path in selected:
-                        if path[0] != 0 and path[0] != 1:
+                    if len(selected) == len(self.browserdata):
+                        # Everything selected, this is faster..
+                        self.conn.do.add(self.root)
+                    else:
+                        for path in selected:
                             self.conn.do.add(model.get_value(model.get_iter(path), 1))
+                else:
+                    if len(selected) >= len(self.browserdata)-2:
+                        # Everything selected, this is faster..
+                        self.conn.do.add(self.root)
+                    else:
+                        iters = []
+                        for path in selected:
+                            if path[0] != 0 and path[0] != 1:
+                                self.conn.do.add(model.get_value(model.get_iter(path), 1))
             elif self.notebook.get_current_page() == self.TAB_PLAYLISTS:
                 # Playlist
                 model, selected = self.playlists_selection.get_selected_rows()
@@ -1812,7 +1820,8 @@ class Base(mpdclient3.mpd_connection):
 
     def handle_change_song(self):
         try:
-            self.currentdata[self.prev_boldrow][1] = make_unbold(self.currentdata[self.prev_boldrow][1])
+            if self.prev_boldrow > -1:
+                self.currentdata[self.prev_boldrow][1] = make_unbold(self.currentdata[self.prev_boldrow][1])
         except:
             pass
 
@@ -3233,9 +3242,13 @@ class Base(mpdclient3.mpd_connection):
             page_num = self.notebook.get_current_page()
             if page_num == self.TAB_CURRENT:
                 model, selected = self.current_selection.get_selected_rows()
-                iters = [model.get_iter(path) for path in selected]
-                for iter in iters:
-                    self.conn.do.deleteid(self.currentdata.get_value(iter, 0))
+                if len(selected) == len(self.currentdata):
+                    # Everything is selected, clear:
+                    self.conn.do.clear()
+                else:
+                    iters = [model.get_iter(path) for path in selected]
+                    for iter in iters:
+                        self.conn.do.deleteid(self.currentdata.get_value(iter, 0))
             elif page_num == self.TAB_PLAYLISTS:
                 model, selected = self.playlists_selection.get_selected_rows()
                 iters = [model.get_iter(path) for path in selected]
