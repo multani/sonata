@@ -3497,8 +3497,8 @@ class Base(mpdclient3.mpd_connection):
         if not self.use_infofile:
             infopath_options.set_sensitive(False)
         infofile_usage.connect('toggled', self.prefs_infofile_toggled, infopath_options)
-        infofilebox.pack_start(infofile_usage, False, False, 3)
-        infofilebox.pack_start(infopath_options, True, True, 3)
+        infofilebox.pack_start(infofile_usage, False, False, 0)
+        infofilebox.pack_start(infopath_options, True, True, 5)
         behaviorlabel2 = gtk.Label()
         behaviorlabel2.set_markup('<b>' + _('Miscellaneous') + '</b>')
         behaviorlabel2.set_alignment(0, 1)
