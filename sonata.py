@@ -45,11 +45,6 @@ except:
     HAVE_MMKEYS = False
 
 try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
-
-try:
     import gtk
     import pango
     import mpdclient3
@@ -806,7 +801,6 @@ class Base(mpdclient3.mpd_connection):
         self.currentdata = gtk.ListStore(int, str)
         self.current.set_model(self.currentdata)
         self.current.set_search_column(1)
-        self.current.connect('drag-data-get',  self.current_data_get)
         self.currentcell = gtk.CellRendererText()
         self.currentcolumn = gtk.TreeViewColumn('Pango Markup', self.currentcell, markup=1)
         self.currentcolumn.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
@@ -2487,13 +2481,12 @@ class Base(mpdclient3.mpd_connection):
 
     def on_drag_drop(self, treeview, drag_context, x, y, selection, info, timestamp):
         model = treeview.get_model()
-        foobar, self._selected = self.current_selection.get_selected_rows()
-        data = pickle.loads(selection.data)
+        foobar, selected = self.current_selection.get_selected_rows()
         drop_info = treeview.get_dest_row_at_pos(x, y)
 
         # calculate all this now before we start moving stuff
         drag_sources = []
-        for path in data:
+        for path in selected:
             index = path[0]
             iter = model.get_iter(path)
             id = model.get_value(iter, 0)
@@ -2543,11 +2536,6 @@ class Base(mpdclient3.mpd_connection):
             for i in range(len(drag_sources)):
                 treeview.get_selection().select_path(row)
                 row = row + 1
-
-    def current_data_get(self, widget, drag_context, selection, info, timestamp):
-        model, selected = self.current_selection.get_selected_rows()
-        selection.set(selection.target, 8, pickle.dumps(selected))
-        return
 
     def treeview_selection_changed(self, treeselection):
         self.set_menu_contextual_items_visible()

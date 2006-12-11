@@ -5,6 +5,8 @@ v1.0
 	make current song label, notif/tooltip available in formatting
 		- allow ( ) for if logic, | to separate lines?
 	remove pickle
+	help -> about
+	quit
 
 Future:
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
