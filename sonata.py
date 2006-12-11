@@ -258,7 +258,7 @@ class Base(mpdclient3.mpd_connection):
 
         # Popup menus:
         actions = (
-            ('sortmenu', gtk.STOCK_SORT_ASCENDING, _('_Sort')),
+            ('sortmenu', gtk.STOCK_SORT_ASCENDING, _('_Sort List')),
             ('chooseimage_menu', gtk.STOCK_CONVERT, _('Use _Remote Image...'), None, None, self.choose_image),
             ('localimage_menu', gtk.STOCK_OPEN, _('Use _Local Image...'), None, None, self.choose_image_local),
             ('playmenu', gtk.STOCK_MEDIA_PLAY, _('_Play'), None, None, self.pp),
@@ -272,9 +272,9 @@ class Base(mpdclient3.mpd_connection):
             ('savemenu', gtk.STOCK_SAVE, _('_Save Playlist...'), '<Ctrl><Shift>s', None, self.save_playlist),
             ('updatemenu', gtk.STOCK_REFRESH, _('_Update Library'), None, None, self.updatedb),
             ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'), None, None, self.prefs),
-            ('aboutmenu', gtk.STOCK_ABOUT, _('_About'), None, None, self.about),
-            ('newmenu', gtk.STOCK_NEW, _('_New'), '<Ctrl>n', None, self.new_stream),
-            ('editmenu', gtk.STOCK_EDIT, _('_Edit'), None, None, self.edit_stream),
+            ('aboutmenu', gtk.STOCK_ABOUT, _('_About...'), None, None, self.about),
+            ('newmenu', gtk.STOCK_NEW, _('_New...'), '<Ctrl>n', None, self.new_stream),
+            ('editmenu', gtk.STOCK_EDIT, _('_Edit...'), None, None, self.edit_stream),
             ('addmenu', gtk.STOCK_ADD, _('_Add'), '<Ctrl>d', None, self.add_item),
             ('replacemenu', gtk.STOCK_REDO, _('_Replace'), '<Ctrl>r', None, self.replace_item),
             ('rmmenu', gtk.STOCK_DELETE, _('_Delete'), None, None, self.remove),
