@@ -353,6 +353,7 @@ class Base(mpdclient3.mpd_connection):
                 <separator name="FM2"/>
                 <menuitem action="preferencemenu"/>
                 <menuitem action="aboutmenu"/>
+                <menuitem action="quitmenu"/>
               </popup>
               <popup name="hidden">
                 <menuitem action="quitkey"/>
