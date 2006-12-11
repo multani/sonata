@@ -4,13 +4,12 @@ v1.0
 	GtkStatusIcon - manually check if mouse is over icon? (argh)
 	make current song label, notif/tooltip available in formatting
 		- allow ( ) for if logic, | to separate lines?
-	remove pickle
-	help -> about
 	quit
+	ability to edit tags (tagpy)
+	add translators to about
 
 Future:
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
 		Add to > Next song, top, random
 	connect in background via socket.setblocking(0)
 	lyrics? last.fm?
-	ability to edit tags?

@@ -272,7 +272,7 @@ class Base(mpdclient3.mpd_connection):
             ('savemenu', gtk.STOCK_SAVE, _('_Save Playlist...'), '<Ctrl><Shift>s', None, self.save_playlist),
             ('updatemenu', gtk.STOCK_REFRESH, _('_Update Library'), None, None, self.updatedb),
             ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'), None, None, self.prefs),
-            ('helpmenu', gtk.STOCK_HELP, _('_Help'), None, None, self.help),
+            ('aboutmenu', gtk.STOCK_ABOUT, _('_About'), None, None, self.about),
             ('newmenu', gtk.STOCK_NEW, _('_New'), '<Ctrl>n', None, self.new_stream),
             ('editmenu', gtk.STOCK_EDIT, _('_Edit'), None, None, self.edit_stream),
             ('addmenu', gtk.STOCK_ADD, _('_Add'), '<Ctrl>d', None, self.add_item),
@@ -352,7 +352,7 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="shufflemenu"/>
                 <separator name="FM2"/>
                 <menuitem action="preferencemenu"/>
-                <menuitem action="helpmenu"/>
+                <menuitem action="aboutmenu"/>
               </popup>
               <popup name="hidden">
                 <menuitem action="quitkey"/>
@@ -405,19 +405,13 @@ class Base(mpdclient3.mpd_connection):
 
         # Add some icons:
         self.iconfactory = gtk.IconFactory()
-        self.sonataset = gtk.IconSet()
-        sonataicon = 'sonata.png'
-        if os.path.exists(os.path.join(sys.prefix, 'share', 'pixmaps', sonataicon)):
-            filename1 = [os.path.join(sys.prefix, 'share', 'pixmaps', sonataicon)]
-        elif os.path.exists(os.path.join(os.path.split(__file__)[0], sonataicon)):
-            filename1 = [os.path.join(os.path.split(__file__)[0], sonataicon)]
-        elif os.path.exists(os.path.join(os.path.split(__file__)[0], 'share', sonataicon)):
-            filename1 = [os.path.join(os.path.split(__file__)[0], 'share', sonataicon)]
+        sonataset = gtk.IconSet()
+        filename1 = [self.find_path('sonata.png')]
         self.icons1 = [gtk.IconSource() for i in filename1]
         for i, iconsource in enumerate(self.icons1):
             iconsource.set_filename(filename1[i])
-            self.sonataset.add_source(iconsource)
-        self.iconfactory.add('sonata', self.sonataset)
+            sonataset.add_source(iconsource)
+        self.iconfactory.add('sonata', sonataset)
         self.iconfactory.add_default()
         # Remove the old sonata covers dir (cleanup)
         if os.path.exists(os.path.expanduser('~/.config/sonata/covers/')):
@@ -3869,8 +3863,45 @@ class Base(mpdclient3.mpd_connection):
         self.UIManager.get_widget('/mainmenu/editmenu/').hide()
         self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
 
-    def help(self, action):
-        self.browser_load("http://sonata.berlios.de/documentation.html")
+    def find_path(self, filename):
+        if os.path.exists(os.path.join(sys.prefix, 'share', 'pixmaps', filename)):
+            full_filename = os.path.join(sys.prefix, 'share', 'pixmaps', filename)
+        elif os.path.exists(os.path.join(os.path.split(__file__)[0], filename)):
+            full_filename = os.path.join(os.path.split(__file__)[0], filename)
+        elif os.path.exists(os.path.join(os.path.split(__file__)[0], 'share', filename)):
+            full_filename = os.path.join(os.path.split(__file__)[0], 'share', filename)
+        return full_filename
+
+    def about(self, action):
+        self.about_dialog = gtk.AboutDialog()
+        try:
+            self.about_dialog.set_transient_for(self.window)
+            self.about_dialog.set_modal(True)
+        except:
+            pass
+        self.about_dialog.set_name('Sonata')
+        self.about_dialog.set_version(__version__)
+        self.about_dialog.set_comments(_('A lightweight music player for MPD.'))
+        self.about_dialog.set_license(__license__)
+        self.about_dialog.set_authors(['Scott Horowitz <stonecrest@gmail.com>'])
+        #self.about_dialog.set_translator_credits('de - Bjoern Martensen <bjoern.martensen@gmail.com>\nes - Isidro Arribas <cdhotfire@gmail.com>\nfr - Mike Massonnet <mmassonnet@gmail.com>\npl - Tomasz Dominikowski <dominikowski@gmail.com>\nru - mavka <mavka@justos.org>')
+        gtk.about_dialog_set_url_hook(self.show_website, "http://sonata.berlios.de")
+        self.about_dialog.set_website_label("http://sonata.berlios.de")
+        #try:
+        large_icon = gtk.gdk.pixbuf_new_from_file(self.find_path('sonata_large.png'))
+        self.about_dialog.set_logo(large_icon)
+        #except:
+        #	pass
+        self.about_dialog.connect('response', self.close_about)
+        self.about_dialog.connect('delete_event', self.close_about)
+        self.about_dialog.show_all()
+
+    def close_about(self, event, data=None):
+        self.about_dialog.hide()
+        return True
+
+    def show_website(self, dialog, blah, link):
+        self.browser_load(link)
 
     def initialize_systrayicon(self):
         # Make system tray 'icon' to sit in the system tray
