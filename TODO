@@ -4,8 +4,7 @@ v1.0
 	GtkStatusIcon - manually check if mouse is over icon? (argh)
 	make current song label, notif/tooltip available in formatting
 		- allow ( ) for if logic, | to separate lines?
-	quit
-	ability to edit tags (tagpy)
+	ability to edit tags (taglib + tagpy = optional)
 	add translators to about
 
 Future:

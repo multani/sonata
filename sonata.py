@@ -1862,22 +1862,13 @@ class Base(mpdclient3.mpd_connection):
             if mins:
                 if mins.startswith('0') and len(mins) > 1:
                     mins = mins[1:]
-                if mins == "1":
-                    mins_text = _('minute')
-                else:
-                    mins_text = _('minutes')
+                mins_text = gettext.ngettext('minute', 'minutes', int(mins))
             if hours:
                 if hours.startswith('0'):
                     hours = hours[1:]
-                if hours == "1":
-                    hours_text = _('hour and')
-                else:
-                    hours_text = _('hours and')
+                hours_text = gettext.ngettext('hour and', 'hours and', int(hours))
             # Show text:
-            if self.status.playlistlength == "1":
-                songs_text = _('song')
-            else:
-                songs_text = _('songs')
+            songs_text = gettext.ngettext('song', 'songs', int(self.status.playlistlength))
             if hours:
                 status_text = str(self.status.playlistlength) + ' ' + songs_text + ', ' + hours + ' ' + hours_text + ' ' + mins + ' ' + mins_text
             elif mins:
