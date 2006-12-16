@@ -970,7 +970,7 @@ class Base(mpdclient3.mpd_connection):
                         print _("File") + ": " + os.path.basename(self.songinfo.file)
                     except:
                         pass
-                    at, len = [int(c) for c in self.status.time.split(':')]
+                    at, length = [int(c) for c in self.status.time.split(':')]
                     at_time = convert_time(at)
                     try:
                         time = convert_time(int(self.songinfo.time))
@@ -1513,57 +1513,109 @@ class Base(mpdclient3.mpd_connection):
             except:
                 pass
 
+    def parse_formatting_return_substrings(self, format):
+        substrings = []
+        begin_pos = format.find("(")
+        end_pos = -1
+        while begin_pos > -1:
+            if begin_pos > end_pos + 1:
+                substrings.append(format[end_pos+1:begin_pos])
+            end_pos = format.find(")", begin_pos)
+            substrings.append(format[begin_pos:end_pos+1])
+            begin_pos = format.find("(", end_pos)
+        if end_pos+1 < len(format):
+            substrings.append(format[end_pos+1:len(format)])
+        return substrings
+
+    def parse_formatting_for_substring(self, subformat, item, wintitle):
+        text = subformat
+        if subformat.startswith("(") and subformat.endswith(")"):
+            has_parantheses = True
+        else:
+            has_parantheses = False
+        if "%A" in text:
+            try:
+                text = text.replace("%A", item.artist)
+            except:
+                if not has_parantheses:
+                    text = text.replace("%A", _('Unknown'))
+                else:
+                    return ""
+        if "%B" in text:
+            try:
+                text = text.replace("%B", item.album)
+            except:
+                if not has_parantheses:
+                    text = text.replace("%B", _('Unknown'))
+                else:
+                    return ""
+        if "%S" in text:
+            try:
+                text = text.replace("%S", item.title)
+            except:
+                if not has_parantheses:
+                    return self.filename_or_fullpath(item.file)
+                else:
+                    return ""
+        if "%T" in text:
+            try:
+                text = text.replace("%T", str(int(item.track.split('/')[0])))
+            except:
+                if not has_parantheses:
+                    text = text.replace("%T", "0")
+                else:
+                    return ""
+        if "%G" in text:
+            try:
+                text = text.replace("%G", item.genre)
+            except:
+                if not has_parantheses:
+                    text = text.replace("%G", _('Unknown'))
+                else:
+                    return ""
+        if "%Y" in text:
+            try:
+                text = text.replace("%Y", item.date)
+            except:
+                if not has_parantheses:
+                    text = text.replace("%Y", "?")
+                else:
+                    return ""
+        if "%F" in text:
+            text = text.replace("%F", item.file)
+        if "%P" in text:
+            text = text.replace("%P", item.file.split('/')[-1])
+        if "%L" in text:
+            try:
+                time = convert_time(int(item.time))
+                text = text.replace("%L", time)
+            except:
+                if not has_parantheses:
+                    text = text.replace("%L", "?")
+                else:
+                    return ""
+        if wintitle:
+            if "%E" in text:
+                try:
+                    at, length = [int(c) for c in self.status.time.split(':')]
+                    at_time = convert_time(at)
+                    text = text.replace("%E", at_time)
+                except:
+                    if not has_parantheses:
+                        text = text.replace("%E", "?")
+                    else:
+                        return ""
+        if text.startswith("(") and text.endswith(")"):
+            return text[1:len(text)-1]
+        else:
+            return text
+
     def parse_formatting(self, format, item, use_escape_html, wintitle=False):
         if self.song_has_metadata(item):
-            text = format
-            if "%A" in text:
-                try:
-                    text = text.replace("%A", item.artist)
-                except:
-                    text = text.replace("%A", _('Unknown'))
-            if "%B" in text:
-                try:
-                    text = text.replace("%B", item.album)
-                except:
-                    text = text.replace("%B", _('Unknown'))
-            if "%S" in text:
-                try:
-                    text = text.replace("%S", item.title)
-                except:
-                    return self.filename_or_fullpath(item.file)
-            if "%T" in text:
-                try:
-                    text = text.replace("%T", str(int(item.track.split('/')[0])))
-                except:
-                    text = text.replace("%T", "0")
-            if "%G" in text:
-                try:
-                    text = text.replace("%G", item.genre)
-                except:
-                    text = text.replace("%G", _('Unknown'))
-            if "%Y" in text:
-                try:
-                    text = text.replace("%Y", item.date)
-                except:
-                    text = text.replace("%Y", "?")
-            if "%F" in text:
-                text = text.replace("%F", item.file)
-            if "%P" in text:
-                text = text.replace("%P", item.file.split('/')[-1])
-            if "%L" in text:
-                try:
-                    time = convert_time(int(item.time))
-                    text = text.replace("%L", time)
-                except:
-                    text = text.replace("%L", "?")
-            if wintitle:
-                if "%E" in text:
-                    try:
-                        at, len = [int(c) for c in self.status.time.split(':')]
-                        at_time = convert_time(at)
-                        text = text.replace("%E", at_time)
-                    except:
-                        text = text.replace("%E", "?")
+            substrings = self.parse_formatting_return_substrings(format)
+            text = ""
+            for sub in substrings:
+                text = text + str(self.parse_formatting_for_substring(sub, item, wintitle))
             if use_escape_html:
                 return escape_html(text)
             else:
@@ -1827,16 +1879,16 @@ class Base(mpdclient3.mpd_connection):
 
     def update_progressbar(self):
         if self.conn and self.status and self.status.state in ['play', 'pause']:
-            at, len = [float(c) for c in self.status.time.split(':')]
+            at, length = [float(c) for c in self.status.time.split(':')]
             try:
-                self.progressbar.set_fraction(at/len)
+                self.progressbar.set_fraction(at/length)
             except:
                 self.progressbar.set_fraction(0)
         else:
             self.progressbar.set_fraction(0)
         if self.conn:
             if self.status and self.status.state in ['play', 'pause']:
-                at, len = [int(c) for c in self.status.time.split(':')]
+                at, length = [int(c) for c in self.status.time.split(':')]
                 at_time = convert_time(at)
                 try:
                     time = convert_time(int(self.songinfo.time))
@@ -2380,10 +2432,10 @@ class Base(mpdclient3.mpd_connection):
     def progressbar_button_press_event(self, widget, event):
         if event.button == 1:
             if self.status and self.status.state in ['play', 'pause']:
-                at, len = [int(c) for c in self.status.time.split(':')]
+                at, length = [int(c) for c in self.status.time.split(':')]
                 try:
                     progressbarsize = self.progressbar.allocation
-                    seektime = int((event.x/progressbarsize.width) * len)
+                    seektime = int((event.x/progressbarsize.width) * length)
                     self.seek(int(self.status.song), seektime)
                 except:
                     pass
@@ -2399,7 +2451,7 @@ class Base(mpdclient3.mpd_connection):
         return True
 
     def seek_when_idle(self, direction):
-        at, len = [int(c) for c in self.status.time.split(':')]
+        at, length = [int(c) for c in self.status.time.split(':')]
         try:
             if direction == gtk.gdk.SCROLL_UP:
                 seektime = int(self.status.time.split(":")[0]) - 5
@@ -2717,7 +2769,7 @@ class Base(mpdclient3.mpd_connection):
         if self.conn:
             if self.coverwindow_visible:
                 if self.status and self.status.state in ['play', 'pause']:
-                    at, len = [int(c) for c in self.status.time.split(':')]
+                    at, length = [int(c) for c in self.status.time.split(':')]
                     at_time = convert_time(at)
                     try:
                         time = convert_time(int(self.songinfo.time))

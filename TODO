@@ -3,9 +3,10 @@ v1.0
 	make selection, dnd, more like thunar
 	GtkStatusIcon - manually check if mouse is over icon? (argh)
 	make current song label, notif/tooltip available in formatting
-		- allow ( ) for if logic, | to separate lines?
+		- | to separate lines?
 	ability to edit tags (taglib + tagpy = optional)
 	add translators to about
+	play first song, then remove first + many others...
 
 Future:
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
