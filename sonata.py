@@ -736,8 +736,8 @@ class Base(mpdclient3.mpd_connection):
         self.current.connect('row_activated', self.current_click)
         self.current.connect('button_press_event', self.current_button_press)
         self.current.connect('button_release_event', self.current_button_released)
-        self.current.connect('popup_menu', self.current_popup_menu)
         self.current_selection.connect('changed', self.treeview_selection_changed)
+        self.current.connect('popup_menu', self.current_popup_menu)
         self.shufflemenu.connect('toggled', self.shuffle_now)
         self.repeatmenu.connect('toggled', self.repeat_now)
         self.volumescale.connect('change_value', self.on_volumescale_change)
@@ -1650,9 +1650,13 @@ class Base(mpdclient3.mpd_connection):
     def browserow(self, widget, path, column=0):
         self.browse(None, self.browserdata.get_value(self.browserdata.get_iter(path), 1))
 
+    def treeview_selection_changed(self, *args):
+        self.set_menu_contextual_items_visible()
+
     def browser_button_press(self, widget, event):
         self.volume_hide()
         if event.button == 3:
+            self.set_menu_contextual_items_visible()
             self.mainmenu.popup(None, None, None, event.button, event.time)
             # Don't change the selection for a right-click. This
             # will allow the user to select multiple rows and then
@@ -1664,6 +1668,7 @@ class Base(mpdclient3.mpd_connection):
     def playlists_button_press(self, widget, event):
         self.volume_hide()
         if event.button == 3:
+            self.set_menu_contextual_items_visible()
             self.mainmenu.popup(None, None, None, event.button, event.time)
             # Don't change the selection for a right-click. This
             # will allow the user to select multiple rows and then
@@ -1675,6 +1680,7 @@ class Base(mpdclient3.mpd_connection):
     def streams_button_press(self, widget, event):
         self.volume_hide()
         if event.button == 3:
+            self.set_menu_contextual_items_visible()
             self.mainmenu.popup(None, None, None, event.button, event.time)
             # Don't change the selection for a right-click. This
             # will allow the user to select multiple rows and then
@@ -2575,12 +2581,10 @@ class Base(mpdclient3.mpd_connection):
                 treeview.get_selection().select_path(row)
                 row = row + 1
 
-    def treeview_selection_changed(self, treeselection):
-        self.set_menu_contextual_items_visible()
-
     def current_button_press(self, widget, event):
         self.volume_hide()
         if event.button == 3:
+            self.set_menu_contextual_items_visible()
             self.mainmenu.popup(None, None, None, event.button, event.time)
             # Don't change the selection for a right-click. This
             # will allow the user to select multiple rows and then
@@ -3931,11 +3935,8 @@ class Base(mpdclient3.mpd_connection):
         self.about_dialog.set_translator_credits('fr - Floreal M <florealm@gmail.com>\nes - Isidro Arribas <cdhotfire@gmail.com>\npl - Tomasz Dominikowski <dominikowski@gmail.com>\nde - Paul Johnson <thrillerator@googlemail.com>')
         gtk.about_dialog_set_url_hook(self.show_website, "http://sonata.berlios.de")
         self.about_dialog.set_website_label("http://sonata.berlios.de")
-        #try:
         large_icon = gtk.gdk.pixbuf_new_from_file(self.find_path('sonata_large.png'))
         self.about_dialog.set_logo(large_icon)
-        #except:
-        #	pass
         self.about_dialog.connect('response', self.close_about)
         self.about_dialog.connect('delete_event', self.close_about)
         self.about_dialog.show_all()

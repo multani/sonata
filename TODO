@@ -6,6 +6,7 @@ v1.0
 		- | to separate lines?
 	ability to edit tags (taglib + tagpy = optional)
 	play first song, then remove first + many others...
+	why is more formatting not allowed? i.e. <small> \n, etc.
 
 Future:
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
