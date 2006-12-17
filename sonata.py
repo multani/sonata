@@ -3928,7 +3928,7 @@ class Base(mpdclient3.mpd_connection):
         self.about_dialog.set_comments(_('A lightweight music player for MPD.'))
         self.about_dialog.set_license(__license__)
         self.about_dialog.set_authors(['Scott Horowitz <stonecrest@gmail.com>'])
-        #self.about_dialog.set_translator_credits('de - Bjoern Martensen <bjoern.martensen@gmail.com>\nes - Isidro Arribas <cdhotfire@gmail.com>\nfr - Mike Massonnet <mmassonnet@gmail.com>\npl - Tomasz Dominikowski <dominikowski@gmail.com>\nru - mavka <mavka@justos.org>')
+        self.about_dialog.set_translator_credits('fr - Floreal M <florealm@gmail.com>\nes - Isidro Arribas <cdhotfire@gmail.com>\npl - Tomasz Dominikowski <dominikowski@gmail.com>\nde - Paul Johnson <thrillerator@googlemail.com>')
         gtk.about_dialog_set_url_hook(self.show_website, "http://sonata.berlios.de")
         self.about_dialog.set_website_label("http://sonata.berlios.de")
         #try:

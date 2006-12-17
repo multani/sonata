@@ -5,7 +5,6 @@ v1.0
 	make current song label, notif/tooltip available in formatting
 		- | to separate lines?
 	ability to edit tags (taglib + tagpy = optional)
-	add translators to about
 	play first song, then remove first + many others...
 
 Future:

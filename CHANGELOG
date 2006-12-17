@@ -8,6 +8,8 @@ v1.0 - Pending
 	+ Options for choosing album art (local only, remote only, local
 	  then remote, or remote then local)
 	+ Formatting options (genre, song length, elapsed time, year) (Ivan)
+	+ Ability to have formatting appear only if the specified tags
+	  are available
 	+ Play friendler with other clients for shuffle/repeat
 	+ Reduced startup time
 	+ Ability to run on OLPC's Sugar user environment (Owen)
