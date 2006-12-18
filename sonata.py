@@ -226,6 +226,8 @@ class Base(mpdclient3.mpd_connection):
         self.currentformat = "%A - %S"
         self.libraryformat = "%A - %S"
         self.titleformat = "[Sonata] %A - %S"
+        self.currsongformat1 = "%S"
+        self.currsongformat2 = "by %A from %B"
         self.autoconnect = True
         self.user_connect = False
         self.stream_names = []
@@ -1949,38 +1951,18 @@ class Base(mpdclient3.mpd_connection):
                 self.trayalbumeventbox.show()
                 self.trayalbumimage2.show()
             newlabelfound = False
-            try:
-                # Try song/artist/album:
-                newlabel = '<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>' + _('by') + ' ' + escape_html(getattr(self.songinfo, 'artist', None)) + ' ' + _('from') + ' ' + escape_html(getattr(self.songinfo, 'album', None)) + '</small>'
-                newlabel_tray_gtk = getattr(self.songinfo, 'title', None) + '\n' + _('by') + ' ' + getattr(self.songinfo, 'artist', None) + '\n' + _('from') + ' ' + getattr(self.songinfo, 'album', None)
-                newlabel_tray_egg = '<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>' + _('by') + ' ' + escape_html(getattr(self.songinfo, 'artist', None)) + '\n' + _('from') + ' ' + escape_html(getattr(self.songinfo, 'album', None)) + '</small>'
-                newlabelfound = True
-            except:
-                pass
-            if not newlabelfound:
-                try:
-                    # Fallback, try song/artist:
-                    newlabel = '<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>' + _('by') + ' ' + escape_html(getattr(self.songinfo, 'artist', None)) + '</small>'
-                    newlabel_tray_gtk = getattr(self.songinfo, 'title', None) + '\n' + _('by') + ' ' + getattr(self.songinfo, 'artist', None)
-                    newlabel_tray_egg = newlabel
-                    newlabelfound = True
-                except:
-                    pass
-                if not newlabelfound:
-                    try:
-                        # Fallback, try song:
-                        newlabel = '<big><b>' + escape_html(getattr(self.songinfo, 'title', None)) + '</b></big>\n<small>' + _('by') + ' ' + _('Unknown') + '</small>'
-                        newlabel_tray_gtk = getattr(self.songinfo, 'title', None) + ' ' + _('by') + ' ' + _('Unknown')
-                        newlabel_tray_egg = newlabel
-                        newlabelfound = True
-                    except:
-                        pass
-                    if not newlabelfound:
-                        # Fallback, use file name:
-                        name = self.filename_or_fullpath(self.songinfo.file)
-                        newlabel = '<big><b>' + escape_html(name) + '</b></big>\n<small>' + _('by Unknown') + '</small>'
-                        newlabel_tray_gtk = name + '\n' + _('by Unknown')
-                        newlabel_tray_egg = newlabel
+            newlabel = ""
+            newlabel_tray_gtk = ""
+            if len(self.currsongformat1) > 0:
+                newlabel = newlabel + '<big><b>' + self.parse_formatting(self.currsongformat1, self.songinfo, True) + '</b></big>'
+                newlabel_tray_gtk = newlabel_tray_gtk + self.parse_formatting(self.currsongformat1, self.songinfo, True)
+            if len(self.currsongformat2) > 0:
+                newlabel = newlabel + '\n<small>' + self.parse_formatting(self.currsongformat2, self.songinfo, True) + '</small>'
+                newlabel_tray_gtk = newlabel_tray_gtk + '\n' + self.parse_formatting(self.currsongformat2, self.songinfo, True)
+            else:
+                newlabel = newlabel + '\n '
+                newlabel_tray_gtk = newlabel_tray_gtk + '\n '
+            newlabel_tray_egg = newlabel
             if newlabel != self.cursonglabel.get_label():
                 self.cursonglabel.set_markup(newlabel)
             if HAVE_STATUS_ICON:
@@ -3591,13 +3573,31 @@ class Base(mpdclient3.mpd_connection):
         titleoptions.set_text(self.titleformat)
         titleformatbox.pack_start(titlelabel, False, False, 0)
         titleformatbox.pack_start(titleoptions, False, False, 10)
+        currsongformatbox1 = gtk.HBox()
+        currsonglabel1 = gtk.Label(_("Current song line 1:"))
+        currsonglabel1.set_alignment(0, 0.5)
+        currsongoptions1 = gtk.Entry()
+        currsongoptions1.set_text(self.currsongformat1)
+        currsongformatbox1.pack_start(currsonglabel1, False, False, 0)
+        currsongformatbox1.pack_start(currsongoptions1, False, False, 10)
+        currsongformatbox2 = gtk.HBox()
+        currsonglabel2 = gtk.Label(_("Current song line 2:"))
+        currsonglabel2.set_alignment(0, 0.5)
+        currsongoptions2 = gtk.Entry()
+        currsongoptions2.set_text(self.currsongformat2)
+        currsongformatbox2.pack_start(currsonglabel2, False, False, 0)
+        currsongformatbox2.pack_start(currsongoptions2, False, False, 10)
         max_label_width = 0     # Set all label widths the same
         if currentlabel.size_request()[0] > max_label_width: max_label_width = currentlabel.size_request()[0]
         if librarylabel.size_request()[0] > max_label_width: max_label_width = librarylabel.size_request()[0]
         if titlelabel.size_request()[0] > max_label_width: max_label_width = titlelabel.size_request()[0]
+        if currsonglabel1.size_request()[0] > max_label_width: max_label_width = currsonglabel1.size_request()[0]
+        if currsonglabel2.size_request()[0] > max_label_width: max_label_width = currsonglabel2.size_request()[0]
         currentlabel.set_size_request(max_label_width, -1)
         librarylabel.set_size_request(max_label_width, -1)
         titlelabel.set_size_request(max_label_width, -1)
+        currsonglabel1.set_size_request(max_label_width, -1)
+        currsonglabel2.set_size_request(max_label_width, -1)
         availableheading = gtk.Label()
         availableheading.set_markup('<small>' + _('Available options') + ':</small>')
         availableheading.set_alignment(0, 0)
@@ -3616,15 +3616,12 @@ class Base(mpdclient3.mpd_connection):
         table4.attach(currentformatbox, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table4.attach(libraryformatbox, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table4.attach(titleformatbox, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table4.attach(gtk.Label(), 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table4.attach(availableheading, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table4.attach(availableformatbox, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table4.attach(gtk.Label(), 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table4.attach(gtk.Label(), 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table4.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table4.attach(gtk.Label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table4.attach(gtk.Label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table4.attach(gtk.Label(), 1, 3, 15, 16, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table4.attach(currsongformatbox1, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table4.attach(currsongformatbox2, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table4.attach(gtk.Label(), 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table4.attach(availableheading, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table4.attach(availableformatbox, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 45, 0)
+        table4.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         prefsnotebook.append_page(table, gtk.Label(str=_("MPD")))
         prefsnotebook.append_page(table2, gtk.Label(str=_("Display")))
         prefsnotebook.append_page(table3, gtk.Label(str=_("Behavior")))
@@ -3657,6 +3654,10 @@ class Base(mpdclient3.mpd_connection):
             if self.titleformat != titleoptions.get_text():
                 self.titleformat = titleoptions.get_text()
                 self.update_wintitle()
+            if (self.currsongformat1 != currsongoptions1.get_text()) or (self.currsongformat2 != currsongoptions2.get_text()):
+                self.currsongformat1 = currsongoptions1.get_text()
+                self.currsongformat2 = currsongoptions2.get_text()
+                self.update_cursong()
             if self.window_owner:
                 if self.ontop:
                     self.window.set_keep_above(True)
