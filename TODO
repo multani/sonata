@@ -2,9 +2,10 @@ v1.0
 	support for PLS, M3U, etc (http://www.scvi.net/pls.htm)
 	make selection, dnd, more like thunar
 	GtkStatusIcon - manually check if mouse is over icon? (argh)
-	make current song label, notif/tooltip available in formatting
-		- | to separate lines?
 	ability to edit tags (taglib + tagpy = optional)
+	- recurse into a directory's subdirs
+	- allow setting tag across all selected files
+	retain selected item after update (if possible)
 
 Future:
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)

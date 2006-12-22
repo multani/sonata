@@ -9,6 +9,7 @@ REQUIREMENTS:
 	(Required) GTK 2.6.0 or newer
 	(Optional) MPD
 	(Optional) Gnome-python-extras for the system tray icon
+	(Optional) taglib and tagpy for editing metadata
 	(Building) GCC
 	(Building) python-dev (on some distros)
 
@@ -19,6 +20,7 @@ FEATURES:
 	+ Expanded and collapsed views
 	+ Automatic remote or local album art
 	+ Playlist and stream support
+	+ Support for editing tags
 	+ System tray icon with tooltip
 	+ Optional popup notification
 	+ Library searching by artist, song, etc.

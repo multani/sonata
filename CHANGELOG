@@ -1,15 +1,14 @@
 v1.0 - Pending
-	+ Ability to sort current playlist (by metadata, random, reverse)
+	+ Edit song tags in library (requires optional taglib & tagpy)
+	+ Sort current playlist (by metadata, random, reverse)
 	+ Optional statusbar (playlist length, time)
 	+ Pref to write xmms-info like status file to use with IM, IRC.. (Tim)
 	+ Revert to gtk's StatusIcon if gnome-python-extras isn't installed
 	+ Allow drag-n-drop of images to set album art
 	+ If there is only one image in the song's dir, set as art (Ivan)
-	+ Options for choosing album art (local only, remote only, local
-	  then remote, or remote then local)
+	+ Album art priority preference (local vs remove)
 	+ Formatting options (genre, song length, elapsed time, year) (Ivan)
-	+ Ability to have formatting appear only if the specified tags
-	  are available
+	+ Have formatting appear only if the specified tags are available
 	+ Play friendler with other clients for shuffle/repeat
 	+ Reduced startup time/memory usage
 	+ Ability to run on OLPC's Sugar user environment (Owen)
