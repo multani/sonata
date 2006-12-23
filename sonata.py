@@ -280,7 +280,7 @@ class Base(mpdclient3.mpd_connection):
             ('savemenu', gtk.STOCK_SAVE, _('_Save Playlist...'), '<Ctrl><Shift>s', None, self.save_playlist),
             ('updatemenu', gtk.STOCK_REFRESH, _('_Update Library'), None, None, self.updatedb),
             ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'), None, None, self.prefs),
-            ('aboutmenu', gtk.STOCK_ABOUT, _('_About...'), None, None, self.about),
+            ('aboutmenu', gtk.STOCK_ABOUT, _('_About...'), 'F1', None, self.about),
             ('newmenu', gtk.STOCK_NEW, _('_New...'), '<Ctrl>n', None, self.new_stream),
             ('editmenu', gtk.STOCK_EDIT, _('_Edit...'), None, None, self.edit_stream),
             ('edittagmenu', gtk.STOCK_EDIT, _('_Edit Tags...'), None, None, self.edit_tags),
@@ -418,8 +418,8 @@ class Base(mpdclient3.mpd_connection):
         self.iconfactory = gtk.IconFactory()
         sonataset = gtk.IconSet()
         filename1 = [self.find_path('sonata.png')]
-        self.icons1 = [gtk.IconSource() for i in filename1]
-        for i, iconsource in enumerate(self.icons1):
+        icons1 = [gtk.IconSource() for i in filename1]
+        for i, iconsource in enumerate(icons1):
             iconsource.set_filename(filename1[i])
             sonataset.add_source(iconsource)
         self.iconfactory.add('sonata', sonataset)
@@ -987,6 +987,10 @@ class Base(mpdclient3.mpd_connection):
                         print _("Time") + ": " + at_time + " / " + time
                     except:
                         print _("Time") + ": " + at_time
+                    try:
+                        print _("Bitrate") + ": " + self.status.bitrate
+                    except:
+                        pass
                 else:
                     print _("MPD stopped")
             elif type == "status":
@@ -1499,6 +1503,7 @@ class Base(mpdclient3.mpd_connection):
         # Scroll back to set view for current dir:
         self.browser.realize()
         gobject.idle_add(self.browser_set_view)
+        self.browser_refreshed_after_save = True
 
     def browser_set_view(self):
         try:
@@ -2694,6 +2699,9 @@ class Base(mpdclient3.mpd_connection):
         timelabel = gtk.Label()
         timelabel.set_markup("<b>" + _("Time") + ":</b>")
         timelabel.set_alignment(1, 1)
+        bitratelabel = gtk.Label()
+        bitratelabel.set_markup("<b>" + _("Bitrate") + ":</b>")
+        bitratelabel.set_alignment(1, 1)
         label1 = gtk.Label()
         label1.set_markup('<span size="10"> </span>')
         vbox_left.pack_start(label1, False, False, 2)
@@ -2705,6 +2713,7 @@ class Base(mpdclient3.mpd_connection):
         vbox_left.pack_start(genrelabel, False, False, 2)
         vbox_left.pack_start(filelabel, False, False, 2)
         vbox_left.pack_start(timelabel, False, False, 2)
+        vbox_left.pack_start(bitratelabel, False, False, 2)
         vbox_right = gtk.VBox()
         self.coverwindow_titlelabel = gtk.Label("")
         self.coverwindow_titlelabel.set_alignment(0, 1)
@@ -2722,6 +2731,8 @@ class Base(mpdclient3.mpd_connection):
         self.coverwindow_filelabel.set_alignment(0, 1)
         self.coverwindow_timelabel = gtk.Label("")
         self.coverwindow_timelabel.set_alignment(0, 1)
+        self.coverwindow_bitratelabel = gtk.Label("")
+        self.coverwindow_bitratelabel.set_alignment(0, 1)
         label2 = gtk.Label()
         label2.set_markup('<span size="10"> </span>')
         vbox_right.pack_start(label2, False, False, 2)
@@ -2733,6 +2744,7 @@ class Base(mpdclient3.mpd_connection):
         vbox_right.pack_start(self.coverwindow_genrelabel, False, False, 2)
         vbox_right.pack_start(self.coverwindow_filelabel, False, False, 2)
         vbox_right.pack_start(self.coverwindow_timelabel, False, False, 2)
+        vbox_right.pack_start(self.coverwindow_bitratelabel, False, False, 2)
         hbox = gtk.HBox()
         hbox.pack_start(gtk.Label(), False, False, 5)
         hbox.pack_start(evbox, False, False, 3)
@@ -2765,6 +2777,10 @@ class Base(mpdclient3.mpd_connection):
                         self.coverwindow_timelabel.set_text(at_time + " / " + time)
                     except:
                         self.coverwindow_timelabel.set_text(at_time)
+                    try:
+                        self.coverwindow_bitratelabel.set_text(self.status.bitrate)
+                    except:
+                        self.coverwindow_bitratelabel.set_text(_('Unknown'))
                     if update_all:
                         try:
                             self.coverwindow_titlelabel.set_text(self.songinfo.title)
@@ -2808,6 +2824,7 @@ class Base(mpdclient3.mpd_connection):
                     self.coverwindow_tracklabel.set_text("")
                     self.coverwindow_genrelabel.set_text("")
                     self.coverwindow_filelabel.set_text("")
+                    self.coverwindow_bitratelabel.set_text("")
 
     def coverwindow_show_now(self):
         self.coverwindow.show_all()
@@ -3936,63 +3953,100 @@ class Base(mpdclient3.mpd_connection):
             error_dialog.show()
             return
         editwindow = gtk.Dialog("", self.window, gtk.DIALOG_MODAL)
-        editwindow.set_size_request(300, -1)
+        editwindow.set_size_request(350, -1)
         editwindow.set_resizable(False)
         editwindow.set_has_separator(False)
         table = gtk.Table(9, 2, False)
         table.set_row_spacings(2)
-        filelabel = gtk.Label()
-        filelabel.set_alignment(0.5, 0.5)
+        fileentry = gtk.Entry()
+        fileentry.set_has_frame(False)
+        filehbox = gtk.HBox()
+        sonataicon = gtk.image_new_from_stock('sonata', gtk.ICON_SIZE_MENU)
+        sonataicon.set_alignment(1, 0.5)
+        blanklabel = gtk.Label()
+        blanklabel.set_size_request(15, 12)
+        filehbox.pack_start(sonataicon, False, False, 2)
+        filehbox.pack_start(fileentry, True, True, 2)
+        filehbox.pack_start(blanklabel, False, False, 2)
         titlelabel = gtk.Label(_("Title") + ":")
         titlelabel.set_alignment(1, 0.5)
         titleentry = gtk.Entry()
+        titlebutton = gtk.Button()
+        titlebuttonvbox = gtk.VBox()
+        self.editwindow_create_applyall_button(titlebutton, titlebuttonvbox, titleentry)
         titlehbox = gtk.HBox()
         titlehbox.pack_start(titlelabel, False, False, 2)
         titlehbox.pack_start(titleentry, True, True, 2)
+        titlehbox.pack_start(titlebuttonvbox, False, False, 2)
         artistlabel = gtk.Label(_("Artist") + ":")
         artistlabel.set_alignment(1, 0.5)
         artistentry = gtk.Entry()
         artisthbox = gtk.HBox()
+        artistbutton = gtk.Button()
+        artistbuttonvbox = gtk.VBox()
+        self.editwindow_create_applyall_button(artistbutton, artistbuttonvbox, artistentry)
         artisthbox.pack_start(artistlabel, False, False, 2)
         artisthbox.pack_start(artistentry, True, True, 2)
+        artisthbox.pack_start(artistbuttonvbox, False, False, 2)
         albumlabel = gtk.Label(_("Album") + ":")
         albumlabel.set_alignment(1, 0.5)
         albumentry = gtk.Entry()
         albumhbox = gtk.HBox()
+        albumbutton = gtk.Button()
+        albumbuttonvbox = gtk.VBox()
+        self.editwindow_create_applyall_button(albumbutton, albumbuttonvbox, albumentry)
         albumhbox.pack_start(albumlabel, False, False, 2)
         albumhbox.pack_start(albumentry, True, True, 2)
+        albumhbox.pack_start(albumbuttonvbox, False, False, 2)
         yearlabel = gtk.Label("  " + _("Year") + ":")
         yearlabel.set_alignment(1, 0.5)
         yearentry = gtk.Entry()
         yearentry.set_size_request(50, -1)
         handlerid = yearentry.connect("insert_text", self.entry_float, True)
         yearentry.set_data('handlerid', handlerid)
-        tracklabel = gtk.Label(_("Track") + ":")
+        tracklabel = gtk.Label("  " + _("Track") + ":")
         tracklabel.set_alignment(1, 0.5)
         trackentry = gtk.Entry()
         trackentry.set_size_request(50, -1)
         handlerid2 = trackentry.connect("insert_text", self.entry_float, False)
         trackentry.set_data('handlerid2', handlerid2)
+        yearbutton = gtk.Button()
+        yearbuttonvbox = gtk.VBox()
+        self.editwindow_create_applyall_button(yearbutton, yearbuttonvbox, yearentry)
+        trackbutton = gtk.Button()
+        trackbuttonvbox = gtk.VBox()
+        self.editwindow_create_applyall_button(trackbutton, trackbuttonvbox, trackentry, True)
         yearandtrackhbox = gtk.HBox()
         yearandtrackhbox.pack_start(yearlabel, False, False, 2)
         yearandtrackhbox.pack_start(yearentry, True, True, 2)
+        yearandtrackhbox.pack_start(yearbuttonvbox, False, False, 2)
         yearandtrackhbox.pack_start(tracklabel, False, False, 2)
         yearandtrackhbox.pack_start(trackentry, True, True, 2)
+        yearandtrackhbox.pack_start(trackbuttonvbox, False, False, 2)
         genrelabel = gtk.Label(_("Genre") + ":")
         genrelabel.set_alignment(1, 0.5)
         genreentry = gtk.Entry()
         genrehbox = gtk.HBox()
+        genrebutton = gtk.Button()
+        genrebuttonvbox = gtk.VBox()
+        self.editwindow_create_applyall_button(genrebutton, genrebuttonvbox, genreentry)
         genrehbox.pack_start(genrelabel, False, False, 2)
         genrehbox.pack_start(genreentry, True, True, 2)
+        genrehbox.pack_start(genrebuttonvbox, False, False, 2)
         commentlabel = gtk.Label(_("Comment") + ":")
         commentlabel.set_alignment(1, 0.5)
         commententry = gtk.Entry()
         commenthbox = gtk.HBox()
+        commentbutton = gtk.Button()
+        commentbuttonvbox = gtk.VBox()
+        self.editwindow_create_applyall_button(commentbutton, commentbuttonvbox, commententry)
         commenthbox.pack_start(commentlabel, False, False, 2)
         commenthbox.pack_start(commententry, True, True, 2)
-        self.set_label_widths_equal([titlelabel, artistlabel, albumlabel, yearlabel, genrelabel, commentlabel, filelabel])
+        commenthbox.pack_start(commentbuttonvbox, False, False, 2)
+        self.set_label_widths_equal([titlelabel, artistlabel, albumlabel, yearlabel, genrelabel, commentlabel, sonataicon])
+        fileentry.set_size_request(titleentry.size_request()[0], -1)
         table.attach(gtk.Label(), 1, 2, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 2, 0)
-        table.attach(filelabel, 1, 2, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 2, 0)
+        table.attach(filehbox, 1, 2, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 2, 0)
         table.attach(gtk.Label(), 1, 2, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 2, 0)
         table.attach(titlehbox, 1, 2, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 2, 0)
         table.attach(artisthbox, 1, 2, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 2, 0)
@@ -4003,14 +4057,56 @@ class Base(mpdclient3.mpd_connection):
         table.attach(gtk.Label(), 1, 2, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 2, 0)
         editwindow.vbox.pack_start(table)
         editwindow.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT)
-        editwindow.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT)
+        savebutton = editwindow.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT)
         editwindow.connect('delete_event', self.editwindow_hide)
         self.filetagnum = 0
-        editwindow.connect('response', self.editwindow_response, filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, mpdpaths, filelabel)
-        self.editwindow_update(editwindow, filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, mpdpaths, filelabel)
+        self.saving_tag = False
+        editwindow.connect('response', self.editwindow_response, filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, mpdpaths, fileentry, savebutton)
+        titlebutton.connect('clicked', self.editwindow_applyall, "title", filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry)
+        artistbutton.connect('clicked', self.editwindow_applyall, "artist", filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry)
+        albumbutton.connect('clicked', self.editwindow_applyall, "album", filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry)
+        yearbutton.connect('clicked', self.editwindow_applyall, "year", filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry)
+        trackbutton.connect('clicked', self.editwindow_applyall, "track", filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry)
+        genrebutton.connect('clicked', self.editwindow_applyall, "genre", filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry)
+        commentbutton.connect('clicked', self.editwindow_applyall, "comment", filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry)
+        self.editwindow_update(editwindow, filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, mpdpaths, fileentry, savebutton)
         editwindow.show_all()
 
-    def editwindow_update(self, window, filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, mpdpaths, filelabel):
+    def editwindow_create_applyall_button(self, button, vbox, entry, autotrack=False):
+        button.set_size_request(12, 12)
+        if autotrack:
+            self.tooltips.set_tip(button, _("Increment each selected music file starting at track 1."))
+        else:
+            self.tooltips.set_tip(button, _("Apply to all selected music files."))
+        padding = int((entry.size_request()[1] - button.size_request()[1])/2)+1
+        vbox.pack_start(button, False, False, padding)
+
+    def editwindow_applyall(self, button, item, filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry):
+        filetagnum = 0
+        for filetag in filetags:
+            filetagnum = filetagnum + 1
+            if item == "title":
+                filetag.tag().title = titleentry.get_text()
+            elif item == "album":
+                filetag.tag().album = albumentry.get_text()
+            elif item == "artist":
+                filetag.tag().artist = artistentry.get_text()
+            elif item == "year":
+                if len(yearentry.get_text()) > 0:
+                    filetag.tag().year = int(yearentry.get_text())
+                else:
+                    filetag.tag().year = 0
+            elif item == "track":
+                filetag.tag().track = filetagnum
+            elif item == "genre":
+                filetag.tag().genre = genreentry.get_text()
+            elif item == "comment":
+                filetag.tag().comment = commententry.get_text()
+        if item == "track":
+            # Update the entry for the current song:
+            trackentry.set_text(str(filetags[self.filetagnum].tag().track))
+
+    def editwindow_update(self, window, filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, mpdpaths, fileentry, savebutton):
         titleentry.set_text(filetags[self.filetagnum].tag().title)
         titleentry.select_region(0, len(titleentry.get_text()))
         artistentry.set_text(filetags[self.filetagnum].tag().artist)
@@ -4021,59 +4117,43 @@ class Base(mpdclient3.mpd_connection):
             trackentry.set_text(str(filetags[self.filetagnum].tag().track))
         genreentry.set_text(filetags[self.filetagnum].tag().genre)
         commententry.set_text(filetags[self.filetagnum].tag().comment)
-        filelabel.set_text(mpdpaths[self.filetagnum].split('/')[-1])
+        fileentry.set_text(mpdpaths[self.filetagnum].split('/')[-1])
         window.set_title(_("Edit Tags" + " - " + str(self.filetagnum+1) + " " + _("of") + " " + str(len(filetags))))
-        gobject.idle_add(lambda t: t.grab_focus(), titleentry)
+        titleentry.grab_focus()
+        gobject.idle_add(savebutton.set_sensitive, True)
 
-    def editwindow_response(self, window, response, filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, mpdpaths, filelabel):
+    def editwindow_response(self, window, response, filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, mpdpaths, fileentry, savebutton):
         if response == gtk.RESPONSE_REJECT:
             self.editwindow_hide(window)
         elif response == gtk.RESPONSE_ACCEPT:
-            tag_changed = False
-            if titleentry.get_text() != filetags[self.filetagnum].tag().title:
-                tag_changed = True
-            elif artistentry.get_text() != filetags[self.filetagnum].tag().artist:
-                tag_changed = True
-            elif albumentry.get_text() != filetags[self.filetagnum].tag().album:
-                tag_changed = True
-            elif len(yearentry.get_text()) > 0 and int(yearentry.get_text()) != filetags[self.filetagnum].tag().year:
-                tag_changed = True
-            elif len(yearentry.get_text()) == 0 and filetags[self.filetagnum].tag().year != 0:
-                tag_changed = True
-            elif len(trackentry.get_text()) > 0 and int(trackentry.get_text()) != filetags[self.filetagnum].tag().track:
-                tag_changed = True
-            elif len(trackentry.get_text()) == 0 and filetags[self.filetagnum].tag().track != 0:
-                tag_changed = True
-            elif genreentry.get_text() != filetags[self.filetagnum].tag().genre :
-                tag_changed = True
-            elif commententry.get_text() != filetags[self.filetagnum].tag().comment:
-                tag_changed = True
-            if tag_changed:
-                filetags[self.filetagnum].tag().title = titleentry.get_text()
-                filetags[self.filetagnum].tag().artist = artistentry.get_text()
-                filetags[self.filetagnum].tag().album = albumentry.get_text()
-                if len(yearentry.get_text()) > 0:
-                    filetags[self.filetagnum].tag().year = int(yearentry.get_text())
-                else:
-                    filetags[self.filetagnum].tag().year = 0
-                if len(trackentry.get_text()) > 0:
-                    filetags[self.filetagnum].tag().track = int(trackentry.get_text())
-                else:
-                    filetags[self.filetagnum].tag().track = 0
-                filetags[self.filetagnum].tag().genre = genreentry.get_text()
-                filetags[self.filetagnum].tag().comment = commententry.get_text()
-                try:
-                    filetags[self.filetagnum].save()
-                    if self.conn:
-                        self.conn.do.update(mpdpaths[self.filetagnum])
-                except:
-                    error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("Unable to save tag to music file."))
-                    error_dialog.set_title(_("Edit Tags"))
-                    error_dialog.connect('response', self.choose_image_dialog_response)
-                    error_dialog.show()
+            savebutton.set_sensitive(False)
+            while savebutton.get_property("sensitive") == True:
+                gtk.main_iteration()
+            filetags[self.filetagnum].tag().title = titleentry.get_text()
+            filetags[self.filetagnum].tag().artist = artistentry.get_text()
+            filetags[self.filetagnum].tag().album = albumentry.get_text()
+            if len(yearentry.get_text()) > 0:
+                filetags[self.filetagnum].tag().year = int(yearentry.get_text())
+            else:
+                filetags[self.filetagnum].tag().year = 0
+            if len(trackentry.get_text()) > 0:
+                filetags[self.filetagnum].tag().track = int(trackentry.get_text())
+            else:
+                filetags[self.filetagnum].tag().track = 0
+            filetags[self.filetagnum].tag().genre = genreentry.get_text()
+            filetags[self.filetagnum].tag().comment = commententry.get_text()
+            save_success = filetags[self.filetagnum].save()
+            if save_success:
+                if self.conn:
+                    self.conn.do.update(mpdpaths[self.filetagnum])
+            else:
+                error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("Unable to save tag to music file."))
+                error_dialog.set_title(_("Edit Tags"))
+                error_dialog.connect('response', self.choose_image_dialog_response)
+                error_dialog.show()
             if self.filetagnum+1 < len(filetags):
                 self.filetagnum = self.filetagnum + 1
-                self.editwindow_update(window, filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, mpdpaths, filelabel)
+                self.editwindow_update(window, filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, mpdpaths, fileentry, savebutton)
             else:
                 self.editwindow_hide(window)
 
@@ -4107,17 +4187,6 @@ class Base(mpdclient3.mpd_connection):
         gobject.idle_add(lambda t: t.set_position(t.get_position()+1), entry)
         entry.stop_emission("insert-text")
         pass
-
-    def validate_entry_as_numbers(self, editable, new_text, new_text_length, position):
-        editable.handler_block(editable.mySigHandID)
-        try:
-            value = int(new_text)
-        except ValueError:
-            # Restore previous contents
-            editable.delete_text(pos, pos + new_text_length)
-        else:
-            editable.set_position(pos + new_text_length)
-        editable.handler_unblock(editable.mySigHandID)
 
     def about(self, action):
         self.about_dialog = gtk.AboutDialog()

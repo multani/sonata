@@ -4,11 +4,15 @@ v1.0
 	GtkStatusIcon - manually check if mouse is over icon? (argh)
 	ability to edit tags (taglib + tagpy = optional)
 	- recurse into a directory's subdirs
-	- allow setting tag across all selected files
+	- if you hold down alt-s, doesn't update properly in sonata..
+	- show changes in another color
 	retain selected item after update (if possible)
+	some way to bring up the info viewer when art is disabled
 
 Future:
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
 		Add to > Next song, top, random
 	connect in background via socket.setblocking(0)
 	lyrics? last.fm?
+	library viewing prefs (filesystem, artist, album) - small toggle
+		icons at bottom left?
