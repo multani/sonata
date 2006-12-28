@@ -693,10 +693,6 @@ class Base(mpdclient3.mpd_connection):
         self.outtertipbox.pack_start(self.tipbox, False, False, 2)
         self.outtertipbox.show_all()
         self.traytips.add_widget(self.outtertipbox)
-        if self.show_covers:
-            self.traytips.set_size_request(350, -1)
-        else:
-            self.traytips.set_size_request(250, -1)
 
         # Volumescale window
         self.volumewindow = gtk.Window(gtk.WINDOW_POPUP)
@@ -2093,6 +2089,10 @@ class Base(mpdclient3.mpd_connection):
                 self.cursonglabel.set_markup(newlabel)
             if newlabel_tray_egg != self.traycursonglabel.get_label():
                 self.traycursonglabel.set_markup(newlabel_tray_egg)
+            if self.show_covers:
+                self.traytips.set_size_request(350, -1)
+            else:
+                self.traytips.set_size_request(250, -1)
         else:
             if self.expanded:
                 self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to collapse') + '</small>')
@@ -2383,10 +2383,6 @@ class Base(mpdclient3.mpd_connection):
 
     def labelnotify(self, *args):
         if self.sonata_loaded:
-            if self.show_covers:
-                self.traytips.set_size_request(350, -1)
-            else:
-                self.traytips.set_size_request(250, -1)
             if self.show_notification:
                 try:
                     gobject.source_remove(self.traytips.notif_handler)
