@@ -1,12 +1,9 @@
 v1.0
-	support for PLS, M3U, etc (http://www.scvi.net/pls.htm)
 	make selection, dnd, more like thunar
-	GtkStatusIcon - manually check if mouse is over icon? (argh)
+	GtkStatusIcon - iterate more often to check for cursor?
 	ability to edit tags (taglib + tagpy = optional)
 	- recurse into a directory's subdirs
 	- if you hold down alt-s, doesn't update properly in sonata..
-	- show changes in another color
-	retain selected item after update (if possible)
 	some way to bring up the info viewer when art is disabled
 
 Future:

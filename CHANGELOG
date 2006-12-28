@@ -1,5 +1,6 @@
 v1.0 - Pending
 	+ Edit song tags in library (requires optional taglib & tagpy)
+	+ Allow pls/m3u/extm3u streams as input
 	+ Sort current playlist (by metadata, random, reverse)
 	+ Optional statusbar (playlist length, time)
 	+ Pref to write xmms-info like status file to use with IM, IRC.. (Tim)
@@ -8,11 +9,14 @@ v1.0 - Pending
 	+ If there is only one image in the song's dir, set as art (Ivan)
 	+ Album art priority preference (local vs remove)
 	+ Formatting options (genre, song length, elapsed time, year) (Ivan)
-	+ Have formatting appear only if the specified tags are available
+	+ Pref to play enqueued items on activate (enter/double-click)
 	+ Play friendler with other clients for shuffle/repeat
 	+ Reduced startup time/memory usage
+	+ Use parantheses to have formatting appear only if all enclosed tags 
+	  are available
 	+ Ability to run on OLPC's Sugar user environment (Owen)
-	+ Bug: Fixed more occassional interface freezes due to threading
+	+ Bug: Unable to edit streams unless name changes
+	+ Bug: Completely fixed interface freezes due to threading
 	+ Bug: Cannot set album art for album/artist with "/" in name
 	+ Bug: Prevent interface jumping because of progress bar font
 

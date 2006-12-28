@@ -249,6 +249,7 @@ class Base(mpdclient3.mpd_connection):
         self.prev_boldrow = -1
         self.use_infofile = False
         self.infofile_path = '/tmp/xmms-info'
+        self.play_on_activate = False
         show_prefs = False
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
@@ -757,13 +758,16 @@ class Base(mpdclient3.mpd_connection):
         self.progressbar.connect('notify::text', self.progressbarnotify_text)
         self.browser.connect('row_activated', self.browserow)
         self.browser.connect('button_press_event', self.browser_button_press)
+        self.browser.connect('key-press-event', self.browser_key_press)
         self.browser_selection.connect('changed', self.treeview_selection_changed)
         self.playlists.connect('button_press_event', self.playlists_button_press)
         self.playlists.connect('row_activated', self.playlists_activated)
         self.playlists_selection.connect('changed', self.treeview_selection_changed)
+        self.playlists.connect('key-press-event', self.playlists_key_press)
         self.streams.connect('button_press_event', self.streams_button_press)
         self.streams.connect('row_activated', self.streams_activated)
         self.streams_selection.connect('changed', self.treeview_selection_changed)
+        self.streams.connect('key-press-event', self.streams_key_press)
         self.ppbutton.connect('button_press_event', self.popup_menu)
         self.prevbutton.connect('button_press_event', self.popup_menu)
         self.stopbutton.connect('button_press_event', self.popup_menu)
@@ -1125,6 +1129,8 @@ class Base(mpdclient3.mpd_connection):
         if HAVE_STATUS_ICON:
             if self.statusicon.is_embedded() and not self.statusicon.get_visible():
                 self.initialize_systrayicon()
+            if self.statusicon.is_embedded() and self.statusicon.get_visible():
+                self.tooltip_show_manually()
         elif HAVE_EGG:
             if self.trayicon.get_property('visible') == False:
                 self.initialize_systrayicon()
@@ -1232,6 +1238,8 @@ class Base(mpdclient3.mpd_connection):
             self.use_infofile = conf.getboolean('player', 'use_infofile')
         if conf.has_option('player', 'infofile_path'):
             self.infofile_path = conf.get('player', 'infofile_path')
+        if conf.has_option('player', 'play_on_activate'):
+            self.play_on_activate = conf.getboolean('player', 'play_on_activate')
         if conf.has_option('format', 'current'):
             self.currentformat = conf.get('format', 'current')
         if conf.has_option('format', 'library'):
@@ -1279,6 +1287,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'covers_pref', self.covers_pref)
         conf.set('player', 'use_infofile', self.use_infofile)
         conf.set('player', 'infofile_path', self.infofile_path)
+        conf.set('player', 'play_on_activate', self.play_on_activate)
         conf.add_section('format')
         conf.set('format', 'current', self.currentformat)
         conf.set('format', 'library', self.libraryformat)
@@ -1360,6 +1369,9 @@ class Base(mpdclient3.mpd_connection):
             name = nameentry.get_text()
             uri = urlentry.get_text()
             if len(name) > 0 and len(uri) > 0:
+                if edit_mode:
+                    self.stream_names.pop(stream_num)
+                    self.stream_uris.pop(stream_num)
                 # Make sure this stream name doesn't already exit:
                 for item in self.stream_names:
                     if item == name:
@@ -1370,9 +1382,6 @@ class Base(mpdclient3.mpd_connection):
                         error_dialog.run()
                         error_dialog.destroy()
                         return
-                if edit_mode:
-                    self.stream_names.pop(stream_num)
-                    self.stream_uris.pop(stream_num)
                 self.stream_names.append(name)
                 self.stream_uris.append(uri)
                 self.streams_populate()
@@ -1437,11 +1446,29 @@ class Base(mpdclient3.mpd_connection):
         for item in streamsinfo:
             self.streamsdata.append([gtk.STOCK_NETWORK, item["name"], item["uri"]])
 
-    def playlists_activated(self, treeview, path, column):
-        self.add_item(None)
+    def playlists_key_press(self, widget, event):
+        if event.keyval == gtk.gdk.keyval_from_name('Return'):
+            self.playlists_activated(widget, widget.get_cursor()[0])
+            return True
 
-    def streams_activated(self, treeview, path, column):
+    def playlists_activated(self, treeview, path, column=0):
+        if self.status:
+            playid = self.status.playlistlength
         self.add_item(None)
+        if self.play_on_activate:
+            self.play_item(playid)
+
+    def streams_key_press(self, widget, event):
+        if event.keyval == gtk.gdk.keyval_from_name('Return'):
+            self.streams_activated(widget, widget.get_cursor()[0])
+            return True
+
+    def streams_activated(self, treeview, path, column=0):
+        if self.status:
+            playid = self.status.playlistlength
+        self.add_item(None)
+        if self.play_on_activate:
+            self.play_item(playid)
 
     def parent_dir(self, action):
         if self.notebook.get_current_page() == self.TAB_LIBRARY:
@@ -1459,7 +1486,11 @@ class Base(mpdclient3.mpd_connection):
         while lsinfo == []:
             if self.conn.do.listallinfo(root):
                 # Info exists if we try to browse to a song
+                if self.status:
+                    playid = self.status.playlistlength
                 self.add_item(self.browser)
+                if self.play_on_activate:
+                    self.play_item(playid)
                 return
             elif root == '/':
                 # Nothing in the library at all
@@ -1467,6 +1498,23 @@ class Base(mpdclient3.mpd_connection):
             else:
                 # Back up and try the parent
                 root = '/'.join(root.split('/')[:-1]) or '/'
+
+        prev_selection = []
+        prev_selection_root = False
+        prev_selection_parent = False
+        if root == self.browser.wd:
+            # This will happen when the database is updated. So, lets save
+            # the current selection in order to try to re-select it after
+            # the update is over.
+            model, selected = self.browser_selection.get_selected_rows()
+            for path in selected:
+                if model.get_value(model.get_iter(path), 2) == "/":
+                    prev_selection_root = True
+                elif model.get_value(model.get_iter(path), 2) == "..":
+                    prev_selection_parent = True
+                else:
+                    prev_selection.append(model.get_value(model.get_iter(path), 1))
+            self.browserposition[self.browser.wd] = self.browser.get_visible_rect()[1]
 
         self.root = root
         # The logic below is more consistent with, e.g., thunar
@@ -1479,7 +1527,7 @@ class Base(mpdclient3.mpd_connection):
                 value_for_selection = self.browserdata.get_value(self.browserdata.get_iter(rows[0]), 2)
                 if value_for_selection != ".." and value_for_selection != "/":
                     self.browserselectedpath[self.browser.wd] = rows[0]
-        else:
+        elif root != self.browser.wd:
             # If we've navigated to a parent directory, don't save
             # anything so that the user will enter that subdirectory
             # again at the top position with nothing selected
@@ -1503,7 +1551,19 @@ class Base(mpdclient3.mpd_connection):
         # Scroll back to set view for current dir:
         self.browser.realize()
         gobject.idle_add(self.browser_set_view)
-        self.browser_refreshed_after_save = True
+        if len(prev_selection) > 0 or prev_selection_root or prev_selection_parent:
+            self.browser_retain_preupdate_selection(prev_selection, prev_selection_root, prev_selection_parent)
+
+    def browser_retain_preupdate_selection(self, prev_selection, prev_selection_root, prev_selection_parent):
+        for value in prev_selection:
+            for rownum in range(len(self.browserdata)):
+                if value == self.browserdata.get_value(self.browserdata.get_iter((rownum,)), 1):
+                    self.browser_selection.select_path((rownum,))
+                    break
+        if prev_selection_root:
+            self.browser_selection.select_path((0,))
+        if prev_selection_parent:
+            self.browser_selection.select_path((1,))
 
     def browser_set_view(self):
         try:
@@ -1657,7 +1717,19 @@ class Base(mpdclient3.mpd_connection):
             pass
         return False
 
+    def browser_key_press(self, widget, event):
+        if event.keyval == gtk.gdk.keyval_from_name('Return'):
+            self.browserow(widget, widget.get_cursor()[0])
+            return True
+
     def browserow(self, widget, path, column=0):
+        if path is None:
+            # Default to last item in selection:
+            model, selected = self.browser_selection.get_selected_rows()
+            if len(selected) >=1:
+                path = (len(selected)-1,)
+            else:
+                path = (0,)
         self.browse(None, self.browserdata.get_value(self.browserdata.get_iter(path), 1))
 
     def treeview_selection_changed(self, *args):
@@ -1699,10 +1771,13 @@ class Base(mpdclient3.mpd_connection):
             if self.streams_selection.count_selected_rows() > 1:
                 return True
 
+    def play_item(self, playid):
+        if self.conn:
+            self.conn.do.play(int(playid))
+
     def add_item(self, widget):
         if self.conn:
             if self.notebook.get_current_page() == self.TAB_LIBRARY:
-                # Library
                 model, selected = self.browser_selection.get_selected_rows()
                 if self.root == "/":
                     if len(selected) == len(self.browserdata):
@@ -1721,16 +1796,76 @@ class Base(mpdclient3.mpd_connection):
                             if path[0] != 0 and path[0] != 1:
                                 self.conn.do.add(model.get_value(model.get_iter(path), 1))
             elif self.notebook.get_current_page() == self.TAB_PLAYLISTS:
-                # Playlist
                 model, selected = self.playlists_selection.get_selected_rows()
                 for path in selected:
                     self.conn.do.load(model.get_value(model.get_iter(path), 1))
             elif self.notebook.get_current_page() == self.TAB_STREAMS:
-                # Streams
                 model, selected = self.streams_selection.get_selected_rows()
                 for path in selected:
-                    self.conn.do.add(model.get_value(model.get_iter(path), 2))
+                    item = model.get_value(model.get_iter(path), 2)
+                    self.stream_parse_and_add(item)
             self.iterate_now()
+
+    def stream_parse_and_add(self, item):
+        # We need to do different things depending on if this is
+        # a normal stream, pls, m3u, etc..
+        # Note that we will only download the first 2000 bytes
+        f = None
+        try:
+            request = urllib2.Request(item)
+            opener = urllib2.build_opener()
+            f = opener.open(request).read(2000)
+        except:
+            try:
+                request = urllib2.Request("http://" + item)
+                opener = urllib2.build_opener()
+                f = opener.open(request).read(2000)
+            except:
+                try:
+                    request = urllib2.Request("file://" + item)
+                    opener = urllib2.build_opener()
+                    f = opener.open(request).read(2000)
+                except:
+                    pass
+        if f:
+            if is_binary(f):
+                # Binary file, just add it:
+                self.conn.do.add(item)
+            else:
+                if "[playlist]" in f:
+                    # pls:
+                    self.stream_parse_pls(f)
+                elif "#EXTM3U" in f:
+                    # extended m3u:
+                    self.stream_parse_m3u(f)
+                elif "http://" in f:
+                    # m3u or generic list:
+                    self.stream_parse_m3u(f)
+                else:
+                    # Something else..
+                    self.conn.do.add(item)
+        else:
+            # Hopefully just a regular stream, try to add it:
+            self.conn.do.add(item)
+
+    def stream_parse_pls(self, f):
+        lines = f.split("\r\n")
+        for line in lines:
+            delim = line.find("=")+1
+            if delim > 0:
+                line = line[delim:]
+                if len(line) > 7 and line[0:7] == 'http://':
+                    self.conn.do.add(line)
+                elif len(line) > 6 and line[0:6] == 'ftp://':
+                    self.conn.do.add(line)
+
+    def stream_parse_m3u(self, f):
+        lines = f.split("\r\n")
+        for line in lines:
+            if len(line) > 7 and line[0:7] == 'http://':
+                self.conn.do.add(line)
+            elif len(line) > 6 and line[0:6] == 'ftp://':
+                self.conn.do.add(line)
 
     def replace_item(self, widget):
         play_after_replace = False
@@ -1973,8 +2108,8 @@ class Base(mpdclient3.mpd_connection):
             newlabel_tray_egg = newlabel
             if newlabel != self.cursonglabel.get_label():
                 self.cursonglabel.set_markup(newlabel)
-            if HAVE_STATUS_ICON:
-                self.statusicon.set_tooltip(newlabel_tray_gtk)
+            #if HAVE_STATUS_ICON:
+            #	self.statusicon.set_tooltip(newlabel_tray_gtk)
             if newlabel_tray_egg != self.traycursonglabel.get_label():
                 self.traycursonglabel.set_markup(newlabel_tray_egg)
         else:
@@ -3084,6 +3219,23 @@ class Base(mpdclient3.mpd_connection):
                 self.traytips._remove_timer()
             gobject.timeout_add(100, self.set_ignore_toggle_signal_false)
 
+    def tooltip_show_manually(self):
+        # Since there is no signal to connect to when the user puts their
+        # mouse over the trayicon, we will check the mouse position
+        # manually and show/hide the window as appropriate. This is called
+        # every iteration.
+        pointer_screen, px, py, _ = self.window.get_screen().get_display().get_pointer()
+        icon_screen, icon_rect, icon_orient = self.statusicon.get_geometry()
+        x = icon_rect[0]
+        y = icon_rect[1]
+        width = icon_rect[2]
+        height = icon_rect[3]
+        if px >= x and px <= x+width and py >= y and py <= y+height:
+            self.traytips._start_delay(self.statusicon)
+        else:
+            self.traytips._remove_timer()
+        #x=1
+
     # What happens when you click on the system tray icon?
     def trayaction(self, widget, event):
         if event.button == 1 and not self.ignore_toggle_signal: # Left button shows/hides window(s)
@@ -3273,10 +3425,9 @@ class Base(mpdclient3.mpd_connection):
                 if len(selected) == len(self.currentdata):
                     # Everything is selected, clear:
                     self.conn.do.clear()
-                else:
-                    iters = [model.get_iter(path) for path in selected]
-                    for iter in iters:
-                        self.conn.do.deleteid(self.currentdata.get_value(iter, 0))
+                elif len(selected) > 0:
+                    for path in selected:
+                        self.conn.do.deleteid(self.currentdata.get_value(model.get_iter(path), 0))
             elif page_num == self.TAB_PLAYLISTS:
                 model, selected = self.playlists_selection.get_selected_rows()
                 iters = [model.get_iter(path) for path in selected]
@@ -3514,6 +3665,9 @@ class Base(mpdclient3.mpd_connection):
         minimize = gtk.CheckButton(_("Minimize to system tray on close"))
         minimize.set_active(self.minimize_to_systray)
         self.tooltips.set_tip(minimize, _("If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."))
+        activate = gtk.CheckButton(_("Play enqueued files on activate"))
+        activate.set_active(self.play_on_activate)
+        self.tooltips.set_tip(activate, _("Automatically play enqueued items when activated via double-click or enter."))
         if HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible():
             minimize.set_sensitive(True)
         elif HAVE_EGG and self.trayicon.get_property('visible') == True:
@@ -3547,7 +3701,7 @@ class Base(mpdclient3.mpd_connection):
         table3.attach(update_start, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table3.attach(exit_stop, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table3.attach(infofilebox, 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(gtk.Label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table3.attach(activate, 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table3.attach(gtk.Label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table3.attach(gtk.Label(), 1, 3, 15, 16, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 45, 0)
         # Format tab
@@ -3628,6 +3782,7 @@ class Base(mpdclient3.mpd_connection):
         response = prefswindow.run()
         if response == gtk.RESPONSE_CLOSE:
             self.stop_on_exit = exit_stop.get_active()
+            self.play_on_activate = activate.get_active()
             self.ontop = win_ontop.get_active()
             self.covers_pref = display_art_combo.get_active()
             self.sticky = win_sticky.get_active()
@@ -3936,6 +4091,7 @@ class Base(mpdclient3.mpd_connection):
                 temp_mpdpaths.append(model.get_value(model.get_iter(path), 1))
         filetags = []
         mpdpaths = []
+        tag_changed = [] # Keeps track of whether tags have changed (for hilighting)
         filenum = 0
         for file in files:
             try:
@@ -3943,6 +4099,7 @@ class Base(mpdclient3.mpd_connection):
                 if not fileref.isNull():
                     filetags.append(fileref)
                     mpdpaths.append(temp_mpdpaths[filenum])
+                    tag_changed.append({'title':False, 'artist':False, 'album':False, 'year':False, 'track':False, 'genre':False, 'comment':False})
             except:
                 pass
             filenum = filenum + 1
@@ -4060,91 +4217,123 @@ class Base(mpdclient3.mpd_connection):
         savebutton = editwindow.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT)
         editwindow.connect('delete_event', self.editwindow_hide)
         self.filetagnum = 0
-        self.saving_tag = False
-        editwindow.connect('response', self.editwindow_response, filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, mpdpaths, fileentry, savebutton)
-        titlebutton.connect('clicked', self.editwindow_applyall, "title", filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry)
-        artistbutton.connect('clicked', self.editwindow_applyall, "artist", filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry)
-        albumbutton.connect('clicked', self.editwindow_applyall, "album", filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry)
-        yearbutton.connect('clicked', self.editwindow_applyall, "year", filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry)
-        trackbutton.connect('clicked', self.editwindow_applyall, "track", filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry)
-        genrebutton.connect('clicked', self.editwindow_applyall, "genre", filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry)
-        commentbutton.connect('clicked', self.editwindow_applyall, "comment", filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry)
-        self.editwindow_update(editwindow, filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, mpdpaths, fileentry, savebutton)
+        self.edit_style_orig = titleentry.get_style()
+        entries = [titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, fileentry]
+        buttons = [titlebutton, artistbutton, albumbutton, yearbutton, trackbutton, genrebutton, commentbutton]
+        entries_names = ["title", "artist", "album", "year", "track", "genre", "comment"]
+        editwindow.connect('response', self.editwindow_response, filetags, mpdpaths, savebutton, tag_changed, entries, entries_names)
+        for i in range(len(entries)):
+            entries[i].connect('changed', self.edit_entry_changed)
+        for i in range(len(buttons)):
+            buttons[i].connect('clicked', self.editwindow_applyall, entries_names[i], filetags, tag_changed, entries)
+        self.fileentry_handler = fileentry.connect('changed', self.edit_fileentry_revert, mpdpaths)
+        self.editwindow_update(editwindow, filetags, mpdpaths, savebutton, tag_changed, entries, entries_names)
         editwindow.show_all()
+
+    def edit_fileentry_revert(self, editable, mpdpaths):
+        editable.handler_block(self.fileentry_handler)
+        editable.set_text(mpdpaths[self.filetagnum].split('/')[-1])
+        editable.handler_unblock(self.fileentry_handler)
+
+    def edit_entry_changed(self, editable):
+        if not self.updating_edit_entries:
+            style = editable.get_style().copy()
+            style.text[gtk.STATE_NORMAL] = editable.get_colormap().alloc_color("red")
+            editable.set_style(style)
+
+    def edit_entry_revert_color(self, editable, fileentry):
+        editable.set_style(self.edit_style_orig)
 
     def editwindow_create_applyall_button(self, button, vbox, entry, autotrack=False):
         button.set_size_request(12, 12)
         if autotrack:
-            self.tooltips.set_tip(button, _("Increment each selected music file starting at track 1."))
+            self.tooltips.set_tip(button, _("Increment each selected music file, starting at track 1 for this file."))
         else:
             self.tooltips.set_tip(button, _("Apply to all selected music files."))
         padding = int((entry.size_request()[1] - button.size_request()[1])/2)+1
         vbox.pack_start(button, False, False, padding)
 
-    def editwindow_applyall(self, button, item, filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry):
+    def editwindow_applyall(self, button, item, filetags, tag_changed, entries):
         filetagnum = 0
         for filetag in filetags:
             filetagnum = filetagnum + 1
+            tag_changed[filetagnum-1][item] = True
             if item == "title":
-                filetag.tag().title = titleentry.get_text()
+                filetag.tag().title = entries[0].get_text()
             elif item == "album":
-                filetag.tag().album = albumentry.get_text()
+                filetag.tag().album = entries[2].get_text()
             elif item == "artist":
-                filetag.tag().artist = artistentry.get_text()
+                filetag.tag().artist = entries[1].get_text()
             elif item == "year":
-                if len(yearentry.get_text()) > 0:
-                    filetag.tag().year = int(yearentry.get_text())
+                if len(entries[3].get_text()) > 0:
+                    filetag.tag().year = int(entries[3].get_text())
                 else:
                     filetag.tag().year = 0
             elif item == "track":
-                filetag.tag().track = filetagnum
+                if filetagnum >= self.filetagnum:
+                    # Start the current song at track 1, as opposed to the first
+                    # song in the list.
+                    filetag.tag().track = filetagnum - self.filetagnum + 1
+                else:
+                    filetag.tag().track = 0
             elif item == "genre":
-                filetag.tag().genre = genreentry.get_text()
+                filetag.tag().genre = entries[5].get_text()
             elif item == "comment":
-                filetag.tag().comment = commententry.get_text()
+                filetag.tag().comment = entries[6].get_text()
         if item == "track":
             # Update the entry for the current song:
-            trackentry.set_text(str(filetags[self.filetagnum].tag().track))
+            entries[4].set_text(str(filetags[self.filetagnum].tag().track))
 
-    def editwindow_update(self, window, filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, mpdpaths, fileentry, savebutton):
-        titleentry.set_text(filetags[self.filetagnum].tag().title)
-        titleentry.select_region(0, len(titleentry.get_text()))
-        artistentry.set_text(filetags[self.filetagnum].tag().artist)
-        albumentry.set_text(filetags[self.filetagnum].tag().album)
+    def editwindow_update(self, window, filetags, mpdpaths, savebutton, tag_changed, entries, entries_names):
+        self.updating_edit_entries = True
+        entries[0].set_text(filetags[self.filetagnum].tag().title)
+        entries[0].select_region(0, len(entries[0].get_text()))
+        entries[0].grab_focus()
+        entries[1].set_text(filetags[self.filetagnum].tag().artist)
+        entries[2].set_text(filetags[self.filetagnum].tag().album)
         if filetags[self.filetagnum].tag().year != 0:
-            yearentry.set_text(str(filetags[self.filetagnum].tag().year))
+            entries[3].set_text(str(filetags[self.filetagnum].tag().year))
         if filetags[self.filetagnum].tag().track != 0:
-            trackentry.set_text(str(filetags[self.filetagnum].tag().track))
-        genreentry.set_text(filetags[self.filetagnum].tag().genre)
-        commententry.set_text(filetags[self.filetagnum].tag().comment)
-        fileentry.set_text(mpdpaths[self.filetagnum].split('/')[-1])
+            entries[4].set_text(str(filetags[self.filetagnum].tag().track))
+        entries[5].set_text(filetags[self.filetagnum].tag().genre)
+        entries[6].set_text(filetags[self.filetagnum].tag().comment)
+        entries[7].set_text(mpdpaths[self.filetagnum].split('/')[-1])
         window.set_title(_("Edit Tags" + " - " + str(self.filetagnum+1) + " " + _("of") + " " + str(len(filetags))))
-        titleentry.grab_focus()
         gobject.idle_add(savebutton.set_sensitive, True)
+        self.updating_edit_entries = False
+        # Update text colors as appropriate:
+        for i in range(len(entries)-1):
+            if tag_changed[self.filetagnum][entries_names[i]]:
+                self.edit_entry_changed(entries[i])
+            else:
+                self.edit_entry_revert_color(entries[i], entries[len(entries)-1])
 
-    def editwindow_response(self, window, response, filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, mpdpaths, fileentry, savebutton):
+    def editwindow_response(self, window, response, filetags, mpdpaths, savebutton, tag_changed, entries, entries_names):
         if response == gtk.RESPONSE_REJECT:
             self.editwindow_hide(window)
         elif response == gtk.RESPONSE_ACCEPT:
             savebutton.set_sensitive(False)
-            while savebutton.get_property("sensitive") == True:
+            while savebutton.get_property("sensitive") == True or gtk.events_pending():
                 gtk.main_iteration()
-            filetags[self.filetagnum].tag().title = titleentry.get_text()
-            filetags[self.filetagnum].tag().artist = artistentry.get_text()
-            filetags[self.filetagnum].tag().album = albumentry.get_text()
-            if len(yearentry.get_text()) > 0:
-                filetags[self.filetagnum].tag().year = int(yearentry.get_text())
+            filetags[self.filetagnum].tag().title = entries[0].get_text()
+            filetags[self.filetagnum].tag().artist = entries[1].get_text()
+            filetags[self.filetagnum].tag().album = entries[2].get_text()
+            if len(entries[3].get_text()) > 0:
+                filetags[self.filetagnum].tag().year = int(entries[3].get_text())
             else:
                 filetags[self.filetagnum].tag().year = 0
-            if len(trackentry.get_text()) > 0:
-                filetags[self.filetagnum].tag().track = int(trackentry.get_text())
+            if len(entries[4].get_text()) > 0:
+                filetags[self.filetagnum].tag().track = int(entries[4].get_text())
             else:
                 filetags[self.filetagnum].tag().track = 0
-            filetags[self.filetagnum].tag().genre = genreentry.get_text()
-            filetags[self.filetagnum].tag().comment = commententry.get_text()
+            filetags[self.filetagnum].tag().genre = entries[5].get_text()
+            filetags[self.filetagnum].tag().comment = entries[6].get_text()
             save_success = filetags[self.filetagnum].save()
             if save_success:
                 if self.conn:
+                    if self.status:
+                        while self.status.get('updating_db', 0):
+                            gtk.main_iteration()
                     self.conn.do.update(mpdpaths[self.filetagnum])
             else:
                 error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("Unable to save tag to music file."))
@@ -4153,7 +4342,7 @@ class Base(mpdclient3.mpd_connection):
                 error_dialog.show()
             if self.filetagnum+1 < len(filetags):
                 self.filetagnum = self.filetagnum + 1
-                self.editwindow_update(window, filetags, titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, mpdpaths, fileentry, savebutton)
+                self.editwindow_update(window, filetags, mpdpaths, savebutton, tag_changed, entries, entries_names)
             else:
                 self.editwindow_hide(window)
 
@@ -4462,6 +4651,11 @@ def rmgeneric(path, __func__):
         __func__(path)
     except OSError, (errno, strerror):
         pass
+
+def is_binary(f):
+    if '\0' in f: # found null byte
+        return True
+    return False
 
 def removeall(path):
     if not os.path.isdir(path):

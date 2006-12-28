@@ -9,6 +9,7 @@ REQUIREMENTS:
 	(Required) GTK 2.6.0 or newer
 	(Optional) MPD
 	(Optional) Gnome-python-extras for the system tray icon
+	           (note: GTK/PyGTK >= 2.10 will also have a tray icon)
 	(Optional) taglib and tagpy for editing metadata
 	(Building) GCC
 	(Building) python-dev (on some distros)
@@ -27,3 +28,4 @@ FEATURES:
 	+ Keyboard friendly
 	+ Support for multimedia keys
 	+ Repeat, shuffle, volume control, etc.
+	+ Commandline control
