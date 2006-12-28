@@ -652,9 +652,9 @@ class Base(mpdclient3.mpd_connection):
         self.outtertipbox = gtk.VBox()
         self.tipbox = gtk.HBox()
         self.trayalbumeventbox = gtk.EventBox()
-        self.trayalbumeventbox.set_size_request(57, 90)
+        self.trayalbumeventbox.set_size_request(59, 90)
         self.trayalbumimage1 = gtk.Image()
-        self.trayalbumimage1.set_size_request(50, 75)
+        self.trayalbumimage1.set_size_request(51, 77)
         self.trayalbumimage1.set_alignment(1, 0.5)
         self.trayalbumeventbox.add(self.trayalbumimage1)
         self.trayalbumeventbox.set_state(gtk.STATE_SELECTED)
@@ -663,7 +663,7 @@ class Base(mpdclient3.mpd_connection):
         self.tipbox.pack_start(hiddenlbl, False, False, 0)
         self.tipbox.pack_start(self.trayalbumeventbox, False, False, 0)
         self.trayalbumimage2 = gtk.Image()
-        self.trayalbumimage2.set_size_request(25, 75)
+        self.trayalbumimage2.set_size_request(26, 77)
         self.tipbox.pack_start(self.trayalbumimage2, False, False, 0)
         if not self.show_covers:
             self.trayalbumeventbox.set_no_show_all(True)
@@ -1246,6 +1246,10 @@ class Base(mpdclient3.mpd_connection):
             self.libraryformat = conf.get('format', 'library')
         if conf.has_option('format', 'title'):
             self.titleformat = conf.get('format', 'title')
+        if conf.has_option('format', 'currsong1'):
+            self.currsongformat1 = conf.get('format', 'currsong1')
+        if conf.has_option('format', 'currsong2'):
+            self.currsongformat2 = conf.get('format', 'currsong2')
         if conf.has_option('streams', 'num_streams'):
             num_streams = conf.getint('streams', 'num_streams')
             self.stream_names = []
@@ -1292,6 +1296,8 @@ class Base(mpdclient3.mpd_connection):
         conf.set('format', 'current', self.currentformat)
         conf.set('format', 'library', self.libraryformat)
         conf.set('format', 'title', self.titleformat)
+        conf.set('format', 'currsong1', self.currsongformat1)
+        conf.set('format', 'currsong2', self.currsongformat2)
         conf.add_section('streams')
         conf.set('streams', 'num_streams', len(self.stream_names))
         for i in range(len(self.stream_names)):
@@ -1585,29 +1591,29 @@ class Base(mpdclient3.mpd_connection):
 
     def parse_formatting_return_substrings(self, format):
         substrings = []
-        begin_pos = format.find("(")
+        begin_pos = format.find("{")
         end_pos = -1
         while begin_pos > -1:
             if begin_pos > end_pos + 1:
                 substrings.append(format[end_pos+1:begin_pos])
-            end_pos = format.find(")", begin_pos)
+            end_pos = format.find("}", begin_pos)
             substrings.append(format[begin_pos:end_pos+1])
-            begin_pos = format.find("(", end_pos)
+            begin_pos = format.find("{", end_pos)
         if end_pos+1 < len(format):
             substrings.append(format[end_pos+1:len(format)])
         return substrings
 
     def parse_formatting_for_substring(self, subformat, item, wintitle):
         text = subformat
-        if subformat.startswith("(") and subformat.endswith(")"):
-            has_parantheses = True
+        if subformat.startswith("{") and subformat.endswith("}"):
+            has_brackets = True
         else:
-            has_parantheses = False
+            has_brackets = False
         if "%A" in text:
             try:
                 text = text.replace("%A", item.artist)
             except:
-                if not has_parantheses:
+                if not has_brackets:
                     text = text.replace("%A", _('Unknown'))
                 else:
                     return ""
@@ -1615,7 +1621,7 @@ class Base(mpdclient3.mpd_connection):
             try:
                 text = text.replace("%B", item.album)
             except:
-                if not has_parantheses:
+                if not has_brackets:
                     text = text.replace("%B", _('Unknown'))
                 else:
                     return ""
@@ -1623,7 +1629,7 @@ class Base(mpdclient3.mpd_connection):
             try:
                 text = text.replace("%S", item.title)
             except:
-                if not has_parantheses:
+                if not has_brackets:
                     return self.filename_or_fullpath(item.file)
                 else:
                     return ""
@@ -1631,7 +1637,7 @@ class Base(mpdclient3.mpd_connection):
             try:
                 text = text.replace("%T", str(int(item.track.split('/')[0])))
             except:
-                if not has_parantheses:
+                if not has_brackets:
                     text = text.replace("%T", "0")
                 else:
                     return ""
@@ -1639,7 +1645,7 @@ class Base(mpdclient3.mpd_connection):
             try:
                 text = text.replace("%G", item.genre)
             except:
-                if not has_parantheses:
+                if not has_brackets:
                     text = text.replace("%G", _('Unknown'))
                 else:
                     return ""
@@ -1647,7 +1653,7 @@ class Base(mpdclient3.mpd_connection):
             try:
                 text = text.replace("%Y", item.date)
             except:
-                if not has_parantheses:
+                if not has_brackets:
                     text = text.replace("%Y", "?")
                 else:
                     return ""
@@ -1660,7 +1666,7 @@ class Base(mpdclient3.mpd_connection):
                 time = convert_time(int(item.time))
                 text = text.replace("%L", time)
             except:
-                if not has_parantheses:
+                if not has_brackets:
                     text = text.replace("%L", "?")
                 else:
                     return ""
@@ -1671,11 +1677,11 @@ class Base(mpdclient3.mpd_connection):
                     at_time = convert_time(at)
                     text = text.replace("%E", at_time)
                 except:
-                    if not has_parantheses:
+                    if not has_brackets:
                         text = text.replace("%E", "?")
                     else:
                         return ""
-        if text.startswith("(") and text.endswith(")"):
+        if text.startswith("{") and text.endswith("}"):
             return text[1:len(text)-1]
         else:
             return text
@@ -2108,8 +2114,6 @@ class Base(mpdclient3.mpd_connection):
             newlabel_tray_egg = newlabel
             if newlabel != self.cursonglabel.get_label():
                 self.cursonglabel.set_markup(newlabel)
-            #if HAVE_STATUS_ICON:
-            #	self.statusicon.set_tooltip(newlabel_tray_gtk)
             if newlabel_tray_egg != self.traycursonglabel.get_label():
                 self.traycursonglabel.set_markup(newlabel_tray_egg)
         else:
@@ -2118,15 +2122,9 @@ class Base(mpdclient3.mpd_connection):
             else:
                 self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to expand') + '</small>')
             if not self.conn:
-                if HAVE_STATUS_ICON:
-                    self.statusicon.set_tooltip(_('Not connected'))
-                else:
-                    self.traycursonglabel.set_label(_('Not connected'))
+                self.traycursonglabel.set_label(_('Not connected'))
             else:
-                if HAVE_STATUS_ICON:
-                    self.statusicon.set_tooltip(_('Stopped'))
-                else:
-                    self.traycursonglabel.set_label(_('Stopped'))
+                self.traycursonglabel.set_label(_('Stopped'))
             self.traytips.set_size_request(-1, -1)
             self.trayprogressbar.hide()
             self.trayalbumeventbox.hide()
@@ -2189,8 +2187,8 @@ class Base(mpdclient3.mpd_connection):
         thread.start()
 
     def set_tooltip_art(self, pix):
-        pix1 = pix.subpixbuf(0, 0, 50, 75)
-        pix2 = pix.subpixbuf(50, 0, 25, 75)
+        pix1 = pix.subpixbuf(0, 0, 51, 77)
+        pix2 = pix.subpixbuf(51, 0, 26, 77)
         self.trayalbumimage1.set_from_pixbuf(pix1)
         self.trayalbumimage2.set_from_pixbuf(pix2)
         del pix1
@@ -2276,6 +2274,11 @@ class Base(mpdclient3.mpd_connection):
         if self.filename_is_for_current_song(filename):
             pix = gtk.gdk.pixbuf_new_from_file(filename)
             pix1 = pix.scale_simple(75, 75, gtk.gdk.INTERP_HYPER)
+            # add a gray outline
+            newpix1 = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 77, 77)
+            newpix1.fill(0x858585ff)
+            pix1.copy_area(0, 0, 75, 75, newpix1, 1, 1)
+            pix1 = newpix1
             if self.coverwindow_visible:
                 (pix2, w, h) = self.get_pixbuf_of_size(pix, 300)
             try:
@@ -2289,6 +2292,7 @@ class Base(mpdclient3.mpd_connection):
             try:
                 del pix
                 del pix1
+                del newpix1
                 del pix2
             except:
                 pass
@@ -3224,17 +3228,17 @@ class Base(mpdclient3.mpd_connection):
         # mouse over the trayicon, we will check the mouse position
         # manually and show/hide the window as appropriate. This is called
         # every iteration.
-        pointer_screen, px, py, _ = self.window.get_screen().get_display().get_pointer()
-        icon_screen, icon_rect, icon_orient = self.statusicon.get_geometry()
-        x = icon_rect[0]
-        y = icon_rect[1]
-        width = icon_rect[2]
-        height = icon_rect[3]
-        if px >= x and px <= x+width and py >= y and py <= y+height:
-            self.traytips._start_delay(self.statusicon)
-        else:
-            self.traytips._remove_timer()
-        #x=1
+        if not self.traytips.notif_handler:
+            pointer_screen, px, py, _ = self.window.get_screen().get_display().get_pointer()
+            icon_screen, icon_rect, icon_orient = self.statusicon.get_geometry()
+            x = icon_rect[0]
+            y = icon_rect[1]
+            width = icon_rect[2]
+            height = icon_rect[3]
+            if px >= x and px <= x+width and py >= y and py <= y+height:
+                self.traytips._start_delay(self.statusicon)
+            else:
+                self.traytips._remove_timer()
 
     # What happens when you click on the system tray icon?
     def trayaction(self, widget, event):

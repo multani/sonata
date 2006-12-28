@@ -6,6 +6,8 @@ v1.0
 	- if you hold down alt-s, doesn't update properly in sonata..
 	some way to bring up the info viewer when art is disabled
 	make tray icon hidden pref?
+	remove 'edit stream'?
+	if sonata is stopped when loading, notif window is too wide..
 
 Future:
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
