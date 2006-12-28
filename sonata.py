@@ -893,6 +893,9 @@ class Base(mpdclient3.mpd_connection):
         self.labelnotify()
         self.keep_song_visible_in_list()
 
+        if HAVE_STATUS_ICON:
+            gobject.timeout_add(250, self.iterate_status_icon)
+
     def print_version(self):
         print _("Version: Sonata"), __version__
         print _("Website: http://sonata.berlios.de")
@@ -1125,8 +1128,6 @@ class Base(mpdclient3.mpd_connection):
             if HAVE_STATUS_ICON:
                 if self.statusicon.is_embedded() and not self.statusicon.get_visible():
                     self.initialize_systrayicon()
-                if self.statusicon.is_embedded() and self.statusicon.get_visible():
-                    self.tooltip_show_manually()
             elif HAVE_EGG:
                 if self.trayicon.get_property('visible') == False:
                     self.initialize_systrayicon()
@@ -1143,11 +1144,21 @@ class Base(mpdclient3.mpd_connection):
 
     def iterate_now(self):
         # Since self.iterate_time_when_connected has been
-        # slowed down to 1second instead of 250ms, we'll
-        # call self.iterate_now() whenever the user performs
-        # an action that requires updating the client
+        # slowed down to 500ms, we'll call self.iterate_now()
+        # whenever the user performs an action that requires
+        # updating the client
         self.iterate_stop()
         self.iterate()
+
+    def iterate_status_icon(self):
+        # Polls for the users' cursor position to display the custom
+        # tooltip window when over the gtk.StatusIcon. We use this
+        # instead of self.iterate() in order to poll more often and
+        # increase responsiveness.
+        if self.show_trayicon:
+            if self.statusicon.is_embedded() and self.statusicon.get_visible():
+                self.tooltip_show_manually()
+        gobject.timeout_add(250, self.iterate_status_icon)
 
     def topwindow_keypress(self, widget, event):
         shortcut = gtk.accelerator_name(event.keyval, event.state)

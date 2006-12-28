@@ -1,6 +1,5 @@
 v1.0
 	make selection, dnd, more like thunar
-	GtkStatusIcon - iterate more often to check for cursor?
 	ability to edit tags (taglib + tagpy = optional)
 	- recurse into a directory's subdirs
 	- if you hold down alt-s, doesn't update properly in sonata..
