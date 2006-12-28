@@ -220,6 +220,7 @@ class Base(mpdclient3.mpd_connection):
         self.show_notification = False
         self.show_playback = True
         self.show_statusbar = False
+        self.show_trayicon = True
         self.stop_on_exit = False
         self.update_on_start = False
         self.minimize_to_systray = False
@@ -283,7 +284,6 @@ class Base(mpdclient3.mpd_connection):
             ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'), None, None, self.prefs),
             ('aboutmenu', gtk.STOCK_ABOUT, _('_About...'), 'F1', None, self.about),
             ('newmenu', gtk.STOCK_NEW, _('_New...'), '<Ctrl>n', None, self.new_stream),
-            ('editmenu', gtk.STOCK_EDIT, _('_Edit...'), None, None, self.edit_stream),
             ('edittagmenu', gtk.STOCK_EDIT, _('_Edit Tags...'), None, None, self.edit_tags),
             ('addmenu', gtk.STOCK_ADD, _('_Add'), '<Ctrl>d', None, self.add_item),
             ('replacemenu', gtk.STOCK_REDO, _('_Replace'), '<Ctrl>r', None, self.replace_item),
@@ -342,7 +342,6 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="addmenu"/>
                 <menuitem action="replacemenu"/>
                 <menuitem action="newmenu"/>
-                <menuitem action="editmenu"/>
                 <menuitem action="removemenu"/>
                 <menuitem action="clearmenu"/>
                 <menuitem action="savemenu"/>
@@ -1126,14 +1125,15 @@ class Base(mpdclient3.mpd_connection):
 
         self.iterate_handler = gobject.timeout_add(self.iterate_time, self.iterate) # Repeat ad infitum..
 
-        if HAVE_STATUS_ICON:
-            if self.statusicon.is_embedded() and not self.statusicon.get_visible():
-                self.initialize_systrayicon()
-            if self.statusicon.is_embedded() and self.statusicon.get_visible():
-                self.tooltip_show_manually()
-        elif HAVE_EGG:
-            if self.trayicon.get_property('visible') == False:
-                self.initialize_systrayicon()
+        if self.show_trayicon:
+            if HAVE_STATUS_ICON:
+                if self.statusicon.is_embedded() and not self.statusicon.get_visible():
+                    self.initialize_systrayicon()
+                if self.statusicon.is_embedded() and self.statusicon.get_visible():
+                    self.tooltip_show_manually()
+            elif HAVE_EGG:
+                if self.trayicon.get_property('visible') == False:
+                    self.initialize_systrayicon()
 
         if self.call_gc_collect:
             gc.collect()
@@ -1240,6 +1240,8 @@ class Base(mpdclient3.mpd_connection):
             self.infofile_path = conf.get('player', 'infofile_path')
         if conf.has_option('player', 'play_on_activate'):
             self.play_on_activate = conf.getboolean('player', 'play_on_activate')
+        if conf.has_option('player', 'trayicon'):
+            self.show_trayicon = conf.getboolean('player', 'trayicon')
         if conf.has_option('format', 'current'):
             self.currentformat = conf.get('format', 'current')
         if conf.has_option('format', 'library'):
@@ -1292,6 +1294,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'use_infofile', self.use_infofile)
         conf.set('player', 'infofile_path', self.infofile_path)
         conf.set('player', 'play_on_activate', self.play_on_activate)
+        conf.set('player', 'trayicon', self.show_trayicon)
         conf.add_section('format')
         conf.set('format', 'current', self.currentformat)
         conf.set('format', 'library', self.libraryformat)
@@ -1330,41 +1333,18 @@ class Base(mpdclient3.mpd_connection):
     def give_widget_focus(self, widget):
         widget.grab_focus()
 
-    def edit_stream(self, action):
-        model, selected = self.streams_selection.get_selected_rows()
-        try:
-            streamname = model.get_value(model.get_iter(selected[0]), 1)
-            for i in range(len(self.stream_names)):
-                if self.stream_names[i] == streamname:
-                    self.new_stream(action, i)
-                    return
-        except:
-            pass
-
-    def new_stream(self, action, stream_num=-1):
-        if stream_num > -1:
-            edit_mode = True
-        else:
-            edit_mode = False
+    def new_stream(self, action):
         # Prompt user for playlist name:
-        dialog = gtk.Dialog(None, self.window, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
-        if edit_mode:
-            dialog.set_title(_("Edit Stream"))
-        else:
-            dialog.set_title(_("New Stream"))
+        dialog = gtk.Dialog(_("New Stream"), self.window, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
         hbox = gtk.HBox()
         namelabel = gtk.Label(_('Stream name') + ':')
         hbox.pack_start(namelabel, False, False, 5)
         nameentry = gtk.Entry()
-        if edit_mode:
-            nameentry.set_text(self.stream_names[stream_num])
         hbox.pack_start(nameentry, True, True, 5)
         hbox2 = gtk.HBox()
         urllabel = gtk.Label(_('Stream URL') + ':')
         hbox2.pack_start(urllabel, False, False, 5)
         urlentry = gtk.Entry()
-        if edit_mode:
-            urlentry.set_text(self.stream_uris[stream_num])
         hbox2.pack_start(urlentry, True, True, 5)
         self.set_label_widths_equal([namelabel, urllabel])
         dialog.vbox.pack_start(hbox)
@@ -1375,9 +1355,6 @@ class Base(mpdclient3.mpd_connection):
             name = nameentry.get_text()
             uri = urlentry.get_text()
             if len(name) > 0 and len(uri) > 0:
-                if edit_mode:
-                    self.stream_names.pop(stream_num)
-                    self.stream_uris.pop(stream_num)
                 # Make sure this stream name doesn't already exit:
                 for item in self.stream_names:
                     if item == name:
@@ -3227,7 +3204,10 @@ class Base(mpdclient3.mpd_connection):
         # Since there is no signal to connect to when the user puts their
         # mouse over the trayicon, we will check the mouse position
         # manually and show/hide the window as appropriate. This is called
-        # every iteration.
+        # every iteration. Note: This should not occur if self.traytips.notif_
+        # handler has a value, because that means that the tooltip is already
+        # visible, and we don't want to override that setting simply because
+        # the user's cursor is not over the tooltip.
         if not self.traytips.notif_handler:
             pointer_screen, px, py, _ = self.window.get_screen().get_display().get_pointer()
             icon_screen, icon_rect, icon_orient = self.statusicon.get_geometry()
@@ -3602,15 +3582,19 @@ class Base(mpdclient3.mpd_connection):
         display_statusbar = gtk.CheckButton(_("Enable statusbar"))
         display_statusbar.set_active(self.show_statusbar)
         display_statusbar.connect('toggled', self.prefs_statusbar_toggled)
+        display_trayicon = gtk.CheckButton(_("Enable system tray icon"))
+        display_trayicon.set_active(self.show_trayicon)
+        display_trayicon.connect('toggled', self.prefs_trayicon_toggled)
+        if not HAVE_EGG and not HAVE_STATUS_ICON:
+            display_trayicon.set_sensitive(False)
         displaylabel2 = gtk.Label()
         displaylabel2.set_markup('<b>' + _('Notification') + '</b>')
         displaylabel2.set_alignment(0, 1)
         display_notification = gtk.CheckButton(_("Popup notification on song changes"))
         display_notification.set_active(self.show_notification)
         notifhbox = gtk.HBox()
-        notiflabel = gtk.Label(_('Display for') + ':  ')
+        notiflabel = gtk.Label('    ' + _('Display') + ':')
         notiflabel.set_alignment(1, 0.5)
-        notifhbox.pack_start(notiflabel, False, False, 0)
         notification_options = gtk.combo_box_new_text()
         for i in self.popuptimes:
             if i == '1':
@@ -3621,36 +3605,31 @@ class Base(mpdclient3.mpd_connection):
                 notification_options.append_text(i)
         notification_options.set_active(self.popup_option)
         notification_options.connect('changed', self.prefs_notiftime_changed)
-        notifhbox2 = gtk.HBox()
-        notiflabel2 = gtk.Label(_('Location') + ':  ')
-        notiflabel2.set_alignment(1, 0.5)
-        notifhbox2.pack_start(notiflabel2, False, False, 0)
         notification_locs = gtk.combo_box_new_text()
         for i in self.popuplocations:
             notification_locs.append_text(i)
         notification_locs.set_active(self.traytips.notifications_location)
         notification_locs.connect('changed', self.prefs_notiflocation_changed)
-        display_notification.connect('toggled', self.prefs_notif_toggled, notifhbox, notifhbox2)
-        notifhbox.pack_start(notification_options, False, False, 0)
-        notifhbox2.pack_start(notification_locs, False, False, 0)
-        self.set_label_widths_equal([notiflabel, notiflabel2])
+        display_notification.connect('toggled', self.prefs_notif_toggled, notifhbox)
+        notifhbox.pack_start(notiflabel, False, False, 0)
+        notifhbox.pack_start(notification_options, False, False, 2)
+        notifhbox.pack_start(notification_locs, False, False, 2)
         if not self.show_notification:
             notifhbox.set_sensitive(False)
-            notifhbox2.set_sensitive(False)
         table2.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(displaylabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(gtk.Label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(display_playback, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table2.attach(display_volume, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table2.attach(display_statusbar, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_art_hbox, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(gtk.Label(), 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(displaylabel2, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(gtk.Label(), 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(display_notification, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(notifhbox, 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 75, 0)
-        table2.attach(notifhbox2, 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 75, 0)
-        table2.attach(gtk.Label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(display_trayicon, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_art_hbox, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(gtk.Label(), 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(displaylabel2, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(gtk.Label(), 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(display_notification, 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(notifhbox, 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 45, 0)
+        table2.attach(gtk.Label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 75, 0)
         # Behavior tab
         table3 = gtk.Table()
         behaviorlabel = gtk.Label()
@@ -3922,15 +3901,13 @@ class Base(mpdclient3.mpd_connection):
             self.show_statusbar = False
             self.update_statusbar()
 
-    def prefs_notif_toggled(self, button, notifhbox, notifhbox2):
+    def prefs_notif_toggled(self, button, notifhbox):
         if button.get_active():
             notifhbox.set_sensitive(True)
-            notifhbox2.set_sensitive(True)
             self.show_notification = True
             self.labelnotify()
         else:
             notifhbox.set_sensitive(False)
-            notifhbox2.set_sensitive(False)
             self.show_notification = False
             try:
                 gobject.source_remove(self.traytips.notif_handler)
@@ -3943,6 +3920,20 @@ class Base(mpdclient3.mpd_connection):
             combobox.set_sensitive(True)
         else:
             combobox.set_sensitive(False)
+
+    def prefs_trayicon_toggled(self, button):
+        if button.get_active():
+            self.show_trayicon = True
+            if HAVE_STATUS_ICON:
+                self.statusicon.set_visible(True)
+            elif HAVE_EGG:
+                self.trayicon.show_all()
+        else:
+            self.show_trayicon = False
+            if HAVE_STATUS_ICON:
+                self.statusicon.set_visible(False)
+            elif HAVE_EGG:
+                self.trayicon.hide_all()
 
     def prefs_notiflocation_changed(self, combobox):
         self.traytips.notifications_location = combobox.get_active()
@@ -4051,8 +4042,6 @@ class Base(mpdclient3.mpd_connection):
                 self.UIManager.get_widget('/mainmenu/addmenu/').show()
                 self.UIManager.get_widget('/mainmenu/replacemenu/').show()
                 self.UIManager.get_widget('/mainmenu/rmmenu/').show()
-                if self.streams_selection.count_selected_rows() == 1:
-                    self.UIManager.get_widget('/mainmenu/editmenu/').show()
             self.UIManager.get_widget('/mainmenu/newmenu/').show()
 
     def set_menu_contextual_items_hidden(self):
@@ -4064,7 +4053,6 @@ class Base(mpdclient3.mpd_connection):
         self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
         self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
         self.UIManager.get_widget('/mainmenu/newmenu/').hide()
-        self.UIManager.get_widget('/mainmenu/editmenu/').hide()
         self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
         self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
 
@@ -4414,7 +4402,7 @@ class Base(mpdclient3.mpd_connection):
         if HAVE_STATUS_ICON:
             self.statusicon = gtk.StatusIcon()
             self.statusicon.set_from_stock('sonata')
-            self.statusicon.set_visible(True)
+            self.statusicon.set_visible(self.show_trayicon)
             self.statusicon.connect('popup_menu', self.trayaction_menu)
             self.statusicon.connect('activate', self.trayaction_activate)
         elif HAVE_EGG:
@@ -4428,7 +4416,10 @@ class Base(mpdclient3.mpd_connection):
             try:
                 self.trayicon = egg.trayicon.TrayIcon("TrayIcon")
                 self.trayicon.add(self.trayeventbox)
-                self.trayicon.show_all()
+                if self.show_trayicon:
+                    self.trayicon.show_all()
+                else:
+                    self.trayicon.hide_all()
             except:
                 pass
 

@@ -5,9 +5,8 @@ v1.0
 	- recurse into a directory's subdirs
 	- if you hold down alt-s, doesn't update properly in sonata..
 	some way to bring up the info viewer when art is disabled
-	make tray icon hidden pref?
-	remove 'edit stream'?
 	if sonata is stopped when loading, notif window is too wide..
+	update minimize to systray pref on tray icon pref
 
 Future:
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
