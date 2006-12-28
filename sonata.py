@@ -4222,7 +4222,7 @@ class Base(mpdclient3.mpd_connection):
         buttons = [titlebutton, artistbutton, albumbutton, yearbutton, trackbutton, genrebutton, commentbutton]
         entries_names = ["title", "artist", "album", "year", "track", "genre", "comment"]
         editwindow.connect('response', self.editwindow_response, filetags, mpdpaths, savebutton, tag_changed, entries, entries_names)
-        for i in range(len(entries)):
+        for i in range(len(entries)-1):
             entries[i].connect('changed', self.edit_entry_changed)
         for i in range(len(buttons)):
             buttons[i].connect('clicked', self.editwindow_applyall, entries_names[i], filetags, tag_changed, entries)
@@ -4270,10 +4270,10 @@ class Base(mpdclient3.mpd_connection):
                 else:
                     filetag.tag().year = 0
             elif item == "track":
-                if filetagnum >= self.filetagnum:
+                if filetagnum >= self.filetagnum-1:
                     # Start the current song at track 1, as opposed to the first
                     # song in the list.
-                    filetag.tag().track = filetagnum - self.filetagnum + 1
+                    filetag.tag().track = filetagnum - self.filetagnum
                 else:
                     filetag.tag().track = 0
             elif item == "genre":
