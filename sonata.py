@@ -530,6 +530,7 @@ class Base(mpdclient3.mpd_connection):
         self.expander.set_expanded(self.expanded)
         self.expander.set_property('can-focus', False)
         self.cursonglabel = gtk.Label()
+        #self.cursonglabel.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
         self.expander.set_label_widget(self.cursonglabel)
         topvbox.pack_start(self.expander, False, False, 2)
         tophbox.pack_start(topvbox, True, True, 3)
@@ -2260,31 +2261,27 @@ class Base(mpdclient3.mpd_connection):
 
     def set_image_for_cover(self, filename):
         if self.filename_is_for_current_song(filename):
-            pix = gtk.gdk.pixbuf_new_from_file(filename)
-            pix1 = pix.scale_simple(75, 75, gtk.gdk.INTERP_HYPER)
-            # add a gray outline
-            newpix1 = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 77, 77)
-            newpix1.fill(0x858585ff)
-            pix1.copy_area(0, 0, 75, 75, newpix1, 1, 1)
-            pix1 = newpix1
-            if self.coverwindow_visible:
-                (pix2, w, h) = self.get_pixbuf_of_size(pix, 300)
-            try:
-                self.albumimage.set_from_pixbuf(pix1)
-                self.set_tooltip_art(pix1)
-                if self.coverwindow_visible:
-                    self.coverwindow_image.set_from_pixbuf(pix2)
-            except:
-                pass
-            self.lastalbumart = filename
-            try:
-                del pix
-                del pix1
-                del newpix1
-                del pix2
-            except:
-                pass
-            self.call_gc_collect = True
+            if os.path.exists(filename):
+                # We use try here because the file might exist, but still
+                # be downloading so it's not complete
+                try:
+                    pix = gtk.gdk.pixbuf_new_from_file(filename)
+                    pix1 = pix.scale_simple(75, 75, gtk.gdk.INTERP_HYPER)
+                    pix1 = self.add_border(pix1)
+                    if self.coverwindow_visible:
+                        (pix2, w, h) = self.get_pixbuf_of_size(pix, 298)
+                        pix2 = self.add_border(pix2)
+                    self.albumimage.set_from_pixbuf(pix1)
+                    self.set_tooltip_art(pix1)
+                    if self.coverwindow_visible:
+                        self.coverwindow_image.set_from_pixbuf(pix2)
+                    self.lastalbumart = filename
+                    del pix
+                    del pix1
+                    del pix2
+                except:
+                    pass
+                self.call_gc_collect = True
 
     def filename_is_for_current_song(self, filename):
         # Since there can be multiple threads that are getting album art,
@@ -2969,6 +2966,16 @@ class Base(mpdclient3.mpd_connection):
                 image_height = size
         crop_pixbuf = pixbuf.scale_simple(image_width, image_height, gtk.gdk.INTERP_HYPER)
         return (crop_pixbuf, image_width, image_height)
+
+    def add_border(self, pix):
+        # Add a gray outline to pix. This will increase the pixbuf size by
+        # 2 pixels lengthwise and heightwise, 1 on each side.
+        width = pix.get_width()
+        height = pix.get_height()
+        newpix = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, width+2, height+2)
+        newpix.fill(0x858585ff)
+        pix.copy_area(0, 0, width, height, newpix, 1, 1)
+        return newpix
 
     def unblock_window_popup_handler(self):
         self.window.handler_unblock(self.mainwinhandler)
