@@ -1170,7 +1170,10 @@ class Base(mpdclient3.mpd_connection):
             self.parent_dir(None)
         elif shortcut == 'Escape':
             if self.minimize_to_systray:
-                self.withdraw_app()
+                if HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible():
+                    self.withdraw_app()
+                elif HAVE_EGG and self.trayicon.get_property('visible') == True:
+                    self.withdraw_app()
         elif shortcut == 'Delete':
             self.remove(None)
 
