@@ -2247,15 +2247,18 @@ class Base(mpdclient3.mpd_connection):
 
     def get_single_img_in_path(self, songdir):
         single_img = None
-        for file in os.listdir(self.musicdir + songdir):
-            # Check against gtk+ supported image formats
-            for i in gtk.gdk.pixbuf_get_formats():
-                if os.path.splitext(file)[1].replace(".","").lower() in i['extensions']:
-                    if single_img == None:
-                        single_img = file
-                    else:
-                        return False
-        return single_img
+        if os.path.exists(self.musicdir + songdir):
+            for file in os.listdir(self.musicdir + songdir):
+                # Check against gtk+ supported image formats
+                for i in gtk.gdk.pixbuf_get_formats():
+                    if os.path.splitext(file)[1].replace(".","").lower() in i['extensions']:
+                        if single_img == None:
+                            single_img = file
+                        else:
+                            return False
+            return single_img
+        else:
+            return False
 
     def set_image_for_cover(self, filename):
         if self.filename_is_for_current_song(filename):
