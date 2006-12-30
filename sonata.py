@@ -3600,7 +3600,6 @@ class Base(mpdclient3.mpd_connection):
         display_statusbar.connect('toggled', self.prefs_statusbar_toggled)
         display_trayicon = gtk.CheckButton(_("Enable system tray icon"))
         display_trayicon.set_active(self.show_trayicon)
-        display_trayicon.connect('toggled', self.prefs_trayicon_toggled)
         if not HAVE_EGG and not HAVE_STATUS_ICON:
             display_trayicon.set_sensitive(False)
         displaylabel2 = gtk.Label()
@@ -3664,6 +3663,7 @@ class Base(mpdclient3.mpd_connection):
         minimize = gtk.CheckButton(_("Minimize to system tray on close"))
         minimize.set_active(self.minimize_to_systray)
         self.tooltips.set_tip(minimize, _("If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."))
+        display_trayicon.connect('toggled', self.prefs_trayicon_toggled, minimize)
         activate = gtk.CheckButton(_("Play enqueued files on activate"))
         activate.set_active(self.play_on_activate)
         self.tooltips.set_tip(activate, _("Automatically play enqueued items when activated via double-click or enter."))
@@ -3937,15 +3937,22 @@ class Base(mpdclient3.mpd_connection):
         else:
             combobox.set_sensitive(False)
 
-    def prefs_trayicon_toggled(self, button):
+    def prefs_trayicon_toggled(self, button, minimize):
+        # Note that we update the sensitivity of the minimize
+        # CheckButton to reflect if the trayicon is visible.
         if button.get_active():
             self.show_trayicon = True
             if HAVE_STATUS_ICON:
                 self.statusicon.set_visible(True)
+                if self.statusicon.is_embedded() and self.statusicon.get_visible():
+                    minimize.set_sensitive(True)
             elif HAVE_EGG:
                 self.trayicon.show_all()
+                if self.trayicon.get_property('visible') == True:
+                    minimize.set_sensitive(True)
         else:
             self.show_trayicon = False
+            minimize.set_sensitive(False)
             if HAVE_STATUS_ICON:
                 self.statusicon.set_visible(False)
             elif HAVE_EGG:
