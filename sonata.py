@@ -789,20 +789,8 @@ class Base(mpdclient3.mpd_connection):
             self.keys.connect("mm_stop", self.mmstop)
 
         # Put blank cd to albumimage widget by default
-        blankalbum = 'sonatacd.png'
-        blankalbum_large = 'sonatacd_large.png'
-        if os.path.exists(os.path.join(sys.prefix, 'share', 'pixmaps', blankalbum)):
-            self.sonatacd = os.path.join(sys.prefix, 'share', 'pixmaps', blankalbum)
-            self.sonatacd_large = os.path.join(sys.prefix, 'share', 'pixmaps', blankalbum_large)
-        elif os.path.exists(os.path.join(os.path.split(__file__)[0], blankalbum)):
-            self.sonatacd = os.path.join(os.path.split(__file__)[0], blankalbum)
-            self.sonatacd_large = os.path.join(os.path.split(__file__)[0], blankalbum_large)
-        elif os.path.exists(os.path.join(os.path.split(__file__)[0], 'share', blankalbum)):
-            self.sonatacd = os.path.join(os.path.split(__file__)[0], 'share', blankalbum)
-            self.sonatacd_large = os.path.join(os.path.split(__file__)[0], 'share', blankalbum_large)
-        elif os.path.exists(os.path.join(__file__.split('/lib')[0]+'/', 'share', 'pixmaps', blankalbum)):
-            self.sonatacd = os.path.join(__file__.split('/lib')[0]+'/', 'share', 'pixmaps', blankalbum)
-            self.sonatacd_large = os.path.join(__file__.split('/lib')[0]+'/', 'share', 'pixmaps', blankalbum_large)
+        self.sonatacd = self.find_path('sonatacd.png')
+        self.sonatacd_large = self.find_path('sonatacd_large.png')
         self.albumimage.set_from_file(self.sonatacd)
 
         # Initialize current playlist data and widget
