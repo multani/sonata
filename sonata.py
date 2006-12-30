@@ -2481,8 +2481,12 @@ class Base(mpdclient3.mpd_connection):
     # This one makes sure the program exits when the window is closed
     def delete_event(self, widget, data=None):
         if not self.exit_now and self.minimize_to_systray:
-            self.withdraw_app()
-            return True
+            if HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible():
+                self.withdraw_app()
+                return True
+            elif HAVE_EGG and self.trayicon.get_property('visible') == True:
+                self.withdraw_app()
+                return True
         self.settings_save()
         if self.conn and self.stop_on_exit:
             self.stop(None)
