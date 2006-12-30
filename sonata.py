@@ -122,9 +122,9 @@ class Base(mpdclient3.mpd_connection):
         gtk.gdk.threads_init()
 
         try:
-            gettext.install('sonata', '/usr/share/locale', unicode=1)
+            gettext.install('sonata', os.path.join(__file__.split('/lib')[0], 'share', 'locale'), unicode=1)
         except:
-            gettext.install('sonata', '/usr/local/share/locale', unicode=1)
+            gettext.install('sonata', '/usr/share/locale', unicode=1)
 
         self.traytips = TrayIconTips()
 
@@ -4090,8 +4090,8 @@ class Base(mpdclient3.mpd_connection):
             full_filename = os.path.join(os.path.split(__file__)[0], filename)
         elif os.path.exists(os.path.join(os.path.split(__file__)[0], 'share', filename)):
             full_filename = os.path.join(os.path.split(__file__)[0], 'share', filename)
-        elif os.path.exists(os.path.join(__file__.split('/lib')[0]+'/', 'share', 'pixmaps', filename)):
-            full_filename = os.path.join(__file__.split('/lib')[0]+'/', 'share', 'pixmaps', filename)
+        elif os.path.exists(os.path.join(__file__.split('/lib')[0], 'share', 'pixmaps', filename)):
+            full_filename = os.path.join(__file__.split('/lib')[0], 'share', 'pixmaps', filename)
         return full_filename
 
     def edit_tags(self, widget):
