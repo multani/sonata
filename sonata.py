@@ -800,6 +800,9 @@ class Base(mpdclient3.mpd_connection):
         elif os.path.exists(os.path.join(os.path.split(__file__)[0], 'share', blankalbum)):
             self.sonatacd = os.path.join(os.path.split(__file__)[0], 'share', blankalbum)
             self.sonatacd_large = os.path.join(os.path.split(__file__)[0], 'share', blankalbum_large)
+        elif os.path.exists(os.path.join(__file__.split('/lib')[0]+'/', 'share', 'pixmaps', blankalbum)):
+            self.sonatacd = os.path.join(__file__.split('/lib')[0]+'/', 'share', 'pixmaps', blankalbum)
+            self.sonatacd_large = os.path.join(__file__.split('/lib')[0]+'/', 'share', 'pixmaps', blankalbum_large)
         self.albumimage.set_from_file(self.sonatacd)
 
         # Initialize current playlist data and widget
@@ -4099,6 +4102,8 @@ class Base(mpdclient3.mpd_connection):
             full_filename = os.path.join(os.path.split(__file__)[0], filename)
         elif os.path.exists(os.path.join(os.path.split(__file__)[0], 'share', filename)):
             full_filename = os.path.join(os.path.split(__file__)[0], 'share', filename)
+        elif os.path.exists(os.path.join(__file__.split('/lib')[0]+'/', 'share', 'pixmaps', filename)):
+            full_filename = os.path.join(__file__.split('/lib')[0]+'/', 'share', 'pixmaps', filename)
         return full_filename
 
     def edit_tags(self, widget):
