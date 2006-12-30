@@ -2101,10 +2101,6 @@ class Base(mpdclient3.mpd_connection):
                 self.cursonglabel.set_markup(newlabel)
             if newlabel_tray_egg != self.traycursonglabel.get_label():
                 self.traycursonglabel.set_markup(newlabel_tray_egg)
-            if self.show_covers:
-                self.traytips.set_size_request(350, -1)
-            else:
-                self.traytips.set_size_request(250, -1)
         else:
             if self.expanded:
                 self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to collapse') + '</small>')
@@ -2114,7 +2110,6 @@ class Base(mpdclient3.mpd_connection):
                 self.traycursonglabel.set_label(_('Not connected'))
             else:
                 self.traycursonglabel.set_label(_('Stopped'))
-            self.traytips.set_size_request(-1, -1)
             self.trayprogressbar.hide()
             self.trayalbumeventbox.hide()
             self.trayalbumimage2.hide()
@@ -2391,6 +2386,13 @@ class Base(mpdclient3.mpd_connection):
 
     def labelnotify(self, *args):
         if self.sonata_loaded:
+            if self.conn and self.status and self.status.state in ['play', 'pause']:
+                if self.show_covers:
+                    self.traytips.set_size_request(350, -1)
+                else:
+                    self.traytips.set_size_request(250, -1)
+            else:
+                self.traytips.set_size_request(-1, -1)
             if self.show_notification:
                 try:
                     gobject.source_remove(self.traytips.notif_handler)
@@ -2969,7 +2971,7 @@ class Base(mpdclient3.mpd_connection):
 
     def add_border(self, pix):
         # Add a gray outline to pix. This will increase the pixbuf size by
-        # 2 pixels lengthwise and heightwise, 1 on each side.
+        # 2 pixels lengthwise and heightwise, 1 on each side. Returns pixbuf.
         width = pix.get_width()
         height = pix.get_height()
         newpix = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, width+2, height+2)
