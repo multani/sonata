@@ -1549,6 +1549,9 @@ class Base(mpdclient3.mpd_connection):
             self.browser_retain_preupdate_selection(prev_selection, prev_selection_root, prev_selection_parent)
 
     def browser_retain_preupdate_selection(self, prev_selection, prev_selection_root, prev_selection_parent):
+        # Unselect everything:
+        self.browser_selection.unselect_range((0,), (len(self.browserdata)-1,))
+        # Now attempt to retain the selection from before the update:
         for value in prev_selection:
             for rownum in range(len(self.browserdata)):
                 if value == self.browserdata.get_value(self.browserdata.get_iter((rownum,)), 1):

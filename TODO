@@ -3,7 +3,9 @@ v1.0
 	ability to edit tags (taglib + tagpy = optional)
 	- recurse into a directory's subdirs
 	- if you hold down alt-s, doesn't update properly in sonata..
+	- dropdowns for genre; spinbuttons for year, tracknum?
 	some way to bring up the info viewer when art is disabled
+	close button in song info dialog
 
 Future:
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
