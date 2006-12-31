@@ -4116,15 +4116,27 @@ class Base(mpdclient3.mpd_connection):
             error_dialog.connect('response', self.choose_image_dialog_response)
             error_dialog.show()
             return
+        self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
+        while gtk.events_pending():
+            gtk.main_iteration()
         model, selected = self.browser_selection.get_selected_rows()
         # Populates files array with selected items:
         files = []
         temp_mpdpaths = []
         for path in selected:
-            # Ensure the file exists:
-            if os.path.exists(self.musicdir + model.get_value(model.get_iter(path), 1)):
-                files.append(self.musicdir + model.get_value(model.get_iter(path), 1))
-                temp_mpdpaths.append(model.get_value(model.get_iter(path), 1))
+            if model.get_value(model.get_iter(path), 2) != ".." and model.get_value(model.get_iter(path), 2) != "/":
+                if os.path.isdir(self.musicdir + model.get_value(model.get_iter(path), 1)):
+                    # Recurse directory:
+                    if self.conn:
+                        for item in self.conn.do.listall(model.get_value(model.get_iter(path), 1)):
+                            # Add file:
+                            if item.type == 'file':
+                                files.append(self.musicdir + item.file)
+                                temp_mpdpaths.append(item.file)
+                elif os.path.exists(self.musicdir + model.get_value(model.get_iter(path), 1)):
+                    # Add file:
+                    files.append(self.musicdir + model.get_value(model.get_iter(path), 1))
+                    temp_mpdpaths.append(model.get_value(model.get_iter(path), 1))
         filetags = []
         mpdpaths = []
         tag_changed = [] # Keeps track of whether tags have changed (for hilighting)
@@ -4140,6 +4152,7 @@ class Base(mpdclient3.mpd_connection):
                 pass
             filenum = filenum + 1
         if len(filetags) == 0:
+            self.change_cursor(None)
             error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No music files with editable tags found."))
             error_dialog.set_title(_("Edit Tags"))
             error_dialog.connect('response', self.choose_image_dialog_response)
@@ -4275,6 +4288,7 @@ class Base(mpdclient3.mpd_connection):
         self.fileentry_handler = fileentry.connect('changed', self.edit_entry_revert_text, mpdpaths, True, False)
         self.pathentry_handler = pathentry.connect('changed', self.edit_entry_revert_text, mpdpaths, False, True)
         self.editwindow_update(editwindow, filetags, mpdpaths, savebutton, tag_changed, entries, entries_names)
+        self.change_cursor(None)
         editwindow.show_all()
 
     def edit_entry_revert_text(self, editable, mpdpaths, fileentry=False, pathentry=False):
