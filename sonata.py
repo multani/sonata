@@ -2359,7 +2359,8 @@ class Base(mpdclient3.mpd_connection):
                             # This populates self.imagelist for the remote image window
                             if os.path.exists(dest_filename_curr):
                                 pix = gtk.gdk.pixbuf_new_from_file(dest_filename_curr)
-                                pix = pix.scale_simple(150, 150, gtk.gdk.INTERP_HYPER)
+                                pix = pix.scale_simple(148, 148, gtk.gdk.INTERP_HYPER)
+                                pix = self.add_border(pix)
                                 if self.stop_art_update:
                                     self.downloading_image = False
                                     return imgfound
@@ -4138,13 +4139,18 @@ class Base(mpdclient3.mpd_connection):
         table.set_row_spacings(2)
         fileentry = gtk.Entry()
         fileentry.set_has_frame(False)
+        pathentry = gtk.Entry()
+        pathentry.set_has_frame(False)
+        fileandpathvbox = gtk.VBox()
+        fileandpathvbox.pack_start(pathentry, False, False, 0)
+        fileandpathvbox.pack_start(fileentry, False, False, 1)
         filehbox = gtk.HBox()
-        sonataicon = gtk.image_new_from_stock('sonata', gtk.ICON_SIZE_MENU)
+        sonataicon = gtk.image_new_from_stock('sonata', gtk.ICON_SIZE_DND)
         sonataicon.set_alignment(1, 0.5)
         blanklabel = gtk.Label()
         blanklabel.set_size_request(15, 12)
         filehbox.pack_start(sonataicon, False, False, 2)
-        filehbox.pack_start(fileentry, True, True, 2)
+        filehbox.pack_start(fileandpathvbox, True, True, 2)
         filehbox.pack_start(blanklabel, False, False, 2)
         titlelabel = gtk.Label(_("Title") + ":")
         titlelabel.set_alignment(1, 0.5)
@@ -4223,6 +4229,7 @@ class Base(mpdclient3.mpd_connection):
         commenthbox.pack_start(commentbuttonvbox, False, False, 2)
         self.set_label_widths_equal([titlelabel, artistlabel, albumlabel, yearlabel, genrelabel, commentlabel, sonataicon])
         fileentry.set_size_request(titleentry.size_request()[0], -1)
+        pathentry.set_size_request(titleentry.size_request()[0], -1)
         table.attach(gtk.Label(), 1, 2, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 2, 0)
         table.attach(filehbox, 1, 2, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 2, 0)
         table.attach(gtk.Label(), 1, 2, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 2, 0)
@@ -4239,22 +4246,28 @@ class Base(mpdclient3.mpd_connection):
         editwindow.connect('delete_event', self.editwindow_hide)
         self.filetagnum = 0
         self.edit_style_orig = titleentry.get_style()
-        entries = [titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, fileentry]
+        entries = [titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, fileentry, pathentry]
         buttons = [titlebutton, artistbutton, albumbutton, yearbutton, trackbutton, genrebutton, commentbutton]
         entries_names = ["title", "artist", "album", "year", "track", "genre", "comment"]
         editwindow.connect('response', self.editwindow_response, filetags, mpdpaths, savebutton, tag_changed, entries, entries_names)
-        for i in range(len(entries)-1):
+        for i in range(len(entries)-2):
             entries[i].connect('changed', self.edit_entry_changed)
         for i in range(len(buttons)):
             buttons[i].connect('clicked', self.editwindow_applyall, entries_names[i], filetags, tag_changed, entries)
-        self.fileentry_handler = fileentry.connect('changed', self.edit_fileentry_revert, mpdpaths)
+        self.fileentry_handler = fileentry.connect('changed', self.edit_entry_revert_text, mpdpaths, True, False)
+        self.pathentry_handler = pathentry.connect('changed', self.edit_entry_revert_text, mpdpaths, False, True)
         self.editwindow_update(editwindow, filetags, mpdpaths, savebutton, tag_changed, entries, entries_names)
         editwindow.show_all()
 
-    def edit_fileentry_revert(self, editable, mpdpaths):
-        editable.handler_block(self.fileentry_handler)
-        editable.set_text(mpdpaths[self.filetagnum].split('/')[-1])
-        editable.handler_unblock(self.fileentry_handler)
+    def edit_entry_revert_text(self, editable, mpdpaths, fileentry=False, pathentry=False):
+        if fileentry:
+            editable.handler_block(self.fileentry_handler)
+            editable.set_text(mpdpaths[self.filetagnum].split('/')[-1])
+            editable.handler_unblock(self.fileentry_handler)
+        elif pathentry:
+            editable.handler_block(self.pathentry_handler)
+            editable.set_text(os.path.dirname(mpdpaths[self.filetagnum]))
+            editable.handler_unblock(self.pathentry_handler)
 
     def edit_entry_changed(self, editable):
         if not self.updating_edit_entries:
@@ -4319,11 +4332,12 @@ class Base(mpdclient3.mpd_connection):
         entries[5].set_text(filetags[self.filetagnum].tag().genre)
         entries[6].set_text(filetags[self.filetagnum].tag().comment)
         entries[7].set_text(mpdpaths[self.filetagnum].split('/')[-1])
+        entries[8].set_text(os.path.dirname(mpdpaths[self.filetagnum]))
         window.set_title(_("Edit Tags" + " - " + str(self.filetagnum+1) + " " + _("of") + " " + str(len(filetags))))
         gobject.idle_add(savebutton.set_sensitive, True)
         self.updating_edit_entries = False
         # Update text colors as appropriate:
-        for i in range(len(entries)-1):
+        for i in range(len(entries)-2):
             if tag_changed[self.filetagnum][entries_names[i]]:
                 self.edit_entry_changed(entries[i])
             else:
