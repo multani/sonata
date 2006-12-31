@@ -268,7 +268,7 @@ class Base(mpdclient3.mpd_connection):
 
         # Popup menus:
         actions = (
-            ('sortmenu', gtk.STOCK_SORT_ASCENDING, _('_Sort List')),
+            ('sortmenu', None, _('_Sort List')),
             ('chooseimage_menu', gtk.STOCK_CONVERT, _('Use _Remote Image...'), None, None, self.choose_image),
             ('localimage_menu', gtk.STOCK_OPEN, _('Use _Local Image...'), None, None, self.choose_image_local),
             ('playmenu', gtk.STOCK_MEDIA_PLAY, _('_Play'), None, None, self.pp),
@@ -279,15 +279,15 @@ class Base(mpdclient3.mpd_connection):
             ('quitmenu', gtk.STOCK_QUIT, _('_Quit'), None, None, self.delete_event_yes),
             ('removemenu', gtk.STOCK_REMOVE, _('_Remove'), None, None, self.remove),
             ('clearmenu', gtk.STOCK_CLEAR, _('_Clear'), '<Ctrl>Delete', None, self.clear),
-            ('savemenu', gtk.STOCK_SAVE, _('_Save Playlist...'), '<Ctrl><Shift>s', None, self.save_playlist),
-            ('updatemenu', gtk.STOCK_REFRESH, _('_Update Library'), None, None, self.updatedb),
+            ('savemenu', None, _('_Save Playlist...'), '<Ctrl><Shift>s', None, self.save_playlist),
+            ('updatemenu', None, _('_Update Library'), None, None, self.updatedb),
             ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'), None, None, self.prefs),
-            ('aboutmenu', gtk.STOCK_ABOUT, _('_About...'), 'F1', None, self.about),
-            ('newmenu', gtk.STOCK_NEW, _('_New...'), '<Ctrl>n', None, self.new_stream),
-            ('edittagmenu', gtk.STOCK_EDIT, _('_Edit Tags...'), None, None, self.edit_tags),
+            ('aboutmenu', None, _('_About...'), 'F1', None, self.about),
+            ('newmenu', None, _('_New...'), '<Ctrl>n', None, self.new_stream),
+            ('edittagmenu', None, _('_Edit Tags...'), None, None, self.edit_tags),
             ('addmenu', gtk.STOCK_ADD, _('_Add'), '<Ctrl>d', None, self.add_item),
             ('replacemenu', gtk.STOCK_REDO, _('_Replace'), '<Ctrl>r', None, self.replace_item),
-            ('rmmenu', gtk.STOCK_DELETE, _('_Delete'), None, None, self.remove),
+            ('rmmenu', None, _('_Delete...'), None, None, self.remove),
             ('sortbyartist', None, _('By') + ' ' + _('Artist'), None, None, self.sort_by_artist),
             ('sortbyalbum', None, _('By') + ' ' + _('Album'), None, None, self.sort_by_album),
             ('sortbytitle', None, _('By') + ' ' + _('Song Title'), None, None, self.sort_by_title),
@@ -3434,23 +3434,37 @@ class Base(mpdclient3.mpd_connection):
                     for path in selected:
                         self.conn.do.deleteid(self.currentdata.get_value(model.get_iter(path), 0))
             elif page_num == self.TAB_PLAYLISTS:
-                model, selected = self.playlists_selection.get_selected_rows()
-                iters = [model.get_iter(path) for path in selected]
-                for iter in iters:
-                    self.conn.do.rm(unescape_html(self.playlistsdata.get_value(iter, 1)))
-                self.playlists_populate()
+                dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_YES_NO, _("Delete the selected playlist(s)?"))
+                dialog.set_title(_("Delete Playlist(s)"))
+                response = dialog.run()
+                if response == gtk.RESPONSE_YES:
+                    dialog.destroy()
+                    model, selected = self.playlists_selection.get_selected_rows()
+                    iters = [model.get_iter(path) for path in selected]
+                    for iter in iters:
+                        self.conn.do.rm(unescape_html(self.playlistsdata.get_value(iter, 1)))
+                    self.playlists_populate()
+                else:
+                    dialog.destroy()
             elif page_num == self.TAB_STREAMS:
-                model, selected = self.streams_selection.get_selected_rows()
-                iters = [model.get_iter(path) for path in selected]
-                for iter in iters:
-                    stream_removed = False
-                    for i in range(len(self.stream_names)):
-                        if not stream_removed:
-                            if self.streamsdata.get_value(iter, 1) == escape_html(self.stream_names[i]):
-                                self.stream_names.pop(i)
-                                self.stream_uris.pop(i)
-                                stream_removed = True
-                self.streams_populate()
+                dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_YES_NO, _("Delete the selected stream(s)?"))
+                dialog.set_title(_("Delete Stream(s)"))
+                response = dialog.run()
+                if response == gtk.RESPONSE_YES:
+                    dialog.destroy()
+                    model, selected = self.streams_selection.get_selected_rows()
+                    iters = [model.get_iter(path) for path in selected]
+                    for iter in iters:
+                        stream_removed = False
+                        for i in range(len(self.stream_names)):
+                            if not stream_removed:
+                                if self.streamsdata.get_value(iter, 1) == escape_html(self.stream_names[i]):
+                                    self.stream_names.pop(i)
+                                    self.stream_uris.pop(i)
+                                    stream_removed = True
+                    self.streams_populate()
+                else:
+                    dialog.destroy()
             self.iterate_now()
 
     def randomize(self, widget):
@@ -4209,13 +4223,16 @@ class Base(mpdclient3.mpd_connection):
         yearandtrackhbox.pack_start(trackbuttonvbox, False, False, 2)
         genrelabel = gtk.Label(_("Genre") + ":")
         genrelabel.set_alignment(1, 0.5)
-        genreentry = gtk.Entry()
+        genrecombo = gtk.combo_box_entry_new_text()
+        genrecombo.set_wrap_width(2)
+        self.editwindow_populate_genre_combo(genrecombo)
+        genreentry = genrecombo.get_child()
         genrehbox = gtk.HBox()
         genrebutton = gtk.Button()
         genrebuttonvbox = gtk.VBox()
         self.editwindow_create_applyall_button(genrebutton, genrebuttonvbox, genreentry)
         genrehbox.pack_start(genrelabel, False, False, 2)
-        genrehbox.pack_start(genreentry, True, True, 2)
+        genrehbox.pack_start(genrecombo, True, True, 2)
         genrehbox.pack_start(genrebuttonvbox, False, False, 2)
         commentlabel = gtk.Label(_("Comment") + ":")
         commentlabel.set_alignment(1, 0.5)
@@ -4230,6 +4247,7 @@ class Base(mpdclient3.mpd_connection):
         self.set_label_widths_equal([titlelabel, artistlabel, albumlabel, yearlabel, genrelabel, commentlabel, sonataicon])
         fileentry.set_size_request(titleentry.size_request()[0], -1)
         pathentry.set_size_request(titleentry.size_request()[0], -1)
+        genrecombo.set_size_request(-1, titleentry.size_request()[1])
         table.attach(gtk.Label(), 1, 2, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 2, 0)
         table.attach(filehbox, 1, 2, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 2, 0)
         table.attach(gtk.Label(), 1, 2, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 2, 0)
@@ -4383,6 +4401,11 @@ class Base(mpdclient3.mpd_connection):
 
     def editwindow_hide(self, window, data=None):
         window.destroy()
+
+    def editwindow_populate_genre_combo(self, genrecombo):
+        genres = ["", "A Cappella", "Acid", "Acid Jazz", "Acid Punk", "Acoustic", "Alt. Rock", "Alternative", "Ambient", "Anime", "Avantgarde", "Ballad", "Bass", "Beat", "Bebob", "Big Band", "Black Metal", "Bluegrass", "Blues", "Booty Bass", "BritPop", "Cabaret", "Celtic", "Chamber music", "Chanson", "Chorus", "Christian Gangsta Rap", "Christian Rap", "Christian Rock", "Classic Rock", "Classical", "Club", "Club-House", "Comedy", "Contemporary Christian", "Country", "Crossover", "Cult", "Dance", "Dance Hall", "Darkwave", "Death Metal", "Disco", "Dream", "Drum &amp; Bass", "Drum Solo", "Duet", "Easy Listening", "Electronic", "Ethnic", "Euro-House", "Euro-Techno", "Eurodance", "Fast Fusion", "Folk", "Folk-Rock", "Folklore", "Freestyle", "Funk", "Fusion", "Game", "Gangsta", "Goa", "Gospel", "Gothic", "Gothic Rock", "Grunge", "Hard Rock", "Hardcore", "Heavy Metal", "Hip-Hop", "House", "Humour", "Indie", "Industrial", "Instrumental", "Instrumental pop", "Instrumental rock", "JPop", "Jazz", "Jazz+Funk", "Jungle", "Latin", "Lo-Fi", "Meditative", "Merengue", "Metal", "Musical", "National Folk", "Native American", "Negerpunk", "New Age", "New Wave", "Noise", "Oldies", "Opera", "Other", "Polka", "Polsk Punk", "Pop", "Pop-Folk", "Pop/Funk", "Porn Groove", "Power Ballad", "Pranks", "Primus", "Progressive Rock", "Psychedelic", "Psychedelic Rock", "Punk", "Punk Rock", "R&amp;B", "Rap", "Rave", "Reggae", "Retro", "Revival", "Rhythmic soul", "Rock", "Rock &amp; Roll", "Salsa", "Samba", "Satire", "Showtunes", "Ska", "Slow Jam", "Slow Rock", "Sonata", "Soul", "Sound Clip", "Soundtrack", "Southern Rock", "Space", "Speech", "Swing", "Symphonic Rock", "Symphony", "Synthpop", "Tango", "Techno", "Techno-Industrial", "Terror", "Thrash Metal", "Top 40", "Trailer"]
+        for genre in genres:
+            genrecombo.append_text(genre)
 
     def set_label_widths_equal(self, labels):
         max_label_width = 0
