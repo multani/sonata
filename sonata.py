@@ -4352,7 +4352,6 @@ class Base(mpdclient3.mpd_connection):
         entries[7].set_text(mpdpaths[self.filetagnum].split('/')[-1])
         entries[8].set_text(os.path.dirname(mpdpaths[self.filetagnum]))
         window.set_title(_("Edit Tags" + " - " + str(self.filetagnum+1) + " " + _("of") + " " + str(len(filetags))))
-        gobject.idle_add(savebutton.set_sensitive, True)
         self.updating_edit_entries = False
         # Update text colors as appropriate:
         for i in range(len(entries)-2):
@@ -4360,6 +4359,7 @@ class Base(mpdclient3.mpd_connection):
                 self.edit_entry_changed(entries[i])
             else:
                 self.edit_entry_revert_color(entries[i], entries[len(entries)-1])
+        gobject.timeout_add(500, savebutton.set_sensitive, True)
 
     def editwindow_response(self, window, response, filetags, mpdpaths, savebutton, tag_changed, entries, entries_names):
         if response == gtk.RESPONSE_REJECT:
