@@ -2261,11 +2261,12 @@ class Base(mpdclient3.mpd_connection):
                 # be downloading so it's not complete
                 try:
                     pix = gtk.gdk.pixbuf_new_from_file(filename)
-                    pix1 = pix.scale_simple(75, 75, gtk.gdk.INTERP_HYPER)
-                    pix1 = self.add_border(pix1)
+                    (pix1, w, h) = self.get_pixbuf_of_size(pix, 75)
+                    pix1 = self.pixbuf_add_border(pix1)
+                    pix1 = self.pixbuf_pad(pix1, 77, 77)
                     if self.coverwindow_visible:
                         (pix2, w, h) = self.get_pixbuf_of_size(pix, 298)
-                        pix2 = self.add_border(pix2)
+                        pix2 = self.pixbuf_add_border(pix2)
                     self.albumimage.set_from_pixbuf(pix1)
                     self.set_tooltip_art(pix1)
                     if self.coverwindow_visible:
@@ -2360,7 +2361,7 @@ class Base(mpdclient3.mpd_connection):
                             if os.path.exists(dest_filename_curr):
                                 pix = gtk.gdk.pixbuf_new_from_file(dest_filename_curr)
                                 pix = pix.scale_simple(148, 148, gtk.gdk.INTERP_HYPER)
-                                pix = self.add_border(pix)
+                                pix = self.pixbuf_add_border(pix)
                                 if self.stop_art_update:
                                     self.downloading_image = False
                                     return imgfound
@@ -2974,7 +2975,7 @@ class Base(mpdclient3.mpd_connection):
         crop_pixbuf = pixbuf.scale_simple(image_width, image_height, gtk.gdk.INTERP_HYPER)
         return (crop_pixbuf, image_width, image_height)
 
-    def add_border(self, pix):
+    def pixbuf_add_border(self, pix):
         # Add a gray outline to pix. This will increase the pixbuf size by
         # 2 pixels lengthwise and heightwise, 1 on each side. Returns pixbuf.
         width = pix.get_width()
@@ -2983,6 +2984,18 @@ class Base(mpdclient3.mpd_connection):
         newpix.fill(0x858585ff)
         pix.copy_area(0, 0, width, height, newpix, 1, 1)
         return newpix
+
+    def pixbuf_pad(self, pix, w, h):
+        # Adds transparent canvas so that the pixbuf is of size (w,h). Also
+        # centers the pixbuf in the canvas.
+        width = pix.get_width()
+        height = pix.get_height()
+        transpbox = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, w, h)
+        transpbox.fill(0xffff00)
+        x_pos = int((w - width)/2)
+        y_pos = int((h - height)/2)
+        pix.copy_area(0, 0, width, height, transpbox, x_pos, y_pos)
+        return transpbox
 
     def unblock_window_popup_handler(self):
         self.window.handler_unblock(self.mainwinhandler)
