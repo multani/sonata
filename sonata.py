@@ -255,6 +255,8 @@ class Base(mpdclient3.mpd_connection):
         self.infofile_path = '/tmp/xmms-info'
         self.play_on_activate = False
         self.view = self.VIEW_FILESYSTEM
+        self.view_artist_artist = ''
+        self.view_artist_album = ''
         show_prefs = False
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
@@ -274,10 +276,13 @@ class Base(mpdclient3.mpd_connection):
         self.iconfactory = gtk.IconFactory()
         sonataset1 = gtk.IconSet()
         sonataset2 = gtk.IconSet()
+        sonataset3 = gtk.IconSet()
         filename1 = [self.find_path('sonata.png')]
         filename2 = [self.find_path('sonata-artist.png')]
+        filename3 = [self.find_path('sonata-album.png')]
         icons1 = [gtk.IconSource() for i in filename1]
         icons2 = [gtk.IconSource() for i in filename2]
+        icons3 = [gtk.IconSource() for i in filename3]
         for i, iconsource in enumerate(icons1):
             iconsource.set_filename(filename1[i])
             sonataset1.add_source(iconsource)
@@ -288,13 +293,18 @@ class Base(mpdclient3.mpd_connection):
             sonataset2.add_source(iconsource)
         self.iconfactory.add('artist', sonataset2)
         self.iconfactory.add_default()
+        for i, iconsource in enumerate(icons3):
+            iconsource.set_filename(filename3[i])
+            sonataset3.add_source(iconsource)
+        self.iconfactory.add('album', sonataset3)
+        self.iconfactory.add_default()
 
         # Popup menus:
         actions = (
             ('sortmenu', None, _('_Sort List')),
             ('filesystemview', gtk.STOCK_HARDDISK, _('Filesystem'), None, None, self.libraryview_chosen),
             ('artistview', 'artist', _('Artist'), None, None, self.libraryview_chosen),
-            ('albumview', gtk.STOCK_CDROM, _('Album'), None, None, self.libraryview_chosen),
+            ('albumview', 'album', _('Album'), None, None, self.libraryview_chosen),
             ('chooseimage_menu', gtk.STOCK_CONVERT, _('Use _Remote Image...'), None, None, self.choose_image),
             ('localimage_menu', gtk.STOCK_OPEN, _('Use _Local Image...'), None, None, self.choose_image_local),
             ('playmenu', gtk.STOCK_MEDIA_PLAY, _('_Play'), None, None, self.pp),
@@ -1520,7 +1530,7 @@ class Base(mpdclient3.mpd_connection):
         elif self.view == self.VIEW_ARTIST:
             self.libraryview.set_image(gtk.image_new_from_stock('artist', gtk.ICON_SIZE_MENU))
         elif self.view == self.VIEW_ALBUM:
-            self.libraryview.set_image(gtk.image_new_from_stock(gtk.STOCK_CDROM, gtk.ICON_SIZE_MENU))
+            self.libraryview.set_image(gtk.image_new_from_stock('album', gtk.ICON_SIZE_MENU))
 
     def browse(self, widget=None, root='/'):
         # Populates the library list with entries starting at root
@@ -1640,7 +1650,7 @@ class Base(mpdclient3.mpd_connection):
                         albums = list(set(albums))    # Remove duplicates
                         albums.sort(locale.strcoll)
                         for album in albums:
-                            self.browserdata.append([gtk.STOCK_CDROM, album, escape_html(album)])
+                            self.browserdata.append(['album', album, escape_html(album)])
                         for song in songs:
                             self.browserdata.append(['sonata', song.file, self.parse_formatting(self.libraryformat, song, True)])
                     else: # third tier..
@@ -1658,7 +1668,7 @@ class Base(mpdclient3.mpd_connection):
                     items = list(set(items))    # Remove duplicates
                     items.sort(locale.strcoll)
                     for item in items:
-                        self.browserdata.append([gtk.STOCK_CDROM, item, escape_html(item)])
+                        self.browserdata.append(['album', item, escape_html(item)])
                 else:
                     for item in self.conn.do.find('album', root):
                         self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
@@ -1913,14 +1923,14 @@ class Base(mpdclient3.mpd_connection):
         items = []
         model, selected = self.browser_selection.get_selected_rows()
         if self.view == self.VIEW_FILESYSTEM:
-            if return_root and ((self.root == "/" and len(selected) == len(self.browserdata)) or (self.root != "/" and len(selected) >= len(self.browserdata)-2)):
+            if return_root and not self.search_mode_enabled() and ((self.root == "/" and len(selected) == len(self.browserdata)) or (self.root != "/" and len(selected) >= len(self.browserdata)-2)):
                 # Everything selected, this is faster..
                 items.append(self.root)
             else:
                 for path in selected:
                     if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
                         if model.get_value(model.get_iter(path), 0) == gtk.STOCK_OPEN:
-                            if return_root:
+                            if return_root and not self.search_mode_enabled():
                                 items.append(model.get_value(model.get_iter(path), 1))
                             else:
                                 for item in self.conn.do.listall(model.get_value(model.get_iter(path), 1)):
@@ -1935,7 +1945,7 @@ class Base(mpdclient3.mpd_connection):
                         for item in self.conn.do.find('artist', model.get_value(model.get_iter(path), 1)):
                             items.append(item.file)
                     else:
-                        if model.get_value(model.get_iter(path), 0) == gtk.STOCK_CDROM:
+                        if model.get_value(model.get_iter(path), 0) == 'album':
                             for item in self.conn.do.find('album', model.get_value(model.get_iter(path), 1)):
                                 if item.artist == self.view_artist_artist:
                                     items.append(item.file)
@@ -4248,13 +4258,19 @@ class Base(mpdclient3.mpd_connection):
             self.search_end(None)
 
     def search_end(self, button):
+        self.searchbutton.hide()
+        self.searchbutton.set_no_show_all(True)
+        self.searchtext.set_text("")
         if self.VIEW_ARTIST and self.browser_artistview_is_secondtier():
             self.view_artist_artist = ''
         self.browse(root=self.browser.wd)
         self.browser.grab_focus()
-        self.searchbutton.hide()
-        self.searchbutton.set_no_show_all(True)
-        self.searchtext.set_text("")
+
+    def search_mode_enabled(self):
+        if self.searchbutton.get_property('visible'):
+            return True
+        else:
+            return False
 
     def set_menu_contextual_items_visible(self):
         self.set_menu_contextual_items_hidden()
