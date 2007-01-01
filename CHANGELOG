@@ -1,4 +1,5 @@
 v1.0 - Pending
+	+ Multiple views for library: filesystem, artists, albums
 	+ Edit song tags in library (requires optional taglib & tagpy)
 	+ Allow pls/m3u/extm3u streams as input
 	+ Sort current playlist (by metadata, random, reverse)

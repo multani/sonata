@@ -113,7 +113,7 @@ class Connection(mpdclient3.mpd_connection):
         if os.environ.has_key('MPD_PORT'):
             port = int(os.environ['MPD_PORT'])
 
-        mpdclient3.mpd_connection.__init__(self, host, port, password)
+        mpdclient3.mpd_connection.__init__(self, host, port)
         mpdclient3.connect(host=host, port=port, password=password)
 
 class Base(mpdclient3.mpd_connection):
@@ -193,6 +193,9 @@ class Base(mpdclient3.mpd_connection):
         self.ART_REMOTE = 1
         self.ART_LOCAL_REMOTE = 2
         self.ART_REMOTE_LOCAL = 3
+        self.VIEW_FILESYSTEM = 0
+        self.VIEW_ARTIST = 1
+        self.VIEW_ALBUM = 2
         self.musicdir = os.path.expanduser("~/music")
         socket.setdefaulttimeout(2)
         self.host = 'localhost'
@@ -251,6 +254,7 @@ class Base(mpdclient3.mpd_connection):
         self.use_infofile = False
         self.infofile_path = '/tmp/xmms-info'
         self.play_on_activate = False
+        self.view = self.VIEW_FILESYSTEM
         show_prefs = False
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
@@ -266,9 +270,31 @@ class Base(mpdclient3.mpd_connection):
         if self.autoconnect:
             self.user_connect = True
 
+        # Add some icons:
+        self.iconfactory = gtk.IconFactory()
+        sonataset1 = gtk.IconSet()
+        sonataset2 = gtk.IconSet()
+        filename1 = [self.find_path('sonata.png')]
+        filename2 = [self.find_path('sonata-artist.png')]
+        icons1 = [gtk.IconSource() for i in filename1]
+        icons2 = [gtk.IconSource() for i in filename2]
+        for i, iconsource in enumerate(icons1):
+            iconsource.set_filename(filename1[i])
+            sonataset1.add_source(iconsource)
+        self.iconfactory.add('sonata', sonataset1)
+        self.iconfactory.add_default()
+        for i, iconsource in enumerate(icons2):
+            iconsource.set_filename(filename2[i])
+            sonataset2.add_source(iconsource)
+        self.iconfactory.add('artist', sonataset2)
+        self.iconfactory.add_default()
+
         # Popup menus:
         actions = (
             ('sortmenu', None, _('_Sort List')),
+            ('filesystemview', gtk.STOCK_HARDDISK, _('Filesystem'), None, None, self.libraryview_chosen),
+            ('artistview', 'artist', _('Artist'), None, None, self.libraryview_chosen),
+            ('albumview', gtk.STOCK_CDROM, _('Album'), None, None, self.libraryview_chosen),
             ('chooseimage_menu', gtk.STOCK_CONVERT, _('Use _Remote Image...'), None, None, self.choose_image),
             ('localimage_menu', gtk.STOCK_OPEN, _('Use _Local Image...'), None, None, self.choose_image_local),
             ('playmenu', gtk.STOCK_MEDIA_PLAY, _('_Play'), None, None, self.pp),
@@ -365,6 +391,11 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="aboutmenu"/>
                 <menuitem action="quitmenu"/>
               </popup>
+              <popup name="librarymenu">
+                <menuitem action="filesystemview"/>
+                <menuitem action="artistview"/>
+                <menuitem action="albumview"/>
+              </popup>
               <popup name="hidden">
                 <menuitem action="quitkey"/>
                 <menuitem action="currentkey"/>
@@ -414,16 +445,6 @@ class Base(mpdclient3.mpd_connection):
             self.status = None
             self.songinfo = None
 
-        # Add some icons:
-        self.iconfactory = gtk.IconFactory()
-        sonataset = gtk.IconSet()
-        filename1 = [self.find_path('sonata.png')]
-        icons1 = [gtk.IconSource() for i in filename1]
-        for i, iconsource in enumerate(icons1):
-            iconsource.set_filename(filename1[i])
-            sonataset.add_source(iconsource)
-        self.iconfactory.add('sonata', sonataset)
-        self.iconfactory.add_default()
         # Remove the old sonata covers dir (cleanup)
         if os.path.exists(os.path.expanduser('~/.config/sonata/covers/')):
             removeall(os.path.expanduser('~/.config/sonata/covers/'))
@@ -455,6 +476,12 @@ class Base(mpdclient3.mpd_connection):
         self.UIManager.insert_action_group(actionGroup, 0)
         self.UIManager.add_ui_from_string(uiDescription)
         self.window.add_accel_group(self.UIManager.get_accel_group())
+        self.mainmenu = self.UIManager.get_widget('/mainmenu')
+        self.shufflemenu = self.UIManager.get_widget('/mainmenu/shufflemenu')
+        self.repeatmenu = self.UIManager.get_widget('/mainmenu/repeatmenu')
+        self.imagemenu = self.UIManager.get_widget('/imagemenu')
+        self.traymenu = self.UIManager.get_widget('/traymenu')
+        self.librarymenu = self.UIManager.get_widget('/librarymenu')
         mainhbox = gtk.HBox()
         mainvbox = gtk.VBox()
         tophbox = gtk.HBox()
@@ -530,7 +557,6 @@ class Base(mpdclient3.mpd_connection):
         self.expander.set_expanded(self.expanded)
         self.expander.set_property('can-focus', False)
         self.cursonglabel = gtk.Label()
-        #self.cursonglabel.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
         self.expander.set_label_widget(self.cursonglabel)
         topvbox.pack_start(self.expander, False, False, 2)
         tophbox.pack_start(topvbox, True, True, 3)
@@ -574,6 +600,12 @@ class Base(mpdclient3.mpd_connection):
         self.searchbutton.set_size_request(-1, self.searchcombo.size_request()[1])
         self.searchbutton.set_no_show_all(True)
         self.searchbutton.hide()
+        self.libraryview = gtk.Button()
+        self.libraryview_assign_image()
+        self.libraryview.set_relief(gtk.RELIEF_NONE)
+        self.librarymenu.attach_to_widget(self.libraryview, None)
+        self.searchbox.pack_start(self.libraryview, False, False, 1)
+        self.searchbox.pack_start(gtk.VSeparator(), False, False, 0)
         self.searchbox.pack_start(self.searchcombo, False, False, 2)
         self.searchbox.pack_start(self.searchtext, True, True, 2)
         self.searchbox.pack_start(self.searchbutton, False, False, 2)
@@ -626,11 +658,6 @@ class Base(mpdclient3.mpd_connection):
         if self.window_owner:
             self.window.move(self.x, self.y)
             self.window.set_size_request(270, -1)
-        self.mainmenu = self.UIManager.get_widget('/mainmenu')
-        self.shufflemenu = self.UIManager.get_widget('/mainmenu/shufflemenu')
-        self.repeatmenu = self.UIManager.get_widget('/mainmenu/repeatmenu')
-        self.imagemenu = self.UIManager.get_widget('/imagemenu')
-        self.traymenu = self.UIManager.get_widget('/traymenu')
         if not self.expanded:
             self.notebook.set_no_show_all(True)
             self.notebook.hide()
@@ -756,6 +783,7 @@ class Base(mpdclient3.mpd_connection):
         self.browser.connect('button_press_event', self.browser_button_press)
         self.browser.connect('key-press-event', self.browser_key_press)
         self.browser_selection.connect('changed', self.treeview_selection_changed)
+        self.libraryview.connect('clicked', self.libraryview_popup)
         self.playlists.connect('button_press_event', self.playlists_button_press)
         self.playlists.connect('row_activated', self.playlists_activated)
         self.playlists_selection.connect('changed', self.treeview_selection_changed)
@@ -1244,6 +1272,8 @@ class Base(mpdclient3.mpd_connection):
             self.play_on_activate = conf.getboolean('player', 'play_on_activate')
         if conf.has_option('player', 'trayicon'):
             self.show_trayicon = conf.getboolean('player', 'trayicon')
+        if conf.has_option('player', 'view'):
+            self.view = conf.getint('player', 'view')
         if conf.has_option('format', 'current'):
             self.currentformat = conf.get('format', 'current')
         if conf.has_option('format', 'library'):
@@ -1297,6 +1327,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'infofile_path', self.infofile_path)
         conf.set('player', 'play_on_activate', self.play_on_activate)
         conf.set('player', 'trayicon', self.show_trayicon)
+        conf.set('player', 'view', self.view)
         conf.add_section('format')
         conf.set('format', 'current', self.currentformat)
         conf.set('format', 'library', self.libraryformat)
@@ -1462,9 +1493,52 @@ class Base(mpdclient3.mpd_connection):
                     self.browse(None, self.browserdata.get_value(self.browserdata.get_iter((1,)), 1))
                     return
 
+    def libraryview_popup(self, button):
+        self.librarymenu.popup(None, None, self.position_libraryview_menu, 1, 0)
+
+    def libraryview_chosen(self, action):
+        prev_view = self.view
+        if action.get_name() == 'filesystemview':
+            self.view = self.VIEW_FILESYSTEM
+        elif action.get_name() == 'artistview':
+            self.view = self.VIEW_ARTIST
+        elif action.get_name() == 'albumview':
+            self.view = self.VIEW_ALBUM
+        if self.view != prev_view:
+            self.libraryview_assign_image()
+            try:
+                self.browse()
+                if len(self.browserdata) > 0:
+                    self.browser_selection.unselect_range((0,), (len(self.browserdata)-1,))
+            except:
+                pass
+        self.browser.grab_focus()
+
+    def libraryview_assign_image(self):
+        if self.view == self.VIEW_FILESYSTEM:
+            self.libraryview.set_image(gtk.image_new_from_stock(gtk.STOCK_HARDDISK, gtk.ICON_SIZE_MENU))
+        elif self.view == self.VIEW_ARTIST:
+            self.libraryview.set_image(gtk.image_new_from_stock('artist', gtk.ICON_SIZE_MENU))
+        elif self.view == self.VIEW_ALBUM:
+            self.libraryview.set_image(gtk.image_new_from_stock(gtk.STOCK_CDROM, gtk.ICON_SIZE_MENU))
+
     def browse(self, widget=None, root='/'):
+        # Populates the library list with entries starting at root
         if not self.conn:
             return
+
+        if root == "..":
+            if self.view == self.VIEW_ARTIST:
+                if self.view_artist_album == '':
+                    # Revert to top tier
+                    root = '/'
+                else:
+                    # Revert back to second tier..
+                    root = self.view_artist_artist
+                    self.view_artist_artist = ''
+                    self.view_artist_album = ''
+            else:
+                root = '/'.join(self.browser.wd.split('/')[:-1]) or '/'
 
         # Handle special cases
         lsinfo = self.conn.do.lsinfo(root)
@@ -1477,12 +1551,15 @@ class Base(mpdclient3.mpd_connection):
                 if self.play_on_activate:
                     self.play_item(playid)
                 return
-            elif root == '/':
-                # Nothing in the library at all
-                return
+            elif self.view == self.VIEW_FILESYSTEM:
+                if root == '/':
+                    # Nothing in the library at all
+                    return
+                else:
+                    # Back up and try the parent
+                    root = '/'.join(root.split('/')[:-1]) or '/'
             else:
-                # Back up and try the parent
-                root = '/'.join(root.split('/')[:-1]) or '/'
+                break
 
         prev_selection = []
         prev_selection_root = False
@@ -1524,13 +1601,67 @@ class Base(mpdclient3.mpd_connection):
         self.browserdata.clear()
         if self.root != '/':
             self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
-            self.browserdata.append([gtk.STOCK_OPEN, '/'.join(root.split('/')[:-1]) or '/', '..'])
-        for item in lsinfo:
-            if item.type == 'directory':
-                name = item.directory.split('/')[-1]
-                self.browserdata.append([gtk.STOCK_OPEN, item.directory, escape_html(name)])
-            elif item.type == 'file':
-                self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
+            self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
+        if self.view == self.VIEW_ARTIST:
+            if self.root == '/':
+                self.view_artist_artist = ''
+                self.view_artist_album = ''
+        if self.view == self.VIEW_FILESYSTEM:
+            for item in lsinfo:
+                if item.type == 'directory':
+                    name = item.directory.split('/')[-1]
+                    self.browserdata.append([gtk.STOCK_OPEN, item.directory, escape_html(name)])
+                elif item.type == 'file':
+                    self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
+        else:
+            if self.view == self.VIEW_ARTIST:
+                if self.root == '/':
+                    artists = []
+                    for item in self.conn.do.list('artist'):
+                        if len(item.artist) > 0:
+                            artists.append(item.artist)
+                    artists = list(set(artists))    # Remove duplicates
+                    artists.sort(locale.strcoll)
+                    for artist in artists:
+                        self.browserdata.append(['artist', artist, escape_html(artist)])
+                else:
+                    if self.view_artist_artist == '':
+                        self.view_artist_artist = self.root
+                    elif self.view_artist_album == '':
+                        self.view_artist_album = self.root
+                    albums = []
+                    songs = []
+                    if self.browser_artistview_is_secondtier():
+                        for item in self.conn.do.find('artist', self.view_artist_artist):
+                            if len(item.album) > 0:
+                                albums.append(item.album)
+                            else:
+                                songs.append(item)
+                        albums = list(set(albums))    # Remove duplicates
+                        albums.sort(locale.strcoll)
+                        for album in albums:
+                            self.browserdata.append([gtk.STOCK_CDROM, album, escape_html(album)])
+                        for song in songs:
+                            self.browserdata.append(['sonata', song.file, self.parse_formatting(self.libraryformat, song, True)])
+                    else: # third tier..
+                        for item in self.conn.do.find('album', self.view_artist_album):
+                            if item.artist == self.view_artist_artist:
+                                self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
+            elif self.view == self.VIEW_ALBUM:
+                items = []
+                if self.root == '/':
+                    for item in self.conn.do.list('album'):
+                        if len(item.album) > 0:
+                            items.append(item.album)
+                        else:
+                            items.append(_("Unknown"))
+                    items = list(set(items))    # Remove duplicates
+                    items.sort(locale.strcoll)
+                    for item in items:
+                        self.browserdata.append([gtk.STOCK_CDROM, item, escape_html(item)])
+                else:
+                    for item in self.conn.do.find('album', root):
+                        self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
         self.browser.thaw_child_notify()
 
         # Scroll back to set view for current dir:
@@ -1570,6 +1701,18 @@ class Base(mpdclient3.mpd_connection):
                     self.browser.grab_focus()
             except:
                 pass
+
+    def browser_artistview_is_toptier(self):
+        if self.view_artist_artist == '':
+            return True
+        else:
+            return False
+
+    def browser_artistview_is_secondtier(self):
+        if self.view_artist_artist != '' and self.view_artist_album == '':
+            return True
+        else:
+            return False
 
     def parse_formatting_return_substrings(self, format):
         substrings = []
@@ -1763,26 +1906,57 @@ class Base(mpdclient3.mpd_connection):
         if self.conn:
             self.conn.do.play(int(playid))
 
+    def browser_get_selected_items_recursive(self, return_root):
+        # If return_root=True, return main directories whenever possible
+        # instead of individual songs in order to reduce the number of
+        # mpd calls we need to make.
+        items = []
+        model, selected = self.browser_selection.get_selected_rows()
+        if self.view == self.VIEW_FILESYSTEM:
+            if return_root and ((self.root == "/" and len(selected) == len(self.browserdata)) or (self.root != "/" and len(selected) >= len(self.browserdata)-2)):
+                # Everything selected, this is faster..
+                items.append(self.root)
+            else:
+                for path in selected:
+                    if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
+                        if model.get_value(model.get_iter(path), 0) == gtk.STOCK_OPEN:
+                            if return_root:
+                                items.append(model.get_value(model.get_iter(path), 1))
+                            else:
+                                for item in self.conn.do.listall(model.get_value(model.get_iter(path), 1)):
+                                    if item.type == 'file':
+                                        items.append(item.file)
+                        else:
+                            items.append(model.get_value(model.get_iter(path), 1))
+        elif self.view == self.VIEW_ARTIST:
+            for path in selected:
+                if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
+                    if self.browser_artistview_is_toptier():
+                        for item in self.conn.do.find('artist', model.get_value(model.get_iter(path), 1)):
+                            items.append(item.file)
+                    else:
+                        if model.get_value(model.get_iter(path), 0) == gtk.STOCK_CDROM:
+                            for item in self.conn.do.find('album', model.get_value(model.get_iter(path), 1)):
+                                if item.artist == self.view_artist_artist:
+                                    items.append(item.file)
+                        else:
+                            items.append(model.get_value(model.get_iter(path), 1))
+        elif self.view == self.VIEW_ALBUM:
+            for path in selected:
+                if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
+                    if self.root == "/":
+                        for item in self.conn.do.find('album', model.get_value(model.get_iter(path), 1)):
+                            items.append(item.file)
+                    else:
+                        items.append(model.get_value(model.get_iter(path), 1))
+        return items
+
     def add_item(self, widget):
         if self.conn:
             if self.notebook.get_current_page() == self.TAB_LIBRARY:
-                model, selected = self.browser_selection.get_selected_rows()
-                if self.root == "/":
-                    if len(selected) == len(self.browserdata):
-                        # Everything selected, this is faster..
-                        self.conn.do.add(self.root)
-                    else:
-                        for path in selected:
-                            self.conn.do.add(model.get_value(model.get_iter(path), 1))
-                else:
-                    if len(selected) >= len(self.browserdata)-2:
-                        # Everything selected, this is faster..
-                        self.conn.do.add(self.root)
-                    else:
-                        iters = []
-                        for path in selected:
-                            if path[0] != 0 and path[0] != 1:
-                                self.conn.do.add(model.get_value(model.get_iter(path), 1))
+                items = self.browser_get_selected_items_recursive(True)
+                for item in items:
+                    self.conn.do.add(item)
             elif self.notebook.get_current_page() == self.TAB_PLAYLISTS:
                 model, selected = self.playlists_selection.get_selected_rows()
                 for path in selected:
@@ -1878,6 +2052,10 @@ class Base(mpdclient3.mpd_connection):
             except:
                 pass
         self.iterate_now()
+
+    def position_libraryview_menu(self, menu):
+        x, y, width, height = self.libraryview.get_allocation()
+        return (self.x + x, self.y + y + height, True)
 
     def position_menu(self, menu):
         if self.expanded:
@@ -1982,15 +2160,18 @@ class Base(mpdclient3.mpd_connection):
             self.update_album_art()
 
         if self.prevstatus is None or self.status.volume != self.prevstatus.volume:
-            self.volumescale.get_adjustment().set_value(int(self.status.volume))
-            if int(self.status.volume) == 0:
-                self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-mute", VOLUME_ICON_SIZE))
-            elif int(self.status.volume) < 30:
-                self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-min", VOLUME_ICON_SIZE))
-            elif int(self.status.volume) <= 70:
-                self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-med", VOLUME_ICON_SIZE))
-            else:
-                self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-max", VOLUME_ICON_SIZE))
+            try:
+                self.volumescale.get_adjustment().set_value(int(self.status.volume))
+                if int(self.status.volume) == 0:
+                    self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-mute", VOLUME_ICON_SIZE))
+                elif int(self.status.volume) < 30:
+                    self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-min", VOLUME_ICON_SIZE))
+                elif int(self.status.volume) <= 70:
+                    self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-med", VOLUME_ICON_SIZE))
+                else:
+                    self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-max", VOLUME_ICON_SIZE))
+            except:
+                pass
 
         if self.conn:
             if self.prevstatus == None or self.prevstatus.get('updating_db', 0) != self.status.get('updating_db', 0):
@@ -2042,31 +2223,34 @@ class Base(mpdclient3.mpd_connection):
 
     def update_statusbar(self):
         if self.conn and self.status and self.show_statusbar:
-            hours = None
-            mins = None
-            total_time = convert_time(self.total_time)
             try:
-                mins = total_time.split(":")[-2]
-                hours = total_time.split(":")[-3]
+                hours = None
+                mins = None
+                total_time = convert_time(self.total_time)
+                try:
+                    mins = total_time.split(":")[-2]
+                    hours = total_time.split(":")[-3]
+                except:
+                    pass
+                if mins:
+                    if mins.startswith('0') and len(mins) > 1:
+                        mins = mins[1:]
+                    mins_text = gettext.ngettext('minute', 'minutes', int(mins))
+                if hours:
+                    if hours.startswith('0'):
+                        hours = hours[1:]
+                    hours_text = gettext.ngettext('hour and', 'hours and', int(hours))
+                # Show text:
+                songs_text = gettext.ngettext('song', 'songs', int(self.status.playlistlength))
+                if hours:
+                    status_text = str(self.status.playlistlength) + ' ' + songs_text + ', ' + hours + ' ' + hours_text + ' ' + mins + ' ' + mins_text
+                elif mins:
+                    status_text = str(self.status.playlistlength) + ' ' + songs_text + ', ' + mins + ' ' + mins_text
+                else:
+                    status_text = ""
+                self.statusbar.push(self.statusbar.get_context_id(""), status_text)
             except:
-                pass
-            if mins:
-                if mins.startswith('0') and len(mins) > 1:
-                    mins = mins[1:]
-                mins_text = gettext.ngettext('minute', 'minutes', int(mins))
-            if hours:
-                if hours.startswith('0'):
-                    hours = hours[1:]
-                hours_text = gettext.ngettext('hour and', 'hours and', int(hours))
-            # Show text:
-            songs_text = gettext.ngettext('song', 'songs', int(self.status.playlistlength))
-            if hours:
-                status_text = str(self.status.playlistlength) + ' ' + songs_text + ', ' + hours + ' ' + hours_text + ' ' + mins + ' ' + mins_text
-            elif mins:
-                status_text = str(self.status.playlistlength) + ' ' + songs_text + ', ' + mins + ' ' + mins_text
-            else:
-                status_text = ""
-            self.statusbar.push(self.statusbar.get_context_id(""), status_text)
+                self.statusbar.push(self.statusbar.get_context_id(""), "")
         elif self.show_statusbar:
             self.statusbar.push(self.statusbar.get_context_id(""), "")
 
@@ -2149,7 +2333,7 @@ class Base(mpdclient3.mpd_connection):
             self.change_cursor(None)
 
     def keep_song_visible_in_list(self):
-        if self.expanded:
+        if self.expanded and len(self.currentdata)>0:
             try:
                 row = self.songinfo.pos
                 visible_rect = self.current.get_visible_rect()
@@ -4064,6 +4248,8 @@ class Base(mpdclient3.mpd_connection):
             self.search_end(None)
 
     def search_end(self, button):
+        if self.VIEW_ARTIST and self.browser_artistview_is_secondtier():
+            self.view_artist_artist = ''
         self.browse(root=self.browser.wd)
         self.browser.grab_focus()
         self.searchbutton.hide()
@@ -4075,18 +4261,20 @@ class Base(mpdclient3.mpd_connection):
         if not self.expanded:
             return
         elif self.notebook.get_current_page() == self.TAB_CURRENT:
-            if self.current_selection.count_selected_rows() > 0:
-                self.UIManager.get_widget('/mainmenu/removemenu/').show()
-            self.UIManager.get_widget('/mainmenu/clearmenu/').show()
-            self.UIManager.get_widget('/mainmenu/savemenu/').show()
-            self.UIManager.get_widget('/mainmenu/sortmenu/').show()
+            if len(self.currentdata) > 0:
+                if self.current_selection.count_selected_rows() > 0:
+                    self.UIManager.get_widget('/mainmenu/removemenu/').show()
+                self.UIManager.get_widget('/mainmenu/clearmenu/').show()
+                self.UIManager.get_widget('/mainmenu/savemenu/').show()
+                self.UIManager.get_widget('/mainmenu/sortmenu/').show()
         elif self.notebook.get_current_page() == self.TAB_LIBRARY:
-            if self.browser_selection.count_selected_rows() > 0:
-                self.UIManager.get_widget('/mainmenu/addmenu/').show()
-                self.UIManager.get_widget('/mainmenu/replacemenu/').show()
-                if HAVE_TAGPY:
-                    self.UIManager.get_widget('/mainmenu/edittagmenu/').show()
-            self.UIManager.get_widget('/mainmenu/updatemenu/').show()
+            if len(self.browserdata) > 0:
+                if self.browser_selection.count_selected_rows() > 0:
+                    self.UIManager.get_widget('/mainmenu/addmenu/').show()
+                    self.UIManager.get_widget('/mainmenu/replacemenu/').show()
+                    if HAVE_TAGPY:
+                        self.UIManager.get_widget('/mainmenu/edittagmenu/').show()
+                self.UIManager.get_widget('/mainmenu/updatemenu/').show()
         elif self.notebook.get_current_page() == self.TAB_PLAYLISTS:
             if self.playlists_selection.count_selected_rows() > 0:
                 self.UIManager.get_widget('/mainmenu/addmenu/').show()
@@ -4132,24 +4320,14 @@ class Base(mpdclient3.mpd_connection):
         self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
         while gtk.events_pending():
             gtk.main_iteration()
-        model, selected = self.browser_selection.get_selected_rows()
+        items = self.browser_get_selected_items_recursive(False)
         # Populates files array with selected items:
         files = []
         temp_mpdpaths = []
-        for path in selected:
-            if model.get_value(model.get_iter(path), 2) != ".." and model.get_value(model.get_iter(path), 2) != "/":
-                if os.path.isdir(self.musicdir + model.get_value(model.get_iter(path), 1)):
-                    # Recurse directory:
-                    if self.conn:
-                        for item in self.conn.do.listall(model.get_value(model.get_iter(path), 1)):
-                            # Add file:
-                            if item.type == 'file':
-                                files.append(self.musicdir + item.file)
-                                temp_mpdpaths.append(item.file)
-                elif os.path.exists(self.musicdir + model.get_value(model.get_iter(path), 1)):
-                    # Add file:
-                    files.append(self.musicdir + model.get_value(model.get_iter(path), 1))
-                    temp_mpdpaths.append(model.get_value(model.get_iter(path), 1))
+        for item in items:
+            if os.path.exists(self.musicdir + item):
+                files.append(self.musicdir + item)
+                temp_mpdpaths.append(item)
         filetags = []
         mpdpaths = []
         tag_changed = [] # Keeps track of whether tags have changed (for hilighting)
@@ -4386,7 +4564,7 @@ class Base(mpdclient3.mpd_connection):
                 self.edit_entry_changed(entries[i])
             else:
                 self.edit_entry_revert_color(entries[i], entries[len(entries)-1])
-        gobject.timeout_add(500, savebutton.set_sensitive, True)
+        savebutton.set_sensitive(True)
 
     def editwindow_response(self, window, response, filetags, mpdpaths, savebutton, tag_changed, entries, entries_names):
         if response == gtk.RESPONSE_REJECT:
@@ -4422,7 +4600,7 @@ class Base(mpdclient3.mpd_connection):
                 error_dialog.show()
             if self.filetagnum+1 < len(filetags):
                 self.filetagnum = self.filetagnum + 1
-                self.editwindow_update(window, filetags, mpdpaths, savebutton, tag_changed, entries, entries_names)
+                gobject.timeout_add(250, self.editwindow_update, window, filetags, mpdpaths, savebutton, tag_changed, entries, entries_names)
             else:
                 self.editwindow_hide(window)
 

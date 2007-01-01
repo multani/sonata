@@ -1,10 +1,4 @@
-# py-libmpdclient2 is written by Nick Welch <mack@incise.org>, 2005.
-#
-# This software is in the public domain
-# and is provided AS IS, with NO WARRANTY.
-
 import socket
-import sys
 
 # a line is either:
 #
@@ -24,7 +18,6 @@ class socket_talker(object):
         self.current_line = ''
         self.ack = ''
         self.done = True
-        self.sock.close()
 
     # this SUCKS
 
@@ -62,6 +55,7 @@ ONE = 1
 MANY = 2
 
 plitem_delim = ["file", "directory", "playlist"]
+litem_delim = ["album", "artist", "title", "track", "name", "genre", "date", "composer", "performer", "comment" ] #For use in list command.
 
 commands = {
     # (name, nargs): (format string, nresults, results_type_name, delimiter_key)
@@ -73,28 +67,32 @@ commands = {
     # the key of the first key/val pair in it; otherwise, it will be set to
     # results_type_name.
 
-    ("kill",              0): ('%s', ZERO, '', []),
-    ("outputs",           0): ('%s', MANY, 'outputs', ['outputid']),
-    ("clear",             0): ('%s', ZERO, '', []),
-    ("currentsong",       0): ('%s', ONE, '', []),
-    ("shuffle",           0): ('%s', ZERO, '', []),
-    ("next",              0): ('%s', ZERO, '', []),
-    ("previous",          0): ('%s', ZERO, '', []),
-    ("stop",              0): ('%s', ZERO, '', []),
-    ("clearerror",        0): ('%s', ZERO, '', []),
-    ("close",             0): ('%s', ZERO, '', []),
-    ("commands",          0): ('%s', MANY, 'commands', ['command']),
-    ("notcommands",       0): ('%s', MANY, 'notcommands', ['command']),
-    ("ping",              0): ('%s', ZERO, '', []),
-    ("stats",             0): ('%s', ONE, 'stats', []),
-    ("status",            0): ('%s', ONE, 'status', []),
-    ("play",              0): ('%s', ZERO, '', []),
-    ("playlistinfo",      0): ('%s', MANY, '', plitem_delim),
-    ("playlistid",        0): ('%s', MANY, '', plitem_delim),
-    ("lsinfo",            0): ('%s', MANY, '', plitem_delim),
-    ("update",            0): ('%s', ZERO, '', []),
-    ("listall",           0): ('%s', MANY, '', plitem_delim),
-    ("listallinfo",       0): ('%s', MANY, '', plitem_delim),
+    ("kill",          0): ('%s', ZERO, '', []),
+    ("outputs",       0): ('%s', MANY, 'outputs', ['outputid']),
+    ("clear",         0): ('%s', ZERO, '', []),
+    ("currentsong",   0): ('%s', ONE, '', []),
+    ("shuffle",       0): ('%s', ZERO, '', []),
+    ("next",          0): ('%s', ZERO, '', []),
+    ("previous",      0): ('%s', ZERO, '', []),
+    ("stop",          0): ('%s', ZERO, '', []),
+    ("clearerror",    0): ('%s', ZERO, '', []),
+    ("close",         0): ('%s', ZERO, '', []),
+    ("commands",      0): ('%s', MANY, 'commands', ['command']),
+    ("notcommands",   0): ('%s', MANY, 'notcommands', ['command']),
+    ("ping",          0): ('%s', ZERO, '', []),
+    ("stats",         0): ('%s', ONE, 'stats', []),
+    ("status",        0): ('%s', ONE, 'status', []),
+    ("play",          0): ('%s', ZERO, '', []),
+    ("playlistinfo",  0): ('%s', MANY, '', plitem_delim),
+    ("playlistid",    0): ('%s', MANY, '', plitem_delim),
+    ("getqueueinfo",  0): ('%s', MANY, '', plitem_delim),
+    ("lsinfo",        0): ('%s', MANY, '', plitem_delim),
+    ("update",        0): ('%s', ZERO, '', []),
+    ("listall",       0): ('%s', MANY, '', plitem_delim),
+    ("listallinfo",   0): ('%s', MANY, '', plitem_delim),
+
+    ("command_list_begin",       0): ('%s', ZERO, '', []),
+    ("command_list_end",       0): ('%s', ZERO, '', []),
 
     ("disableoutput", 1): ("%s %d", ZERO, '', []),
     ("enableoutput",  1): ("%s %d", ZERO, '', []),
@@ -102,6 +100,8 @@ commands = {
     ("deleteid",      1): ('%s %d', ZERO, '', []), # <int songid>
     ("playlistinfo",  1): ('%s %d', MANY, '', plitem_delim), # <int song>
     ("playlistid",    1): ('%s %d', MANY, '', plitem_delim), # <int songid>
+    ("queue",         1): ('%s %d', ZERO, '', []), # <int songid>
+    ("dequeue",       1): ('%s %d', ZERO, '', []), # <int songid>
     ("crossfade",     1): ('%s %d', ZERO, '', []), # <int seconds>
     ("play",          1): ('%s %d', ZERO, '', []), # <int song>
     ("playid",        1): ('%s %d', ZERO, '', []), # <int songid>
@@ -109,7 +109,6 @@ commands = {
     ("repeat",        1): ('%s %d', ZERO, '', []), # <int state>
     ("setvol",        1): ('%s %d', ZERO, '', []), # <int vol>
     ("plchanges",     1): ('%s %d', MANY, '', plitem_delim), # <playlist version>
-    ("plchangesposid",1): ('%s %d', MANY, '', plitem_delim), # <playlist version>
     ("pause",         1): ('%s %d', ZERO, '', []), # <bool pause>
 
     ("update",      1): ('%s "%s"', ONE, 'update', []), # <string path>
@@ -138,10 +137,10 @@ commands = {
     # list <metadata arg1> [<metadata arg2> <search term>]
 
     # <metadata arg1>
-    ("list", 1): ('%s "%s"', MANY, '', plitem_delim),
+    ("list", 1): ('%s "%s"', MANY, '', litem_delim),
 
     # <metadata arg1> <metadata arg2> <search term>
-    ("list", 3): ('%s "%s" "%s" "%s"', MANY, '', plitem_delim),
+    ("list", 3): ('%s "%s" "%s" "%s"', MANY, '', litem_delim),
 }
 
 def is_command(cmd):
@@ -213,7 +212,6 @@ class command_sender(object):
 class response_fetcher(object):
     def __init__(self, talker):
         self.talker = talker
-        self.converters = {}
 
     def clear(self):
         while not self.talker.done:
@@ -227,13 +225,21 @@ class response_fetcher(object):
 
         # keywords lists the keys that indicate a new object -- like for the
         # 'outputs' command, keywords would be ['outputid'].
+
         entity = dictobj()
         if type:
             entity['type'] = type
 
-        while not self.talker.done:
-            self.talker.get_line()
-            pair = self.talker.get_pair()
+        # make these functions local
+        getline = self.talker.get_line
+        getpair = self.talker.get_pair
+        done = self.talker.done
+
+        while not done:
+            #self.talker.get_line()
+            getline()
+#            pair = self.talker.get_pair()
+            pair = getpair()
 
             if not pair:
                 self.talker.current_line = ''
@@ -254,7 +260,7 @@ class response_fetcher(object):
             if not type and 'type' not in entity.keys():
                 entity['type'] = key
 
-            entity[key] = self.convert(entity['type'], key, val)
+            entity[key] = val
             self.talker.current_line = ''
 
         return entity
@@ -268,16 +274,12 @@ class response_fetcher(object):
             if self.talker.done:
                 raise StopIteration
 
-    def convert(self, cmd, key, val):
-        # if there's a converter, convert it, otherwise return it the same
-        return self.converters.get(cmd, {}).get(key, lambda x: x)(val)
-
 class dictobj(dict):
     def __getattr__(self, attr):
         try:
             return self[attr]
         except KeyError:
-            raise AttributeError
+            return ''
     def __repr__(self):
         # <mpdclient2.dictobj at 0x12345678 ..
         #   {
@@ -290,11 +292,13 @@ class dictobj(dict):
                 '\n  }>')
 
 class mpd_connection(object):
-    def __init__(self, host, port, password):
+    def __init__(self, host, port):
         self.talker = socket_talker(host, port)
         self.send = command_sender(self.talker)
         self.fetch = response_fetcher(self.talker)
         self.do = sender_n_fetcher(self.send, self.fetch)
+        self.doit = sender_n_fetcher(self.send, self.fetch)
+        self.doit.iterate = True
 
         self._hello()
 
@@ -306,11 +310,10 @@ class mpd_connection(object):
         self.talker.current_line = ''
 
     # conn.foo() is equivalent to conn.do.foo(), but nicer
-    #def __getattr__(self, attr):
-    #    print attr
-    #    if is_command(attr):
-    #        return getattr(self.do, attr)
-    #    raise AttributeError(attr)
+    def __getattr__(self, attr):
+        if is_command(attr):
+            return getattr(self.do, attr)
+        raise AttributeError(attr)
 
 def parse_host(host):
     if '@' in host:
@@ -320,22 +323,14 @@ def parse_host(host):
 def connect(**kw):
     import os
 
-    port = int(os.environ.get('MPD_PORT', 6600))
+    port = int(kw.get('port', os.environ.get('MPD_PORT', 6600)))
+
     password, host = parse_host(os.environ.get('MPD_HOST', 'localhost'))
+    host = kw.get('host', host)
+    password = kw.get('password', password)
 
-    kw_port = kw.get('port', 0)
-    kw_password = kw.get('password', '')
-    kw_host = kw.get('host', '')
-
-    if kw_port:
-        port = kw_port
-    if kw_password:
-        password = kw_password
-    if kw_host:
-        host = kw_host
-
-    conn = mpd_connection(host, port, password)
-    #if password:
-    #    conn.password(password)
+    conn = mpd_connection(host, port)
+    if password:
+        conn.password(password)
     return conn
 

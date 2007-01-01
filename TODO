@@ -2,11 +2,13 @@ v1.0
 	make selection, dnd, more like thunar
 	some way to bring up the info viewer when art is disabled
 	taglib bug with > 1017 files selected?
+	wrap text in song info window to keep size constant
+	show popup for genre
+	self.crossfade (like repeat/shuffle)
+	volume window keeps popping up on click?
+	tabbed song info window?
 
 Future:
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
-		Add to > Next song, top, random
 	connect in background via socket.setblocking(0)
 	lyrics? last.fm?
-	library viewing prefs (filesystem, artist, album) - small toggle
-		icons at bottom left?
