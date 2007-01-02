@@ -20,7 +20,7 @@ msgstr ""
 
 #: sonata.py:123
 msgid "The toggle argument requires D-Bus. Aborting."
-msgstr "L'argument 'toggle' nécessite D-Bus. Abandon."
+msgstr "Le paramètre « toggle » nécessite D-Bus. Abandon."
 
 #: sonata.py:200
 #: sonata.py:3076
@@ -79,11 +79,11 @@ msgstr "Nom du fichier"
 
 #: sonata.py:234
 msgid "Use _Remote Image..."
-msgstr "Utilise_r une image distante ..."
+msgstr "Utilise_r une image distante..."
 
 #: sonata.py:235
 msgid "Use _Local Image..."
-msgstr "Utiliser une image _locale ..."
+msgstr "Utiliser une image _locale..."
 
 #: sonata.py:236
 msgid "_Play"
@@ -123,11 +123,11 @@ msgstr "_Sauvegarder la liste..."
 
 #: sonata.py:245
 msgid "_Update Library"
-msgstr "Mettre à  jo_ur la librairie"
+msgstr "Mettre à jo_ur la bibliothèque"
 
 #: sonata.py:246
 msgid "_Preferences..."
-msgstr "_Préférences ..."
+msgstr "_Préférences..."
 
 #: sonata.py:247
 msgid "_Help"
@@ -139,7 +139,7 @@ msgstr "_Nouveau"
 
 #: sonata.py:249
 msgid "_Edit"
-msgstr "_Editer"
+msgstr "_Éditer"
 
 #: sonata.py:250
 msgid "_Add"
@@ -180,7 +180,7 @@ msgstr "Fin d_e recherche"
 
 #: sonata.py:527
 msgid "Library"
-msgstr "Librairie"
+msgstr "Bibliothèque"
 
 #: sonata.py:542
 msgid "Playlists"
@@ -230,7 +230,7 @@ msgstr "Cliquer pour étendre le client"
 
 #: sonata.py:822
 msgid "Version: Sonata"
-msgstr "Version: Sonata"
+msgstr "Version : Sonata"
 
 #: sonata.py:823
 msgid "Website: http://sonata.berlios.de"
@@ -238,7 +238,7 @@ msgstr "Site Web: http://sonata.berlios.de"
 
 #: sonata.py:828
 msgid "Usage: sonata [OPTION]"
-msgstr "Usage: sonata [OPTION]"
+msgstr "Utilisation : sonata [OPTION]"
 
 #: sonata.py:830
 msgid "Options"
@@ -282,7 +282,7 @@ msgstr "Lire la précédente de la liste"
 
 #: sonata.py:840
 msgid "Toggle play/pause; plays if stopped"
-msgstr "Alterner lecture/pause; Mettre lecture si stoppé"
+msgstr "Alterner lecture/pause ; mettre lecture si stoppé"
 
 #: sonata.py:841
 msgid "Display current song info"
@@ -378,7 +378,7 @@ msgid ""
 "Unable to connect to MPD.\n"
 "Please check your Sonata preferences."
 msgstr ""
-"Impossible de se connecter a MPD.\n"
+"Impossible de se connecter à MPD.\n"
 "Vérifiez vos paramètres dans les préférences de Sonata."
 
 #: sonata.py:1247
@@ -481,7 +481,7 @@ msgstr "Éditer les termes de la recherche"
 #: sonata.py:2567
 #: sonata.py:2574
 msgid "Press enter to search for these terms."
-msgstr "Appuyer sur entré pour rechercher ces termes."
+msgstr "Appuyer sur « entrée » pour rechercher ces termes."
 
 #: sonata.py:2618
 msgid "No artist or album name found."
@@ -497,7 +497,7 @@ msgstr "Préférences"
 
 #: sonata.py:2951
 msgid "MPD Connection"
-msgstr "Connexion à  MPD"
+msgstr "Connexion à MPD"
 
 #: sonata.py:2954
 msgid "Host"
@@ -517,7 +517,7 @@ msgstr "Mot de passe"
 
 #: sonata.py:2981
 msgid "Leave blank if no password is required."
-msgstr "Laisser vide si le mot de passe n'est pas requis."
+msgstr "Laisser vide si le mot de passe n'est pas nécessaire."
 
 #: sonata.py:2987
 msgid "Enable"
@@ -554,7 +554,7 @@ msgstr "Montrer le bouton du volume"
 
 #: sonata.py:3060
 msgid "Show library searchbar"
-msgstr "Montrer la barre de recherche dans la librairie"
+msgstr "Montrer la barre de recherche dans la bibliothèque"
 
 #: sonata.py:3064
 msgid "Notification"
@@ -582,11 +582,11 @@ msgstr "Montrer la fenêtre sur tous les espaces de travail"
 
 #: sonata.py:3123
 msgid "Keep window above other windows"
-msgstr "Toujours au dessus des autres fenêtres"
+msgstr "Toujours au-dessus des autres fenêtres"
 
 #: sonata.py:3125
 msgid "Update MPD library on start"
-msgstr "Mettre à  jour la librairie de MPD au démarrage"
+msgstr "Mettre à jour la bibliothèque de MPD au démarrage"
 
 #: sonata.py:3127
 msgid "Stop playback on exit"
@@ -594,7 +594,7 @@ msgstr "Arrêter la lecture en quittant"
 
 #: sonata.py:3129
 msgid "MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit."
-msgstr "MPD permet d'écouter de la musique même quand le client n'est pas lancé. Si cette option est activé Sonata se comportera comme un lecteur traditionnel et stoppera la lecture à sa fermeture."
+msgstr "MPD permet d'écouter de la musique même quand le client n'est pas lancé. Si cette option est activée, Sonata se comportera comme un lecteur traditionnel et stoppera la lecture à sa fermeture."
 
 #: sonata.py:3130
 msgid "Minimize to system tray on close"
@@ -602,7 +602,7 @@ msgstr "Réduire dans la zone de notification à la fermeture"
 
 #: sonata.py:3132
 msgid "If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."
-msgstr "Si activé, à  la fermeture Sonata se minimisera dans la zone de notification. NB il est impossible de détecter la présence d'une zone de notification. Vérifiez que vous en avez une."
+msgstr "Si activé, à la fermeture, Sonata se minimisera dans la zone de notification. NB : il est impossible de détecter la présence d'une zone de notification. Vérifiez que vous en avez une."
 
 #: sonata.py:3138
 msgid "Miscellaneous"
@@ -614,15 +614,15 @@ msgstr "Format de la chanson"
 
 #: sonata.py:3162
 msgid "Current playlist:"
-msgstr "Liste courante:"
+msgstr "Liste courante :"
 
 #: sonata.py:3169
 msgid "Library:"
-msgstr "Librairie:"
+msgstr "Bibliothèque :"
 
 #: sonata.py:3176
 msgid "Window title:"
-msgstr "Titre de la fenêtre:"
+msgstr "Titre de la fenêtre :"
 
 #: sonata.py:3216
 msgid "MPD"
@@ -642,9 +642,9 @@ msgstr "Impossible de lancer un navigateur compatible."
 
 #: sonata.py:3745
 msgid "Sonata failed to connect to the D-BUS session bus: Unable to determine the address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for help)"
-msgstr "Sonata n'a pas pu se connecter à la session D-BUS: Impossible de déterminer l'adresse du bus (essayez 'man dbus-launch' et 'man dbus-daemon' pour obtenir de l'aide sur son fonctionnement)"
+msgstr "Sonata n'a pas pu se connecter à la session D-BUS : Impossible de déterminer l'adresse du bus (essayez « man dbus-launch » et « man dbus-daemon » pour obtenir de l'aide sur son fonctionnement)"
 
 #: sonata.py:3751
 msgid "An instance of Sonata is already running."
-msgstr "Une instance de Sonata est déjà  en cours d'exécution"
+msgstr "Une instance de Sonata est déjà en cours d'exécution"
 
