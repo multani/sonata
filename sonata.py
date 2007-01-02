@@ -2697,7 +2697,10 @@ class Base(mpdclient3.mpd_connection):
         if self.expanded: self.w, self.h = width, height
         else: self.w = width
         self.x, self.y = self.window.get_position()
-        self.volume_hide()
+        # The follow line cases the volume window to never
+        # disappear when the button's clicked. Why was it
+        # added?
+        #self.volume_hide()
 
     def expand(self, action):
         self.expander.set_expanded(False)
