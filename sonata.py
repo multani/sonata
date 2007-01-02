@@ -68,6 +68,9 @@ if not HAVE_EGG:
     else:
         HAVE_STATUS_ICON = False
 
+if not HAVE_EGG and not HAVE_STATUS_ICON:
+    sys.stderr.write("PyGTK+ 2.10 or gnome-python-extras not found, system tray support disabled.\n")
+
 try:
     import dbus
     import dbus.service
@@ -91,12 +94,15 @@ try:
     HAVE_TAGPY = True
 except:
     HAVE_TAGPY = False
+    sys.stderr.write("Taglib and tagpy not found, tag editing support disabled.\n")
 
 try:
     from SOAPpy import WSDL
-    HAVE_WSDL = True
+    # Temporarily disable lyrics...
+    HAVE_WSDL = False
 except:
     HAVE_WSDL = False
+    sys.stderr.write("SOAPpy not found, fetching lyrics support disabled.\n")
 
 # Test pygtk version
 if gtk.pygtk_version < (2, 6, 0):
@@ -515,26 +521,22 @@ class Base(mpdclient3.mpd_connection):
         self.prevbutton = gtk.Button("", gtk.STOCK_MEDIA_PREVIOUS, True)
         self.prevbutton.set_relief(gtk.RELIEF_NONE)
         self.prevbutton.set_property('can-focus', False)
-        image, label = self.prevbutton.get_children()[0].get_children()[0].get_children()
-        label.set_text('')
+        self.prevbutton.get_child().get_child().get_children()[1].set_text('')
         toptophbox.pack_start(self.prevbutton, False, False, 0)
         self.ppbutton = gtk.Button("", gtk.STOCK_MEDIA_PLAY, True)
         self.ppbutton.set_relief(gtk.RELIEF_NONE)
         self.ppbutton.set_property('can-focus', False)
-        image, label = self.ppbutton.get_children()[0].get_children()[0].get_children()
-        label.set_text('')
+        self.ppbutton.get_child().get_child().get_children()[1].set_text('')
         toptophbox.pack_start(self.ppbutton, False, False, 0)
         self.stopbutton = gtk.Button("", gtk.STOCK_MEDIA_STOP, True)
         self.stopbutton.set_relief(gtk.RELIEF_NONE)
         self.stopbutton.set_property('can-focus', False)
-        image, label = self.stopbutton.get_children()[0].get_children()[0].get_children()
-        label.set_text('')
+        self.stopbutton.get_child().get_child().get_children()[1].set_text('')
         toptophbox.pack_start(self.stopbutton, False, False, 0)
         self.nextbutton = gtk.Button("", gtk.STOCK_MEDIA_NEXT, True)
         self.nextbutton.set_relief(gtk.RELIEF_NONE)
         self.nextbutton.set_property('can-focus', False)
-        image, label = self.nextbutton.get_children()[0].get_children()[0].get_children()
-        label.set_text('')
+        self.nextbutton.get_child().get_child().get_children()[1].set_text('')
         toptophbox.pack_start(self.nextbutton, False, False, 0)
         if not self.show_playback:
             self.prevbutton.set_no_show_all(True)
@@ -2134,8 +2136,6 @@ class Base(mpdclient3.mpd_connection):
             self.update_statusbar()
             return
 
-        self.infowindow_update(update_all=True)
-
         # Display current playlist
         if self.prevstatus == None or self.prevstatus.playlist != self.status.playlist:
             self.update_playlist()
@@ -2155,10 +2155,10 @@ class Base(mpdclient3.mpd_connection):
             self.update_progressbar()
             self.update_cursong()
             self.update_wintitle()
+            self.infowindow_update(update_all=True)
             if self.status.state == 'stop':
                 self.ppbutton.set_image(gtk.image_new_from_stock(gtk.STOCK_MEDIA_PLAY, gtk.ICON_SIZE_BUTTON))
-                image, label = self.ppbutton.get_children()[0].get_children()[0].get_children()
-                label.set_text('')
+                self.ppbutton.get_child().get_child().get_children()[1].set_text('')
                 self.UIManager.get_widget('/traymenu/playmenu').show()
                 self.UIManager.get_widget('/traymenu/pausemenu').hide()
                 # Unbold playing song (if we were playing)
@@ -2170,14 +2170,12 @@ class Base(mpdclient3.mpd_connection):
                         pass
             elif self.status.state == 'pause':
                 self.ppbutton.set_image(gtk.image_new_from_stock(gtk.STOCK_MEDIA_PLAY, gtk.ICON_SIZE_BUTTON))
-                image, label = self.ppbutton.get_children()[0].get_children()[0].get_children()
-                label.set_text('')
+                self.ppbutton.get_child().get_child().get_children()[1].set_text('')
                 self.UIManager.get_widget('/traymenu/playmenu').show()
                 self.UIManager.get_widget('/traymenu/pausemenu').hide()
             elif self.status.state == 'play':
                 self.ppbutton.set_image(gtk.image_new_from_stock(gtk.STOCK_MEDIA_PAUSE, gtk.ICON_SIZE_BUTTON))
-                image, label = self.ppbutton.get_children()[0].get_children()[0].get_children()
-                label.set_text('')
+                self.ppbutton.get_child().get_child().get_children()[1].set_text('')
                 self.UIManager.get_widget('/traymenu/playmenu').hide()
                 self.UIManager.get_widget('/traymenu/pausemenu').show()
                 if self.prevstatus != None:
@@ -3098,13 +3096,14 @@ class Base(mpdclient3.mpd_connection):
             self.infowindow_image.set_alignment(0.5, 0.5)
             notebook.append_page(self.infowindow_image, gtk.Label(_("Cover Art")))
         # Add lyrics:
-        scrollWindow = gtk.ScrolledWindow()
-        scrollWindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        lyricsBuffer = gtk.TextBuffer()
-        lyricsView = gtk.TextView(lyricsBuffer)
-        lyricsView.set_editable(False)
-        scrollWindow.add_with_viewport(lyricsView)
-        notebook.append_page(scrollWindow, gtk.Label(_("Lyrics")))
+        if HAVE_WSDL:
+            scrollWindow = gtk.ScrolledWindow()
+            scrollWindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+            self.lyricsBuffer = gtk.TextBuffer()
+            lyricsView = gtk.TextView(self.lyricsBuffer)
+            lyricsView.set_editable(False)
+            scrollWindow.add_with_viewport(lyricsView)
+            notebook.append_page(scrollWindow, gtk.Label(_("Lyrics")))
         hbox_main = gtk.HBox()
         hbox_main.pack_start(notebook, False, False, 15)
         vbox_main = gtk.VBox()
@@ -3123,6 +3122,10 @@ class Base(mpdclient3.mpd_connection):
             self.infowindow_visible = False
 
     def infowindow_update(self, show_after_update=False, update_all=False):
+        # update_all = True means that every tag should update. This is
+        # only the case on song and status changes. Otherwise we only
+        # want to update the minimum number of widgets so the user can
+        # do things like select label text.
         if self.conn:
             if self.infowindow_visible:
                 if self.status and self.status.state in ['play', 'pause']:
@@ -3134,40 +3137,31 @@ class Base(mpdclient3.mpd_connection):
                     except:
                         self.infowindow_timelabel.set_text(at_time)
                     try:
-                        self.infowindow_bitratelabel.set_text(self.status.bitrate)
+                        self.infowindow_bitratelabel.set_text(self.status.bitrate + " kbps")
                     except:
                         self.infowindow_bitratelabel.set_text(_('Unknown'))
                     if update_all:
-                        title = getattr(self.songinfo, 'title', _('Unknown'))
-                        if title != self.infowindow_titlelabel.get_text():
-                            self.infowindow_titlelabel.set_text(title)
-                        artist = getattr(self.songinfo, 'artist', _('Unknown'))
-                        if artist != self.infowindow_artistlabel.get_text():
-                            self.infowindow_artistlabel.set_text(artist)
-                        info = getattr(self.songinfo, 'album', _('Unknown'))
-                        if info != self.infowindow_albumlabel.get_text():
-                            self.infowindow_albumlabel.set_text(info)
-                        info = getattr(self.songinfo, 'date', _('Unknown'))
-                        if info != self.infowindow_datelabel.get_text():
-                            self.infowindow_datelabel.set_text(info)
+                        self.infowindow_titlelabel.set_text(getattr(self.songinfo, 'title', _('Unknown')))
+                        self.infowindow_artistlabel.set_text(getattr(self.songinfo, 'artist', _('Unknown')))
+                        self.infowindow_albumlabel.set_text(getattr(self.songinfo, 'album', _('Unknown')))
+                        self.infowindow_datelabel.set_text(getattr(self.songinfo, 'date', _('Unknown')))
+                        self.infowindow_genrelabel.set_text(getattr(self.songinfo, 'genre', _('Unknown')))
                         try:
-                            info = str(int(self.songinfo.track.split('/')[0]))
-                            if info != self.infowindow_tracklabel.get_text():
-                                self.infowindow_tracklabel.set_text(info)
+                            self.infowindow_tracklabel.set_text(str(int(self.songinfo.track.split('/')[0])))
                         except:
                             self.infowindow_tracklabel.set_text(_('Unknown'))
-                        info = getattr(self.songinfo, 'genre', _('Unknown'))
-                        if info != self.infowindow_genrelabel.get_text():
-                            self.infowindow_genrelabel.set_text(info)
                         try:
-                            info = os.path.basename(self.songinfo.file)
-                            if info != self.infowindow_filelabel.get_text():
-                                self.infowindow_filelabel.set_text(info)
+                            self.infowindow_filelabel.set_text(os.path.basename(self.songinfo.file))
                         except:
                             self.infowindow_filelabel.set_text(_('Unknown'))
-                        # Update lyrics here ---------------------
-                        #
-                        #
+                        # Update lyrics:
+                        if HAVE_WSDL:
+                            try:
+                                self.infowindow_show_lyrics(_("Fetching lyrics..."))
+                                lyricThread = threading.Thread(target=self.infowindow_get_lyrics, args=(self.songinfo.artist, self.songinfo.title))
+                                lyricThread.start()
+                            except:
+                                self.infowindow_show_lyrics("")
                     if show_after_update:
                         gobject.idle_add(self.infowindow_show_now)
                 else:
@@ -3180,10 +3174,40 @@ class Base(mpdclient3.mpd_connection):
                     self.infowindow_genrelabel.set_text("")
                     self.infowindow_filelabel.set_text("")
                     self.infowindow_bitratelabel.set_text("")
+                    if HAVE_WSDL:
+                        self.infowindow_show_lyrics("")
 
     def infowindow_show_now(self):
         self.infowindow.show_all()
         self.infowindow_visible = True
+
+    def infowindow_get_lyrics(self, artist, title):
+        if self.lyricServer is None:
+            wsdlFile = "http://lyricwiki.org/server.php?wsdl"
+            try:
+                self.lyricServer = True
+                timeout = socket.getdefaulttimeout()
+                socket.setdefaulttimeout(self.LYRIC_TIMEOUT)
+                self.lyricServer = WSDL.Proxy(wsdlFile)
+            except:
+                socket.setdefaulttimeout(timeout)
+                lyrics = _("Couldn't connect to LyricWiki")
+                gobject.idle_add(self.infowindow_show_lyrics, lyrics)
+                self.lyricServer = None
+                return
+        try:
+            timeout = socket.getdefaulttimeout()
+            socket.setdefaulttimeout(self.LYRIC_TIMEOUT)
+            lyrics = self.lyricServer.getSong(artist, title)["lyrics"]
+            lyrics = artist + " - " + title + "\n\n" + lyrics
+            gobject.idle_add(self.infowindow_show_lyrics, lyrics)
+        except:
+            lyrics = _("Fetching lyrics failed")
+            gobject.idle_add(self.infowindow_show_lyrics, lyrics)
+        socket.setdefaulttimeout(timeout)
+
+    def infowindow_show_lyrics(self, lyrics):
+        self.lyricsBuffer.set_text(lyrics)
 
     def get_pixbuf_of_size(self, pixbuf, size):
         # Creates a pixbuf that fits in the specified square of sizexsize
@@ -4394,21 +4418,12 @@ class Base(mpdclient3.mpd_connection):
             if os.path.exists(self.musicdir + item):
                 files.append(self.musicdir + item)
                 temp_mpdpaths.append(item)
-        filetags = []
-        mpdpaths = []
-        tag_changed = [] # Keeps track of whether tags have changed (for hilighting)
-        filenum = 0
-        for file in files:
-            try:
-                fileref = tagpy.FileRef(file)
-                if not fileref.isNull():
-                    filetags.append(fileref)
-                    mpdpaths.append(temp_mpdpaths[filenum])
-                    tag_changed.append({'title':False, 'artist':False, 'album':False, 'year':False, 'track':False, 'genre':False, 'comment':False})
-            except:
-                pass
-            filenum = filenum + 1
-        if len(filetags) == 0:
+        # Initialize tags:
+        tags = []
+        for filenum in range(len(files)):
+            tags.append({'title':'', 'artist':'', 'album':'', 'year':'', 'track':'', 'genre':'', 'comment':'', 'title-changed':False, 'artist-changed':False, 'album-changed':False, 'year-changed':False, 'track-changed':False, 'genre-changed':False, 'comment-changed':False, 'fullpath':files[filenum], 'mpdpath':temp_mpdpaths[filenum]})
+        self.tagnum = -1
+        if self.edit_next_tag(tags) == False:
             self.change_cursor(None)
             error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No music files with editable tags found."))
             error_dialog.set_title(_("Edit Tags"))
@@ -4532,30 +4547,42 @@ class Base(mpdclient3.mpd_connection):
         editwindow.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT)
         savebutton = editwindow.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT)
         editwindow.connect('delete_event', self.editwindow_hide)
-        self.filetagnum = 0
         self.edit_style_orig = titleentry.get_style()
         entries = [titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, fileentry, pathentry]
         buttons = [titlebutton, artistbutton, albumbutton, yearbutton, trackbutton, genrebutton, commentbutton]
         entries_names = ["title", "artist", "album", "year", "track", "genre", "comment"]
-        editwindow.connect('response', self.editwindow_response, filetags, mpdpaths, savebutton, tag_changed, entries, entries_names)
+        editwindow.connect('response', self.editwindow_response, tags, savebutton, entries, entries_names)
         for i in range(len(entries)-2):
             entries[i].connect('changed', self.edit_entry_changed)
         for i in range(len(buttons)):
-            buttons[i].connect('clicked', self.editwindow_applyall, entries_names[i], filetags, tag_changed, entries)
-        self.fileentry_handler = fileentry.connect('changed', self.edit_entry_revert_text, mpdpaths, True, False)
-        self.pathentry_handler = pathentry.connect('changed', self.edit_entry_revert_text, mpdpaths, False, True)
-        self.editwindow_update(editwindow, filetags, mpdpaths, savebutton, tag_changed, entries, entries_names)
+            buttons[i].connect('clicked', self.editwindow_applyall, entries_names[i], tags, entries)
+        self.fileentry_handler = fileentry.connect('changed', self.edit_entry_revert_text, tags, True, False)
+        self.pathentry_handler = pathentry.connect('changed', self.edit_entry_revert_text, tags, False, True)
+        self.editwindow_update(editwindow, tags, savebutton, entries, entries_names)
         self.change_cursor(None)
         editwindow.show_all()
 
-    def edit_entry_revert_text(self, editable, mpdpaths, fileentry=False, pathentry=False):
+    def edit_next_tag(self, tags):
+        # Returns true if next tag found (and self.tagnum is updated).
+        # If no next tag found, returns False.
+        while self.tagnum < len(tags)-1:
+            self.tagnum = self.tagnum + 1
+            try:
+                fileref = tagpy.FileRef(tags[self.tagnum]['fullpath'])
+                if not fileref.isNull():
+                    return True
+            except:
+                pass
+        return False
+
+    def edit_entry_revert_text(self, editable, tags, fileentry=False, pathentry=False):
         if fileentry:
             editable.handler_block(self.fileentry_handler)
-            editable.set_text(mpdpaths[self.filetagnum].split('/')[-1])
+            editable.set_text(tags[self.tagnum]['mpdpath'].split('/')[-1])
             editable.handler_unblock(self.fileentry_handler)
         elif pathentry:
             editable.handler_block(self.pathentry_handler)
-            editable.set_text(os.path.dirname(mpdpaths[self.filetagnum]))
+            editable.set_text(os.path.dirname(tags[self.tagnum]['mpdpath']))
             editable.handler_unblock(self.pathentry_handler)
 
     def edit_entry_changed(self, editable):
@@ -4576,98 +4603,122 @@ class Base(mpdclient3.mpd_connection):
         padding = int((entry.size_request()[1] - button.size_request()[1])/2)+1
         vbox.pack_start(button, False, False, padding)
 
-    def editwindow_applyall(self, button, item, filetags, tag_changed, entries):
-        filetagnum = 0
-        for filetag in filetags:
-            filetagnum = filetagnum + 1
-            tag_changed[filetagnum-1][item] = True
+    def editwindow_applyall(self, button, item, tags, entries):
+        tagnum = 0
+        for tag in tags:
+            tagnum = tagnum + 1
             if item == "title":
-                filetag.tag().title = entries[0].get_text()
+                tag['title'] = entries[0].get_text()
+                tag['title-changed'] = True
             elif item == "album":
-                filetag.tag().album = entries[2].get_text()
+                tag['album'] = entries[2].get_text()
+                tag['album-changed'] = True
             elif item == "artist":
-                filetag.tag().artist = entries[1].get_text()
+                tag['artist'] = entries[1].get_text()
+                tag['artist-changed'] = True
             elif item == "year":
                 if len(entries[3].get_text()) > 0:
-                    filetag.tag().year = int(entries[3].get_text())
+                    tag['year'] = int(entries[3].get_text())
                 else:
-                    filetag.tag().year = 0
+                    tag['year'] = 0
+                tag['year-changed'] = True
             elif item == "track":
-                if filetagnum >= self.filetagnum-1:
+                if tagnum >= self.tagnum-1:
                     # Start the current song at track 1, as opposed to the first
                     # song in the list.
-                    filetag.tag().track = filetagnum - self.filetagnum
-                else:
-                    filetag.tag().track = 0
+                    tag['track'] = tagnum - self.tagnum
+                tag['track-changed'] = True
             elif item == "genre":
-                filetag.tag().genre = entries[5].get_text()
+                tag['genre'] = entries[5].get_text()
+                tag['genre-changed'] = True
             elif item == "comment":
-                filetag.tag().comment = entries[6].get_text()
+                tag['comment'] = entries[6].get_text()
+                tag['comment-changed'] = True
         if item == "track":
             # Update the entry for the current song:
-            entries[4].set_text(str(filetags[self.filetagnum].tag().track))
+            entries[4].set_text(str(tags[self.tagnum]['track']))
 
-    def editwindow_update(self, window, filetags, mpdpaths, savebutton, tag_changed, entries, entries_names):
+    def editwindow_update(self, window, tags, savebutton, entries, entries_names):
         self.updating_edit_entries = True
-        entries[0].set_text(filetags[self.filetagnum].tag().title)
+        # Populate tags(). Note that we only retrieve info from the
+        # file if the info hasn't already been changed:
+        fileref = tagpy.FileRef(tags[self.tagnum]['fullpath'])
+        if not tags[self.tagnum]['title-changed']:
+            tags[self.tagnum]['title'] = fileref.tag().title
+        if not tags[self.tagnum]['artist-changed']:
+            tags[self.tagnum]['artist'] = fileref.tag().artist
+        if not tags[self.tagnum]['album-changed']:
+            tags[self.tagnum]['album'] = fileref.tag().album
+        if not tags[self.tagnum]['year-changed']:
+            tags[self.tagnum]['year'] = fileref.tag().year
+        if not tags[self.tagnum]['track-changed']:
+            tags[self.tagnum]['track'] = fileref.tag().track
+        if not tags[self.tagnum]['genre-changed']:
+            tags[self.tagnum]['genre'] = fileref.tag().genre
+        if not tags[self.tagnum]['comment-changed']:
+            tags[self.tagnum]['comment'] = fileref.tag().comment
+        # Update interface:
+        entries[0].set_text(tags[self.tagnum]['title'])
+        entries[1].set_text(tags[self.tagnum]['artist'])
+        entries[2].set_text(tags[self.tagnum]['album'])
+        if tags[self.tagnum]['year'] != 0:
+            entries[3].set_text(str(tags[self.tagnum]['year']))
+        if tags[self.tagnum]['track'] != 0:
+            entries[4].set_text(str(tags[self.tagnum]['track']))
+        entries[5].set_text(tags[self.tagnum]['genre'])
+        entries[6].set_text(tags[self.tagnum]['comment'])
+        entries[7].set_text(tags[self.tagnum]['mpdpath'].split('/')[-1])
+        entries[8].set_text(os.path.dirname(tags[self.tagnum]['mpdpath']))
         entries[0].select_region(0, len(entries[0].get_text()))
         entries[0].grab_focus()
-        entries[1].set_text(filetags[self.filetagnum].tag().artist)
-        entries[2].set_text(filetags[self.filetagnum].tag().album)
-        if filetags[self.filetagnum].tag().year != 0:
-            entries[3].set_text(str(filetags[self.filetagnum].tag().year))
-        if filetags[self.filetagnum].tag().track != 0:
-            entries[4].set_text(str(filetags[self.filetagnum].tag().track))
-        entries[5].set_text(filetags[self.filetagnum].tag().genre)
-        entries[6].set_text(filetags[self.filetagnum].tag().comment)
-        entries[7].set_text(mpdpaths[self.filetagnum].split('/')[-1])
-        entries[8].set_text(os.path.dirname(mpdpaths[self.filetagnum]))
-        window.set_title(_("Edit Tags" + " - " + str(self.filetagnum+1) + " " + _("of") + " " + str(len(filetags))))
+        window.set_title(_("Edit Tags" + " - " + str(self.tagnum+1) + " " + _("of") + " " + str(len(tags))))
         self.updating_edit_entries = False
         # Update text colors as appropriate:
         for i in range(len(entries)-2):
-            if tag_changed[self.filetagnum][entries_names[i]]:
+            if tags[self.tagnum][entries_names[i] + '-changed']:
                 self.edit_entry_changed(entries[i])
             else:
                 self.edit_entry_revert_color(entries[i], entries[len(entries)-1])
         savebutton.set_sensitive(True)
 
-    def editwindow_response(self, window, response, filetags, mpdpaths, savebutton, tag_changed, entries, entries_names):
+    def editwindow_response(self, window, response, tags, savebutton, entries, entries_names):
         if response == gtk.RESPONSE_REJECT:
             self.editwindow_hide(window)
         elif response == gtk.RESPONSE_ACCEPT:
             savebutton.set_sensitive(False)
             while savebutton.get_property("sensitive") == True or gtk.events_pending():
                 gtk.main_iteration()
-            filetags[self.filetagnum].tag().title = entries[0].get_text()
-            filetags[self.filetagnum].tag().artist = entries[1].get_text()
-            filetags[self.filetagnum].tag().album = entries[2].get_text()
+            filetag = tagpy.FileRef(tags[self.tagnum]['fullpath'])
+            filetag.tag().title = entries[0].get_text()
+            filetag.tag().artist = entries[1].get_text()
+            filetag.tag().album = entries[2].get_text()
             if len(entries[3].get_text()) > 0:
-                filetags[self.filetagnum].tag().year = int(entries[3].get_text())
+                filetag.tag().year = int(entries[3].get_text())
             else:
-                filetags[self.filetagnum].tag().year = 0
+                filetag.tag().year = 0
             if len(entries[4].get_text()) > 0:
-                filetags[self.filetagnum].tag().track = int(entries[4].get_text())
+                filetag.tag().track = int(entries[4].get_text())
             else:
-                filetags[self.filetagnum].tag().track = 0
-            filetags[self.filetagnum].tag().genre = entries[5].get_text()
-            filetags[self.filetagnum].tag().comment = entries[6].get_text()
-            save_success = filetags[self.filetagnum].save()
+                filetag.tag().track = 0
+            filetag.tag().genre = entries[5].get_text()
+            filetag.tag().comment = entries[6].get_text()
+            save_success = filetag.save()
             if save_success:
                 if self.conn:
                     if self.status:
                         while self.status.get('updating_db', 0):
                             gtk.main_iteration()
-                    self.conn.do.update(mpdpaths[self.filetagnum])
+                    self.conn.do.update(tags[self.tagnum]['mpdpath'])
             else:
                 error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("Unable to save tag to music file."))
                 error_dialog.set_title(_("Edit Tags"))
                 error_dialog.connect('response', self.choose_image_dialog_response)
                 error_dialog.show()
-            if self.filetagnum+1 < len(filetags):
-                self.filetagnum = self.filetagnum + 1
-                gobject.timeout_add(250, self.editwindow_update, window, filetags, mpdpaths, savebutton, tag_changed, entries, entries_names)
+            if self.edit_next_tag(tags):
+                # Next file:
+                gobject.timeout_add(250, self.editwindow_update, window, tags, savebutton, entries, entries_names)
             else:
+                # No more (valid) files:
                 self.editwindow_hide(window)
 
     def editwindow_hide(self, window, data=None):
