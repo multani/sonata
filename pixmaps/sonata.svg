@@ -14,7 +14,7 @@
    id="svg5912"
    sodipodi:version="0.32"
    inkscape:version="0.44.1"
-   sodipodi:docbase="/home/will/Desktop"
+   sodipodi:docbase="/home/stonecrest/code/sonata/trunk/pixmaps"
    sodipodi:docname="sonata.svg">
   <defs
      id="defs5914">
@@ -43,16 +43,6 @@
        y2="33.971363"
        gradientUnits="userSpaceOnUse"
        spreadMethod="pad" />
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient6853"
-       id="linearGradient13461"
-       gradientUnits="userSpaceOnUse"
-       spreadMethod="pad"
-       x1="9.5"
-       y1="23.253628"
-       x2="67.137177"
-       y2="15.138772" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -61,17 +51,17 @@
      borderopacity="1.0"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="6.5312309"
-     inkscape:cx="26.182035"
-     inkscape:cy="18.639582"
+     inkscape:zoom="2.3091388"
+     inkscape:cx="154.67832"
+     inkscape:cy="-23.313188"
      inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:grid-bbox="true"
      inkscape:document-units="px"
      inkscape:window-width="1171"
      inkscape:window-height="757"
-     inkscape:window-x="17"
-     inkscape:window-y="111"
+     inkscape:window-x="73"
+     inkscape:window-y="66"
      width="150px"
      height="150px" />
   <metadata
@@ -120,11 +110,11 @@
      inkscape:groupmode="layer">
     <text
        xml:space="preserve"
-       style="font-size:36px;font-style:normal;font-weight:normal;fill:#729fcf;fill-opacity:1;stroke:url(#linearGradient13461);stroke-width:1px;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1;font-family:Dingbats"
+       style="font-size:36px;font-style:normal;font-weight:normal;fill:#729fcf;fill-opacity:1;stroke:#214162;stroke-width:1px;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1;font-family:Dingbats"
        id="text5920"
        y="46.766243"
        x="5.942318"><tspan
-         style="font-size:62px;fill:#729fcf;fill-opacity:1;stroke:url(#linearGradient13461);stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1;font-family:Arial Unicode MS"
+         style="font-size:62px;fill:#729fcf;fill-opacity:1;stroke:#214162;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1;font-family:Arial Unicode MS"
          sodipodi:role="line"
          id="tspan5922"
          y="46.766243"

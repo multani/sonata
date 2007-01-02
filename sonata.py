@@ -1514,6 +1514,7 @@ class Base(mpdclient3.mpd_connection):
             self.view = self.VIEW_ARTIST
         elif action.get_name() == 'albumview':
             self.view = self.VIEW_ALBUM
+        self.browser.grab_focus()
         if self.view != prev_view:
             self.libraryview_assign_image()
             try:
@@ -1522,7 +1523,6 @@ class Base(mpdclient3.mpd_connection):
                     self.browser_selection.unselect_range((0,), (len(self.browserdata)-1,))
             except:
                 pass
-        self.browser.grab_focus()
 
     def libraryview_assign_image(self):
         if self.view == self.VIEW_FILESYSTEM:
