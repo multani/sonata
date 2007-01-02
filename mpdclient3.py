@@ -279,7 +279,7 @@ class dictobj(dict):
         try:
             return self[attr]
         except KeyError:
-            return ''
+            raise AttributeError
     def __repr__(self):
         # <mpdclient2.dictobj at 0x12345678 ..
         #   {
@@ -310,10 +310,10 @@ class mpd_connection(object):
         self.talker.current_line = ''
 
     # conn.foo() is equivalent to conn.do.foo(), but nicer
-    def __getattr__(self, attr):
-        if is_command(attr):
-            return getattr(self.do, attr)
-        raise AttributeError(attr)
+    #def __getattr__(self, attr):
+    #    if is_command(attr):
+    #        return getattr(self.do, attr)
+    #    raise AttributeError(attr)
 
 def parse_host(host):
     if '@' in host:
@@ -330,7 +330,7 @@ def connect(**kw):
     password = kw.get('password', password)
 
     conn = mpd_connection(host, port)
-    if password:
-        conn.password(password)
+    #if password:
+    #    conn.password(password)
     return conn
 
