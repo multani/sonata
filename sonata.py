@@ -37,6 +37,7 @@ import locale
 import shutil
 import getopt
 import threading
+import re
 
 try:
     import mmkeys
@@ -90,6 +91,12 @@ try:
     HAVE_TAGPY = True
 except:
     HAVE_TAGPY = False
+
+try:
+    from SOAPpy import WSDL
+    HAVE_WSDL = True
+except:
+    HAVE_WSDL = False
 
 # Test pygtk version
 if gtk.pygtk_version < (2, 6, 0):
@@ -196,6 +203,7 @@ class Base(mpdclient3.mpd_connection):
         self.VIEW_FILESYSTEM = 0
         self.VIEW_ARTIST = 1
         self.VIEW_ALBUM = 2
+        self.LYRIC_TIMEOUT = 100
         self.musicdir = os.path.expanduser("~/music")
         socket.setdefaulttimeout(2)
         self.host = 'localhost'
@@ -219,6 +227,7 @@ class Base(mpdclient3.mpd_connection):
         self.xfade_enabled = False
         self.show_covers = True
         self.covers_pref = self.ART_LOCAL_REMOTE
+        self.lyricServer = None
         self.show_volume = True
         self.show_notification = False
         self.show_playback = True
@@ -242,7 +251,7 @@ class Base(mpdclient3.mpd_connection):
         self.user_connect = False
         self.stream_names = []
         self.stream_uris = []
-        self.coverwindow_visible = False
+        self.infowindow_visible = False
         self.downloading_image = False
         self.search_terms = [_('Artist'), _('Title'), _('Album'), _('Genre'), _('Filename')]
         self.search_terms_mpd = ['artist', 'title', 'album', 'genre', 'filename']
@@ -305,6 +314,7 @@ class Base(mpdclient3.mpd_connection):
             ('filesystemview', gtk.STOCK_HARDDISK, _('Filesystem'), None, None, self.libraryview_chosen),
             ('artistview', 'artist', _('Artist'), None, None, self.libraryview_chosen),
             ('albumview', 'album', _('Album'), None, None, self.libraryview_chosen),
+            ('songinfo_menu', gtk.STOCK_INFO, _('Song Info...'), None, None, self.infowindow_show),
             ('chooseimage_menu', gtk.STOCK_CONVERT, _('Use _Remote Image...'), None, None, self.choose_image),
             ('localimage_menu', gtk.STOCK_OPEN, _('Use _Local Image...'), None, None, self.choose_image_local),
             ('playmenu', gtk.STOCK_MEDIA_PLAY, _('_Play'), None, None, self.pp),
@@ -393,6 +403,7 @@ class Base(mpdclient3.mpd_connection):
                   <menuitem action="sortrandom"/>
                   <menuitem action="sortreverse"/>
                 </menu>
+                <menuitem action="songinfo_menu"/>
                 <separator name="FM1"/>
                 <menuitem action="repeatmenu"/>
                 <menuitem action="shufflemenu"/>
@@ -1141,7 +1152,7 @@ class Base(mpdclient3.mpd_connection):
 
     def iterate(self):
         self.update_status()
-        self.update_coverwindow(update_all=False)
+        self.infowindow_update(update_all=False)
 
         if self.conn != self.prevconn:
             self.handle_change_conn()
@@ -2122,7 +2133,7 @@ class Base(mpdclient3.mpd_connection):
             self.update_statusbar()
             return
 
-        self.update_coverwindow(update_all=True)
+        self.infowindow_update(update_all=True)
 
         # Display current playlist
         if self.prevstatus == None or self.prevstatus.playlist != self.status.playlist:
@@ -2214,7 +2225,7 @@ class Base(mpdclient3.mpd_connection):
         self.update_cursong()
         self.update_wintitle()
         self.update_album_art()
-        self.update_coverwindow(update_all=True)
+        self.infowindow_update(update_all=True)
 
     def update_progressbar(self):
         if self.conn and self.status and self.status.state in ['play', 'pause']:
@@ -2436,8 +2447,8 @@ class Base(mpdclient3.mpd_connection):
 
     def set_default_icon_for_art(self, set_lastalbumart_none=False):
         gobject.idle_add(self.albumimage.set_from_file, self.sonatacd)
-        if self.coverwindow_visible:
-            gobject.idle_add(self.coverwindow_image.set_from_file, self.sonatacd_large)
+        if self.infowindow_visible:
+            gobject.idle_add(self.infowindow_image.set_from_file, self.sonatacd_large)
         gobject.idle_add(self.set_tooltip_art, gtk.gdk.pixbuf_new_from_file(self.sonatacd))
         if set_lastalbumart_none:
             self.lastalbumart = None
@@ -2467,13 +2478,13 @@ class Base(mpdclient3.mpd_connection):
                     (pix1, w, h) = self.get_pixbuf_of_size(pix, 75)
                     pix1 = self.pixbuf_add_border(pix1)
                     pix1 = self.pixbuf_pad(pix1, 77, 77)
-                    if self.coverwindow_visible:
+                    if self.infowindow_visible:
                         (pix2, w, h) = self.get_pixbuf_of_size(pix, 298)
                         pix2 = self.pixbuf_add_border(pix2)
                     self.albumimage.set_from_pixbuf(pix1)
                     self.set_tooltip_art(pix1)
-                    if self.coverwindow_visible:
-                        self.coverwindow_image.set_from_pixbuf(pix2)
+                    if self.infowindow_visible:
+                        self.infowindow_image.set_from_pixbuf(pix2)
                     self.lastalbumart = filename
                     del pix
                     del pix1
@@ -2946,7 +2957,7 @@ class Base(mpdclient3.mpd_connection):
         self.window.handler_block(self.mainwinhandler)
         if event.button == 1:
             self.volume_hide()
-            self.coverwindow_show()
+            self.infowindow_show()
         elif event.button == 3:
             if self.conn and self.status and self.status.state in ['play', 'pause']:
                 self.UIManager.get_widget('/imagemenu/chooseimage_menu/').hide()
@@ -2996,173 +3007,182 @@ class Base(mpdclient3.mpd_connection):
         else:
             return True
 
-    def coverwindow_show(self):
-        if self.coverwindow_visible:
-            self.coverwindow.present()
+    def infowindow_show(self, action=None):
+        if self.infowindow_visible:
+            self.infowindow.present()
             return
-        self.coverwindow = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        self.coverwindow.set_title(_('Song Info'))
-        self.coverwindow.set_resizable(False)
-        self.coverwindow_image = gtk.Image()
-        self.coverwindow_image.set_alignment(0.5, 0)
-        evbox = gtk.EventBox()
-        evbox.add(self.coverwindow_image)
-        evbox.set_size_request(305, 305)
-        vbox_left = gtk.VBox()
+        self.infowindow = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        self.infowindow.set_title(_('Song Info'))
+        self.infowindow.set_resizable(False)
+        self.infowindow.set_size_request(380, 380)
+        icon = self.infowindow.render_icon('sonata', gtk.ICON_SIZE_DIALOG)
+        self.infowindow.set_icon(icon)
+        notebook = gtk.Notebook()
+        notebook.set_size_request(350, 350)
+        notebook.set_tab_pos(gtk.POS_TOP)
+        titlehbox = gtk.HBox()
         titlelabel = gtk.Label()
-        titlelabel.set_markup("<b>" + _("Title") + ":</b>")
-        titlelabel.set_alignment(1, 1)
+        titlelabel.set_markup("<b>  " + _("Title") + ":</b>")
+        self.infowindow_titlelabel = gtk.Label("")
+        titlehbox.pack_start(titlelabel, False, False, 3)
+        titlehbox.pack_start(self.infowindow_titlelabel, False, False, 3)
+        artisthbox = gtk.HBox()
         artistlabel = gtk.Label()
-        artistlabel.set_markup("<b>" + _("Artist") + ":</b>")
-        artistlabel.set_alignment(1, 1)
+        artistlabel.set_markup("<b>  " + _("Artist") + ":</b>")
+        self.infowindow_artistlabel = gtk.Label("")
+        artisthbox.pack_start(artistlabel, False, False, 3)
+        artisthbox.pack_start(self.infowindow_artistlabel, False, False, 3)
+        albumhbox = gtk.HBox()
         albumlabel = gtk.Label()
-        albumlabel.set_markup("<b>" + _("Album") + ":</b>")
-        albumlabel.set_alignment(1, 1)
+        albumlabel.set_markup("<b>  " + _("Album") + ":</b>")
+        self.infowindow_albumlabel = gtk.Label("")
+        albumhbox.pack_start(albumlabel, False, False, 3)
+        albumhbox.pack_start(self.infowindow_albumlabel, False, False, 3)
+        datehbox = gtk.HBox()
         datelabel = gtk.Label()
-        datelabel.set_markup("<b>" + _("Date") + ":</b>")
-        datelabel.set_alignment(1, 1)
+        datelabel.set_markup("<b>  " + _("Date") + ":</b>")
+        self.infowindow_datelabel = gtk.Label("")
+        datehbox.pack_start(datelabel, False, False, 3)
+        datehbox.pack_start(self.infowindow_datelabel, False, False, 3)
+        trackhbox = gtk.HBox()
         tracklabel = gtk.Label()
-        tracklabel.set_markup("<b>" + _("Track") + ":</b>")
-        tracklabel.set_alignment(1, 1)
+        tracklabel.set_markup("<b>  " + _("Track") + ":</b>")
+        self.infowindow_tracklabel = gtk.Label("")
+        trackhbox.pack_start(tracklabel, False, False, 3)
+        trackhbox.pack_start(self.infowindow_tracklabel, False, False, 3)
+        genrehbox = gtk.HBox()
         genrelabel = gtk.Label()
-        genrelabel.set_markup("<b>" + _("Genre") + ":</b>")
-        genrelabel.set_alignment(1, 1)
+        genrelabel.set_markup("<b>  " + _("Genre") + ":</b>")
+        self.infowindow_genrelabel = gtk.Label("")
+        genrehbox.pack_start(genrelabel, False, False, 3)
+        genrehbox.pack_start(self.infowindow_genrelabel, False, False, 3)
+        filehbox = gtk.HBox()
         filelabel = gtk.Label()
-        filelabel.set_markup("<b>" + _("File") + ":</b>")
-        filelabel.set_alignment(1, 1)
+        filelabel.set_markup("<b>  " + _("File") + ":</b>")
+        self.infowindow_filelabel = gtk.Label("")
+        filehbox.pack_start(filelabel, False, False, 3)
+        filehbox.pack_start(self.infowindow_filelabel, False, False, 3)
+        timehbox = gtk.HBox()
         timelabel = gtk.Label()
-        timelabel.set_markup("<b>" + _("Time") + ":</b>")
-        timelabel.set_alignment(1, 1)
+        timelabel.set_markup("<b>  " + _("Time") + ":</b>")
+        self.infowindow_timelabel = gtk.Label("")
+        timehbox.pack_start(timelabel, False, False, 3)
+        timehbox.pack_start(self.infowindow_timelabel, False, False, 3)
+        bitratehbox = gtk.HBox()
         bitratelabel = gtk.Label()
-        bitratelabel.set_markup("<b>" + _("Bitrate") + ":</b>")
-        bitratelabel.set_alignment(1, 1)
-        label1 = gtk.Label()
-        label1.set_markup('<span size="10"> </span>')
-        vbox_left.pack_start(label1, False, False, 2)
-        vbox_left.pack_start(titlelabel, False, False, 2)
-        vbox_left.pack_start(artistlabel, False, False, 2)
-        vbox_left.pack_start(albumlabel, False, False, 2)
-        vbox_left.pack_start(datelabel, False, False, 2)
-        vbox_left.pack_start(tracklabel, False, False, 2)
-        vbox_left.pack_start(genrelabel, False, False, 2)
-        vbox_left.pack_start(filelabel, False, False, 2)
-        vbox_left.pack_start(timelabel, False, False, 2)
-        vbox_left.pack_start(bitratelabel, False, False, 2)
-        vbox_right = gtk.VBox()
-        self.coverwindow_titlelabel = gtk.Label("")
-        self.coverwindow_titlelabel.set_alignment(0, 1)
-        self.coverwindow_artistlabel = gtk.Label("")
-        self.coverwindow_artistlabel.set_alignment(0, 1)
-        self.coverwindow_albumlabel = gtk.Label("")
-        self.coverwindow_albumlabel.set_alignment(0, 1)
-        self.coverwindow_datelabel = gtk.Label("")
-        self.coverwindow_datelabel.set_alignment(0, 1)
-        self.coverwindow_tracklabel = gtk.Label("")
-        self.coverwindow_tracklabel.set_alignment(0, 1)
-        self.coverwindow_genrelabel = gtk.Label("")
-        self.coverwindow_genrelabel.set_alignment(0, 1)
-        self.coverwindow_filelabel = gtk.Label("")
-        self.coverwindow_filelabel.set_alignment(0, 1)
-        self.coverwindow_timelabel = gtk.Label("")
-        self.coverwindow_timelabel.set_alignment(0, 1)
-        self.coverwindow_bitratelabel = gtk.Label("")
-        self.coverwindow_bitratelabel.set_alignment(0, 1)
-        label2 = gtk.Label()
-        label2.set_markup('<span size="10"> </span>')
-        vbox_right.pack_start(label2, False, False, 2)
-        vbox_right.pack_start(self.coverwindow_titlelabel, False, False, 2)
-        vbox_right.pack_start(self.coverwindow_artistlabel, False, False, 2)
-        vbox_right.pack_start(self.coverwindow_albumlabel, False, False, 2)
-        vbox_right.pack_start(self.coverwindow_datelabel, False, False, 2)
-        vbox_right.pack_start(self.coverwindow_tracklabel, False, False, 2)
-        vbox_right.pack_start(self.coverwindow_genrelabel, False, False, 2)
-        vbox_right.pack_start(self.coverwindow_filelabel, False, False, 2)
-        vbox_right.pack_start(self.coverwindow_timelabel, False, False, 2)
-        vbox_right.pack_start(self.coverwindow_bitratelabel, False, False, 2)
-        hbox = gtk.HBox()
-        hbox.pack_start(gtk.Label(), False, False, 5)
-        hbox.pack_start(evbox, False, False, 3)
-        hbox.pack_start(vbox_left, False, False, 5)
-        hbox.pack_start(vbox_right, True, True, 3)
-        hbox.pack_start(gtk.Label(), False, False, 3)
+        bitratelabel.set_markup("<b>  " + _("Bitrate") + ":</b>")
+        self.infowindow_bitratelabel = gtk.Label("")
+        bitratehbox.pack_start(bitratelabel, False, False, 3)
+        bitratehbox.pack_start(self.infowindow_bitratelabel, False, False, 3)
+        labels_left = [titlelabel, artistlabel, albumlabel, datelabel, tracklabel, genrelabel, filelabel, timelabel, bitratelabel]
+        self.set_label_widths_equal(labels_left)
+        for label in labels_left:
+            label.set_alignment(1, 0.5)
+        labels_right = [self.infowindow_titlelabel, self.infowindow_artistlabel, self.infowindow_albumlabel, self.infowindow_datelabel, self.infowindow_tracklabel, self.infowindow_genrelabel, self.infowindow_filelabel, self.infowindow_timelabel, self.infowindow_bitratelabel]
+        labelwidth = notebook.get_size_request()[0] - titlelabel.get_size_request()[0] - 20
+        for label in labels_right:
+            label.set_alignment(0, 0.5)
+            label.set_line_wrap(True)
+            label.set_selectable(True)
+            label.set_size_request(labelwidth, -1)
+        hboxes = [titlehbox, artisthbox, albumhbox, datehbox, trackhbox, genrehbox, filehbox, timehbox, bitratehbox]
         vbox = gtk.VBox()
-        vbox.pack_start(hbox, False, False, 2)
-        self.coverwindow.add(vbox)
-        self.coverwindow.show_all()
-        self.coverwindow_visible = True
-        self.coverwindow.connect('delete_event', self.coverwindow_hide)
+        vbox.pack_start(gtk.Label(), False, False, 0)
+        for hbox in hboxes:
+            vbox.pack_start(hbox, False, False, 5)
+        notebook.append_page(vbox, gtk.Label(_("Song _Info")))
+        # Add cover art:
+        if self.show_covers:
+            self.infowindow_image = gtk.Image()
+            self.infowindow_image.set_alignment(0.5, 0.5)
+            notebook.append_page(self.infowindow_image, gtk.Label(_("Cover _Art")))
+        # Add lyrics:
+        scrollWindow = gtk.ScrolledWindow()
+        scrollWindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        lyricsBuffer = gtk.TextBuffer()
+        lyricsView = gtk.TextView(lyricsBuffer)
+        lyricsView.set_editable(False)
+        scrollWindow.add_with_viewport(lyricsView)
+        notebook.append_page(scrollWindow, gtk.Label(_("_Lyrics")))
+        hbox_main = gtk.HBox()
+        hbox_main.pack_start(notebook, False, False, 15)
+        vbox_main = gtk.VBox()
+        vbox_main.pack_start(hbox_main, False, False, 15)
+        self.infowindow.add(vbox_main)
+        self.infowindow.show_all()
+        self.infowindow_visible = True
+        self.infowindow.connect('delete_event', self.infowindow_hide)
         self.lastalbumart = ""
         self.update_album_art()
-        self.update_coverwindow(True, update_all=True)
+        self.infowindow_update(True, update_all=True)
 
-    def coverwindow_hide(self, window, data=None):
-        if self.coverwindow_visible:
-            self.coverwindow.destroy()
-            self.coverwindow_visible = False
+    def infowindow_hide(self, window, data=None):
+        if self.infowindow_visible:
+            self.infowindow.destroy()
+            self.infowindow_visible = False
 
-    def update_coverwindow(self, show_after_update=False, update_all=False):
+    def infowindow_update(self, show_after_update=False, update_all=False):
         if self.conn:
-            if self.coverwindow_visible:
+            if self.infowindow_visible:
                 if self.status and self.status.state in ['play', 'pause']:
                     at, length = [int(c) for c in self.status.time.split(':')]
                     at_time = convert_time(at)
                     try:
                         time = convert_time(int(self.songinfo.time))
-                        self.coverwindow_timelabel.set_text(at_time + " / " + time)
+                        self.infowindow_timelabel.set_text(at_time + " / " + time)
                     except:
-                        self.coverwindow_timelabel.set_text(at_time)
+                        self.infowindow_timelabel.set_text(at_time)
                     try:
-                        self.coverwindow_bitratelabel.set_text(self.status.bitrate)
+                        self.infowindow_bitratelabel.set_text(self.status.bitrate)
                     except:
-                        self.coverwindow_bitratelabel.set_text(_('Unknown'))
+                        self.infowindow_bitratelabel.set_text(_('Unknown'))
                     if update_all:
+                        title = getattr(self.songinfo, 'title', _('Unknown'))
+                        if title != self.infowindow_titlelabel.get_text():
+                            self.infowindow_titlelabel.set_text(title)
+                        artist = getattr(self.songinfo, 'artist', _('Unknown'))
+                        if artist != self.infowindow_artistlabel.get_text():
+                            self.infowindow_artistlabel.set_text(artist)
+                        info = getattr(self.songinfo, 'album', _('Unknown'))
+                        if info != self.infowindow_albumlabel.get_text():
+                            self.infowindow_albumlabel.set_text(info)
+                        info = getattr(self.songinfo, 'date', _('Unknown'))
+                        if info != self.infowindow_datelabel.get_text():
+                            self.infowindow_datelabel.set_text(info)
                         try:
-                            self.coverwindow_titlelabel.set_text(self.songinfo.title)
+                            info = str(int(self.songinfo.track.split('/')[0]))
+                            if info != self.infowindow_tracklabel.get_text():
+                                self.infowindow_tracklabel.set_text(info)
                         except:
-                            self.coverwindow_titlelabel.set_text(_('Unknown'))
+                            self.infowindow_tracklabel.set_text(_('Unknown'))
+                        info = getattr(self.songinfo, 'genre', _('Unknown'))
+                        if info != self.infowindow_genrelabel.get_text():
+                            self.infowindow_genrelabel.set_text(info)
                         try:
-                            self.coverwindow_artistlabel.set_text(self.songinfo.artist)
+                            info = os.path.basename(self.songinfo.file)
+                            if info != self.infowindow_filelabel.get_text():
+                                self.infowindow_filelabel.set_text(info)
                         except:
-                            self.coverwindow_artistlabel.set_text(_('Unknown'))
-                        try:
-                            self.coverwindow_albumlabel.set_text(self.songinfo.album)
-                        except:
-                            self.coverwindow_albumlabel.set_text(_('Unknown'))
-                        try:
-                            self.coverwindow_datelabel.set_text(self.songinfo.date)
-                        except:
-                            self.coverwindow_datelabel.set_text(_('Unknown'))
-                        try:
-                            self.coverwindow_tracklabel.set_text(str(int(self.songinfo.track.split('/')[0])))
-                        except:
-                            self.coverwindow_tracklabel.set_text(_('Unknown'))
-                        try:
-                            self.coverwindow_genrelabel.set_text(self.songinfo.genre)
-                        except:
-                            self.coverwindow_genrelabel.set_text(_('Unknown'))
-                        try:
-                            self.coverwindow_filelabel.set_text(os.path.basename(self.songinfo.file))
-                        except:
-                            self.coverwindow_filelabel.set_text(_('Unknown'))
-                        # Set min width as 150
-                        if self.coverwindow_titlelabel.get_allocation().width < 150:
-                            self.coverwindow_titlelabel.set_size_request(150, -1)
+                            self.infowindow_filelabel.set_text(_('Unknown'))
+                        # Update lyrics here ---------------------
+                        #
+                        #
                     if show_after_update:
-                        gobject.idle_add(self.coverwindow_show_now)
+                        gobject.idle_add(self.infowindow_show_now)
                 else:
-                    self.coverwindow_timelabel.set_text("")
-                    self.coverwindow_titlelabel.set_text("")
-                    self.coverwindow_artistlabel.set_text("")
-                    self.coverwindow_albumlabel.set_text("")
-                    self.coverwindow_datelabel.set_text("")
-                    self.coverwindow_tracklabel.set_text("")
-                    self.coverwindow_genrelabel.set_text("")
-                    self.coverwindow_filelabel.set_text("")
-                    self.coverwindow_bitratelabel.set_text("")
+                    self.infowindow_timelabel.set_text("")
+                    self.infowindow_titlelabel.set_text("")
+                    self.infowindow_artistlabel.set_text("")
+                    self.infowindow_albumlabel.set_text("")
+                    self.infowindow_datelabel.set_text("")
+                    self.infowindow_tracklabel.set_text("")
+                    self.infowindow_genrelabel.set_text("")
+                    self.infowindow_filelabel.set_text("")
+                    self.infowindow_bitratelabel.set_text("")
 
-    def coverwindow_show_now(self):
-        self.coverwindow.show_all()
-        self.coverwindow_visible = True
+    def infowindow_show_now(self):
+        self.infowindow.show_all()
+        self.infowindow_visible = True
 
     def get_pixbuf_of_size(self, pixbuf, size):
         # Creates a pixbuf that fits in the specified square of sizexsize
@@ -4262,6 +4282,7 @@ class Base(mpdclient3.mpd_connection):
                 return
         if event.button == 3:
             self.set_menu_contextual_items_hidden()
+            self.UIManager.get_widget('/mainmenu/songinfo_menu/').show()
             self.mainmenu.popup(None, None, None, event.button, event.time)
 
     def search(self, entry):
@@ -4339,6 +4360,7 @@ class Base(mpdclient3.mpd_connection):
         self.UIManager.get_widget('/mainmenu/newmenu/').hide()
         self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
         self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
+        self.UIManager.get_widget('/mainmenu/songinfo_menu/').hide()
 
     def find_path(self, filename):
         if os.path.exists(os.path.join(sys.prefix, 'share', 'pixmaps', filename)):

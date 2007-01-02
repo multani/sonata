@@ -1,11 +1,12 @@
 v1.0 - Pending
 	+ Multiple views for library: filesystem, artists, albums
 	+ Edit song tags in library (requires optional taglib & tagpy)
+	+ Improved song info window
 	+ Allow pls/m3u/extm3u streams as input
 	+ Sort current playlist (by metadata, random, reverse)
 	+ Optional statusbar (playlist length, time)
 	+ Revert to gtk's StatusIcon if gnome-python-extras isn't installed
-	+ Make systrem tray icon optional
+	+ Make system tray icon optional
 	+ Pref to write xmms-info like status file to use with IM, IRC.. (Tim)
 	+ Allow drag-n-drop of images to set album art
 	+ If there is only one image in the song's dir, set as art (Ivan)
