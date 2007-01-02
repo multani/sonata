@@ -1664,9 +1664,9 @@ class Base(mpdclient3.mpd_connection):
                     songs = []
                     if self.browser_artistview_is_secondtier():
                         for item in self.conn.do.find('artist', self.view_artist_artist):
-                            if len(item.album) > 0:
+                            try:
                                 albums.append(item.album)
-                            else:
+                            except:
                                 songs.append(item)
                         albums = list(set(albums))    # Remove duplicates
                         albums.sort(locale.strcoll)
@@ -1682,9 +1682,9 @@ class Base(mpdclient3.mpd_connection):
                 items = []
                 if self.root == '/':
                     for item in self.conn.do.list('album'):
-                        if len(item.album) > 0:
+                        try:
                             items.append(item.album)
-                        else:
+                        except:
                             items.append(_("Unknown"))
                     items = list(set(items))    # Remove duplicates
                     items.sort(locale.strcoll)
