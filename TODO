@@ -1,9 +1,10 @@
 v1.0
 	make selection, dnd, more like thunar
 	taglib bug with > 1017 files selected?
-	tabbed song info window?
+	add actions to infowindow art..
+	lyrics
 
 Future:
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
 	connect in background via socket.setblocking(0)
-	lyrics? last.fm?
+	last.fm?

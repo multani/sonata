@@ -618,6 +618,7 @@ class Base(mpdclient3.mpd_connection):
         self.searchbutton.set_no_show_all(True)
         self.searchbutton.hide()
         self.libraryview = gtk.Button()
+        self.tooltips.set_tip(self.libraryview, _("Library browsing view"))
         self.libraryview_assign_image()
         self.libraryview.set_relief(gtk.RELIEF_NONE)
         self.librarymenu.attach_to_widget(self.libraryview, None)
