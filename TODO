@@ -3,8 +3,6 @@ v1.0
 	some way to bring up the info viewer when art is disabled
 	taglib bug with > 1017 files selected?
 	wrap text in song info window to keep size constant
-	show popup for genre
-	self.crossfade (like repeat/shuffle)
 	tabbed song info window?
 
 Future:

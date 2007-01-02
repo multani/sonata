@@ -215,8 +215,8 @@ class Base(mpdclient3.mpd_connection):
         self.prevstatus = None
         self.prevsonginfo = None
         self.lastalbumart = None
-        self.crossfade = -1
-        self.crossfade_options = ['1', '2', '3', '5', '10', '15']
+        self.xfade = 0
+        self.xfade_enabled = False
         self.show_covers = True
         self.covers_pref = self.ART_LOCAL_REMOTE
         self.show_volume = True
@@ -434,10 +434,6 @@ class Base(mpdclient3.mpd_connection):
         self.conn = self.connect()
         if self.conn:
             self.conn.do.password(self.password)
-            if self.crossfade == -1:
-                self.conn.do.crossfade(0)
-            else:
-                self.conn.do.crossfade(int(self.crossfade_options[self.crossfade]))
             self.iterate_time = self.iterate_time_when_connected
             self.status = self.conn.do.status()
             try:
@@ -1125,6 +1121,12 @@ class Base(mpdclient3.mpd_connection):
                         self.shufflemenu.set_active(False)
                     elif self.status.random == '1':
                         self.shufflemenu.set_active(True)
+                    if self.status.xfade == '0':
+                        self.xfade_enabled = False
+                    else:
+                        self.xfade_enabled = True
+                        self.xfade = int(self.status.xfade)
+                        if self.xfade > 30: self.xfade = 30
             else:
                 self.iterate_time = self.iterate_time_when_disconnected
                 self.status = None
@@ -1271,7 +1273,13 @@ class Base(mpdclient3.mpd_connection):
         if conf.has_option('player', 'playback'):
             self.show_playback = conf.getboolean('player', 'playback')
         if conf.has_option('player', 'crossfade'):
-            self.crossfade = conf.getint('player', 'crossfade')
+            crossfade = conf.getint('player', 'crossfade')
+            # Backwards compatibility:
+            self.xfade = [1,2,3,5,10,15][crossfade]
+        if conf.has_option('player', 'xfade'):
+            self.xfade = conf.getint('player', 'xfade')
+        if conf.has_option('player', 'xfade_enabled'):
+            self.xfade_enabled = conf.getboolean('player', 'xfade_enabled')
         if conf.has_option('player', 'covers_pref'):
             self.covers_pref = conf.getint('player', 'covers_pref')
         if conf.has_option('player', 'use_infofile'):
@@ -1331,7 +1339,8 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'update_on_start', self.update_on_start)
         conf.set('player', 'notif_location', self.traytips.notifications_location)
         conf.set('player', 'playback', self.show_playback)
-        conf.set('player', 'crossfade', self.crossfade)
+        conf.set('player', 'xfade', self.xfade)
+        conf.set('player', 'xfade_enabled', self.xfade_enabled)
         conf.set('player', 'covers_pref', self.covers_pref)
         conf.set('player', 'use_infofile', self.use_infofile)
         conf.set('player', 'infofile_path', self.infofile_path)
@@ -3750,23 +3759,30 @@ class Base(mpdclient3.mpd_connection):
         crossfadelabel.set_alignment(0, 1)
         crossfadebox = gtk.HBox()
         crossfadecheck = gtk.CheckButton(_("Enable"))
-        crossfadecombo = gtk.combo_box_new_text()
-        crossfadecheck.connect('toggled', self.crossfadecheck_toggle, crossfadecombo)
-        for i in self.crossfade_options:
-            if i == '1':
-                crossfadecombo.append_text(i + ' ' + _('second'))
-            else:
-                crossfadecombo.append_text(i + ' ' + _('seconds'))
-        if self.crossfade == -1:
-            crossfadecombo.set_sensitive(False)
-            crossfadecombo.set_active(0)
+        crossfadespin = gtk.SpinButton()
+        crossfadespin.set_digits(0)
+        crossfadespin.set_range(1, 30)
+        crossfadespin.set_value(self.xfade)
+        crossfadespin.set_numeric(True)
+        crossfadespin.set_increments(1,5)
+        crossfadespin.set_size_request(70,-1)
+        crossfadelabel2 = gtk.Label(_("Fade length") + ":")
+        crossfadelabel3 = gtk.Label(_("sec"))
+        if not self.xfade_enabled:
+            crossfadespin.set_sensitive(False)
+            crossfadelabel2.set_sensitive(False)
+            crossfadelabel3.set_sensitive(False)
             crossfadecheck.set_active(False)
         else:
-            crossfadecombo.set_sensitive(True)
-            crossfadecombo.set_active(self.crossfade)
+            crossfadespin.set_sensitive(True)
+            crossfadelabel2.set_sensitive(True)
+            crossfadelabel3.set_sensitive(True)
             crossfadecheck.set_active(True)
-        crossfadebox.pack_start(crossfadecheck)
-        crossfadebox.pack_start(crossfadecombo)
+        crossfadebox.pack_start(crossfadecheck, True, True, 0)
+        crossfadebox.pack_start(crossfadelabel2, False, False, 0)
+        crossfadebox.pack_start(crossfadespin, False, False, 5)
+        crossfadebox.pack_start(crossfadelabel3, False, False, 0)
+        crossfadecheck.connect('toggled', self.prefs_crossfadecheck_toggled, crossfadespin, crossfadelabel2, crossfadelabel3)
         self.set_label_widths_equal([hostlabel, portlabel, passwordlabel, dirlabel])
         autoconnect = gtk.CheckButton(_("Autoconnect on start"))
         autoconnect.set_active(self.autoconnect)
@@ -4044,11 +4060,13 @@ class Base(mpdclient3.mpd_connection):
                     self.window.stick()
                 else:
                     self.window.unstick()
+            self.xfade = crossfadespin.get_value_as_int()
             if crossfadecheck.get_active():
-                self.crossfade = crossfadecombo.get_active()
-                self.conn.do.crossfade(int(self.crossfade_options[self.crossfade]))
+                self.xfade_enabled = True
+                if self.conn:
+                    self.conn.do.crossfade(self.xfade)
             else:
-                self.crossfade = -1
+                self.xfade_enabled = False
                 if self.conn:
                     self.conn.do.crossfade(0)
             if self.infofile_path != infopath_options.get_text():
@@ -4160,11 +4178,15 @@ class Base(mpdclient3.mpd_connection):
                 pass
             self.traytips.hide()
 
-    def crossfadecheck_toggle(self, button, combobox):
+    def prefs_crossfadecheck_toggled(self, button, combobox, label1, label2):
         if button.get_active():
             combobox.set_sensitive(True)
+            label1.set_sensitive(True)
+            label2.set_sensitive(True)
         else:
             combobox.set_sensitive(False)
+            label1.set_sensitive(False)
+            label2.set_sensitive(False)
 
     def prefs_trayicon_toggled(self, button, minimize):
         # Note that we update the sensitivity of the minimize

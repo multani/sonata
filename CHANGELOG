@@ -12,7 +12,7 @@ v1.0 - Pending
 	+ Album art priority preference (local vs remove)
 	+ Formatting options (genre, song length, elapsed time, year) (Ivan)
 	+ Pref to play enqueued items on activate (enter/double-click)
-	+ Play friendler with other clients for shuffle/repeat
+	+ Play friendler with other clients for shuffle/repeat/crossfade
 	+ Reduced startup time/memory usage
 	+ Use curly brackets {} to have formatting appear only if all enclosed
 	  tags are available
