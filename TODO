@@ -3,6 +3,7 @@ v1.0
 	taglib bug with > 1017 files selected?
 	add actions to infowindow art..
 	lyrics
+	ability to 'save all' for tag editing
 
 Future:
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)

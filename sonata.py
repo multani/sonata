@@ -3091,12 +3091,12 @@ class Base(mpdclient3.mpd_connection):
         vbox.pack_start(gtk.Label(), False, False, 0)
         for hbox in hboxes:
             vbox.pack_start(hbox, False, False, 5)
-        notebook.append_page(vbox, gtk.Label(_("Song _Info")))
+        notebook.append_page(vbox, gtk.Label(_("Song Info")))
         # Add cover art:
         if self.show_covers:
             self.infowindow_image = gtk.Image()
             self.infowindow_image.set_alignment(0.5, 0.5)
-            notebook.append_page(self.infowindow_image, gtk.Label(_("Cover _Art")))
+            notebook.append_page(self.infowindow_image, gtk.Label(_("Cover Art")))
         # Add lyrics:
         scrollWindow = gtk.ScrolledWindow()
         scrollWindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -3104,7 +3104,7 @@ class Base(mpdclient3.mpd_connection):
         lyricsView = gtk.TextView(lyricsBuffer)
         lyricsView.set_editable(False)
         scrollWindow.add_with_viewport(lyricsView)
-        notebook.append_page(scrollWindow, gtk.Label(_("_Lyrics")))
+        notebook.append_page(scrollWindow, gtk.Label(_("Lyrics")))
         hbox_main = gtk.HBox()
         hbox_main.pack_start(notebook, False, False, 15)
         vbox_main = gtk.VBox()
@@ -4368,6 +4368,8 @@ class Base(mpdclient3.mpd_connection):
             full_filename = os.path.join(sys.prefix, 'share', 'pixmaps', filename)
         elif os.path.exists(os.path.join(os.path.split(__file__)[0], filename)):
             full_filename = os.path.join(os.path.split(__file__)[0], filename)
+        elif os.path.exists(os.path.join(os.path.split(__file__)[0], 'pixmaps', filename)):
+            full_filename = os.path.join(os.path.split(__file__)[0], 'pixmaps', filename)
         elif os.path.exists(os.path.join(os.path.split(__file__)[0], 'share', filename)):
             full_filename = os.path.join(os.path.split(__file__)[0], 'share', filename)
         elif os.path.exists(os.path.join(__file__.split('/lib')[0], 'share', 'pixmaps', filename)):
