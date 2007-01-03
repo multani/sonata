@@ -1,12 +1,10 @@
 v1.0
 	make selection, dnd, more like thunar
-	taglib bug with > 1017 files selected?
 	add actions to infowindow art..
 	lyrics
 	ability to 'save all' for tag editing
 	python 2.5
-	notebook tab mnemonics
-	edit tags - "too many open files"?
+	selection not retained in artist view level 2
 
 Future:
 	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)

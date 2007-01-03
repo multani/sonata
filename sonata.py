@@ -272,6 +272,7 @@ class Base(mpdclient3.mpd_connection):
         self.view = self.VIEW_FILESYSTEM
         self.view_artist_artist = ''
         self.view_artist_album = ''
+        self.view_artist_level = 1
         show_prefs = False
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
@@ -1540,6 +1541,10 @@ class Base(mpdclient3.mpd_connection):
         self.browser.grab_focus()
         if self.view != prev_view:
             self.libraryview_assign_image()
+            if self.view == self.VIEW_ARTIST:
+                self.view_artist_level = 1
+            self.browserposition = {}
+            self.browserselectedpath = {}
             try:
                 self.browse()
                 if len(self.browserdata) > 0:
@@ -1559,19 +1564,6 @@ class Base(mpdclient3.mpd_connection):
         # Populates the library list with entries starting at root
         if not self.conn:
             return
-
-        if root == "..":
-            if self.view == self.VIEW_ARTIST:
-                if self.view_artist_album == '':
-                    # Revert to top tier
-                    root = '/'
-                else:
-                    # Revert back to second tier..
-                    root = self.view_artist_artist
-                    self.view_artist_artist = ''
-                    self.view_artist_album = ''
-            else:
-                root = '/'.join(self.browser.wd.split('/')[:-1]) or '/'
 
         # Handle special cases
         lsinfo = self.conn.do.lsinfo(root)
@@ -1610,6 +1602,9 @@ class Base(mpdclient3.mpd_connection):
                 else:
                     prev_selection.append(model.get_value(model.get_iter(path), 1))
             self.browserposition[self.browser.wd] = self.browser.get_visible_rect()[1]
+            path_updated = True
+        else:
+            path_updated = False
 
         self.root = root
         # The logic below is more consistent with, e.g., thunar
@@ -1632,14 +1627,10 @@ class Base(mpdclient3.mpd_connection):
         self.browser.wd = root
         self.browser.freeze_child_notify()
         self.browserdata.clear()
-        if self.root != '/':
-            self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
-            self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
-        if self.view == self.VIEW_ARTIST:
-            if self.root == '/':
-                self.view_artist_artist = ''
-                self.view_artist_album = ''
         if self.view == self.VIEW_FILESYSTEM:
+            if self.root != '/':
+                self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
+                self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
             for item in lsinfo:
                 if item.type == 'directory':
                     name = item.directory.split('/')[-1]
@@ -1648,7 +1639,10 @@ class Base(mpdclient3.mpd_connection):
                     self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
         else:
             if self.view == self.VIEW_ARTIST:
-                if self.root == '/':
+                if self.view_artist_level == 1:
+                    self.view_artist_artist = ''
+                    self.view_artist_album = ''
+                    root = '/'
                     artists = []
                     for item in self.conn.do.list('artist'):
                         if len(item.artist) > 0:
@@ -1657,29 +1651,31 @@ class Base(mpdclient3.mpd_connection):
                     artists.sort(locale.strcoll)
                     for artist in artists:
                         self.browserdata.append(['artist', artist, escape_html(artist)])
-                else:
-                    if self.view_artist_artist == '':
+                elif self.view_artist_level == 2:
+                    self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
+                    self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
+                    if self.root != "..":
                         self.view_artist_artist = self.root
-                    elif self.view_artist_album == '':
-                        self.view_artist_album = self.root
                     albums = []
                     songs = []
-                    if self.browser_artistview_is_secondtier():
-                        for item in self.conn.do.find('artist', self.view_artist_artist):
-                            try:
-                                albums.append(item.album)
-                            except:
-                                songs.append(item)
-                        albums = list(set(albums))    # Remove duplicates
-                        albums.sort(locale.strcoll)
-                        for album in albums:
-                            self.browserdata.append(['album', album, escape_html(album)])
-                        for song in songs:
-                            self.browserdata.append(['sonata', song.file, self.parse_formatting(self.libraryformat, song, True)])
-                    else: # third tier..
-                        for item in self.conn.do.find('album', self.view_artist_album):
-                            if item.artist == self.view_artist_artist:
-                                self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
+                    for item in self.conn.do.find('artist', self.view_artist_artist):
+                        try:
+                            albums.append(item.album)
+                        except:
+                            songs.append(item)
+                    albums = list(set(albums))    # Remove duplicates
+                    albums.sort(locale.strcoll)
+                    for album in albums:
+                        self.browserdata.append(['album', album, escape_html(album)])
+                    for song in songs:
+                        self.browserdata.append(['sonata', song.file, self.parse_formatting(self.libraryformat, song, True)])
+                else:
+                    self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
+                    self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
+                    self.view_artist_album = self.root
+                    for item in self.conn.do.find('album', self.view_artist_album):
+                        if item.artist == self.view_artist_artist:
+                            self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
             elif self.view == self.VIEW_ALBUM:
                 items = []
                 if self.root == '/':
@@ -1693,19 +1689,22 @@ class Base(mpdclient3.mpd_connection):
                     for item in items:
                         self.browserdata.append(['album', item, escape_html(item)])
                 else:
+                    self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
+                    self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
                     for item in self.conn.do.find('album', root):
                         self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
         self.browser.thaw_child_notify()
 
         # Scroll back to set view for current dir:
         self.browser.realize()
-        gobject.idle_add(self.browser_set_view)
+        gobject.idle_add(self.browser_set_view, not path_updated)
         if len(prev_selection) > 0 or prev_selection_root or prev_selection_parent:
             self.browser_retain_preupdate_selection(prev_selection, prev_selection_root, prev_selection_parent)
 
     def browser_retain_preupdate_selection(self, prev_selection, prev_selection_root, prev_selection_parent):
         # Unselect everything:
-        self.browser_selection.unselect_range((0,), (len(self.browserdata)-1,))
+        if len(self.browserdata) > 0:
+            self.browser_selection.unselect_range((0,), (len(self.browserdata)-1,))
         # Now attempt to retain the selection from before the update:
         for value in prev_selection:
             for rownum in range(len(self.browserdata)):
@@ -1717,7 +1716,9 @@ class Base(mpdclient3.mpd_connection):
         if prev_selection_parent:
             self.browser_selection.select_path((1,))
 
-    def browser_set_view(self):
+    def browser_set_view(self, select_items=True):
+        # select_items should be false if the same directory has merely
+        # been refreshed (updated)
         try:
             if self.browser.wd in self.browserposition:
                 self.browser.scroll_to_point(0, self.browserposition[self.browser.wd])
@@ -1727,25 +1728,14 @@ class Base(mpdclient3.mpd_connection):
             self.browser.scroll_to_point(0, 0)
 
         # Select and focus previously selected item if it's not ".." or "/"
-        if self.browser.wd in self.browserselectedpath:
-            try:
-                if self.browserselectedpath[self.browser.wd]:
-                    self.browser_selection.select_path(self.browserselectedpath[self.browser.wd])
-                    self.browser.grab_focus()
-            except:
-                pass
-
-    def browser_artistview_is_toptier(self):
-        if self.view_artist_artist == '':
-            return True
-        else:
-            return False
-
-    def browser_artistview_is_secondtier(self):
-        if self.view_artist_artist != '' and self.view_artist_album == '':
-            return True
-        else:
-            return False
+        if select_items:
+            if self.browser.wd in self.browserselectedpath:
+                try:
+                    if self.browserselectedpath[self.browser.wd]:
+                        self.browser_selection.select_path(self.browserselectedpath[self.browser.wd])
+                        self.browser.grab_focus()
+                except:
+                    pass
 
     def parse_formatting_return_substrings(self, format):
         substrings = []
@@ -1894,7 +1884,18 @@ class Base(mpdclient3.mpd_connection):
                 path = (len(selected)-1,)
             else:
                 path = (0,)
-        self.browse(None, self.browserdata.get_value(self.browserdata.get_iter(path), 1))
+        value = self.browserdata.get_value(self.browserdata.get_iter(path), 1)
+        if self.view == self.VIEW_ARTIST:
+            if value == "/":
+                self.view_artist_level = 1
+            elif value == "..":
+                self.view_artist_level = self.view_artist_level - 1
+            else:
+                self.view_artist_level = self.view_artist_level + 1
+        else:
+            if value == "..":
+                value = '/'.join(self.browser.wd.split('/')[:-1]) or '/'
+        self.browse(None, value)
 
     def treeview_selection_changed(self, *args):
         self.set_menu_contextual_items_visible()
@@ -1964,7 +1965,7 @@ class Base(mpdclient3.mpd_connection):
         elif self.view == self.VIEW_ARTIST:
             for path in selected:
                 if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
-                    if self.browser_artistview_is_toptier():
+                    if self.view_artist_level == 1:
                         for item in self.conn.do.find('artist', model.get_value(model.get_iter(path), 1)):
                             items.append(item.file)
                     else:
@@ -3087,14 +3088,20 @@ class Base(mpdclient3.mpd_connection):
         hboxes = [titlehbox, artisthbox, albumhbox, datehbox, trackhbox, genrehbox, filehbox, timehbox, bitratehbox]
         vbox = gtk.VBox()
         vbox.pack_start(gtk.Label(), False, False, 0)
+        nblabel1 = gtk.Label()
+        nblabel1.set_text_with_mnemonic(_("_Song Info"))
+        nblabel2 = gtk.Label()
+        nblabel2.set_text_with_mnemonic(_("_Cover Art"))
+        nblabel3 = gtk.Label()
+        nblabel3.set_text_with_mnemonic(_("_Lyrics"))
         for hbox in hboxes:
             vbox.pack_start(hbox, False, False, 5)
-        notebook.append_page(vbox, gtk.Label(_("Song Info")))
+        notebook.append_page(vbox, nblabel1)
         # Add cover art:
         if self.show_covers:
             self.infowindow_image = gtk.Image()
             self.infowindow_image.set_alignment(0.5, 0.5)
-            notebook.append_page(self.infowindow_image, gtk.Label(_("Cover Art")))
+            notebook.append_page(self.infowindow_image, nblabel2)
         # Add lyrics:
         if HAVE_WSDL:
             scrollWindow = gtk.ScrolledWindow()
@@ -3103,7 +3110,7 @@ class Base(mpdclient3.mpd_connection):
             lyricsView = gtk.TextView(self.lyricsBuffer)
             lyricsView.set_editable(False)
             scrollWindow.add_with_viewport(lyricsView)
-            notebook.append_page(scrollWindow, gtk.Label(_("Lyrics")))
+            notebook.append_page(scrollWindow, nblabel3)
         hbox_main = gtk.HBox()
         hbox_main.pack_start(notebook, False, False, 15)
         vbox_main = gtk.VBox()
@@ -4059,10 +4066,18 @@ class Base(mpdclient3.mpd_connection):
         table4.attach(availableheading, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table4.attach(availableformatbox, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 45, 0)
         table4.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        prefsnotebook.append_page(table, gtk.Label(str=_("MPD")))
-        prefsnotebook.append_page(table2, gtk.Label(str=_("Display")))
-        prefsnotebook.append_page(table3, gtk.Label(str=_("Behavior")))
-        prefsnotebook.append_page(table4, gtk.Label(str=_("Format")))
+        nblabel1 = gtk.Label()
+        nblabel1.set_text_with_mnemonic(_("_MPD"))
+        nblabel2 = gtk.Label()
+        nblabel2.set_text_with_mnemonic(_("Dis_play"))
+        nblabel3 = gtk.Label()
+        nblabel3.set_text_with_mnemonic(_("_Behavior"))
+        nblabel4 = gtk.Label()
+        nblabel4.set_text_with_mnemonic(_("_Format"))
+        prefsnotebook.append_page(table, nblabel1)
+        prefsnotebook.append_page(table2, nblabel2)
+        prefsnotebook.append_page(table3, nblabel3)
+        prefsnotebook.append_page(table4, nblabel4)
         hbox.pack_start(prefsnotebook, False, False, 10)
         prefswindow.vbox.pack_start(hbox, False, False, 10)
         close_button = prefswindow.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
@@ -4332,8 +4347,6 @@ class Base(mpdclient3.mpd_connection):
         self.searchbutton.hide()
         self.searchbutton.set_no_show_all(True)
         self.searchtext.set_text("")
-        if self.VIEW_ARTIST and self.browser_artistview_is_secondtier():
-            self.view_artist_artist = ''
         self.browse(root=self.browser.wd)
         self.browser.grab_focus()
 
