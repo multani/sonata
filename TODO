@@ -1,7 +1,7 @@
 v1.0
 	make selection, dnd, more like thunar
 	add actions to infowindow art..
-	lyrics
+	lyrics (lyricwiki slow; closing sonata during thread; mult threads)
 	ability to 'save all' for tag editing
 	python 2.5
 	selection not retained in artist view level 2

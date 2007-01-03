@@ -37,7 +37,6 @@ import locale
 import shutil
 import getopt
 import threading
-import re
 
 try:
     import mmkeys
@@ -1645,9 +1644,8 @@ class Base(mpdclient3.mpd_connection):
                     root = '/'
                     artists = []
                     for item in self.conn.do.list('artist'):
-                        if len(item.artist) > 0:
-                            artists.append(item.artist)
-                    artists = list(set(artists))    # Remove duplicates
+                        artists.append(item.artist)
+                    artists = remove_list_duplicates(artists, False)
                     artists.sort(locale.strcoll)
                     for artist in artists:
                         self.browserdata.append(['artist', artist, escape_html(artist)])
@@ -1663,7 +1661,7 @@ class Base(mpdclient3.mpd_connection):
                             albums.append(item.album)
                         except:
                             songs.append(item)
-                    albums = list(set(albums))    # Remove duplicates
+                    albums = remove_list_duplicates(albums, False)
                     albums.sort(locale.strcoll)
                     for album in albums:
                         self.browserdata.append(['album', album, escape_html(album)])
@@ -1674,17 +1672,14 @@ class Base(mpdclient3.mpd_connection):
                     self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
                     self.view_artist_album = self.root
                     for item in self.conn.do.find('album', self.view_artist_album):
-                        if item.artist == self.view_artist_artist:
+                        if item.artist.lower() == self.view_artist_artist.lower():
                             self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
             elif self.view == self.VIEW_ALBUM:
                 items = []
                 if self.root == '/':
                     for item in self.conn.do.list('album'):
-                        try:
-                            items.append(item.album)
-                        except:
-                            items.append(_("Unknown"))
-                    items = list(set(items))    # Remove duplicates
+                        items.append(item.album)
+                    items = remove_list_duplicates(items, False)
                     items.sort(locale.strcoll)
                     for item in items:
                         self.browserdata.append(['album', item, escape_html(item)])
@@ -5068,6 +5063,26 @@ def removeall(path):
             removeall(fullpath)
             f=os.rmdir
             rmgeneric(fullpath, f)
+
+def remove_list_duplicates(inputlist, case_sensitive=True):
+    if case_sensitive:
+        inputlist = list(set(inputlist))
+        return inputlist
+    else:
+        outputlist = []
+        i = 0
+        while i <= len(inputlist)-1:
+            j = i + 1
+            dup = False
+            while j <= len(inputlist)-1:
+                if inputlist[i].lower() == inputlist[j].lower():
+                    dup = True
+                    break
+                j = j + 1
+            if not dup:
+                outputlist.append(inputlist[i])
+            i = i + 1
+        return outputlist
 
 def start_dbus_interface(toggle=False):
     if HAVE_DBUS:
