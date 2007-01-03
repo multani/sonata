@@ -451,8 +451,8 @@ class Base(mpdclient3.mpd_connection):
         self.conn = self.connect()
         if self.conn:
             self.conn.do.password(self.password)
-            self.iterate_time = self.iterate_time_when_connected
             self.status = self.conn.do.status()
+            self.iterate_time = self.iterate_time_when_connected
             try:
                 test = self.status.state
             except:
@@ -1656,7 +1656,7 @@ class Base(mpdclient3.mpd_connection):
                         self.view_artist_artist = self.root
                     albums = []
                     songs = []
-                    for item in self.conn.do.find('artist', self.view_artist_artist):
+                    for item in self.conn.do.search('artist', self.view_artist_artist):
                         try:
                             albums.append(item.album)
                         except:
@@ -1671,7 +1671,7 @@ class Base(mpdclient3.mpd_connection):
                     self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
                     self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
                     self.view_artist_album = self.root
-                    for item in self.conn.do.find('album', self.view_artist_album):
+                    for item in self.conn.do.search('album', self.view_artist_album):
                         if item.artist.lower() == self.view_artist_artist.lower():
                             self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
             elif self.view == self.VIEW_ALBUM:
@@ -1686,7 +1686,7 @@ class Base(mpdclient3.mpd_connection):
                 else:
                     self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
                     self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
-                    for item in self.conn.do.find('album', root):
+                    for item in self.conn.do.search('album', root):
                         self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
         self.browser.thaw_child_notify()
 
@@ -1961,11 +1961,11 @@ class Base(mpdclient3.mpd_connection):
             for path in selected:
                 if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
                     if self.view_artist_level == 1:
-                        for item in self.conn.do.find('artist', model.get_value(model.get_iter(path), 1)):
+                        for item in self.conn.do.search('artist', model.get_value(model.get_iter(path), 1)):
                             items.append(item.file)
                     else:
                         if model.get_value(model.get_iter(path), 0) == 'album':
-                            for item in self.conn.do.find('album', model.get_value(model.get_iter(path), 1)):
+                            for item in self.conn.do.search('album', model.get_value(model.get_iter(path), 1)):
                                 if item.artist == self.view_artist_artist:
                                     items.append(item.file)
                         else:
@@ -1974,22 +1974,28 @@ class Base(mpdclient3.mpd_connection):
             for path in selected:
                 if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
                     if self.root == "/":
-                        for item in self.conn.do.find('album', model.get_value(model.get_iter(path), 1)):
+                        for item in self.conn.do.search('album', model.get_value(model.get_iter(path), 1)):
                             items.append(item.file)
                     else:
                         items.append(model.get_value(model.get_iter(path), 1))
+        # Make sure we don't have any EXACT duplicates:
+        items = remove_list_duplicates(items, True)
         return items
 
     def add_item(self, widget):
         if self.conn:
             if self.notebook.get_current_page() == self.TAB_LIBRARY:
                 items = self.browser_get_selected_items_recursive(True)
+                self.conn.send.command_list_begin()
                 for item in items:
-                    self.conn.do.add(item)
+                    self.conn.send.add(item)
+                self.conn.do.command_list_end()
             elif self.notebook.get_current_page() == self.TAB_PLAYLISTS:
                 model, selected = self.playlists_selection.get_selected_rows()
+                self.conn.send.command_list_begin()
                 for path in selected:
-                    self.conn.do.load(model.get_value(model.get_iter(path), 1))
+                    self.conn.send.load(model.get_value(model.get_iter(path), 1))
+                self.conn.do.command_list_end()
             elif self.notebook.get_current_page() == self.TAB_STREAMS:
                 model, selected = self.streams_selection.get_selected_rows()
                 for path in selected:
@@ -2019,9 +2025,10 @@ class Base(mpdclient3.mpd_connection):
                 except:
                     pass
         if f:
+            self.conn.send.command_list_begin()
             if is_binary(f):
                 # Binary file, just add it:
-                self.conn.do.add(item)
+                self.conn.send.add(item)
             else:
                 if "[playlist]" in f:
                     # pls:
@@ -2034,7 +2041,8 @@ class Base(mpdclient3.mpd_connection):
                     self.stream_parse_m3u(f)
                 else:
                     # Something else..
-                    self.conn.do.add(item)
+                    self.conn.send.add(item)
+            self.conn.do.command_list_end()
         else:
             # Hopefully just a regular stream, try to add it:
             self.conn.do.add(item)
@@ -2046,17 +2054,17 @@ class Base(mpdclient3.mpd_connection):
             if delim > 0:
                 line = line[delim:]
                 if len(line) > 7 and line[0:7] == 'http://':
-                    self.conn.do.add(line)
+                    self.conn.send.add(line)
                 elif len(line) > 6 and line[0:6] == 'ftp://':
-                    self.conn.do.add(line)
+                    self.conn.send.add(line)
 
     def stream_parse_m3u(self, f):
         lines = f.split("\r\n")
         for line in lines:
             if len(line) > 7 and line[0:7] == 'http://':
-                self.conn.do.add(line)
+                self.conn.send.add(line)
             elif len(line) > 6 and line[0:6] == 'ftp://':
-                self.conn.do.add(line)
+                self.conn.send.add(line)
 
     def replace_item(self, widget):
         play_after_replace = False
@@ -2830,9 +2838,11 @@ class Base(mpdclient3.mpd_connection):
             list.sort(key=lambda x: x["sortby"].lower()) # Remove case sensitivity
             # Now that we have the order, move the songs as appropriate:
             pos = 0
+            self.conn.send.command_list_begin()
             for item in list:
-                self.conn.do.moveid(int(item["id"]), pos)
+                self.conn.send.moveid(int(item["id"]), pos)
                 pos = pos + 1
+            self.conn.do.command_list_end()
 
     def sort_reverse(self, action):
         if self.conn:
@@ -2841,10 +2851,12 @@ class Base(mpdclient3.mpd_connection):
                 gtk.main_iteration()
             top = 0
             bot = len(self.songs)-1
+            self.conn.send.command_list_begin()
             while top < bot:
-                self.conn.do.swap(top, bot)
+                self.conn.send.swap(top, bot)
                 top = top + 1
                 bot = bot - 1
+            self.conn.do.command_list_end()
 
     def sort_random(self, action):
         if self.conn:
@@ -2868,6 +2880,7 @@ class Base(mpdclient3.mpd_connection):
             drag_sources.append([index, iter, id, text])
 
         offset = 0
+        self.conn.send.command_list_begin()
         for source in drag_sources:
             index, iter, id, text = source
             if drop_info:
@@ -2881,13 +2894,13 @@ class Base(mpdclient3.mpd_connection):
                     offset += 1
                 if position in (gtk.TREE_VIEW_DROP_BEFORE, gtk.TREE_VIEW_DROP_INTO_OR_BEFORE):
                     model.insert_before(iter, [index, text])
-                    self.conn.do.moveid(id, dest)
+                    self.conn.send.moveid(id, dest)
                 else:
                     model.insert_after(iter, [index, text])
-                    self.conn.do.moveid(id, dest + 1)
+                    self.conn.send.moveid(id, dest + 1)
             else:
                 dest = len(self.songs) - 1
-                self.conn.do.moveid(id, dest)
+                self.conn.send.moveid(id, dest)
                 model.append([0, text])
             # now fixup
             for source in drag_sources:
@@ -2900,6 +2913,7 @@ class Base(mpdclient3.mpd_connection):
                     if index < source[0] < dest:
                         source[0] -= 1
             model.remove(iter)
+        self.conn.do.command_list_end()
 
         if drag_context.action == gtk.gdk.ACTION_MOVE:
             drag_context.finish(True, True, timestamp)
@@ -2941,8 +2955,10 @@ class Base(mpdclient3.mpd_connection):
                 iters = [model.get_iter(path) for path in selected]
                 if len(iters) > 0:
                     # If there are selected rows, update these paths..
+                    self.conn.send.command_list_begin()
                     for iter in iters:
-                        self.conn.do.update(self.browserdata.get_value(iter, 1))
+                        self.conn.send.update(self.browserdata.get_value(iter, 1))
+                    self.conn.do.command_list_end()
                 else:
                     # If no selection, update the current path...
                     self.conn.do.update(self.browser.wd)
@@ -3697,8 +3713,10 @@ class Base(mpdclient3.mpd_connection):
                     # Everything is selected, clear:
                     self.conn.do.clear()
                 elif len(selected) > 0:
+                    self.conn.send.command_list_begin()
                     for path in selected:
-                        self.conn.do.deleteid(self.currentdata.get_value(model.get_iter(path), 0))
+                        self.conn.send.deleteid(self.currentdata.get_value(model.get_iter(path), 0))
+                    self.conn.do.command_list_end()
             elif page_num == self.TAB_PLAYLISTS:
                 dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_YES_NO, _("Delete the selected playlist(s)?"))
                 dialog.set_title(_("Delete Playlist(s)"))
@@ -3707,8 +3725,10 @@ class Base(mpdclient3.mpd_connection):
                     dialog.destroy()
                     model, selected = self.playlists_selection.get_selected_rows()
                     iters = [model.get_iter(path) for path in selected]
+                    self.conn.send.command_list_begin()
                     for iter in iters:
-                        self.conn.do.rm(unescape_html(self.playlistsdata.get_value(iter, 1)))
+                        self.conn.send.rm(unescape_html(self.playlistsdata.get_value(iter, 1)))
+                    self.conn.do.command_list_end()
                     self.playlists_populate()
                 else:
                     dialog.destroy()
@@ -4782,11 +4802,11 @@ class Base(mpdclient3.mpd_connection):
         self.about_dialog.set_website_label("http://sonata.berlios.de")
         large_icon = gtk.gdk.pixbuf_new_from_file(self.find_path('sonata_large.png'))
         self.about_dialog.set_logo(large_icon)
-        self.about_dialog.connect('response', self.close_about)
-        self.about_dialog.connect('delete_event', self.close_about)
+        self.about_dialog.connect('response', self.about_close)
+        self.about_dialog.connect('delete_event', self.about_close)
         self.about_dialog.show_all()
 
-    def close_about(self, event, data=None):
+    def about_close(self, event, data=None):
         self.about_dialog.hide()
         return True
 
@@ -5069,17 +5089,23 @@ def remove_list_duplicates(inputlist, case_sensitive=True):
         inputlist = list(set(inputlist))
         return inputlist
     else:
+        # Store lowercase items so that we don't have to
+        # convert to lowercase for each comparison:
+        lowercaselist = []
+        for item in inputlist:
+            lowercaselist.append(item.lower())
         outputlist = []
         i = 0
         while i <= len(inputlist)-1:
             j = i + 1
             dup = False
             while j <= len(inputlist)-1:
-                if inputlist[i].lower() == inputlist[j].lower():
+                if lowercaselist[i] == lowercaselist[j]:
                     dup = True
                     break
                 j = j + 1
             if not dup:
+                # Use original item from inputlist[]
                 outputlist.append(inputlist[i])
             i = i + 1
         return outputlist

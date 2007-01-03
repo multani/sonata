@@ -4,9 +4,9 @@ v1.0
 	lyrics (lyricwiki slow; closing sonata during thread; mult threads)
 	ability to 'save all' for tag editing
 	python 2.5
-	selection not retained in artist view level 2
+	selection not retained in artist view level 2; back to level 2
+		is sometimes blank
 
 Future:
-	USE COMMAND_LIST_* for batch processes (i.e. remove, crop, add_*)
 	connect in background via socket.setblocking(0)
 	last.fm?
