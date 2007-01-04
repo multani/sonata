@@ -133,6 +133,7 @@ commands = {
 
     # <string type> <string what>
     ("search", 2): ('%s "%s" "%s"', MANY, '', plitem_delim),
+    ("search", 4): ('%s "%s" "%s" "%s" "%s"', MANY, '', plitem_delim),
 
     # list <metadata arg1> [<metadata arg2> <search term>]
 

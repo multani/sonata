@@ -1675,9 +1675,8 @@ class Base(mpdclient3.mpd_connection):
                     self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
                     self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
                     self.view_artist_album = self.root
-                    for item in self.conn.do.search('album', self.view_artist_album):
-                        if item.artist.lower() == self.view_artist_artist.lower():
-                            self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
+                    for item in self.conn.do.search('album', self.view_artist_album, 'artist', self.view_artist_artist):
+                        self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
             elif self.view == self.VIEW_ALBUM:
                 items = []
                 if self.root == '/':
@@ -1967,9 +1966,8 @@ class Base(mpdclient3.mpd_connection):
                             items.append(item.file)
                     else:
                         if model.get_value(model.get_iter(path), 0) == 'album':
-                            for item in self.conn.do.search('album', model.get_value(model.get_iter(path), 1)):
-                                if item.artist == self.view_artist_artist:
-                                    items.append(item.file)
+                            for item in self.conn.do.search('album', model.get_value(model.get_iter(path), 1), 'artist', self.view_artist_artist):
+                                items.append(item.file)
                         else:
                             items.append(model.get_value(model.get_iter(path), 1))
         elif self.view == self.VIEW_ALBUM:
