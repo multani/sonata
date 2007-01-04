@@ -4443,9 +4443,8 @@ class Base(mpdclient3.mpd_connection):
         files = []
         temp_mpdpaths = []
         for item in items:
-            if os.path.exists(self.musicdir + item):
-                files.append(self.musicdir + item)
-                temp_mpdpaths.append(item)
+            files.append(self.musicdir + item)
+            temp_mpdpaths.append(item)
         # Initialize tags:
         tags = []
         for filenum in range(len(files)):
@@ -4595,12 +4594,13 @@ class Base(mpdclient3.mpd_connection):
         # If no next tag found, returns False.
         while self.tagnum < len(tags)-1:
             self.tagnum = self.tagnum + 1
-            try:
-                fileref = tagpy.FileRef(tags[self.tagnum]['fullpath'])
-                if not fileref.isNull():
-                    return True
-            except:
-                pass
+            if os.path.exists(tags[self.tagnum]['fullpath']):
+                try:
+                    fileref = tagpy.FileRef(tags[self.tagnum]['fullpath'])
+                    if not fileref.isNull():
+                        return True
+                except:
+                    pass
         return False
 
     def edit_entry_revert_text(self, editable, tags, fileentry=False, pathentry=False):
