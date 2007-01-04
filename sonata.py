@@ -272,6 +272,7 @@ class Base(mpdclient3.mpd_connection):
         self.view_artist_artist = ''
         self.view_artist_album = ''
         self.view_artist_level = 1
+        self.view_artist_level_prev = 0
         show_prefs = False
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
@@ -799,7 +800,7 @@ class Base(mpdclient3.mpd_connection):
         self.cursonglabel.connect('notify::label', self.labelnotify)
         self.progressbar.connect('notify::fraction', self.progressbarnotify_fraction)
         self.progressbar.connect('notify::text', self.progressbarnotify_text)
-        self.browser.connect('row_activated', self.browserow)
+        self.browser.connect('row_activated', self.browse_row)
         self.browser.connect('button_press_event', self.browser_button_press)
         self.browser.connect('key-press-event', self.browser_key_press)
         self.browser_selection.connect('changed', self.treeview_selection_changed)
@@ -1212,7 +1213,7 @@ class Base(mpdclient3.mpd_connection):
         # These shortcuts were moved here so that they don't
         # interfere with searching the library
         if shortcut == 'BackSpace':
-            self.parent_dir(None)
+            self.browse_parent_dir(None)
         elif shortcut == 'Escape':
             if self.minimize_to_systray:
                 if HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible():
@@ -1519,17 +1520,6 @@ class Base(mpdclient3.mpd_connection):
         if self.play_on_activate:
             self.play_item(playid)
 
-    def parent_dir(self, action):
-        if self.notebook.get_current_page() == self.TAB_LIBRARY:
-            if self.browser.is_focus():
-                if self.view == self.VIEW_ARTIST:
-                    if self.view_artist_level > 1:
-                        self.view_artist_level = self.view_artist_level - 1
-                    value = ".."
-                else:
-                    value = '/'.join(self.browser.wd.split('/')[:-1]) or '/'
-                self.browse(None, value)
-
     def libraryview_popup(self, button):
         self.librarymenu.popup(None, None, self.position_libraryview_menu, 1, 0)
 
@@ -1592,7 +1582,7 @@ class Base(mpdclient3.mpd_connection):
         prev_selection = []
         prev_selection_root = False
         prev_selection_parent = False
-        if root == self.browser.wd:
+        if (self.view != self.VIEW_ARTIST and root == self.browser.wd) or (self.view == self.VIEW_ARTIST and self.view_artist_level == self.view_artist_level_prev):
             # This will happen when the database is updated. So, lets save
             # the current selection in order to try to re-select it after
             # the update is over.
@@ -1611,7 +1601,7 @@ class Base(mpdclient3.mpd_connection):
 
         self.root = root
         # The logic below is more consistent with, e.g., thunar
-        if len(root) > len(self.browser.wd):
+        if (self.view != self.VIEW_ARTIST and len(root) > len(self.browser.wd)) or (self.view == self.VIEW_ARTIST and self.view_artist_level > self.view_artist_level_prev):
             # Save position and row for where we just were if we've
             # navigated into a sub-directory:
             self.browserposition[self.browser.wd] = self.browser.get_visible_rect()[1]
@@ -1620,7 +1610,7 @@ class Base(mpdclient3.mpd_connection):
                 value_for_selection = self.browserdata.get_value(self.browserdata.get_iter(rows[0]), 2)
                 if value_for_selection != ".." and value_for_selection != "/":
                     self.browserselectedpath[self.browser.wd] = rows[0]
-        elif root != self.browser.wd:
+        elif (self.view != self.VIEW_ARTIST and root != self.browser.wd) or (self.view == self.VIEW_ARTIST and self.view_artist_level != self.view_artist_level_prev):
             # If we've navigated to a parent directory, don't save
             # anything so that the user will enter that subdirectory
             # again at the top position with nothing selected
@@ -1660,7 +1650,7 @@ class Base(mpdclient3.mpd_connection):
                         self.view_artist_artist = self.root
                     albums = []
                     songs = []
-                    for item in self.conn.do.search('artist', self.view_artist_artist):
+                    for item in self.browse_search_artist(self.view_artist_artist):
                         try:
                             albums.append(item.album)
                         except:
@@ -1675,7 +1665,7 @@ class Base(mpdclient3.mpd_connection):
                     self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
                     self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
                     self.view_artist_album = self.root
-                    for item in self.conn.do.search('album', self.view_artist_album, 'artist', self.view_artist_artist):
+                    for item in self.browse_search_album_by_artist(self.view_artist_artist, self.view_artist_album):
                         self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
             elif self.view == self.VIEW_ALBUM:
                 items = []
@@ -1689,7 +1679,7 @@ class Base(mpdclient3.mpd_connection):
                 else:
                     self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
                     self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
-                    for item in self.conn.do.search('album', root):
+                    for item in self.browse_search_album(root):
                         self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
         self.browser.thaw_child_notify()
 
@@ -1698,6 +1688,32 @@ class Base(mpdclient3.mpd_connection):
         gobject.idle_add(self.browser_set_view, not path_updated)
         if len(prev_selection) > 0 or prev_selection_root or prev_selection_parent:
             self.browser_retain_preupdate_selection(prev_selection, prev_selection_root, prev_selection_parent)
+
+        self.view_artist_level_prev = self.view_artist_level
+
+    def browse_search_album(self, album):
+        list = []
+        for item in self.conn.do.search('album', album):
+            # Make sure it's an exact match:
+            if album.lower() == item.album.lower():
+                list.append(item)
+        return list
+
+    def browse_search_artist(self, artist):
+        list = []
+        for item in self.conn.do.search('artist', artist):
+            # Make sure it's an exact match:
+            if artist.lower() == item.artist.lower():
+                list.append(item)
+        return list
+
+    def browse_search_album_by_artist(self, artist, album):
+        list = []
+        for item in self.conn.do.search('album', album, 'artist', artist):
+            # Make sure it's an exact match:
+            if artist.lower() == item.artist.lower() and album.lower() == item.album.lower():
+                list.append(item)
+        return list
 
     def browser_retain_preupdate_selection(self, prev_selection, prev_selection_root, prev_selection_parent):
         # Unselect everything:
@@ -1727,10 +1743,19 @@ class Base(mpdclient3.mpd_connection):
 
         # Select and focus previously selected item if it's not ".." or "/"
         if select_items:
-            if self.browser.wd in self.browserselectedpath:
+            if self.view == self.VIEW_ARTIST:
+                if self.view_artist_level == 1:
+                    item = "/"
+                elif self.view_artist_level == 2:
+                    item = self.view_artist_artist
+                else:
+                    return
+            else:
+                item = self.browser.wd
+            if item in self.browserselectedpath:
                 try:
-                    if self.browserselectedpath[self.browser.wd]:
-                        self.browser_selection.select_path(self.browserselectedpath[self.browser.wd])
+                    if self.browserselectedpath[item]:
+                        self.browser_selection.select_path(self.browserselectedpath[item])
                         self.browser.grab_focus()
                 except:
                     pass
@@ -1871,10 +1896,10 @@ class Base(mpdclient3.mpd_connection):
 
     def browser_key_press(self, widget, event):
         if event.keyval == gtk.gdk.keyval_from_name('Return'):
-            self.browserow(widget, widget.get_cursor()[0])
+            self.browse_row(widget, widget.get_cursor()[0])
             return True
 
-    def browserow(self, widget, path, column=0):
+    def browse_row(self, widget, path, column=0):
         if path is None:
             # Default to last item in selection:
             model, selected = self.browser_selection.get_selected_rows()
@@ -1884,7 +1909,7 @@ class Base(mpdclient3.mpd_connection):
                 path = (0,)
         value = self.browserdata.get_value(self.browserdata.get_iter(path), 1)
         if value == "..":
-            self.parent_dir(None)
+            self.browse_parent_dir(None)
         else:
             if self.view == self.VIEW_ARTIST:
                 if value == "/":
@@ -1892,6 +1917,20 @@ class Base(mpdclient3.mpd_connection):
                 else:
                     self.view_artist_level = self.view_artist_level + 1
             self.browse(None, value)
+
+    def browse_parent_dir(self, action):
+        if self.notebook.get_current_page() == self.TAB_LIBRARY:
+            if self.browser.is_focus():
+                if self.view == self.VIEW_ARTIST:
+                    if self.view_artist_level > 1:
+                        self.view_artist_level = self.view_artist_level - 1
+                    if self.view_artist_level == 1:
+                        value = "/"
+                    else:
+                        value = self.view_artist_artist
+                else:
+                    value = '/'.join(self.browser.wd.split('/')[:-1]) or '/'
+                self.browse(None, value)
 
     def treeview_selection_changed(self, *args):
         self.set_menu_contextual_items_visible()
@@ -1962,11 +2001,11 @@ class Base(mpdclient3.mpd_connection):
             for path in selected:
                 if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
                     if self.view_artist_level == 1:
-                        for item in self.conn.do.search('artist', model.get_value(model.get_iter(path), 1)):
+                        for item in self.browse_search_artist(model.get_value(model.get_iter(path), 1)):
                             items.append(item.file)
                     else:
                         if model.get_value(model.get_iter(path), 0) == 'album':
-                            for item in self.conn.do.search('album', model.get_value(model.get_iter(path), 1), 'artist', self.view_artist_artist):
+                            for item in self.browse_search_album_by_artist(self.view_artist_artist, model.get_value(model.get_iter(path), 1)):
                                 items.append(item.file)
                         else:
                             items.append(model.get_value(model.get_iter(path), 1))
@@ -1974,7 +2013,7 @@ class Base(mpdclient3.mpd_connection):
             for path in selected:
                 if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
                     if self.root == "/":
-                        for item in self.conn.do.search('album', model.get_value(model.get_iter(path), 1)):
+                        for item in self.browse_search_album(model.get_value(model.get_iter(path), 1)):
                             items.append(item.file)
                     else:
                         items.append(model.get_value(model.get_iter(path), 1))
@@ -3161,11 +3200,11 @@ class Base(mpdclient3.mpd_connection):
                         # Update lyrics:
                         if HAVE_WSDL:
                             try:
-                                self.infowindow_show_lyrics(_("Fetching lyrics..."))
+                                self.infowindow_show_lyrics(_("Fetching lyrics..."), self.songinfo.artist, self.songinfo.title)
                                 lyricThread = threading.Thread(target=self.infowindow_get_lyrics, args=(self.songinfo.artist, self.songinfo.title))
                                 lyricThread.start()
                             except:
-                                self.infowindow_show_lyrics("")
+                                self.infowindow_show_lyrics("", self.songinfo.artist, self.songinfo.title)
                     if show_after_update:
                         gobject.idle_add(self.infowindow_show_now)
                 else:
@@ -3179,7 +3218,7 @@ class Base(mpdclient3.mpd_connection):
                     self.infowindow_filelabel.set_text("")
                     self.infowindow_bitratelabel.set_text("")
                     if HAVE_WSDL:
-                        self.infowindow_show_lyrics("")
+                        self.infowindow_show_lyrics("", self.songinfo.artist, self.songinfo.title)
 
     def infowindow_show_now(self):
         self.infowindow.show_all()
@@ -3196,7 +3235,7 @@ class Base(mpdclient3.mpd_connection):
             except:
                 socket.setdefaulttimeout(timeout)
                 lyrics = _("Couldn't connect to LyricWiki")
-                gobject.idle_add(self.infowindow_show_lyrics, lyrics)
+                gobject.idle_add(self.infowindow_show_lyrics, lyrics, artist, title)
                 self.lyricServer = None
                 return
         try:
@@ -3204,14 +3243,17 @@ class Base(mpdclient3.mpd_connection):
             socket.setdefaulttimeout(self.LYRIC_TIMEOUT)
             lyrics = self.lyricServer.getSong(artist, title)["lyrics"]
             lyrics = artist + " - " + title + "\n\n" + lyrics
-            gobject.idle_add(self.infowindow_show_lyrics, lyrics)
+            gobject.idle_add(self.infowindow_show_lyrics, lyrics, artist, title)
         except:
             lyrics = _("Fetching lyrics failed")
-            gobject.idle_add(self.infowindow_show_lyrics, lyrics)
+            gobject.idle_add(self.infowindow_show_lyrics, lyrics, artist, title)
         socket.setdefaulttimeout(timeout)
 
-    def infowindow_show_lyrics(self, lyrics):
-        self.lyricsBuffer.set_text(lyrics)
+    def infowindow_show_lyrics(self, lyrics, artist, title):
+        if self.status and self.status.state in ['play', 'pause']:
+            # Verify that we are displaying the correct lyrics:
+            if self.songinfo.artist == artist and self.songinfo.title == title:
+                self.lyricsBuffer.set_text(lyrics)
 
     def get_pixbuf_of_size(self, pixbuf, size):
         # Creates a pixbuf that fits in the specified square of sizexsize
