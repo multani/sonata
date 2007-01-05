@@ -273,6 +273,7 @@ class Base(mpdclient3.mpd_connection):
         self.view_artist_album = ''
         self.view_artist_level = 1
         self.view_artist_level_prev = 0
+        self.remote_from_infowindow = False
         show_prefs = False
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
@@ -3012,6 +3013,10 @@ class Base(mpdclient3.mpd_connection):
                 self.iterate_now()
 
     def on_image_activate(self, widget, event):
+        if widget == self.imageeventbox:
+            self.remote_from_infowindow = False
+        else:
+            self.remote_from_infowindow = True
         self.window.handler_block(self.mainwinhandler)
         if event.button == 1:
             self.volume_hide()
@@ -3072,7 +3077,7 @@ class Base(mpdclient3.mpd_connection):
         self.infowindow = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.infowindow.set_title(_('Song Info'))
         self.infowindow.set_resizable(False)
-        self.infowindow.set_size_request(380, 380)
+        self.infowindow.set_size_request(380, -1)
         icon = self.infowindow.render_icon('sonata', gtk.ICON_SIZE_DIALOG)
         self.infowindow.set_icon(icon)
         notebook = gtk.Notebook()
@@ -3148,20 +3153,34 @@ class Base(mpdclient3.mpd_connection):
         vbox.pack_start(gtk.Label(), False, False, 0)
         nblabel1 = gtk.Label()
         nblabel1.set_text_with_mnemonic(_("_Song Info"))
-        nblabel2 = gtk.Label()
-        nblabel2.set_text_with_mnemonic(_("_Cover Art"))
-        nblabel3 = gtk.Label()
-        nblabel3.set_text_with_mnemonic(_("_Lyrics"))
         for hbox in hboxes:
             vbox.pack_start(hbox, False, False, 5)
+        self.edittag_button = gtk.Button(' ' + _("_Edit"))
+        self.edittag_button.set_image(gtk.image_new_from_stock(gtk.STOCK_EDIT, gtk.ICON_SIZE_MENU))
+        self.edittag_button.connect('clicked', self.on_edittag_click)
+        hbox_edittag = gtk.HBox()
+        hbox_edittag.pack_start(self.edittag_button, False, False, 10)
+        hbox_edittag.pack_start(gtk.Label(), True, True, 0)
+        vbox.pack_start(gtk.Label(), True, True, 3)
+        vbox.pack_start(hbox_edittag, False, False, 6)
         notebook.append_page(vbox, nblabel1)
         # Add cover art:
         if self.show_covers:
+            nblabel2 = gtk.Label()
+            nblabel2.set_text_with_mnemonic(_("Cover _Art"))
+            eventbox = gtk.EventBox()
+            eventbox.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT | gtk.DEST_DEFAULT_DROP, [("text/uri-list", 0, 80)], gtk.gdk.ACTION_DEFAULT)
             self.infowindow_image = gtk.Image()
             self.infowindow_image.set_alignment(0.5, 0.5)
-            notebook.append_page(self.infowindow_image, nblabel2)
+            eventbox.connect('button_press_event', self.on_image_activate)
+            eventbox.connect('drag_motion', self.on_image_motion_cb)
+            eventbox.connect('drag_data_received', self.on_image_drop_cb)
+            eventbox.add(self.infowindow_image)
+            notebook.append_page(eventbox, nblabel2)
         # Add lyrics:
         if HAVE_WSDL:
+            nblabel3 = gtk.Label()
+            nblabel3.set_text_with_mnemonic(_("_Lyrics"))
             scrollWindow = gtk.ScrolledWindow()
             scrollWindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
             self.lyricsBuffer = gtk.TextBuffer()
@@ -3171,17 +3190,25 @@ class Base(mpdclient3.mpd_connection):
             notebook.append_page(scrollWindow, nblabel3)
         hbox_main = gtk.HBox()
         hbox_main.pack_start(notebook, False, False, 15)
+        vbox_inner = gtk.VBox()
+        vbox_inner.pack_start(hbox_main, False, False, 10)
+        hbox_close = gtk.HBox()
+        hbox_close.pack_start(gtk.Label(), True, True, 0)
+        closebutton = gtk.Button(gtk.STOCK_CLOSE, gtk.STOCK_CLOSE)
+        closebutton.connect('clicked', self.on_infowindow_hide)
+        hbox_close.pack_start(closebutton, False, False, 15)
+        vbox_inner.pack_start(hbox_close, False, False, 0)
         vbox_main = gtk.VBox()
-        vbox_main.pack_start(hbox_main, False, False, 15)
+        vbox_main.pack_start(vbox_inner, False, False, 5)
         self.infowindow.add(vbox_main)
         self.infowindow.show_all()
         self.infowindow_visible = True
-        self.infowindow.connect('delete_event', self.infowindow_hide)
+        self.infowindow.connect('delete_event', self.on_infowindow_hide)
         self.lastalbumart = ""
         self.update_album_art()
         self.infowindow_update(True, update_all=True)
 
-    def infowindow_hide(self, window, data=None):
+    def on_infowindow_hide(self, window, data=None):
         if self.infowindow_visible:
             self.infowindow.destroy()
             self.infowindow_visible = False
@@ -3194,6 +3221,7 @@ class Base(mpdclient3.mpd_connection):
         if self.conn:
             if self.infowindow_visible:
                 if self.status and self.status.state in ['play', 'pause']:
+                    self.edittag_button.set_sensitive(True)
                     at, length = [int(c) for c in self.status.time.split(':')]
                     at_time = convert_time(at)
                     try:
@@ -3230,6 +3258,7 @@ class Base(mpdclient3.mpd_connection):
                     if show_after_update:
                         gobject.idle_add(self.infowindow_show_now)
                 else:
+                    self.edittag_button.set_sensitive(False)
                     self.infowindow_timelabel.set_text("")
                     self.infowindow_titlelabel.set_text("")
                     self.infowindow_artistlabel.set_text("")
@@ -3391,7 +3420,10 @@ class Base(mpdclient3.mpd_connection):
         dialog.destroy()
 
     def on_choose_image(self, widget):
-        choose_dialog = gtk.Dialog(_("Choose Cover Art"), self.window, gtk.DIALOG_MODAL, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
+        if self.remote_from_infowindow:
+            choose_dialog = gtk.Dialog(_("Choose Cover Art"), self.infowindow, gtk.DIALOG_MODAL, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
+        else:
+            choose_dialog = gtk.Dialog(_("Choose Cover Art"), self.window, gtk.DIALOG_MODAL, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
         choosebutton = choose_dialog.add_button(_("Choose"), gtk.RESPONSE_ACCEPT)
         chooseimage = gtk.Image()
         chooseimage.set_from_stock(gtk.STOCK_CONVERT, gtk.ICON_SIZE_BUTTON)
@@ -3484,13 +3516,19 @@ class Base(mpdclient3.mpd_connection):
         self.call_gc_collect = True
 
     def choose_image_no_artist_or_album_dialog(self):
-        error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No artist or album name found."))
+        if self.remote_from_infowindow:
+            error_dialog = gtk.MessageDialog(self.infowindow, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No artist or album name found."))
+        else:
+            error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No artist or album name found."))
         error_dialog.set_title(_("Choose Cover Art"))
         error_dialog.connect('response', self.choose_image_dialog_response)
         error_dialog.show()
 
     def choose_image_no_art_found(self):
-        error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No cover art found."))
+        if self.remote_from_infowindow:
+            error_dialog = gtk.MessageDialog(self.infowindow, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No cover art found."))
+        else:
+            error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No cover art found."))
         error_dialog.set_title(_("Choose Cover Art"))
         error_dialog.connect('response', self.choose_image_dialog_response)
         error_dialog.show()
@@ -4474,7 +4512,11 @@ class Base(mpdclient3.mpd_connection):
             full_filename = os.path.join(__file__.split('/lib')[0], 'share', 'pixmaps', filename)
         return full_filename
 
-    def edit_tags(self, widget):
+    def on_edittag_click(self, widget):
+        mpdpath = self.songinfo.file
+        self.edit_tags(widget, mpdpath)
+
+    def edit_tags(self, widget, mpdpath=None):
         if not os.path.isdir(self.musicdir):
             error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("The path") + " " + self.musicdir + " " + _("does not exist. Please specify a valid music directory in preferences."))
             error_dialog.set_title(_("Edit Tags"))
@@ -4484,13 +4526,18 @@ class Base(mpdclient3.mpd_connection):
         self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
         while gtk.events_pending():
             gtk.main_iteration()
-        items = self.browser_get_selected_items_recursive(False)
-        # Populates files array with selected items:
         files = []
         temp_mpdpaths = []
-        for item in items:
-            files.append(self.musicdir + item)
-            temp_mpdpaths.append(item)
+        if mpdpath is not None:
+            # Use current file in songinfo:
+            files.append(self.musicdir + mpdpath)
+            temp_mpdpaths.append(mpdpath)
+        else:
+            items = self.browser_get_selected_items_recursive(False)
+            # Populates files array with selected library items:
+            for item in items:
+                files.append(self.musicdir + item)
+                temp_mpdpaths.append(item)
         # Initialize tags:
         tags = []
         for filenum in range(len(files)):
@@ -4503,7 +4550,10 @@ class Base(mpdclient3.mpd_connection):
             error_dialog.connect('response', self.choose_image_dialog_response)
             error_dialog.show()
             return
-        editwindow = gtk.Dialog("", self.window, gtk.DIALOG_MODAL)
+        if mpdpath is None:
+            editwindow = gtk.Dialog("", self.window, gtk.DIALOG_MODAL)
+        else:
+            editwindow = gtk.Dialog("", self.infowindow, gtk.DIALOG_MODAL)
         editwindow.set_size_request(350, -1)
         editwindow.set_resizable(False)
         editwindow.set_has_separator(False)
