@@ -1,10 +1,10 @@
 v1.0
-	make selection, dnd, more like thunar
 	lyrics (lyricwiki slow; closing sonata during thread; mult threads)
 	ability to 'save all' for tag editing
-	python 2.5
-	make editwindow labels grey..
+	make tag labels grey..
+	sort albums by tracks in artist/album views
 
 Future:
+	make selection, dnd, more like thunar
 	connect in background via socket.setblocking(0)
 	last.fm?

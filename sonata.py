@@ -1581,7 +1581,7 @@ class Base(mpdclient3.mpd_connection):
                     else:
                         break
                 elif self.view_artist_level == 3:
-                    if len(self.browse_search_album_by_artist(self.view_artist_artist, root)) == 0:
+                    if len(self.browse_search_album_by_artist_and_year(self.view_artist_artist, root[4:], root[:4])) == 0:
                         # Back up and try the parent
                         self.view_artist_level = self.view_artist_level - 1
                         root = self.view_artist_artist
@@ -1662,7 +1662,7 @@ class Base(mpdclient3.mpd_connection):
                     artists = []
                     for item in self.conn.do.list('artist'):
                         artists.append(item.artist)
-                    artists = remove_list_duplicates(artists, False)
+                    (artists, i) = remove_list_duplicates(artists, [], False)
                     artists.sort(locale.strcoll)
                     for artist in artists:
                         self.browserdata.append(['artist', artist, escape_html(artist)])
@@ -1673,29 +1673,39 @@ class Base(mpdclient3.mpd_connection):
                         self.view_artist_artist = self.root
                     albums = []
                     songs = []
+                    years = []
                     for item in self.browse_search_artist(self.view_artist_artist):
                         try:
                             albums.append(item.album)
+                            try:
+                                years.append((item.date).zfill(4))
+                            except:
+                                years.append('0000')
                         except:
                             songs.append(item)
-                    albums = remove_list_duplicates(albums, False)
-                    albums.sort(locale.strcoll)
-                    for album in albums:
-                        self.browserdata.append(['album', album, escape_html(album)])
+                    (albums, years) = remove_list_duplicates(albums, years, False)
+                    # Sort by year:
+                    albums2 = []
+                    for i in range(len(albums)):
+                        albums2.append({'album':albums[i], 'year':years[i]})
+                    albums2.sort(key=lambda x: x["year"]) # Remove case sensitivity
+                    for album in albums2:
+                        self.browserdata.append(['album', album['year'] + album['album'], escape_html(album['year'] + ' - ' + album['album'])])
                     for song in songs:
                         self.browserdata.append(['sonata', song.file, self.parse_formatting(self.libraryformat, song, True)])
                 else:
                     self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
                     self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
-                    self.view_artist_album = self.root
-                    for item in self.browse_search_album_by_artist(self.view_artist_artist, self.view_artist_album):
+                    year = self.root[:4]
+                    self.view_artist_album = self.root[4:]
+                    for item in self.browse_search_album_by_artist_and_year(self.view_artist_artist, self.view_artist_album, year):
                         self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
             elif self.view == self.VIEW_ALBUM:
                 items = []
                 if self.root == '/':
                     for item in self.conn.do.list('album'):
                         items.append(item.album)
-                    items = remove_list_duplicates(items, False)
+                    (items, i) = remove_list_duplicates(items, [], False)
                     items.sort(locale.strcoll)
                     for item in items:
                         self.browserdata.append(['album', item, escape_html(item)])
@@ -1730,12 +1740,25 @@ class Base(mpdclient3.mpd_connection):
                 list.append(item)
         return list
 
-    def browse_search_album_by_artist(self, artist, album):
+    def browse_search_album_by_artist_and_year(self, artist, album, year):
         list = []
         for item in self.conn.do.search('album', album, 'artist', artist):
             # Make sure it's an exact match:
             if artist.lower() == item.artist.lower() and album.lower() == item.album.lower():
-                list.append(item)
+                # Make sure it also matches the year:
+                if year != '0000':
+                    # Only show songs whose years match the year var:
+                    try:
+                        if int(item.date) == int(year):
+                            list.append(item)
+                    except:
+                        pass
+                else:
+                    # Only show songs that have no year specified:
+                    try:
+                        x = item.date
+                    except:
+                        list.append(item)
         return list
 
     def browser_retain_preupdate_selection(self, prev_selection, prev_selection_root, prev_selection_parent):
@@ -2028,7 +2051,8 @@ class Base(mpdclient3.mpd_connection):
                             items.append(item.file)
                     else:
                         if model.get_value(model.get_iter(path), 0) == 'album':
-                            for item in self.browse_search_album_by_artist(self.view_artist_artist, model.get_value(model.get_iter(path), 1)):
+                            value = model.get_value(model.get_iter(path), 1)
+                            for item in self.browse_search_album_by_artist_and_year(self.view_artist_artist, value[4:], value[:4]):
                                 items.append(item.file)
                         else:
                             items.append(model.get_value(model.get_iter(path), 1))
@@ -2041,7 +2065,7 @@ class Base(mpdclient3.mpd_connection):
                     else:
                         items.append(model.get_value(model.get_iter(path), 1))
         # Make sure we don't have any EXACT duplicates:
-        items = remove_list_duplicates(items, True)
+        (items, i) = remove_list_duplicates(items, [], True)
         return items
 
     def add_item(self, widget):
@@ -4787,8 +4811,12 @@ class Base(mpdclient3.mpd_connection):
         entries[2].set_text(tags[self.tagnum]['album'])
         if tags[self.tagnum]['year'] != 0:
             entries[3].set_text(str(tags[self.tagnum]['year']))
+        else:
+            entries[3].set_text('')
         if tags[self.tagnum]['track'] != 0:
             entries[4].set_text(str(tags[self.tagnum]['track']))
+        else:
+            entries[4].set_text('')
         entries[5].set_text(tags[self.tagnum]['genre'])
         entries[6].set_text(tags[self.tagnum]['comment'])
         entries[7].set_text(tags[self.tagnum]['mpdpath'].split('/')[-1])
@@ -5180,31 +5208,35 @@ def removeall(path):
             f=os.rmdir
             rmgeneric(fullpath, f)
 
-def remove_list_duplicates(inputlist, case_sensitive=True):
+def remove_list_duplicates(inputlist, inputlist2=[], case_sensitive=True):
+    # If inputlist2 is provided, keep it synced with inputlist.
+    # Note that this is only implemented if case_sensitive=False.
     if case_sensitive:
         inputlist = list(set(inputlist))
-        return inputlist
+        return (inputlist, [])
     else:
-        # Store lowercase items so that we don't have to
-        # convert to lowercase for each comparison:
-        lowercaselist = []
-        for item in inputlist:
-            lowercaselist.append(item.lower())
+        if len(inputlist2) > 0:
+            sync_lists = True
+        else:
+            sync_lists = False
         outputlist = []
-        i = 0
-        while i <= len(inputlist)-1:
-            j = i + 1
+        outputlist2 = []
+        for i in range(len(inputlist)):
             dup = False
-            while j <= len(inputlist)-1:
-                if lowercaselist[i] == lowercaselist[j]:
-                    dup = True
-                    break
-                j = j + 1
+            for j in range(len(outputlist)):
+                if sync_lists:
+                    if inputlist[i].lower() == outputlist[j].lower() and inputlist2[i].lower() == outputlist2[j].lower():
+                        dup = True
+                        break
+                else:
+                    if inputlist[i].lower() == outputlist[j].lower():
+                        dup = True
+                        break
             if not dup:
-                # Use original item from inputlist[]
                 outputlist.append(inputlist[i])
-            i = i + 1
-        return outputlist
+                if sync_lists:
+                    outputlist2.append(inputlist2[i])
+        return (outputlist, outputlist2)
 
 def start_dbus_interface(toggle=False):
     if HAVE_DBUS:
