@@ -96,8 +96,8 @@ except:
     sys.stderr.write("Taglib and tagpy not found, tag editing support disabled.\n")
 
 try:
-    from SOAPpy import WSDL
     # Temporarily disable lyrics...
+    #from SOAPpy import WSDL
     HAVE_WSDL = False
 except:
     HAVE_WSDL = False
@@ -1558,7 +1558,8 @@ class Base(mpdclient3.mpd_connection):
         if not self.conn:
             return
 
-        # Handle special cases
+        # Handle special cases (i.e. if we are browsing to a song or
+        # if the path has disappeared)
         lsinfo = self.conn.do.lsinfo(root)
         while lsinfo == []:
             if self.conn.do.listallinfo(root):
@@ -1569,6 +1570,22 @@ class Base(mpdclient3.mpd_connection):
                 if self.play_on_activate:
                     self.play_item(playid)
                 return
+            elif self.view == self.VIEW_ARTIST:
+                if self.view_artist_level == 1:
+                    break
+                elif self.view_artist_level == 2:
+                    if len(self.browse_search_artist(root)) == 0:
+                        # Back up and try the parent
+                        self.view_artist_level = self.view_artist_level - 1
+                    else:
+                        break
+                elif self.view_artist_level == 3:
+                    if len(self.browse_search_album_by_artist(self.view_artist_artist, root)) == 0:
+                        # Back up and try the parent
+                        self.view_artist_level = self.view_artist_level - 1
+                        root = self.view_artist_artist
+                    else:
+                        break
             elif self.view == self.VIEW_FILESYSTEM:
                 if root == '/':
                     # Nothing in the library at all
@@ -1577,8 +1594,15 @@ class Base(mpdclient3.mpd_connection):
                     # Back up and try the parent
                     root = '/'.join(root.split('/')[:-1]) or '/'
             else:
-                break
+                print root, len(self.browse_search_album(root))
+                if len(self.browse_search_album(root)) == 0:
+                    root = "/"
+                    break
+                else:
+                    break
+            lsinfo = self.conn.do.lsinfo(root)
 
+        print root
         prev_selection = []
         prev_selection_root = False
         prev_selection_parent = False
@@ -3182,21 +3206,21 @@ class Base(mpdclient3.mpd_connection):
                     try:
                         self.infowindow_bitratelabel.set_text(self.status.bitrate + " kbps")
                     except:
-                        self.infowindow_bitratelabel.set_text(_('Unknown'))
+                        self.infowindow_bitratelabel.set_text('')
                     if update_all:
-                        self.infowindow_titlelabel.set_text(getattr(self.songinfo, 'title', _('Unknown')))
-                        self.infowindow_artistlabel.set_text(getattr(self.songinfo, 'artist', _('Unknown')))
-                        self.infowindow_albumlabel.set_text(getattr(self.songinfo, 'album', _('Unknown')))
-                        self.infowindow_datelabel.set_text(getattr(self.songinfo, 'date', _('Unknown')))
-                        self.infowindow_genrelabel.set_text(getattr(self.songinfo, 'genre', _('Unknown')))
+                        self.infowindow_titlelabel.set_text(getattr(self.songinfo, 'title', ''))
+                        self.infowindow_artistlabel.set_text(getattr(self.songinfo, 'artist', ''))
+                        self.infowindow_albumlabel.set_text(getattr(self.songinfo, 'album', ''))
+                        self.infowindow_datelabel.set_text(getattr(self.songinfo, 'date', ''))
+                        self.infowindow_genrelabel.set_text(getattr(self.songinfo, 'genre', ''))
                         try:
                             self.infowindow_tracklabel.set_text(str(int(self.songinfo.track.split('/')[0])))
                         except:
-                            self.infowindow_tracklabel.set_text(_('Unknown'))
+                            self.infowindow_tracklabel.set_text('')
                         try:
                             self.infowindow_filelabel.set_text(os.path.basename(self.songinfo.file))
                         except:
-                            self.infowindow_filelabel.set_text(_('Unknown'))
+                            self.infowindow_filelabel.set_text('')
                         # Update lyrics:
                         if HAVE_WSDL:
                             try:
