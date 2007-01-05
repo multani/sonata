@@ -1594,7 +1594,6 @@ class Base(mpdclient3.mpd_connection):
                     # Back up and try the parent
                     root = '/'.join(root.split('/')[:-1]) or '/'
             else:
-                print root, len(self.browse_search_album(root))
                 if len(self.browse_search_album(root)) == 0:
                     root = "/"
                     break
@@ -1602,7 +1601,6 @@ class Base(mpdclient3.mpd_connection):
                     break
             lsinfo = self.conn.do.lsinfo(root)
 
-        print root
         prev_selection = []
         prev_selection_root = False
         prev_selection_parent = False
