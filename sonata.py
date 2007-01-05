@@ -318,21 +318,21 @@ class Base(mpdclient3.mpd_connection):
         # Popup menus:
         actions = (
             ('sortmenu', None, _('_Sort List')),
-            ('filesystemview', gtk.STOCK_HARDDISK, _('Filesystem'), None, None, self.libraryview_chosen),
-            ('artistview', 'artist', _('Artist'), None, None, self.libraryview_chosen),
-            ('albumview', 'album', _('Album'), None, None, self.libraryview_chosen),
-            ('songinfo_menu', gtk.STOCK_INFO, _('Song Info...'), None, None, self.infowindow_show),
-            ('chooseimage_menu', gtk.STOCK_CONVERT, _('Use _Remote Image...'), None, None, self.choose_image),
-            ('localimage_menu', gtk.STOCK_OPEN, _('Use _Local Image...'), None, None, self.choose_image_local),
+            ('filesystemview', gtk.STOCK_HARDDISK, _('Filesystem'), None, None, self.on_libraryview_chosen),
+            ('artistview', 'artist', _('Artist'), None, None, self.on_libraryview_chosen),
+            ('albumview', 'album', _('Album'), None, None, self.on_libraryview_chosen),
+            ('songinfo_menu', gtk.STOCK_INFO, _('Song Info...'), None, None, self.on_infowindow_show),
+            ('chooseimage_menu', gtk.STOCK_CONVERT, _('Use _Remote Image...'), None, None, self.on_choose_image),
+            ('localimage_menu', gtk.STOCK_OPEN, _('Use _Local Image...'), None, None, self.on_choose_image_local),
             ('playmenu', gtk.STOCK_MEDIA_PLAY, _('_Play'), None, None, self.pp),
             ('pausemenu', gtk.STOCK_MEDIA_PAUSE, _('_Pause'), None, None, self.pp),
             ('stopmenu', gtk.STOCK_MEDIA_STOP, _('_Stop'), None, None, self.stop),
             ('prevmenu', gtk.STOCK_MEDIA_PREVIOUS, _('_Previous'), None, None, self.prev),
             ('nextmenu', gtk.STOCK_MEDIA_NEXT, _('_Next'), None, None, self.next),
-            ('quitmenu', gtk.STOCK_QUIT, _('_Quit'), None, None, self.delete_event_yes),
+            ('quitmenu', gtk.STOCK_QUIT, _('_Quit'), None, None, self.on_delete_event_yes),
             ('removemenu', gtk.STOCK_REMOVE, _('_Remove'), None, None, self.remove),
             ('clearmenu', gtk.STOCK_CLEAR, _('_Clear'), '<Ctrl>Delete', None, self.clear),
-            ('savemenu', None, _('_Save Playlist...'), '<Ctrl><Shift>s', None, self.save_playlist),
+            ('savemenu', None, _('_Save Playlist...'), '<Ctrl><Shift>s', None, self.on_save_playlist),
             ('updatemenu', None, _('_Update Library'), None, None, self.updatedb),
             ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'), None, None, self.prefs),
             ('aboutmenu', None, _('_About...'), 'F1', None, self.about),
@@ -341,12 +341,12 @@ class Base(mpdclient3.mpd_connection):
             ('addmenu', gtk.STOCK_ADD, _('_Add'), '<Ctrl>d', None, self.add_item),
             ('replacemenu', gtk.STOCK_REDO, _('_Replace'), '<Ctrl>r', None, self.replace_item),
             ('rmmenu', None, _('_Delete...'), None, None, self.remove),
-            ('sortbyartist', None, _('By') + ' ' + _('Artist'), None, None, self.sort_by_artist),
-            ('sortbyalbum', None, _('By') + ' ' + _('Album'), None, None, self.sort_by_album),
-            ('sortbytitle', None, _('By') + ' ' + _('Song Title'), None, None, self.sort_by_title),
-            ('sortbyfile', None, _('By') + ' ' + _('File Name'), None, None, self.sort_by_file),
-            ('sortreverse', None, _('Reverse List'), None, None, self.sort_reverse),
-            ('sortrandom', None, _('Random'), None, None, self.sort_random),
+            ('sortbyartist', None, _('By') + ' ' + _('Artist'), None, None, self.on_sort_by_artist),
+            ('sortbyalbum', None, _('By') + ' ' + _('Album'), None, None, self.on_sort_by_album),
+            ('sortbytitle', None, _('By') + ' ' + _('Song Title'), None, None, self.on_sort_by_title),
+            ('sortbyfile', None, _('By') + ' ' + _('File Name'), None, None, self.on_sort_by_file),
+            ('sortreverse', None, _('Reverse List'), None, None, self.on_sort_reverse),
+            ('sortrandom', None, _('Random'), None, None, self.on_sort_random),
             ('currentkey', None, 'Current Playlist Key', '<Alt>1', None, self.switch_to_current),
             ('librarykey', None, 'Library Key', '<Alt>2', None, self.switch_to_library),
             ('playlistskey', None, 'Playlists Key', '<Alt>3', None, self.switch_to_playlists),
@@ -360,7 +360,7 @@ class Base(mpdclient3.mpd_connection):
             ('lowerkey', None, 'Lower Volume Key', '<Ctrl>minus', None, self.lower_volume),
             ('raisekey', None, 'Raise Volume Key', '<Ctrl>plus', None, self.raise_volume),
             ('raisekey2', None, 'Raise Volume Key 2', '<Ctrl>equal', None, self.raise_volume),
-            ('quitkey', None, 'Quit Key', '<Ctrl>q', None, self.delete_event_yes),
+            ('quitkey', None, 'Quit Key', '<Ctrl>q', None, self.on_delete_event_yes),
             ('menukey', None, 'Menu Key', 'Menu', None, self.menukey_press),
             ('updatekey', None, 'Update Key', '<Ctrl>u', None, self.updatedb),
             ('updatekey2', None, 'Update Key 2', '<Ctrl><Shift>u', None, self.updatedb_path),
@@ -370,8 +370,8 @@ class Base(mpdclient3.mpd_connection):
 
         toggle_actions = (
             ('showmenu', None, _('_Show Player'), None, None, self.withdraw_app_toggle, not self.withdrawn),
-            ('repeatmenu', None, _('_Repeat'), None, None, self.repeat_now, False),
-            ('shufflemenu', None, _('_Shuffle'), None, None, self.shuffle_now, False),
+            ('repeatmenu', None, _('_Repeat'), None, None, self.on_repeat_clicked, False),
+            ('shufflemenu', None, _('_Shuffle'), None, None, self.on_shuffle_clicked, False),
                 )
 
         uiDescription = """
@@ -770,49 +770,49 @@ class Base(mpdclient3.mpd_connection):
         frame.show_all()
 
         # Connect to signals
-        self.window.connect('delete_event', self.delete_event)
+        self.window.connect('delete_event', self.on_delete_event)
         self.window.connect('window_state_event', self.on_window_state_change)
         self.window.connect('configure_event', self.on_window_configure)
-        self.window.connect('key-press-event', self.topwindow_keypress)
+        self.window.connect('key-press-event', self.on_topwindow_keypress)
         self.window.connect('focus-out-event', self.on_window_lost_focus)
-        self.imageeventbox.connect('button_press_event', self.image_activate)
-        self.imageeventbox.connect('drag_motion', self.image_motion_cb)
-        self.imageeventbox.connect('drag_data_received', self.image_drop_cb)
+        self.imageeventbox.connect('button_press_event', self.on_image_activate)
+        self.imageeventbox.connect('drag_motion', self.on_image_motion_cb)
+        self.imageeventbox.connect('drag_data_received', self.on_image_drop_cb)
         self.ppbutton.connect('clicked', self.pp)
         self.stopbutton.connect('clicked', self.stop)
         self.prevbutton.connect('clicked', self.prev)
         self.nextbutton.connect('clicked', self.next)
-        self.progresseventbox.connect('button_press_event', self.progressbar_button_press_event)
-        self.progresseventbox.connect('scroll_event', self.progressbar_scroll_event)
+        self.progresseventbox.connect('button_press_event', self.on_progressbar_button_press_event)
+        self.progresseventbox.connect('scroll_event', self.on_progressbar_scroll_event)
         self.volumebutton.connect('clicked', self.on_volumebutton_clicked)
         self.volumebutton.connect('scroll-event', self.on_volumebutton_scroll)
-        self.expander.connect('activate', self.expander_activate)
+        self.expander.connect('activate', self.on_expander_activate)
         self.current.connect('drag_data_received', self.on_drag_drop)
-        self.current.connect('row_activated', self.current_click)
-        self.current.connect('button_press_event', self.current_button_press)
-        self.current.connect('button_release_event', self.current_button_released)
-        self.current_selection.connect('changed', self.treeview_selection_changed)
-        self.current.connect('popup_menu', self.current_popup_menu)
-        self.shufflemenu.connect('toggled', self.shuffle_now)
-        self.repeatmenu.connect('toggled', self.repeat_now)
+        self.current.connect('row_activated', self.on_current_click)
+        self.current.connect('button_press_event', self.on_current_button_press)
+        self.current.connect('button_release_event', self.on_current_button_released)
+        self.current_selection.connect('changed', self.on_treeview_selection_changed)
+        self.current.connect('popup_menu', self.on_current_popup_menu)
+        self.shufflemenu.connect('toggled', self.on_shuffle_clicked)
+        self.repeatmenu.connect('toggled', self.on_repeat_clicked)
         self.volumescale.connect('change_value', self.on_volumescale_change)
         self.volumescale.connect('scroll-event', self.on_volumescale_scroll)
         self.cursonglabel.connect('notify::label', self.labelnotify)
         self.progressbar.connect('notify::fraction', self.progressbarnotify_fraction)
         self.progressbar.connect('notify::text', self.progressbarnotify_text)
-        self.browser.connect('row_activated', self.browse_row)
-        self.browser.connect('button_press_event', self.browser_button_press)
-        self.browser.connect('key-press-event', self.browser_key_press)
-        self.browser_selection.connect('changed', self.treeview_selection_changed)
+        self.browser.connect('row_activated', self.on_browse_row)
+        self.browser.connect('button_press_event', self.on_browser_button_press)
+        self.browser.connect('key-press-event', self.on_browser_key_press)
+        self.browser_selection.connect('changed', self.on_treeview_selection_changed)
         self.libraryview.connect('clicked', self.libraryview_popup)
         self.playlists.connect('button_press_event', self.playlists_button_press)
         self.playlists.connect('row_activated', self.playlists_activated)
-        self.playlists_selection.connect('changed', self.treeview_selection_changed)
+        self.playlists_selection.connect('changed', self.on_treeview_selection_changed)
         self.playlists.connect('key-press-event', self.playlists_key_press)
         self.streams.connect('button_press_event', self.streams_button_press)
-        self.streams.connect('row_activated', self.streams_activated)
-        self.streams_selection.connect('changed', self.treeview_selection_changed)
-        self.streams.connect('key-press-event', self.streams_key_press)
+        self.streams.connect('row_activated', self.on_streams_activated)
+        self.streams_selection.connect('changed', self.on_treeview_selection_changed)
+        self.streams.connect('key-press-event', self.on_streams_key_press)
         self.ppbutton.connect('button_press_event', self.popup_menu)
         self.prevbutton.connect('button_press_event', self.popup_menu)
         self.stopbutton.connect('button_press_event', self.popup_menu)
@@ -822,8 +822,8 @@ class Base(mpdclient3.mpd_connection):
         self.volumebutton.connect('button_press_event', self.popup_menu)
         self.window.add_events(gtk.gdk.BUTTON_PRESS_MASK)
         self.mainwinhandler = self.window.connect('button_press_event', self.on_window_click)
-        self.searchtext.connect('activate', self.search)
-        self.searchbutton.connect('clicked', self.search_end)
+        self.searchtext.connect('activate', self.on_search_activate)
+        self.searchbutton.connect('clicked', self.on_search_end)
         self.notebook.connect('button_press_event', self.on_notebook_click)
         self.notebook.connect('switch-page', self.on_notebook_page_change)
         self.searchtext.connect('button_press_event', self.on_searchtext_click)
@@ -1207,7 +1207,7 @@ class Base(mpdclient3.mpd_connection):
                 self.tooltip_show_manually()
         gobject.timeout_add(250, self.iterate_status_icon)
 
-    def topwindow_keypress(self, widget, event):
+    def on_topwindow_keypress(self, widget, event):
         shortcut = gtk.accelerator_name(event.keyval, event.state)
         shortcut = shortcut.replace("<Mod2>", "")
         # These shortcuts were moved here so that they don't
@@ -1439,7 +1439,7 @@ class Base(mpdclient3.mpd_connection):
         dialog.destroy()
         self.iterate_now()
 
-    def save_playlist(self, action):
+    def on_save_playlist(self, action):
         if self.conn:
             # Prompt user for playlist name:
             dialog = gtk.Dialog(_("Save Playlist"), self.window, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT))
@@ -1508,12 +1508,12 @@ class Base(mpdclient3.mpd_connection):
         if self.play_on_activate:
             self.play_item(playid)
 
-    def streams_key_press(self, widget, event):
+    def on_streams_key_press(self, widget, event):
         if event.keyval == gtk.gdk.keyval_from_name('Return'):
-            self.streams_activated(widget, widget.get_cursor()[0])
+            self.on_streams_activated(widget, widget.get_cursor()[0])
             return True
 
-    def streams_activated(self, treeview, path, column=0):
+    def on_streams_activated(self, treeview, path, column=0):
         if self.status:
             playid = self.status.playlistlength
         self.add_item(None)
@@ -1523,7 +1523,7 @@ class Base(mpdclient3.mpd_connection):
     def libraryview_popup(self, button):
         self.librarymenu.popup(None, None, self.position_libraryview_menu, 1, 0)
 
-    def libraryview_chosen(self, action):
+    def on_libraryview_chosen(self, action):
         prev_view = self.view
         if action.get_name() == 'filesystemview':
             self.view = self.VIEW_FILESYSTEM
@@ -1916,12 +1916,12 @@ class Base(mpdclient3.mpd_connection):
             pass
         return False
 
-    def browser_key_press(self, widget, event):
+    def on_browser_key_press(self, widget, event):
         if event.keyval == gtk.gdk.keyval_from_name('Return'):
-            self.browse_row(widget, widget.get_cursor()[0])
+            self.on_browse_row(widget, widget.get_cursor()[0])
             return True
 
-    def browse_row(self, widget, path, column=0):
+    def on_browse_row(self, widget, path, column=0):
         if path is None:
             # Default to last item in selection:
             model, selected = self.browser_selection.get_selected_rows()
@@ -1954,10 +1954,10 @@ class Base(mpdclient3.mpd_connection):
                     value = '/'.join(self.browser.wd.split('/')[:-1]) or '/'
                 self.browse(None, value)
 
-    def treeview_selection_changed(self, *args):
+    def on_treeview_selection_changed(self, *args):
         self.set_menu_contextual_items_visible()
 
-    def browser_button_press(self, widget, event):
+    def on_browser_button_press(self, widget, event):
         self.volume_hide()
         if event.button == 3:
             self.set_menu_contextual_items_visible()
@@ -2745,12 +2745,12 @@ class Base(mpdclient3.mpd_connection):
     # Gui Callbacks #
     #################
 
-    def delete_event_yes(self, widget):
+    def on_delete_event_yes(self, widget):
         self.exit_now = True
-        self.delete_event(None, None)
+        self.on_delete_event(None, None)
 
     # This one makes sure the program exits when the window is closed
-    def delete_event(self, widget, data=None):
+    def on_delete_event(self, widget, data=None):
         if not self.exit_now and self.minimize_to_systray:
             if HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible():
                 self.withdraw_app()
@@ -2782,15 +2782,15 @@ class Base(mpdclient3.mpd_connection):
 
     def expand(self, action):
         self.expander.set_expanded(False)
-        self.expander_activate(None)
+        self.on_expander_activate(None)
         self.expander.set_expanded(True)
 
     def collapse(self, action):
         self.expander.set_expanded(True)
-        self.expander_activate(None)
+        self.on_expander_activate(None)
         self.expander.set_expanded(False)
 
-    def expander_activate(self, expander):
+    def on_expander_activate(self, expander):
         currheight = self.window.get_size()[1]
         self.expanded = False
         # Note that get_expanded() will return the state of the expander
@@ -2828,7 +2828,7 @@ class Base(mpdclient3.mpd_connection):
         return
 
     # This callback allows the user to seek to a specific portion of the song
-    def progressbar_button_press_event(self, widget, event):
+    def on_progressbar_button_press_event(self, widget, event):
         if event.button == 1:
             if self.status and self.status.state in ['play', 'pause']:
                 at, length = [int(c) for c in self.status.time.split(':')]
@@ -2840,7 +2840,7 @@ class Base(mpdclient3.mpd_connection):
                     pass
             return True
 
-    def progressbar_scroll_event(self, widget, event):
+    def on_progressbar_scroll_event(self, widget, event):
         if self.status and self.status.state in ['play', 'pause']:
             try:
                 gobject.source_remove(self.seekidle)
@@ -2863,16 +2863,16 @@ class Base(mpdclient3.mpd_connection):
         except:
             pass
 
-    def sort_by_artist(self, action):
+    def on_sort_by_artist(self, action):
         self.sort('artist')
 
-    def sort_by_album(self, action):
+    def on_sort_by_album(self, action):
         self.sort('album')
 
-    def sort_by_title(self, action):
+    def on_sort_by_title(self, action):
         self.sort('title')
 
-    def sort_by_file(self, action):
+    def on_sort_by_file(self, action):
         self.sort('file')
 
     def sort(self, type):
@@ -2897,7 +2897,7 @@ class Base(mpdclient3.mpd_connection):
                 self.conn.do.moveid(int(item["id"]), pos)
                 pos = pos + 1
 
-    def sort_reverse(self, action):
+    def on_sort_reverse(self, action):
         if self.conn:
             self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
             while gtk.events_pending():
@@ -2909,7 +2909,7 @@ class Base(mpdclient3.mpd_connection):
                 top = top + 1
                 bot = bot - 1
 
-    def sort_random(self, action):
+    def on_sort_random(self, action):
         if self.conn:
             self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
             while gtk.events_pending():
@@ -2974,7 +2974,7 @@ class Base(mpdclient3.mpd_connection):
                 treeview.get_selection().select_path(row)
                 row = row + 1
 
-    def current_button_press(self, widget, event):
+    def on_current_button_press(self, widget, event):
         self.volume_hide()
         if event.button == 3:
             self.set_menu_contextual_items_visible()
@@ -2986,10 +2986,10 @@ class Base(mpdclient3.mpd_connection):
             if self.current_selection.count_selected_rows() > 1:
                 return True
 
-    def current_button_released(self, widget, event):
+    def on_current_button_released(self, widget, event):
         return
 
-    def current_popup_menu(self, widget):
+    def on_current_popup_menu(self, widget):
         self.mainmenu.popup(None, None, None, 3, 0)
 
     def updatedb(self, widget):
@@ -3011,11 +3011,11 @@ class Base(mpdclient3.mpd_connection):
                     self.conn.do.update(self.browser.wd)
                 self.iterate_now()
 
-    def image_activate(self, widget, event):
+    def on_image_activate(self, widget, event):
         self.window.handler_block(self.mainwinhandler)
         if event.button == 1:
             self.volume_hide()
-            self.infowindow_show()
+            self.on_infowindow_show()
         elif event.button == 3:
             if self.conn and self.status and self.status.state in ['play', 'pause']:
                 self.UIManager.get_widget('/imagemenu/chooseimage_menu/').hide()
@@ -3031,11 +3031,11 @@ class Base(mpdclient3.mpd_connection):
         gobject.timeout_add(50, self.unblock_window_popup_handler)
         return False
 
-    def image_motion_cb(self, widget, context, x, y, time):
+    def on_image_motion_cb(self, widget, context, x, y, time):
         context.drag_status(gtk.gdk.ACTION_COPY, time)
         return True
 
-    def image_drop_cb(self, widget, context, x, y, selection, info, time):
+    def on_image_drop_cb(self, widget, context, x, y, selection, info, time):
         if self.conn and self.status and self.status.state in ['play', 'pause']:
             uri = selection.data.strip()
             path = urllib.url2pathname(uri)
@@ -3065,7 +3065,7 @@ class Base(mpdclient3.mpd_connection):
         else:
             return True
 
-    def infowindow_show(self, action=None):
+    def on_infowindow_show(self, action=None):
         if self.infowindow_visible:
             self.infowindow.present()
             return
@@ -3350,7 +3350,7 @@ class Base(mpdclient3.mpd_connection):
         del pixbuf
         self.call_gc_collect = True
 
-    def choose_image_local(self, widget):
+    def on_choose_image_local(self, widget):
         dialog = gtk.FileChooserDialog(title=_("Open Image"),action=gtk.FILE_CHOOSER_ACTION_OPEN,buttons=(gtk.STOCK_CANCEL,gtk.RESPONSE_CANCEL,gtk.STOCK_OPEN,gtk.RESPONSE_OK))
         filter = gtk.FileFilter()
         filter.set_name(_("Images"))
@@ -3390,7 +3390,7 @@ class Base(mpdclient3.mpd_connection):
             self.update_album_art()
         dialog.destroy()
 
-    def choose_image(self, widget):
+    def on_choose_image(self, widget):
         choose_dialog = gtk.Dialog(_("Choose Cover Art"), self.window, gtk.DIALOG_MODAL, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
         choosebutton = choose_dialog.add_button(_("Choose"), gtk.RESPONSE_ACCEPT)
         chooseimage = gtk.Image()
@@ -3638,7 +3638,7 @@ class Base(mpdclient3.mpd_connection):
     def quit_activate(self, widget):
         self.window.destroy()
 
-    def current_click(self, treeview, path, column):
+    def on_current_click(self, treeview, path, column):
         iter = self.currentdata.get_iter(path)
         self.conn.do.playid(self.currentdata.get_value(iter, 0))
         self.iterate_now()
@@ -3811,14 +3811,14 @@ class Base(mpdclient3.mpd_connection):
             self.iterate_now()
         return
 
-    def repeat_now(self, widget):
+    def on_repeat_clicked(self, widget):
         if self.conn:
             if widget.get_active():
                 self.conn.do.repeat(1)
             else:
                 self.conn.do.repeat(0)
 
-    def shuffle_now(self, widget):
+    def on_shuffle_clicked(self, widget):
         if self.conn:
             if widget.get_active():
                 self.conn.do.random(1)
@@ -4386,7 +4386,7 @@ class Base(mpdclient3.mpd_connection):
             self.UIManager.get_widget('/mainmenu/songinfo_menu/').show()
             self.mainmenu.popup(None, None, None, event.button, event.time)
 
-    def search(self, entry):
+    def on_search_activate(self, entry):
         searchby = self.search_terms_mpd[self.searchcombo.get_active()]
         if self.searchtext.get_text() != "":
             list = self.conn.do.search(searchby, self.searchtext.get_text())
@@ -4402,9 +4402,9 @@ class Base(mpdclient3.mpd_connection):
             self.searchbutton.show()
             self.searchbutton.set_no_show_all(False)
         else:
-            self.search_end(None)
+            self.on_search_end(None)
 
-    def search_end(self, button):
+    def on_search_end(self, button):
         self.searchbutton.hide()
         self.searchbutton.set_no_show_all(True)
         self.searchtext.set_text("")
