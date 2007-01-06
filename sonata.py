@@ -1522,7 +1522,7 @@ class Base(mpdclient3.mpd_connection):
             self.play_item(playid)
 
     def libraryview_popup(self, button):
-        self.librarymenu.popup(None, None, self.position_libraryview_menu, 1, 0)
+        self.librarymenu.popup(None, None, self.libraryview_position_menu, 1, 0)
 
     def on_libraryview_chosen(self, action):
         prev_view = self.view
@@ -1690,12 +1690,14 @@ class Base(mpdclient3.mpd_connection):
                         albums2.append({'album':albums[i], 'year':years[i]})
                     albums2.sort(key=lambda x: x["year"]) # Remove case sensitivity
                     for album in albums2:
+                        # Store the year as the first four chars
                         self.browserdata.append(['album', album['year'] + album['album'], escape_html(album['year'] + ' - ' + album['album'])])
                     for song in songs:
                         self.browserdata.append(['sonata', song.file, self.parse_formatting(self.libraryformat, song, True)])
                 else:
                     self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
                     self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
+                    # The first four chars store the year..
                     year = self.root[:4]
                     self.view_artist_album = self.root[4:]
                     for item in self.browse_search_album_by_artist_and_year(self.view_artist_artist, self.view_artist_album, year):
@@ -2170,7 +2172,7 @@ class Base(mpdclient3.mpd_connection):
                 pass
         self.iterate_now()
 
-    def position_libraryview_menu(self, menu):
+    def libraryview_position_menu(self, menu):
         x, y, width, height = self.libraryview.get_allocation()
         return (self.x + x, self.y + y + height, True)
 
@@ -4583,20 +4585,17 @@ class Base(mpdclient3.mpd_connection):
         editwindow.set_has_separator(False)
         table = gtk.Table(9, 2, False)
         table.set_row_spacings(2)
-        fileentry = gtk.Entry()
-        fileentry.set_has_frame(False)
-        pathentry = gtk.Entry()
-        pathentry.set_has_frame(False)
-        fileandpathvbox = gtk.VBox()
-        fileandpathvbox.pack_start(pathentry, False, False, 0)
-        fileandpathvbox.pack_start(fileentry, False, False, 1)
+        filelabel = gtk.Label()
+        filelabel.set_selectable(True)
+        filelabel.set_line_wrap(True)
+        filelabel.set_alignment(0, 0.5)
         filehbox = gtk.HBox()
         sonataicon = gtk.image_new_from_stock('sonata', gtk.ICON_SIZE_DND)
         sonataicon.set_alignment(1, 0.5)
         blanklabel = gtk.Label()
         blanklabel.set_size_request(15, 12)
         filehbox.pack_start(sonataicon, False, False, 2)
-        filehbox.pack_start(fileandpathvbox, True, True, 2)
+        filehbox.pack_start(filelabel, True, True, 2)
         filehbox.pack_start(blanklabel, False, False, 2)
         titlelabel = gtk.Label(_("Title") + ":")
         titlelabel.set_alignment(1, 0.5)
@@ -4677,8 +4676,6 @@ class Base(mpdclient3.mpd_connection):
         commenthbox.pack_start(commententry, True, True, 2)
         commenthbox.pack_start(commentbuttonvbox, False, False, 2)
         self.set_label_widths_equal([titlelabel, artistlabel, albumlabel, yearlabel, genrelabel, commentlabel, sonataicon])
-        fileentry.set_size_request(titleentry.size_request()[0], -1)
-        pathentry.set_size_request(titleentry.size_request()[0], -1)
         genrecombo.set_size_request(-1, titleentry.size_request()[1])
         table.attach(gtk.Label(), 1, 2, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 2, 0)
         table.attach(filehbox, 1, 2, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 2, 0)
@@ -4695,7 +4692,7 @@ class Base(mpdclient3.mpd_connection):
         savebutton = editwindow.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT)
         editwindow.connect('delete_event', self.editwindow_hide)
         self.edit_style_orig = titleentry.get_style()
-        entries = [titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, fileentry, pathentry]
+        entries = [titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, filelabel]
         buttons = [titlebutton, artistbutton, albumbutton, yearbutton, trackbutton, genrebutton, commentbutton]
         entries_names = ["title", "artist", "album", "year", "track", "genre", "comment"]
         editwindow.connect('response', self.editwindow_response, tags, savebutton, entries, entries_names)
@@ -4703,10 +4700,9 @@ class Base(mpdclient3.mpd_connection):
             entries[i].connect('changed', self.edit_entry_changed)
         for i in range(len(buttons)):
             buttons[i].connect('clicked', self.editwindow_applyall, entries_names[i], tags, entries)
-        self.fileentry_handler = fileentry.connect('changed', self.edit_entry_revert_text, tags, True, False)
-        self.pathentry_handler = pathentry.connect('changed', self.edit_entry_revert_text, tags, False, True)
         self.editwindow_update(editwindow, tags, savebutton, entries, entries_names)
         self.change_cursor(None)
+        entries[7].set_size_request(editwindow.size_request()[0] - titlelabel.size_request()[0] - 50, -1)
         editwindow.show_all()
 
     def edit_next_tag(self, tags):
@@ -4723,23 +4719,13 @@ class Base(mpdclient3.mpd_connection):
                     pass
         return False
 
-    def edit_entry_revert_text(self, editable, tags, fileentry=False, pathentry=False):
-        if fileentry:
-            editable.handler_block(self.fileentry_handler)
-            editable.set_text(tags[self.tagnum]['mpdpath'].split('/')[-1])
-            editable.handler_unblock(self.fileentry_handler)
-        elif pathentry:
-            editable.handler_block(self.pathentry_handler)
-            editable.set_text(os.path.dirname(tags[self.tagnum]['mpdpath']))
-            editable.handler_unblock(self.pathentry_handler)
-
     def edit_entry_changed(self, editable):
         if not self.updating_edit_entries:
             style = editable.get_style().copy()
             style.text[gtk.STATE_NORMAL] = editable.get_colormap().alloc_color("red")
             editable.set_style(style)
 
-    def edit_entry_revert_color(self, editable, fileentry):
+    def edit_entry_revert_color(self, editable):
         editable.set_style(self.edit_style_orig)
 
     def editwindow_create_applyall_button(self, button, vbox, entry, autotrack=False):
@@ -4820,17 +4806,16 @@ class Base(mpdclient3.mpd_connection):
         entries[5].set_text(tags[self.tagnum]['genre'])
         entries[6].set_text(tags[self.tagnum]['comment'])
         entries[7].set_text(tags[self.tagnum]['mpdpath'].split('/')[-1])
-        entries[8].set_text(os.path.dirname(tags[self.tagnum]['mpdpath']))
         entries[0].select_region(0, len(entries[0].get_text()))
         entries[0].grab_focus()
         window.set_title(_("Edit Tags" + " - " + str(self.tagnum+1) + " " + _("of") + " " + str(len(tags))))
         self.updating_edit_entries = False
         # Update text colors as appropriate:
-        for i in range(len(entries)-2):
+        for i in range(len(entries)-1):
             if tags[self.tagnum][entries_names[i] + '-changed']:
                 self.edit_entry_changed(entries[i])
             else:
-                self.edit_entry_revert_color(entries[i], entries[len(entries)-1])
+                self.edit_entry_revert_color(entries[i])
         savebutton.set_sensitive(True)
 
     def editwindow_response(self, window, response, tags, savebutton, entries, entries_names):
@@ -5211,32 +5196,34 @@ def removeall(path):
 def remove_list_duplicates(inputlist, inputlist2=[], case_sensitive=True):
     # If inputlist2 is provided, keep it synced with inputlist.
     # Note that this is only implemented if case_sensitive=False.
-    if case_sensitive:
-        inputlist = list(set(inputlist))
-        return (inputlist, [])
+    # Also note that we do this manually instead of using list(set(x))
+    # so that the inputlist order is preserved.
+    if len(inputlist2) > 0:
+        sync_lists = True
     else:
-        if len(inputlist2) > 0:
-            sync_lists = True
-        else:
-            sync_lists = False
-        outputlist = []
-        outputlist2 = []
-        for i in range(len(inputlist)):
-            dup = False
-            for j in range(len(outputlist)):
-                if sync_lists:
-                    if inputlist[i].lower() == outputlist[j].lower() and inputlist2[i].lower() == outputlist2[j].lower():
-                        dup = True
-                        break
-                else:
-                    if inputlist[i].lower() == outputlist[j].lower():
-                        dup = True
-                        break
-            if not dup:
-                outputlist.append(inputlist[i])
-                if sync_lists:
-                    outputlist2.append(inputlist2[i])
-        return (outputlist, outputlist2)
+        sync_lists = False
+    outputlist = []
+    outputlist2 = []
+    for i in range(len(inputlist)):
+        dup = False
+        for j in range(len(outputlist)):
+            if case_sensitive:
+                if inputlist[i] == outputlist[j]:
+                    dup = True
+                    break
+            elif sync_lists:
+                if inputlist[i].lower() == outputlist[j].lower() and inputlist2[i].lower() == outputlist2[j].lower():
+                    dup = True
+                    break
+            else:
+                if inputlist[i].lower() == outputlist[j].lower():
+                    dup = True
+                    break
+        if not dup:
+            outputlist.append(inputlist[i])
+            if sync_lists:
+                outputlist2.append(inputlist2[i])
+    return (outputlist, outputlist2)
 
 def start_dbus_interface(toggle=False):
     if HAVE_DBUS:
