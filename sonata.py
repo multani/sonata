@@ -1700,7 +1700,7 @@ class Base(mpdclient3.mpd_connection):
             # Make sure it's an exact match:
             if album.lower() == item.album.lower():
                 list.append(item)
-        list.sort(key=lambda x: int(getattr(x, 'track', 0)))
+        list.sort(key=lambda x: int(getattr(x, 'track', 0).split('/')[0]))
         return list
 
     def browse_search_artist(self, artist):
@@ -1727,7 +1727,7 @@ class Base(mpdclient3.mpd_connection):
                 elif not item.has_key('date'):
                     # Only show songs that have no year specified:
                     list.append(item)
-        list.sort(key=lambda x: int(getattr(x, 'track', 0)))
+        list.sort(key=lambda x: int(getattr(x, 'track', 0).split('/')[0]))
         return list
 
     def browser_retain_preupdate_selection(self, prev_selection, prev_selection_root, prev_selection_parent):
@@ -5152,7 +5152,10 @@ def remove_list_duplicates(inputlist, inputlist2=[], case_sensitive=True):
     outputlist2 = []
     for i in range(len(inputlist)):
         dup = False
-        for j in range(len(outputlist)):
+        # Search outputlist from the end, since the inputlist is typically in
+        # alphabetical order
+        j = len(outputlist)-1
+        while j > 1:
             if case_sensitive:
                 if inputlist[i] == outputlist[j]:
                     dup = True
@@ -5165,6 +5168,7 @@ def remove_list_duplicates(inputlist, inputlist2=[], case_sensitive=True):
                 if inputlist[i].lower() == outputlist[j].lower():
                     dup = True
                     break
+            j = j - 1
         if not dup:
             outputlist.append(inputlist[i])
             if sync_lists:
