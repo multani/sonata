@@ -996,34 +996,16 @@ class Base(mpdclient3.mpd_connection):
                         self.conn.do.play()
             elif type == "info":
                 if self.status and self.status.state in ['play', 'pause']:
-                    try:
-                        print _("Title") + ": " + self.songinfo.title
-                    except:
-                        pass
-                    try:
-                        print _("Artist") + ": " + self.songinfo.artist
-                    except:
-                        pass
-                    try:
-                        print _("Album") + ": " + self.songinfo.album
-                    except:
-                        pass
-                    try:
-                        print _("Date") + ": " + self.songinfo.date
-                    except:
-                        pass
+                    print _("Title") + ": " + getattr(self.songinfo, 'title', '')
+                    print _("Artist") + ": " + getattr(self.songinfo, 'artist', '')
+                    print _("Album") + ": " + getattr(self.songinfo, 'album', '')
+                    print _("Date") + ": " + getattr(self.songinfo, 'date', '')
                     try:
                         print _("Track") + ": " + str(int(self.songinfo.track.split('/')[0]))
                     except:
                         pass
-                    try:
-                        print _("Genre") + ": " + self.songinfo.genre
-                    except:
-                        pass
-                    try:
-                        print _("File") + ": " + os.path.basename(self.songinfo.file)
-                    except:
-                        pass
+                    print _("Genre") + ": " + getattr(self.songinfo, 'genre', '')
+                    print _("File") + ": " + os.path.basename(self.songinfo.file)
                     at, length = [int(c) for c in self.status.time.split(':')]
                     at_time = convert_time(at)
                     try:
@@ -1031,10 +1013,7 @@ class Base(mpdclient3.mpd_connection):
                         print _("Time") + ": " + at_time + " / " + time
                     except:
                         print _("Time") + ": " + at_time
-                    try:
-                        print _("Bitrate") + ": " + self.status.bitrate
-                    except:
-                        pass
+                    print _("Bitrate") + ": " + getattr(self.status, 'bitrate', '')
                 else:
                     print _("MPD stopped")
             elif type == "status":
@@ -1105,10 +1084,8 @@ class Base(mpdclient3.mpd_connection):
 
     def disconnectkey_pressed(self, event):
         self.user_connect = False
-        try:
+        if self.conn:
             self.conn.do.close()
-        except:
-            pass
         # I'm not sure why this doesn't automatically happen, so
         # we'll do it manually for the time being
         self.browserdata.clear()
@@ -1394,7 +1371,8 @@ class Base(mpdclient3.mpd_connection):
             self.prevbutton.set_property('sensitive', True)
             self.nextbutton.set_property('sensitive', True)
             self.volumebutton.set_property('sensitive', True)
-            self.browse(root='/')
+            if self.sonata_loaded:
+                self.browse(root='/')
             self.playlists_populate()
             self.on_notebook_page_change(self.notebook, 0, self.notebook.get_current_page())
 
@@ -1581,7 +1559,8 @@ class Base(mpdclient3.mpd_connection):
                     else:
                         break
                 elif self.view_artist_level == 3:
-                    if len(self.browse_search_album_by_artist_and_year(self.view_artist_artist, root[4:], root[:4])) == 0:
+                    (album, year) = self.browse_parse_albumview_path(root)
+                    if len(self.browse_search_album_by_artist_and_year(self.view_artist_artist, album, year)) == 0:
                         # Back up and try the parent
                         self.view_artist_level = self.view_artist_level - 1
                         root = self.view_artist_artist
@@ -1653,69 +1632,57 @@ class Base(mpdclient3.mpd_connection):
                     self.browserdata.append([gtk.STOCK_OPEN, item.directory, escape_html(name)])
                 elif item.type == 'file':
                     self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
-        else:
-            if self.view == self.VIEW_ARTIST:
-                if self.view_artist_level == 1:
-                    self.view_artist_artist = ''
-                    self.view_artist_album = ''
-                    root = '/'
-                    artists = []
-                    for item in self.conn.do.list('artist'):
-                        artists.append(item.artist)
-                    (artists, i) = remove_list_duplicates(artists, [], False)
-                    artists.sort(locale.strcoll)
-                    for artist in artists:
-                        self.browserdata.append(['artist', artist, escape_html(artist)])
-                elif self.view_artist_level == 2:
-                    self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
-                    self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
-                    if self.root != "..":
-                        self.view_artist_artist = self.root
-                    albums = []
-                    songs = []
-                    years = []
-                    for item in self.browse_search_artist(self.view_artist_artist):
-                        try:
-                            albums.append(item.album)
-                            try:
-                                years.append((item.date).zfill(4))
-                            except:
-                                years.append('0000')
-                        except:
-                            songs.append(item)
-                    (albums, years) = remove_list_duplicates(albums, years, False)
-                    # Sort by year:
-                    albums2 = []
-                    for i in range(len(albums)):
-                        albums2.append({'album':albums[i], 'year':years[i]})
-                    albums2.sort(key=lambda x: x["year"]) # Remove case sensitivity
-                    for album in albums2:
-                        # Store the year as the first four chars
-                        self.browserdata.append(['album', album['year'] + album['album'], escape_html(album['year'] + ' - ' + album['album'])])
-                    for song in songs:
-                        self.browserdata.append(['sonata', song.file, self.parse_formatting(self.libraryformat, song, True)])
-                else:
-                    self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
-                    self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
-                    # The first four chars store the year..
-                    year = self.root[:4]
-                    self.view_artist_album = self.root[4:]
-                    for item in self.browse_search_album_by_artist_and_year(self.view_artist_artist, self.view_artist_album, year):
-                        self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
-            elif self.view == self.VIEW_ALBUM:
-                items = []
-                if self.root == '/':
-                    for item in self.conn.do.list('album'):
-                        items.append(item.album)
-                    (items, i) = remove_list_duplicates(items, [], False)
-                    items.sort(locale.strcoll)
-                    for item in items:
-                        self.browserdata.append(['album', item, escape_html(item)])
-                else:
-                    self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
-                    self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
-                    for item in self.browse_search_album(root):
-                        self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
+        elif self.view == self.VIEW_ARTIST:
+            if self.view_artist_level == 1:
+                self.view_artist_artist = ''
+                self.view_artist_album = ''
+                root = '/'
+                artists = []
+                for item in self.conn.do.list('artist'):
+                    artists.append(item.artist)
+                (artists, i) = remove_list_duplicates(artists, [], False)
+                artists.sort(locale.strcoll)
+                for artist in artists:
+                    self.browserdata.append(['artist', artist, escape_html(artist)])
+            elif self.view_artist_level == 2:
+                self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
+                self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
+                if self.root != "..":
+                    self.view_artist_artist = self.root
+                albums = []
+                songs = []
+                years = []
+                for item in self.browse_search_artist(self.view_artist_artist):
+                    try:
+                        albums.append(item.album)
+                        years.append(getattr(item, 'date', '0').zfill(4))
+                    except:
+                        songs.append(item)
+                (albums, years) = remove_list_duplicates(albums, years, False)
+                for itemnum in range(len(albums)):
+                    self.browserdata.append(['album', years[itemnum] + albums[itemnum], escape_html(years[itemnum] + ' - ' + albums[itemnum])])
+                for song in songs:
+                    self.browserdata.append(['sonata', song.file, self.parse_formatting(self.libraryformat, song, True)])
+            else:
+                self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
+                self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
+                (self.view_artist_album, year) = self.browse_parse_albumview_path(root)
+                for item in self.browse_search_album_by_artist_and_year(self.view_artist_artist, self.view_artist_album, year):
+                    self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
+        elif self.view == self.VIEW_ALBUM:
+            items = []
+            if self.root == '/':
+                for item in self.conn.do.list('album'):
+                    items.append(item.album)
+                (items, i) = remove_list_duplicates(items, [], False)
+                items.sort(locale.strcoll)
+                for item in items:
+                    self.browserdata.append(['album', item, escape_html(item)])
+            else:
+                self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
+                self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
+                for item in self.browse_search_album(root):
+                    self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
         self.browser.thaw_child_notify()
 
         # Scroll back to set view for current dir:
@@ -1727,40 +1694,40 @@ class Base(mpdclient3.mpd_connection):
         self.view_artist_level_prev = self.view_artist_level
 
     def browse_search_album(self, album):
+        # Return songs of the specified album. Sorts by track number
         list = []
         for item in self.conn.do.search('album', album):
             # Make sure it's an exact match:
             if album.lower() == item.album.lower():
                 list.append(item)
+        list.sort(key=lambda x: int(x.track))
         return list
 
     def browse_search_artist(self, artist):
+        # Return songs of the specified artist. Sorts by year
         list = []
         for item in self.conn.do.search('artist', artist):
             # Make sure it's an exact match:
             if artist.lower() == item.artist.lower():
                 list.append(item)
+        list.sort(key=lambda x: getattr(x, 'date', '0').zfill(4))
         return list
 
     def browse_search_album_by_artist_and_year(self, artist, album, year):
+        # Return songs of specified album, artist, and year. Sorts by track
         list = []
         for item in self.conn.do.search('album', album, 'artist', artist):
             # Make sure it's an exact match:
             if artist.lower() == item.artist.lower() and album.lower() == item.album.lower():
                 # Make sure it also matches the year:
-                if year != '0000':
+                if year != '0000' and item.has_key('date'):
                     # Only show songs whose years match the year var:
-                    try:
-                        if int(item.date) == int(year):
-                            list.append(item)
-                    except:
-                        pass
-                else:
-                    # Only show songs that have no year specified:
-                    try:
-                        x = item.date
-                    except:
+                    if int(item.date) == int(year):
                         list.append(item)
+                elif not item.has_key('date'):
+                    # Only show songs that have no year specified:
+                    list.append(item)
+        list.sort(key=lambda x: int(x.track))
         return list
 
     def browser_retain_preupdate_selection(self, prev_selection, prev_selection_root, prev_selection_parent):
@@ -1808,6 +1775,13 @@ class Base(mpdclient3.mpd_connection):
                 except:
                     pass
 
+    def browse_parse_albumview_path(self, path):
+        # The first four chars are used to store the year. Returns
+        # a tuple.
+        year = path[:4]
+        album = path[4:]
+        return (album, year)
+
     def parse_formatting_return_substrings(self, format):
         substrings = []
         begin_pos = format.find("{")
@@ -1832,50 +1806,38 @@ class Base(mpdclient3.mpd_connection):
             try:
                 text = text.replace("%A", item.artist)
             except:
-                if not has_brackets:
-                    text = text.replace("%A", _('Unknown'))
-                else:
-                    return ""
+                if not has_brackets: text = text.replace("%A", _('Unknown'))
+                else: return ""
         if "%B" in text:
             try:
                 text = text.replace("%B", item.album)
             except:
-                if not has_brackets:
-                    text = text.replace("%B", _('Unknown'))
-                else:
-                    return ""
+                if not has_brackets: text = text.replace("%B", _('Unknown'))
+                else: return ""
         if "%S" in text:
             try:
                 text = text.replace("%S", item.title)
             except:
-                if not has_brackets:
-                    return self.filename_or_fullpath(item.file)
-                else:
-                    return ""
+                if not has_brackets: return self.filename_or_fullpath(item.file)
+                else: return ""
         if "%T" in text:
             try:
                 text = text.replace("%T", str(int(item.track.split('/')[0])))
             except:
-                if not has_brackets:
-                    text = text.replace("%T", "0")
-                else:
-                    return ""
+                if not has_brackets: text = text.replace("%T", "0")
+                else: return ""
         if "%G" in text:
             try:
                 text = text.replace("%G", item.genre)
             except:
-                if not has_brackets:
-                    text = text.replace("%G", _('Unknown'))
-                else:
-                    return ""
+                if not has_brackets: text = text.replace("%G", _('Unknown'))
+                else: return ""
         if "%Y" in text:
             try:
                 text = text.replace("%Y", item.date)
             except:
-                if not has_brackets:
-                    text = text.replace("%Y", "?")
-                else:
-                    return ""
+                if not has_brackets: text = text.replace("%Y", "?")
+                else: return ""
         if "%F" in text:
             text = text.replace("%F", item.file)
         if "%P" in text:
@@ -1885,10 +1847,8 @@ class Base(mpdclient3.mpd_connection):
                 time = convert_time(int(item.time))
                 text = text.replace("%L", time)
             except:
-                if not has_brackets:
-                    text = text.replace("%L", "?")
-                else:
-                    return ""
+                if not has_brackets: text = text.replace("%L", "?")
+                else: return ""
         if wintitle:
             if "%E" in text:
                 try:
@@ -1896,10 +1856,8 @@ class Base(mpdclient3.mpd_connection):
                     at_time = convert_time(at)
                     text = text.replace("%E", at_time)
                 except:
-                    if not has_brackets:
-                        text = text.replace("%E", "?")
-                    else:
-                        return ""
+                    if not has_brackets: text = text.replace("%E", "?")
+                    else: return ""
         if text.startswith("{") and text.endswith("}"):
             return text[1:len(text)-1]
         else:
@@ -1930,16 +1888,8 @@ class Base(mpdclient3.mpd_connection):
             return escape_html(file.split('/')[-1])
 
     def song_has_metadata(self, item):
-        try:
-            test = item.title
+        if item.has_key('title') or item.has_key('artist'):
             return True
-        except:
-            pass
-        try:
-            test = item.artist
-            return True
-        except:
-            pass
         return False
 
     def on_browser_key_press(self, widget, event):
@@ -2053,8 +2003,8 @@ class Base(mpdclient3.mpd_connection):
                             items.append(item.file)
                     else:
                         if model.get_value(model.get_iter(path), 0) == 'album':
-                            value = model.get_value(model.get_iter(path), 1)
-                            for item in self.browse_search_album_by_artist_and_year(self.view_artist_artist, value[4:], value[:4]):
+                            (album, year) = self.browse_parse_albumview_path(model.get_value(model.get_iter(path), 1))
+                            for item in self.browse_search_album_by_artist_and_year(self.view_artist_artist, album, year):
                                 items.append(item.file)
                         else:
                             items.append(model.get_value(model.get_iter(path), 1))
@@ -2495,20 +2445,20 @@ class Base(mpdclient3.mpd_connection):
                     gobject.idle_add(self.set_image_for_cover, filename)
                 else:
                     if self.covers_pref == self.ART_LOCAL or self.covers_pref == self.ART_LOCAL_REMOTE:
-                        imgfound = self.check_local_images(songdir)
+                        imgfound = self.check_for_local_images(songdir)
                     else:
                         imgfound = self.check_remote_images(artist, album, filename)
                     if not imgfound:
                         if self.covers_pref == self.ART_LOCAL_REMOTE:
                             self.check_remote_images(artist, album, filename)
                         elif self.covers_pref == self.ART_REMOTE_LOCAL:
-                            self.check_local_images(songdir)
+                            self.check_for_local_images(songdir)
             except:
                 self.set_default_icon_for_art(True)
         else:
             self.set_default_icon_for_art(True)
 
-    def check_local_images(self, songdir):
+    def check_for_local_images(self, songdir):
         if os.path.exists(self.musicdir + songdir + "/cover.jpg"):
             gobject.idle_add(self.set_image_for_cover, self.musicdir + songdir + "/cover.jpg")
             return True
@@ -2745,22 +2695,10 @@ class Base(mpdclient3.mpd_connection):
                         info_file.write('Title: ' + self.songinfo.title + '\n') # No Arist in streams
                     except:
                         info_file.write('Title: No - ID Tag\n')
-                try:
-                    info_file.write('Album: ' + self.songinfo.album + '\n')
-                except:
-                    info_file.write('Album: No Data\n')
-                try:
-                    info_file.write('Track: ' + self.songinfo.track + '\n')
-                except:
-                    info_file.write('Track: 0\n')
-                try:
-                    info_file.write('File: ' + self.songinfo.file + '\n')
-                except:
-                    info_file.write('File: No_Data\n')
-                try:
-                    info_file.write('Time: ' + self.songinfo.time + '\n')
-                except:
-                    info_file.write('Time: 0\n')
+                info_file.write('Album: ' + getattr(self.songinfo, 'album', 'No Data') + '\n')
+                info_file.write('Track: ' + getattr(self.songinfo, 'track', '0') + '\n')
+                info_file.write('File: ' + getattr(self.songinfo, 'file', 'No Data') + '\n')
+                info_file.write('Time: ' + getattr(self.songinfo, 'time', '0') + '\n')
                 info_file.write('Volume: ' + self.status.volume + '\n')
                 info_file.write('Repeat: ' + self.status.repeat + '\n')
                 info_file.write('Shuffle: ' + self.status.random + '\n')
