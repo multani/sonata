@@ -252,11 +252,10 @@ class response_fetcher(object):
             if key in keywords and key in entity.keys():
                 return entity
 
-            if key in 'file' and 'type' in entity.keys():
-                return entity
-
-            if key in 'playlist' and ('directory' in entity.keys() or 'file' in entity.keys()):
-                return entity
+            if key in keywords:
+                for item in keywords:
+                    if item in entity.keys():
+                        return entity
 
             if not type and 'type' not in entity.keys():
                 entity['type'] = key
