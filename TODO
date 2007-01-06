@@ -2,6 +2,7 @@ v1.0
 	lyrics (lyricwiki slow; closing sonata during thread; mult threads)
 	ability to 'save all' for tag editing
 	album info tab in infowindow?
+	ability to switch between songs in playlist for info window?
 
 Future:
 	make selection, dnd, more like thunar

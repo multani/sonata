@@ -10,6 +10,12 @@ from distutils.core import setup, Extension
 def capture(cmd):
     return os.popen(cmd).read().strip()
 
+# Remove potential file conflict from old sonata install..
+if os.path.exists("/usr/bin/mpdclient3.py"):
+    os.remove("/usr/bin/mpdclient3.py")
+elif os.path.exists("/usr/local/bin/mpdclient3.py"):
+    os.remove("/usr/local/bin/mpdclient3.py")
+
 setup(name='Sonata',
         version='0.9',
         description='GTK+ client for the Music Player Daemon (MPD).',
