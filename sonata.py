@@ -5155,7 +5155,7 @@ def remove_list_duplicates(inputlist, inputlist2=[], case_sensitive=True):
         # Search outputlist from the end, since the inputlist is typically in
         # alphabetical order
         j = len(outputlist)-1
-        while j > 1:
+        while j >= 0:
             if case_sensitive:
                 if inputlist[i] == outputlist[j]:
                     dup = True
