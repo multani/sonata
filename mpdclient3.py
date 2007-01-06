@@ -292,7 +292,7 @@ class dictobj(dict):
                 '\n  }>')
 
 class mpd_connection(object):
-    def __init__(self, host, port):
+    def __init__(self, host, port, password):
         self.talker = socket_talker(host, port)
         self.send = command_sender(self.talker)
         self.fetch = response_fetcher(self.talker)
@@ -329,7 +329,7 @@ def connect(**kw):
     host = kw.get('host', host)
     password = kw.get('password', password)
 
-    conn = mpd_connection(host, port)
+    conn = mpd_connection(host, port, password)
     #if password:
     #    conn.password(password)
     return conn

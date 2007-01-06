@@ -125,7 +125,7 @@ class Connection(mpdclient3.mpd_connection):
         if os.environ.has_key('MPD_PORT'):
             port = int(os.environ['MPD_PORT'])
 
-        mpdclient3.mpd_connection.__init__(self, host, port)
+        mpdclient3.mpd_connection.__init__(self, host, port, password)
         mpdclient3.connect(host=host, port=port, password=password)
 
 class Base(mpdclient3.mpd_connection):
