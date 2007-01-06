@@ -2200,10 +2200,7 @@ class Base(mpdclient3.mpd_connection):
                 # Unbold playing song (if we were playing)
                 if self.prevstatus and self.prevstatus.state == 'play':
                     oldrow = int(self.prevsonginfo.pos)
-                    try:
-                        self.currentdata[oldrow][1] = make_unbold(self.currentdata[oldrow][1])
-                    except IndexError: # it's gone, playlist was probably cleared
-                        pass
+                    self.unbold_boldrow(oldrow)
             elif self.status.state == 'pause':
                 self.ppbutton.set_image(gtk.image_new_from_stock(gtk.STOCK_MEDIA_PLAY, gtk.ICON_SIZE_BUTTON))
                 self.ppbutton.get_child().get_child().get_children()[1].set_text('')
@@ -2216,6 +2213,7 @@ class Base(mpdclient3.mpd_connection):
                 self.UIManager.get_widget('/traymenu/pausemenu').show()
                 if self.prevstatus != None:
                     if self.prevstatus.state == 'pause':
+                        self.unbold_boldrow(self.prev_boldrow)
                         # Forces the notification to popup if specified
                         self.labelnotify()
             if self.status.state in ['play', 'pause']:
@@ -2245,11 +2243,7 @@ class Base(mpdclient3.mpd_connection):
                     self.playlists_populate()
 
     def handle_change_song(self):
-        try:
-            if self.prev_boldrow > -1:
-                self.currentdata[self.prev_boldrow][1] = make_unbold(self.currentdata[self.prev_boldrow][1])
-        except:
-            pass
+        self.unbold_boldrow(self.prev_boldrow)
 
         if self.status and self.status.state in ['play', 'pause']:
             row = int(self.songinfo.pos)
@@ -2261,6 +2255,13 @@ class Base(mpdclient3.mpd_connection):
         self.update_wintitle()
         self.update_album_art()
         self.infowindow_update(update_all=True)
+
+    def unbold_boldrow(self, row):
+        if row > -1:
+            try:
+                self.currentdata[row][1] = make_unbold(self.currentdata[row][1])
+            except:
+                pass
 
     def update_progressbar(self):
         if self.conn and self.status and self.status.state in ['play', 'pause']:
