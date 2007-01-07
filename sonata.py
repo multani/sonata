@@ -1992,7 +1992,7 @@ class Base(mpdclient3.mpd_connection):
         # mpd calls we need to make.
         items = []
         model, selected = self.browser_selection.get_selected_rows()
-        if self.view == self.VIEW_FILESYSTEM:
+        if self.view == self.VIEW_FILESYSTEM or self.search_mode_enabled():
             if return_root and not self.search_mode_enabled() and ((self.root == "/" and len(selected) == len(self.browserdata)) or (self.root != "/" and len(selected) >= len(self.browserdata)-2)):
                 # Everything selected, this is faster..
                 items.append(self.root)
