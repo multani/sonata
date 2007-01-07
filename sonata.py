@@ -275,6 +275,11 @@ class Base(mpdclient3.mpd_connection):
         self.view_artist_level_prev = 0
         self.remote_from_infowindow = False
         show_prefs = False
+        # For increased responsiveness after the initial load, we cache
+        # the root artist and album view results and simply refresh on
+        # any mpd update
+        self.albums_root = None
+        self.artists_root = None
         # If the connection to MPD times out, this will cause the
         # interface to freeze while the socket.connect() calls
         # are repeatedly executed. Therefore, if we were not
@@ -1523,6 +1528,7 @@ class Base(mpdclient3.mpd_connection):
                     self.browser_selection.unselect_range((0,), (len(self.browserdata)-1,))
             except:
                 pass
+            gobject.idle_add(self.browser.scroll_to_point, 0, 0)
 
     def libraryview_assign_image(self):
         if self.view == self.VIEW_FILESYSTEM:
@@ -1637,12 +1643,13 @@ class Base(mpdclient3.mpd_connection):
                 self.view_artist_artist = ''
                 self.view_artist_album = ''
                 root = '/'
-                artists = []
-                for item in self.conn.do.list('artist'):
-                    artists.append(item.artist)
-                (artists, i) = remove_list_duplicates(artists, [], False)
-                artists.sort(locale.strcoll)
-                for artist in artists:
+                if self.artists_root is None:
+                    self.artists_root = []
+                    for item in self.conn.do.list('artist'):
+                        self.artists_root.append(item.artist)
+                    (self.artists_root, i) = remove_list_duplicates(self.artists_root, [], False)
+                    self.artists_root.sort(locale.strcoll)
+                for artist in self.artists_root:
                     self.browserdata.append(['artist', artist, escape_html(artist)])
             elif self.view_artist_level == 2:
                 self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
@@ -1672,11 +1679,13 @@ class Base(mpdclient3.mpd_connection):
         elif self.view == self.VIEW_ALBUM:
             items = []
             if self.root == '/':
-                for item in self.conn.do.list('album'):
-                    items.append(item.album)
-                (items, i) = remove_list_duplicates(items, [], False)
-                items.sort(locale.strcoll)
-                for item in items:
+                if self.albums_root is None:
+                    self.albums_root = []
+                    for item in self.conn.do.list('album'):
+                        self.albums_root.append(item.album)
+                    (self.albums_root, i) = remove_list_duplicates(self.albums_root, [], False)
+                    self.albums_root.sort(locale.strcoll)
+                for item in self.albums_root:
                     self.browserdata.append(['album', item, escape_html(item)])
             else:
                 self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
@@ -2239,6 +2248,11 @@ class Base(mpdclient3.mpd_connection):
         if self.conn:
             if self.prevstatus == None or self.prevstatus.get('updating_db', 0) != self.status.get('updating_db', 0):
                 if not (self.status and self.status.get('updating_db', 0)):
+                    # Resetting albums_root and artists_root to None will cause
+                    # the two lists to update to the new contents
+                    self.albums_root = None
+                    self.artists_root = None
+                    # Now update the library and playlist tabs
                     self.browse(root=self.root)
                     self.playlists_populate()
 
