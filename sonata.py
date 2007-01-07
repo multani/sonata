@@ -67,9 +67,6 @@ if not HAVE_EGG:
     else:
         HAVE_STATUS_ICON = False
 
-if not HAVE_EGG and not HAVE_STATUS_ICON:
-    sys.stderr.write("PyGTK+ 2.10 or gnome-python-extras not found, system tray support disabled.\n")
-
 try:
     import dbus
     import dbus.service
@@ -93,15 +90,13 @@ try:
     HAVE_TAGPY = True
 except:
     HAVE_TAGPY = False
-    sys.stderr.write("Taglib and tagpy not found, tag editing support disabled.\n")
 
 try:
     # Temporarily disable lyrics...
-    from SOAPpy import WSDL
-    HAVE_WSDL = True
+    #from SOAPpy import WSDL
+    HAVE_WSDL = False
 except:
     HAVE_WSDL = False
-    sys.stderr.write("SOAPpy not found, fetching lyrics support disabled.\n")
 
 # Test pygtk version
 if gtk.pygtk_version < (2, 6, 0):
@@ -185,6 +180,13 @@ class Base(mpdclient3.mpd_connection):
                     else:
                         self.print_usage()
                     sys.exit()
+
+        if not HAVE_TAGPY:
+            print "Taglib and tagpy not found, tag editing support disabled."
+        #if not HAVE_WSDL:
+        #	print "SOAPpy not found, fetching lyrics support disabled."
+        if not HAVE_EGG and not HAVE_STATUS_ICON:
+            print "PyGTK+ 2.10 or gnome-python-extras not found, system tray support disabled."
 
         start_dbus_interface(toggle_arg)
 
