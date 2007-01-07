@@ -1,7 +1,8 @@
 v1.0 - Pending
 	+ Multiple views for library: filesystem, artists, albums
-	+ Edit song tags in library (requires optional taglib & tagpy)
-	+ Improved song info window
+	+ Editing of song tags (requires optional taglib & tagpy)
+	+ Auto-fetching of song lyrics (requires optional soappy)
+	+ Improved song info window and access to it
 	+ Allow pls/m3u/extm3u streams as input
 	+ Sort current playlist (by metadata, random, reverse)
 	+ Optional statusbar (playlist length, time)

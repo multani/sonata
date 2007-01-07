@@ -208,7 +208,7 @@ class Base(mpdclient3.mpd_connection):
         self.VIEW_FILESYSTEM = 0
         self.VIEW_ARTIST = 1
         self.VIEW_ALBUM = 2
-        self.LYRIC_TIMEOUT = 100
+        self.LYRIC_TIMEOUT = 10
         self.musicdir = os.path.expanduser("~/music")
         socket.setdefaulttimeout(2)
         self.host = 'localhost'
@@ -1566,7 +1566,7 @@ class Base(mpdclient3.mpd_connection):
                         break
                 elif self.view_artist_level == 3:
                     (album, year) = self.browse_parse_albumview_path(root)
-                    if len(self.browse_search_album_by_artist_and_year(self.view_artist_artist, album, year)) == 0:
+                    if len(self.browse_search_album_with_artist_and_year(self.view_artist_artist, album, year)) == 0:
                         # Back up and try the parent
                         self.view_artist_level = self.view_artist_level - 1
                         root = self.view_artist_artist
@@ -1674,7 +1674,7 @@ class Base(mpdclient3.mpd_connection):
                 self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
                 self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
                 (self.view_artist_album, year) = self.browse_parse_albumview_path(root)
-                for item in self.browse_search_album_by_artist_and_year(self.view_artist_artist, self.view_artist_album, year):
+                for item in self.browse_search_album_with_artist_and_year(self.view_artist_artist, self.view_artist_album, year):
                     self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
         elif self.view == self.VIEW_ALBUM:
             items = []
@@ -1722,20 +1722,24 @@ class Base(mpdclient3.mpd_connection):
         list.sort(key=lambda x: getattr(x, 'date', '0').zfill(4))
         return list
 
-    def browse_search_album_by_artist_and_year(self, artist, album, year):
+    def browse_search_album_with_artist_and_year(self, artist, album, year):
         # Return songs of specified album, artist, and year. Sorts by track
+        # If year is None, skips that requirement
         list = []
         for item in self.conn.do.search('album', album, 'artist', artist):
             # Make sure it's an exact match:
             if artist.lower() == item.artist.lower() and album.lower() == item.album.lower():
-                # Make sure it also matches the year:
-                if year != '0000' and item.has_key('date'):
-                    # Only show songs whose years match the year var:
-                    if int(item.date) == int(year):
-                        list.append(item)
-                elif not item.has_key('date'):
-                    # Only show songs that have no year specified:
+                if year is None:
                     list.append(item)
+                else:
+                    # Make sure it also matches the year:
+                    if year != '0000' and item.has_key('date'):
+                        # Only show songs whose years match the year var:
+                        if int(item.date) == int(year):
+                            list.append(item)
+                    elif not item.has_key('date'):
+                        # Only show songs that have no year specified:
+                        list.append(item)
         list.sort(key=lambda x: int(getattr(x, 'track', '0').split('/')[0]))
         return list
 
@@ -2013,7 +2017,7 @@ class Base(mpdclient3.mpd_connection):
                     else:
                         if model.get_value(model.get_iter(path), 0) == 'album':
                             (album, year) = self.browse_parse_albumview_path(model.get_value(model.get_iter(path), 1))
-                            for item in self.browse_search_album_by_artist_and_year(self.view_artist_artist, album, year):
+                            for item in self.browse_search_album_with_artist_and_year(self.view_artist_artist, album, year):
                                 items.append(item.file)
                         else:
                             items.append(model.get_value(model.get_iter(path), 1))
@@ -2869,9 +2873,11 @@ class Base(mpdclient3.mpd_connection):
             list.sort(key=lambda x: x["sortby"].lower()) # Remove case sensitivity
             # Now that we have the order, move the songs as appropriate:
             pos = 0
+            self.conn.send.command_list_begin()
             for item in list:
-                self.conn.do.moveid(int(item["id"]), pos)
+                self.conn.send.moveid(int(item["id"]), pos)
                 pos = pos + 1
+            self.conn.do.command_list_end()
 
     def on_sort_reverse(self, action):
         if self.conn:
@@ -2880,10 +2886,12 @@ class Base(mpdclient3.mpd_connection):
                 gtk.main_iteration()
             top = 0
             bot = len(self.songs)-1
+            self.conn.send.command_list_begin()
             while top < bot:
-                self.conn.do.swap(top, bot)
+                self.conn.send.swap(top, bot)
                 top = top + 1
                 bot = bot - 1
+            self.conn.do.command_list_end()
 
     def on_sort_random(self, action):
         if self.conn:
@@ -3146,29 +3154,39 @@ class Base(mpdclient3.mpd_connection):
         vbox.pack_start(hbox_edittag, False, False, 6)
         notebook.append_page(vbox, nblabel1)
         # Add cover art:
-        if self.show_covers:
-            nblabel2 = gtk.Label()
-            nblabel2.set_text_with_mnemonic(_("Cover _Art"))
-            eventbox = gtk.EventBox()
-            eventbox.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT | gtk.DEST_DEFAULT_DROP, [("text/uri-list", 0, 80)], gtk.gdk.ACTION_DEFAULT)
-            self.infowindow_image = gtk.Image()
-            self.infowindow_image.set_alignment(0.5, 0.5)
-            eventbox.connect('button_press_event', self.on_image_activate)
-            eventbox.connect('drag_motion', self.on_image_motion_cb)
-            eventbox.connect('drag_data_received', self.on_image_drop_cb)
-            eventbox.add(self.infowindow_image)
-            notebook.append_page(eventbox, nblabel2)
+        nblabel2 = gtk.Label()
+        nblabel2.set_text_with_mnemonic(_("_Cover Art"))
+        eventbox = gtk.EventBox()
+        eventbox.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT | gtk.DEST_DEFAULT_DROP, [("text/uri-list", 0, 80)], gtk.gdk.ACTION_DEFAULT)
+        self.infowindow_image = gtk.Image()
+        self.infowindow_image.set_alignment(0.5, 0.5)
+        eventbox.connect('button_press_event', self.on_image_activate)
+        eventbox.connect('drag_motion', self.on_image_motion_cb)
+        eventbox.connect('drag_data_received', self.on_image_drop_cb)
+        eventbox.add(self.infowindow_image)
+        notebook.append_page(eventbox, nblabel2)
+        gobject.idle_add(self.infowindow_image.set_from_file, self.sonatacd_large)
+        # Add album info:
+        nblabel3 = gtk.Label()
+        nblabel3.set_text_with_mnemonic(_("_Album Info"))
+        albumScrollWindow = gtk.ScrolledWindow()
+        albumScrollWindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.albuminfoBuffer = gtk.TextBuffer()
+        albuminfoView = gtk.TextView(self.albuminfoBuffer)
+        albuminfoView.set_editable(False)
+        albumScrollWindow.add_with_viewport(albuminfoView)
+        notebook.append_page(albumScrollWindow, nblabel3)
         # Add lyrics:
         if HAVE_WSDL:
-            nblabel3 = gtk.Label()
-            nblabel3.set_text_with_mnemonic(_("_Lyrics"))
+            nblabel4 = gtk.Label()
+            nblabel4.set_text_with_mnemonic(_("_Lyrics"))
             scrollWindow = gtk.ScrolledWindow()
             scrollWindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
             self.lyricsBuffer = gtk.TextBuffer()
             lyricsView = gtk.TextView(self.lyricsBuffer)
             lyricsView.set_editable(False)
             scrollWindow.add_with_viewport(lyricsView)
-            notebook.append_page(scrollWindow, nblabel3)
+            notebook.append_page(scrollWindow, nblabel4)
         hbox_main = gtk.HBox()
         hbox_main.pack_start(notebook, False, False, 15)
         vbox_inner = gtk.VBox()
@@ -3229,14 +3247,49 @@ class Base(mpdclient3.mpd_connection):
                         else:
                             self.infowindow_pathlabel.set_text("/" + os.path.dirname(self.songinfo.file))
                         self.infowindow_filelabel.set_text(os.path.basename(self.songinfo.file))
+                        if self.songinfo.has_key('album'):
+                            # Update album info:
+                            artist = []
+                            year = []
+                            albumtime = 0
+                            trackinfo = ""
+                            albuminfo = self.songinfo.album + "\n"
+                            for track in self.browse_search_album(self.songinfo.album):
+                                if track.has_key('title'):
+                                    trackinfo = trackinfo + getattr(track, 'track', '0').split('/')[0].zfill(2) + ' - ' + track.title + '\n'
+                                else:
+                                    trackinfo = trackinfo + getattr(track, 'track', '0').split('/')[0].zfill(2) + ' - ' + track.file.split('/')[-1] + '\n'
+                                if track.has_key('artist'):
+                                    artist.append(track.artist)
+                                if track.has_key('date'):
+                                    year.append(track.date)
+                                try:
+                                    albumtime = albumtime + int(track.time)
+                                except:
+                                    pass
+                            (artist, i) = remove_list_duplicates(artist, [], False)
+                            (year, i) = remove_list_duplicates(year, [], False)
+                            if len(artist) == 1:
+                                albuminfo = albuminfo + artist[0] + "\n"
+                            elif len(artist) > 0:
+                                albuminfo = albuminfo + _("Various Artists") + "\n"
+                            if len(year) == 1:
+                                albuminfo = albuminfo + year[0] + "\n"
+                            albuminfo = albuminfo + convert_time(albumtime) + "\n"
+                            self.albuminfoBuffer.set_text(albuminfo + "\n\n" + trackinfo)
+                        else:
+                            self.albuminfoBuffer.set_text(_("Album name not set."))
                         # Update lyrics:
                         if HAVE_WSDL:
-                            try:
-                                self.infowindow_show_lyrics(_("Fetching lyrics..."), self.songinfo.artist, self.songinfo.title)
-                                lyricThread = threading.Thread(target=self.infowindow_get_lyrics, args=(self.songinfo.artist, self.songinfo.title))
-                                lyricThread.start()
-                            except:
-                                self.infowindow_show_lyrics("", self.songinfo.artist, self.songinfo.title)
+                            if self.songinfo.has_key('artist') and self.songinfo.has_key('title'):
+                                try:
+                                    self.infowindow_show_lyrics(_("Fetching lyrics..."), self.songinfo.artist, self.songinfo.title)
+                                    lyricThread = threading.Thread(target=self.infowindow_get_lyrics, args=(self.songinfo.artist, self.songinfo.title))
+                                    lyricThread.start()
+                                except:
+                                    self.infowindow_show_lyrics("", None, None)
+                            else:
+                                self.infowindow_show_lyrics(_("Artist or song title not set."), None, None)
                     if show_after_update:
                         gobject.idle_add(self.infowindow_show_now)
                 else:
@@ -3252,7 +3305,8 @@ class Base(mpdclient3.mpd_connection):
                     self.infowindow_filelabel.set_text("")
                     self.infowindow_bitratelabel.set_text("")
                     if HAVE_WSDL:
-                        self.infowindow_show_lyrics("", self.songinfo.artist, self.songinfo.title)
+                        self.infowindow_show_lyrics("", None, None)
+                    self.albuminfoBuffer.set_text("")
 
     def infowindow_show_now(self):
         self.infowindow.show_all()
@@ -3284,7 +3338,9 @@ class Base(mpdclient3.mpd_connection):
         socket.setdefaulttimeout(timeout)
 
     def infowindow_show_lyrics(self, lyrics, artist, title):
-        if self.status and self.status.state in ['play', 'pause']:
+        if artist is None and title is None:
+            self.lyricsBuffer.set_text(lyrics)
+        elif self.status and self.status.state in ['play', 'pause']:
             # Verify that we are displaying the correct lyrics:
             if self.songinfo.artist == artist and self.songinfo.title == title:
                 self.lyricsBuffer.set_text(lyrics)
