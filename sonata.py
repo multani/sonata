@@ -97,8 +97,8 @@ except:
 
 try:
     # Temporarily disable lyrics...
-    #from SOAPpy import WSDL
-    HAVE_WSDL = False
+    from SOAPpy import WSDL
+    HAVE_WSDL = True
 except:
     HAVE_WSDL = False
     sys.stderr.write("SOAPpy not found, fetching lyrics support disabled.\n")
@@ -2422,6 +2422,7 @@ class Base(mpdclient3.mpd_connection):
     def update_album_art(self):
         self.stop_art_update = True
         thread = threading.Thread(target=self.update_album_art2)
+        thread.setDaemon(True)
         thread.start()
 
     def set_tooltip_art(self, pix):
@@ -3278,6 +3279,7 @@ class Base(mpdclient3.mpd_connection):
                                 try:
                                     self.infowindow_show_lyrics(_("Fetching lyrics..."), self.songinfo.artist, self.songinfo.title)
                                     lyricThread = threading.Thread(target=self.infowindow_get_lyrics, args=(self.songinfo.artist, self.songinfo.title))
+                                    lyricThread.setDaemon(True)
                                     lyricThread.start()
                                 except:
                                     self.infowindow_show_lyrics("", None, None)
@@ -3524,6 +3526,7 @@ class Base(mpdclient3.mpd_connection):
         self.imagelist.clear()
         self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
         thread = threading.Thread(target=self.choose_image_update2)
+        thread.setDaemon(True)
         thread.start()
 
     def choose_image_update2(self):
