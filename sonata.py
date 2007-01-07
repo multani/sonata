@@ -2206,10 +2206,6 @@ class Base(mpdclient3.mpd_connection):
                 self.ppbutton.get_child().get_child().get_children()[1].set_text('')
                 self.UIManager.get_widget('/traymenu/playmenu').show()
                 self.UIManager.get_widget('/traymenu/pausemenu').hide()
-                # Unbold playing song (if we were playing)
-                if self.prevstatus and self.prevstatus.state == 'play':
-                    oldrow = int(self.prevsonginfo.pos)
-                    self.unbold_boldrow(oldrow)
             elif self.status.state == 'pause':
                 self.ppbutton.set_image(gtk.image_new_from_stock(gtk.STOCK_MEDIA_PLAY, gtk.ICON_SIZE_BUTTON))
                 self.ppbutton.get_child().get_child().get_children()[1].set_text('')
@@ -2221,8 +2217,8 @@ class Base(mpdclient3.mpd_connection):
                 self.UIManager.get_widget('/traymenu/playmenu').hide()
                 self.UIManager.get_widget('/traymenu/pausemenu').show()
                 if self.prevstatus != None:
+                    self.unbold_boldrow(self.prev_boldrow)
                     if self.prevstatus.state == 'pause':
-                        self.unbold_boldrow(self.prev_boldrow)
                         # Forces the notification to popup if specified
                         self.labelnotify()
             if self.status.state in ['play', 'pause']:
