@@ -168,31 +168,23 @@ class Base(mpdclient3.mpd_connection):
                 for a in args:
                     if a in ("play"):
                         self.single_connect_for_passed_arg("play")
-                        sys.exit()
                     elif a in ("pause"):
                         self.single_connect_for_passed_arg("pause")
-                        sys.exit()
                     elif a in ("stop"):
                         self.single_connect_for_passed_arg("stop")
-                        sys.exit()
                     elif a in ("next"):
                         self.single_connect_for_passed_arg("next")
-                        sys.exit()
                     elif a in ("prev"):
                         self.single_connect_for_passed_arg("prev")
-                        sys.exit()
                     elif a in ("pp"):
                         self.single_connect_for_passed_arg("toggle")
-                        sys.exit()
                     elif a in ("info"):
                         self.single_connect_for_passed_arg("info")
-                        sys.exit()
                     elif a in ("status"):
                         self.single_connect_for_passed_arg("status")
-                        sys.exit()
                     else:
                         self.print_usage()
-                        sys.exit()
+                    sys.exit()
 
         start_dbus_interface(toggle_arg)
 
@@ -1989,14 +1981,15 @@ class Base(mpdclient3.mpd_connection):
     def browser_get_selected_items_recursive(self, return_root):
         # If return_root=True, return main directories whenever possible
         # instead of individual songs in order to reduce the number of
-        # mpd calls we need to make.
+        # mpd calls we need to make. We won't want this behavior in some
+        # instances, like when we want all end files for editing tags
         items = []
         model, selected = self.browser_selection.get_selected_rows()
-        if self.view == self.VIEW_FILESYSTEM or self.search_mode_enabled():
-            if return_root and not self.search_mode_enabled() and ((self.root == "/" and len(selected) == len(self.browserdata)) or (self.root != "/" and len(selected) >= len(self.browserdata)-2)):
-                # Everything selected, this is faster..
-                items.append(self.root)
-            else:
+        if return_root and not self.search_mode_enabled() and ((self.root == "/" and len(selected) == len(model)) or (self.root != "/" and len(selected) >= len(model)-2)):
+            # Everything selected, this is faster..
+            items.append(self.root)
+        else:
+            if self.view == self.VIEW_FILESYSTEM or self.search_mode_enabled():
                 for path in selected:
                     if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
                         if model.get_value(model.get_iter(path), 0) == gtk.STOCK_OPEN:
@@ -2008,29 +2001,29 @@ class Base(mpdclient3.mpd_connection):
                                         items.append(item.file)
                         else:
                             items.append(model.get_value(model.get_iter(path), 1))
-        elif self.view == self.VIEW_ARTIST:
-            for path in selected:
-                if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
-                    if self.view_artist_level == 1:
-                        for item in self.browse_search_artist(model.get_value(model.get_iter(path), 1)):
-                            items.append(item.file)
-                    else:
-                        if model.get_value(model.get_iter(path), 0) == 'album':
-                            (album, year) = self.browse_parse_albumview_path(model.get_value(model.get_iter(path), 1))
-                            for item in self.browse_search_album_with_artist_and_year(self.view_artist_artist, album, year):
+            elif self.view == self.VIEW_ARTIST:
+                for path in selected:
+                    if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
+                        if self.view_artist_level == 1:
+                            for item in self.browse_search_artist(model.get_value(model.get_iter(path), 1)):
+                                items.append(item.file)
+                        else:
+                            if model.get_value(model.get_iter(path), 0) == 'album':
+                                (album, year) = self.browse_parse_albumview_path(model.get_value(model.get_iter(path), 1))
+                                for item in self.browse_search_album_with_artist_and_year(self.view_artist_artist, album, year):
+                                    items.append(item.file)
+                            else:
+                                items.append(model.get_value(model.get_iter(path), 1))
+            elif self.view == self.VIEW_ALBUM:
+                for path in selected:
+                    if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
+                        if self.root == "/":
+                            for item in self.browse_search_album(model.get_value(model.get_iter(path), 1)):
                                 items.append(item.file)
                         else:
                             items.append(model.get_value(model.get_iter(path), 1))
-        elif self.view == self.VIEW_ALBUM:
-            for path in selected:
-                if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
-                    if self.root == "/":
-                        for item in self.browse_search_album(model.get_value(model.get_iter(path), 1)):
-                            items.append(item.file)
-                    else:
-                        items.append(model.get_value(model.get_iter(path), 1))
-        # Make sure we don't have any EXACT duplicates:
-        (items, i) = remove_list_duplicates(items, [], True)
+            # Make sure we don't have any EXACT duplicates:
+            (items, i) = remove_list_duplicates(items, [], True)
         return items
 
     def add_item(self, widget):
