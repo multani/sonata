@@ -2216,14 +2216,9 @@ class Base(mpdclient3.mpd_connection):
                 self.UIManager.get_widget('/traymenu/playmenu').hide()
                 self.UIManager.get_widget('/traymenu/pausemenu').show()
                 if self.prevstatus != None:
-                    self.unbold_boldrow(self.prev_boldrow)
                     if self.prevstatus.state == 'pause':
                         # Forces the notification to popup if specified
                         self.labelnotify()
-            if self.status.state in ['play', 'pause']:
-                row = int(self.songinfo.pos)
-                self.currentdata[row][1] = make_bold(self.currentdata[row][1])
-                self.prev_boldrow = row
             self.update_album_art()
 
         if self.prevstatus is None or self.status.volume != self.prevstatus.volume:
@@ -2254,8 +2249,8 @@ class Base(mpdclient3.mpd_connection):
     def handle_change_song(self):
         self.unbold_boldrow(self.prev_boldrow)
 
-        if self.status and self.status.state in ['play', 'pause']:
-            row = int(self.songinfo.pos)
+        if self.status and self.status.has_key('song'):
+            row = int(self.status.song)
             self.currentdata[row][1] = make_bold(self.currentdata[row][1])
             self.keep_song_visible_in_list()
             self.prev_boldrow = row
@@ -3199,6 +3194,7 @@ class Base(mpdclient3.mpd_connection):
         self.infowindow.show_all()
         self.infowindow_visible = True
         self.infowindow.connect('delete_event', self.on_infowindow_hide)
+        self.infowindow.connect('key_press_event', self.on_infowindow_keypress)
         self.lastalbumart = ""
         self.update_album_art()
         self.infowindow_update(True, update_all=True)
@@ -3207,6 +3203,12 @@ class Base(mpdclient3.mpd_connection):
         if self.infowindow_visible:
             self.infowindow.destroy()
             self.infowindow_visible = False
+
+    def on_infowindow_keypress(self, widget, event):
+        shortcut = gtk.accelerator_name(event.keyval, event.state)
+        shortcut = shortcut.replace("<Mod2>", "")
+        if shortcut == 'Escape':
+            self.on_infowindow_hide(widget)
 
     def infowindow_update(self, show_after_update=False, update_all=False):
         # update_all = True means that every tag should update. This is
