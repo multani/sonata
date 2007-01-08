@@ -3855,8 +3855,10 @@ class Base(mpdclient3.mpd_connection):
                     # Everything is selected, clear:
                     self.conn.do.clear()
                 elif len(selected) > 0:
+                    self.conn.send.command_list_begin()
                     for path in selected:
-                        self.conn.do.deleteid(self.currentdata.get_value(model.get_iter(path), 0))
+                        self.conn.send.deleteid(self.currentdata.get_value(model.get_iter(path), 0))
+                    self.conn.do.command_list_end()
             elif page_num == self.TAB_PLAYLISTS:
                 dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_YES_NO, _("Delete the selected playlist(s)?"))
                 dialog.set_title(_("Delete Playlist(s)"))
@@ -4517,6 +4519,8 @@ class Base(mpdclient3.mpd_connection):
             if len(self.currentdata) > 0:
                 if self.current_selection.count_selected_rows() > 0:
                     self.UIManager.get_widget('/mainmenu/removemenu/').show()
+                    if HAVE_TAGPY:
+                        self.UIManager.get_widget('/mainmenu/edittagmenu/').show()
                 self.UIManager.get_widget('/mainmenu/clearmenu/').show()
                 self.UIManager.get_widget('/mainmenu/savemenu/').show()
                 self.UIManager.get_widget('/mainmenu/sortmenu/').show()
@@ -4586,10 +4590,17 @@ class Base(mpdclient3.mpd_connection):
             # Use current file in songinfo:
             files.append(self.musicdir + mpdpath)
             temp_mpdpaths.append(mpdpath)
-        else:
-            items = self.browser_get_selected_items_recursive(False)
+        elif self.notebook.get_current_page() == self.TAB_LIBRARY:
             # Populates files array with selected library items:
+            items = self.browser_get_selected_items_recursive(False)
             for item in items:
+                files.append(self.musicdir + item)
+                temp_mpdpaths.append(item)
+        elif self.notebook.get_current_page() == self.TAB_CURRENT:
+            # Populates files array with selected current playlist items:
+            model, selected = self.current_selection.get_selected_rows()
+            for path in selected:
+                item = self.songs[path[0]].file
                 files.append(self.musicdir + item)
                 temp_mpdpaths.append(item)
         # Initialize tags:
