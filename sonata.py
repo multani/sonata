@@ -4,7 +4,7 @@
 __version__ = "0.9"
 
 __license__ = """
-Sonata, a simple GTK+ client for the Music Player Daemon
+Sonata, an elegant GTK+ client for the Music Player Daemon
 Copyright 2006 Scott Horowitz <stonecrest@gmail.com>
 
 This file is part of Sonata.
@@ -3134,7 +3134,7 @@ class Base(mpdclient3.mpd_connection):
         nblabel1.set_text_with_mnemonic(_("_Song Info"))
         for hbox in hboxes:
             vbox.pack_start(hbox, False, False, 3)
-        self.edittag_button = gtk.Button(' ' + _("_Edit"))
+        self.edittag_button = gtk.Button(' ' + _("_Edit..."))
         self.edittag_button.set_image(gtk.image_new_from_stock(gtk.STOCK_EDIT, gtk.ICON_SIZE_MENU))
         self.edittag_button.connect('clicked', self.on_edittag_click)
         hbox_edittag = gtk.HBox()
@@ -3273,7 +3273,9 @@ class Base(mpdclient3.mpd_connection):
                             if len(year) == 1:
                                 albuminfo = albuminfo + year[0] + "\n"
                             albuminfo = albuminfo + convert_time(albumtime) + "\n"
-                            self.albuminfoBuffer.set_text(albuminfo + "\n\n" + trackinfo)
+                            albuminfo = albuminfo + "\n\n" + trackinfo
+                            if albuminfo != self.albuminfoBuffer.get_text(self.albuminfoBuffer.get_start_iter(), self.albuminfoBuffer.get_end_iter()):
+                                self.albuminfoBuffer.set_text(albuminfo)
                         else:
                             self.albuminfoBuffer.set_text(_("Album name not set."))
                         # Update lyrics:
@@ -3311,13 +3313,14 @@ class Base(mpdclient3.mpd_connection):
 
     def infowindow_get_lyrics(self, artist, title):
         filename = os.path.expanduser('~/.lyrics/' + artist + '-' + title + '.txt')
-        # If the lyrics are already written to a file, retrieve:
         if os.path.exists(filename):
+            # Re-use lyrics from file, if it exists:
             f = open(filename, 'r')
             lyrics = f.read()
             f.close()
             gobject.idle_add(self.infowindow_show_lyrics, lyrics, artist, title)
         else:
+            # Fetch lyrics from lyricwiki.org
             gobject.idle_add(self.infowindow_show_lyrics, _("Fetching lyrics..."))
             if self.lyricServer is None:
                 wsdlFile = "http://lyricwiki.org/server.php?wsdl"
@@ -3348,12 +3351,13 @@ class Base(mpdclient3.mpd_connection):
             socket.setdefaulttimeout(timeout)
 
     def infowindow_show_lyrics(self, lyrics, artist=None, title=None):
-        if artist is None and title is None:
-            self.lyricsBuffer.set_text(lyrics)
-        elif self.status and self.status.state in ['play', 'pause']:
-            # Verify that we are displaying the correct lyrics:
-            if self.songinfo.artist == artist and self.songinfo.title == title:
+        if self.infowindow_visible:
+            if artist is None and title is None:
                 self.lyricsBuffer.set_text(lyrics)
+            elif self.status and self.status.state in ['play', 'pause']:
+                # Verify that we are displaying the correct lyrics:
+                if self.songinfo.artist == artist and self.songinfo.title == title:
+                    self.lyricsBuffer.set_text(lyrics)
 
     def get_pixbuf_of_size(self, pixbuf, size):
         # Creates a pixbuf that fits in the specified square of sizexsize
@@ -4840,7 +4844,7 @@ class Base(mpdclient3.mpd_connection):
                 self.edit_entry_changed(entries[i])
             else:
                 self.edit_entry_revert_color(entries[i])
-        savebutton.set_sensitive(True)
+        gobject.idle_add(savebutton.set_sensitive, True)
 
     def editwindow_response(self, window, response, tags, savebutton, entries, entries_names):
         if response == gtk.RESPONSE_REJECT:
@@ -4927,7 +4931,7 @@ class Base(mpdclient3.mpd_connection):
             pass
         self.about_dialog.set_name('Sonata')
         self.about_dialog.set_version(__version__)
-        commentlabel = _('A lightweight music player for MPD.')
+        commentlabel = _('An elegant music player for MPD.')
         self.about_dialog.set_comments(commentlabel)
         if self.conn:
             # Include MPD stats:

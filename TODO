@@ -1,9 +1,10 @@
 v1.0
 	ability to 'save all' for tag editing? shortcut?
-	ability to switch between songs in playlist for info window?
+	information menu item for any library/playlist song?
 	post drag selection..
 
 Future:
+	lyrics -> allow user to edit, fetch, auto-update to wiki..?
 	make selection, dnd, more like thunar
 	connect in background via socket.setblocking(0)
 	last.fm?
