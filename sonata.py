@@ -93,8 +93,8 @@ except:
 
 try:
     # Temporarily disable lyrics...
-    #from SOAPpy import WSDL
-    HAVE_WSDL = False
+    from SOAPpy import WSDL
+    HAVE_WSDL = True
 except:
     HAVE_WSDL = False
 
@@ -1209,6 +1209,8 @@ class Base(mpdclient3.mpd_connection):
             os.mkdir(os.path.expanduser('~/.config/sonata/'))
         if os.path.exists(os.path.expanduser('~/.covers/')) == False:
             os.mkdir(os.path.expanduser('~/.covers/'))
+        if os.path.exists(os.path.expanduser('~/.lyrics/')) == False:
+            os.mkdir(os.path.expanduser('~/.lyrics/'))
         if os.path.isfile(os.path.expanduser('~/.config/sonata/sonatarc')):
             conf.read(os.path.expanduser('~/.config/sonata/sonatarc'))
         elif os.path.isfile(os.path.expanduser('~/.sonatarc')):
@@ -2918,15 +2920,12 @@ class Base(mpdclient3.mpd_connection):
                     dest = destpath[0] + offset
                     offset += 1
                 if position in (gtk.TREE_VIEW_DROP_BEFORE, gtk.TREE_VIEW_DROP_INTO_OR_BEFORE):
-                    model.insert_before(iter, [index, text])
                     self.conn.do.moveid(id, dest)
                 else:
-                    model.insert_after(iter, [index, text])
                     self.conn.do.moveid(id, dest + 1)
             else:
                 dest = len(self.songs) - 1
                 self.conn.do.moveid(id, dest)
-                model.append([0, text])
             # now fixup
             for source in drag_sources:
                 if dest < index:
@@ -3281,14 +3280,13 @@ class Base(mpdclient3.mpd_connection):
                         if HAVE_WSDL:
                             if self.songinfo.has_key('artist') and self.songinfo.has_key('title'):
                                 try:
-                                    self.infowindow_show_lyrics(_("Fetching lyrics..."), self.songinfo.artist, self.songinfo.title)
                                     lyricThread = threading.Thread(target=self.infowindow_get_lyrics, args=(self.songinfo.artist, self.songinfo.title))
                                     lyricThread.setDaemon(True)
                                     lyricThread.start()
                                 except:
-                                    self.infowindow_show_lyrics("", None, None)
+                                    self.infowindow_show_lyrics("")
                             else:
-                                self.infowindow_show_lyrics(_("Artist or song title not set."), None, None)
+                                self.infowindow_show_lyrics(_("Artist or song title not set."))
                     if show_after_update:
                         gobject.idle_add(self.infowindow_show_now)
                 else:
@@ -3304,7 +3302,7 @@ class Base(mpdclient3.mpd_connection):
                     self.infowindow_filelabel.set_text("")
                     self.infowindow_bitratelabel.set_text("")
                     if HAVE_WSDL:
-                        self.infowindow_show_lyrics("", None, None)
+                        self.infowindow_show_lyrics("")
                     self.albuminfoBuffer.set_text("")
 
     def infowindow_show_now(self):
@@ -3312,31 +3310,44 @@ class Base(mpdclient3.mpd_connection):
         self.infowindow_visible = True
 
     def infowindow_get_lyrics(self, artist, title):
-        if self.lyricServer is None:
-            wsdlFile = "http://lyricwiki.org/server.php?wsdl"
+        filename = os.path.expanduser('~/.lyrics/' + artist + '-' + title + '.txt')
+        # If the lyrics are already written to a file, retrieve:
+        if os.path.exists(filename):
+            f = open(filename, 'r')
+            lyrics = f.read()
+            f.close()
+            gobject.idle_add(self.infowindow_show_lyrics, lyrics, artist, title)
+        else:
+            gobject.idle_add(self.infowindow_show_lyrics, _("Fetching lyrics..."))
+            if self.lyricServer is None:
+                wsdlFile = "http://lyricwiki.org/server.php?wsdl"
+                try:
+                    self.lyricServer = True
+                    timeout = socket.getdefaulttimeout()
+                    socket.setdefaulttimeout(self.LYRIC_TIMEOUT)
+                    self.lyricServer = WSDL.Proxy(wsdlFile)
+                except:
+                    socket.setdefaulttimeout(timeout)
+                    lyrics = _("Couldn't connect to LyricWiki")
+                    gobject.idle_add(self.infowindow_show_lyrics, lyrics)
+                    self.lyricServer = None
+                    return
             try:
-                self.lyricServer = True
                 timeout = socket.getdefaulttimeout()
                 socket.setdefaulttimeout(self.LYRIC_TIMEOUT)
-                self.lyricServer = WSDL.Proxy(wsdlFile)
-            except:
-                socket.setdefaulttimeout(timeout)
-                lyrics = _("Couldn't connect to LyricWiki")
+                lyrics = self.lyricServer.getSong(artist, title)["lyrics"]
+                lyrics = artist + " - " + title + "\n\n" + lyrics
                 gobject.idle_add(self.infowindow_show_lyrics, lyrics, artist, title)
-                self.lyricServer = None
-                return
-        try:
-            timeout = socket.getdefaulttimeout()
-            socket.setdefaulttimeout(self.LYRIC_TIMEOUT)
-            lyrics = self.lyricServer.getSong(artist, title)["lyrics"]
-            lyrics = artist + " - " + title + "\n\n" + lyrics
-            gobject.idle_add(self.infowindow_show_lyrics, lyrics, artist, title)
-        except:
-            lyrics = _("Fetching lyrics failed")
-            gobject.idle_add(self.infowindow_show_lyrics, lyrics, artist, title)
-        socket.setdefaulttimeout(timeout)
+                # Save lyrics to file:
+                f = open(filename, 'w')
+                f.write(lyrics)
+                f.close()
+            except:
+                lyrics = _("Fetching lyrics failed")
+                gobject.idle_add(self.infowindow_show_lyrics, lyrics)
+            socket.setdefaulttimeout(timeout)
 
-    def infowindow_show_lyrics(self, lyrics, artist, title):
+    def infowindow_show_lyrics(self, lyrics, artist=None, title=None):
         if artist is None and title is None:
             self.lyricsBuffer.set_text(lyrics)
         elif self.status and self.status.state in ['play', 'pause']:
