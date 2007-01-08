@@ -4914,7 +4914,20 @@ class Base(mpdclient3.mpd_connection):
             pass
         self.about_dialog.set_name('Sonata')
         self.about_dialog.set_version(__version__)
-        self.about_dialog.set_comments(_('A lightweight music player for MPD.'))
+        commentlabel = _('A lightweight music player for MPD.')
+        self.about_dialog.set_comments(commentlabel)
+        if self.conn:
+            # Include MPD stats:
+            stats = self.conn.do.stats()
+            statslabel = stats.songs + ' ' + _('songs.') + '\n'
+            statslabel = statslabel + stats.albums + ' ' + _('albums.') + '\n'
+            statslabel = statslabel + stats.artists + ' ' + _('artists.') + '\n'
+            try:
+                hours_of_playtime = convert_time(float(stats.db_playtime)).split(':')[-3]
+            except:
+                hours_of_playtime = '0'
+            statslabel = statslabel + hours_of_playtime + ' ' + _('hours of bliss.')
+            self.about_dialog.set_copyright(statslabel)
         self.about_dialog.set_license(__license__)
         self.about_dialog.set_authors(['Scott Horowitz <stonecrest@gmail.com>'])
         self.about_dialog.set_translator_credits('fr - Floreal M <florealm@gmail.com>\npl - Tomasz Dominikowski <dominikowski@gmail.com>\nde - Paul Johnson <thrillerator@googlemail.com>')
