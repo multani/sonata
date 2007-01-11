@@ -3339,12 +3339,16 @@ class Base(mpdclient3.mpd_connection):
                 timeout = socket.getdefaulttimeout()
                 socket.setdefaulttimeout(self.LYRIC_TIMEOUT)
                 lyrics = self.lyricServer.getSong(artist, title)["lyrics"]
-                lyrics = artist + " - " + title + "\n\n" + lyrics
-                gobject.idle_add(self.infowindow_show_lyrics, lyrics, artist, title)
-                # Save lyrics to file:
-                f = open(filename, 'w')
-                f.write(lyrics)
-                f.close()
+                if lyrics.lower() != "not found":
+                    lyrics = artist + " - " + title + "\n\n" + lyrics
+                    gobject.idle_add(self.infowindow_show_lyrics, lyrics, artist, title)
+                    # Save lyrics to file:
+                    f = open(filename, 'w')
+                    f.write(lyrics)
+                    f.close()
+                else:
+                    lyrics = _("Lyrics not found")
+                    gobject.idle_add(self.infowindow_show_lyrics, lyrics)
             except:
                 lyrics = _("Fetching lyrics failed")
                 gobject.idle_add(self.infowindow_show_lyrics, lyrics)
