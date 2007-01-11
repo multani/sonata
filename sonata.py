@@ -1989,11 +1989,11 @@ class Base(mpdclient3.mpd_connection):
         # instances, like when we want all end files for editing tags
         items = []
         model, selected = self.browser_selection.get_selected_rows()
-        if return_root and not self.search_mode_enabled() and ((self.root == "/" and len(selected) == len(model)) or (self.root != "/" and len(selected) >= len(model)-2)):
-            # Everything selected, this is faster..
-            items.append(self.root)
-        else:
-            if self.view == self.VIEW_FILESYSTEM or self.search_mode_enabled():
+        if self.view == self.VIEW_FILESYSTEM or self.search_mode_enabled():
+            if return_root and not self.search_mode_enabled() and ((self.root == "/" and len(selected) == len(model)) or (self.root != "/" and len(selected) >= len(model)-2)):
+                # Everything selected, this is faster..
+                items.append(self.root)
+            else:
                 for path in selected:
                     if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
                         if model.get_value(model.get_iter(path), 0) == gtk.STOCK_OPEN:
@@ -2005,29 +2005,29 @@ class Base(mpdclient3.mpd_connection):
                                         items.append(item.file)
                         else:
                             items.append(model.get_value(model.get_iter(path), 1))
-            elif self.view == self.VIEW_ARTIST:
-                for path in selected:
-                    if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
-                        if self.view_artist_level == 1:
-                            for item in self.browse_search_artist(model.get_value(model.get_iter(path), 1)):
-                                items.append(item.file)
-                        else:
-                            if model.get_value(model.get_iter(path), 0) == 'album':
-                                (album, year) = self.browse_parse_albumview_path(model.get_value(model.get_iter(path), 1))
-                                for item in self.browse_search_album_with_artist_and_year(self.view_artist_artist, album, year):
-                                    items.append(item.file)
-                            else:
-                                items.append(model.get_value(model.get_iter(path), 1))
-            elif self.view == self.VIEW_ALBUM:
-                for path in selected:
-                    if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
-                        if self.root == "/":
-                            for item in self.browse_search_album(model.get_value(model.get_iter(path), 1)):
+        elif self.view == self.VIEW_ARTIST:
+            for path in selected:
+                if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
+                    if self.view_artist_level == 1:
+                        for item in self.browse_search_artist(model.get_value(model.get_iter(path), 1)):
+                            items.append(item.file)
+                    else:
+                        if model.get_value(model.get_iter(path), 0) == 'album':
+                            (album, year) = self.browse_parse_albumview_path(model.get_value(model.get_iter(path), 1))
+                            for item in self.browse_search_album_with_artist_and_year(self.view_artist_artist, album, year):
                                 items.append(item.file)
                         else:
                             items.append(model.get_value(model.get_iter(path), 1))
-            # Make sure we don't have any EXACT duplicates:
-            (items, i) = remove_list_duplicates(items, [], True)
+        elif self.view == self.VIEW_ALBUM:
+            for path in selected:
+                if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
+                    if self.root == "/":
+                        for item in self.browse_search_album(model.get_value(model.get_iter(path), 1)):
+                            items.append(item.file)
+                    else:
+                        items.append(model.get_value(model.get_iter(path), 1))
+        # Make sure we don't have any EXACT duplicates:
+        (items, i) = remove_list_duplicates(items, [], True)
         return items
 
     def add_item(self, widget):
@@ -4200,6 +4200,7 @@ class Base(mpdclient3.mpd_connection):
         availableheading = gtk.Label()
         availableheading.set_markup('<small>' + _('Available options') + ':</small>')
         availableheading.set_alignment(0, 0)
+        availablevbox = gtk.VBox()
         availableformatbox = gtk.HBox()
         availableformatting = gtk.Label()
         availableformatting.set_markup('<small><span font_family="Monospace">%A</span> - ' + _('Artist name') + '\n<span font_family="Monospace">%B</span> - ' + _('Album name') + '\n<span font_family="Monospace">%S</span> - ' + _('Song name') + '\n<span font_family="Monospace">%T</span> - ' + _('Track number') + '\n<span font_family="Monospace">%Y</span> - ' + _('Year') + '</small>')
@@ -4209,6 +4210,11 @@ class Base(mpdclient3.mpd_connection):
         availableformatting2.set_alignment(0, 0)
         availableformatbox.pack_start(availableformatting)
         availableformatbox.pack_start(availableformatting2)
+        availablevbox.pack_start(availableformatbox, False, False, 0)
+        enclosedtags = gtk.Label()
+        enclosedtags.set_markup('<small>{ } - ' + _('Info displayed only if all enclosed tags are defined') + '</small>')
+        enclosedtags.set_alignment(0,0)
+        availablevbox.pack_start(enclosedtags, False, False, 4)
         table4.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table4.attach(formatlabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table4.attach(gtk.Label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
@@ -4219,7 +4225,7 @@ class Base(mpdclient3.mpd_connection):
         table4.attach(currsongformatbox2, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table4.attach(gtk.Label(), 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table4.attach(availableheading, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table4.attach(availableformatbox, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 45, 0)
+        table4.attach(availablevbox, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 45, 0)
         table4.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         nblabel1 = gtk.Label()
         nblabel1.set_text_with_mnemonic(_("_MPD"))
