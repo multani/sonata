@@ -1658,7 +1658,7 @@ class Base(mpdclient3.mpd_connection):
                 for item in self.browse_search_artist(self.view_artist_artist):
                     try:
                         albums.append(item.album)
-                        years.append(getattr(item, 'date', '0').zfill(4))
+                        years.append(getattr(item, 'date', '0').split('-')[0].zfill(4))
                     except:
                         songs.append(item)
                 (albums, years) = remove_list_duplicates(albums, years, False)
@@ -1715,7 +1715,7 @@ class Base(mpdclient3.mpd_connection):
             # Make sure it's an exact match:
             if artist.lower() == item.artist.lower():
                 list.append(item)
-        list.sort(key=lambda x: getattr(x, 'date', '0').zfill(4))
+        list.sort(key=lambda x: getattr(x, 'date', '0').split('-')[0].zfill(4))
         return list
 
     def browse_search_album_with_artist_and_year(self, artist, album, year):
@@ -1731,8 +1731,11 @@ class Base(mpdclient3.mpd_connection):
                     # Make sure it also matches the year:
                     if year != '0000' and item.has_key('date'):
                         # Only show songs whose years match the year var:
-                        if int(item.date) == int(year):
-                            list.append(item)
+                        try:
+                            if int(item.date.split('-')[0]) == int(year):
+                                list.append(item)
+                        except:
+                            pass
                     elif not item.has_key('date'):
                         # Only show songs that have no year specified:
                         list.append(item)
@@ -3134,14 +3137,16 @@ class Base(mpdclient3.mpd_connection):
         nblabel1.set_text_with_mnemonic(_("_Song Info"))
         for hbox in hboxes:
             vbox.pack_start(hbox, False, False, 3)
-        self.edittag_button = gtk.Button(' ' + _("_Edit..."))
-        self.edittag_button.set_image(gtk.image_new_from_stock(gtk.STOCK_EDIT, gtk.ICON_SIZE_MENU))
-        self.edittag_button.connect('clicked', self.on_edittag_click)
-        hbox_edittag = gtk.HBox()
-        hbox_edittag.pack_start(self.edittag_button, False, False, 10)
-        hbox_edittag.pack_start(gtk.Label(), True, True, 0)
-        vbox.pack_start(gtk.Label(), True, True, 0)
-        vbox.pack_start(hbox_edittag, False, False, 6)
+        if HAVE_TAGPY:
+            # Add Edit button:
+            self.edittag_button = gtk.Button(' ' + _("_Edit..."))
+            self.edittag_button.set_image(gtk.image_new_from_stock(gtk.STOCK_EDIT, gtk.ICON_SIZE_MENU))
+            self.edittag_button.connect('clicked', self.on_edittag_click)
+            hbox_edittag = gtk.HBox()
+            hbox_edittag.pack_start(self.edittag_button, False, False, 10)
+            hbox_edittag.pack_start(gtk.Label(), True, True, 0)
+            vbox.pack_start(gtk.Label(), True, True, 0)
+            vbox.pack_start(hbox_edittag, False, False, 6)
         notebook.append_page(vbox, nblabel1)
         # Add cover art:
         nblabel2 = gtk.Label()
@@ -3217,7 +3222,8 @@ class Base(mpdclient3.mpd_connection):
         if self.conn:
             if self.infowindow_visible:
                 if self.status and self.status.state in ['play', 'pause']:
-                    self.edittag_button.set_sensitive(True)
+                    if HAVE_TAGPY:
+                        self.edittag_button.set_sensitive(True)
                     at, length = [int(c) for c in self.status.time.split(':')]
                     at_time = convert_time(at)
                     try:
@@ -3292,7 +3298,8 @@ class Base(mpdclient3.mpd_connection):
                     if show_after_update:
                         gobject.idle_add(self.infowindow_show_now)
                 else:
-                    self.edittag_button.set_sensitive(False)
+                    if HAVE_TAGPY:
+                        self.edittag_button.set_sensitive(False)
                     self.infowindow_timelabel.set_text("")
                     self.infowindow_titlelabel.set_text("")
                     self.infowindow_artistlabel.set_text("")
