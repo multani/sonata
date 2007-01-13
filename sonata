@@ -5,7 +5,7 @@
 __author__ = "Scott Horowitz"
 __email__ = "stonecrest@gmail.com"
 __license__ = """
-Sonata, a simple GTK+ client for the Music Player Daemon
+Sonata, an elegant GTK+ client for the Music Player Daemon
 Copyright 2006 Scott Horowitz <stonecrest@gmail.com>
 
 This file is part of Sonata.

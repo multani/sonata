@@ -3,7 +3,7 @@ v1.0 - Pending
 	+ Editing of song tags (requires optional taglib & tagpy)
 	+ Auto-fetching of song lyrics (requires optional soappy)
 	+ Improved song info window and access to it
-	+ Allow pls/m3u/extm3u streams as input
+	+ Allow pls/m3u/extm3u's as stream inputs
 	+ Sort current playlist (by metadata, random, reverse)
 	+ Optional statusbar (playlist length, time)
 	+ Revert to gtk's StatusIcon if gnome-python-extras isn't installed

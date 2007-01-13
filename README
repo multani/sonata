@@ -11,6 +11,7 @@ REQUIREMENTS:
 	(Optional) Gnome-python-extras for the system tray icon
 	           (if PyGTK >= 2.10, no need for gnome-python-extras)
 	(Optional) taglib and tagpy for editing metadata
+	(Optional) SOAPpy for automatic lyrics fetching
 	(Building) GCC
 	(Building) python-dev (on some distros)
 
@@ -22,9 +23,9 @@ FEATURES:
 	+ Automatic remote or local album art
 	+ Automatic fetching of lyrics
 	+ Playlist and stream support
-	+ Support for editing tags
+	+ Support for editing song tags
 	+ System tray icon with tooltip
-	+ Optional popup notification
+	+ Popup notification
 	+ Library searching by artist, song, etc.
 	+ Keyboard friendly
 	+ Support for multimedia keys
