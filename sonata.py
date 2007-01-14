@@ -5092,8 +5092,8 @@ class TrayIconTips(gtk.Window):
         try:
             # If the tooltip goes off the screen horizontally, realign it so that
             # it all displays.
-            if (x + w) > monitor.width:
-                x = monitor.width - w
+            if (x + w) > monitor.x + monitor.width:
+                x = monitor.x + monitor.width - w
             # If the tooltip goes off the screen vertically (i.e. the system tray
             # icon is on the bottom of the screen), realign the icon so that it
             # shows above the icon.
@@ -5110,21 +5110,21 @@ class TrayIconTips(gtk.Window):
                 return x, y
             except:
                 #Fallback to top-left:
-                return 0, 0
+                return monitor.x, monitor.y
         elif self.notifications_location == 0:
             try:
                 return x, y
             except:
                 #Fallback to top-left:
-                return 0, 0
+                return monitor.x, monitor.y
         elif self.notifications_location == 1:
-            return 0, 0
+            return monitor.x, monitor.y
         elif self.notifications_location == 2:
-            return monitor.width - w, 0
+            return monitor.x + monitor.width - w, monitor.y
         elif self.notifications_location == 3:
-            return 0, monitor.height - h
+            return monitor.x, monitor.y + monitor.height - h
         elif self.notifications_location == 4:
-            return monitor.width - w, monitor.height - h
+            return monitor.x + monitor.width - w, monitor.y + monitor.height - h
 
     def _event_handler (self, widget):
         widget.connect_after("event-after", self._motion_cb)
