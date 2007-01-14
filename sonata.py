@@ -183,8 +183,8 @@ class Base(mpdclient3.mpd_connection):
 
         if not HAVE_TAGPY:
             print "Taglib and tagpy not found, tag editing support disabled."
-        #if not HAVE_WSDL:
-        #	print "SOAPpy not found, fetching lyrics support disabled."
+        if not HAVE_WSDL:
+            print "SOAPpy not found, fetching lyrics support disabled."
         if not HAVE_EGG and not HAVE_STATUS_ICON:
             print "PyGTK+ 2.10 or gnome-python-extras not found, system tray support disabled."
 
@@ -3737,7 +3737,6 @@ class Base(mpdclient3.mpd_connection):
     def trayaction_scroll(self, widget, event):
         self.on_volumebutton_scroll(widget, event)
 
-    # Tray menu callbacks, because I can't reuse all of them.
     def quit_activate(self, widget):
         self.window.destroy()
 
