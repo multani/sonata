@@ -5024,7 +5024,7 @@ class Base(mpdclient3.mpd_connection):
                 pid = subprocess.Popen(["exo-open", docslink]).pid
             except:
                 try:
-                    pid = subprocess.Popen(["kfmclient", docslink]).pid
+                    pid = subprocess.Popen(["kfmclient", "openURL", docslink]).pid
                 except:
                     try:
                         pid = subprocess.Popen(["firefox", docslink]).pid
