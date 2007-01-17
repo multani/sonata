@@ -1,12 +1,13 @@
 v1.0
-	ability to 'save all' for tag editing? shortcut?
+	ability to 'save all' for tag editing? shortcut or button?
 	post drag selection..
 	notification window position with dual monitor setup
 	translations (include ukranian)
-	website (update icon too)
+	website documentation
 
 Future:
 	lyrics -> allow user to edit, fetch, auto-update to wiki..?
 	make selection, dnd, more like thunar
 	connect in background via socket.setblocking(0)
 	last.fm?
+	libnotify?

@@ -5024,17 +5024,20 @@ class Base(mpdclient3.mpd_connection):
                 pid = subprocess.Popen(["exo-open", docslink]).pid
             except:
                 try:
-                    pid = subprocess.Popen(["firefox", docslink]).pid
+                    pid = subprocess.Popen(["kfmclient", docslink]).pid
                 except:
                     try:
-                        pid = subprocess.Popen(["mozilla", docslink]).pid
+                        pid = subprocess.Popen(["firefox", docslink]).pid
                     except:
                         try:
-                            pid = subprocess.Popen(["opera", docslink]).pid
+                            pid = subprocess.Popen(["mozilla", docslink]).pid
                         except:
-                            error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _('Unable to launch a suitable browser.'))
-                            error_dialog.run()
-                            error_dialog.destroy()
+                            try:
+                                pid = subprocess.Popen(["opera", docslink]).pid
+                            except:
+                                error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _('Unable to launch a suitable browser.'))
+                                error_dialog.run()
+                                error_dialog.destroy()
 
     def main(self):
         gtk.main()
