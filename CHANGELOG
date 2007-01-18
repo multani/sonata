@@ -19,6 +19,7 @@ v1.0 - Pending
 	+ Use curly brackets {} to have formatting appear only if all enclosed
 	  tags are available
 	+ Ability to run on OLPC's Sugar user environment (Owen)
+	+ Added Ukranian translation (Господарисько Тарас)
 	+ Bug: No more freezes due to threading! Finally! Seriously!
 	+ Bug: Cannot set album art for album/artist with "/" in name
 	+ Bug: Prevent interface jumping because of progress bar font

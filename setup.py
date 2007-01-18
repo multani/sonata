@@ -44,5 +44,6 @@ setup(name='Sonata',
                     ('share/locale/de/LC_MESSAGES', ['locale/de/LC_MESSAGES/sonata.mo']),
                     ('share/locale/pl/LC_MESSAGES', ['locale/pl/LC_MESSAGES/sonata.mo']),
                     ('share/locale/ru/LC_MESSAGES', ['locale/ru/LC_MESSAGES/sonata.mo']),
-                    ('share/locale/fr/LC_MESSAGES', ['locale/fr/LC_MESSAGES/sonata.mo'])],
+                    ('share/locale/fr/LC_MESSAGES', ['locale/fr/LC_MESSAGES/sonata.mo']),
+                    ('share/locale/uk/LC_MESSAGES', ['locale/uk/LC_MESSAGES/sonata.mo'])],
         )
