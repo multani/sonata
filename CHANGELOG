@@ -23,6 +23,7 @@ v1.0 - Pending
 	+ Bug: No more freezes due to threading! Finally! Seriously!
 	+ Bug: Cannot set album art for album/artist with "/" in name
 	+ Bug: Prevent interface jumping because of progress bar font
+	+ Bug: Notification window isn't positioned correctly for dual-head
 
 v0.9 - November 19, 2006
 	+ Added stream support

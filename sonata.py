@@ -2666,8 +2666,10 @@ class Base(mpdclient3.mpd_connection):
                         self.traytips.use_notifications_location = True
                         if HAVE_STATUS_ICON:
                             self.traytips._real_display(self.statusicon)
-                        else:
+                        elif HAVE_EGG:
                             self.traytips._real_display(self.trayeventbox)
+                        else:
+                            self.traytips._real_display(None)
                         if self.popup_option != len(self.popuptimes)-1:
                             timeout = int(self.popuptimes[self.popup_option])*1000
                             self.traytips.notif_handler = gobject.timeout_add(timeout, self.traytips.hide)
@@ -5065,7 +5067,6 @@ class TrayIconTips(gtk.Window):
         self.use_notifications_location = False
         self.notifications_location = 0
 
-    # from gtktooltips.c:gtk_tooltips_draw_tips
     def _calculate_pos(self, widget):
         if HAVE_STATUS_ICON:
             icon_screen, icon_rect, icon_orient = widget.get_geometry()
@@ -5090,7 +5091,12 @@ class TrayIconTips(gtk.Window):
         if pointer_screen != screen:
             px = x
             py = y
-        monitor_num = screen.get_monitor_at_point(px, py)
+        try:
+            # Use the monitor that the systemtray icon is on
+            monitor_num = screen.get_monitor_at_point(x, y)
+        except:
+            # No systemtray icon, use the monitor that the pointer is on
+            monitor_num = screen.get_monitor_at_point(px, py)
         monitor = screen.get_monitor_geometry(monitor_num)
 
         try:
