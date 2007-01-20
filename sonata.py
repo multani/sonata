@@ -914,7 +914,7 @@ class Base(mpdclient3.mpd_connection):
 
         self.iterate_now()
         if self.window_owner:
-            if self.withdrawn and (HAVE_EGG or (HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible())):
+            if self.withdrawn and (HAVE_EGG or (HAVE_STATUS_ICON and self.statusicon.get_visible())):
                 self.window.set_no_show_all(True)
                 self.window.hide()
         self.window.show_all()
@@ -3667,7 +3667,9 @@ class Base(mpdclient3.mpd_connection):
         # handler has a value, because that means that the tooltip is already
         # visible, and we don't want to override that setting simply because
         # the user's cursor is not over the tooltip.
-        if not self.traytips.notif_handler:
+        if self.traymenu.get_property('visible'):
+            self.traytips._remove_timer()
+        elif not self.traytips.notif_handler:
             pointer_screen, px, py, _ = self.window.get_screen().get_display().get_pointer()
             icon_screen, icon_rect, icon_orient = self.statusicon.get_geometry()
             x = icon_rect[0]
