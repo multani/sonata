@@ -671,7 +671,7 @@ class Base(mpdclient3.mpd_connection):
         mainvbox.pack_start(self.notebook, True, True, 5)
         self.statusbar = gtk.Statusbar()
         self.statusbar.set_has_resize_grip(True)
-        if not self.show_statusbar:
+        if not self.show_statusbar or not self.expanded:
             self.statusbar.hide()
             self.statusbar.set_no_show_all(True)
         mainvbox.pack_start(self.statusbar, False, False, 0)
@@ -2054,22 +2054,22 @@ class Base(mpdclient3.mpd_connection):
     def stream_parse_and_add(self, item):
         # We need to do different things depending on if this is
         # a normal stream, pls, m3u, etc..
-        # Note that we will only download the first 2000 bytes
+        # Note that we will only download the first 4000 bytes
         f = None
         try:
             request = urllib2.Request(item)
             opener = urllib2.build_opener()
-            f = opener.open(request).read(2000)
+            f = opener.open(request).read(4000)
         except:
             try:
                 request = urllib2.Request("http://" + item)
                 opener = urllib2.build_opener()
-                f = opener.open(request).read(2000)
+                f = opener.open(request).read(4000)
             except:
                 try:
                     request = urllib2.Request("file://" + item)
                     opener = urllib2.build_opener()
-                    f = opener.open(request).read(2000)
+                    f = opener.open(request).read(4000)
                 except:
                     pass
         if f:
@@ -2094,8 +2094,9 @@ class Base(mpdclient3.mpd_connection):
             self.conn.do.add(item)
 
     def stream_parse_pls(self, f):
-        lines = f.split("\r\n")
+        lines = f.split("\n")
         for line in lines:
+            line = line.replace('\r','')
             delim = line.find("=")+1
             if delim > 0:
                 line = line[delim:]
@@ -2105,8 +2106,9 @@ class Base(mpdclient3.mpd_connection):
                     self.conn.do.add(line)
 
     def stream_parse_m3u(self, f):
-        lines = f.split("\r\n")
+        lines = f.split("\n")
         for line in lines:
+            line = line.replace('\r','')
             if len(line) > 7 and line[0:7] == 'http://':
                 self.conn.do.add(line)
             elif len(line) > 6 and line[0:6] == 'ftp://':
@@ -2800,6 +2802,7 @@ class Base(mpdclient3.mpd_connection):
         if window_about_to_be_expanded:
             self.expanded = True
             self.tooltips.set_tip(self.expander, _("Click to collapse the player"))
+            self.keep_song_visible_in_list()
         else:
             self.tooltips.set_tip(self.expander, _("Click to expand the player"))
         # Put focus to the notebook:
