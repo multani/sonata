@@ -1,9 +1,14 @@
 v1.0
 	ability to 'save all' for tag editing? shortcut or button?
 	post drag selection..
+	interface jumping?
+	slow adding of streams?
+
+v1.0.1
+	rename playlist, edit stream
 
 Future:
-	lyrics -> allow user to edit, fetch, auto-update to wiki..?
+	lyrics -> allow user to edit, fetch, auto-update to wiki, search terms..?
 	make selection, dnd, more like thunar
 	connect in background via socket.setblocking(0)
 	last.fm?

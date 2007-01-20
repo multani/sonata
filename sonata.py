@@ -2628,7 +2628,7 @@ class Base(mpdclient3.mpd_connection):
                                 if self.stop_art_update:
                                     self.downloading_image = False
                                     return imgfound
-                                self.imagelist.append([curr_img, pix])
+                                self.imagelist.append([curr_img, pix, ""])
                                 del pix
                                 self.remotefilelist.append(dest_filename_curr)
                                 imgfound = True
@@ -3058,7 +3058,6 @@ class Base(mpdclient3.mpd_connection):
             return
         self.infowindow = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.infowindow.set_title(_('Song Info'))
-        self.infowindow.set_resizable(False)
         self.infowindow.set_size_request(380, -1)
         icon = self.infowindow.render_icon('sonata', gtk.ICON_SIZE_DIALOG)
         self.infowindow.set_icon(icon)
@@ -3186,12 +3185,13 @@ class Base(mpdclient3.mpd_connection):
             self.lyricsBuffer = gtk.TextBuffer()
             lyricsView = gtk.TextView(self.lyricsBuffer)
             lyricsView.set_editable(False)
+            lyricsView.set_wrap_mode(gtk.WRAP_WORD)
             scrollWindow.add_with_viewport(lyricsView)
             notebook.append_page(scrollWindow, nblabel4)
         hbox_main = gtk.HBox()
-        hbox_main.pack_start(notebook, False, False, 15)
+        hbox_main.pack_start(notebook, True, True, 15)
         vbox_inner = gtk.VBox()
-        vbox_inner.pack_start(hbox_main, False, False, 10)
+        vbox_inner.pack_start(hbox_main, True, True, 10)
         hbox_close = gtk.HBox()
         hbox_close.pack_start(gtk.Label(), True, True, 0)
         closebutton = gtk.Button(gtk.STOCK_CLOSE, gtk.STOCK_CLOSE)
@@ -3199,7 +3199,7 @@ class Base(mpdclient3.mpd_connection):
         hbox_close.pack_start(closebutton, False, False, 15)
         vbox_inner.pack_start(hbox_close, False, False, 0)
         vbox_main = gtk.VBox()
-        vbox_main.pack_start(vbox_inner, False, False, 5)
+        vbox_main.pack_start(vbox_inner, True, True, 5)
         self.infowindow.add(vbox_main)
         self.infowindow.show_all()
         self.infowindow_visible = True
@@ -3504,9 +3504,10 @@ class Base(mpdclient3.mpd_connection):
         scroll = gtk.ScrolledWindow()
         scroll.set_size_request(350, 325)
         scroll.set_policy(gtk.POLICY_NEVER, gtk.POLICY_ALWAYS)
-        self.imagelist = gtk.ListStore(int, gtk.gdk.Pixbuf)
+        self.imagelist = gtk.ListStore(int, gtk.gdk.Pixbuf, str)
         imagewidget = gtk.IconView(self.imagelist)
         imagewidget.set_pixbuf_column(1)
+        imagewidget.set_text_column(2)
         imagewidget.set_columns(2)
         imagewidget.set_item_width(150)
         imagewidget.set_spacing(5)
@@ -3587,22 +3588,10 @@ class Base(mpdclient3.mpd_connection):
         self.call_gc_collect = True
 
     def choose_image_no_artist_or_album_dialog(self):
-        if self.remote_from_infowindow:
-            error_dialog = gtk.MessageDialog(self.infowindow, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No artist or album name found."))
-        else:
-            error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No artist or album name found."))
-        error_dialog.set_title(_("Choose Cover Art"))
-        error_dialog.connect('response', self.choose_image_dialog_response)
-        error_dialog.show()
+        self.imagelist.append([0, gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 1, 1), _("No artist or album name found.")])
 
     def choose_image_no_art_found(self):
-        if self.remote_from_infowindow:
-            error_dialog = gtk.MessageDialog(self.infowindow, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No cover art found."))
-        else:
-            error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No cover art found."))
-        error_dialog.set_title(_("Choose Cover Art"))
-        error_dialog.connect('response', self.choose_image_dialog_response)
-        error_dialog.show()
+        self.imagelist.append([0, gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 1, 1), _("No cover art found.")])
 
     def choose_image_dialog_response(self, dialog, response_id):
         dialog.destroy()
@@ -3621,21 +3610,22 @@ class Base(mpdclient3.mpd_connection):
     def replace_cover(self, iconview, path, dialog):
         self.stop_art_update = True
         image_num = int(path[0])
-        filename = self.remotefilelist[image_num]
-        dest_filename = os.path.expanduser("~/.covers/" + self.remote_artist + "-" + self.remote_album + ".jpg")
-        if os.path.exists(filename):
-            # Move temp file to actual file:
-            try:
-                os.remove(dest_filename)
-            except:
-                pass
-            os.rename(filename, dest_filename)
-            # And finally, set the image in the interface:
-            self.lastalbumart = None
-            self.update_album_art()
-            # Clean up..
-            if os.path.exists(os.path.dirname(filename)):
-                removeall(os.path.dirname(filename))
+        if len(self.remotefilelist) > 0:
+            filename = self.remotefilelist[image_num]
+            dest_filename = os.path.expanduser("~/.covers/" + self.remote_artist + "-" + self.remote_album + ".jpg")
+            if os.path.exists(filename):
+                # Move temp file to actual file:
+                try:
+                    os.remove(dest_filename)
+                except:
+                    pass
+                os.rename(filename, dest_filename)
+                # And finally, set the image in the interface:
+                self.lastalbumart = None
+                self.update_album_art()
+                # Clean up..
+                if os.path.exists(os.path.dirname(filename)):
+                    removeall(os.path.dirname(filename))
         self.chooseimage_visible = False
         dialog.destroy()
         while self.downloading_image:
