@@ -2048,6 +2048,7 @@ class Base(mpdclient3.mpd_connection):
                 model, selected = self.streams_selection.get_selected_rows()
                 for path in selected:
                     item = model.get_value(model.get_iter(path), 2)
+                    gtk.main_iteration()
                     self.stream_parse_and_add(item)
             self.iterate_now()
 
@@ -2353,7 +2354,7 @@ class Base(mpdclient3.mpd_connection):
                 newlabel = newlabel + '\n<small>' + self.parse_formatting(self.currsongformat2, self.songinfo, True) + '</small>'
                 newlabel_tray_gtk = newlabel_tray_gtk + '\n' + self.parse_formatting(self.currsongformat2, self.songinfo, True)
             else:
-                newlabel = newlabel + '\n '
+                newlabel = newlabel + '\n<small> </small>'
                 newlabel_tray_gtk = newlabel_tray_gtk + '\n '
             newlabel_tray_egg = newlabel
             if newlabel != self.cursonglabel.get_label():
@@ -2383,32 +2384,56 @@ class Base(mpdclient3.mpd_connection):
 
     def update_playlist(self):
         if self.conn:
+            try:
+                prev_songs = self.songs
+            except:
+                prev_songs = None
             self.songs = self.conn.do.playlistinfo()
+            all_files_unchanged = self.playlist_files_unchanged(prev_songs)
             self.total_time = 0
-            self.current.freeze_child_notify()
-            self.currentdata.clear()
-            self.current.set_model(None)
-            for track in self.songs:
+            if not all_files_unchanged:
+                self.currentdata.clear()
+                self.current.freeze_child_notify()
+                self.current.set_model(None)
+            for i in range(len(self.songs)):
+                track = self.songs[i]
                 item = self.parse_formatting(self.currentformat, track, True)
                 # Check if the item is one of the user's streams; if so,
                 # we want to display the stream name:
                 for i in range(len(self.stream_uris)):
                     if track.file == self.stream_uris[i]:
-                        item = escape_html(self.stream_names[i])
-                try:
-                    self.total_time = self.total_time + int(track.time)
-                except:
-                    pass
-                self.currentdata.append([int(track.id), item])
-            self.current.set_model(self.currentdata)
-            self.current.thaw_child_notify()
-            if self.status.state in ['play', 'pause']:
-                currsong = int(self.songinfo.pos)
-                self.currentdata[currsong][1] = make_bold(self.currentdata[currsong][1])
-                self.keep_song_visible_in_list()
-                self.prev_boldrow = currsong
+                            item = escape_html(self.stream_names[i])
+                    try:
+                        self.total_time = self.total_time + int(track.time)
+                    except:
+                        pass
+                if all_files_unchanged:
+                    print self.currentdata[i][1], item
+                    self.currentdata[i] = [int(track.id), item]
+                else:
+                    self.currentdata.append([int(track.id), item])
+            if not all_files_unchanged:
+                if self.status.state in ['play', 'pause']:
+                    currsong = int(self.songinfo.pos)
+                    self.currentdata[currsong][1] = make_bold(self.currentdata[currsong][1])
+                    self.keep_song_visible_in_list()
+                    self.prev_boldrow = currsong
+                self.current.set_model(self.currentdata)
+                self.current.thaw_child_notify()
             self.update_statusbar()
             self.change_cursor(None)
+
+    def playlist_files_unchanged(self, prev_songs):
+        # Go through each playlist object and check if the current and previous
+        # filenames match:
+        if prev_songs == None:
+            return False
+        if len(prev_songs) != len(self.songs):
+            return False
+        for i in range(len(self.songs)):
+            if self.songs[i].file != prev_songs[i].file:
+                return False
+        return True
 
     def keep_song_visible_in_list(self):
         if self.expanded and len(self.currentdata)>0:
@@ -3740,7 +3765,10 @@ class Base(mpdclient3.mpd_connection):
 
     def on_current_click(self, treeview, path, column):
         iter = self.currentdata.get_iter(path)
-        self.conn.do.playid(self.currentdata.get_value(iter, 0))
+        try:
+            self.conn.do.playid(self.currentdata.get_value(iter, 0))
+        except:
+            pass
         self.iterate_now()
 
     def switch_to_current(self, action):

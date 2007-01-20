@@ -6,6 +6,7 @@ v1.0
 
 v1.0.1
 	rename playlist, edit stream
+	local amazon sites (i.e. amazon.de)?
 
 Future:
 	lyrics -> allow user to edit, fetch, auto-update to wiki, search terms..?
