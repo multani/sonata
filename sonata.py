@@ -2407,9 +2407,9 @@ class Base(mpdclient3.mpd_connection):
             self.songs = self.conn.do.playlistinfo()
             all_files_unchanged = self.playlist_files_unchanged(prev_songs)
             self.total_time = 0
+            self.current.freeze_child_notify()
             if not all_files_unchanged:
                 self.currentdata.clear()
-                self.current.freeze_child_notify()
                 self.current.set_model(None)
             for i in range(len(self.songs)):
                 track = self.songs[i]
@@ -2424,17 +2424,19 @@ class Base(mpdclient3.mpd_connection):
                 except:
                     pass
                 if all_files_unchanged:
-                    self.currentdata[i] = [int(track.id), item]
+                    iter = self.currentdata.get_iter((i, ))
+                    self.currentdata.set(iter, 0, int(track.id), 1, item)
                 else:
                     self.currentdata.append([int(track.id), item])
             if not all_files_unchanged:
                 if self.status.state in ['play', 'pause']:
-                    currsong = int(self.songinfo.pos)
-                    self.currentdata[currsong][1] = make_bold(self.currentdata[currsong][1])
                     self.keep_song_visible_in_list()
-                    self.prev_boldrow = currsong
                 self.current.set_model(self.currentdata)
-                self.current.thaw_child_notify()
+            if self.status.state in ['play', 'pause']:
+                currsong = int(self.songinfo.pos)
+                self.currentdata[currsong][1] = make_bold(self.currentdata[currsong][1])
+                self.prev_boldrow = currsong
+            self.current.thaw_child_notify()
             self.update_statusbar()
             self.change_cursor(None)
 
