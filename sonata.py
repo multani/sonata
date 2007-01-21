@@ -2075,7 +2075,6 @@ class Base(mpdclient3.mpd_connection):
                 model, selected = self.streams_selection.get_selected_rows()
                 for path in selected:
                     item = model.get_value(model.get_iter(path), 2)
-                    gtk.main_iteration()
                     self.stream_parse_and_add(item)
             self.iterate_now()
 
@@ -2083,6 +2082,8 @@ class Base(mpdclient3.mpd_connection):
         # We need to do different things depending on if this is
         # a normal stream, pls, m3u, etc..
         # Note that we will only download the first 4000 bytes
+        while gtk.events_pending():
+            gtk.main_iteration()
         f = None
         try:
             request = urllib2.Request(item)
@@ -2100,6 +2101,8 @@ class Base(mpdclient3.mpd_connection):
                     f = opener.open(request).read(4000)
                 except:
                     pass
+        while gtk.events_pending():
+            gtk.main_iteration()
         if f:
             if is_binary(f):
                 # Binary file, just add it:
@@ -2437,11 +2440,6 @@ class Base(mpdclient3.mpd_connection):
             for i in range(len(self.songs)):
                 track = self.songs[i]
                 item = self.parse_formatting(self.currentformat, track, True)
-                # Check if the item is one of the user's streams; if so,
-                # we want to display the stream name:
-                for j in range(len(self.stream_uris)):
-                    if track.file == self.stream_uris[j]:
-                            item = escape_html(self.stream_names[j])
                 try:
                     self.total_time = self.total_time + int(track.time)
                 except:
