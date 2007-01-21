@@ -2416,13 +2416,13 @@ class Base(mpdclient3.mpd_connection):
                 item = self.parse_formatting(self.currentformat, track, True)
                 # Check if the item is one of the user's streams; if so,
                 # we want to display the stream name:
-                for i in range(len(self.stream_uris)):
-                    if track.file == self.stream_uris[i]:
-                            item = escape_html(self.stream_names[i])
-                    try:
-                        self.total_time = self.total_time + int(track.time)
-                    except:
-                        pass
+                for j in range(len(self.stream_uris)):
+                    if track.file == self.stream_uris[j]:
+                            item = escape_html(self.stream_names[j])
+                try:
+                    self.total_time = self.total_time + int(track.time)
+                except:
+                    pass
                 if all_files_unchanged:
                     self.currentdata[i] = [int(track.id), item]
                 else:
@@ -2801,10 +2801,9 @@ class Base(mpdclient3.mpd_connection):
         # added?
         #self.volume_hide()
 
-    def on_infowindow_configure(self, widget, event, titlelabel):
+    def on_infowindow_configure(self, widget, event, titlelabel, labels_right):
         self.infowindow_w, self.infowindow_h = self.infowindow.get_size()
         self.infowindow_x, self.infowindow_y = self.infowindow.get_position()
-        labels_right = [self.infowindow_titlelabel, self.infowindow_artistlabel, self.infowindow_albumlabel, self.infowindow_datelabel, self.infowindow_tracklabel, self.infowindow_genrelabel, self.infowindow_pathlabel, self.infowindow_filelabel, self.infowindow_timelabel, self.infowindow_bitratelabel]
         labelwidth = self.infowindow.allocation.width - titlelabel.get_size_request()[0] - 50
         for label in labels_right:
             label.set_size_request(labelwidth, -1)
@@ -3254,7 +3253,7 @@ class Base(mpdclient3.mpd_connection):
         self.infowindow_visible = True
         self.infowindow.connect('delete_event', self.on_infowindow_hide)
         self.infowindow.connect('key_press_event', self.on_infowindow_keypress)
-        self.infowindow.connect('configure_event', self.on_infowindow_configure, titlelabel)
+        self.infowindow.connect('configure_event', self.on_infowindow_configure, titlelabel, labels_right)
         self.lastalbumart = ""
         self.update_album_art()
         self.infowindow_update(True, update_all=True)
