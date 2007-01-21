@@ -2364,10 +2364,12 @@ class Base(mpdclient3.mpd_connection):
             newlabel = ""
             newlabel_tray_gtk = ""
             if len(self.currsongformat1) > 0:
-                newlabel = newlabel + '<big><b>' + self.parse_formatting(self.currsongformat1, self.songinfo, True) + '</b></big>'
+                newlabel = newlabel + '<big><b>' + self.parse_formatting(self.currsongformat1, self.songinfo, True) + ' </b></big>'
                 newlabel_tray_gtk = newlabel_tray_gtk + self.parse_formatting(self.currsongformat1, self.songinfo, True)
+            else:
+                newlabel = newlabel + '<big><b> </b></big>'
             if len(self.currsongformat2) > 0:
-                newlabel = newlabel + '\n<small>' + self.parse_formatting(self.currsongformat2, self.songinfo, True) + '</small>'
+                newlabel = newlabel + '\n<small>' + self.parse_formatting(self.currsongformat2, self.songinfo, True) + ' </small>'
                 newlabel_tray_gtk = newlabel_tray_gtk + '\n' + self.parse_formatting(self.currsongformat2, self.songinfo, True)
             else:
                 newlabel = newlabel + '\n<small> </small>'
@@ -2424,8 +2426,11 @@ class Base(mpdclient3.mpd_connection):
                 except:
                     pass
                 if all_files_unchanged:
-                    iter = self.currentdata.get_iter((i, ))
-                    self.currentdata.set(iter, 0, int(track.id), 1, item)
+                    try:
+                        iter = self.currentdata.get_iter((i, ))
+                        self.currentdata.set(iter, 0, int(track.id), 1, item)
+                    except:
+                        pass
                 else:
                     self.currentdata.append([int(track.id), item])
             if not all_files_unchanged:
@@ -2453,7 +2458,7 @@ class Base(mpdclient3.mpd_connection):
         return True
 
     def keep_song_visible_in_list(self):
-        if self.expanded and len(self.currentdata)>0:
+        if self.expander.get_expanded() and len(self.currentdata)>0:
             try:
                 row = self.songinfo.pos
                 visible_rect = self.current.get_visible_rect()
@@ -2851,7 +2856,7 @@ class Base(mpdclient3.mpd_connection):
         if window_about_to_be_expanded:
             self.expanded = True
             self.tooltips.set_tip(self.expander, _("Click to collapse the player"))
-            self.keep_song_visible_in_list()
+            gobject.idle_add(self.keep_song_visible_in_list)
         else:
             self.tooltips.set_tip(self.expander, _("Click to expand the player"))
         # Put focus to the notebook:
