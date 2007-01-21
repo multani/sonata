@@ -2256,6 +2256,8 @@ class Base(mpdclient3.mpd_connection):
                         # Forces the notification to popup if specified
                         self.labelnotify()
             self.update_album_art()
+            if self.status.state in ['play', 'pause']:
+                self.keep_song_visible_in_list()
 
         if self.prevstatus is None or self.status.volume != self.prevstatus.volume:
             try:
@@ -2288,7 +2290,8 @@ class Base(mpdclient3.mpd_connection):
         if self.status and self.status.has_key('song'):
             row = int(self.status.song)
             self.boldrow(row)
-            self.keep_song_visible_in_list()
+            if not self.prevsonginfo or self.songinfo.file != self.prevsonginfo.file:
+                self.keep_song_visible_in_list()
             self.prev_boldrow = row
 
         self.update_cursong()
@@ -2876,7 +2879,8 @@ class Base(mpdclient3.mpd_connection):
         if window_about_to_be_expanded:
             self.expanded = True
             self.tooltips.set_tip(self.expander, _("Click to collapse the player"))
-            gobject.idle_add(self.keep_song_visible_in_list)
+            if self.status and self.status.state in ['play','pause']:
+                gobject.idle_add(self.keep_song_visible_in_list)
         else:
             self.tooltips.set_tip(self.expander, _("Click to expand the player"))
         # Put focus to the notebook:
@@ -3943,8 +3947,13 @@ class Base(mpdclient3.mpd_connection):
                     self.conn.do.clear()
                 elif len(selected) > 0:
                     self.conn.send.command_list_begin()
+                    selected.reverse()
                     for path in selected:
-                        self.conn.send.deleteid(self.currentdata.get_value(model.get_iter(path), 0))
+                        iter = model.get_iter(path)
+                        self.conn.send.deleteid(self.currentdata.get_value(iter, 0))
+                        # Prevents the entire playlist from refreshing:
+                        self.songs.pop(path[0])
+                        self.currentdata.remove(iter)
                     self.conn.do.command_list_end()
             elif page_num == self.TAB_PLAYLISTS:
                 dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_YES_NO, _("Delete the selected playlist(s)?"))
