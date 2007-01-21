@@ -213,6 +213,10 @@ class Base(mpdclient3.mpd_connection):
         self.y = 0
         self.w = 400
         self.h = 300
+        self.infowindow_x = 200
+        self.infowindow_y = 200
+        self.infowindow_w = 380
+        self.infowindow_h = -1
         self.expanded = True
         self.visible = True
         self.withdrawn = False
@@ -1287,6 +1291,14 @@ class Base(mpdclient3.mpd_connection):
             self.show_trayicon = conf.getboolean('player', 'trayicon')
         if conf.has_option('player', 'view'):
             self.view = conf.getint('player', 'view')
+        if conf.has_option('player', 'infowindow_x'):
+            self.infowindow_x = conf.getint('player', 'infowindow_x')
+        if conf.has_option('player', 'infowindow_y'):
+            self.infowindow_y = conf.getint('player', 'infowindow_y')
+        if conf.has_option('player', 'infowindow_w'):
+            self.infowindow_w = conf.getint('player', 'infowindow_w')
+        if conf.has_option('player', 'infowindow_h'):
+            self.infowindow_h = conf.getint('player', 'infowindow_h')
         if conf.has_option('format', 'current'):
             self.currentformat = conf.get('format', 'current')
         if conf.has_option('format', 'library'):
@@ -1342,6 +1354,10 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'play_on_activate', self.play_on_activate)
         conf.set('player', 'trayicon', self.show_trayicon)
         conf.set('player', 'view', self.view)
+        conf.set('player', 'infowindow_x', self.infowindow_x)
+        conf.set('player', 'infowindow_y', self.infowindow_y)
+        conf.set('player', 'infowindow_w', self.infowindow_w)
+        conf.set('player', 'infowindow_h', self.infowindow_h)
         conf.add_section('format')
         conf.set('format', 'current', self.currentformat)
         conf.set('format', 'library', self.libraryformat)
@@ -2408,7 +2424,6 @@ class Base(mpdclient3.mpd_connection):
                     except:
                         pass
                 if all_files_unchanged:
-                    print self.currentdata[i][1], item
                     self.currentdata[i] = [int(track.id), item]
                 else:
                     self.currentdata.append([int(track.id), item])
@@ -2786,6 +2801,14 @@ class Base(mpdclient3.mpd_connection):
         # added?
         #self.volume_hide()
 
+    def on_infowindow_configure(self, widget, event, titlelabel):
+        self.infowindow_w, self.infowindow_h = self.infowindow.get_size()
+        self.infowindow_x, self.infowindow_y = self.infowindow.get_position()
+        labels_right = [self.infowindow_titlelabel, self.infowindow_artistlabel, self.infowindow_albumlabel, self.infowindow_datelabel, self.infowindow_tracklabel, self.infowindow_genrelabel, self.infowindow_pathlabel, self.infowindow_filelabel, self.infowindow_timelabel, self.infowindow_bitratelabel]
+        labelwidth = self.infowindow.allocation.width - titlelabel.get_size_request()[0] - 50
+        for label in labels_right:
+            label.set_size_request(labelwidth, -1)
+
     def expand(self, action):
         self.expander.set_expanded(False)
         self.on_expander_activate(None)
@@ -3084,11 +3107,13 @@ class Base(mpdclient3.mpd_connection):
         self.infowindow = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.infowindow.set_title(_('Song Info'))
         self.infowindow.set_size_request(380, -1)
+        self.infowindow.set_default_size(self.infowindow_w, self.infowindow_h)
+        self.infowindow.move(self.infowindow_x, self.infowindow_y)
         icon = self.infowindow.render_icon('sonata', gtk.ICON_SIZE_DIALOG)
         self.infowindow.set_icon(icon)
         notebook = gtk.Notebook()
-        notebook.set_size_request(350, 350)
         notebook.set_tab_pos(gtk.POS_TOP)
+        notebook.set_size_request(350, 350)
         titlehbox = gtk.HBox()
         titlelabel = gtk.Label()
         titlelabel.set_markup("<b>  " + _("Title") + ":</b>")
@@ -3152,14 +3177,13 @@ class Base(mpdclient3.mpd_connection):
         labels_left = [titlelabel, artistlabel, albumlabel, datelabel, tracklabel, genrelabel, pathlabel, filelabel, timelabel, bitratelabel]
         self.set_label_widths_equal(labels_left)
         for label in labels_left:
-            label.set_alignment(1, 0.5)
+            label.set_alignment(1, 0)
         labels_right = [self.infowindow_titlelabel, self.infowindow_artistlabel, self.infowindow_albumlabel, self.infowindow_datelabel, self.infowindow_tracklabel, self.infowindow_genrelabel, self.infowindow_pathlabel, self.infowindow_filelabel, self.infowindow_timelabel, self.infowindow_bitratelabel]
-        labelwidth = notebook.get_size_request()[0] - titlelabel.get_size_request()[0] - 20
+        labelwidth = self.infowindow.get_size_request()[0] - titlelabel.get_size_request()[0] - 80
         for label in labels_right:
-            label.set_alignment(0, 0.5)
+            label.set_alignment(0, 0)
             label.set_line_wrap(True)
             label.set_selectable(True)
-            label.set_size_request(labelwidth, -1)
         hboxes = [titlehbox, artisthbox, albumhbox, datehbox, trackhbox, genrehbox, pathhbox, filehbox, timehbox, bitratehbox]
         vbox = gtk.VBox()
         vbox.pack_start(gtk.Label(), False, False, 0)
@@ -3230,6 +3254,7 @@ class Base(mpdclient3.mpd_connection):
         self.infowindow_visible = True
         self.infowindow.connect('delete_event', self.on_infowindow_hide)
         self.infowindow.connect('key_press_event', self.on_infowindow_keypress)
+        self.infowindow.connect('configure_event', self.on_infowindow_configure, titlelabel)
         self.lastalbumart = ""
         self.update_album_art()
         self.infowindow_update(True, update_all=True)
