@@ -2458,9 +2458,10 @@ class Base(mpdclient3.mpd_connection):
                 if self.status.state in ['play', 'pause']:
                     self.keep_song_visible_in_list()
                 self.current.set_model(self.currentdata)
-            currsong = int(self.songinfo.pos)
-            self.boldrow(currsong)
-            self.prev_boldrow = currsong
+            if self.songinfo.has_key('pos'):
+                currsong = int(self.songinfo.pos)
+                self.boldrow(currsong)
+                self.prev_boldrow = currsong
             self.current.thaw_child_notify()
             self.update_statusbar()
             self.change_cursor(None)
