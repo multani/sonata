@@ -2816,14 +2816,16 @@ class Base(mpdclient3.mpd_connection):
             label.set_size_request(labelwidth, -1)
 
     def expand(self, action):
-        self.expander.set_expanded(False)
-        self.on_expander_activate(None)
-        self.expander.set_expanded(True)
+        if not self.expander.get_expanded():
+            self.expander.set_expanded(False)
+            self.on_expander_activate(None)
+            self.expander.set_expanded(True)
 
     def collapse(self, action):
-        self.expander.set_expanded(True)
-        self.on_expander_activate(None)
-        self.expander.set_expanded(False)
+        if self.expander.get_expanded():
+            self.expander.set_expanded(True)
+            self.on_expander_activate(None)
+            self.expander.set_expanded(False)
 
     def on_expander_activate(self, expander):
         currheight = self.window.get_size()[1]
