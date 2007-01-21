@@ -273,6 +273,7 @@ class Base(mpdclient3.mpd_connection):
         self.view_artist_level = 1
         self.view_artist_level_prev = 0
         self.remote_from_infowindow = False
+        self.songs = None
         show_prefs = False
         # For increased responsiveness after the initial load, we cache
         # the root artist and album view results and simply refresh on
@@ -1089,7 +1090,10 @@ class Base(mpdclient3.mpd_connection):
     def disconnectkey_pressed(self, event):
         self.user_connect = False
         if self.conn:
-            self.conn.do.close()
+            try:
+                self.conn.do.close()
+            except:
+                pass
         # I'm not sure why this doesn't automatically happen, so
         # we'll do it manually for the time being
         self.browserdata.clear()
@@ -1383,6 +1387,7 @@ class Base(mpdclient3.mpd_connection):
             except:
                 pass
             self.currentdata.clear()
+            self.songs = None
         else:
             self.ppbutton.set_property('sensitive', True)
             self.stopbutton.set_property('sensitive', True)
@@ -2276,7 +2281,7 @@ class Base(mpdclient3.mpd_connection):
 
         if self.status and self.status.has_key('song'):
             row = int(self.status.song)
-            self.currentdata[row][1] = make_bold(self.currentdata[row][1])
+            self.boldrow(row)
             self.keep_song_visible_in_list()
             self.prev_boldrow = row
 
@@ -2284,6 +2289,13 @@ class Base(mpdclient3.mpd_connection):
         self.update_wintitle()
         self.update_album_art()
         self.infowindow_update(update_all=True)
+
+    def boldrow(self, row):
+        if row > -1:
+            try:
+                self.currentdata[row][1] = make_bold(self.currentdata[row][1])
+            except:
+                pass
 
     def unbold_boldrow(self, row):
         if row > -1:
@@ -2439,7 +2451,7 @@ class Base(mpdclient3.mpd_connection):
                 self.current.set_model(self.currentdata)
             if self.status.state in ['play', 'pause']:
                 currsong = int(self.songinfo.pos)
-                self.currentdata[currsong][1] = make_bold(self.currentdata[currsong][1])
+                self.boldrow(currsong)
                 self.prev_boldrow = currsong
             self.current.thaw_child_notify()
             self.update_statusbar()
