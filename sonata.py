@@ -2020,6 +2020,8 @@ class Base(mpdclient3.mpd_connection):
                 items.append(self.root)
             else:
                 for path in selected:
+                    while gtk.events_pending():
+                        gtk.main_iteration()
                     if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
                         if model.get_value(model.get_iter(path), 0) == gtk.STOCK_OPEN:
                             if return_root and not self.search_mode_enabled():
@@ -2032,6 +2034,8 @@ class Base(mpdclient3.mpd_connection):
                             items.append(model.get_value(model.get_iter(path), 1))
         elif self.view == self.VIEW_ARTIST:
             for path in selected:
+                while gtk.events_pending():
+                    gtk.main_iteration()
                 if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
                     if self.view_artist_level == 1:
                         for item in self.browse_search_artist(model.get_value(model.get_iter(path), 1)):
@@ -2045,6 +2049,8 @@ class Base(mpdclient3.mpd_connection):
                             items.append(model.get_value(model.get_iter(path), 1))
         elif self.view == self.VIEW_ALBUM:
             for path in selected:
+                while gtk.events_pending():
+                    gtk.main_iteration()
                 if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
                     if self.root == "/":
                         for item in self.browse_search_album(model.get_value(model.get_iter(path), 1)):
@@ -5351,24 +5357,30 @@ def remove_list_duplicates(inputlist, inputlist2=[], case_sensitive=True):
     outputlist = []
     outputlist2 = []
     for i in range(len(inputlist)):
+        while gtk.events_pending():
+            gtk.main_iteration()
         dup = False
         # Search outputlist from the end, since the inputlist is typically in
         # alphabetical order
         j = len(outputlist)-1
-        while j >= 0:
-            if case_sensitive:
+        if case_sensitive:
+            while j >= 0:
                 if inputlist[i] == outputlist[j]:
                     dup = True
                     break
-            elif sync_lists:
+                j = j - 1
+        elif sync_lists:
+            while j >= 0:
                 if inputlist[i].lower() == outputlist[j].lower() and inputlist2[i].lower() == outputlist2[j].lower():
                     dup = True
                     break
-            else:
+                j = j - 1
+        else:
+            while j >= 0:
                 if inputlist[i].lower() == outputlist[j].lower():
                     dup = True
                     break
-            j = j - 1
+                j = j - 1
         if not dup:
             outputlist.append(inputlist[i])
             if sync_lists:
