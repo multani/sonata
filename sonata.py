@@ -342,7 +342,8 @@ class Base(mpdclient3.mpd_connection):
             ('updatemenu', None, _('_Update Library'), None, None, self.updatedb),
             ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'), None, None, self.prefs),
             ('aboutmenu', None, _('_About...'), 'F1', None, self.about),
-            ('newmenu', None, _('_New...'), '<Ctrl>n', None, self.new_stream),
+            ('newmenu', None, _('_New...'), '<Ctrl>n', None, self.streams_new),
+            ('editmenu', None, _('_Edit...'), None, None, self.streams_edit),
             ('edittagmenu', None, _('_Edit Tags...'), None, None, self.edit_tags),
             ('addmenu', gtk.STOCK_ADD, _('_Add'), '<Ctrl>d', None, self.add_item),
             ('replacemenu', gtk.STOCK_REDO, _('_Replace'), '<Ctrl>r', None, self.replace_item),
@@ -401,6 +402,7 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="addmenu"/>
                 <menuitem action="replacemenu"/>
                 <menuitem action="newmenu"/>
+                <menuitem action="editmenu"/>
                 <menuitem action="removemenu"/>
                 <menuitem action="clearmenu"/>
                 <menuitem action="savemenu"/>
@@ -1402,18 +1404,41 @@ class Base(mpdclient3.mpd_connection):
     def give_widget_focus(self, widget):
         widget.grab_focus()
 
-    def new_stream(self, action):
+    def streams_edit(self, action):
+        model, selected = self.streams_selection.get_selected_rows()
+        try:
+            streamname = model.get_value(model.get_iter(selected[0]), 1)
+            for i in range(len(self.stream_names)):
+                if self.stream_names[i] == streamname:
+                    self.streams_new(action, i)
+                    return
+        except:
+            pass
+
+    def streams_new(self, action, stream_num=-1):
+        if stream_num > -1:
+            edit_mode = True
+        else:
+            edit_mode = False
         # Prompt user for playlist name:
-        dialog = gtk.Dialog(_("New Stream"), self.window, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
+        dialog = gtk.Dialog(None, self.window, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
+        if edit_mode:
+            dialog.set_title(_("Edit Stream"))
+        else:
+            dialog.set_title(_("New Stream"))
         hbox = gtk.HBox()
         namelabel = gtk.Label(_('Stream name') + ':')
         hbox.pack_start(namelabel, False, False, 5)
         nameentry = gtk.Entry()
+        if edit_mode:
+            nameentry.set_text(self.stream_names[stream_num])
         hbox.pack_start(nameentry, True, True, 5)
         hbox2 = gtk.HBox()
         urllabel = gtk.Label(_('Stream URL') + ':')
         hbox2.pack_start(urllabel, False, False, 5)
         urlentry = gtk.Entry()
+        if edit_mode:
+            urlentry.set_text(self.stream_uris[stream_num])
         hbox2.pack_start(urlentry, True, True, 5)
         self.set_label_widths_equal([namelabel, urllabel])
         dialog.vbox.pack_start(hbox)
@@ -1424,6 +1449,9 @@ class Base(mpdclient3.mpd_connection):
             name = nameentry.get_text()
             uri = urlentry.get_text()
             if len(name) > 0 and len(uri) > 0:
+                if edit_mode:
+                    self.stream_names.pop(stream_num)
+                    self.stream_uris.pop(stream_num)
                 # Make sure this stream name doesn't already exit:
                 for item in self.stream_names:
                     if item == name:
@@ -2434,6 +2462,9 @@ class Base(mpdclient3.mpd_connection):
             all_files_unchanged = self.playlist_files_unchanged(prev_songs)
             self.total_time = 0
             self.current.freeze_child_notify()
+            # Only clear and update the entire list if the items are different
+            # than before. If they are the same, merely update the attributes
+            # so that the treeview visible_rect is retained.
             if not all_files_unchanged:
                 self.currentdata.clear()
                 self.current.set_model(None)
@@ -2714,6 +2745,7 @@ class Base(mpdclient3.mpd_connection):
             pass
         self.downloading_image = False
         return imgfound
+
 
     def labelnotify(self, *args):
         if self.sonata_loaded:
@@ -3303,8 +3335,8 @@ class Base(mpdclient3.mpd_connection):
         # only the case on song and status changes. Otherwise we only
         # want to update the minimum number of widgets so the user can
         # do things like select label text.
-        if self.conn:
-            if self.infowindow_visible:
+        if self.infowindow_visible:
+            if self.conn:
                 if self.status and self.status.state in ['play', 'pause']:
                     if HAVE_TAGPY:
                         self.edittag_button.set_sensitive(True)
@@ -4639,6 +4671,8 @@ class Base(mpdclient3.mpd_connection):
                 self.UIManager.get_widget('/mainmenu/rmmenu/').show()
         elif self.notebook.get_current_page() == self.TAB_STREAMS:
             if self.streams_selection.count_selected_rows() > 0:
+                if self.streams_selection.count_selected_rows() == 1:
+                    self.UIManager.get_widget('/mainmenu/editmenu/').show()
                 self.UIManager.get_widget('/mainmenu/addmenu/').show()
                 self.UIManager.get_widget('/mainmenu/replacemenu/').show()
                 self.UIManager.get_widget('/mainmenu/rmmenu/').show()
@@ -4653,6 +4687,7 @@ class Base(mpdclient3.mpd_connection):
         self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
         self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
         self.UIManager.get_widget('/mainmenu/newmenu/').hide()
+        self.UIManager.get_widget('/mainmenu/editmenu/').hide()
         self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
         self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
         self.UIManager.get_widget('/mainmenu/songinfo_menu/').hide()

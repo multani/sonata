@@ -1,11 +1,10 @@
-v1.0
-	post drag selection..
-	slow adding of streams?
-
 v1.0.1
-	rename playlist, edit stream
+	freeze when editing tag for currently playing song ("if track.has_key('artist')...")
 	ability to 'save all' for tag editing? shortcut or button?
-	local amazon sites (i.e. amazon.de)?
+	post drag selection..
+	keep tooltip hidden after gtk.StatusIcon click until mouse exits then leaves
+	don't hide tooltip on menu right-click if notif forever...
+	ability to disable lyrics
 
 Future:
 	lyrics -> allow user to edit, fetch, auto-update to wiki, search terms..?
@@ -14,3 +13,6 @@ Future:
 	last.fm?
 	libnotify?
 	switching between user profiles?
+	test multiple streams at once..
+	local amazon sites (i.e. amazon.de)?
+	rename playlist (only possible in mpd svn?)

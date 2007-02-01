@@ -1,4 +1,7 @@
-v1.0 - Pending
+v1.0.1 - Pending
+	+ Allow editing stream name/url
+
+v1.0 - January 21, 2006
 	+ Multiple views for library: filesystem, artists, albums
 	+ Editing of song tags (requires optional taglib & tagpy)
 	+ Auto-fetching of song lyrics (requires optional soappy)
