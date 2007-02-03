@@ -2,8 +2,6 @@ v1.0.1
 	freeze when editing tag for currently playing song ("if track.has_key('artist')...")
 	ability to 'save all' for tag editing? shortcut or button?
 	post drag selection..
-	keep tooltip hidden after gtk.StatusIcon click until mouse exits then leaves
-	don't hide tooltip on menu right-click if notif forever...
 	ability to disable lyrics
 
 Future:

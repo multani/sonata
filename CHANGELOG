@@ -1,5 +1,6 @@
 v1.0.1 - Pending
 	+ Allow editing stream name/url
+	+ Small usability improvements to gtk.StatusIcon
 
 v1.0 - January 21, 2006
 	+ Multiple views for library: filesystem, artists, albums

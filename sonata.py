@@ -59,9 +59,6 @@ try:
     HAVE_STATUS_ICON = False
 except ImportError:
     HAVE_EGG = False
-    pass
-
-if not HAVE_EGG:
     if gtk.pygtk_version >= (2, 10, 0):
         # Revert to pygtk status icon:
         HAVE_STATUS_ICON = True
@@ -3747,6 +3744,7 @@ class Base(mpdclient3.mpd_connection):
         self.traymenu.popup(None, None, None, button, activate_time)
 
     def trayaction_activate(self, status_icon):
+        # Clicking on a gtk.StatusIcon:
         if not self.ignore_toggle_signal:
             # This prevents the user clicking twice in a row quickly
             # and having the second click not revert to the intial
@@ -3760,8 +3758,8 @@ class Base(mpdclient3.mpd_connection):
                 self.withdraw_app()
             # This prevents the tooltip from popping up again until the user
             # leaves and enters the trayicon again
-            if self.traytips.notif_handler == None:
-                self.traytips._remove_timer()
+            #if self.traytips.notif_handler == None and self.traytips.notif_handler <> -1:
+            #	self.traytips._remove_timer()
             gobject.timeout_add(100, self.set_ignore_toggle_signal_false)
 
     def tooltip_show_manually(self):
@@ -3772,7 +3770,7 @@ class Base(mpdclient3.mpd_connection):
         # handler has a value, because that means that the tooltip is already
         # visible, and we don't want to override that setting simply because
         # the user's cursor is not over the tooltip.
-        if self.traymenu.get_property('visible'):
+        if self.traymenu.get_property('visible') and self.traytips.notif_handler <> -1:
             self.traytips._remove_timer()
         elif not self.traytips.notif_handler:
             pointer_screen, px, py, _ = self.window.get_screen().get_display().get_pointer()
@@ -3786,24 +3784,10 @@ class Base(mpdclient3.mpd_connection):
             else:
                 self.traytips._remove_timer()
 
-    # What happens when you click on the system tray icon?
     def trayaction(self, widget, event):
+        # Clicking on an egg system tray icon:
         if event.button == 1 and not self.ignore_toggle_signal: # Left button shows/hides window(s)
-            # This prevents the user clicking twice in a row quickly
-            # and having the second click not revert to the intial
-            # state
-            self.ignore_toggle_signal = True
-            prev_state = self.UIManager.get_widget('/traymenu/showmenu').get_active()
-            self.UIManager.get_widget('/traymenu/showmenu').set_active(not prev_state)
-            if self.window.window.get_state() & gtk.gdk.WINDOW_STATE_WITHDRAWN: # window is hidden
-                self.withdraw_app_undo()
-            elif not (self.window.window.get_state() & gtk.gdk.WINDOW_STATE_WITHDRAWN): # window is showing
-                self.withdraw_app()
-            # This prevents the tooltip from popping up again until the user
-            # leaves and enters the trayicon again
-            if self.traytips.notif_handler == None:
-                self.traytips._remove_timer()
-            gobject.timeout_add(100, self.set_ignore_toggle_signal_false)
+            self.trayaction_activate(None)
         elif event.button == 2: # Middle button will play/pause
             if self.conn:
                 self.pp(self.trayeventbox)
