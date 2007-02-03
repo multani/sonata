@@ -1,5 +1,4 @@
 v1.0.1
-	freeze when editing tag for currently playing song ("if track.has_key('artist')...")
 	ability to 'save all' for tag editing? shortcut or button?
 	post drag selection..
 	ability to disable lyrics
