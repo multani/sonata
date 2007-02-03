@@ -1,13 +1,14 @@
 v1.0.1
 	ability to 'save all' for tag editing? shortcut or button?
 	post drag selection..
-	ability to disable lyrics
+
+v1.1
+	last.fm support
 
 Future:
 	lyrics -> allow user to edit, fetch, auto-update to wiki, search terms..?
 	make selection, dnd, more like thunar
 	connect in background via socket.setblocking(0)
-	last.fm?
 	libnotify?
 	switching between user profiles?
 	test multiple streams at once..

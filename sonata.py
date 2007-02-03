@@ -234,6 +234,7 @@ class Base(mpdclient3.mpd_connection):
         self.show_playback = True
         self.show_statusbar = False
         self.show_trayicon = True
+        self.show_lyrics = True
         self.stop_on_exit = False
         self.update_on_start = False
         self.minimize_to_systray = False
@@ -1262,6 +1263,8 @@ class Base(mpdclient3.mpd_connection):
             self.show_volume = conf.getboolean('player', 'volume')
         if conf.has_option('player', 'statusbar'):
             self.show_statusbar = conf.getboolean('player', 'statusbar')
+        if conf.has_option('player', 'lyrics'):
+            self.show_lyrics = conf.getboolean('player', 'lyrics')
         if conf.has_option('player', 'sticky'):
             self.sticky = conf.getboolean('player', 'sticky')
         if conf.has_option('player', 'ontop'):
@@ -1344,6 +1347,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'initial_run', self.initial_run)
         conf.set('player', 'volume', self.show_volume)
         conf.set('player', 'statusbar', self.show_statusbar)
+        conf.set('player', 'lyrics', self.show_lyrics)
         conf.set('player', 'sticky', self.sticky)
         conf.set('player', 'ontop', self.ontop)
         conf.set('player', 'notification', self.show_notification)
@@ -3170,9 +3174,9 @@ class Base(mpdclient3.mpd_connection):
         self.infowindow.move(self.infowindow_x, self.infowindow_y)
         icon = self.infowindow.render_icon('sonata', gtk.ICON_SIZE_DIALOG)
         self.infowindow.set_icon(icon)
-        notebook = gtk.Notebook()
-        notebook.set_tab_pos(gtk.POS_TOP)
-        notebook.set_size_request(350, 350)
+        self.infowindow_notebook = gtk.Notebook()
+        self.infowindow_notebook.set_tab_pos(gtk.POS_TOP)
+        self.infowindow_notebook.set_size_request(350, 350)
         titlehbox = gtk.HBox()
         titlelabel = gtk.Label()
         titlelabel.set_markup("<b>  " + _("Title") + ":</b>")
@@ -3260,7 +3264,7 @@ class Base(mpdclient3.mpd_connection):
             hbox_edittag.pack_start(gtk.Label(), True, True, 0)
             vbox.pack_start(gtk.Label(), True, True, 0)
             vbox.pack_start(hbox_edittag, False, False, 6)
-        notebook.append_page(vbox, nblabel1)
+        self.infowindow_notebook.append_page(vbox, nblabel1)
         # Add cover art:
         nblabel2 = gtk.Label()
         nblabel2.set_text_with_mnemonic(_("_Cover Art"))
@@ -3272,7 +3276,7 @@ class Base(mpdclient3.mpd_connection):
         eventbox.connect('drag_motion', self.on_image_motion_cb)
         eventbox.connect('drag_data_received', self.on_image_drop_cb)
         eventbox.add(self.infowindow_image)
-        notebook.append_page(eventbox, nblabel2)
+        self.infowindow_notebook.append_page(eventbox, nblabel2)
         gobject.idle_add(self.infowindow_image.set_from_file, self.sonatacd_large)
         # Add album info:
         nblabel3 = gtk.Label()
@@ -3283,21 +3287,10 @@ class Base(mpdclient3.mpd_connection):
         albuminfoView = gtk.TextView(self.albuminfoBuffer)
         albuminfoView.set_editable(False)
         albumScrollWindow.add_with_viewport(albuminfoView)
-        notebook.append_page(albumScrollWindow, nblabel3)
-        # Add lyrics:
-        if HAVE_WSDL:
-            nblabel4 = gtk.Label()
-            nblabel4.set_text_with_mnemonic(_("_Lyrics"))
-            scrollWindow = gtk.ScrolledWindow()
-            scrollWindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-            self.lyricsBuffer = gtk.TextBuffer()
-            lyricsView = gtk.TextView(self.lyricsBuffer)
-            lyricsView.set_editable(False)
-            lyricsView.set_wrap_mode(gtk.WRAP_WORD)
-            scrollWindow.add_with_viewport(lyricsView)
-            notebook.append_page(scrollWindow, nblabel4)
+        self.infowindow_notebook.append_page(albumScrollWindow, nblabel3)
+        self.infowindow_add_lyrics_tab()
         hbox_main = gtk.HBox()
-        hbox_main.pack_start(notebook, True, True, 15)
+        hbox_main.pack_start(self.infowindow_notebook, True, True, 15)
         vbox_inner = gtk.VBox()
         vbox_inner.pack_start(hbox_main, True, True, 10)
         hbox_close = gtk.HBox()
@@ -3318,6 +3311,24 @@ class Base(mpdclient3.mpd_connection):
         self.infowindow.connect('configure_event', self.on_infowindow_configure, titlelabel, labels_right)
         if self.infowindow_visible:
             self.infowindow_update(True, update_all=True)
+
+    def infowindow_add_lyrics_tab(self, show_tab=False):
+        if HAVE_WSDL and self.show_lyrics:
+            nblabel4 = gtk.Label()
+            nblabel4.set_text_with_mnemonic(_("_Lyrics"))
+            scrollWindow = gtk.ScrolledWindow()
+            scrollWindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+            self.lyricsBuffer = gtk.TextBuffer()
+            lyricsView = gtk.TextView(self.lyricsBuffer)
+            lyricsView.set_editable(False)
+            lyricsView.set_wrap_mode(gtk.WRAP_WORD)
+            scrollWindow.add_with_viewport(lyricsView)
+            self.infowindow_notebook.append_page(scrollWindow, nblabel4)
+            if show_tab:
+                self.infowindow.show_all()
+
+    def infowindow_remove_lyrics_tab(self):
+        self.infowindow_notebook.remove_page(-1)
 
     def on_infowindow_hide(self, window, data=None):
         self.infowindow_visible = False
@@ -3400,7 +3411,7 @@ class Base(mpdclient3.mpd_connection):
                         else:
                             self.albuminfoBuffer.set_text(_("Album name not set."))
                         # Update lyrics:
-                        if HAVE_WSDL:
+                        if HAVE_WSDL and self.show_lyrics:
                             if self.songinfo.has_key('artist') and self.songinfo.has_key('title'):
                                 try:
                                     lyricThread = threading.Thread(target=self.infowindow_get_lyrics, args=(self.songinfo.artist, self.songinfo.title))
@@ -3425,7 +3436,7 @@ class Base(mpdclient3.mpd_connection):
                     self.infowindow_pathlabel.set_text("")
                     self.infowindow_filelabel.set_text("")
                     self.infowindow_bitratelabel.set_text("")
-                    if HAVE_WSDL:
+                    if HAVE_WSDL and self.show_lyrics:
                         self.infowindow_show_lyrics("")
                     self.albuminfoBuffer.set_text("")
 
@@ -4162,6 +4173,11 @@ class Base(mpdclient3.mpd_connection):
         display_statusbar = gtk.CheckButton(_("Enable statusbar"))
         display_statusbar.set_active(self.show_statusbar)
         display_statusbar.connect('toggled', self.prefs_statusbar_toggled)
+        display_lyrics = gtk.CheckButton(_("Enable lyrics"))
+        display_lyrics.set_active(self.show_lyrics)
+        display_lyrics.connect('toggled', self.prefs_lyrics_toggled)
+        if not HAVE_WSDL:
+            display_lyrics.set_sensitive(False)
         display_trayicon = gtk.CheckButton(_("Enable system tray icon"))
         display_trayicon.set_active(self.show_trayicon)
         if not HAVE_EGG and not HAVE_STATUS_ICON:
@@ -4202,13 +4218,14 @@ class Base(mpdclient3.mpd_connection):
         table2.attach(display_volume, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table2.attach(display_statusbar, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table2.attach(display_trayicon, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_art_hbox, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(gtk.Label(), 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(displaylabel2, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(gtk.Label(), 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(display_notification, 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(notifhbox, 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 45, 0)
-        table2.attach(gtk.Label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 75, 0)
+        table2.attach(display_lyrics, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_art_hbox, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(gtk.Label(), 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(displaylabel2, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(display_notification, 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(notifhbox, 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 45, 0)
+        table2.attach(gtk.Label(), 1, 3, 15, 16, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 75, 0)
         # Behavior tab
         table3 = gtk.Table()
         behaviorlabel = gtk.Label()
@@ -4484,6 +4501,17 @@ class Base(mpdclient3.mpd_connection):
             self.volumebutton.hide()
             self.show_volume = False
 
+    def prefs_lyrics_toggled(self, button):
+        if button.get_active():
+            self.show_lyrics = True
+            if self.infowindow_visible:
+                self.infowindow_add_lyrics_tab(True)
+                self.infowindow_update(update_all=True)
+        else:
+            self.show_lyrics = False
+            if self.infowindow_visible:
+                self.infowindow_remove_lyrics_tab()
+
     def prefs_statusbar_toggled(self, button):
         if button.get_active():
             self.statusbar.set_no_show_all(False)
@@ -4679,16 +4707,19 @@ class Base(mpdclient3.mpd_connection):
         self.UIManager.get_widget('/mainmenu/songinfo_menu/').hide()
 
     def find_path(self, filename):
-        if os.path.exists(os.path.join(sys.prefix, 'share', 'pixmaps', filename)):
-            full_filename = os.path.join(sys.prefix, 'share', 'pixmaps', filename)
-        elif os.path.exists(os.path.join(os.path.split(__file__)[0], filename)):
-            full_filename = os.path.join(os.path.split(__file__)[0], filename)
-        elif os.path.exists(os.path.join(os.path.split(__file__)[0], 'pixmaps', filename)):
-            full_filename = os.path.join(os.path.split(__file__)[0], 'pixmaps', filename)
-        elif os.path.exists(os.path.join(os.path.split(__file__)[0], 'share', filename)):
-            full_filename = os.path.join(os.path.split(__file__)[0], 'share', filename)
-        elif os.path.exists(os.path.join(__file__.split('/lib')[0], 'share', 'pixmaps', filename)):
-            full_filename = os.path.join(__file__.split('/lib')[0], 'share', 'pixmaps', filename)
+        if HAVE_SUGAR:
+            full_filename = os.path.join(sugar.env.get_bundle_path(), 'share', filename)
+        else:
+            if os.path.exists(os.path.join(sys.prefix, 'share', 'pixmaps', filename)):
+                full_filename = os.path.join(sys.prefix, 'share', 'pixmaps', filename)
+            elif os.path.exists(os.path.join(os.path.split(__file__)[0], filename)):
+                full_filename = os.path.join(os.path.split(__file__)[0], filename)
+            elif os.path.exists(os.path.join(os.path.split(__file__)[0], 'pixmaps', filename)):
+                full_filename = os.path.join(os.path.split(__file__)[0], 'pixmaps', filename)
+            elif os.path.exists(os.path.join(os.path.split(__file__)[0], 'share', filename)):
+                full_filename = os.path.join(os.path.split(__file__)[0], 'share', filename)
+            elif os.path.exists(os.path.join(__file__.split('/lib')[0], 'share', 'pixmaps', filename)):
+                full_filename = os.path.join(__file__.split('/lib')[0], 'share', 'pixmaps', filename)
         return full_filename
 
     def on_edittag_click(self, widget):
