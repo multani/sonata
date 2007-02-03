@@ -368,6 +368,7 @@ class Base(mpdclient3.mpd_connection):
             ('raisekey', None, 'Raise Volume Key', '<Ctrl>plus', None, self.raise_volume),
             ('raisekey2', None, 'Raise Volume Key 2', '<Ctrl>equal', None, self.raise_volume),
             ('quitkey', None, 'Quit Key', '<Ctrl>q', None, self.on_delete_event_yes),
+            ('quitkey2', None, 'Quit Key 2', '<Ctrl>w', None, self.on_delete_event_yes),
             ('menukey', None, 'Menu Key', 'Menu', None, self.menukey_press),
             ('updatekey', None, 'Update Key', '<Ctrl>u', None, self.updatedb),
             ('updatekey2', None, 'Update Key 2', '<Ctrl><Shift>u', None, self.updatedb_path),
@@ -434,6 +435,7 @@ class Base(mpdclient3.mpd_connection):
               </popup>
               <popup name="hidden">
                 <menuitem action="quitkey"/>
+                <menuitem action="quitkey2"/>
                 <menuitem action="currentkey"/>
                 <menuitem action="librarykey"/>
                 <menuitem action="playlistskey"/>
@@ -3310,24 +3312,24 @@ class Base(mpdclient3.mpd_connection):
         vbox_main = gtk.VBox()
         vbox_main.pack_start(vbox_inner, True, True, 5)
         self.infowindow.add(vbox_main)
+        self.lastalbumart = ""
+        self.update_album_art()
         self.infowindow.show_all()
         self.infowindow_visible = True
         self.infowindow.connect('delete_event', self.on_infowindow_hide)
         self.infowindow.connect('key_press_event', self.on_infowindow_keypress)
         self.infowindow.connect('configure_event', self.on_infowindow_configure, titlelabel, labels_right)
-        self.lastalbumart = ""
-        self.update_album_art()
-        self.infowindow_update(True, update_all=True)
+        if self.infowindow_visible:
+            self.infowindow_update(True, update_all=True)
 
     def on_infowindow_hide(self, window, data=None):
-        if self.infowindow_visible:
-            self.infowindow.destroy()
-            self.infowindow_visible = False
+        self.infowindow_visible = False
+        self.infowindow.destroy()
 
     def on_infowindow_keypress(self, widget, event):
         shortcut = gtk.accelerator_name(event.keyval, event.state)
         shortcut = shortcut.replace("<Mod2>", "")
-        if shortcut == 'Escape':
+        if shortcut == '<Control>w' or shortcut == '<Control>q':
             self.on_infowindow_hide(widget)
 
     def infowindow_update(self, show_after_update=False, update_all=False):
@@ -3411,7 +3413,7 @@ class Base(mpdclient3.mpd_connection):
                                     self.infowindow_show_lyrics("")
                             else:
                                 self.infowindow_show_lyrics(_("Artist or song title not set."))
-                    if show_after_update:
+                    if show_after_update and self.infowindow_visible:
                         gobject.idle_add(self.infowindow_show_now)
                 else:
                     if HAVE_TAGPY:
