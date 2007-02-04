@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Sonata 0.8\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2007-01-13 09:49-0700\n"
-"PO-Revision-Date: 2007-01-14 16:17+0100\n"
+"PO-Revision-Date: 2007-02-04 15:18+0100\n"
 "Last-Translator: Tomasz Dominikowski <dominikowski@gmail.com>\n"
 "Language-Team: Tomasz Dominikowski <dominikowski@gmail.com>\n"
 "MIME-Version: 1.0\n"
@@ -55,7 +55,7 @@ msgstr "Dolny prawy"
 #: sonata.py:3516
 #: sonata.py:4666
 msgid "Artist"
-msgstr "Artysta"
+msgstr "Wykonawca"
 
 #: sonata.py:255
 #: sonata.py:998
@@ -160,7 +160,7 @@ msgstr "_Nowy..."
 
 #: sonata.py:340
 msgid "_Edit Tags..."
-msgstr "_Modyfikuj tagi..."
+msgstr "_Modyfikuj znaczniki..."
 
 #: sonata.py:341
 msgid "_Add"
@@ -632,7 +632,7 @@ msgstr "Pozostaw puste, jeśli hasło nie jest wymagane."
 
 #: sonata.py:3979
 msgid "Enable"
-msgstr "Włącz"
+msgstr "Włączenie"
 
 #: sonata.py:3987
 msgid "Fade length"
@@ -661,7 +661,7 @@ msgstr "Wyświetlanie"
 
 #: sonata.py:4043
 msgid "Enable album art"
-msgstr "Włącz okładki"
+msgstr "Wyświetlanie okładek"
 
 #: sonata.py:4047
 msgid "Local only"
@@ -681,19 +681,19 @@ msgstr "Zdalne, następnie lokalne"
 
 #: sonata.py:4055
 msgid "Enable playback buttons"
-msgstr "Wyświetlaj przyciski odtwarzania"
+msgstr "Wyświetlanie przycisków odtwarzania"
 
 #: sonata.py:4058
 msgid "Enable volume button"
-msgstr "Wyświetlaj przycisk głośności"
+msgstr "Wyświetlanie przycisków głośności"
 
 #: sonata.py:4061
 msgid "Enable statusbar"
-msgstr "Uruchom pasek stanu"
+msgstr "Uruchamianie paska stanu"
 
 #: sonata.py:4064
 msgid "Enable system tray icon"
-msgstr "Minimalizuj do zasobnika systemowego podczas zamykania"
+msgstr "Minimalizowanie do zasobnika systemowego podczas zamykania"
 
 #: sonata.py:4069
 msgid "Notification"
@@ -709,11 +709,11 @@ msgstr "Zachowanie okna"
 
 #: sonata.py:4116
 msgid "Show window on all workspaces"
-msgstr "Wyświetlaj okno na wszystkich obszarach roboczych"
+msgstr "Wyświetlanie okna na wszystkich obszarach roboczych"
 
 #: sonata.py:4118
 msgid "Keep window above other windows"
-msgstr "Utrzymuj okno powyżej innych okien"
+msgstr "Utrzymywanie okna powyżej innych okien"
 
 #: sonata.py:4120
 msgid "Update MPD library on start"
@@ -725,7 +725,7 @@ msgstr "Jeśli włączone, Sonata automatycznie zaktualizuje bibliotekę MPD pod
 
 #: sonata.py:4123
 msgid "Stop playback on exit"
-msgstr "Zatrzymuj odtwarzanie po zakończeniu"
+msgstr "Zatrzymywanie odtwarzania po zakończeniu"
 
 #: sonata.py:4125
 msgid "MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit."
@@ -741,7 +741,7 @@ msgstr "Określa, czy zamykanie Sonata zminimalizuje go do zasobnika systemowego
 
 #: sonata.py:4130
 msgid "Play enqueued files on activate"
-msgstr "Odtwórz zakolejkowane utwory po aktywacji"
+msgstr "Odtwarzanie zakolejkowanych utworów po aktywacji"
 
 #: sonata.py:4132
 msgid "Automatically play enqueued items when activated via double-click or enter."
@@ -749,7 +749,7 @@ msgstr "Automatyczne odtwarzanie zakolejkowanych elementów po aktywacji podwój
 
 #: sonata.py:4140
 msgid "Write status file:"
-msgstr "Zapis stanu pliku:"
+msgstr "Zapisywanie stanu pliku:"
 
 #: sonata.py:4142
 #: sonata.py:4145
@@ -827,7 +827,7 @@ msgstr "Upłynęło czasu (tylko tytuł)"
 
 #: sonata.py:4226
 msgid "Info displayed only if all enclosed tags are defined"
-msgstr "Informacje wyświetlanie tylko, jeśli wszystkie zawarte tagi są zdefiniowane"
+msgstr "Informacje wyświetlanie tylko, jeśli wszystkie zawarte znaczniki są zdefiniowane"
 
 #: sonata.py:4242
 msgid "_MPD"
@@ -858,11 +858,11 @@ msgstr "nie istnieje. Proszę określić prawidłowy folder z muzyką w preferen
 #: sonata.py:4867
 #: sonata.py:4907
 msgid "Edit Tags"
-msgstr "Modyfikuj tagi"
+msgstr "Modyfikuj znaczniki"
 
 #: sonata.py:4630
 msgid "No music files with editable tags found."
-msgstr "Brak utworów z możliwością modyfikacji tagów."
+msgstr "Brak utworów z możliwością modyfikacji znaczników."
 
 #: sonata.py:4724
 msgid "Comment"
@@ -882,7 +882,7 @@ msgstr "z"
 
 #: sonata.py:4906
 msgid "Unable to save tag to music file."
-msgstr "Nie można zapisać tagu w utworze."
+msgstr "Nie można zapisać znacznika w utworze."
 
 #: sonata.py:4962
 msgid "An elegant music player for MPD."
