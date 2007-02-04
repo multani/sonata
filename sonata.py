@@ -3027,25 +3027,48 @@ class Base(mpdclient3.mpd_connection):
             text = model.get_value(iter, 1)
             drag_sources.append([index, iter, id, text])
 
+        # We will manipulate self.songs and model to prevent the entire playlist
+        # from refreshing
         offset = 0
+        top_row_for_selection = len(model)
+        self.conn.send.command_list_begin()
         for source in drag_sources:
             index, iter, id, text = source
             if drop_info:
                 destpath, position = drop_info
-                if destpath[0] > index:
-                    # if moving ahead, all the subsequent indexes decrease by 1
-                    dest = destpath[0] + offset - 1
-                else:
-                    # if moving back, next one will need to go after it
-                    dest = destpath[0] + offset
-                    offset += 1
+                dest = destpath[0] + offset
+                if dest < index:
+                    offset = offset + 1
                 if position in (gtk.TREE_VIEW_DROP_BEFORE, gtk.TREE_VIEW_DROP_INTO_OR_BEFORE):
-                    self.conn.do.moveid(id, dest)
+                    self.songs.insert(dest, self.songs[index])
+                    if dest < index+1:
+                        self.songs.pop(index+1)
+                        self.conn.send.moveid(id, dest)
+                    else:
+                        self.songs.pop(index)
+                        self.conn.send.moveid(id, dest-1)
+                    model.insert(dest, model[index])
+                    treeview.get_selection().select_path(dest)
+                    model.remove(iter)
                 else:
-                    self.conn.do.moveid(id, dest + 1)
+                    self.songs.insert(dest+1, self.songs[index])
+                    if dest < index:
+                        self.songs.pop(index+1)
+                        self.conn.send.moveid(id, dest+1)
+                    else:
+                        self.songs.pop(index)
+                        self.conn.send.moveid(id, dest)
+                    model.insert(dest+1, model[index])
+                    treeview.get_selection().select_path(dest+1)
+                    model.remove(iter)
             else:
                 dest = len(self.songs) - 1
-                self.conn.do.moveid(id, dest)
+                self.conn.send.moveid(id, dest)
+                self.songs.insert(dest+1, self.songs[index])
+                self.songs.pop(index)
+                model.insert(dest+1, model[index])
+                treeview.get_selection().select_path(dest+1)
+                model.remove(iter)
             # now fixup
             for source in drag_sources:
                 if dest < index:
@@ -3056,17 +3079,11 @@ class Base(mpdclient3.mpd_connection):
                     # we moved it ahead, so all indexes inbetween decreased by 1
                     if index < source[0] < dest:
                         source[0] -= 1
-            model.remove(iter)
+        self.conn.do.command_list_end()
 
         if drag_context.action == gtk.gdk.ACTION_MOVE:
             drag_context.finish(True, True, timestamp)
         self.iterate_now()
-
-        if destpath:
-            row = destpath[0]
-            for i in range(len(drag_sources)):
-                treeview.get_selection().select_path(row)
-                row = row + 1
 
     def on_current_button_press(self, widget, event):
         self.volume_hide()
