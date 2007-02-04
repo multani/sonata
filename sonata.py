@@ -4771,7 +4771,7 @@ class Base(mpdclient3.mpd_connection):
             editwindow = gtk.Dialog("", self.window, gtk.DIALOG_MODAL)
         else:
             editwindow = gtk.Dialog("", self.infowindow, gtk.DIALOG_MODAL)
-        editwindow.set_size_request(350, -1)
+        editwindow.set_size_request(375, -1)
         editwindow.set_resizable(False)
         editwindow.set_has_separator(False)
         table = gtk.Table(9, 2, False)
@@ -4879,19 +4879,23 @@ class Base(mpdclient3.mpd_connection):
         table.attach(commenthbox, 1, 2, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 2, 0)
         table.attach(gtk.Label(), 1, 2, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 2, 0)
         editwindow.vbox.pack_start(table)
-        editwindow.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT)
+        #saveall_button = gtk.Button(_("Save _All"))
+        #editwindow.action_area.pack_start(saveall_button)
+        #editwindow.action_area.pack_start(gtk.Label())
+        cancelbutton = editwindow.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT)
         savebutton = editwindow.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT)
         editwindow.connect('delete_event', self.editwindow_hide)
         self.edit_style_orig = titleentry.get_style()
         entries = [titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, filelabel]
         buttons = [titlebutton, artistbutton, albumbutton, yearbutton, trackbutton, genrebutton, commentbutton]
         entries_names = ["title", "artist", "album", "year", "track", "genre", "comment"]
-        editwindow.connect('response', self.editwindow_response, tags, savebutton, entries, entries_names)
+        editwindow.connect('response', self.editwindow_response, tags, entries, entries_names)
+        #saveall_button.connect('clicked', self.editwindow_save_all, editwindow, tags, entries, entries_names)
         for i in range(len(entries)-2):
             entries[i].connect('changed', self.edit_entry_changed)
         for i in range(len(buttons)):
             buttons[i].connect('clicked', self.editwindow_applyall, entries_names[i], tags, entries)
-        self.editwindow_update(editwindow, tags, savebutton, entries, entries_names)
+        self.editwindow_update(editwindow, tags, entries, entries_names)
         self.change_cursor(None)
         entries[7].set_size_request(editwindow.size_request()[0] - titlelabel.size_request()[0] - 50, -1)
         editwindow.show_all()
@@ -4963,7 +4967,7 @@ class Base(mpdclient3.mpd_connection):
             # Update the entry for the current song:
             entries[4].set_text(str(tags[self.tagnum]['track']))
 
-    def editwindow_update(self, window, tags, savebutton, entries, entries_names):
+    def editwindow_update(self, window, tags, entries, entries_names):
         self.updating_edit_entries = True
         # Populate tags(). Note that we only retrieve info from the
         # file if the info hasn't already been changed:
@@ -5007,14 +5011,18 @@ class Base(mpdclient3.mpd_connection):
                 self.edit_entry_changed(entries[i])
             else:
                 self.edit_entry_revert_color(entries[i])
-        gobject.idle_add(savebutton.set_sensitive, True)
+        gobject.idle_add(window.action_area.set_sensitive, True)
 
-    def editwindow_response(self, window, response, tags, savebutton, entries, entries_names):
+    def editwindow_save_all(self, button, window, tags, entries, entries_names):
+        while window.get_property('visible'):
+            self.editwindow_response(window, gtk.RESPONSE_ACCEPT, tags, entries, entries_names)
+
+    def editwindow_response(self, window, response, tags, entries, entries_names):
         if response == gtk.RESPONSE_REJECT:
             self.editwindow_hide(window)
         elif response == gtk.RESPONSE_ACCEPT:
-            savebutton.set_sensitive(False)
-            while savebutton.get_property("sensitive") == True or gtk.events_pending():
+            window.action_area.set_sensitive(False)
+            while window.action_area.get_property("sensitive") == True or gtk.events_pending():
                 gtk.main_iteration()
             filetag = tagpy.FileRef(tags[self.tagnum]['fullpath'])
             filetag.tag().title = entries[0].get_text()
@@ -5044,7 +5052,7 @@ class Base(mpdclient3.mpd_connection):
                 error_dialog.show()
             if self.edit_next_tag(tags):
                 # Next file:
-                gobject.timeout_add(250, self.editwindow_update, window, tags, savebutton, entries, entries_names)
+                gobject.timeout_add(250, self.editwindow_update, window, tags, entries, entries_names)
             else:
                 # No more (valid) files:
                 self.editwindow_hide(window)
@@ -5110,7 +5118,7 @@ class Base(mpdclient3.mpd_connection):
             self.about_dialog.set_copyright(statslabel)
         self.about_dialog.set_license(__license__)
         self.about_dialog.set_authors(['Scott Horowitz <stonecrest@gmail.com>'])
-        self.about_dialog.set_translator_credits('fr - Floreal M <florealm@gmail.com>\npl - Tomasz Dominikowski <dominikowski@gmail.com>\nde - Paul Johnson <thrillerator@googlemail.com>\nuk - Господарисько Тарас <dogmaton@gmail.com>')
+        self.about_dialog.set_translator_credits('fr - Floreal M <florealm@gmail.com>\npl - Tomasz Dominikowski <dominikowski@gmail.com>\nde - Paul Johnson <thrillerator@googlemail.com>\nuk - Господарисько Тарас <dogmaton@gmail.com>\nru - Beekeybee <bkb.box@bk.ru>')
         gtk.about_dialog_set_url_hook(self.show_website, "http://sonata.berlios.de")
         self.about_dialog.set_website_label("http://sonata.berlios.de")
         large_icon = gtk.gdk.pixbuf_new_from_file(self.find_path('sonata_large.png'))

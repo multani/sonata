@@ -17,7 +17,7 @@ elif os.path.exists("/usr/local/bin/mpdclient3.py"):
     os.remove("/usr/local/bin/mpdclient3.py")
 
 setup(name='Sonata',
-        version='1.0',
+        version='1.0.1',
         description='GTK+ client for the Music Player Daemon (MPD).',
         author='Scott Horowitz',
         author_email='stonecrest@gmail.com',

@@ -1,9 +1,8 @@
-v1.0.1
-	ability to 'save all' for tag editing? shortcut or button?
-	post drag selection..
-
 v1.1
 	last.fm support
+	use plchanges to keep track of the playlist (faster)
+	post drag selection..
+	ability to 'save all' for tag editing? shortcut or button?
 
 Future:
 	lyrics -> allow user to edit, fetch, auto-update to wiki, search terms..?
