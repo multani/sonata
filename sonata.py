@@ -1453,19 +1453,23 @@ class Base(mpdclient3.mpd_connection):
             name = nameentry.get_text()
             uri = urlentry.get_text()
             if len(name) > 0 and len(uri) > 0:
+                # Make sure this stream name doesn't already exit:
+                i = 0
+                for item in self.stream_names:
+                    # Prevent a name collision in edit_mode..
+                    if not edit_mode or (edit_mode and i <> stream_num):
+                        if item == name:
+                            dialog.destroy()
+                            # show error here
+                            error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("A stream with this name already exists."))
+                            error_dialog.set_title(_("New Stream"))
+                            error_dialog.run()
+                            error_dialog.destroy()
+                            return
+                    i = i + 1
                 if edit_mode:
                     self.stream_names.pop(stream_num)
                     self.stream_uris.pop(stream_num)
-                # Make sure this stream name doesn't already exit:
-                for item in self.stream_names:
-                    if item == name:
-                        dialog.destroy()
-                        # show error here
-                        error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("A stream with this name already exists."))
-                        error_dialog.set_title(_("New Stream"))
-                        error_dialog.run()
-                        error_dialog.destroy()
-                        return
                 self.stream_names.append(name)
                 self.stream_uris.append(uri)
                 self.streams_populate()
