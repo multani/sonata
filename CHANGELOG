@@ -3,6 +3,7 @@ v1.0.1 - Pending
 	+ Allow editing of stream name/url
 	+ Small usability improvements to gtk.StatusIcon
 	+ Improvements to reordering the current playlist with drag-n-drop
+	+ Bug: Tag editing doesn't work with older version (0.90.1) of tagpy
 	+ Bug: Info window freezes when editing currently playing song's tags
 
 v1.0 - January 21, 2006

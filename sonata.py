@@ -272,6 +272,7 @@ class Base(mpdclient3.mpd_connection):
         self.view_artist_level_prev = 0
         self.remote_from_infowindow = False
         self.songs = None
+        self.tagpy_is_91 = None
         show_prefs = False
         # For increased responsiveness after the initial load, we cache
         # the root artist and album view results and simply refresh on
@@ -5004,19 +5005,19 @@ class Base(mpdclient3.mpd_connection):
         if not tags[self.tagnum]['comment-changed']:
             tags[self.tagnum]['comment'] = fileref.tag().comment
         # Update interface:
-        entries[0].set_text(tags[self.tagnum]['title'])
-        entries[1].set_text(tags[self.tagnum]['artist'])
-        entries[2].set_text(tags[self.tagnum]['album'])
-        if tags[self.tagnum]['year'] != 0:
-            entries[3].set_text(str(tags[self.tagnum]['year']))
+        entries[0].set_text(self.tagpy_get_tag(tags[self.tagnum], 'title'))
+        entries[1].set_text(self.tagpy_get_tag(tags[self.tagnum], 'artist'))
+        entries[2].set_text(self.tagpy_get_tag(tags[self.tagnum], 'album'))
+        if self.tagpy_get_tag(tags[self.tagnum], 'year') != 0:
+            entries[3].set_text(str(self.tagpy_get_tag(tags[self.tagnum], 'year')))
         else:
             entries[3].set_text('')
-        if tags[self.tagnum]['track'] != 0:
-            entries[4].set_text(str(tags[self.tagnum]['track']))
+        if self.tagpy_get_tag(tags[self.tagnum], 'track') != 0:
+            entries[4].set_text(str(self.tagpy_get_tag(tags[self.tagnum], 'track')))
         else:
             entries[4].set_text('')
-        entries[5].set_text(tags[self.tagnum]['genre'])
-        entries[6].set_text(tags[self.tagnum]['comment'])
+        entries[5].set_text(self.tagpy_get_tag(tags[self.tagnum], 'genre'))
+        entries[6].set_text(self.tagpy_get_tag(tags[self.tagnum], 'comment'))
         entries[7].set_text(tags[self.tagnum]['mpdpath'].split('/')[-1])
         entries[0].select_region(0, len(entries[0].get_text()))
         entries[0].grab_focus()
@@ -5030,6 +5031,59 @@ class Base(mpdclient3.mpd_connection):
                 self.edit_entry_revert_color(entries[i])
         gobject.idle_add(window.action_area.set_sensitive, True)
 
+    def tagpy_get_tag(self, tag, field):
+        # Since tagpy went through an API change from 0.90.1 to 0.91, we'll
+        # implement both methods of retrieving the tag:
+        if self.tagpy_is_91 is None:
+            try:
+                test = tag[field]()
+                self.tagpy_is_91 = False
+            except:
+                self.tagpy_is_91 = True
+        if self.tagpy_is_91 == False:
+            return tag[field]()
+        else:
+            return tag[field]
+
+    def tagpy_set_tag(self, tag, field, value):
+        # Since tagpy went through an API change from 0.90.1 to 0.91, we'll
+        # implement both methods of setting the tag:
+        if field=='artist':
+            if self.tagpy_is_91 == False:
+                tag.setArtist(value)
+            else:
+                tag.artist = value
+        elif field=='title':
+            if self.tagpy_is_91 == False:
+                tag.setTitle(value)
+            else:
+                tag.title = value
+        elif field=='album':
+            if self.tagpy_is_91 == False:
+                tag.setAlbum(value)
+            else:
+                tag.album = value
+        elif field=='year':
+            if self.tagpy_is_91 == False:
+                tag.setYear(int(value))
+            else:
+                tag.year = int(value)
+        elif field=='track':
+            if self.tagpy_is_91 == False:
+                tag.setTrack(int(value))
+            else:
+                tag.track = int(value)
+        elif field=='genre':
+            if self.tagpy_is_91 == False:
+                tag.setGenre(value)
+            else:
+                tag.genre = value
+        elif field=='comment':
+            if self.tagpy_is_91 == False:
+                tag.setComment(value)
+            else:
+                tag.comment = value
+
     def editwindow_save_all(self, button, window, tags, entries, entries_names):
         while window.get_property('visible'):
             self.editwindow_response(window, gtk.RESPONSE_ACCEPT, tags, entries, entries_names)
@@ -5042,19 +5096,19 @@ class Base(mpdclient3.mpd_connection):
             while window.action_area.get_property("sensitive") == True or gtk.events_pending():
                 gtk.main_iteration()
             filetag = tagpy.FileRef(tags[self.tagnum]['fullpath'])
-            filetag.tag().title = entries[0].get_text()
-            filetag.tag().artist = entries[1].get_text()
-            filetag.tag().album = entries[2].get_text()
+            self.tagpy_set_tag(filetag.tag(), 'title', entries[0].get_text())
+            self.tagpy_set_tag(filetag.tag(), 'artist', entries[1].get_text())
+            self.tagpy_set_tag(filetag.tag(), 'album', entries[2].get_text())
             if len(entries[3].get_text()) > 0:
-                filetag.tag().year = int(entries[3].get_text())
+                self.tagpy_set_tag(filetag.tag(), 'year', entries[3].get_text())
             else:
-                filetag.tag().year = 0
+                self.tagpy_set_tag(filetag.tag(), 'year', 0)
             if len(entries[4].get_text()) > 0:
-                filetag.tag().track = int(entries[4].get_text())
+                self.tagpy_set_tag(filetag.tag(), 'track', entries[4].get_text())
             else:
-                filetag.tag().track = 0
-            filetag.tag().genre = entries[5].get_text()
-            filetag.tag().comment = entries[6].get_text()
+                self.tagpy_set_tag(filetag.tag(), 'track', 0)
+            self.tagpy_set_tag(filetag.tag(), 'genre', entries[5].get_text())
+            self.tagpy_set_tag(filetag.tag(), 'comment', entries[6].get_text())
             save_success = filetag.save()
             if save_success:
                 if self.conn:

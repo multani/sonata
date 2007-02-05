@@ -2,6 +2,7 @@ v1.1
 	last.fm support
 	use plchanges to keep track of the playlist (faster)
 	ability to 'save all' for tag editing? shortcut or button?
+	speed up sorting by manipulating self.songs, self.currentdata appropriately?
 
 Future:
 	lyrics -> allow user to edit, fetch, auto-update to wiki, search terms..?
