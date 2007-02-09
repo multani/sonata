@@ -706,8 +706,8 @@ class Base(mpdclient3.mpd_connection):
             self.tooltips.set_tip(self.expander, _("Click to expand the player"))
 
         # Systray:
-        self.outtertipbox = gtk.VBox()
-        self.tipbox = gtk.HBox()
+        outtertipbox = gtk.VBox()
+        tipbox = gtk.HBox()
         self.trayalbumeventbox = gtk.EventBox()
         self.trayalbumeventbox.set_size_request(59, 90)
         self.trayalbumimage1 = gtk.Image()
@@ -717,11 +717,11 @@ class Base(mpdclient3.mpd_connection):
         self.trayalbumeventbox.set_state(gtk.STATE_SELECTED)
         hiddenlbl = gtk.Label()
         hiddenlbl.set_size_request(2, -1)
-        self.tipbox.pack_start(hiddenlbl, False, False, 0)
-        self.tipbox.pack_start(self.trayalbumeventbox, False, False, 0)
+        tipbox.pack_start(hiddenlbl, False, False, 0)
+        tipbox.pack_start(self.trayalbumeventbox, False, False, 0)
         self.trayalbumimage2 = gtk.Image()
         self.trayalbumimage2.set_size_request(26, 77)
-        self.tipbox.pack_start(self.trayalbumimage2, False, False, 0)
+        tipbox.pack_start(self.trayalbumimage2, False, False, 0)
         if not self.show_covers:
             self.trayalbumeventbox.set_no_show_all(True)
             self.trayalbumeventbox.hide()
@@ -747,10 +747,10 @@ class Base(mpdclient3.mpd_connection):
         label3 = gtk.Label()
         label3.set_markup('<span size="10"> </span>')
         innerbox.pack_start(label3)
-        self.tipbox.pack_start(innerbox, True, True, 6)
-        self.outtertipbox.pack_start(self.tipbox, False, False, 2)
-        self.outtertipbox.show_all()
-        self.traytips.add_widget(self.outtertipbox)
+        tipbox.pack_start(innerbox, True, True, 6)
+        outtertipbox.pack_start(tipbox, False, False, 2)
+        outtertipbox.show_all()
+        self.traytips.add_widget(outtertipbox)
 
         # Volumescale window
         self.volumewindow = gtk.Window(gtk.WINDOW_POPUP)
@@ -779,6 +779,9 @@ class Base(mpdclient3.mpd_connection):
         frame.show_all()
 
         # Connect to signals
+        self.window.add_events(gtk.gdk.BUTTON_PRESS_MASK)
+        self.traytips.add_events(gtk.gdk.BUTTON_PRESS_MASK)
+        self.traytips.connect('button_press_event', self.on_traytips_press)
         self.window.connect('delete_event', self.on_delete_event)
         self.window.connect('window_state_event', self.on_window_state_change)
         self.window.connect('configure_event', self.on_window_configure)
@@ -829,7 +832,6 @@ class Base(mpdclient3.mpd_connection):
         self.progresseventbox.connect('button_press_event', self.popup_menu)
         self.expander.connect('button_press_event', self.popup_menu)
         self.volumebutton.connect('button_press_event', self.popup_menu)
-        self.window.add_events(gtk.gdk.BUTTON_PRESS_MASK)
         self.mainwinhandler = self.window.connect('button_press_event', self.on_window_click)
         self.searchtext.connect('activate', self.on_search_activate)
         self.searchbutton.connect('clicked', self.on_search_end)
@@ -3827,6 +3829,10 @@ class Base(mpdclient3.mpd_connection):
         elif event.button == 3: # Right button pops up menu
             self.traymenu.popup(None, None, None, event.button, event.time)
         return False
+
+    def on_traytips_press(self, widget, event):
+        if self.traytips.get_property('visible'):
+            self.traytips._remove_timer()
 
     def withdraw_app_undo(self):
         self.window.move(self.x, self.y)

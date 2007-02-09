@@ -1,6 +1,7 @@
 v1.0.1 - Pending
 	+ Make lyrics fetching optional
 	+ Allow editing of stream name/url
+	+ Hide the notification window when it is clicked
 	+ Small usability improvements to gtk.StatusIcon
 	+ Improvements to reordering the current playlist with drag-n-drop
 	+ Bug: Tag editing doesn't work with older version (0.90.1) of tagpy
