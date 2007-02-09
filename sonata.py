@@ -2793,7 +2793,10 @@ class Base(mpdclient3.mpd_connection):
                 else:
                     self.traytips.hide()
             elif self.traytips.get_property('visible'):
-                self.traytips._real_display(self.trayeventbox)
+                try:
+                    self.traytips._real_display(self.trayeventbox)
+                except:
+                    pass
 
     def progressbarnotify_fraction(self, *args):
         self.trayprogressbar.set_fraction(self.progressbar.get_fraction())
