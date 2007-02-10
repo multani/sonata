@@ -948,6 +948,8 @@ class Base(mpdclient3.mpd_connection):
         if HAVE_STATUS_ICON:
             gobject.timeout_add(250, self.iterate_status_icon)
 
+        gc.disable()
+
     def print_version(self):
         print _("Version: Sonata"), __version__
         print _("Website: http://sonata.berlios.de")
@@ -3472,7 +3474,6 @@ class Base(mpdclient3.mpd_connection):
         self.infowindow_visible = True
 
     def infowindow_get_lyrics(self, artist, title):
-        gc.disable()
         filename = os.path.expanduser('~/.lyrics/' + artist + '-' + title + '.txt')
         if os.path.exists(filename):
             # Re-use lyrics from file, if it exists:
@@ -3514,7 +3515,6 @@ class Base(mpdclient3.mpd_connection):
                 lyrics = _("Fetching lyrics failed")
                 gobject.idle_add(self.infowindow_show_lyrics, lyrics)
             socket.setdefaulttimeout(timeout)
-        gc.enable()
 
     def infowindow_show_lyrics(self, lyrics, artist=None, title=None):
         if self.infowindow_visible:
@@ -3716,7 +3716,6 @@ class Base(mpdclient3.mpd_connection):
         thread.start()
 
     def choose_image_update2(self):
-        gc.disable()
         self.stop_art_update = False
         # Retrieve all images from amazon:
         artist_search = self.remote_artistentry.get_text()
@@ -3736,7 +3735,6 @@ class Base(mpdclient3.mpd_connection):
                 gobject.idle_add(self.choose_image_no_art_found)
                 self.allow_art_search = True
         self.call_gc_collect = True
-        gc.enable()
 
     def choose_image_no_artist_or_album_dialog(self):
         self.imagelist.append([0, gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 1, 1), _("No artist or album name found.")])

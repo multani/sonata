@@ -1,3 +1,5 @@
+lyrics not found error overrides lyrics on song change (syncing of lyrics)
+
 v1.1
 	last.fm support
 	use plchanges to keep track of the playlist (faster)
