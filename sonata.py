@@ -90,11 +90,16 @@ except:
     HAVE_TAGPY = False
 
 try:
-    # Temporarily disable lyrics...
     from SOAPpy import WSDL
     HAVE_WSDL = True
 except:
     HAVE_WSDL = False
+
+try:
+    import gnome, gnome.ui
+    HAVE_GNOME_UI = True
+except:
+    HAVE_GNOME_UI = False
 
 # Test pygtk version
 if gtk.pygtk_version < (2, 6, 0):
@@ -187,6 +192,8 @@ class Base(mpdclient3.mpd_connection):
             print "PyGTK+ 2.10 or gnome-python-extras not found, system tray support disabled."
 
         start_dbus_interface(toggle_arg)
+
+        self.gnome_session_management()
 
         # Initialize vars:
         self.TAB_CURRENT = 0
@@ -976,6 +983,21 @@ class Base(mpdclient3.mpd_connection):
         print "  pp                   " + _("Toggle play/pause; plays if stopped")
         print "  info                 " + _("Display current song info")
         print "  status               " + _("Display MPD status")
+
+    def gnome_session_management(self):
+        if HAVE_GNOME_UI:
+            # Code thanks to quodlibet:
+            gnome.init("sonata", __version__)
+            client = gnome.ui.master_client()
+            client.set_restart_style(gnome.ui.RESTART_IF_RUNNING)
+            command = os.path.normpath(os.path.join(os.getcwd(), sys.argv[0]))
+            try: client.set_restart_command([command] + sys.argv[1:])
+            except TypeError:
+                # Fedora systems have a broken gnome-python wrapper for this function.
+                # http://www.sacredchao.net/quodlibet/ticket/591
+                # http://trac.gajim.org/ticket/929
+                client.set_restart_command(len(sys.argv), [command] + sys.argv[1:])
+            client.connect('die', gtk.main_quit)
 
     def single_connect_for_passed_arg(self, type):
         self.user_connect = True

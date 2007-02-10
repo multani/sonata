@@ -4,6 +4,7 @@ v1.0.1 - Pending
 	+ Hide the notification window when it is clicked
 	+ Small usability improvements to gtk.StatusIcon
 	+ Improvements to reordering the current playlist with drag-n-drop
+	+ Gnome session support
 	+ Bug: Tag editing doesn't work with older version (0.90.1) of tagpy
 	+ Bug: Info window freezes when editing currently playing song's tags
 
