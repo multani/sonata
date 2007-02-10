@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Sonata 1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2007-02-04 11:49-0700\n"
-"PO-Revision-Date: 2007-01-14 13:34+0100\n"
+"PO-Revision-Date: 2007-02-05 14:06+0100\n"
 "Last-Translator:  Paul Johnson <thrillerator@googlemail.com>\n"
 "Language-Team: Sonata-DE <thrillerator@googlemail.com>\n"
 "MIME-Version: 1.0\n"
@@ -92,7 +92,7 @@ msgstr "_Wiedergeben"
 
 #: sonata.py:332
 msgid "_Pause"
-msgstr ""
+msgstr "_Pausieren"
 
 #: sonata.py:333
 msgid "_Stop"
@@ -386,7 +386,7 @@ msgstr ""
 #: sonata.py:1429
 #, fuzzy
 msgid "Edit Stream"
-msgstr "Live-Streams"
+msgstr "Stream bearbeiten"
 
 #: sonata.py:1431 sonata.py:1464
 msgid "New Stream"
@@ -637,7 +637,7 @@ msgstr "Statusleiste aktivieren"
 #: sonata.py:4193
 #, fuzzy
 msgid "Enable lyrics"
-msgstr "Aktivieren"
+msgstr "Songtexte aktivieren"
 
 #: sonata.py:4198
 msgid "Enable system tray icon"
@@ -844,7 +844,7 @@ msgstr "Bei allen ausgewählten Stücken eintragen."
 
 #: sonata.py:5023
 msgid "of"
-msgstr ""
+msgstr "von"
 
 #: sonata.py:5066
 msgid "Unable to save tag to music file."

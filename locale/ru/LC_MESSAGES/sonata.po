@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2007-02-04 11:49-0700\n"
 "PO-Revision-Date: 2007-01-15 18:16+0500\n"
-"Last-Translator: Beekeybee <bkb.box@bk.ru>\n"
+"Last-Translator: Ivan Kharin <bkb.box@bk.ru>\n"
 "Language-Team: badDron <andrew@infonet.by>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
@@ -134,7 +134,7 @@ msgstr "_Обновить библиотеку"
 
 #: sonata.py:341
 msgid "_Preferences..."
-msgstr "_Настройка..."
+msgstr "_Параметры"
 
 #: sonata.py:342
 msgid "_About..."
@@ -142,7 +142,7 @@ msgstr "О п_рограмме"
 
 #: sonata.py:343
 msgid "_New..."
-msgstr "_Новый"
+msgstr "_Создать..."
 
 #: sonata.py:344 sonata.py:3276
 msgid "_Edit..."
@@ -161,7 +161,6 @@ msgid "_Replace"
 msgstr "_Заменить"
 
 #: sonata.py:348
-#, fuzzy
 msgid "_Delete..."
 msgstr "У_далить"
 
@@ -170,12 +169,10 @@ msgid "By"
 msgstr ""
 
 #: sonata.py:351
-#, fuzzy
 msgid "Song Title"
 msgstr "Название"
 
 #: sonata.py:352
-#, fuzzy
 msgid "File Name"
 msgstr "Имя файла"
 
@@ -189,7 +186,7 @@ msgstr "В случайном порядке"
 
 #: sonata.py:378
 msgid "_Show Player"
-msgstr "По_казать плейер"
+msgstr "По_казывать плейер"
 
 #: sonata.py:379
 msgid "_Repeat"
@@ -393,13 +390,12 @@ msgstr ""
 "Проверьте настройки соединения."
 
 #: sonata.py:1429
-#, fuzzy
 msgid "Edit Stream"
-msgstr "Потоки"
+msgstr "Править потоки"
 
 #: sonata.py:1431 sonata.py:1464
 msgid "New Stream"
-msgstr "Новый поток"
+msgstr "Создать поток"
 
 #: sonata.py:1433
 msgid "Stream name"
@@ -410,7 +406,6 @@ msgid "Stream URL"
 msgstr "URL потока"
 
 #: sonata.py:1463
-#, fuzzy
 msgid "A stream with this name already exists."
 msgstr "Поток с таким именем уже существует."
 
@@ -427,9 +422,8 @@ msgid "A playlist with this name already exists."
 msgstr "Плейлист с таким названием уже существует."
 
 #: sonata.py:1874 sonata.py:1880 sonata.py:1898
-#, fuzzy
 msgid "Unknown"
-msgstr "Неизвестный исполнитель"
+msgstr "Неизвестно"
 
 #: sonata.py:2388
 msgid "minute"
@@ -441,9 +435,9 @@ msgstr[2] "минут"
 #: sonata.py:2392
 msgid "hour and"
 msgid_plural "hours and"
-msgstr[0] "час"
-msgstr[1] "часа"
-msgstr[2] "часов"
+msgstr[0] "час и"
+msgstr[1] "часа и"
+msgstr[2] "часов и"
 
 #: sonata.py:2394
 msgid "song"
@@ -466,15 +460,15 @@ msgstr "Путь"
 
 #: sonata.py:3271
 msgid "_Song Info"
-msgstr "_О песне"
+msgstr "О _песне"
 
 #: sonata.py:3287
 msgid "_Cover Art"
-msgstr "_Обложка"
+msgstr "О_бложка"
 
 #: sonata.py:3300
 msgid "_Album Info"
-msgstr "_Об альбоме"
+msgstr "Об _альбоме"
 
 #: sonata.py:3335
 msgid "_Lyrics"
@@ -506,7 +500,7 @@ msgstr "Текст не найден"
 
 #: sonata.py:3503
 msgid "Fetching lyrics failed"
-msgstr "Получение текста не удалось"
+msgstr "Не удалось получить текст."
 
 #: sonata.py:3590
 msgid "Open Image"
@@ -541,9 +535,8 @@ msgid "No artist or album name found."
 msgstr "Исполнитель или название альбома не найдены."
 
 #: sonata.py:3731
-#, fuzzy
 msgid "No cover art found."
-msgstr "Не найдено подходящей обложки."
+msgstr "Обложка не найдена."
 
 #: sonata.py:4003
 msgid "Delete the selected playlist(s)?"
@@ -586,7 +579,6 @@ msgid "Password"
 msgstr "Пароль"
 
 #: sonata.py:4102
-#, fuzzy
 msgid "Leave blank if no password is required."
 msgstr "Оставьте пустым если не требуется."
 
@@ -599,7 +591,6 @@ msgid "Fade length"
 msgstr "Длительность "
 
 #: sonata.py:4117
-#, fuzzy
 msgid "sec"
 msgstr "сек"
 
@@ -652,9 +643,8 @@ msgid "Enable statusbar"
 msgstr "Включить статусную строку"
 
 #: sonata.py:4193
-#, fuzzy
 msgid "Enable lyrics"
-msgstr "Включить"
+msgstr "Включить тексты песен"
 
 #: sonata.py:4198
 msgid "Enable system tray icon"
@@ -778,12 +768,10 @@ msgid "Available options"
 msgstr "Доступные параметры"
 
 #: sonata.py:4352
-#, fuzzy
 msgid "Artist name"
 msgstr "Исполнитель"
 
 #: sonata.py:4352
-#, fuzzy
 msgid "Album name"
 msgstr "Альбом"
 
@@ -800,7 +788,6 @@ msgid "Year"
 msgstr "Год"
 
 #: sonata.py:4355
-#, fuzzy
 msgid "File name"
 msgstr "Имя файла"
 
