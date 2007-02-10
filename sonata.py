@@ -3847,6 +3847,8 @@ class Base(mpdclient3.mpd_connection):
         if not self.expanded:
             self.notebook.set_no_show_all(True)
         self.window.show_all()
+        if self.infowindow_visible:
+            self.infowindow.show_all()
         self.window.present() # Helps to raise the window (useful against focus stealing prevention)
         self.window.grab_focus()
         self.notebook.set_no_show_all(False)
@@ -3858,6 +3860,8 @@ class Base(mpdclient3.mpd_connection):
     def withdraw_app(self):
         if HAVE_EGG or HAVE_STATUS_ICON:
             self.window.hide()
+            if self.infowindow_visible:
+                self.infowindow.hide()
             self.withdrawn = True
             self.UIManager.get_widget('/traymenu/showmenu').set_active(False)
 
