@@ -728,13 +728,17 @@ class Base(mpdclient3.mpd_connection):
             self.trayalbumimage2.set_no_show_all(True)
             self.trayalbumimage2.hide()
         innerbox = gtk.VBox()
-        self.traycursonglabel = gtk.Label()
-        self.traycursonglabel.set_markup(_("Playlist"))
-        self.traycursonglabel.set_alignment(0, 1)
+        self.traycursonglabel1 = gtk.Label()
+        self.traycursonglabel1.set_markup(_("Playlist"))
+        self.traycursonglabel1.set_alignment(0, 1)
+        self.traycursonglabel2 = gtk.Label()
+        self.traycursonglabel2.set_markup(_("Playlist"))
+        self.traycursonglabel2.set_alignment(0, 0)
         label1 = gtk.Label()
         label1.set_markup('<span size="10"> </span>')
         innerbox.pack_start(label1)
-        innerbox.pack_start(self.traycursonglabel, True, True, 0)
+        innerbox.pack_start(self.traycursonglabel1, True, True, 0)
+        innerbox.pack_start(self.traycursonglabel2, True, True, 0)
         self.trayprogressbar = gtk.ProgressBar()
         self.trayprogressbar.set_orientation(gtk.PROGRESS_LEFT_TO_RIGHT)
         self.trayprogressbar.set_fraction(0)
@@ -1938,20 +1942,14 @@ class Base(mpdclient3.mpd_connection):
             return text
 
     def parse_formatting(self, format, item, use_escape_html, wintitle=False):
-        if self.song_has_metadata(item):
-            substrings = self.parse_formatting_return_substrings(format)
-            text = ""
-            for sub in substrings:
-                text = text + str(self.parse_formatting_for_substring(sub, item, wintitle))
-            if use_escape_html:
-                return escape_html(text)
-            else:
-                return text
+        substrings = self.parse_formatting_return_substrings(format)
+        text = ""
+        for sub in substrings:
+            text = text + str(self.parse_formatting_for_substring(sub, item, wintitle))
+        if use_escape_html:
+            return escape_html(text)
         else:
-            if use_escape_html:
-                return escape_html(self.filename_or_fullpath(item.file))
-            else:
-                return self.filename_or_fullpath(item.file)
+            return text
 
     def filename_or_fullpath(self, file):
         if len(file.split('/')[-1]) == 0 or file[:7] == 'http://' or file[:6] == 'ftp://':
@@ -2421,40 +2419,45 @@ class Base(mpdclient3.mpd_connection):
             # popup will have the correct height when being displayed for
             # the first time after a stopped state.
             self.trayprogressbar.show()
+            self.traycursonglabel2.show()
             if self.show_covers:
                 self.trayalbumeventbox.show()
                 self.trayalbumimage2.show()
+            self.traycursonglabel1.set_ellipsize(pango.ELLIPSIZE_END)
+            self.traycursonglabel2.set_ellipsize(pango.ELLIPSIZE_END)
             newlabelfound = False
-            newlabel = ""
-            newlabel_tray_gtk = ""
             if len(self.currsongformat1) > 0:
-                newlabel = newlabel + '<big><b>' + self.parse_formatting(self.currsongformat1, self.songinfo, True) + ' </b></big>'
-                newlabel_tray_gtk = newlabel_tray_gtk + self.parse_formatting(self.currsongformat1, self.songinfo, True)
+                newlabel1 = '<big><b>' + self.parse_formatting(self.currsongformat1, self.songinfo, True) + ' </b></big>'
             else:
-                newlabel = newlabel + '<big><b> </b></big>'
+                newlabel1 = '<big><b> </b></big>'
             if len(self.currsongformat2) > 0:
-                newlabel = newlabel + '\n<small>' + self.parse_formatting(self.currsongformat2, self.songinfo, True) + ' </small>'
-                newlabel_tray_gtk = newlabel_tray_gtk + '\n' + self.parse_formatting(self.currsongformat2, self.songinfo, True)
+                newlabel2 = '<small>' + self.parse_formatting(self.currsongformat2, self.songinfo, True) + ' </small>'
             else:
-                newlabel = newlabel + '\n<small> </small>'
-                newlabel_tray_gtk = newlabel_tray_gtk + '\n '
-            newlabel_tray_egg = newlabel
+                newlabel2 = '<small> </small>'
+            newlabel_tray1 = newlabel1
+            newlabel_tray2 = newlabel2
+            newlabel = newlabel1 + '\n' + newlabel2
             if newlabel != self.cursonglabel.get_label():
                 self.cursonglabel.set_markup(newlabel)
-            if newlabel_tray_egg != self.traycursonglabel.get_label():
-                self.traycursonglabel.set_markup(newlabel_tray_egg)
+            if newlabel_tray1 != self.traycursonglabel1.get_label():
+                self.traycursonglabel1.set_markup(newlabel_tray1)
+            if newlabel_tray2 != self.traycursonglabel2.get_label():
+                self.traycursonglabel2.set_markup(newlabel_tray2)
         else:
+            self.traycursonglabel1.set_ellipsize(pango.ELLIPSIZE_NONE)
+            self.traycursonglabel2.set_ellipsize(pango.ELLIPSIZE_NONE)
             if self.expanded:
                 self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to collapse') + '</small>')
             else:
                 self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to expand') + '</small>')
             if not self.conn:
-                self.traycursonglabel.set_label(_('Not connected'))
+                self.traycursonglabel1.set_label(_('Not connected'))
             else:
-                self.traycursonglabel.set_label(_('Stopped'))
+                self.traycursonglabel1.set_label(_('Stopped'))
             self.trayprogressbar.hide()
             self.trayalbumeventbox.hide()
             self.trayalbumimage2.hide()
+            self.traycursonglabel2.hide()
         self.update_infofile()
 
     def update_wintitle(self):

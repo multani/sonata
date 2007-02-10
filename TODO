@@ -1,4 +1,5 @@
 lyrics not found error overrides lyrics on song change (syncing of lyrics)
+gc.collect
 
 v1.1
 	last.fm support
