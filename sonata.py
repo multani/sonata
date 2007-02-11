@@ -2607,6 +2607,7 @@ class Base(mpdclient3.mpd_connection):
             self.set_default_icon_for_art(True)
 
     def check_for_local_images(self, songdir):
+        self.set_default_icon_for_art(True)
         if os.path.exists(self.musicdir + songdir + "/cover.jpg"):
             gobject.idle_add(self.set_image_for_cover, self.musicdir + songdir + "/cover.jpg")
             return True

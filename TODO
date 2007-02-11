@@ -1,11 +1,13 @@
 lyrics not found error overrides lyrics on song change (syncing of lyrics)
-gc.collect
+verify gnome-session works
 
 v1.1
 	last.fm support
-	use plchanges to keep track of the playlist (faster)
+	use plchanges to keep track of the playlist (faster?)
 	ability to 'save all' for tag editing? shortcut or button?
 	speed up sorting by manipulating self.songs, self.currentdata appropriately?
+	'everything' choice for searching library
+	save last 'search by' choice
 
 Future:
 	lyrics -> allow user to edit, fetch, auto-update to wiki, search terms..?

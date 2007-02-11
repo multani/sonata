@@ -7,6 +7,8 @@ v1.0.1 - Pending
 	+ Gnome session support
 	+ Bug: Tag editing doesn't work with older version (0.90.1) of tagpy
 	+ Bug: Info window freezes when editing currently playing song's tags
+	+ Bug: Prevent strange potential freeze with gc.collect()
+	+ Bug: Cover art doesn't update correctly if Local Only artwork set
 
 v1.0 - January 21, 2006
 	+ Multiple views for library: filesystem, artists, albums
