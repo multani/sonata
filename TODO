@@ -1,4 +1,3 @@
-lyrics not found error overrides lyrics on song change (syncing of lyrics)
 verify gnome-session works
 
 v1.1
@@ -8,6 +7,7 @@ v1.1
 	speed up sorting by manipulating self.songs, self.currentdata appropriately?
 	'everything' choice for searching library
 	save last 'search by' choice
+	scale notification window based on resolution width?
 
 Future:
 	lyrics -> allow user to edit, fetch, auto-update to wiki, search terms..?

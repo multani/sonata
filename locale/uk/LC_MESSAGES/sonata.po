@@ -875,7 +875,7 @@ msgstr "Коментар"
 
 #: sonata.py:4946
 msgid "Increment each selected music file, starting at track 1 for this file."
-msgstr ""
+msgstr "Якщо позначено, то номер кожного наступного треку буде на один більше."
 
 #: sonata.py:4948
 msgid "Apply to all selected music files."

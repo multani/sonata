@@ -3468,14 +3468,11 @@ class Base(mpdclient3.mpd_connection):
                         # Update lyrics:
                         if HAVE_WSDL and self.show_lyrics:
                             if self.songinfo.has_key('artist') and self.songinfo.has_key('title'):
-                                try:
-                                    lyricThread = threading.Thread(target=self.infowindow_get_lyrics, args=(self.songinfo.artist, self.songinfo.title))
-                                    lyricThread.setDaemon(True)
-                                    lyricThread.start()
-                                except:
-                                    self.infowindow_show_lyrics("")
+                                lyricThread = threading.Thread(target=self.infowindow_get_lyrics, args=(self.songinfo.artist, self.songinfo.title))
+                                lyricThread.setDaemon(True)
+                                lyricThread.start()
                             else:
-                                self.infowindow_show_lyrics(_("Artist or song title not set."))
+                                self.infowindow_show_lyrics(_("Artist or song title not set."), "", "", True)
                     if show_after_update and self.infowindow_visible:
                         gobject.idle_add(self.infowindow_show_now)
                 else:
@@ -3492,7 +3489,7 @@ class Base(mpdclient3.mpd_connection):
                     self.infowindow_filelabel.set_text("")
                     self.infowindow_bitratelabel.set_text("")
                     if HAVE_WSDL and self.show_lyrics:
-                        self.infowindow_show_lyrics("")
+                        self.infowindow_show_lyrics("", "", "", True)
                     self.albuminfoBuffer.set_text("")
 
     def infowindow_show_now(self):
@@ -3509,7 +3506,7 @@ class Base(mpdclient3.mpd_connection):
             gobject.idle_add(self.infowindow_show_lyrics, lyrics, artist, title)
         else:
             # Fetch lyrics from lyricwiki.org
-            gobject.idle_add(self.infowindow_show_lyrics, _("Fetching lyrics..."))
+            gobject.idle_add(self.infowindow_show_lyrics, _("Fetching lyrics..."), artist, title)
             if self.lyricServer is None:
                 wsdlFile = "http://lyricwiki.org/server.php?wsdl"
                 try:
@@ -3520,7 +3517,7 @@ class Base(mpdclient3.mpd_connection):
                 except:
                     socket.setdefaulttimeout(timeout)
                     lyrics = _("Couldn't connect to LyricWiki")
-                    gobject.idle_add(self.infowindow_show_lyrics, lyrics)
+                    gobject.idle_add(self.infowindow_show_lyrics, lyrics, artist, title)
                     self.lyricServer = None
                     return
             try:
@@ -3536,20 +3533,25 @@ class Base(mpdclient3.mpd_connection):
                     f.close()
                 else:
                     lyrics = _("Lyrics not found")
-                    gobject.idle_add(self.infowindow_show_lyrics, lyrics)
+                    gobject.idle_add(self.infowindow_show_lyrics, lyrics, artist, title)
             except:
                 lyrics = _("Fetching lyrics failed")
-                gobject.idle_add(self.infowindow_show_lyrics, lyrics)
+                gobject.idle_add(self.infowindow_show_lyrics, lyrics, artist, title)
             socket.setdefaulttimeout(timeout)
 
-    def infowindow_show_lyrics(self, lyrics, artist=None, title=None):
+    def infowindow_show_lyrics(self, lyrics, artist, title, force=False):
         if self.infowindow_visible:
-            if artist is None and title is None:
+            if force:
+                # For error messages where there is no appropriate artist or
+                # title, we pass force=True:
                 self.lyricsBuffer.set_text(lyrics)
-            elif self.status and self.status.state in ['play', 'pause']:
+            elif self.status and self.status.state in ['play', 'pause'] and self.songinfo:
                 # Verify that we are displaying the correct lyrics:
-                if self.songinfo.artist == artist and self.songinfo.title == title:
-                    self.lyricsBuffer.set_text(lyrics)
+                try:
+                    if self.songinfo.artist == artist and self.songinfo.title == title:
+                        self.lyricsBuffer.set_text(lyrics)
+                except:
+                    pass
 
     def get_pixbuf_of_size(self, pixbuf, size):
         # Creates a pixbuf that fits in the specified square of sizexsize
