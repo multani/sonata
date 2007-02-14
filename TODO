@@ -1,5 +1,3 @@
-verify gnome-session works
-
 v1.1
 	last.fm support
 	use plchanges to keep track of the playlist (faster?)
@@ -8,6 +6,7 @@ v1.1
 	'everything' choice for searching library
 	save last 'search by' choice
 	scale notification window based on resolution width?
+	verify gnome-session works correctly
 
 Future:
 	lyrics -> allow user to edit, fetch, auto-update to wiki, search terms..?

@@ -95,11 +95,11 @@ try:
 except:
     HAVE_WSDL = False
 
-try:
-    import gnome, gnome.ui
-    HAVE_GNOME_UI = True
-except:
-    HAVE_GNOME_UI = False
+#try:
+#	import gnome, gnome.ui
+#	HAVE_GNOME_UI = True
+#except:
+#	HAVE_GNOME_UI = False
 
 # Test pygtk version
 if gtk.pygtk_version < (2, 6, 0):
@@ -193,7 +193,7 @@ class Base(mpdclient3.mpd_connection):
 
         start_dbus_interface(toggle_arg)
 
-        self.gnome_session_management()
+        #self.gnome_session_management()
 
         # Initialize vars:
         self.TAB_CURRENT = 0
