@@ -95,11 +95,11 @@ try:
 except:
     HAVE_WSDL = False
 
-#try:
-#	import gnome, gnome.ui
-#	HAVE_GNOME_UI = True
-#except:
-#	HAVE_GNOME_UI = False
+try:
+    import gnome, gnome.ui
+    HAVE_GNOME_UI = True
+except:
+    HAVE_GNOME_UI = False
 
 # Test pygtk version
 if gtk.pygtk_version < (2, 6, 0):
@@ -193,7 +193,7 @@ class Base(mpdclient3.mpd_connection):
 
         start_dbus_interface(toggle_arg)
 
-        #self.gnome_session_management()
+        self.gnome_session_management()
 
         # Initialize vars:
         self.TAB_CURRENT = 0
@@ -850,6 +850,9 @@ class Base(mpdclient3.mpd_connection):
         self.notebook.connect('switch-page', self.on_notebook_page_change)
         self.searchtext.connect('button_press_event', self.on_searchtext_click)
         self.initialize_systrayicon()
+        # Ensure that the systemtray icon is added here:
+        while gtk.events_pending():
+            gtk.main_iteration()
 
         # Connect to mmkeys signals
         if HAVE_MMKEYS:
@@ -935,9 +938,11 @@ class Base(mpdclient3.mpd_connection):
 
         self.iterate_now()
         if self.window_owner:
-            if self.withdrawn and (HAVE_EGG or (HAVE_STATUS_ICON and self.statusicon.get_visible())):
-                self.window.set_no_show_all(True)
-                self.window.hide()
+            if self.withdrawn:
+                print self.trayicon
+                if (HAVE_EGG and self.trayicon.get_property('visible')) or (HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible()):
+                    self.window.set_no_show_all(True)
+                    self.window.hide()
         self.window.show_all()
 
         if self.update_on_start:
@@ -1193,9 +1198,15 @@ class Base(mpdclient3.mpd_connection):
         if self.show_trayicon:
             if HAVE_STATUS_ICON:
                 if self.statusicon.is_embedded() and not self.statusicon.get_visible():
+                    # Systemtray appears, add icon:
                     self.initialize_systrayicon()
+                elif not self.statusicon.is_embedded() and self.withdrawn:
+                    # Systemtray gone, unwithdraw app:
+                    self.withdraw_app_undo()
             elif HAVE_EGG:
+                print self.trayicon.get_property('visible')
                 if self.trayicon.get_property('visible') == False:
+                    # Systemtray appears, add icon:
                     self.initialize_systrayicon()
 
         if self.call_gc_collect:
