@@ -1,4 +1,6 @@
 v1.1 - Pending
+	+ Allow searching ALL metadata in library ("everything")
+	+ Save last used option in library search
 	+ Fixes to prevent problems between withdrawing app & gtk.StatusIcon
 
 v1.0.1 - February 13, 2007

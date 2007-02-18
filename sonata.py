@@ -262,8 +262,9 @@ class Base(mpdclient3.mpd_connection):
         self.stream_uris = []
         self.infowindow_visible = False
         self.downloading_image = False
-        self.search_terms = [_('Artist'), _('Title'), _('Album'), _('Genre'), _('Filename')]
-        self.search_terms_mpd = ['artist', 'title', 'album', 'genre', 'filename']
+        self.search_terms = [_('Artist'), _('Title'), _('Album'), _('Genre'), _('Filename'), _('Everything')]
+        self.search_terms_mpd = ['artist', 'title', 'album', 'genre', 'filename', 'any']
+        self.last_search_num = 0
         self.sonata_loaded = False
         self.call_gc_collect = False
         self.single_img_in_dir = None
@@ -844,6 +845,7 @@ class Base(mpdclient3.mpd_connection):
         self.expander.connect('button_press_event', self.popup_menu)
         self.volumebutton.connect('button_press_event', self.popup_menu)
         self.mainwinhandler = self.window.connect('button_press_event', self.on_window_click)
+        self.searchcombo.connect('changed', self.on_search_combo_change)
         self.searchtext.connect('activate', self.on_search_activate)
         self.searchbutton.connect('clicked', self.on_search_end)
         self.notebook.connect('button_press_event', self.on_notebook_click)
@@ -913,7 +915,7 @@ class Base(mpdclient3.mpd_connection):
         self.browserselectedpath = {}
         self.root = '/'
         self.browser.wd = '/'
-        self.searchcombo.set_active(0)
+        self.searchcombo.set_active(self.last_search_num)
         self.prevstatus = None
         self.browserdata = gtk.ListStore(str, str, str)
         self.browser.set_model(self.browserdata)
@@ -939,7 +941,6 @@ class Base(mpdclient3.mpd_connection):
         self.iterate_now()
         if self.window_owner:
             if self.withdrawn:
-                print self.trayicon
                 if (HAVE_EGG and self.trayicon.get_property('visible')) or (HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible()):
                     self.window.set_no_show_all(True)
                     self.window.hide()
@@ -1341,6 +1342,8 @@ class Base(mpdclient3.mpd_connection):
             self.show_trayicon = conf.getboolean('player', 'trayicon')
         if conf.has_option('player', 'view'):
             self.view = conf.getint('player', 'view')
+        if conf.has_option('player', 'search_num'):
+            self.last_search_num = conf.getint('player', 'search_num')
         if conf.has_option('player', 'infowindow_x'):
             self.infowindow_x = conf.getint('player', 'infowindow_x')
         if conf.has_option('player', 'infowindow_y'):
@@ -1405,6 +1408,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'play_on_activate', self.play_on_activate)
         conf.set('player', 'trayicon', self.show_trayicon)
         conf.set('player', 'view', self.view)
+        conf.set('player', 'search_num', self.last_search_num)
         conf.set('player', 'infowindow_x', self.infowindow_x)
         conf.set('player', 'infowindow_y', self.infowindow_y)
         conf.set('player', 'infowindow_w', self.infowindow_w)
@@ -4702,8 +4706,11 @@ class Base(mpdclient3.mpd_connection):
             self.UIManager.get_widget('/mainmenu/songinfo_menu/').show()
             self.mainmenu.popup(None, None, None, event.button, event.time)
 
+    def on_search_combo_change(self, combo):
+        self.last_search_num = combo.get_active()
+
     def on_search_activate(self, entry):
-        searchby = self.search_terms_mpd[self.searchcombo.get_active()]
+        searchby = self.search_terms_mpd[self.last_search_num]
         if self.searchtext.get_text() != "":
             list = self.conn.do.search(searchby, self.searchtext.get_text())
             self.browserdata.clear()
