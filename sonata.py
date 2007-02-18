@@ -4974,7 +4974,7 @@ class Base(mpdclient3.mpd_connection):
         entries_names = ["title", "artist", "album", "year", "track", "genre", "comment"]
         editwindow.connect('response', self.editwindow_response, tags, entries, entries_names)
         #saveall_button.connect('clicked', self.editwindow_save_all, editwindow, tags, entries, entries_names)
-        for i in range(len(entries)-2):
+        for i in range(len(entries)-1):
             entries[i].connect('changed', self.edit_entry_changed)
         for i in range(len(buttons)):
             buttons[i].connect('clicked', self.editwindow_applyall, entries_names[i], tags, entries)

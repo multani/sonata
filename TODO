@@ -3,8 +3,6 @@ v1.1
 	use plchanges to keep track of the playlist (faster?)
 	ability to 'save all' for tag editing? shortcut or button?
 	speed up sorting by manipulating self.songs, self.currentdata appropriately?
-	'everything' choice for searching library
-	save last 'search by' choice
 	scale notification window based on resolution width?
 	verify gnome-session works correctly - need gnome testers
 	_integrate_ xmms-like search based on nex's patch
