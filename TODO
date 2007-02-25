@@ -6,6 +6,7 @@ v1.1
 	scale notification window based on resolution width?
 	verify gnome-session works correctly - need gnome testers
 	_integrate_ xmms-like search based on nex's patch
+	look into timeout_add() and idle_add() - should return False for 1-time event?
 
 Future:
 	lyrics -> allow user to edit, fetch, auto-update to wiki, search terms..?
