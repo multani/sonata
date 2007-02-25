@@ -70,6 +70,12 @@ try:
     import dbus.service
     if getattr(dbus, "version", (0,0,0)) >= (0,41,0):
         import dbus.glib
+    if getattr(dbus, "version", (0,0,0)) >= (0,80,0):
+        import _dbus_bindings as dbus_bindings
+        NEW_DBUS = True
+    else:
+        import dbus.dbus_bindings as dbus_bindings
+        NEW_DBUS = False
     HAVE_DBUS = True
 except:
     HAVE_DBUS = False
@@ -5591,25 +5597,24 @@ def remove_list_duplicates(inputlist, inputlist2=[], case_sensitive=True):
 
 def start_dbus_interface(toggle=False):
     if HAVE_DBUS:
-        exit_now = False
         try:
-            session_bus = dbus.SessionBus()
             bus = dbus.SessionBus()
-            retval = dbus.dbus_bindings.bus_request_name(session_bus.get_connection(), "org.MPD.Sonata", dbus.dbus_bindings.NAME_FLAG_DO_NOT_QUEUE)
-            if retval in (dbus.dbus_bindings.REQUEST_NAME_REPLY_PRIMARY_OWNER, dbus.dbus_bindings.REQUEST_NAME_REPLY_ALREADY_OWNER):
-                pass
-            elif retval in (dbus.dbus_bindings.REQUEST_NAME_REPLY_EXISTS, dbus.dbus_bindings.REQUEST_NAME_REPLY_IN_QUEUE):
-                exit_now = True
-        except:
-            print _("Sonata failed to connect to the D-BUS session bus: Unable to determine the address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for help)")
-        if exit_now:
-            obj = dbus.SessionBus().get_object('org.MPD', '/org/MPD/Sonata')
-            if toggle:
-                obj.toggle(dbus_interface='org.MPD.SonataInterface')
+            if NEW_DBUS:
+                retval = bus.request_name("org.MPD.Sonata", dbus_bindings.NAME_FLAG_DO_NOT_QUEUE)
             else:
-                print _("An instance of Sonata is already running.")
-                obj.show(dbus_interface='org.MPD.SonataInterface')
-            sys.exit()
+                retval = dbus_bindings.bus_request_name(bus.get_connection(), "org.MPD.Sonata", dbus_bindings.NAME_FLAG_DO_NOT_QUEUE)
+            if retval in (dbus_bindings.REQUEST_NAME_REPLY_PRIMARY_OWNER, dbus_bindings.REQUEST_NAME_REPLY_ALREADY_OWNER):
+                pass
+            elif retval in (dbus_bindings.REQUEST_NAME_REPLY_EXISTS, dbus_bindings.REQUEST_NAME_REPLY_IN_QUEUE):
+                obj = bus.get_object('org.MPD', '/org/MPD/Sonata')
+                if toggle:
+                    obj.toggle(dbus_interface='org.MPD.SonataInterface')
+                else:
+                    print _("An instance of Sonata is already running.")
+                    obj.show(dbus_interface='org.MPD.SonataInterface')
+                sys.exit()
+        except Exception:
+            print _("Sonata failed to connect to the D-BUS session bus: Unable to determine the address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for help)")
 
 if HAVE_DBUS:
     class BaseDBus(dbus.service.Object, Base):
