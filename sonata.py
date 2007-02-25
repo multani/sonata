@@ -75,7 +75,7 @@ except:
     HAVE_DBUS = False
 
 try:
-    import sugar
+    import sugar.env
     HAVE_STATUS_ICON = False
     HAVE_SUGAR = True
     VOLUME_ICON_SIZE = 3
@@ -853,8 +853,9 @@ class Base(mpdclient3.mpd_connection):
         self.searchtext.connect('button_press_event', self.on_searchtext_click)
         self.initialize_systrayicon()
         # Ensure that the systemtray icon is added here:
-        while gtk.events_pending():
-            gtk.main_iteration()
+        if self.window_owner:
+            while gtk.events_pending():
+                gtk.main_iteration()
 
         # Connect to mmkeys signals
         if HAVE_MMKEYS:
@@ -5238,7 +5239,7 @@ class Base(mpdclient3.mpd_connection):
             pass
         self.about_dialog.set_name('Sonata')
         self.about_dialog.set_version(__version__)
-        commentlabel = _('An elegant music player for MPD.')
+        commentlabel = _('An elegant music client for MPD.')
         self.about_dialog.set_comments(commentlabel)
         if self.conn:
             # Include MPD stats:
