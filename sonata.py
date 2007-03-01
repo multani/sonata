@@ -81,7 +81,7 @@ except:
     HAVE_DBUS = False
 
 try:
-    import sugar.env
+    from sugar.activity import activity
     HAVE_STATUS_ICON = False
     HAVE_SUGAR = True
     VOLUME_ICON_SIZE = 3
@@ -4800,7 +4800,7 @@ class Base(mpdclient3.mpd_connection):
 
     def find_path(self, filename):
         if HAVE_SUGAR:
-            full_filename = os.path.join(sugar.env.get_bundle_path(), 'share', filename)
+            full_filename = os.path.join(activity.get_bundle_path(), 'share', filename)
         else:
             if os.path.exists(os.path.join(sys.prefix, 'share', 'pixmaps', filename)):
                 full_filename = os.path.join(sys.prefix, 'share', 'pixmaps', filename)
