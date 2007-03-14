@@ -148,7 +148,7 @@ class Base(mpdclient3.mpd_connection):
         # Read any passed options/arguments:
         if not sugar:
             try:
-                opts, args = getopt.getopt(sys.argv[1:], "tv", ["toggle", "version", "status", "info", "play", "pause", "stop", "next", "prev", "pp"])
+                opts, args = getopt.getopt(sys.argv[1:], "tv", ["toggle", "version", "status", "info", "play", "pause", "stop", "next", "prev", "pp", "shuffle", "repeat"])
             except getopt.GetoptError:
                 # print help information and exit:
                 self.print_usage()
@@ -186,6 +186,10 @@ class Base(mpdclient3.mpd_connection):
                         self.single_connect_for_passed_arg("info")
                     elif a in ("status"):
                         self.single_connect_for_passed_arg("status")
+                    elif a in ("repeat"):
+                        self.single_connect_for_passed_arg("repeat")
+                    elif a in ("shuffle"):
+                        self.single_connect_for_passed_arg("shuffle")
                     else:
                         self.print_usage()
                     sys.exit()
@@ -997,6 +1001,8 @@ class Base(mpdclient3.mpd_connection):
         print "  next                 " + _("Play next song in playlist")
         print "  prev                 " + _("Play previous song in playlist")
         print "  pp                   " + _("Toggle play/pause; plays if stopped")
+        print "  repeat               " + _("Toggle repeat mode")
+        print "  shuffle              " + _("Toggle shuffle mode")
         print "  info                 " + _("Display current song info")
         print "  status               " + _("Display MPD status")
 
@@ -1041,6 +1047,18 @@ class Base(mpdclient3.mpd_connection):
                 self.conn.do.next()
             elif type == "prev":
                 self.conn.do.previous()
+            elif type == "shuffle":
+                if self.status:
+                    if self.status.random == '0':
+                        self.conn.do.random(1)
+                    elif self.status.random == '1':
+                        self.conn.do.random(0)
+            elif type == "repeat":
+                if self.status:
+                    if self.status.repeat == '0':
+                        self.conn.do.repeat(1)
+                    elif self.status.repeat == '1':
+                        self.conn.do.repeat(0)
             elif type == "toggle":
                 self.status = self.conn.do.status()
                 if self.status:
@@ -2361,8 +2379,11 @@ class Base(mpdclient3.mpd_connection):
                 pass
 
         if self.conn:
-            if self.prevstatus == None or self.prevstatus.get('updating_db', 0) != self.status.get('updating_db', 0):
+            if self.status and self.status.get('updating_db'):
+                self.update_statusbar(True)
+            elif self.prevstatus == None or self.prevstatus.get('updating_db', 0) != self.status.get('updating_db', 0):
                 if not (self.status and self.status.get('updating_db', 0)):
+                    self.update_statusbar(False)
                     # Resetting albums_root and artists_root to None will cause
                     # the two lists to update to the new contents
                     self.albums_root = None
@@ -2424,7 +2445,7 @@ class Base(mpdclient3.mpd_connection):
             self.progressbar.set_text(_('Not Connected'))
         return
 
-    def update_statusbar(self):
+    def update_statusbar(self, updatingdb=False):
         if self.conn and self.status and self.show_statusbar:
             try:
                 hours = None
@@ -2451,6 +2472,8 @@ class Base(mpdclient3.mpd_connection):
                     status_text = str(self.status.playlistlength) + ' ' + songs_text + ', ' + mins + ' ' + mins_text
                 else:
                     status_text = ""
+                if updatingdb:
+                    status_text = status_text + "   " + _("(updating mpd)")
                 self.statusbar.push(self.statusbar.get_context_id(""), status_text)
             except:
                 self.statusbar.push(self.statusbar.get_context_id(""), "")
