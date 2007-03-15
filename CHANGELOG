@@ -1,5 +1,6 @@
 v1.1 - Pending
 	+ Allow searching ALL metadata in library ("everything")
+	+ GNOME session support
 	+ Add "shuffle" and "repeat" commandline arguments
 	+ Show if mpd is updating in statusbar
 	+ Save last used option in library search
