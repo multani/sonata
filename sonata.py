@@ -862,6 +862,10 @@ class Base(mpdclient3.mpd_connection):
         self.notebook.connect('switch-page', self.on_notebook_page_change)
         self.searchtext.connect('button_press_event', self.on_searchtext_click)
         self.initialize_systrayicon()
+
+        # This will ensure that "Not connected" is shown in the systray tooltip
+        if not self.conn:
+            self.update_cursong()
         # Ensure that the systemtray icon is added here:
         if self.window_owner:
             while gtk.events_pending():
@@ -3867,9 +3871,15 @@ class Base(mpdclient3.mpd_connection):
             self.ignore_toggle_signal = True
             prev_state = self.UIManager.get_widget('/traymenu/showmenu').get_active()
             self.UIManager.get_widget('/traymenu/showmenu').set_active(not prev_state)
-            if self.window.window.get_state() & gtk.gdk.WINDOW_STATE_WITHDRAWN: # window is hidden
+            if not self.window.window:
+                # For some reason, self.window.window is not defined if mpd is not running
+                # and sonata is started with self.withdrawn = True
                 self.withdraw_app_undo()
-            elif not (self.window.window.get_state() & gtk.gdk.WINDOW_STATE_WITHDRAWN): # window is showing
+            elif self.window.window.get_state() & gtk.gdk.WINDOW_STATE_WITHDRAWN:
+                # window is hidden
+                self.withdraw_app_undo()
+            elif not (self.window.window.get_state() & gtk.gdk.WINDOW_STATE_WITHDRAWN):
+                # window is showing
                 self.withdraw_app()
             # This prevents the tooltip from popping up again until the user
             # leaves and enters the trayicon again
