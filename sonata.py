@@ -4374,7 +4374,7 @@ class Base(mpdclient3.mpd_connection):
         display_art_location.set_active(self.art_location)
         display_art_location.set_sensitive(self.show_covers)
         display_art_location.connect('changed', self.prefs_art_location_changed)
-        display_art.connect('toggled', self.prefs_art_toggled, display_art_combo, display_art_location)
+        display_art.connect('toggled', self.prefs_art_toggled, display_art_combo, display_art_location_hbox)
         display_playback = gtk.CheckButton(_("Enable playback/volume buttons"))
         display_playback.set_active(self.show_playback)
         display_playback.connect('toggled', self.prefs_playback_toggled)
@@ -4697,10 +4697,10 @@ class Base(mpdclient3.mpd_connection):
             self.volumebutton.set_no_show_all(True)
             self.volumebutton.hide()
 
-    def prefs_art_toggled(self, button, art_combo, art_combo2):
+    def prefs_art_toggled(self, button, art_combo, art_hbox):
         if button.get_active():
             art_combo.set_sensitive(True)
-            art_combo2.set_sensitive(True)
+            art_hbox.set_sensitive(True)
             self.traytips.set_size_request(self.notification_width, -1)
             self.set_default_icon_for_art(True)
             self.imageeventbox.set_no_show_all(False)
@@ -4715,7 +4715,7 @@ class Base(mpdclient3.mpd_connection):
             self.update_album_art()
         else:
             art_combo.set_sensitive(False)
-            art_combo2.set_sensitive(False)
+            art_hbox.set_sensitive(False)
             self.traytips.set_size_request(self.notification_width-100, -1)
             self.imageeventbox.set_no_show_all(True)
             self.imageeventbox.hide()
