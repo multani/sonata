@@ -3922,7 +3922,7 @@ class Base(mpdclient3.mpd_connection):
                     os.remove(dest_filename)
                 except:
                     pass
-                os.rename(filename, dest_filename)
+                shutil.move(filename, dest_filename)
                 # And finally, set the image in the interface:
                 self.lastalbumart = None
                 self.update_album_art()
