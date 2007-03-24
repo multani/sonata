@@ -6,6 +6,7 @@ v1.1 - Pending
 	+ Save last used option in library search
 	+ Fixes to prevent problems between withdrawing app & gtk.StatusIcon
 	+ Update code for dbus-python 0.80 API (Jordan)
+	+ Ellipsize text in treeviews, current playing song (Jordan)
 	+ Bug: Fix error if mpd is not running and sonata starts hidden
 
 v1.0.1 - February 13, 2007

@@ -218,6 +218,8 @@ class Base(mpdclient3.mpd_connection):
         self.VIEW_ARTIST = 1
         self.VIEW_ALBUM = 2
         self.LYRIC_TIMEOUT = 10
+        self.NOTIFICATION_WIDTH_MAX = 500
+        self.NOTIFICATION_WIDTH_MIN = 300
         self.musicdir = os.path.expanduser("~/music")
         socket.setdefaulttimeout(2)
         self.host = 'localhost'
@@ -603,8 +605,14 @@ class Base(mpdclient3.mpd_connection):
         self.expander = gtk.Expander(_("Playlist"))
         self.expander.set_expanded(self.expanded)
         self.expander.set_property('can-focus', False)
-        self.cursonglabel = gtk.Label()
-        self.expander.set_label_widget(self.cursonglabel)
+        expanderbox = gtk.VBox()
+        self.cursonglabel1 = gtk.Label()
+        self.cursonglabel2 = gtk.Label()
+        self.cursonglabel1.set_alignment(0, 0)
+        self.cursonglabel2.set_alignment(0, 0)
+        expanderbox.pack_start(self.cursonglabel1, True, True, 0)
+        expanderbox.pack_start(self.cursonglabel2, True, True, 0)
+        self.expander.set_label_widget(expanderbox)
         topvbox.pack_start(self.expander, False, False, 2)
         tophbox.pack_start(topvbox, True, True, 3)
         mainvbox.pack_start(tophbox, False, False, 5)
@@ -709,11 +717,13 @@ class Base(mpdclient3.mpd_connection):
         if not self.expanded:
             self.notebook.set_no_show_all(True)
             self.notebook.hide()
-            self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to expand') + '</small>')
+            self.cursonglabel1.set_markup('<big><b>' + _('Stopped') + '</b></big>')
+            self.cursonglabel2.set_markup('<small>' + _('Click to expand') + '</small>')
             if self.window_owner:
                 self.window.set_default_size(self.w, 1)
         else:
-            self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to collapse') + '</small>')
+            self.cursonglabel1.set_markup('<big><b>' + _('Stopped') + '</b></big>')
+            self.cursonglabel2.set_markup('<small>' + _('Click to collapse') + '</small>')
             if self.window_owner:
                 self.window.set_default_size(self.w, self.h)
         if not self.conn:
@@ -724,6 +734,7 @@ class Base(mpdclient3.mpd_connection):
             self.tooltips.set_tip(self.expander, _("Click to expand the player"))
 
         # Systray:
+        self.NOTIFICATION_WIDTH_MAX
         outtertipbox = gtk.VBox()
         tipbox = gtk.HBox()
         self.trayalbumeventbox = gtk.EventBox()
@@ -773,6 +784,7 @@ class Base(mpdclient3.mpd_connection):
         outtertipbox.pack_start(tipbox, False, False, 2)
         outtertipbox.show_all()
         self.traytips.add_widget(outtertipbox)
+        self.set_notification_window_width()
 
         # Volumescale window
         self.volumewindow = gtk.Window(gtk.WINDOW_POPUP)
@@ -831,7 +843,7 @@ class Base(mpdclient3.mpd_connection):
         self.repeatmenu.connect('toggled', self.on_repeat_clicked)
         self.volumescale.connect('change_value', self.on_volumescale_change)
         self.volumescale.connect('scroll-event', self.on_volumescale_scroll)
-        self.cursonglabel.connect('notify::label', self.labelnotify)
+        self.cursonglabel1.connect('notify::label', self.labelnotify)
         self.progressbar.connect('notify::fraction', self.progressbarnotify_fraction)
         self.progressbar.connect('notify::text', self.progressbarnotify_text)
         self.browser.connect('row_activated', self.on_browse_row)
@@ -889,6 +901,7 @@ class Base(mpdclient3.mpd_connection):
         self.current.set_model(self.currentdata)
         self.current.set_search_column(1)
         self.currentcell = gtk.CellRendererText()
+        self.currentcell.set_property("ellipsize", pango.ELLIPSIZE_END)
         self.currentcolumn = gtk.TreeViewColumn('Pango Markup', self.currentcell, markup=1)
         self.currentcolumn.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
         self.current.append_column(self.currentcolumn)
@@ -903,6 +916,7 @@ class Base(mpdclient3.mpd_connection):
         self.playlists.set_search_column(1)
         self.playlistsimg = gtk.CellRendererPixbuf()
         self.playlistscell = gtk.CellRendererText()
+        self.playlistscell.set_property("ellipsize", pango.ELLIPSIZE_END)
         self.playlistscolumn = gtk.TreeViewColumn()
         self.playlistscolumn.pack_start(self.playlistsimg, False)
         self.playlistscolumn.pack_start(self.playlistscell, True)
@@ -917,6 +931,7 @@ class Base(mpdclient3.mpd_connection):
         self.streams.set_search_column(1)
         self.streamsimg = gtk.CellRendererPixbuf()
         self.streamscell = gtk.CellRendererText()
+        self.streamscell.set_property("ellipsize", pango.ELLIPSIZE_END)
         self.streamscolumn = gtk.TreeViewColumn()
         self.streamscolumn.pack_start(self.streamsimg, False)
         self.streamscolumn.pack_start(self.streamscell, True)
@@ -936,6 +951,7 @@ class Base(mpdclient3.mpd_connection):
         self.browser.set_model(self.browserdata)
         self.browser.set_search_column(2)
         self.browsercell = gtk.CellRendererText()
+        self.browsercell.set_property("ellipsize", pango.ELLIPSIZE_END)
         self.browserimg = gtk.CellRendererPixbuf()
         self.browsercolumn = gtk.TreeViewColumn()
         self.browsercolumn.pack_start(self.browserimg, False)
@@ -963,6 +979,11 @@ class Base(mpdclient3.mpd_connection):
 
         # Ensure that button images are displayed despite GTK+ theme
         self.window.get_settings().set_property("gtk-button-images", True)
+
+        # Hacky workaround to ellipsize the expander - see http://bugzilla.gnome.org/show_bug.cgi?id=406528
+        cursonglabelwidth = self.expander.get_allocation().width - 15
+        self.cursonglabel1.set_size_request(cursonglabelwidth, -1)
+        self.cursonglabel1.set_size_request(cursonglabelwidth, -1)
 
         if self.update_on_start:
             self.updatedb(None)
@@ -2496,6 +2517,8 @@ class Base(mpdclient3.mpd_connection):
             if self.show_covers:
                 self.trayalbumeventbox.show()
                 self.trayalbumimage2.show()
+            self.cursonglabel1.set_ellipsize(pango.ELLIPSIZE_END)
+            self.cursonglabel2.set_ellipsize(pango.ELLIPSIZE_END)
             self.traycursonglabel1.set_ellipsize(pango.ELLIPSIZE_END)
             self.traycursonglabel2.set_ellipsize(pango.ELLIPSIZE_END)
             newlabelfound = False
@@ -2507,22 +2530,25 @@ class Base(mpdclient3.mpd_connection):
                 newlabel2 = '<small>' + self.parse_formatting(self.currsongformat2, self.songinfo, True) + ' </small>'
             else:
                 newlabel2 = '<small> </small>'
-            newlabel_tray1 = newlabel1
-            newlabel_tray2 = newlabel2
-            newlabel = newlabel1 + '\n' + newlabel2
-            if newlabel != self.cursonglabel.get_label():
-                self.cursonglabel.set_markup(newlabel)
-            if newlabel_tray1 != self.traycursonglabel1.get_label():
-                self.traycursonglabel1.set_markup(newlabel_tray1)
-            if newlabel_tray2 != self.traycursonglabel2.get_label():
-                self.traycursonglabel2.set_markup(newlabel_tray2)
+            if newlabel1 != self.cursonglabel1.get_label():
+                self.cursonglabel1.set_markup(newlabel1)
+            if newlabel2 != self.cursonglabel2.get_label():
+                self.cursonglabel2.set_markup(newlabel2)
+            if newlabel1 != self.traycursonglabel1.get_label():
+                self.traycursonglabel1.set_markup(newlabel1)
+            if newlabel2 != self.traycursonglabel2.get_label():
+                self.traycursonglabel2.set_markup(newlabel2)
         else:
+            self.cursonglabel1.set_ellipsize(pango.ELLIPSIZE_NONE)
+            self.cursonglabel2.set_ellipsize(pango.ELLIPSIZE_NONE)
             self.traycursonglabel1.set_ellipsize(pango.ELLIPSIZE_NONE)
             self.traycursonglabel2.set_ellipsize(pango.ELLIPSIZE_NONE)
             if self.expanded:
-                self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to collapse') + '</small>')
+                self.cursonglabel1.set_markup('<big><b>' + _('Stopped') + '</b></big>')
+                self.cursonglabel2.set_markup('<small>' + _('Click to collapse') + '</small>')
             else:
-                self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to expand') + '</small>')
+                self.cursonglabel1.set_markup('<big><b>' + _('Stopped') + '</b></big>')
+                self.cursonglabel2.set_markup('<small>' + _('Click to expand') + '</small>')
             if not self.conn:
                 self.traycursonglabel1.set_label(_('Not connected'))
             else:
@@ -2835,14 +2861,24 @@ class Base(mpdclient3.mpd_connection):
         self.downloading_image = False
         return imgfound
 
+    def set_notification_window_width(self):
+        screen = self.window.get_screen()
+        pointer_screen, px, py, _ = screen.get_display().get_pointer()
+        monitor_num = screen.get_monitor_at_point(px, py)
+        monitor = screen.get_monitor_geometry(monitor_num)
+        self.notification_width = int(monitor.width * 0.33)
+        if self.notification_width > self.NOTIFICATION_WIDTH_MAX:
+            self.notification_width = self.NOTIFICATION_WIDTH_MAX
+        elif self.notification_width < self.NOTIFICATION_WIDTH_MIN:
+            self.notification_width = self.NOTIFICATION_WIDTH_MIN
 
     def labelnotify(self, *args):
         if self.sonata_loaded:
             if self.conn and self.status and self.status.state in ['play', 'pause']:
                 if self.show_covers:
-                    self.traytips.set_size_request(350, -1)
+                    self.traytips.set_size_request(self.notification_width, -1)
                 else:
-                    self.traytips.set_size_request(250, -1)
+                    self.traytips.set_size_request(self.notification_width-100, -1)
             else:
                 self.traytips.set_size_request(-1, -1)
             if self.show_notification:
@@ -2985,9 +3021,9 @@ class Base(mpdclient3.mpd_connection):
             self.notebook.hide()
         if not (self.conn and self.status and self.status.state in ['play', 'pause']):
             if window_about_to_be_expanded:
-                self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to collapse') + '</small>')
+                self.cursonglabel2.set_markup('<small>' + _('Click to collapse') + '</small>')
             else:
-                self.cursonglabel.set_markup('<big><b>' + _('Stopped') + '</b></big>\n<small>' + _('Click to expand') + '</small>')
+                self.cursonglabel2.set_markup('<small>' + _('Click to expand') + '</small>')
         # Now we wait for the height of the player to increase, so that
         # we know the list is visible. This is pretty hacky, but works.
         if self.window_owner:
@@ -4589,7 +4625,7 @@ class Base(mpdclient3.mpd_connection):
     def prefs_art_toggled(self, button, art_combo):
         if button.get_active():
             art_combo.set_sensitive(True)
-            self.traytips.set_size_request(350, -1)
+            self.traytips.set_size_request(self.notification_width, -1)
             self.set_default_icon_for_art(True)
             self.imageeventbox.set_no_show_all(False)
             self.imageeventbox.show_all()
@@ -4603,7 +4639,7 @@ class Base(mpdclient3.mpd_connection):
             self.update_album_art()
         else:
             art_combo.set_sensitive(False)
-            self.traytips.set_size_request(250, -1)
+            self.traytips.set_size_request(self.notification_width-100, -1)
             self.imageeventbox.set_no_show_all(True)
             self.imageeventbox.hide()
             self.trayalbumeventbox.set_no_show_all(True)
