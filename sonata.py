@@ -205,7 +205,7 @@ class Base(mpdclient3.mpd_connection):
 
         self.gnome_session_management()
 
-        # Initialize vars:
+        # Constants
         self.TAB_CURRENT = 0
         self.TAB_LIBRARY = 1
         self.TAB_PLAYLISTS = 2
@@ -220,6 +220,13 @@ class Base(mpdclient3.mpd_connection):
         self.LYRIC_TIMEOUT = 10
         self.NOTIFICATION_WIDTH_MAX = 500
         self.NOTIFICATION_WIDTH_MIN = 300
+        self.ART_LOCATION_HOMECOVERS = 0		# ~/.covers/[artist] - [album].jpg
+        self.ART_LOCATION_COVER = 1				# file_dir/cover.jpg
+        self.ART_LOCATION_ALBUM = 2				# file_dir/album.jpg
+        self.ART_LOCATION_FOLDER = 3			# file_dir/folder.jpg
+        self.ART_LOCATION_CUSTOM = 4			# file_dir/[custom]
+
+        # Initialize vars:
         self.musicdir = os.path.expanduser("~/music")
         socket.setdefaulttimeout(2)
         self.host = 'localhost'
@@ -248,7 +255,6 @@ class Base(mpdclient3.mpd_connection):
         self.show_covers = True
         self.covers_pref = self.ART_LOCAL_REMOTE
         self.lyricServer = None
-        self.show_volume = True
         self.show_notification = False
         self.show_playback = True
         self.show_statusbar = False
@@ -293,6 +299,8 @@ class Base(mpdclient3.mpd_connection):
         self.remote_from_infowindow = False
         self.songs = None
         self.tagpy_is_91 = None
+        self.art_location = self.ART_LOCATION_HOMECOVERS
+        self.art_location_custom_filename = ""
         show_prefs = False
         # For increased responsiveness after the initial load, we cache
         # the root artist and album view results and simply refresh on
@@ -577,6 +585,8 @@ class Base(mpdclient3.mpd_connection):
             self.ppbutton.hide()
             self.stopbutton.hide()
             self.nextbutton.hide()
+            self.volumebutton.set_no_show_all(True)
+            self.volumebutton.hide()
         progressbox = gtk.VBox()
         self.progresslabel = gtk.Label()
         self.progresslabel.set_size_request(-1, 6)
@@ -597,9 +607,6 @@ class Base(mpdclient3.mpd_connection):
         self.volumebutton.set_relief(gtk.RELIEF_NONE)
         self.volumebutton.set_property('can-focus', False)
         self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-med", VOLUME_ICON_SIZE))
-        if not self.show_volume:
-            self.volumebutton.set_no_show_all(True)
-            self.volumebutton.hide()
         toptophbox.pack_start(self.volumebutton, False, False, 0)
         topvbox.pack_start(toptophbox, False, False, 2)
         self.expander = gtk.Expander(_("Playlist"))
@@ -1354,8 +1361,6 @@ class Base(mpdclient3.mpd_connection):
             self.minimize_to_systray = conf.getboolean('player', 'minimize')
         if conf.has_option('player', 'initial_run'):
             self.initial_run = conf.getboolean('player', 'initial_run')
-        if conf.has_option('player', 'volume'):
-            self.show_volume = conf.getboolean('player', 'volume')
         if conf.has_option('player', 'statusbar'):
             self.show_statusbar = conf.getboolean('player', 'statusbar')
         if conf.has_option('player', 'lyrics'):
@@ -1404,6 +1409,8 @@ class Base(mpdclient3.mpd_connection):
             self.infowindow_w = conf.getint('player', 'infowindow_w')
         if conf.has_option('player', 'infowindow_h'):
             self.infowindow_h = conf.getint('player', 'infowindow_h')
+        if conf.has_option('player', 'art_location'):
+            self.art_location = conf.getint('player', 'art_location')
         if conf.has_option('format', 'current'):
             self.currentformat = conf.get('format', 'current')
         if conf.has_option('format', 'library'):
@@ -1442,7 +1449,6 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'stop_on_exit', self.stop_on_exit)
         conf.set('player', 'minimize', self.minimize_to_systray)
         conf.set('player', 'initial_run', self.initial_run)
-        conf.set('player', 'volume', self.show_volume)
         conf.set('player', 'statusbar', self.show_statusbar)
         conf.set('player', 'lyrics', self.show_lyrics)
         conf.set('player', 'sticky', self.sticky)
@@ -1465,6 +1471,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'infowindow_y', self.infowindow_y)
         conf.set('player', 'infowindow_w', self.infowindow_w)
         conf.set('player', 'infowindow_h', self.infowindow_h)
+        conf.set('player', 'art_location', self.art_location)
         conf.add_section('format')
         conf.set('format', 'current', self.currentformat)
         conf.set('format', 'library', self.libraryformat)
@@ -2659,37 +2666,43 @@ class Base(mpdclient3.mpd_connection):
             album = getattr(self.songinfo, 'album', "")
             album = album.replace("/", "")
             try:
-                filename = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
+                filename = self.target_image_filename()
                 if filename == self.lastalbumart:
                     # No need to update..
                     self.stop_art_update = False
                     return
                 self.lastalbumart = None
                 songdir = os.path.dirname(self.songinfo.file)
-                if os.path.exists(filename):
-                    gobject.idle_add(self.set_image_for_cover, filename)
+                if self.covers_pref == self.ART_LOCAL or self.covers_pref == self.ART_LOCAL_REMOTE:
+                    imgfound = self.check_for_local_images(songdir, artist, album)
                 else:
-                    if self.covers_pref == self.ART_LOCAL or self.covers_pref == self.ART_LOCAL_REMOTE:
-                        imgfound = self.check_for_local_images(songdir)
-                    else:
-                        imgfound = self.check_remote_images(artist, album, filename)
-                    if not imgfound:
-                        if self.covers_pref == self.ART_LOCAL_REMOTE:
-                            self.check_remote_images(artist, album, filename)
-                        elif self.covers_pref == self.ART_REMOTE_LOCAL:
-                            self.check_for_local_images(songdir)
+                    imgfound = self.check_remote_images(artist, album, filename)
+                if not imgfound:
+                    if self.covers_pref == self.ART_LOCAL_REMOTE:
+                        self.check_remote_images(artist, album, filename)
+                    elif self.covers_pref == self.ART_REMOTE_LOCAL:
+                        self.check_for_local_images(songdir, artist, album)
             except:
                 self.set_default_icon_for_art(True)
         else:
             self.set_default_icon_for_art(True)
 
-    def check_for_local_images(self, songdir):
+    def check_for_local_images(self, songdir, artist, album):
         self.set_default_icon_for_art(True)
+        if os.path.exists(os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")):
+            gobject.idle_add(self.set_image_for_cover, os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg"))
+            return True
         if os.path.exists(self.musicdir + songdir + "/cover.jpg"):
             gobject.idle_add(self.set_image_for_cover, self.musicdir + songdir + "/cover.jpg")
             return True
+        elif os.path.exists(self.musicdir + songdir + "/album.jpg"):
+            gobject.idle_add(self.set_image_for_cover, self.musicdir + songdir + "/album.jpg")
+            return True
         elif os.path.exists(self.musicdir + songdir + "/folder.jpg"):
             gobject.idle_add(self.set_image_for_cover, self.musicdir + songdir + "/folder.jpg")
+            return True
+        elif self.art_location == self.ART_LOCATION_CUSTOM:
+            gobject.idle_add(self.set_image_for_cover, self.musicdir + songdir + "/" + self.art_location_custom_filename)
             return True
         else:
             self.single_img_in_dir = self.get_single_img_in_path(songdir)
@@ -2759,18 +2772,28 @@ class Base(mpdclient3.mpd_connection):
         # this will ensure that only the artwork for the currently playing
         # song is displayed
         if self.conn and self.status and self.status.state in ['play', 'pause']:
-            artist = getattr(self.songinfo, 'artist', "")
-            artist = artist.replace("/", "")
-            album = getattr(self.songinfo, 'album', "")
-            album = album.replace("/", "")
-            currfilename = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
+            currfilename = self.target_image_filename()
             if filename == currfilename:
                 return True
             songdir = os.path.dirname(self.songinfo.file)
             currfilename = self.musicdir + songdir + "/cover.jpg"
             if filename == currfilename:
                 return True
+            currfilename = self.musicdir + songdir + "/album.jpg"
+            if filename == currfilename:
+                return True
             currfilename = self.musicdir + songdir + "/folder.jpg"
+            if filename == currfilename:
+                return True
+            if self.art_location == self.ART_LOCATION_CUSTOM:
+                currfilename = self.musicdir + songdir + "/" + self.art_location_custom_filename
+                if filename == currfilename:
+                    return True
+            artist = getattr(self.songinfo, 'artist', "")
+            artist = artist.replace("/", "")
+            album = getattr(self.songinfo, 'album', "")
+            album = album.replace("/", "")
+            currfilename = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
             if filename == currfilename:
                 return True
             if self.single_img_in_dir:
@@ -3289,14 +3312,30 @@ class Base(mpdclient3.mpd_connection):
                     paths[i] = paths[i][5:]
                 paths[i] = os.path.abspath(paths[i])
                 if self.valid_image(paths[i]):
-                    artist = getattr(self.songinfo, 'artist', "")
-                    artist = artist.replace("/", "")
-                    album = getattr(self.songinfo, 'album', "")
-                    album = album.replace("/", "")
-                    dest_filename = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
+                    dest_filename = self.target_image_filename()
                     shutil.copyfile(paths[i], dest_filename)
                     self.lastalbumart = None
                     self.update_album_art()
+
+    def target_image_filename(self, artist=None, album=None):
+        if self.conn:
+            if self.art_location == self.ART_LOCATION_HOMECOVERS:
+                # if artist/album is not set, use self.songinfo:
+                if not artist:
+                    artist = getattr(self.songinfo, 'artist', "")
+                    artist = artist.replace("/", "")
+                if not album:
+                    album = getattr(self.songinfo, 'album', "")
+                    album = album.replace("/", "")
+                return os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
+            elif self.art_location == self.ART_LOCATION_COVER:
+                return self.musicdir + os.path.dirname(self.songinfo.file) + "/cover.jpg"
+            elif self.art_location == self.ART_LOCATION_FOLDER:
+                return self.musicdir + os.path.dirname(self.songinfo.file) + "/folder.jpg"
+            elif self.art_location == self.ART_LOCATION_ALBUM:
+                return self.musicdir + os.path.dirname(self.songinfo.file) + "/album.jpg"
+            elif self.art_location == self.ART_LOCATION_CUSTOM:
+                return self.musicdir + os.path.dirname(self.songinfo.file) + "/" + self.art_location_custom_filename
 
     def valid_image(self, file):
         test = gtk.gdk.pixbuf_get_file_info(file)
@@ -3742,7 +3781,7 @@ class Base(mpdclient3.mpd_connection):
     def choose_image_local_response(self, dialog, response):
         if response == gtk.RESPONSE_OK:
             filename = dialog.get_filenames()[0]
-            dest_filename = os.path.expanduser("~/.covers/" + self.local_artist + "-" + self.local_album + ".jpg")
+            dest_filename = self.target_image_filename(self.local_artist, self.local_album)
             # Remove file if already set:
             if os.path.exists(dest_filename):
                 os.remove(dest_filename)
@@ -3876,7 +3915,7 @@ class Base(mpdclient3.mpd_connection):
         image_num = int(path[0])
         if len(self.remotefilelist) > 0:
             filename = self.remotefilelist[image_num]
-            dest_filename = os.path.expanduser("~/.covers/" + self.remote_artist + "-" + self.remote_album + ".jpg")
+            dest_filename = self.target_image_filename(self.remote_artist, self.remote_album)
             if os.path.exists(filename):
                 # Move temp file to actual file:
                 try:
@@ -4321,13 +4360,24 @@ class Base(mpdclient3.mpd_connection):
         display_art_combo.set_active(self.covers_pref)
         display_art_combo.set_sensitive(self.show_covers)
         display_art_hbox.pack_start(display_art_combo, False, False, 5)
-        display_art.connect('toggled', self.prefs_art_toggled, display_art_combo)
-        display_playback = gtk.CheckButton(_("Enable playback buttons"))
+        display_art_location_hbox = gtk.HBox()
+        saveart_label = gtk.Label(_("Save art to:"))
+        saveart_label.set_alignment(1, 0.5)
+        display_art_location_hbox.pack_start(saveart_label)
+        display_art_location = gtk.combo_box_new_text()
+        display_art_location_hbox.pack_start(display_art_location, False, False, 5)
+        display_art_location.append_text(_("~/.covers/"))
+        display_art_location.append_text(_("cover.jpg"))
+        display_art_location.append_text(_("album.jpg"))
+        display_art_location.append_text(_("folder.jpg"))
+        display_art_location.append_text(_("custom filename"))
+        display_art_location.set_active(self.art_location)
+        display_art_location.set_sensitive(self.show_covers)
+        display_art_location.connect('changed', self.prefs_art_location_changed)
+        display_art.connect('toggled', self.prefs_art_toggled, display_art_combo, display_art_location)
+        display_playback = gtk.CheckButton(_("Enable playback/volume buttons"))
         display_playback.set_active(self.show_playback)
         display_playback.connect('toggled', self.prefs_playback_toggled)
-        display_volume = gtk.CheckButton(_("Enable volume button"))
-        display_volume.set_active(self.show_volume)
-        display_volume.connect('toggled', self.prefs_volume_toggled)
         display_statusbar = gtk.CheckButton(_("Enable statusbar"))
         display_statusbar.set_active(self.show_statusbar)
         display_statusbar.connect('toggled', self.prefs_statusbar_toggled)
@@ -4373,11 +4423,11 @@ class Base(mpdclient3.mpd_connection):
         table2.attach(displaylabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(gtk.Label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(display_playback, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_volume, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_statusbar, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_trayicon, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_lyrics, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_art_hbox, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_statusbar, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_trayicon, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_lyrics, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_art_hbox, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_art_location_hbox, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table2.attach(gtk.Label(), 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(displaylabel2, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
@@ -4531,7 +4581,10 @@ class Base(mpdclient3.mpd_connection):
         close_button = prefswindow.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
         prefswindow.show_all()
         close_button.grab_focus()
-        response = prefswindow.run()
+        prefswindow.connect('response', self.prefs_window_response, prefsnotebook, exit_stop, activate, win_ontop, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, hostentry, portentry, passwordentry)
+        response = prefswindow.show()
+
+    def prefs_window_response(self, window, response, prefsnotebook, exit_stop, activate, win_ontop, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, hostentry, portentry, passwordentry):
         if response == gtk.RESPONSE_CLOSE:
             self.stop_on_exit = exit_stop.get_active()
             self.play_on_activate = activate.get_active()
@@ -4543,6 +4596,24 @@ class Base(mpdclient3.mpd_connection):
             if len(self.musicdir) > 0:
                 if self.musicdir[-1] != "/":
                     self.musicdir = self.musicdir + "/"
+            if self.show_covers and self.art_location != self.ART_LOCATION_HOMECOVERS:
+                if not os.path.isdir(self.musicdir):
+                    if self.art_location == self.ART_LOCATION_COVER:
+                        filename = "cover.jpg"
+                    elif self.art_location == self.ART_LOCATION_FOLDER:
+                        filename = "folder.jpg"
+                    elif self.art_location == self.ART_LOCATION_ALBUM:
+                        filename = "album.jpg"
+                    else:
+                        filename = self.art_location_custom_filename
+                    error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("To save artwork as") + " " + filename + ", " + _("you must specify a valid music directory."))
+                    error_dialog.set_title(_("Artwork Verification"))
+                    error_dialog.run()
+                    error_dialog.destroy()
+                    # Set music_dir entry focused:
+                    prefsnotebook.set_current_page(0)
+                    direntry.grab_focus()
+                    return
             self.minimize_to_systray = minimize.get_active()
             self.update_on_start = update_start.get_active()
             self.autoconnect = autoconnect.get_active()
@@ -4598,7 +4669,7 @@ class Base(mpdclient3.mpd_connection):
                     self.browserdata.clear()
             self.settings_save()
             self.change_cursor(None)
-        prefswindow.destroy()
+        window.destroy()
 
     def prefs_playback_toggled(self, button):
         if button.get_active():
@@ -4611,6 +4682,8 @@ class Base(mpdclient3.mpd_connection):
             self.ppbutton.show_all()
             self.stopbutton.show_all()
             self.nextbutton.show_all()
+            self.volumebutton.set_no_show_all(False)
+            self.volumebutton.show_all()
         else:
             self.show_playback = False
             self.prevbutton.set_no_show_all(True)
@@ -4621,10 +4694,13 @@ class Base(mpdclient3.mpd_connection):
             self.ppbutton.hide()
             self.stopbutton.hide()
             self.nextbutton.hide()
+            self.volumebutton.set_no_show_all(True)
+            self.volumebutton.hide()
 
-    def prefs_art_toggled(self, button, art_combo):
+    def prefs_art_toggled(self, button, art_combo, art_combo2):
         if button.get_active():
             art_combo.set_sensitive(True)
+            art_combo2.set_sensitive(True)
             self.traytips.set_size_request(self.notification_width, -1)
             self.set_default_icon_for_art(True)
             self.imageeventbox.set_no_show_all(False)
@@ -4639,6 +4715,7 @@ class Base(mpdclient3.mpd_connection):
             self.update_album_art()
         else:
             art_combo.set_sensitive(False)
+            art_combo2.set_sensitive(False)
             self.traytips.set_size_request(self.notification_width-100, -1)
             self.imageeventbox.set_no_show_all(True)
             self.imageeventbox.hide()
@@ -4649,15 +4726,29 @@ class Base(mpdclient3.mpd_connection):
             self.show_covers = False
             self.update_cursong()
 
-    def prefs_volume_toggled(self, button):
-        if button.get_active():
-            self.volumebutton.set_no_show_all(False)
-            self.volumebutton.show()
-            self.show_volume = True
+    def prefs_art_location_changed(self, combobox):
+        if combobox.get_active() == self.ART_LOCATION_CUSTOM:
+            self.get_art_location_custom(combobox)
+        self.art_location = combobox.get_active()
+
+    def get_art_location_custom(self, combobox):
+        # Prompt user for playlist name:
+        dialog = gtk.Dialog(_("Custom Artwork"), self.window, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
+        hbox = gtk.HBox()
+        hbox.pack_start(gtk.Label(_('Artwork filename') + ':'), False, False, 5)
+        entry = gtk.Entry()
+        entry.set_activates_default(True)
+        hbox.pack_start(entry, True, True, 5)
+        dialog.vbox.pack_start(hbox)
+        dialog.set_default_response(gtk.RESPONSE_ACCEPT)
+        dialog.vbox.show_all()
+        response = dialog.run()
+        if response == gtk.RESPONSE_ACCEPT:
+            self.art_location_custom_filename = entry.get_text().replace("/", "")
         else:
-            self.volumebutton.set_no_show_all(True)
-            self.volumebutton.hide()
-            self.show_volume = False
+            # Revert to non-custom item in combobox:
+            combobox.set_active(self.art_location)
+        dialog.destroy()
 
     def prefs_lyrics_toggled(self, button):
         if button.get_active():
