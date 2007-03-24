@@ -2866,7 +2866,7 @@ class Base(mpdclient3.mpd_connection):
         pointer_screen, px, py, _ = screen.get_display().get_pointer()
         monitor_num = screen.get_monitor_at_point(px, py)
         monitor = screen.get_monitor_geometry(monitor_num)
-        self.notification_width = int(monitor.width * 0.33)
+        self.notification_width = int(monitor.width * 0.30)
         if self.notification_width > self.NOTIFICATION_WIDTH_MAX:
             self.notification_width = self.NOTIFICATION_WIDTH_MAX
         elif self.notification_width < self.NOTIFICATION_WIDTH_MIN:
