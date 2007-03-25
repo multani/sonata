@@ -1411,6 +1411,8 @@ class Base(mpdclient3.mpd_connection):
             self.infowindow_h = conf.getint('player', 'infowindow_h')
         if conf.has_option('player', 'art_location'):
             self.art_location = conf.getint('player', 'art_location')
+        if conf.has_option('player', 'art_location_custom_filename'):
+            self.art_location_custom_filename = conf.get('player', 'art_location_custom_filename')
         if conf.has_option('format', 'current'):
             self.currentformat = conf.get('format', 'current')
         if conf.has_option('format', 'library'):
@@ -1472,6 +1474,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'infowindow_w', self.infowindow_w)
         conf.set('player', 'infowindow_h', self.infowindow_h)
         conf.set('player', 'art_location', self.art_location)
+        conf.set('player', 'art_location_custom_filename', self.art_location_custom_filename)
         conf.add_section('format')
         conf.set('format', 'current', self.currentformat)
         conf.set('format', 'library', self.libraryformat)
@@ -2692,7 +2695,7 @@ class Base(mpdclient3.mpd_connection):
         if os.path.exists(os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")):
             gobject.idle_add(self.set_image_for_cover, os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg"))
             return True
-        if os.path.exists(self.musicdir + songdir + "/cover.jpg"):
+        elif os.path.exists(self.musicdir + songdir + "/cover.jpg"):
             gobject.idle_add(self.set_image_for_cover, self.musicdir + songdir + "/cover.jpg")
             return True
         elif os.path.exists(self.musicdir + songdir + "/album.jpg"):
@@ -2701,7 +2704,7 @@ class Base(mpdclient3.mpd_connection):
         elif os.path.exists(self.musicdir + songdir + "/folder.jpg"):
             gobject.idle_add(self.set_image_for_cover, self.musicdir + songdir + "/folder.jpg")
             return True
-        elif self.art_location == self.ART_LOCATION_CUSTOM:
+        elif self.art_location == self.ART_LOCATION_CUSTOM and self.art_location_custom_filename != "" and os.path.exists(self.musicdir + songdir + "/" + self.art_location_custom_filename):
             gobject.idle_add(self.set_image_for_cover, self.musicdir + songdir + "/" + self.art_location_custom_filename)
             return True
         else:
@@ -4370,7 +4373,7 @@ class Base(mpdclient3.mpd_connection):
         display_art_location.append_text(_("cover.jpg"))
         display_art_location.append_text(_("album.jpg"))
         display_art_location.append_text(_("folder.jpg"))
-        display_art_location.append_text(_("custom filename"))
+        display_art_location.append_text(_("custom name"))
         display_art_location.set_active(self.art_location)
         display_art_location.set_sensitive(self.show_covers)
         display_art_location.connect('changed', self.prefs_art_location_changed)
