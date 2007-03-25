@@ -987,11 +987,6 @@ class Base(mpdclient3.mpd_connection):
         # Ensure that button images are displayed despite GTK+ theme
         self.window.get_settings().set_property("gtk-button-images", True)
 
-        # Hacky workaround to ellipsize the expander - see http://bugzilla.gnome.org/show_bug.cgi?id=406528
-        cursonglabelwidth = self.expander.get_allocation().width - 15
-        self.cursonglabel1.set_size_request(cursonglabelwidth, -1)
-        self.cursonglabel1.set_size_request(cursonglabelwidth, -1)
-
         if self.update_on_start:
             self.updatedb(None)
 
@@ -2527,10 +2522,17 @@ class Base(mpdclient3.mpd_connection):
             if self.show_covers:
                 self.trayalbumeventbox.show()
                 self.trayalbumimage2.show()
+
             self.cursonglabel1.set_ellipsize(pango.ELLIPSIZE_END)
             self.cursonglabel2.set_ellipsize(pango.ELLIPSIZE_END)
             self.traycursonglabel1.set_ellipsize(pango.ELLIPSIZE_END)
             self.traycursonglabel2.set_ellipsize(pango.ELLIPSIZE_END)
+
+            # Hacky workaround to ellipsize the expander - see http://bugzilla.gnome.org/show_bug.cgi?id=406528
+            cursonglabelwidth = self.expander.get_allocation().width - 15
+            self.cursonglabel1.set_size_request(cursonglabelwidth, -1)
+            self.cursonglabel1.set_size_request(cursonglabelwidth, -1)
+
             newlabelfound = False
             if len(self.currsongformat1) > 0:
                 newlabel1 = '<big><b>' + self.parse_formatting(self.currsongformat1, self.songinfo, True) + ' </b></big>'
@@ -2553,6 +2555,7 @@ class Base(mpdclient3.mpd_connection):
             self.cursonglabel2.set_ellipsize(pango.ELLIPSIZE_NONE)
             self.traycursonglabel1.set_ellipsize(pango.ELLIPSIZE_NONE)
             self.traycursonglabel2.set_ellipsize(pango.ELLIPSIZE_NONE)
+
             if self.expanded:
                 self.cursonglabel1.set_markup('<big><b>' + _('Stopped') + '</b></big>')
                 self.cursonglabel2.set_markup('<small>' + _('Click to collapse') + '</small>')
