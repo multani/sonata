@@ -145,10 +145,12 @@ class Base(mpdclient3.mpd_connection):
         self.traytips = TrayIconTips()
 
         toggle_arg = False
+        start_hidden = False
+        start_visible = False
         # Read any passed options/arguments:
         if not sugar:
             try:
-                opts, args = getopt.getopt(sys.argv[1:], "tv", ["toggle", "version", "status", "info", "play", "pause", "stop", "next", "prev", "pp", "shuffle", "repeat"])
+                opts, args = getopt.getopt(sys.argv[1:], "tv", ["toggle", "version", "status", "info", "play", "pause", "stop", "next", "prev", "pp", "shuffle", "repeat", "hidden", "visible"])
             except getopt.GetoptError:
                 # print help information and exit:
                 self.print_usage()
@@ -165,6 +167,10 @@ class Base(mpdclient3.mpd_connection):
                     elif o in ("-v", "--version"):
                         self.print_version()
                         sys.exit()
+                    elif o in ("--visible"):
+                        start_visible = True
+                    elif o in ("--hidden"):
+                        start_hidden = True
                     else:
                         self.print_usage()
                         sys.exit()
@@ -241,7 +247,6 @@ class Base(mpdclient3.mpd_connection):
         self.infowindow_w = 380
         self.infowindow_h = -1
         self.expanded = True
-        self.visible = True
         self.withdrawn = False
         self.sticky = False
         self.ontop = False
@@ -318,6 +323,10 @@ class Base(mpdclient3.mpd_connection):
         self.iterate_time_when_disconnected = 15000
 
         self.settings_load()
+        if start_hidden:
+            self.withdrawn = True
+        if start_visible:
+            self.withdrawn = False
         if self.autoconnect:
             self.user_connect = True
 
@@ -1022,6 +1031,8 @@ class Base(mpdclient3.mpd_connection):
         print "  -v, --version        " + _("Show version information and exit")
         print "  -t, --toggle         " + _("Toggles whether the app is minimized")
         print "                       " + _("to tray or visible (requires D-Bus)")
+        print "  --hidden             " + _("Start app hidden (requires systray)")
+        print "  --visible            " + _("Start app visible (requires systray)")
         print "  play                 " + _("Play song in playlist")
         print "  pause                " + _("Pause currently playing song")
         print "  stop                 " + _("Stop currently playing song")
@@ -2510,6 +2521,13 @@ class Base(mpdclient3.mpd_connection):
         elif self.show_statusbar:
             self.statusbar.push(self.statusbar.get_context_id(""), "")
 
+    def set_ellipsize_workaround(self):
+        # Hacky workaround to ellipsize the expander - see http://bugzilla.gnome.org/show_bug.cgi?id=406528
+        cursonglabelwidth = self.expander.get_allocation().width - 15
+        if cursonglabelwidth > 0:
+            self.cursonglabel1.set_size_request(cursonglabelwidth, -1)
+            self.cursonglabel1.set_size_request(cursonglabelwidth, -1)
+
     def update_cursong(self):
         if self.conn and self.status and self.status.state in ['play', 'pause']:
             # We must show the trayprogressbar and trayalbumeventbox
@@ -2528,10 +2546,7 @@ class Base(mpdclient3.mpd_connection):
             self.traycursonglabel1.set_ellipsize(pango.ELLIPSIZE_END)
             self.traycursonglabel2.set_ellipsize(pango.ELLIPSIZE_END)
 
-            # Hacky workaround to ellipsize the expander - see http://bugzilla.gnome.org/show_bug.cgi?id=406528
-            cursonglabelwidth = self.expander.get_allocation().width - 15
-            self.cursonglabel1.set_size_request(cursonglabelwidth, -1)
-            self.cursonglabel1.set_size_request(cursonglabelwidth, -1)
+            self.set_ellipsize_workaround()
 
             newlabelfound = False
             if len(self.currsongformat1) > 0:
@@ -3011,10 +3026,7 @@ class Base(mpdclient3.mpd_connection):
         if self.expanded: self.w, self.h = width, height
         else: self.w = width
         self.x, self.y = self.window.get_position()
-        # The follow line cases the volume window to never
-        # disappear when the button's clicked. Why was it
-        # added?
-        #self.volume_hide()
+        self.set_ellipsize_workaround()
 
     def on_infowindow_configure(self, widget, event, titlelabel, labels_right):
         self.infowindow_w, self.infowindow_h = self.infowindow.get_size()
@@ -4019,6 +4031,7 @@ class Base(mpdclient3.mpd_connection):
             self.window.stick()
         self.withdrawn = False
         self.UIManager.get_widget('/traymenu/showmenu').set_active(True)
+        #self.set_ellipsize_workaround()
 
     def withdraw_app(self):
         if HAVE_EGG or HAVE_STATUS_ICON:
