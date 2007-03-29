@@ -244,7 +244,7 @@ class Base(mpdclient3.mpd_connection):
         self.h = 300
         self.infowindow_x = 200
         self.infowindow_y = 200
-        self.infowindow_w = 380
+        self.infowindow_w = -1
         self.infowindow_h = -1
         self.expanded = True
         self.withdrawn = False
@@ -3368,14 +3368,13 @@ class Base(mpdclient3.mpd_connection):
             return
         self.infowindow = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.infowindow.set_title(_('Song Info'))
-        self.infowindow.set_size_request(380, -1)
-        self.infowindow.set_default_size(self.infowindow_w, self.infowindow_h)
+        if self.infowindow_h > -1 and self.infowindow_w > -1:
+            self.infowindow.set_size_request(self.infowindow_w, self.infowindow_h)
         self.infowindow.move(self.infowindow_x, self.infowindow_y)
         icon = self.infowindow.render_icon('sonata', gtk.ICON_SIZE_DIALOG)
         self.infowindow.set_icon(icon)
         self.infowindow_notebook = gtk.Notebook()
         self.infowindow_notebook.set_tab_pos(gtk.POS_TOP)
-        self.infowindow_notebook.set_size_request(350, 350)
         titlehbox = gtk.HBox()
         titlelabel = gtk.Label()
         titlelabel.set_markup("<b>  " + _("Title") + ":</b>")

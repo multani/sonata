@@ -5,7 +5,6 @@ v1.1
 	speed up sorting by manipulating self.songs, self.currentdata appropriately?
 	_integrate_ xmms-like search based on nex's patch
 	increase song info window to fit tabs
-	--hidden, --visible to start sonata hidden/visible
 
 Future:
 	lyrics -> allow user to edit, fetch, auto-update to wiki, search terms..?
