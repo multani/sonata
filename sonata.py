@@ -2763,27 +2763,30 @@ class Base(mpdclient3.mpd_connection):
         else:
             return False
 
-    def set_image_for_cover(self, filename):
+    def set_image_for_cover(self, filename, infowindow_only=False):
         if self.filename_is_for_current_song(filename):
             if os.path.exists(filename):
                 # We use try here because the file might exist, but still
                 # be downloading so it's not complete
                 try:
                     pix = gtk.gdk.pixbuf_new_from_file(filename)
-                    (pix1, w, h) = self.get_pixbuf_of_size(pix, 75)
-                    pix1 = self.pixbuf_add_border(pix1)
-                    pix1 = self.pixbuf_pad(pix1, 77, 77)
+                    if not infowindow_only:
+                        (pix1, w, h) = self.get_pixbuf_of_size(pix, 75)
+                        pix1 = self.pixbuf_add_border(pix1)
+                        pix1 = self.pixbuf_pad(pix1, 77, 77)
+                        self.albumimage.set_from_pixbuf(pix1)
+                        self.set_tooltip_art(pix1)
+                        del pix1
                     if self.infowindow_visible:
-                        (pix2, w, h) = self.get_pixbuf_of_size(pix, 298)
+                        minsize = self.infowindow_notebook.allocation.width
+                        if self.infowindow_notebook.allocation.height < minsize:
+                            minsize = self.infowindow_notebook.allocation.height
+                        (pix2, w, h) = self.get_pixbuf_of_size(pix, minsize)
                         pix2 = self.pixbuf_add_border(pix2)
-                    self.albumimage.set_from_pixbuf(pix1)
-                    self.set_tooltip_art(pix1)
-                    if self.infowindow_visible:
                         self.infowindow_image.set_from_pixbuf(pix2)
+                        del pix2
                     self.lastalbumart = filename
                     del pix
-                    del pix1
-                    del pix2
                 except:
                     pass
                 self.call_gc_collect = True
@@ -3029,7 +3032,14 @@ class Base(mpdclient3.mpd_connection):
         self.set_ellipsize_workaround()
 
     def on_infowindow_configure(self, widget, event, titlelabel, labels_right):
-        self.infowindow_w, self.infowindow_h = self.infowindow.get_size()
+        new_width, new_height = self.infowindow.get_size()
+        if new_width != self.infowindow_w or new_height != self.infowindow_h:
+            try:
+                gobject.source_remove(self.resize_image_on_idle)
+            except:
+                pass
+            self.resize_image_on_idle = gobject.idle_add(self.set_image_for_cover, self.lastalbumart, True)
+        self.infowindow_w, self.infowindow_h = new_width, new_height
         self.infowindow_x, self.infowindow_y = self.infowindow.get_position()
         labelwidth = self.infowindow.allocation.width - titlelabel.get_size_request()[0] - 50
         for label in labels_right:
@@ -3370,6 +3380,7 @@ class Base(mpdclient3.mpd_connection):
         self.infowindow.set_title(_('Song Info'))
         if self.infowindow_h > -1 and self.infowindow_w > -1:
             self.infowindow.set_size_request(self.infowindow_w, self.infowindow_h)
+        self.infowindow.set_geometry_hints(min_width=1, min_height=1)
         self.infowindow.move(self.infowindow_x, self.infowindow_y)
         icon = self.infowindow.render_icon('sonata', gtk.ICON_SIZE_DIALOG)
         self.infowindow.set_icon(icon)
@@ -3934,11 +3945,6 @@ class Base(mpdclient3.mpd_connection):
             filename = self.remotefilelist[image_num]
             dest_filename = self.target_image_filename(self.remote_artist, self.remote_album)
             if os.path.exists(filename):
-                # Move temp file to actual file:
-                try:
-                    os.remove(dest_filename)
-                except:
-                    pass
                 shutil.move(filename, dest_filename)
                 # And finally, set the image in the interface:
                 self.lastalbumart = None

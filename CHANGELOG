@@ -7,6 +7,7 @@ v1.1 - Pending
 	+ Save last used option in library search
 	+ Update code for dbus-python 0.80 API (Jordan)
 	+ Ellipsize text in treeviews, current playing song (Jordan)
+	+ Resize cover art to fit song info window
 	+ Bug: Prevent tracebacks between withdrawing app & gtk.StatusIcon
 	+ Bug: Fix error if mpd is not running and sonata starts hidden
 	+ Bug: Can't manually set artwork across filesystems

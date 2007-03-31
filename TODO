@@ -4,8 +4,7 @@ v1.1
 	ability to 'save all' for tag editing? shortcut or button?
 	speed up sorting by manipulating self.songs, self.currentdata appropriately?
 	_integrate_ xmms-like search based on nex's patch
-	increase song info window to fit tabs
-
+	
 Future:
 	lyrics -> allow user to edit, fetch, auto-update to wiki, search terms..?
 	make selection, dnd, more like thunar
