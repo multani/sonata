@@ -5287,7 +5287,14 @@ class Base(mpdclient3.mpd_connection):
                 self.edit_entry_changed(entries[i])
             else:
                 self.edit_entry_revert_color(entries[i])
-        gobject.idle_add(window.action_area.set_sensitive, True)
+        gobject.idle_add(self.edit_set_action_area_sensitive, window.action_area)
+
+    def edit_set_action_area_sensitive(self, action_area):
+        # Hacky workaround to allow the user to click the save button again when the
+        # mouse stays over the button (http://bugzilla.gnome.org/show_bug.cgi?id=56070)
+        action_area.set_sensitive(True)
+        action_area.hide()
+        action_area.show_all()
 
     def tagpy_get_tag(self, tag, field):
         # Since tagpy went through an API change from 0.90.1 to 0.91, we'll
