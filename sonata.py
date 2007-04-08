@@ -1111,7 +1111,7 @@ class Base(mpdclient3.mpd_connection):
                     print _("Album") + ": " + getattr(self.songinfo, 'album', '')
                     print _("Date") + ": " + getattr(self.songinfo, 'date', '')
                     try:
-                        print _("Track") + ": " + str(int(self.songinfo.track.split('/')[0]))
+                        print _("Track") + ": " + str(int(self.songinfo.track.split('/')[0])).zfill(2)
                     except:
                         pass
                     print _("Genre") + ": " + getattr(self.songinfo, 'genre', '')
@@ -2005,7 +2005,7 @@ class Base(mpdclient3.mpd_connection):
                 else: return ""
         if "%T" in text:
             try:
-                text = text.replace("%T", str(int(item.track.split('/')[0])))
+                text = text.replace("%T", str(int(item.track.split('/')[0])).zfill(2))
             except:
                 if not has_brackets: text = text.replace("%T", "0")
                 else: return ""
@@ -3577,7 +3577,7 @@ class Base(mpdclient3.mpd_connection):
                         self.infowindow_datelabel.set_text(getattr(self.songinfo, 'date', ''))
                         self.infowindow_genrelabel.set_text(getattr(self.songinfo, 'genre', ''))
                         try:
-                            self.infowindow_tracklabel.set_text(str(int(self.songinfo.track.split('/')[0])))
+                            self.infowindow_tracklabel.set_text(str(int(self.songinfo.track.split('/')[0])).zfill(2))
                         except:
                             self.infowindow_tracklabel.set_text('')
                         if os.path.exists(self.musicdir + os.path.dirname(self.songinfo.file)):
