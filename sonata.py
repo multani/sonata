@@ -38,6 +38,7 @@ import locale
 import shutil
 import getopt
 import threading
+import re
 
 try:
     import mmkeys
@@ -306,6 +307,7 @@ class Base(mpdclient3.mpd_connection):
         self.tagpy_is_91 = None
         self.art_location = self.ART_LOCATION_HOMECOVERS
         self.art_location_custom_filename = ""
+        self.filterbox_visible = False
         show_prefs = False
         # For increased responsiveness after the initial load, we cache
         # the root artist and album view results and simply refresh on
@@ -410,6 +412,7 @@ class Base(mpdclient3.mpd_connection):
             ('updatekey2', None, 'Update Key 2', '<Ctrl><Shift>u', None, self.updatedb_path),
             ('connectkey', None, 'Connect Key', '<Alt>c', None, self.connectkey_pressed),
             ('disconnectkey', None, 'Disconnect Key', '<Alt>d', None, self.disconnectkey_pressed),
+            ('searchfilterkey', None, 'Search Filter Key', '<Ctrl>j', None, self.searchfilter_toggle),
             )
 
         toggle_actions = (
@@ -490,6 +493,7 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="updatekey2"/>
                 <menuitem action="connectkey"/>
                 <menuitem action="disconnectkey"/>
+                <menuitem action="searchfilterkey"/>
               </popup>
             </ui>
             """
@@ -645,11 +649,24 @@ class Base(mpdclient3.mpd_connection):
         self.current.set_enable_search(True)
         self.current_selection = self.current.get_selection()
         self.expanderwindow.add(self.current)
+        self.filterpattern = gtk.Entry()
+        self.filterbox = gtk.HBox()
+        self.filterbox.pack_start(gtk.Label(_("Filter") + ":"), False, False, 5)
+        self.filterbox.pack_start(self.filterpattern, True, True, 5)
+        filterclosebutton = gtk.Button()
+        filterclosebutton.set_image(gtk.image_new_from_stock(gtk.STOCK_CANCEL, gtk.ICON_SIZE_SMALL_TOOLBAR))
+        filterclosebutton.set_size_request(-1, self.filterpattern.size_request()[1])
+        filterclosebutton.set_relief(gtk.RELIEF_NONE)
+        self.filterbox.pack_start(filterclosebutton, False, False, 0)
+        self.filterbox.set_no_show_all(True)
+        vbox_current = gtk.VBox()
+        vbox_current.pack_start(self.expanderwindow, True, True)
+        vbox_current.pack_start(self.filterbox, False, False, 5)
         playlisthbox = gtk.HBox()
         playlisthbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_CDROM, gtk.ICON_SIZE_MENU), False, False, 2)
         playlisthbox.pack_start(gtk.Label(str=_("Current")), False, False, 2)
         playlisthbox.show_all()
-        self.notebook.append_page(self.expanderwindow, playlisthbox)
+        self.notebook.append_page(vbox_current, playlisthbox)
         browservbox = gtk.VBox()
         self.expanderwindow2 = gtk.ScrolledWindow()
         self.expanderwindow2.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -889,6 +906,9 @@ class Base(mpdclient3.mpd_connection):
         self.notebook.connect('button_press_event', self.on_notebook_click)
         self.notebook.connect('switch-page', self.on_notebook_page_change)
         self.searchtext.connect('button_press_event', self.on_searchtext_click)
+        self.filterpattern.connect('changed', self.searchfilter_feed_loop)
+        self.filterpattern.connect('activate', self.searchfilter_on_enter)
+        filterclosebutton.connect('clicked', self.searchfilter_toggle)
         self.initialize_systrayicon()
 
         # This will ensure that "Not connected" is shown in the systray tooltip
@@ -1016,6 +1036,8 @@ class Base(mpdclient3.mpd_connection):
             gobject.timeout_add(250, self.iterate_status_icon)
 
         gc.disable()
+
+        self.edit_style_orig = self.searchtext.get_style()
 
     def print_version(self):
         print _("Version: Sonata"), __version__
@@ -1203,6 +1225,8 @@ class Base(mpdclient3.mpd_connection):
         # we'll do it manually for the time being
         self.browserdata.clear()
         self.playlistsdata.clear()
+        if self.filterbox_visible:
+            gobject.idle_add(self.searchfilter_toggle, None)
 
     def update_status(self):
         try:
@@ -1506,6 +1530,7 @@ class Base(mpdclient3.mpd_connection):
             except:
                 pass
             self.currentdata.clear()
+            self.current.get_model().clear()
             self.songs = None
         else:
             self.ppbutton.set_property('sensitive', True)
@@ -2450,6 +2475,8 @@ class Base(mpdclient3.mpd_connection):
 
     def boldrow(self, row):
         if row > -1:
+            if self.filterbox_visible:
+                return
             try:
                 self.currentdata[row][1] = make_bold(self.currentdata[row][1])
             except:
@@ -2457,6 +2484,8 @@ class Base(mpdclient3.mpd_connection):
 
     def unbold_boldrow(self, row):
         if row > -1:
+            if self.filterbox_visible:
+                return
             try:
                 self.currentdata[row][1] = make_unbold(self.currentdata[row][1])
             except:
@@ -2604,12 +2633,13 @@ class Base(mpdclient3.mpd_connection):
             all_files_unchanged = self.playlist_files_unchanged(prev_songs)
             self.total_time = 0
             self.current.freeze_child_notify()
-            # Only clear and update the entire list if the items are different
-            # than before. If they are the same, merely update the attributes
-            # so that the treeview visible_rect is retained.
+            # Only clear and update the entire list if the items' files are
+            # different than before. If they are the same, merely update the
+            # attributes so that the treeview visible_rect is retained.
             if not all_files_unchanged:
                 self.currentdata.clear()
-                self.current.set_model(None)
+                if not self.filterbox_visible:
+                    self.current.set_model(None)
             for i in range(len(self.songs)):
                 track = self.songs[i]
                 item = self.parse_formatting(self.currentformat, track, True)
@@ -2625,7 +2655,7 @@ class Base(mpdclient3.mpd_connection):
                         pass
                 else:
                     self.currentdata.append([int(track.id), item])
-            if not all_files_unchanged:
+            if not all_files_unchanged and not self.filterbox_visible:
                 if self.status.state in ['play', 'pause']:
                     self.keep_song_visible_in_list()
                 self.current.set_model(self.currentdata)
@@ -2635,6 +2665,8 @@ class Base(mpdclient3.mpd_connection):
                 self.prev_boldrow = currsong
             self.current.thaw_child_notify()
             self.update_statusbar()
+            if self.filterbox_visible:
+                self.searchfilter_feed_loop(self.filterpattern)
             self.change_cursor(None)
 
     def playlist_files_unchanged(self, prev_songs):
@@ -2650,6 +2682,8 @@ class Base(mpdclient3.mpd_connection):
         return True
 
     def keep_song_visible_in_list(self):
+        if self.filterbox_visible:
+            return
         if self.expander.get_expanded() and len(self.currentdata)>0:
             try:
                 row = self.songinfo.pos
@@ -4067,9 +4101,12 @@ class Base(mpdclient3.mpd_connection):
         self.window.destroy()
 
     def on_current_click(self, treeview, path, column):
-        iter = self.currentdata.get_iter(path)
+        model = self.current.get_model()
+        if self.filterbox_visible:
+            self.searchfilter_toggle(None)
         try:
-            self.conn.do.playid(self.currentdata.get_value(iter, 0))
+            iter = model.get_iter(path)
+            self.conn.do.playid(model.get_value(iter, 0))
         except:
             pass
         self.iterate_now()
@@ -4180,7 +4217,7 @@ class Base(mpdclient3.mpd_connection):
         self.stop(None)
 
     def mmprev(self, keys, key):
-        self.prev(None)
+            self.prev(None)
 
     def mmnext(self, keys, key):
         self.next(None)
@@ -4197,10 +4234,14 @@ class Base(mpdclient3.mpd_connection):
                     self.conn.send.command_list_begin()
                     selected.reverse()
                     for path in selected:
-                        iter = model.get_iter(path)
+                        if not self.filterbox_visible:
+                            rownum = path[0]
+                        else:
+                            rownum = self.songs_filter_rownums[path[0]]
+                        iter = self.currentdata.get_iter((rownum, 0))
                         self.conn.send.deleteid(self.currentdata.get_value(iter, 0))
                         # Prevents the entire playlist from refreshing:
-                        self.songs.pop(path[0])
+                        self.songs.pop(rownum)
                         self.currentdata.remove(iter)
                     self.conn.do.command_list_end()
             elif page_num == self.TAB_PLAYLISTS:
@@ -4943,9 +4984,10 @@ class Base(mpdclient3.mpd_connection):
                     self.UIManager.get_widget('/mainmenu/removemenu/').show()
                     if HAVE_TAGPY:
                         self.UIManager.get_widget('/mainmenu/edittagmenu/').show()
-                self.UIManager.get_widget('/mainmenu/clearmenu/').show()
-                self.UIManager.get_widget('/mainmenu/savemenu/').show()
-                self.UIManager.get_widget('/mainmenu/sortmenu/').show()
+                if not self.filterbox_visible:
+                    self.UIManager.get_widget('/mainmenu/clearmenu/').show()
+                    self.UIManager.get_widget('/mainmenu/savemenu/').show()
+                    self.UIManager.get_widget('/mainmenu/sortmenu/').show()
         elif self.notebook.get_current_page() == self.TAB_LIBRARY:
             if len(self.browserdata) > 0:
                 if self.browser_selection.count_selected_rows() > 0:
@@ -5028,7 +5070,10 @@ class Base(mpdclient3.mpd_connection):
             # Populates files array with selected current playlist items:
             model, selected = self.current_selection.get_selected_rows()
             for path in selected:
-                item = self.songs[path[0]].file
+                if not self.filterbox_visible:
+                    item = self.songs[path[0]].file
+                else:
+                    item = self.songs[self.songs_filter_rownums[path[0]]].file
                 files.append(self.musicdir + item)
                 temp_mpdpaths.append(item)
         # Initialize tags:
@@ -5161,7 +5206,6 @@ class Base(mpdclient3.mpd_connection):
         cancelbutton = editwindow.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT)
         savebutton = editwindow.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT)
         editwindow.connect('delete_event', self.editwindow_hide)
-        self.edit_style_orig = titleentry.get_style()
         entries = [titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, filelabel]
         buttons = [titlebutton, artistbutton, albumbutton, yearbutton, trackbutton, genrebutton, commentbutton]
         entries_names = ["title", "artist", "album", "year", "track", "genre", "comment"]
@@ -5190,8 +5234,8 @@ class Base(mpdclient3.mpd_connection):
                     pass
         return False
 
-    def edit_entry_changed(self, editable):
-        if not self.updating_edit_entries:
+    def edit_entry_changed(self, editable, force_red=False):
+        if force_red or not self.updating_edit_entries:
             style = editable.get_style().copy()
             style.text[gtk.STATE_NORMAL] = editable.get_colormap().alloc_color("red")
             editable.set_style(style)
@@ -5291,7 +5335,7 @@ class Base(mpdclient3.mpd_connection):
 
     def edit_set_action_area_sensitive(self, action_area):
         # Hacky workaround to allow the user to click the save button again when the
-        # mouse stays over the button (http://bugzilla.gnome.org/show_bug.cgi?id=56070)
+        # mouse stays over the button (see http://bugzilla.gnome.org/show_bug.cgi?id=56070)
         action_area.set_sensitive(True)
         action_area.hide()
         action_area.show_all()
@@ -5518,6 +5562,118 @@ class Base(mpdclient3.mpd_connection):
                                 error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _('Unable to launch a suitable browser.'))
                                 error_dialog.run()
                                 error_dialog.destroy()
+
+    def searchfilter_toggle(self, widget):
+        if self.filterbox_visible:
+            self.filterbox_visible = False
+            self.filterbox.set_no_show_all(True)
+            self.filterbox.hide()
+            self.searchfilter_stop_loop(self.filterbox);
+            self.filterpattern.set_text("")
+        elif self.conn:
+            self.filterbox_visible = True
+            self.filterposition = 0
+            self.prevtodo = 'foo'
+            self.filterbox.set_no_show_all(False)
+            self.filterbox.show_all()
+            # extra thread for background search work, synchronized with a condition and its internal mutex
+            self.filterbox_cond = threading.Condition()
+            self.filterbox_cmd_buf = ''
+            qsearch_thread = threading.Thread(target=self.searchfilter_loop)
+            qsearch_thread.setDaemon(True)
+            qsearch_thread.start()
+            gobject.idle_add(self.filterpattern.grab_focus)
+
+    def searchfilter_on_enter(self, entry):
+        self.searchfilter_toggle(None)
+        song_id = self.current.get_model().get_value(self.current.get_model().get_iter_first(), 0)
+        self.conn.do.playid(song_id)
+
+    def searchfilter_feed_loop(self, editable):
+        # Lets only trigger the searchfilter_loop if 200ms pass without a change
+        # in gtk.Entry
+        try:
+            gobject.remove_source(self.filterbox_source)
+        except:
+            pass
+        self.filterbox_source = gobject.timeout_add(200, self.searchfilter_start_loop, editable)
+
+    def searchfilter_start_loop(self, editable):
+        self.filterbox_cond.acquire()
+        self.filterbox_cmd_buf = editable.get_text()
+        self.filterbox_cond.notifyAll()
+        self.filterbox_cond.release()
+
+    def searchfilter_stop_loop(self, window):
+        self.filterbox_cond.acquire()
+        self.filterbox_cmd_buf='$$$QUIT###'
+        self.filterbox_cond.notifyAll()
+        self.filterbox_cond.release()
+
+    def searchfilter_loop(self):
+        while self.filterbox_visible:
+            # copy the last command or pattern safely
+            self.filterbox_cond.acquire()
+            while(self.filterbox_cmd_buf == '$$$DONE###'):
+                self.filterbox_cond.wait()
+            todo = self.filterbox_cmd_buf
+            self.filterbox_cond.release()
+            matches = gtk.ListStore(int, str)
+            matches.clear()
+            self.filterposition = self.current.get_visible_rect()[1] # Mapping between matches and self.currentdata
+            rownum = 0
+            self.songs_filter_rownums = []
+            if todo == '$$$QUIT###':
+                self.current.set_model(self.currentdata)
+                gobject.idle_add(self.keep_song_visible_in_list)
+                return
+            elif len(todo) == 0:
+                for row in self.currentdata:
+                    song_id = row[0]
+                    song_name = make_unbold(row[1])
+                    matches.append([song_id, song_name])
+                    self.songs_filter_rownums.append(rownum)
+                    rownum = rownum + 1
+            else:
+                # this make take some seconds...
+                todo = '.*' + todo.replace(' ', ' .*').lower()
+                regexp = re.compile(todo)
+                rownum = 0
+                for row in self.currentdata:
+                    song_id = row[0]
+                    song_name = make_unbold(row[1])
+                    if regexp.match(song_name.lower()):
+                        matches.append([song_id, song_name])
+                        self.songs_filter_rownums.append(rownum)
+                    rownum = rownum + 1
+            if self.prevtodo == todo:
+                # mpd update, retain view of treeview:
+                retain_top_pos = True
+            else:
+                retain_top_pos = False
+            self.filterbox_cond.acquire()
+            self.filterbox_cmd_buf='$$$DONE###'
+            self.filterbox_cond.release()
+            gobject.idle_add(self.searchfilter_set_matches, matches, retain_top_pos)
+            self.prevtodo = todo
+
+    def searchfilter_set_matches(self, matches, retain_top_pos):
+        self.filterbox_cond.acquire()
+        flag = self.filterbox_cmd_buf
+        self.filterbox_cond.release()
+        # blit only when widget is still ok (segfault
+        # candidate, Gtk bug?) and no other search is running,
+        # avoid pointless work and don't confuse the user
+        if (self.current.get_property('visible') and flag == '$$$DONE###'):
+            self.current.set_model(matches)
+            if retain_top_pos and self.filterposition:
+                gobject.idle_add(self.current.scroll_to_point, 0, self.filterposition)
+            else:
+                gobject.idle_add(self.current.set_cursor, '0')
+            if len(matches) == 0:
+                self.edit_entry_changed(self.filterpattern, True)
+            else:
+                self.edit_entry_revert_color(self.filterpattern)
 
     def main(self):
         gtk.main()

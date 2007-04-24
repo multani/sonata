@@ -1,4 +1,5 @@
 v1.1 - Pending
+	+ <Ctrl>J for xmms-like search filter (vEX/Eduard)
 	+ Allow searching through ALL metadata in library
 	+ Support for GNOME session management
 	+ Cover art pref: save to ~/.covers or file's respective dir
