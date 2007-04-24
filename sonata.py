@@ -2475,8 +2475,6 @@ class Base(mpdclient3.mpd_connection):
 
     def boldrow(self, row):
         if row > -1:
-            if self.filterbox_visible:
-                return
             try:
                 self.currentdata[row][1] = make_bold(self.currentdata[row][1])
             except:
@@ -2484,8 +2482,6 @@ class Base(mpdclient3.mpd_connection):
 
     def unbold_boldrow(self, row):
         if row > -1:
-            if self.filterbox_visible:
-                return
             try:
                 self.currentdata[row][1] = make_unbold(self.currentdata[row][1])
             except:
