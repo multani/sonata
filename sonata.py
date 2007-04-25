@@ -308,6 +308,7 @@ class Base(mpdclient3.mpd_connection):
         self.art_location = self.ART_LOCATION_HOMECOVERS
         self.art_location_custom_filename = ""
         self.filterbox_visible = False
+        self.edit_style_orig = None
         show_prefs = False
         # For increased responsiveness after the initial load, we cache
         # the root artist and album view results and simply refresh on
@@ -1036,8 +1037,6 @@ class Base(mpdclient3.mpd_connection):
             gobject.timeout_add(250, self.iterate_status_icon)
 
         gc.disable()
-
-        self.edit_style_orig = self.searchtext.get_style()
 
     def print_version(self):
         print _("Version: Sonata"), __version__
@@ -5050,6 +5049,7 @@ class Base(mpdclient3.mpd_connection):
             error_dialog.show()
             return
         self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
+        self.edit_style_orig = self.searchtext.get_style()
         while gtk.events_pending():
             gtk.main_iteration()
         files = []
@@ -5564,6 +5564,7 @@ class Base(mpdclient3.mpd_connection):
     def searchfilter_toggle(self, widget):
         if self.filterbox_visible:
             self.filterbox_visible = False
+            self.edit_style_orig = self.searchtext.get_style()
             self.filterbox.set_no_show_all(True)
             self.filterbox.hide()
             self.searchfilter_stop_loop(self.filterbox);
@@ -5622,16 +5623,20 @@ class Base(mpdclient3.mpd_connection):
             rownum = 0
             self.songs_filter_rownums = []
             if todo == '$$$QUIT###':
+                # bold current song, if there is one..
+                if self.prev_boldrow <> -1:
+                    self.currentdata[self.prev_boldrow] = [self.currentdata[self.prev_boldrow][0], make_bold(self.currentdata[self.prev_boldrow][1])]
                 self.current.set_model(self.currentdata)
                 gobject.idle_add(self.keep_song_visible_in_list)
                 return
             elif len(todo) == 0:
                 for row in self.currentdata:
-                    song_id = row[0]
-                    song_name = make_unbold(row[1])
-                    matches.append([song_id, song_name])
                     self.songs_filter_rownums.append(rownum)
                     rownum = rownum + 1
+                matches = self.currentdata.filter_new()
+                # unbold current song, if there is one..
+                if self.prev_boldrow <> -1:
+                    matches[self.prev_boldrow] = [matches[self.prev_boldrow][0], make_unbold(matches[self.prev_boldrow][1])]
             else:
                 # this make take some seconds...
                 todo = '.*' + todo.replace(' ', ' .*').lower()

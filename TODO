@@ -3,6 +3,7 @@ v1.1
 	speed up sorting by manipulating self.songs, self.currentdata appropriately?
 	VA albums
 	--keys to list all keybindings
+	remove egg code... :(
 
 v1.2
 	switching between user profiles?
