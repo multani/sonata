@@ -1340,6 +1340,8 @@ class Base(mpdclient3.mpd_connection):
                     self.withdraw_app()
                 elif HAVE_EGG and self.trayicon.get_property('visible') == True:
                     self.withdraw_app()
+            elif self.filterbox_visible:
+                self.searchfilter_toggle(None)
         elif shortcut == 'Delete':
             self.remove(None)
 
@@ -4510,7 +4512,7 @@ class Base(mpdclient3.mpd_connection):
         exit_stop = gtk.CheckButton(_("Stop playback on exit"))
         exit_stop.set_active(self.stop_on_exit)
         self.tooltips.set_tip(exit_stop, _("MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit."))
-        minimize = gtk.CheckButton(_("Minimize to system tray on close"))
+        minimize = gtk.CheckButton(_("Minimize to system tray on close/escape"))
         minimize.set_active(self.minimize_to_systray)
         self.tooltips.set_tip(minimize, _("If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."))
         display_trayicon.connect('toggled', self.prefs_trayicon_toggled, minimize)
