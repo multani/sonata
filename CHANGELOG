@@ -1,8 +1,8 @@
 v1.1 - Pending
 	+ <Ctrl>J for xmms-like search filter (vEX/Eduard)
 	+ Allow searching through ALL metadata in library
-	+ Support for GNOME session management
 	+ Cover art pref: save to ~/.covers or file's respective dir
+	+ Support for GNOME session management
 	+ Add shuffle, repeat, --visible, and --hidden commandline arguments
 	+ Show if mpd is updating in statusbar
 	+ Save last used option in library search

@@ -335,30 +335,22 @@ class Base(mpdclient3.mpd_connection):
 
         # Add some icons:
         self.iconfactory = gtk.IconFactory()
-        sonataset1 = gtk.IconSet()
-        sonataset2 = gtk.IconSet()
-        sonataset3 = gtk.IconSet()
-        filename1 = [self.find_path('sonata.png')]
-        filename2 = [self.find_path('sonata-artist.png')]
-        filename3 = [self.find_path('sonata-album.png')]
-        icons1 = [gtk.IconSource() for i in filename1]
-        icons2 = [gtk.IconSource() for i in filename2]
-        icons3 = [gtk.IconSource() for i in filename3]
-        for i, iconsource in enumerate(icons1):
-            iconsource.set_filename(filename1[i])
-            sonataset1.add_source(iconsource)
-        self.iconfactory.add('sonata', sonataset1)
-        self.iconfactory.add_default()
-        for i, iconsource in enumerate(icons2):
-            iconsource.set_filename(filename2[i])
-            sonataset2.add_source(iconsource)
-        self.iconfactory.add('artist', sonataset2)
-        self.iconfactory.add_default()
-        for i, iconsource in enumerate(icons3):
-            iconsource.set_filename(filename3[i])
-            sonataset3.add_source(iconsource)
-        self.iconfactory.add('album', sonataset3)
-        self.iconfactory.add_default()
+        self.new_icon('sonata', file='sonata.png')
+        self.new_icon('artist', file='sonata-artist.png')
+        self.new_icon('album', file='sonata-album.png')
+        icon_theme = gtk.icon_theme_get_default()
+        (img_width, img_height) = gtk.icon_size_lookup(VOLUME_ICON_SIZE)
+        try:
+            self.new_icon('stock_volume-mute', fullpath=icon_theme.lookup_icon('stock_volume-mute', img_width, gtk.ICON_LOOKUP_USE_BUILTIN).get_filename())
+            self.new_icon('stock_volume-min', fullpath=icon_theme.lookup_icon('stock_volume-min', img_width, gtk.ICON_LOOKUP_USE_BUILTIN).get_filename())
+            self.new_icon('stock_volume-med', fullpath=icon_theme.lookup_icon('stock_volume-med', img_width, gtk.ICON_LOOKUP_USE_BUILTIN).get_filename())
+            self.new_icon('stock_volume-max', fullpath=icon_theme.lookup_icon('stock_volume-max', img_width, gtk.ICON_LOOKUP_USE_BUILTIN).get_filename())
+        except:
+            # Fallback to Sonata-included icons:
+            self.new_icon('stock_volume-mute', file='sonata-volume-mute.png')
+            self.new_icon('stock_volume-min', file='sonata-volume-min.png')
+            self.new_icon('stock_volume-med', file='sonata-volume-med.png')
+            self.new_icon('stock_volume-max', file='sonata-volume-max.png')
 
         # Popup menus:
         actions = (
@@ -620,7 +612,7 @@ class Base(mpdclient3.mpd_connection):
         self.volumebutton = gtk.ToggleButton("", True)
         self.volumebutton.set_relief(gtk.RELIEF_NONE)
         self.volumebutton.set_property('can-focus', False)
-        self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-med", VOLUME_ICON_SIZE))
+        self.set_volumebutton("stock_volume-med")
         toptophbox.pack_start(self.volumebutton, False, False, 0)
         topvbox.pack_start(toptophbox, False, False, 2)
         self.expander = gtk.Expander(_("Playlist"))
@@ -1173,6 +1165,20 @@ class Base(mpdclient3.mpd_connection):
                         pass
         else:
             print _("Unable to connect to MPD.\nPlease check your Sonata preferences.")
+
+    def new_icon(self, icon_name, file=None, fullpath=None):
+        # Either the file or fullpath must be supplied, but not both:
+        sonataset = gtk.IconSet()
+        if file:
+            filename = [self.find_path(file)]
+        else:
+            filename = [fullpath]
+        icons = [gtk.IconSource() for i in filename]
+        for i, iconsource in enumerate(icons):
+            iconsource.set_filename(filename[i])
+            sonataset.add_source(iconsource)
+        self.iconfactory.add(icon_name, sonataset)
+        self.iconfactory.add_default()
 
     def connect(self):
         if self.user_connect:
@@ -2435,13 +2441,13 @@ class Base(mpdclient3.mpd_connection):
             try:
                 self.volumescale.get_adjustment().set_value(int(self.status.volume))
                 if int(self.status.volume) == 0:
-                    self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-mute", VOLUME_ICON_SIZE))
+                    self.set_volumebutton("stock_volume-mute")
                 elif int(self.status.volume) < 30:
-                    self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-min", VOLUME_ICON_SIZE))
+                    self.set_volumebutton("stock_volume-min")
                 elif int(self.status.volume) <= 70:
-                    self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-med", VOLUME_ICON_SIZE))
+                    self.set_volumebutton("stock_volume-med")
                 else:
-                    self.volumebutton.set_image(gtk.image_new_from_icon_name("stock_volume-max", VOLUME_ICON_SIZE))
+                    self.set_volumebutton("stock_volume-max")
             except:
                 pass
 
@@ -2458,6 +2464,10 @@ class Base(mpdclient3.mpd_connection):
                     # Now update the library and playlist tabs
                     self.browse(root=self.root)
                     self.playlists_populate()
+
+    def set_volumebutton(self, stock_icon):
+        image = gtk.image_new_from_stock(stock_icon, VOLUME_ICON_SIZE)
+        self.volumebutton.set_image(image)
 
     def handle_change_song(self):
         self.unbold_boldrow(self.prev_boldrow)
@@ -5022,6 +5032,7 @@ class Base(mpdclient3.mpd_connection):
         self.UIManager.get_widget('/mainmenu/songinfo_menu/').hide()
 
     def find_path(self, filename):
+        full_filename = None
         if HAVE_SUGAR:
             full_filename = os.path.join(activity.get_bundle_path(), 'share', filename)
         else:
@@ -5035,6 +5046,9 @@ class Base(mpdclient3.mpd_connection):
                 full_filename = os.path.join(os.path.split(__file__)[0], 'share', filename)
             elif os.path.exists(os.path.join(__file__.split('/lib')[0], 'share', 'pixmaps', filename)):
                 full_filename = os.path.join(__file__.split('/lib')[0], 'share', 'pixmaps', filename)
+        if not full_filename:
+            print filename + " cannot be found. Aborting..."
+            sys.exit()
         return full_filename
 
     def on_edittag_click(self, widget):

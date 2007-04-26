@@ -3,7 +3,6 @@ v1.1
 	speed up sorting by manipulating self.songs, self.currentdata appropriately?
 	VA albums
 	remove egg code... :(
-	backup icons for volume - http://pygtk.org/docs/pygtk/class-gtkimage.html#method-gtkimage--set-from-file
 
 v1.2
 	switching between user profiles?
