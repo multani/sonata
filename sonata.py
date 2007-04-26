@@ -1040,7 +1040,7 @@ class Base(mpdclient3.mpd_connection):
 
     def print_version(self):
         print _("Version: Sonata"), __version__
-        print _("Website: http://sonata.berlios.de")
+        print _("Website: http://sonata.berlios.de/")
 
     def print_usage(self):
         self.print_version()
@@ -5497,17 +5497,77 @@ class Base(mpdclient3.mpd_connection):
         self.about_dialog.set_license(__license__)
         self.about_dialog.set_authors(['Scott Horowitz <stonecrest@gmail.com>'])
         self.about_dialog.set_translator_credits('fr - Floreal M <florealm@gmail.com>\npl - Tomasz Dominikowski <dominikowski@gmail.com>\nde - Paul Johnson <thrillerator@googlemail.com>\nuk - Господарисько Тарас <dogmaton@gmail.com>\nru - Beekeybee <bkb.box@bk.ru>')
-        gtk.about_dialog_set_url_hook(self.show_website, "http://sonata.berlios.de")
-        self.about_dialog.set_website_label("http://sonata.berlios.de")
+        gtk.about_dialog_set_url_hook(self.show_website, "http://sonata.berlios.de/")
+        self.about_dialog.set_website_label("http://sonata.berlios.de/")
         large_icon = gtk.gdk.pixbuf_new_from_file(self.find_path('sonata_large.png'))
         self.about_dialog.set_logo(large_icon)
+        # Add button to show keybindings:
+        shortcut_button = gtk.Button(_("_Shortcuts"))
+        self.about_dialog.action_area.pack_start(shortcut_button)
+        self.about_dialog.action_area.reorder_child(self.about_dialog.action_area.get_children()[-1], -2)
+        # Connect to callbacks
         self.about_dialog.connect('response', self.about_close)
         self.about_dialog.connect('delete_event', self.about_close)
+        shortcut_button.connect('clicked', self.about_shortcuts)
         self.about_dialog.show_all()
 
     def about_close(self, event, data=None):
         self.about_dialog.hide()
         return True
+
+    def about_shortcuts(self, button):
+        dialog = gtk.Dialog(_("Shortcuts"), self.about_dialog, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE))
+        dialog.set_default_response(gtk.RESPONSE_CLOSE)
+        dialog.set_size_request(477, 320)
+        ScrollWindow = gtk.ScrolledWindow()
+        ScrollWindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        shortcut_text = gtk.TextBuffer()
+        shortcutView = gtk.TextView(shortcut_text)
+        shortcutView.set_editable(False)
+        ScrollWindow.add_with_viewport(shortcutView)
+        dialog.vbox.pack_start(ScrollWindow, True, True, 0)
+        shortcut_text.set_text("""Interface
+---------
+Alt-1             Switch to current playlist
+Alt-2             Switch to library
+Alt-3             Switch to playlists
+Alt-C             Connect to MPD
+Alt-D             Disconnect from MPD
+Alt-Down          Expand player
+Alt-Up            Collapse player
+Backspace         (Library) Go to parent directory
+Ctrl-Delete       (Current) Clear list
+Ctrl-D            (Library/Playlists) Add selected song/directory/playlist(s)
+Ctrl-J            (Current) Toggle filter bar for jumping straight to track
+Ctrl-R            (Library/Playlists) Replace with selected song/directory/playlist(s)
+Ctrl-Q            Quit
+Ctrl-U            Update entire library
+Ctrl-Shift-S      (Current) Save playlist
+Ctrl-Shift-U      Update library for selected path(s)
+Delete            (Current/Playlist) Remove item
+Enter/Space       (Current) Play selected song;
+                  (Library/Playlists) Add selected song/playlist;
+                  (Library) Enter directory
+Escape            Minimize to system tray ('Minimize to tray on close' must be enabled)
+Menu              Display popup menu
+
+Playback
+--------
+Ctrl-Left         Previous track
+Ctrl-Right        Next track
+Ctrl-P            Play/Pause
+Ctrl-S            Stop
+Ctrl-Minus        Lower the volume
+Ctrl-Plus         Raise the volume""")
+        familytag = shortcut_text.create_tag()
+        familytag.set_property("family-set", True)
+        familytag.set_property("family", "Monospace")
+        familytag.set_property("scale-set", True)
+        familytag.set_property("scale", pango.SCALE_SMALL)
+        shortcut_text.apply_tag(familytag, shortcut_text.get_start_iter(), shortcut_text.get_end_iter())
+        dialog.show_all()
+        dialog.run()
+        dialog.destroy()
 
     def show_website(self, dialog, blah, link):
         self.browser_load(link)
