@@ -2681,6 +2681,7 @@ class Base(mpdclient3.mpd_connection):
                 if self.status.state in ['play', 'pause']:
                     self.keep_song_visible_in_list()
                 self.current.set_model(self.currentdata)
+                self.current.set_search_column(1)
             if self.songinfo.has_key('pos'):
                 currsong = int(self.songinfo.pos)
                 self.boldrow(currsong)
@@ -5768,7 +5769,9 @@ Ctrl-Plus         Raise the volume""")
 
     def searchfilter_revert_model(self):
         self.current.set_model(self.currentdata)
+        self.current.set_search_column(1)
         gobject.idle_add(self.keep_song_visible_in_list)
+        gobject.idle_add(self.current.grab_focus)
 
     def searchfilter_set_matches(self, matches, retain_top_pos):
         self.filterbox_cond.acquire()
@@ -5779,6 +5782,7 @@ Ctrl-Plus         Raise the volume""")
         # avoid pointless work and don't confuse the user
         if (self.current.get_property('visible') and flag == '$$$DONE###'):
             self.current.set_model(matches)
+            self.current.set_search_column(1)
             if len(matches) == 0:
                 gobject.idle_add(self.edit_entry_changed, self.filterpattern, True)
             else:
