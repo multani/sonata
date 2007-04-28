@@ -1,9 +1,9 @@
 v1.1 - Pending
 	+ <Ctrl>J for xmms-like search filter (vEX/Eduard)
 	+ Implemented logic for Various Artists albums
-	+ Allow searching through ALL metadata in library
 	+ Cover art pref: save to ~/.covers or file's respective dir
 	+ Support for GNOME session management
+	+ Allow searching through ALL metadata in library
 	+ Add shuffle, repeat, --visible, and --hidden commandline arguments
 	+ Show if mpd is updating in statusbar
 	+ Save last used option in library search
@@ -11,6 +11,7 @@ v1.1 - Pending
 	+ Ellipsize text in treeviews, current playing song (Jordan)
 	+ Add button for listing of shortcuts to About dialog
 	+ Resize cover art to fit song info window
+	+ Added Simplified Chinese translation (Desmond Chang)
 	+ Bug: Prevent tracebacks between withdrawing app & gtk.StatusIcon
 	+ Bug: Fix error if mpd is not running and sonata starts hidden
 	+ Bug: Can't manually set artwork across filesystems

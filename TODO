@@ -1,8 +1,9 @@
 v1.1
 	use plchanges (pl id?) to keep track of the playlist (faster?)
 	speed up sorting by manipulating self.songs, self.currentdata appropriately?
-	remove egg code... :(
+	remove egg code... or provide it with sonata? look at quodlibet..
 	test filterbar on slower laptop..
+	translations (Sebastian Kemper <sebastian_ml@gmx.net> - russian)
 
 v1.2
 	switching between user profiles?
