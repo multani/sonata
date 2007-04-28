@@ -5526,7 +5526,7 @@ class Base(mpdclient3.mpd_connection):
             self.about_dialog.set_copyright(statslabel)
         self.about_dialog.set_license(__license__)
         self.about_dialog.set_authors(['Scott Horowitz <stonecrest@gmail.com>'])
-        self.about_dialog.set_translator_credits('fr - Floreal M <florealm@gmail.com>\npl - Tomasz Dominikowski <dominikowski@gmail.com>\nde - Paul Johnson <thrillerator@googlemail.com>\nuk - Господарисько Тарас <dogmaton@gmail.com>\nru - Beekeybee <bkb.box@bk.ru>\nzh_CN - Desmond Chang <dochang@gmail.com>')
+        self.about_dialog.set_translator_credits('fr - Floreal M <florealm@gmail.com>\npl - Tomasz Dominikowski <dominikowski@gmail.com>\nde - Paul Johnson <thrillerator@googlemail.com>\nuk - Господарисько Тарас <dogmaton@gmail.com>\nru - Ivan <bkb.box@bk.ru>\nzh_CN - Desmond Chang <dochang@gmail.com>')
         gtk.about_dialog_set_url_hook(self.show_website, "http://sonata.berlios.de/")
         self.about_dialog.set_website_label("http://sonata.berlios.de/")
         large_icon = gtk.gdk.pixbuf_new_from_file(self.find_path('sonata_large.png'))
@@ -5732,7 +5732,15 @@ Ctrl-Plus         Raise the volume""")
                 todo = '.*' + todo.replace(' ', ' .*').lower()
                 regexp = re.compile(todo)
                 rownum = 0
-                for row in self.currentdata:
+                if self.prevtodo in todo and len(self.prevtodo) > 0:
+                    # If the user's current filter is a subset of the
+                    # previous selection (e.g. "h" -> "ha"), search
+                    # for files only in the current model, not the
+                    # entire self.currentdata
+                    use_data = self.current.get_model()
+                else:
+                    use_data = self.currentdata
+                for row in use_data:
                     song_id = row[0]
                     song_name = make_unbold(row[1])
                     if regexp.match(song_name.lower()):
