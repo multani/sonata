@@ -2496,6 +2496,8 @@ class Base(mpdclient3.mpd_connection):
         self.infowindow_update(update_all=True)
 
     def boldrow(self, row):
+        if self.filterbox_visible:
+            return
         if row > -1:
             try:
                 self.currentdata[row][1] = make_bold(self.currentdata[row][1])
@@ -2503,6 +2505,8 @@ class Base(mpdclient3.mpd_connection):
                 pass
 
     def unbold_boldrow(self, row):
+        if self.filterbox_visible:
+            return
         if row > -1:
             try:
                 self.currentdata[row][1] = make_unbold(self.currentdata[row][1])
@@ -5674,9 +5678,10 @@ Ctrl-Plus         Raise the volume""")
             gobject.idle_add(self.filterpattern.grab_focus)
 
     def searchfilter_on_enter(self, entry):
-        self.searchfilter_toggle(None)
         song_id = self.current.get_model().get_value(self.current.get_model().get_iter_first(), 0)
+        self.searchfilter_toggle(None)
         self.conn.do.playid(song_id)
+        self.keep_song_visible_in_list()
 
     def searchfilter_feed_loop(self, editable):
         # Lets only trigger the searchfilter_loop if 200ms pass without a change
@@ -5703,19 +5708,20 @@ Ctrl-Plus         Raise the volume""")
         while self.filterbox_visible:
             # copy the last command or pattern safely
             self.filterbox_cond.acquire()
-            while(self.filterbox_cmd_buf == '$$$DONE###'):
-                self.filterbox_cond.wait()
-            todo = self.filterbox_cmd_buf
-            self.filterbox_cond.release()
+            try:
+                while(self.filterbox_cmd_buf == '$$$DONE###'):
+                    self.filterbox_cond.wait()
+                todo = self.filterbox_cmd_buf
+                self.filterbox_cond.release()
+            except:
+                todo = self.filterbox_cmd_buf
+                pass
             matches = gtk.ListStore(int, str)
             matches.clear()
             self.filterposition = self.current.get_visible_rect()[1] # Mapping between matches and self.currentdata
             rownum = 0
             self.songs_filter_rownums = []
             if todo == '$$$QUIT###':
-                # bold current song, if there is one..
-                if self.prev_boldrow <> -1:
-                    self.currentdata[self.prev_boldrow] = [self.currentdata[self.prev_boldrow][0], make_bold(self.currentdata[self.prev_boldrow][1])]
                 self.current.set_model(self.currentdata)
                 gobject.idle_add(self.keep_song_visible_in_list)
                 return
@@ -5723,10 +5729,9 @@ Ctrl-Plus         Raise the volume""")
                 for row in self.currentdata:
                     self.songs_filter_rownums.append(rownum)
                     rownum = rownum + 1
-                matches = self.currentdata.filter_new()
-                # unbold current song, if there is one..
-                if self.prev_boldrow <> -1:
-                    matches[self.prev_boldrow] = [matches[self.prev_boldrow][0], make_unbold(matches[self.prev_boldrow][1])]
+                    song_id = row[0]
+                    song_name = make_unbold(row[1])
+                    matches.append([song_id, song_name])
             else:
                 # this make take some seconds...
                 todo = '.*' + todo.replace(' ', ' .*').lower()
@@ -5754,7 +5759,10 @@ Ctrl-Plus         Raise the volume""")
                 retain_top_pos = False
             self.filterbox_cond.acquire()
             self.filterbox_cmd_buf='$$$DONE###'
-            self.filterbox_cond.release()
+            try:
+                self.filterbox_cond.release()
+            except:
+                pass
             gobject.idle_add(self.searchfilter_set_matches, matches, retain_top_pos)
             self.prevtodo = todo
 
@@ -5767,14 +5775,14 @@ Ctrl-Plus         Raise the volume""")
         # avoid pointless work and don't confuse the user
         if (self.current.get_property('visible') and flag == '$$$DONE###'):
             self.current.set_model(matches)
+            if len(matches) == 0:
+                gobject.idle_add(self.edit_entry_changed, self.filterpattern, True)
+            else:
+                gobject.idle_add(self.edit_entry_revert_color, self.filterpattern)
             if retain_top_pos and self.filterposition:
                 gobject.idle_add(self.current.scroll_to_point, 0, self.filterposition)
             else:
                 gobject.idle_add(self.current.set_cursor, '0')
-            if len(matches) == 0:
-                self.edit_entry_changed(self.filterpattern, True)
-            else:
-                self.edit_entry_revert_color(self.filterpattern)
 
     def main(self):
         gtk.main()

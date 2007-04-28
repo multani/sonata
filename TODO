@@ -4,6 +4,7 @@ v1.1
 	remove egg code... or provide it with sonata? look at quodlibet..
 	test filterbar on slower laptop..
 	translations (Sebastian Kemper <sebastian_ml@gmx.net> - russian)
+	if ctrl-j while on another tab, switch to current playlist
 
 v1.2
 	switching between user profiles?
