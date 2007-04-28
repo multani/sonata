@@ -309,6 +309,7 @@ class Base(mpdclient3.mpd_connection):
         self.art_location_custom_filename = ""
         self.filterbox_visible = False
         self.edit_style_orig = None
+        self.current_artist_for_album_name = [None, ""]
         show_prefs = False
         # For increased responsiveness after the initial load, we cache
         # the root artist and album view results and simply refresh on
@@ -409,7 +410,7 @@ class Base(mpdclient3.mpd_connection):
             )
 
         toggle_actions = (
-            ('showmenu', None, _('_Show Player'), None, None, self.withdraw_app_toggle, not self.withdrawn),
+            ('showmenu', None, _('_Show Sonata'), None, None, self.withdraw_app_toggle, not self.withdrawn),
             ('repeatmenu', None, _('_Repeat'), None, None, self.on_repeat_clicked, False),
             ('shufflemenu', None, _('_Shuffle'), None, None, self.on_shuffle_clicked, False),
                 )
@@ -1905,9 +1906,10 @@ class Base(mpdclient3.mpd_connection):
         # Return songs of the specified album. Sorts by track number
         list = []
         for item in self.conn.do.search('album', album):
-            # Make sure it's an exact match:
-            if album.lower() == item.album.lower():
-                list.append(item)
+            if item.has_key('album'):
+                # Make sure it's an exact match:
+                if album.lower() == item.album.lower():
+                    list.append(item)
         list.sort(key=lambda x: int(getattr(x, 'track', '0').split('/')[0]))
         return list
 
@@ -2409,6 +2411,9 @@ class Base(mpdclient3.mpd_connection):
         # If state changes
         if self.prevstatus == None or self.prevstatus.state != self.status.state:
 
+            if self.songinfo.has_key('album'):
+                self.artist_for_album_name()
+
             # Update progressbar if the state changes too
             self.update_progressbar()
             self.update_cursong()
@@ -2464,6 +2469,9 @@ class Base(mpdclient3.mpd_connection):
                     # Now update the library and playlist tabs
                     self.browse(root=self.root)
                     self.playlists_populate()
+                    # Update infowindow if it's visible:
+                    if self.infowindow_visible:
+                        self.infowindow_update(update_all=True)
 
     def set_volumebutton(self, stock_icon):
         image = gtk.image_new_from_stock(stock_icon, VOLUME_ICON_SIZE)
@@ -2478,6 +2486,9 @@ class Base(mpdclient3.mpd_connection):
             if not self.prevsonginfo or self.songinfo.file != self.prevsonginfo.file:
                 self.keep_song_visible_in_list()
             self.prev_boldrow = row
+
+        if self.songinfo.has_key('album'):
+            self.artist_for_album_name()
 
         self.update_cursong()
         self.update_wintitle()
@@ -2723,12 +2734,10 @@ class Base(mpdclient3.mpd_connection):
         if not self.show_covers:
             return
         if self.conn and self.status and self.status.state in ['play', 'pause']:
-            artist = getattr(self.songinfo, 'artist', "")
-            artist = artist.replace("/", "")
-            album = getattr(self.songinfo, 'album', "")
-            album = album.replace("/", "")
+            artist = getattr(self.songinfo, 'artist', "").replace("/", "")
+            album = getattr(self.songinfo, 'album', "").replace("/", "")
+            filename = self.target_image_filename()
             try:
-                filename = self.target_image_filename()
                 if filename == self.lastalbumart:
                     # No need to update..
                     self.stop_art_update = False
@@ -2736,35 +2745,35 @@ class Base(mpdclient3.mpd_connection):
                 self.lastalbumart = None
                 songdir = os.path.dirname(self.songinfo.file)
                 if self.covers_pref == self.ART_LOCAL or self.covers_pref == self.ART_LOCAL_REMOTE:
-                    imgfound = self.check_for_local_images(songdir, artist, album)
+                    imgfound = self.check_for_local_images(songdir)
                 else:
                     imgfound = self.check_remote_images(artist, album, filename)
                 if not imgfound:
                     if self.covers_pref == self.ART_LOCAL_REMOTE:
                         self.check_remote_images(artist, album, filename)
                     elif self.covers_pref == self.ART_REMOTE_LOCAL:
-                        self.check_for_local_images(songdir, artist, album)
+                        self.check_for_local_images(songdir)
             except:
                 self.set_default_icon_for_art(True)
         else:
             self.set_default_icon_for_art(True)
 
-    def check_for_local_images(self, songdir, artist, album):
+    def check_for_local_images(self, songdir):
         self.set_default_icon_for_art(True)
-        if os.path.exists(os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")):
-            gobject.idle_add(self.set_image_for_cover, os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg"))
+        if os.path.exists(self.target_image_filename(force_location=self.ART_LOCATION_HOMECOVERS)):
+            gobject.idle_add(self.set_image_for_cover, self.target_image_filename(force_location=self.ART_LOCATION_HOMECOVERS))
             return True
-        elif os.path.exists(self.musicdir + songdir + "/cover.jpg"):
-            gobject.idle_add(self.set_image_for_cover, self.musicdir + songdir + "/cover.jpg")
+        elif os.path.exists(self.target_image_filename(force_location=self.ART_LOCATION_COVER)):
+            gobject.idle_add(self.set_image_for_cover, self.target_image_filename(force_location=self.ART_LOCATION_COVER))
             return True
-        elif os.path.exists(self.musicdir + songdir + "/album.jpg"):
-            gobject.idle_add(self.set_image_for_cover, self.musicdir + songdir + "/album.jpg")
+        elif os.path.exists(self.target_image_filename(force_location=self.ART_LOCATION_ALBUM)):
+            gobject.idle_add(self.set_image_for_cover, self.target_image_filename(force_location=self.ART_LOCATION_ALBUM))
             return True
-        elif os.path.exists(self.musicdir + songdir + "/folder.jpg"):
-            gobject.idle_add(self.set_image_for_cover, self.musicdir + songdir + "/folder.jpg")
+        elif os.path.exists(self.target_image_filename(force_location=self.ART_LOCATION_FOLDER)):
+            gobject.idle_add(self.set_image_for_cover, self.target_image_filename(force_location=self.ART_LOCATION_FOLDER))
             return True
-        elif self.art_location == self.ART_LOCATION_CUSTOM and self.art_location_custom_filename != "" and os.path.exists(self.musicdir + songdir + "/" + self.art_location_custom_filename):
-            gobject.idle_add(self.set_image_for_cover, self.musicdir + songdir + "/" + self.art_location_custom_filename)
+        elif self.art_location == self.ART_LOCATION_CUSTOM and len(self.art_location_custom_filename) > 0 and os.path.exists(self.target_image_filename(force_location=self.ART_LOCATION_CUSTOM)):
+            gobject.idle_add(self.set_image_for_cover, self.target_image_filename(force_location=self.ART_LOCATION_CUSTOM))
             return True
         else:
             self.single_img_in_dir = self.get_single_img_in_path(songdir)
@@ -2837,33 +2846,18 @@ class Base(mpdclient3.mpd_connection):
         # this will ensure that only the artwork for the currently playing
         # song is displayed
         if self.conn and self.status and self.status.state in ['play', 'pause']:
-            currfilename = self.target_image_filename()
-            if filename == currfilename:
+            if filename == self.target_image_filename(force_location=self.ART_LOCATION_HOMECOVERS):
                 return True
-            songdir = os.path.dirname(self.songinfo.file)
-            currfilename = self.musicdir + songdir + "/cover.jpg"
-            if filename == currfilename:
+            if filename == self.target_image_filename(force_location=self.ART_LOCATION_COVER):
                 return True
-            currfilename = self.musicdir + songdir + "/album.jpg"
-            if filename == currfilename:
+            if filename == self.target_image_filename(force_location=self.ART_LOCATION_ALBUM):
                 return True
-            currfilename = self.musicdir + songdir + "/folder.jpg"
-            if filename == currfilename:
+            if filename == self.target_image_filename(force_location=self.ART_LOCATION_FOLDER):
                 return True
-            if self.art_location == self.ART_LOCATION_CUSTOM:
-                currfilename = self.musicdir + songdir + "/" + self.art_location_custom_filename
-                if filename == currfilename:
-                    return True
-            artist = getattr(self.songinfo, 'artist', "")
-            artist = artist.replace("/", "")
-            album = getattr(self.songinfo, 'album', "")
-            album = album.replace("/", "")
-            currfilename = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
-            if filename == currfilename:
+            if filename == self.target_image_filename(force_location=self.ART_LOCATION_CUSTOM):
                 return True
             if self.single_img_in_dir:
-                currfilename = self.musicdir + songdir + "/" + self.single_img_in_dir
-                if filename == currfilename:
+                if filename == self.musicdir + songdir + "/" + self.single_img_in_dir:
                     return True
         # If we got this far, no match:
         return False
@@ -3386,24 +3380,28 @@ class Base(mpdclient3.mpd_connection):
                     self.lastalbumart = None
                     self.update_album_art()
 
-    def target_image_filename(self, artist=None, album=None):
+    def target_image_filename(self, artist=None, album=None, force_location=None):
         if self.conn:
-            if self.art_location == self.ART_LOCATION_HOMECOVERS:
-                # if artist/album is not set, use self.songinfo:
-                if not artist:
-                    artist = getattr(self.songinfo, 'artist', "")
-                    artist = artist.replace("/", "")
+            if force_location:
+                art_loc = force_location
+            else:
+                art_loc = self.art_location
+            if art_loc == self.ART_LOCATION_HOMECOVERS:
+                # if artist/album/filename is not set, use self.songinfo:
                 if not album:
                     album = getattr(self.songinfo, 'album', "")
-                    album = album.replace("/", "")
+                if not artist:
+                    artist = self.current_artist_for_album_name[1]
+                album = album.replace("/", "")
+                artist = artist.replace("/", "")
                 return os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
-            elif self.art_location == self.ART_LOCATION_COVER:
+            elif art_loc == self.ART_LOCATION_COVER:
                 return self.musicdir + os.path.dirname(self.songinfo.file) + "/cover.jpg"
-            elif self.art_location == self.ART_LOCATION_FOLDER:
+            elif art_loc == self.ART_LOCATION_FOLDER:
                 return self.musicdir + os.path.dirname(self.songinfo.file) + "/folder.jpg"
-            elif self.art_location == self.ART_LOCATION_ALBUM:
+            elif art_loc == self.ART_LOCATION_ALBUM:
                 return self.musicdir + os.path.dirname(self.songinfo.file) + "/album.jpg"
-            elif self.art_location == self.ART_LOCATION_CUSTOM:
+            elif art_loc == self.ART_LOCATION_CUSTOM:
                 return self.musicdir + os.path.dirname(self.songinfo.file) + "/" + self.art_location_custom_filename
 
     def valid_image(self, file):
@@ -3628,30 +3626,25 @@ class Base(mpdclient3.mpd_connection):
                         self.infowindow_filelabel.set_text(os.path.basename(self.songinfo.file))
                         if self.songinfo.has_key('album'):
                             # Update album info:
-                            artist = []
                             year = []
                             albumtime = 0
                             trackinfo = ""
                             albuminfo = self.songinfo.album + "\n"
-                            for track in self.browse_search_album(self.songinfo.album):
+                            tracks = self.browse_search_album(self.songinfo.album)
+                            for track in tracks:
                                 if track.has_key('title'):
                                     trackinfo = trackinfo + getattr(track, 'track', '0').split('/')[0].zfill(2) + ' - ' + track.title + '\n'
                                 else:
                                     trackinfo = trackinfo + getattr(track, 'track', '0').split('/')[0].zfill(2) + ' - ' + track.file.split('/')[-1] + '\n'
-                                if track.has_key('artist'):
-                                    artist.append(track.artist)
                                 if track.has_key('date'):
                                     year.append(track.date)
                                 try:
                                     albumtime = albumtime + int(track.time)
                                 except:
                                     pass
-                            (artist, i) = remove_list_duplicates(artist, [], False)
                             (year, i) = remove_list_duplicates(year, [], False)
-                            if len(artist) == 1:
-                                albuminfo = albuminfo + artist[0] + "\n"
-                            elif len(artist) > 0:
-                                albuminfo = albuminfo + _("Various Artists") + "\n"
+                            artist = self.current_artist_for_album_name[1]
+                            albuminfo = albuminfo + artist + "\n"
                             if len(year) == 1:
                                 albuminfo = albuminfo + year[0] + "\n"
                             albuminfo = albuminfo + convert_time(albumtime) + "\n"
@@ -3686,6 +3679,31 @@ class Base(mpdclient3.mpd_connection):
                     if HAVE_WSDL and self.show_lyrics:
                         self.infowindow_show_lyrics("", "", "", True)
                     self.albuminfoBuffer.set_text("")
+
+    def artist_for_album_name(self):
+        # Determine if album_name is a various artists album. We'll use a little
+        # bit of hard-coded logic and assume that an album is a VA album if
+        # there are more than 3 artists with the same album_name. The reason for
+        # not assuming an album with >1 artists is a VA album is to prevent
+        # marking albums by different artists that aren't actually VA (e.g.
+        # albums with the name "Untitled", "Self-titled", and so on). Either
+        # the artist name or "Various Artists" will be returned.
+        if self.current_artist_for_album_name[0] == self.songinfo:
+            # Re-use existing info:
+            return self.current_artist_for_album_name[1]
+        songs = self.browse_search_album(self.songinfo.album)
+        artists = []
+        return_artist = ""
+        for song in songs:
+            if song.has_key('artist'):
+                artists.append(song.artist)
+                if self.songinfo.file == song.file:
+                    return_artist = song.artist
+        (artists, i) = remove_list_duplicates(artists, [], False)
+        if len(artists) > 3:
+            return_artist = _("Various Artists")
+        self.current_artist_for_album_name = [self.songinfo, return_artist]
+        return return_artist
 
     def infowindow_show_now(self):
         self.infowindow.show_all()
@@ -3841,16 +3859,15 @@ class Base(mpdclient3.mpd_connection):
         currdir = self.musicdir + songdir
         if os.path.exists(currdir):
             dialog.set_current_folder(currdir)
-        self.local_artist = getattr(self.songinfo, 'artist', "")
-        self.local_artist = self.local_artist.replace("/", "")
-        self.local_album = getattr(self.songinfo, 'album', "")
-        self.local_album = self.local_album.replace("/", "")
+        self.local_artist = getattr(self.songinfo, 'artist', "").replace("/", "")
+        self.local_album = getattr(self.songinfo, 'album', "").replace("/", "")
+        self.local_filename = getattr(self.songinfo, 'file', "").replace("/", "")
         dialog.show()
 
     def choose_image_local_response(self, dialog, response):
         if response == gtk.RESPONSE_OK:
             filename = dialog.get_filenames()[0]
-            dest_filename = self.target_image_filename(self.local_artist, self.local_album)
+            dest_filename = self.target_image_filename(self.local_artist, self.local_album, self.local_filename)
             # Remove file if already set:
             if os.path.exists(dest_filename):
                 os.remove(dest_filename)
@@ -3917,9 +3934,8 @@ class Base(mpdclient3.mpd_connection):
         self.chooseimage_visible = True
         self.remotefilelist = []
         self.remote_artist = getattr(self.songinfo, 'artist', "")
-        self.remote_artist = self.remote_artist.replace("/", "")
         self.remote_album = getattr(self.songinfo, 'album', "")
-        self.remote_album = self.remote_album.replace("/", "")
+        self.remote_filename = getattr(self.songinfo, "file", "")
         self.remote_artistentry.set_text(self.remote_artist)
         self.remote_albumentry.set_text(self.remote_album)
         self.allow_art_search = True
@@ -3984,7 +4000,7 @@ class Base(mpdclient3.mpd_connection):
         image_num = int(path[0])
         if len(self.remotefilelist) > 0:
             filename = self.remotefilelist[image_num]
-            dest_filename = self.target_image_filename(self.remote_artist, self.remote_album)
+            dest_filename = self.target_image_filename(self.remote_artist, self.remote_album, self.remote_filename)
             if os.path.exists(filename):
                 shutil.move(filename, dest_filename)
                 # And finally, set the image in the interface:
