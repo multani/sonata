@@ -5664,6 +5664,7 @@ Ctrl-Plus         Raise the volume""")
             self.searchfilter_stop_loop(self.filterbox);
             self.filterpattern.set_text("")
         elif self.conn:
+            self.switch_to_current(None)
             self.filterbox_visible = True
             self.filterposition = 0
             self.prevtodo = 'foo'
@@ -5722,8 +5723,7 @@ Ctrl-Plus         Raise the volume""")
             rownum = 0
             self.songs_filter_rownums = []
             if todo == '$$$QUIT###':
-                self.current.set_model(self.currentdata)
-                gobject.idle_add(self.keep_song_visible_in_list)
+                gobject.idle_add(self.searchfilter_revert_model)
                 return
             elif len(todo) == 0:
                 for row in self.currentdata:
@@ -5765,6 +5765,10 @@ Ctrl-Plus         Raise the volume""")
                 pass
             gobject.idle_add(self.searchfilter_set_matches, matches, retain_top_pos)
             self.prevtodo = todo
+
+    def searchfilter_revert_model(self):
+        self.current.set_model(self.currentdata)
+        gobject.idle_add(self.keep_song_visible_in_list)
 
     def searchfilter_set_matches(self, matches, retain_top_pos):
         self.filterbox_cond.acquire()
