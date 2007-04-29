@@ -142,6 +142,7 @@ class Base(mpdclient3.mpd_connection):
             gettext.install('sonata', os.path.join(__file__.split('/lib')[0], 'share', 'locale'), unicode=1)
         except:
             gettext.install('sonata', '/usr/share/locale', unicode=1)
+        gettext.textdomain('sonata')
 
         self.traytips = TrayIconTips()
 
