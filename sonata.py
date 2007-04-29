@@ -902,6 +902,7 @@ class Base(mpdclient3.mpd_connection):
         self.searchtext.connect('button_press_event', self.on_searchtext_click)
         self.filterpattern.connect('changed', self.searchfilter_feed_loop)
         self.filterpattern.connect('activate', self.searchfilter_on_enter)
+        self.filterpattern.connect('key-press-event', self.searchfilter_key_pressed)
         filterclosebutton.connect('clicked', self.searchfilter_toggle)
         self.initialize_systrayicon()
 
@@ -5680,10 +5681,16 @@ Ctrl-Plus         Raise the volume""")
             gobject.idle_add(self.filterpattern.grab_focus)
 
     def searchfilter_on_enter(self, entry):
-        song_id = self.current.get_model().get_value(self.current.get_model().get_iter_first(), 0)
-        self.searchfilter_toggle(None)
-        self.conn.do.playid(song_id)
-        self.keep_song_visible_in_list()
+        model, selected = self.current.get_selection().get_selected_rows()
+        song_id = None
+        if len(selected) > 0:
+            song_id = model.get_value(model.get_iter(selected[0]), 0)
+        elif len(model) > 0:
+            song_id = model.get_value(model.get_iter_first(), 0)
+        if song_id:
+            self.searchfilter_toggle(None)
+            self.conn.do.playid(song_id)
+            self.keep_song_visible_in_list()
 
     def searchfilter_feed_loop(self, editable):
         # Lets only trigger the searchfilter_loop if 200ms pass without a change
@@ -5791,6 +5798,13 @@ Ctrl-Plus         Raise the volume""")
                 gobject.idle_add(self.current.scroll_to_point, 0, self.filterposition)
             else:
                 gobject.idle_add(self.current.set_cursor, '0')
+
+    def searchfilter_key_pressed(self, widget, event):
+        if event.keyval == gtk.gdk.keyval_from_name('Down') or event.keyval == gtk.gdk.keyval_from_name('Up'):
+            self.current.grab_focus()
+            self.current.emit("key-press-event", event)
+            gobject.idle_add(widget.grab_focus)
+            gobject.idle_add(widget.set_position, -1)
 
     def main(self):
         gtk.main()
