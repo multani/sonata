@@ -11,11 +11,11 @@ def capture(cmd):
     return os.popen(cmd).read().strip()
 
 setup(name='Sonata',
-        version='1.0.1',
+        version='1.1',
         description='GTK+ client for the Music Player Daemon (MPD).',
         author='Scott Horowitz',
         author_email='stonecrest@gmail.com',
-        url='http://sonata.berlios.de',
+        url='http://sonata.berlios.de/',
         classifiers=[
             'Development Status :: 4 - Beta',
             'Environment :: X11 Applications',

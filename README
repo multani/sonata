@@ -1,7 +1,7 @@
 Sonata, an elegant GTK+ client for the Music Player Daemon (MPD)
-Copyright 2006 Scott Horowitz <stonecrest@gmail.com>
+Copyright 2007 Scott Horowitz <stonecrest@gmail.com>
 
-Thanks to Andrew Conkling, et al, for all their hard work on Pygmy!
+Thanks to Andrew Conkling et al, for all their hard work on Pygmy!
 Sonata is a fork of the Pygmy project.
 
 REQUIREMENTS:
@@ -26,7 +26,7 @@ FEATURES:
 	+ Support for editing song tags
 	+ System tray icon with tooltip
 	+ Popup notification
-	+ Library searching by artist, song, etc.
+	+ Library searching and playlist filtering
 	+ Keyboard friendly
 	+ Support for multimedia keys
 	+ Commandline control

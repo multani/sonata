@@ -2,11 +2,11 @@
 # $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/sonata.py $
 # $Id: sonata.py 141 2006-09-11 04:51:07Z stonecrest $
 
-__version__ = "1.0.1"
+__version__ = "1.1"
 
 __license__ = """
 Sonata, an elegant GTK+ client for the Music Player Daemon
-Copyright 2006 Scott Horowitz <stonecrest@gmail.com>
+Copyright 2007 Scott Horowitz <stonecrest@gmail.com>
 
 This file is part of Sonata.
 

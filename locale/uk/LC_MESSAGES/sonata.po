@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sonata\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-02-04 11:49-0700\n"
+"POT-Creation-Date: 2007-04-29 13:57-0600\n"
 "PO-Revision-Date: 2007-02-09 11:04+0200\n"
 "Last-Translator: Dogmatist Demon <dogmaton@gmail.com>\n"
 "Language-Team: Ukranian\n"
@@ -15,419 +15,393 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: sonata.py:151
+#: sonata.py:166
 msgid "The toggle argument requires D-Bus. Aborting."
 msgstr "Перемикання вимагає наявності D-Bus. Скасовано."
 
-#: sonata.py:241
-#: sonata.py:4214
+#: sonata.py:273 sonata.py:4494
 msgid "Entire song"
 msgstr "Протягом композиції"
 
-#: sonata.py:242
+#: sonata.py:274
 msgid "System tray"
 msgstr "Біля зони сповіщення"
 
-#: sonata.py:242
+#: sonata.py:274
 msgid "Top Left"
 msgstr "Вгорі ліворуч"
 
-#: sonata.py:242
+#: sonata.py:274
 msgid "Top Right"
 msgstr "Вгорі праворуч"
 
-#: sonata.py:242
+#: sonata.py:274
 msgid "Bottom Left"
 msgstr "Знизу ліворуч"
 
-#: sonata.py:242
+#: sonata.py:274
 msgid "Bottom Right"
 msgstr "Знизу праворуч"
 
-#: sonata.py:258
-#: sonata.py:326
-#: sonata.py:349
-#: sonata.py:1007
-#: sonata.py:3205
-#: sonata.py:3660
-#: sonata.py:4818
+#: sonata.py:290 sonata.py:361 sonata.py:384 sonata.py:1126 sonata.py:3441
+#: sonata.py:3914 sonata.py:5152
 msgid "Artist"
 msgstr "Виконавець"
 
-#: sonata.py:258
-#: sonata.py:1006
-#: sonata.py:3199
-#: sonata.py:4808
+#: sonata.py:290 sonata.py:1125 sonata.py:3435 sonata.py:5142
 msgid "Title"
 msgstr "Назва"
 
-#: sonata.py:258
-#: sonata.py:327
-#: sonata.py:350
-#: sonata.py:1008
-#: sonata.py:3211
-#: sonata.py:3667
-#: sonata.py:4828
+#: sonata.py:290 sonata.py:362 sonata.py:385 sonata.py:1127 sonata.py:3447
+#: sonata.py:3921 sonata.py:5162
 msgid "Album"
 msgstr "Альбом"
 
-#: sonata.py:258
-#: sonata.py:1014
-#: sonata.py:3229
-#: sonata.py:4355
-#: sonata.py:4863
+#: sonata.py:290 sonata.py:1133 sonata.py:3465 sonata.py:4635 sonata.py:5197
 msgid "Genre"
 msgstr "Жанр"
 
-#: sonata.py:258
+#: sonata.py:290
 msgid "Filename"
 msgstr "Назва файлу"
 
-#: sonata.py:324
+#: sonata.py:290
+msgid "Everything"
+msgstr ""
+
+#: sonata.py:359
 msgid "_Sort List"
 msgstr "Сортувати"
 
-#: sonata.py:325
+#: sonata.py:360
 msgid "Filesystem"
 msgstr "Файлова система"
 
-#: sonata.py:328
+#: sonata.py:363
 msgid "Song Info..."
 msgstr "Про композицію"
 
-#: sonata.py:329
+#: sonata.py:364
 msgid "Use _Remote Image..."
 msgstr "Використати зображення с мережі"
 
-#: sonata.py:330
+#: sonata.py:365
 msgid "Use _Local Image..."
 msgstr "Використати локальне зображення"
 
-#: sonata.py:331
+#: sonata.py:366
 msgid "_Play"
 msgstr "Грати"
 
-#: sonata.py:332
+#: sonata.py:367
 msgid "_Pause"
 msgstr "Пауза"
 
-#: sonata.py:333
+#: sonata.py:368
 msgid "_Stop"
 msgstr "Зупинити"
 
-#: sonata.py:334
+#: sonata.py:369
 msgid "_Previous"
 msgstr "Попередня"
 
-#: sonata.py:335
+#: sonata.py:370
 msgid "_Next"
 msgstr "Наступна"
 
-#: sonata.py:336
+#: sonata.py:371
 msgid "_Quit"
 msgstr "Вихід"
 
-#: sonata.py:337
+#: sonata.py:372
 msgid "_Remove"
 msgstr "Видалити"
 
-#: sonata.py:338
+#: sonata.py:373
 msgid "_Clear"
 msgstr "Видалити усі"
 
-#: sonata.py:339
+#: sonata.py:374
 msgid "_Save Playlist..."
 msgstr "Зберегти список"
 
-#: sonata.py:340
+#: sonata.py:375
 msgid "_Update Library"
 msgstr "Поновити фонотеку"
 
-#: sonata.py:341
+#: sonata.py:376
 msgid "_Preferences..."
 msgstr "Налаштування"
 
-#: sonata.py:342
+#: sonata.py:377
 msgid "_About..."
 msgstr "Про..."
 
-#: sonata.py:343
+#: sonata.py:378
 msgid "_New..."
 msgstr "Новий"
 
-#: sonata.py:344
-#: sonata.py:3276
+#: sonata.py:379 sonata.py:3512
 msgid "_Edit..."
 msgstr "Редагувати"
 
-#: sonata.py:345
+#: sonata.py:380
 msgid "_Edit Tags..."
 msgstr "Редагувати теги"
 
-#: sonata.py:346
+#: sonata.py:381
 msgid "_Add"
 msgstr "Додати"
 
-#: sonata.py:347
+#: sonata.py:382
 msgid "_Replace"
 msgstr "Замінити"
 
-#: sonata.py:348
+#: sonata.py:383
 msgid "_Delete..."
 msgstr "Видалити"
 
-#: sonata.py:349
-#: sonata.py:350
-#: sonata.py:351
-#: sonata.py:352
+#: sonata.py:384 sonata.py:385 sonata.py:386 sonata.py:387
 msgid "By"
 msgstr " "
 
-#: sonata.py:351
+#: sonata.py:386
 msgid "Song Title"
 msgstr "Назва композиції"
 
-#: sonata.py:352
+#: sonata.py:387
 msgid "File Name"
 msgstr "Назва файлу"
 
-#: sonata.py:353
+#: sonata.py:388
 msgid "Reverse List"
 msgstr "Зворотній порядок"
 
-#: sonata.py:354
+#: sonata.py:389
 msgid "Random"
 msgstr "Випадково"
 
-#: sonata.py:378
-msgid "_Show Player"
-msgstr "Показати програвач"
+#: sonata.py:414
+msgid "_Show Sonata"
+msgstr ""
 
-#: sonata.py:379
+#: sonata.py:415
 msgid "_Repeat"
 msgstr "Повторювати"
 
-#: sonata.py:380
+#: sonata.py:416
 msgid "_Shuffle"
 msgstr "Випадково"
 
-#: sonata.py:584
-#: sonata.py:731
+#: sonata.py:620 sonata.py:789 sonata.py:792
 msgid "Playlist"
 msgstr "Список програвання"
 
-#: sonata.py:607
+#: sonata.py:649
+#, fuzzy
+msgid "Filter"
+msgstr "Файл"
+
+#: sonata.py:662
 msgid "Current"
 msgstr "Поточна"
 
-#: sonata.py:626
+#: sonata.py:681
 msgid "_End Search"
 msgstr "Кінець пошуку"
 
-#: sonata.py:632
+#: sonata.py:687
 msgid "Library browsing view"
 msgstr "Перегляд фонотеки"
 
-#: sonata.py:645
+#: sonata.py:700
 msgid "Library"
 msgstr "Фонотека"
 
-#: sonata.py:660
+#: sonata.py:715
 msgid "Playlists"
 msgstr "Списки програвання"
 
-#: sonata.py:675
+#: sonata.py:730
 msgid "Streams"
 msgstr "Потоки"
 
-#: sonata.py:693
-#: sonata.py:697
-#: sonata.py:1034
-#: sonata.py:2439
-#: sonata.py:2441
-#: sonata.py:2445
-#: sonata.py:2899
-#: sonata.py:2901
+#: sonata.py:748 sonata.py:753 sonata.py:1153 sonata.py:2630 sonata.py:2633
+#: sonata.py:2638
 msgid "Stopped"
 msgstr "Зупинено"
 
-#: sonata.py:693
-#: sonata.py:2441
-#: sonata.py:2901
+#: sonata.py:749 sonata.py:2634 sonata.py:3121
 msgid "Click to expand"
 msgstr "Розгорнути"
 
-#: sonata.py:697
-#: sonata.py:2439
-#: sonata.py:2899
+#: sonata.py:754 sonata.py:2631 sonata.py:3119
 msgid "Click to collapse"
 msgstr "Згорнути"
 
-#: sonata.py:701
-#: sonata.py:2371
+#: sonata.py:758 sonata.py:2541
 msgid "Not Connected"
 msgstr "Немає з'єднання"
 
-#: sonata.py:703
-#: sonata.py:2914
+#: sonata.py:760 sonata.py:3134
 msgid "Click to collapse the player"
 msgstr "Згорнути програвач"
 
-#: sonata.py:705
-#: sonata.py:2918
+#: sonata.py:762 sonata.py:3138
 msgid "Click to expand the player"
 msgstr "Розгорнути програвач"
 
-#: sonata.py:949
+#: sonata.py:1037
 msgid "Version: Sonata"
 msgstr "Версія: Sonata"
 
-#: sonata.py:950
-msgid "Website: http://sonata.berlios.de"
+#: sonata.py:1038
+#, fuzzy
+msgid "Website: http://sonata.berlios.de/"
 msgstr "Сторінка: http://sonata.berlios.de"
 
-#: sonata.py:955
+#: sonata.py:1043
 msgid "Usage: sonata [OPTION]"
 msgstr "Використання: sonata [OPTION]"
 
-#: sonata.py:957
+#: sonata.py:1045
 msgid "Options"
 msgstr "Налаштування"
 
-#: sonata.py:958
+#: sonata.py:1046
 msgid "Show this help and exit"
 msgstr "Показати довідку та вийти"
 
-#: sonata.py:959
+#: sonata.py:1047
 msgid "Show version information and exit"
 msgstr "Показати версію та вийти"
 
-#: sonata.py:960
+#: sonata.py:1048
 msgid "Toggles whether the app is minimized"
 msgstr "Згорнути програвач в зону сповіщення,"
 
-#: sonata.py:961
+#: sonata.py:1049
 msgid "to tray or visible (requires D-Bus)"
 msgstr "аба показати (вимагається наявність D-Bus)"
 
-#: sonata.py:962
+#: sonata.py:1050
+msgid "Start app hidden (requires systray)"
+msgstr ""
+
+#: sonata.py:1051
+#, fuzzy
+msgid "Start app visible (requires systray)"
+msgstr "аба показати (вимагається наявність D-Bus)"
+
+#: sonata.py:1052
 msgid "Play song in playlist"
 msgstr "Грати композицію зі списку"
 
-#: sonata.py:963
+#: sonata.py:1053
 msgid "Pause currently playing song"
 msgstr "Зробити паузу"
 
-#: sonata.py:964
+#: sonata.py:1054
 msgid "Stop currently playing song"
 msgstr "Зупинити програвання"
 
-#: sonata.py:965
+#: sonata.py:1055
 msgid "Play next song in playlist"
 msgstr "Грати наступну пісню зі списку"
 
-#: sonata.py:966
+#: sonata.py:1056
 msgid "Play previous song in playlist"
 msgstr "Грати попередню пісню зі списку"
 
-#: sonata.py:967
+#: sonata.py:1057
 msgid "Toggle play/pause; plays if stopped"
 msgstr "Грати/Пауза"
 
-#: sonata.py:968
+#: sonata.py:1058
+msgid "Toggle repeat mode"
+msgstr ""
+
+#: sonata.py:1059
+msgid "Toggle shuffle mode"
+msgstr ""
+
+#: sonata.py:1060
 msgid "Display current song info"
 msgstr "Показати інформацію про композицію"
 
-#: sonata.py:969
+#: sonata.py:1061
 msgid "Display MPD status"
 msgstr "Показати стан MPD"
 
-#: sonata.py:1009
-#: sonata.py:3217
+#: sonata.py:1128 sonata.py:3453
 msgid "Date"
 msgstr "Дата"
 
-#: sonata.py:1011
-#: sonata.py:3223
-#: sonata.py:4844
+#: sonata.py:1130 sonata.py:3459 sonata.py:5178
 msgid "Track"
 msgstr "Трек"
 
-#: sonata.py:1015
-#: sonata.py:3241
+#: sonata.py:1134 sonata.py:3477
 msgid "File"
 msgstr "Файл"
 
-#: sonata.py:1020
-#: sonata.py:1022
-#: sonata.py:3247
+#: sonata.py:1139 sonata.py:1141 sonata.py:3483
 msgid "Time"
 msgstr "Час"
 
-#: sonata.py:1023
-#: sonata.py:3253
+#: sonata.py:1142 sonata.py:3489
 msgid "Bitrate"
 msgstr "Бітрейт"
 
-#: sonata.py:1025
+#: sonata.py:1144
 msgid "MPD stopped"
 msgstr "MPD зупинений"
 
-#: sonata.py:1030
-#: sonata.py:1032
-#: sonata.py:1034
+#: sonata.py:1149 sonata.py:1151 sonata.py:1153
 msgid "State"
 msgstr "Стан"
 
-#: sonata.py:1030
+#: sonata.py:1149
 msgid "Playing"
 msgstr "Програвання"
 
-#: sonata.py:1032
+#: sonata.py:1151
 msgid "Paused"
 msgstr "Пауза"
 
-#: sonata.py:1036
-#: sonata.py:1038
+#: sonata.py:1155 sonata.py:1157
 msgid "Repeat"
 msgstr "Повторення"
 
-#: sonata.py:1036
-#: sonata.py:1040
+#: sonata.py:1155 sonata.py:1159
 msgid "Off"
 msgstr "Вимкнути"
 
-#: sonata.py:1038
-#: sonata.py:1042
+#: sonata.py:1157 sonata.py:1161
 msgid "On"
 msgstr "Увімкнути"
 
-#: sonata.py:1040
-#: sonata.py:1042
+#: sonata.py:1159 sonata.py:1161
 msgid "Shuffle"
 msgstr "Випадково"
 
-#: sonata.py:1043
+#: sonata.py:1162
 msgid "Volume"
 msgstr "Гучність"
 
-#: sonata.py:1045
-#: sonata.py:1047
-#: sonata.py:4105
+#: sonata.py:1164 sonata.py:1166 sonata.py:4374
 msgid "Crossfade"
 msgstr "Накладання"
 
-#: sonata.py:1045
-#: sonata.py:4213
+#: sonata.py:1164 sonata.py:4493
 msgid "second"
 msgstr "секунда"
 
-#: sonata.py:1047
-#: sonata.py:4215
+#: sonata.py:1166 sonata.py:4495
 msgid "seconds"
 msgstr "секунд"
 
-#: sonata.py:1051
+#: sonata.py:1170
 msgid ""
 "Unable to connect to MPD.\n"
 "Please check your Sonata preferences."
@@ -435,506 +409,596 @@ msgstr ""
 "Не вдається приєднатися до MPD.\n"
 "Будьласка, перевірьте налаштування програми."
 
-#: sonata.py:1429
+#: sonata.py:1578
 msgid "Edit Stream"
 msgstr "Редагування потоку"
 
-#: sonata.py:1431
-#: sonata.py:1464
+#: sonata.py:1580 sonata.py:1613
 msgid "New Stream"
 msgstr "Новий потік"
 
-#: sonata.py:1433
+#: sonata.py:1582
 msgid "Stream name"
 msgstr "Ім'я потоку"
 
-#: sonata.py:1440
+#: sonata.py:1589
 msgid "Stream URL"
 msgstr "Адреса потоку"
 
-#: sonata.py:1463
+#: sonata.py:1612
 msgid "A stream with this name already exists."
 msgstr "Потік з таким ім'ям вже є."
 
-#: sonata.py:1478
-#: sonata.py:1500
+#: sonata.py:1631 sonata.py:1653
 msgid "Save Playlist"
 msgstr "Зберегти список"
 
-#: sonata.py:1480
+#: sonata.py:1633
 msgid "Playlist name"
 msgstr "Ім'я списку"
 
-#: sonata.py:1499
+#: sonata.py:1652
 msgid "A playlist with this name already exists."
 msgstr "Список з такою назвою вже є."
 
-#: sonata.py:1874
-#: sonata.py:1880
-#: sonata.py:1898
+#: sonata.py:2028 sonata.py:2034 sonata.py:2052
 msgid "Unknown"
 msgstr "Невідомо"
 
-#: sonata.py:2388
+#: sonata.py:2558
 msgid "minute"
 msgid_plural "minutes"
 msgstr[0] "хвилина"
 msgstr[1] "хвилин"
 
-#: sonata.py:2392
+#: sonata.py:2562
 msgid "hour and"
 msgid_plural "hours and"
 msgstr[0] "година"
 msgstr[1] "годин"
 
-#: sonata.py:2394
+#: sonata.py:2564
 msgid "song"
 msgid_plural "songs"
 msgstr[0] "композиція"
 msgstr[1] "композицій"
 
-#: sonata.py:2443
+#: sonata.py:2572
+msgid "(updating mpd)"
+msgstr ""
+
+#: sonata.py:2636
 msgid "Not connected"
 msgstr "Нема з'єднання"
 
-#: sonata.py:3188
+#: sonata.py:3424
 msgid "Song Info"
 msgstr "Про композицію"
 
-#: sonata.py:3235
+#: sonata.py:3471
 msgid "Path"
 msgstr "Шлях"
 
-#: sonata.py:3271
+#: sonata.py:3507
 msgid "_Song Info"
 msgstr "Про композицію"
 
-#: sonata.py:3287
+#: sonata.py:3523
 msgid "_Cover Art"
 msgstr "Обкладинка"
 
-#: sonata.py:3300
+#: sonata.py:3536
 msgid "_Album Info"
 msgstr "Про альбом"
 
-#: sonata.py:3335
+#: sonata.py:3571
 msgid "_Lyrics"
 msgstr "Текст композиції"
 
-#: sonata.py:3421
-msgid "Various Artists"
-msgstr "Різні виконавці"
-
-#: sonata.py:3429
+#: sonata.py:3660
 msgid "Album name not set."
 msgstr "Не вказано альбом"
 
-#: sonata.py:3440
+#: sonata.py:3668
 msgid "Artist or song title not set."
 msgstr "Виконавець або назва не вказані"
 
-#: sonata.py:3474
+#: sonata.py:3709
+msgid "Various Artists"
+msgstr "Різні виконавці"
+
+#: sonata.py:3727
 msgid "Fetching lyrics..."
 msgstr "Завантаження текстів..."
 
-#: sonata.py:3484
+#: sonata.py:3737
 msgid "Couldn't connect to LyricWiki"
 msgstr "Не вдається з'єднатися з LyricWiki"
 
-#: sonata.py:3500
+#: sonata.py:3753
 msgid "Lyrics not found"
 msgstr "Тексту не знайдено"
 
-#: sonata.py:3503
+#: sonata.py:3756
 msgid "Fetching lyrics failed"
 msgstr "Невдале завантаження тексту"
 
-#: sonata.py:3590
+#: sonata.py:3848
 msgid "Open Image"
 msgstr "Завантажити зображення"
 
-#: sonata.py:3592
+#: sonata.py:3850
 msgid "Images"
 msgstr "Зображення"
 
-#: sonata.py:3596
+#: sonata.py:3854
 msgid "All files"
 msgstr "Усі файли"
 
-#: sonata.py:3631
-#: sonata.py:3633
+#: sonata.py:3885 sonata.py:3887
 msgid "Choose Cover Art"
 msgstr "Оберіть обкладинку"
 
-#: sonata.py:3634
+#: sonata.py:3888
 msgid "Choose"
 msgstr "Вибір"
 
-#: sonata.py:3657
+#: sonata.py:3911
 msgid "Edit search terms"
 msgstr "Редагувати рядок пошуку"
 
-#: sonata.py:3663
-#: sonata.py:3670
+#: sonata.py:3917 sonata.py:3924
 msgid "Press enter to search for these terms."
 msgstr "Нажміть Enter для пошуку."
 
-#: sonata.py:3728
+#: sonata.py:3981
 msgid "No artist or album name found."
 msgstr "Не знайдено ні виконавці ні альбому з таким ім'ям"
 
-#: sonata.py:3731
+#: sonata.py:3984
 msgid "No cover art found."
 msgstr "Обкладинки не знайдено"
 
-#: sonata.py:4003
+#: sonata.py:4272
 msgid "Delete the selected playlist(s)?"
 msgstr "Видалити обраний список"
 
-#: sonata.py:4004
+#: sonata.py:4273
 msgid "Delete Playlist(s)"
 msgstr "Видалити список"
 
-#: sonata.py:4016
+#: sonata.py:4285
 msgid "Delete the selected stream(s)?"
 msgstr "Видалити обраний потік"
 
-#: sonata.py:4017
+#: sonata.py:4286
 msgid "Delete Stream(s)"
 msgstr "Видалити потік"
 
-#: sonata.py:4063
+#: sonata.py:4332
 msgid "Preferences"
 msgstr "Налаштування"
 
-#: sonata.py:4072
+#: sonata.py:4341
 msgid "MPD Connection"
 msgstr "З'єднання з MPD"
 
-#: sonata.py:4075
+#: sonata.py:4344
 msgid "Host"
 msgstr "Адреса"
 
-#: sonata.py:4082
+#: sonata.py:4351
 msgid "Port"
 msgstr "Порт"
 
-#: sonata.py:4089
+#: sonata.py:4358
 msgid "Music dir"
 msgstr "Директорія музики"
 
-#: sonata.py:4096
+#: sonata.py:4365
 msgid "Password"
 msgstr "Пароль"
 
-#: sonata.py:4102
+#: sonata.py:4371
 msgid "Leave blank if no password is required."
 msgstr "Залишіть вільним, якщо пароль не потрібний"
 
-#: sonata.py:4108
+#: sonata.py:4377
 msgid "Enable"
 msgstr "Ввімкнути"
 
-#: sonata.py:4116
+#: sonata.py:4385
 msgid "Fade length"
 msgstr "Час стихання"
 
-#: sonata.py:4117
+#: sonata.py:4386
 msgid "sec"
 msgstr "секунд"
 
-#: sonata.py:4134
+#: sonata.py:4403
 msgid "Autoconnect on start"
 msgstr "З'єднуватися під час запуску"
 
-#: sonata.py:4137
+#: sonata.py:4406
 msgid "C_onnect"
 msgstr "З'єднатися"
 
-#: sonata.py:4139
+#: sonata.py:4408
 msgid "_Disconnect"
 msgstr "Роз'єднати"
 
-#: sonata.py:4169
-#: sonata.py:4208
+#: sonata.py:4438 sonata.py:4488
 msgid "Display"
 msgstr "Інтерфейс"
 
-#: sonata.py:4172
+#: sonata.py:4441
 msgid "Enable album art"
 msgstr "Показувати обкладинку альбому"
 
-#: sonata.py:4176
+#: sonata.py:4445
 msgid "Local only"
 msgstr "Тільки локальні"
 
-#: sonata.py:4177
+#: sonata.py:4446
 msgid "Remote only"
 msgstr "Тільки з мережі"
 
-#: sonata.py:4178
+#: sonata.py:4447
 msgid "Local, then remote"
 msgstr "Спочатку локальні, потім - з мережі"
 
-#: sonata.py:4179
+#: sonata.py:4448
 msgid "Remote, then local"
 msgstr "Спочатку з мережі, потім - локальні"
 
-#: sonata.py:4184
-msgid "Enable playback buttons"
+#: sonata.py:4453
+msgid "Save art to:"
+msgstr ""
+
+#: sonata.py:4458
+msgid "~/.covers/"
+msgstr ""
+
+#: sonata.py:4459
+msgid "cover.jpg"
+msgstr ""
+
+#: sonata.py:4460
+#, fuzzy
+msgid "album.jpg"
+msgstr "Альбоми."
+
+#: sonata.py:4461
+msgid "folder.jpg"
+msgstr ""
+
+#: sonata.py:4462
+#, fuzzy
+msgid "custom name"
+msgstr "Альбом"
+
+#: sonata.py:4467
+#, fuzzy
+msgid "Enable playback/volume buttons"
 msgstr "Показувати клавіші програвання"
 
-#: sonata.py:4187
-msgid "Enable volume button"
-msgstr "Показувати регулятор гучності"
-
-#: sonata.py:4190
+#: sonata.py:4470
 msgid "Enable statusbar"
 msgstr "Показувати рядок стану"
 
-#: sonata.py:4193
+#: sonata.py:4473
 msgid "Enable lyrics"
 msgstr "Текст пісні"
 
-#: sonata.py:4198
+#: sonata.py:4478
 msgid "Enable system tray icon"
 msgstr "Ввімкнути значок в зоні сповіщення"
 
-#: sonata.py:4203
+#: sonata.py:4483
 msgid "Notification"
 msgstr "Сповіщення"
 
-#: sonata.py:4205
+#: sonata.py:4485
 msgid "Popup notification on song changes"
 msgstr "Сповіщення про зміну композиції"
 
-#: sonata.py:4249
+#: sonata.py:4529
 msgid "Window Behavior"
 msgstr "Розміщення програми"
 
-#: sonata.py:4251
+#: sonata.py:4531
 msgid "Show window on all workspaces"
 msgstr "Показувати на усіх робочих столах"
 
-#: sonata.py:4253
+#: sonata.py:4533
 msgid "Keep window above other windows"
 msgstr "Зверху інших вікон"
 
-#: sonata.py:4255
+#: sonata.py:4535
 msgid "Update MPD library on start"
 msgstr "Поновлювати фонотеку при запуску"
 
-#: sonata.py:4257
-msgid "If enabled, Sonata will automatically update your MPD library when it starts up."
-msgstr "Якщо ввімкнено, Sonata автоматично оновлюватиме фонотеку MPD під час запуску."
+#: sonata.py:4537
+msgid ""
+"If enabled, Sonata will automatically update your MPD library when it starts "
+"up."
+msgstr ""
+"Якщо ввімкнено, Sonata автоматично оновлюватиме фонотеку MPD під час запуску."
 
-#: sonata.py:4258
+#: sonata.py:4538
 msgid "Stop playback on exit"
 msgstr "Зупинити програвання при виході"
 
-#: sonata.py:4260
-msgid "MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit."
-msgstr "MPD дозволяє програвати музику, якщо не запущено контролюючої програми. Якщо ввімкнено, то Sonata буде себе поводити як більшість інших програвачів, тобто зупинить програвання при закритті."
+#: sonata.py:4540
+msgid ""
+"MPD allows playback even when the client is not open. If enabled, Sonata "
+"will behave like a more conventional music player and, instead, stop "
+"playback upon exit."
+msgstr ""
+"MPD дозволяє програвати музику, якщо не запущено контролюючої програми. Якщо "
+"ввімкнено, то Sonata буде себе поводити як більшість інших програвачів, "
+"тобто зупинить програвання при закритті."
 
-#: sonata.py:4261
-msgid "Minimize to system tray on close"
+#: sonata.py:4541
+#, fuzzy
+msgid "Minimize to system tray on close/escape"
 msgstr "Закриття згортає програму в зону сповіщення"
 
-#: sonata.py:4263
-msgid "If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."
-msgstr "Програма не зупиняє свого виконання, а ховається до зони сповіщення. Але це зручно, якщо є зона сповіщення."
+#: sonata.py:4543
+msgid ""
+"If enabled, closing Sonata will minimize it to the system tray. Note that "
+"it's currently impossible to detect if there actually is a system tray, so "
+"only check this if you have one."
+msgstr ""
+"Програма не зупиняє свого виконання, а ховається до зони сповіщення. Але це "
+"зручно, якщо є зона сповіщення."
 
-#: sonata.py:4265
+#: sonata.py:4545
 msgid "Play enqueued files on activate"
 msgstr "Програвати чергу файлів при активації"
 
-#: sonata.py:4267
-msgid "Automatically play enqueued items when activated via double-click or enter."
-msgstr "Автоматично програвати чергу елементів активовану подвійним кліком або Enter."
+#: sonata.py:4547
+msgid ""
+"Automatically play enqueued items when activated via double-click or enter."
+msgstr ""
+"Автоматично програвати чергу елементів активовану подвійним кліком або Enter."
 
-#: sonata.py:4275
+#: sonata.py:4555
 msgid "Write status file:"
 msgstr "Записати файл стану:"
 
-#: sonata.py:4277
-#: sonata.py:4280
-msgid "If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)"
-msgstr "Якщо ввімкнено, Sonata створить файл про поточну композицію на кшталт xmms. Це зручно для передачі цих даних іншим програмам."
+#: sonata.py:4557 sonata.py:4560
+msgid ""
+"If enabled, Sonata will create a xmms-infopipe like file containing "
+"information about the current song. Many applications support the xmms-info "
+"file (Instant Messengers, IRC Clients...)"
+msgstr ""
+"Якщо ввімкнено, Sonata створить файл про поточну композицію на кшталт xmms. "
+"Це зручно для передачі цих даних іншим програмам."
 
-#: sonata.py:4287
+#: sonata.py:4567
 msgid "Miscellaneous"
 msgstr "Різне"
 
-#: sonata.py:4308
+#: sonata.py:4588
 msgid "Song Formatting"
 msgstr "Формат інформації про композицію"
 
-#: sonata.py:4311
+#: sonata.py:4591
 msgid "Current playlist:"
 msgstr "Список програвання"
 
-#: sonata.py:4318
+#: sonata.py:4598
 msgid "Library:"
 msgstr "Фонотека:"
 
-#: sonata.py:4325
+#: sonata.py:4605
 msgid "Window title:"
 msgstr "Заголовок вікна:"
 
-#: sonata.py:4332
+#: sonata.py:4612
 msgid "Current song line 1:"
 msgstr "Поточна композиція, рядок 1:"
 
-#: sonata.py:4339
+#: sonata.py:4619
 msgid "Current song line 2:"
 msgstr "Поточна композиція, рядок 2:"
 
-#: sonata.py:4347
+#: sonata.py:4627
 msgid "Available options"
 msgstr "Доступні налаштування"
 
-#: sonata.py:4352
+#: sonata.py:4632
 msgid "Artist name"
 msgstr "Виконавець"
 
-#: sonata.py:4352
+#: sonata.py:4632
 msgid "Album name"
 msgstr "Альбом"
 
-#: sonata.py:4352
+#: sonata.py:4632
 msgid "Song name"
 msgstr "Назва"
 
-#: sonata.py:4352
+#: sonata.py:4632
 msgid "Track number"
 msgstr "Трек"
 
-#: sonata.py:4352
-#: sonata.py:4838
+#: sonata.py:4632 sonata.py:5172
 msgid "Year"
 msgstr "Рік"
 
-#: sonata.py:4355
+#: sonata.py:4635
 msgid "File name"
 msgstr "Файл"
 
-#: sonata.py:4355
+#: sonata.py:4635
 msgid "File path"
 msgstr "Шлях до файлу"
 
-#: sonata.py:4355
+#: sonata.py:4635
 msgid "Song length"
 msgstr "Час композиції"
 
-#: sonata.py:4355
+#: sonata.py:4635
 msgid "Elapsed time (title only)"
 msgstr "Поточний час (тільки в заголовок)"
 
-#: sonata.py:4361
+#: sonata.py:4641
 msgid "Info displayed only if all enclosed tags are defined"
 msgstr "Виводитиметься увипадку, якщо заповнений тег композиції"
 
-#: sonata.py:4377
+#: sonata.py:4657
 msgid "_MPD"
 msgstr "MPD"
 
-#: sonata.py:4379
+#: sonata.py:4659
 msgid "Dis_play"
 msgstr "Інтерфейс"
 
-#: sonata.py:4381
+#: sonata.py:4661
 msgid "_Behavior"
 msgstr "Поведінка"
 
-#: sonata.py:4383
+#: sonata.py:4663
 msgid "_Format"
 msgstr "Формат"
 
-#: sonata.py:4748
+#: sonata.py:4698
+msgid "To save artwork as"
+msgstr ""
+
+#: sonata.py:4698
+#, fuzzy
+msgid "you must specify a valid music directory."
+msgstr ""
+"нічого не знайдено. Будь ласка, задайте вірний каталог з музикою у "
+"налалаштуваннях програми."
+
+#: sonata.py:4699
+#, fuzzy
+msgid "Artwork Verification"
+msgstr "Сповіщення"
+
+#: sonata.py:4825
+msgid "Custom Artwork"
+msgstr ""
+
+#: sonata.py:4827
+msgid "Artwork filename"
+msgstr ""
+
+#: sonata.py:5078
 msgid "The path"
 msgstr "Шлях"
 
-#: sonata.py:4748
+#: sonata.py:5078
 msgid "does not exist. Please specify a valid music directory in preferences."
-msgstr "нічого не знайдено. Будь ласка, задайте вірний каталог з музикою у налалаштуваннях програми."
+msgstr ""
+"нічого не знайдено. Будь ласка, задайте вірний каталог з музикою у "
+"налалаштуваннях програми."
 
-#: sonata.py:4749
-#: sonata.py:4783
-#: sonata.py:5023
-#: sonata.py:5067
+#: sonata.py:5079 sonata.py:5117 sonata.py:5356 sonata.py:5460
 msgid "Edit Tags"
 msgstr "Редагувати тег"
 
-#: sonata.py:4782
+#: sonata.py:5116
 msgid "No music files with editable tags found."
 msgstr "Не знайдено файлів з підтримкою тегів."
 
-#: sonata.py:4876
+#: sonata.py:5210
 msgid "Comment"
 msgstr "Коментар"
 
-#: sonata.py:4946
+#: sonata.py:5279
 msgid "Increment each selected music file, starting at track 1 for this file."
 msgstr "Якщо позначено, то номер кожного наступного треку буде на один більше."
 
-#: sonata.py:4948
+#: sonata.py:5281
 msgid "Apply to all selected music files."
 msgstr "Застосувати до усіх обраних фійлів."
 
-#: sonata.py:5023
+#: sonata.py:5356
 msgid "of"
 msgstr "з"
 
-#: sonata.py:5066
+#: sonata.py:5459
 msgid "Unable to save tag to music file."
 msgstr "Не вдається записати тег у файл."
 
-#: sonata.py:5122
-msgid "An elegant music player for MPD."
+#: sonata.py:5515
+#, fuzzy
+msgid "An elegant music client for MPD."
 msgstr "Елегантний клієнт для MPD."
 
-#: sonata.py:5127
+#: sonata.py:5520
 msgid "songs."
 msgstr "Композиції."
 
-#: sonata.py:5128
+#: sonata.py:5521
 msgid "albums."
 msgstr "Альбоми."
 
-#: sonata.py:5129
+#: sonata.py:5522
 msgid "artists."
 msgstr "Виконавці."
 
-#: sonata.py:5134
+#: sonata.py:5527
 msgid "hours of bliss."
 msgstr "годин прослуховування."
 
-#: sonata.py:5199
+#: sonata.py:5537
+#, fuzzy
+msgid "_Shortcuts"
+msgstr "Сортувати"
+
+#: sonata.py:5551
+msgid "Shortcuts"
+msgstr ""
+
+#: sonata.py:5652
 msgid "Unable to launch a suitable browser."
 msgstr "Не вдаєть запустити переглядач."
 
-#: sonata.py:5484
-msgid "Sonata failed to connect to the D-BUS session bus: Unable to determine the address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for help)"
-msgstr "Не вдалося з'єднатися з D-BUS. Налаштуйте D-BUS, та спробуйте знову (спробуйте 'man dbus-launch' та 'man dbus-daemon' для довідки)."
-
-#: sonata.py:5490
+#: sonata.py:6091
 msgid "An instance of Sonata is already running."
 msgstr "Sonata вже запущено."
 
+#: sonata.py:6095
+msgid ""
+"Sonata failed to connect to the D-BUS session bus: Unable to determine the "
+"address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for "
+"help)"
+msgstr ""
+"Не вдалося з'єднатися з D-BUS. Налаштуйте D-BUS, та спробуйте знову "
+"(спробуйте 'man dbus-launch' та 'man dbus-daemon' для довідки)."
+
+#~ msgid "_Show Player"
+#~ msgstr "Показати програвач"
+
+#~ msgid "Enable volume button"
+#~ msgstr "Показувати регулятор гучності"
+
 #~ msgid "_Help"
 #~ msgstr "Довідка"
+
 #~ msgid "minutes"
 #~ msgstr "хвилин"
+
 #~ msgid "hours and"
 #~ msgstr "годин"
+
 #~ msgid "by"
 #~ msgstr " "
+
 #~ msgid "from"
 #~ msgstr "з"
+
 #~ msgid "by Unknown"
 #~ msgstr "Невідомий"
+
 #~ msgid "Display for"
 #~ msgstr "Пказувати на протязі"
+
 #~ msgid "Location"
 #~ msgstr "Положення"
-

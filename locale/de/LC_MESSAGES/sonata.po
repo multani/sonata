@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sonata 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-02-04 11:49-0700\n"
+"POT-Creation-Date: 2007-04-29 13:57-0600\n"
 "PO-Revision-Date: 2007-02-05 14:06+0100\n"
 "Last-Translator:  Paul Johnson <thrillerator@googlemail.com>\n"
 "Language-Team: Sonata-DE <thrillerator@googlemail.com>\n"
@@ -16,366 +16,393 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: sonata.py:151
+#: sonata.py:166
 msgid "The toggle argument requires D-Bus. Aborting."
 msgstr "Diese Option benötigt D-Bus. Beende..."
 
-#: sonata.py:241 sonata.py:4214
+#: sonata.py:273 sonata.py:4494
 msgid "Entire song"
 msgstr "Stück Länge"
 
-#: sonata.py:242
+#: sonata.py:274
 msgid "System tray"
 msgstr "Benachrichtigungsleiste"
 
-#: sonata.py:242
+#: sonata.py:274
 msgid "Top Left"
 msgstr "oben links"
 
-#: sonata.py:242
+#: sonata.py:274
 msgid "Top Right"
 msgstr "oben rechts"
 
-#: sonata.py:242
+#: sonata.py:274
 msgid "Bottom Left"
 msgstr "unten links"
 
-#: sonata.py:242
+#: sonata.py:274
 msgid "Bottom Right"
 msgstr "unten rechts"
 
-#: sonata.py:258 sonata.py:326 sonata.py:349 sonata.py:1007 sonata.py:3205
-#: sonata.py:3660 sonata.py:4818
+#: sonata.py:290 sonata.py:361 sonata.py:384 sonata.py:1126 sonata.py:3441
+#: sonata.py:3914 sonata.py:5152
 msgid "Artist"
 msgstr "Künstler"
 
-#: sonata.py:258 sonata.py:1006 sonata.py:3199 sonata.py:4808
+#: sonata.py:290 sonata.py:1125 sonata.py:3435 sonata.py:5142
 msgid "Title"
 msgstr "Titel"
 
-#: sonata.py:258 sonata.py:327 sonata.py:350 sonata.py:1008 sonata.py:3211
-#: sonata.py:3667 sonata.py:4828
+#: sonata.py:290 sonata.py:362 sonata.py:385 sonata.py:1127 sonata.py:3447
+#: sonata.py:3921 sonata.py:5162
 msgid "Album"
 msgstr ""
 
-#: sonata.py:258 sonata.py:1014 sonata.py:3229 sonata.py:4355 sonata.py:4863
+#: sonata.py:290 sonata.py:1133 sonata.py:3465 sonata.py:4635 sonata.py:5197
 msgid "Genre"
 msgstr ""
 
-#: sonata.py:258
+#: sonata.py:290
 msgid "Filename"
 msgstr "Dateiname"
 
-#: sonata.py:324
+#: sonata.py:290
+msgid "Everything"
+msgstr ""
+
+#: sonata.py:359
 msgid "_Sort List"
 msgstr "_Sortieren"
 
-#: sonata.py:325
+#: sonata.py:360
 msgid "Filesystem"
 msgstr "Dateisystem"
 
-#: sonata.py:328
+#: sonata.py:363
 msgid "Song Info..."
 msgstr "Infos zum Stück..."
 
-#: sonata.py:329
+#: sonata.py:364
 msgid "Use _Remote Image..."
 msgstr "_Entferntes Bild benutzen..."
 
-#: sonata.py:330
+#: sonata.py:365
 msgid "Use _Local Image..."
 msgstr "_Lokales Bild benutzen..."
 
-#: sonata.py:331
+#: sonata.py:366
 msgid "_Play"
 msgstr "_Wiedergeben"
 
-#: sonata.py:332
+#: sonata.py:367
 msgid "_Pause"
 msgstr "_Pausieren"
 
-#: sonata.py:333
+#: sonata.py:368
 msgid "_Stop"
 msgstr "_Anhalten"
 
-#: sonata.py:334
+#: sonata.py:369
 msgid "_Previous"
 msgstr "_Vorheriges"
 
-#: sonata.py:335
+#: sonata.py:370
 msgid "_Next"
 msgstr "_Nächstes"
 
-#: sonata.py:336
+#: sonata.py:371
 msgid "_Quit"
 msgstr "_Beenden"
 
-#: sonata.py:337
+#: sonata.py:372
 msgid "_Remove"
 msgstr "_Entfernen"
 
-#: sonata.py:338
+#: sonata.py:373
 msgid "_Clear"
 msgstr "_Leeren"
 
-#: sonata.py:339
+#: sonata.py:374
 msgid "_Save Playlist..."
 msgstr "Wiedergabeliste _speichern"
 
-#: sonata.py:340
+#: sonata.py:375
 msgid "_Update Library"
 msgstr "_Bibliothek auffrischen"
 
-#: sonata.py:341
+#: sonata.py:376
 msgid "_Preferences..."
 msgstr "_Einstellungen..."
 
-#: sonata.py:342
+#: sonata.py:377
 msgid "_About..."
 msgstr "_Über..."
 
-#: sonata.py:343
+#: sonata.py:378
 msgid "_New..."
 msgstr "_Neu..."
 
-#: sonata.py:344 sonata.py:3276
+#: sonata.py:379 sonata.py:3512
 msgid "_Edit..."
 msgstr "_Bearbeiten..."
 
-#: sonata.py:345
+#: sonata.py:380
 msgid "_Edit Tags..."
 msgstr "Tags _bearbeiten..."
 
-#: sonata.py:346
+#: sonata.py:381
 msgid "_Add"
 msgstr "_Hinzufügen"
 
-#: sonata.py:347
+#: sonata.py:382
 msgid "_Replace"
 msgstr "_Ersetzen"
 
-#: sonata.py:348
+#: sonata.py:383
 msgid "_Delete..."
 msgstr "_Löschen"
 
-#: sonata.py:349 sonata.py:350 sonata.py:351 sonata.py:352
+#: sonata.py:384 sonata.py:385 sonata.py:386 sonata.py:387
 msgid "By"
 msgstr "nach"
 
-#: sonata.py:351
+#: sonata.py:386
 msgid "Song Title"
 msgstr "Stück Titel"
 
-#: sonata.py:352
+#: sonata.py:387
 msgid "File Name"
 msgstr "Dateiname"
 
-#: sonata.py:353
+#: sonata.py:388
 msgid "Reverse List"
 msgstr "Liste umkehren"
 
-#: sonata.py:354
+#: sonata.py:389
 msgid "Random"
 msgstr "Mischen"
 
-#: sonata.py:378
-msgid "_Show Player"
-msgstr "Player _anzeigen"
+#: sonata.py:414
+msgid "_Show Sonata"
+msgstr ""
 
-#: sonata.py:379
+#: sonata.py:415
 msgid "_Repeat"
 msgstr "_Wiederholen"
 
-#: sonata.py:380
+#: sonata.py:416
 msgid "_Shuffle"
 msgstr "_Zufallswiedergabe"
 
-#: sonata.py:584 sonata.py:731
+#: sonata.py:620 sonata.py:789 sonata.py:792
 msgid "Playlist"
 msgstr "Wiedergabeliste"
 
-#: sonata.py:607
+#: sonata.py:649
+#, fuzzy
+msgid "Filter"
+msgstr "Datei"
+
+#: sonata.py:662
 msgid "Current"
 msgstr "Wiedergabeliste"
 
-#: sonata.py:626
+#: sonata.py:681
 msgid "_End Search"
 msgstr "Suche _beenden"
 
-#: sonata.py:632
+#: sonata.py:687
 msgid "Library browsing view"
 msgstr "Bibliotheks ansicht"
 
-#: sonata.py:645
+#: sonata.py:700
 msgid "Library"
 msgstr "Bibliothek"
 
-#: sonata.py:660
+#: sonata.py:715
 msgid "Playlists"
 msgstr "Wiedergabelisten"
 
-#: sonata.py:675
+#: sonata.py:730
 msgid "Streams"
 msgstr "Live-Streams"
 
-#: sonata.py:693 sonata.py:697 sonata.py:1034 sonata.py:2439 sonata.py:2441
-#: sonata.py:2445 sonata.py:2899 sonata.py:2901
+#: sonata.py:748 sonata.py:753 sonata.py:1153 sonata.py:2630 sonata.py:2633
+#: sonata.py:2638
 msgid "Stopped"
 msgstr "Angehalten"
 
-#: sonata.py:693 sonata.py:2441 sonata.py:2901
+#: sonata.py:749 sonata.py:2634 sonata.py:3121
 msgid "Click to expand"
 msgstr "Klicken zum erweitern"
 
-#: sonata.py:697 sonata.py:2439 sonata.py:2899
+#: sonata.py:754 sonata.py:2631 sonata.py:3119
 msgid "Click to collapse"
 msgstr "Klicken zum zuklappen"
 
-#: sonata.py:701 sonata.py:2371
+#: sonata.py:758 sonata.py:2541
 msgid "Not Connected"
 msgstr "Nicht verbunden"
 
-#: sonata.py:703 sonata.py:2914
+#: sonata.py:760 sonata.py:3134
 msgid "Click to collapse the player"
 msgstr "Klicken zum zuklappen des Players"
 
-#: sonata.py:705 sonata.py:2918
+#: sonata.py:762 sonata.py:3138
 msgid "Click to expand the player"
 msgstr "Klicken zum erweitern des Players"
 
-#: sonata.py:949
+#: sonata.py:1037
 msgid "Version: Sonata"
 msgstr ""
 
-#: sonata.py:950
-msgid "Website: http://sonata.berlios.de"
+#: sonata.py:1038
+#, fuzzy
+msgid "Website: http://sonata.berlios.de/"
 msgstr "Webseite: http://sonata.berlios.de"
 
-#: sonata.py:955
+#: sonata.py:1043
 msgid "Usage: sonata [OPTION]"
 msgstr "Aufruf: sonata [Option]"
 
-#: sonata.py:957
+#: sonata.py:1045
 msgid "Options"
 msgstr "Optionen"
 
-#: sonata.py:958
+#: sonata.py:1046
 msgid "Show this help and exit"
 msgstr "Diese Meldung anzeigen und beenden"
 
-#: sonata.py:959
+#: sonata.py:1047
 msgid "Show version information and exit"
 msgstr "Versionsinfo ausgeben und beenden"
 
-#: sonata.py:960
+#: sonata.py:1048
 msgid "Toggles whether the app is minimized"
 msgstr "Sonata zur Benachrichtigungsleiste minimieren"
 
-#: sonata.py:961
+#: sonata.py:1049
 msgid "to tray or visible (requires D-Bus)"
 msgstr "oder anzeigen (benötigt D-Bus)"
 
-#: sonata.py:962
+#: sonata.py:1050
+msgid "Start app hidden (requires systray)"
+msgstr ""
+
+#: sonata.py:1051
+#, fuzzy
+msgid "Start app visible (requires systray)"
+msgstr "oder anzeigen (benötigt D-Bus)"
+
+#: sonata.py:1052
 msgid "Play song in playlist"
 msgstr "Stück aus der Wiedergabeliste abspielen"
 
-#: sonata.py:963
+#: sonata.py:1053
 msgid "Pause currently playing song"
 msgstr "Aktuell laufendes Stück pausieren"
 
-#: sonata.py:964
+#: sonata.py:1054
 msgid "Stop currently playing song"
 msgstr "Aktuell laufendes Stück anhalten"
 
-#: sonata.py:965
+#: sonata.py:1055
 msgid "Play next song in playlist"
 msgstr "Nächstes Stück aus der Wiedergabeliste abspielen"
 
-#: sonata.py:966
+#: sonata.py:1056
 msgid "Play previous song in playlist"
 msgstr "Vorheriges Stück aus der Wiedergabeliste abspielen"
 
-#: sonata.py:967
+#: sonata.py:1057
 msgid "Toggle play/pause; plays if stopped"
 msgstr "Zwischen Abspielen und Pausieren umschalten"
 
-#: sonata.py:968
+#: sonata.py:1058
+msgid "Toggle repeat mode"
+msgstr ""
+
+#: sonata.py:1059
+msgid "Toggle shuffle mode"
+msgstr ""
+
+#: sonata.py:1060
 msgid "Display current song info"
 msgstr "Aktuelle Informationen zum Stück anzeigen"
 
-#: sonata.py:969
+#: sonata.py:1061
 msgid "Display MPD status"
 msgstr "MPD Status anzeigen"
 
-#: sonata.py:1009 sonata.py:3217
+#: sonata.py:1128 sonata.py:3453
 msgid "Date"
 msgstr "Jahr"
 
-#: sonata.py:1011 sonata.py:3223 sonata.py:4844
+#: sonata.py:1130 sonata.py:3459 sonata.py:5178
 msgid "Track"
 msgstr "Stück"
 
-#: sonata.py:1015 sonata.py:3241
+#: sonata.py:1134 sonata.py:3477
 msgid "File"
 msgstr "Datei"
 
-#: sonata.py:1020 sonata.py:1022 sonata.py:3247
+#: sonata.py:1139 sonata.py:1141 sonata.py:3483
 msgid "Time"
 msgstr "Zeit"
 
-#: sonata.py:1023 sonata.py:3253
+#: sonata.py:1142 sonata.py:3489
 msgid "Bitrate"
 msgstr ""
 
-#: sonata.py:1025
+#: sonata.py:1144
 msgid "MPD stopped"
 msgstr "MPD angehalten"
 
-#: sonata.py:1030 sonata.py:1032 sonata.py:1034
+#: sonata.py:1149 sonata.py:1151 sonata.py:1153
 msgid "State"
 msgstr "Status"
 
-#: sonata.py:1030
+#: sonata.py:1149
 msgid "Playing"
 msgstr "Wiedergebend"
 
-#: sonata.py:1032
+#: sonata.py:1151
 msgid "Paused"
 msgstr "Pausiert"
 
-#: sonata.py:1036 sonata.py:1038
+#: sonata.py:1155 sonata.py:1157
 msgid "Repeat"
 msgstr "Wiederholen"
 
-#: sonata.py:1036 sonata.py:1040
+#: sonata.py:1155 sonata.py:1159
 msgid "Off"
 msgstr "Aus"
 
-#: sonata.py:1038 sonata.py:1042
+#: sonata.py:1157 sonata.py:1161
 msgid "On"
 msgstr "An"
 
-#: sonata.py:1040 sonata.py:1042
+#: sonata.py:1159 sonata.py:1161
 msgid "Shuffle"
 msgstr "Zufallswiedergabe"
 
-#: sonata.py:1043
+#: sonata.py:1162
 msgid "Volume"
 msgstr "Lautstärke"
 
-#: sonata.py:1045 sonata.py:1047 sonata.py:4105
+#: sonata.py:1164 sonata.py:1166 sonata.py:4374
 msgid "Crossfade"
 msgstr "Überblenden"
 
-#: sonata.py:1045 sonata.py:4213
+#: sonata.py:1164 sonata.py:4493
 msgid "second"
 msgstr "Sekunde"
 
-#: sonata.py:1047 sonata.py:4215
+#: sonata.py:1166 sonata.py:4495
 msgid "seconds"
 msgstr "Sekunden"
 
-#: sonata.py:1051
+#: sonata.py:1170
 msgid ""
 "Unable to connect to MPD.\n"
 "Please check your Sonata preferences."
@@ -383,291 +410,318 @@ msgstr ""
 "Konnte nicht zu MPD verbinden.\n"
 "Bitte überprüfen Sie ihre Einstellungen!"
 
-#: sonata.py:1429
+#: sonata.py:1578
 #, fuzzy
 msgid "Edit Stream"
 msgstr "Stream bearbeiten"
 
-#: sonata.py:1431 sonata.py:1464
+#: sonata.py:1580 sonata.py:1613
 msgid "New Stream"
 msgstr "Neuer Stream"
 
-#: sonata.py:1433
+#: sonata.py:1582
 msgid "Stream name"
 msgstr "Stream Name"
 
-#: sonata.py:1440
+#: sonata.py:1589
 msgid "Stream URL"
 msgstr "Stream Adresse"
 
-#: sonata.py:1463
+#: sonata.py:1612
 msgid "A stream with this name already exists."
 msgstr "Ein Live-Stream mit diesem Namen existiert bereits."
 
-#: sonata.py:1478 sonata.py:1500
+#: sonata.py:1631 sonata.py:1653
 msgid "Save Playlist"
 msgstr "Wiedergabeliste speichern"
 
-#: sonata.py:1480
+#: sonata.py:1633
 msgid "Playlist name"
 msgstr "Wiedergabelistenname"
 
-#: sonata.py:1499
+#: sonata.py:1652
 msgid "A playlist with this name already exists."
 msgstr "Eine Wiedergabeliste mit diesem Namen existiert bereits."
 
-#: sonata.py:1874 sonata.py:1880 sonata.py:1898
+#: sonata.py:2028 sonata.py:2034 sonata.py:2052
 msgid "Unknown"
 msgstr "Unbekannt"
 
-#: sonata.py:2388
+#: sonata.py:2558
 msgid "minute"
 msgid_plural "minutes"
 msgstr[0] "Minute"
 msgstr[1] "Minuten"
 
-#: sonata.py:2392
+#: sonata.py:2562
 msgid "hour and"
 msgid_plural "hours and"
 msgstr[0] "Stunde und"
 msgstr[1] "Stunden und"
 
-#: sonata.py:2394
+#: sonata.py:2564
 msgid "song"
 msgid_plural "songs"
 msgstr[0] "Lied"
 msgstr[1] "Lieder"
 
-#: sonata.py:2443
+#: sonata.py:2572
+msgid "(updating mpd)"
+msgstr ""
+
+#: sonata.py:2636
 msgid "Not connected"
 msgstr "Nicht verbunden"
 
-#: sonata.py:3188
+#: sonata.py:3424
 msgid "Song Info"
 msgstr "Infos zum Stück"
 
-#: sonata.py:3235
+#: sonata.py:3471
 msgid "Path"
 msgstr "Dateipfad"
 
-#: sonata.py:3271
+#: sonata.py:3507
 msgid "_Song Info"
 msgstr "_Infos zum Stück"
 
-#: sonata.py:3287
+#: sonata.py:3523
 msgid "_Cover Art"
 msgstr "Album-_Cover"
 
-#: sonata.py:3300
+#: sonata.py:3536
 msgid "_Album Info"
 msgstr "Infos zum _Album"
 
-#: sonata.py:3335
+#: sonata.py:3571
 msgid "_Lyrics"
 msgstr "_Liedtext"
 
-#: sonata.py:3421
-msgid "Various Artists"
-msgstr "Verschiedene Künstler"
-
-#: sonata.py:3429
+#: sonata.py:3660
 msgid "Album name not set."
 msgstr "Albumname nicht angegeben."
 
-#: sonata.py:3440
+#: sonata.py:3668
 msgid "Artist or song title not set."
 msgstr "Künstler- oder Liedtitel nicht angegeben."
 
-#: sonata.py:3474
+#: sonata.py:3709
+msgid "Various Artists"
+msgstr "Verschiedene Künstler"
+
+#: sonata.py:3727
 msgid "Fetching lyrics..."
 msgstr "Hole Liedtext..."
 
-#: sonata.py:3484
+#: sonata.py:3737
 msgid "Couldn't connect to LyricWiki"
 msgstr "Konnte nicht zu LyricWiki verbinden"
 
-#: sonata.py:3500
+#: sonata.py:3753
 msgid "Lyrics not found"
 msgstr "Liedtext nicht gefunden"
 
-#: sonata.py:3503
+#: sonata.py:3756
 msgid "Fetching lyrics failed"
 msgstr "Holen von Liedtext fehlgeschlagen"
 
-#: sonata.py:3590
+#: sonata.py:3848
 msgid "Open Image"
 msgstr "Bild öffnen"
 
-#: sonata.py:3592
+#: sonata.py:3850
 msgid "Images"
 msgstr "Bilder"
 
-#: sonata.py:3596
+#: sonata.py:3854
 msgid "All files"
 msgstr "Alle Dateien"
 
-#: sonata.py:3631 sonata.py:3633
+#: sonata.py:3885 sonata.py:3887
 msgid "Choose Cover Art"
 msgstr "Album-Cover auswählen"
 
-#: sonata.py:3634
+#: sonata.py:3888
 msgid "Choose"
 msgstr "Auswählen"
 
-#: sonata.py:3657
+#: sonata.py:3911
 msgid "Edit search terms"
 msgstr "Suchkriterien ändern"
 
-#: sonata.py:3663 sonata.py:3670
+#: sonata.py:3917 sonata.py:3924
 msgid "Press enter to search for these terms."
 msgstr "Enter drücken um die Suche zu starten."
 
-#: sonata.py:3728
+#: sonata.py:3981
 msgid "No artist or album name found."
 msgstr "Kein Künstler- oder Albumname gefunden."
 
-#: sonata.py:3731
+#: sonata.py:3984
 msgid "No cover art found."
 msgstr "Kein Album-Cover gefunden."
 
-#: sonata.py:4003
+#: sonata.py:4272
 msgid "Delete the selected playlist(s)?"
 msgstr "Markierte Wiedergabeliste(n) löschen?"
 
-#: sonata.py:4004
+#: sonata.py:4273
 msgid "Delete Playlist(s)"
 msgstr "Wiedergabeliste(n) löschen"
 
-#: sonata.py:4016
+#: sonata.py:4285
 msgid "Delete the selected stream(s)?"
 msgstr "Markierte(n) Stream(s) löschen?"
 
-#: sonata.py:4017
+#: sonata.py:4286
 msgid "Delete Stream(s)"
 msgstr "Stream(s) löschen"
 
-#: sonata.py:4063
+#: sonata.py:4332
 msgid "Preferences"
 msgstr "Einstellungen"
 
-#: sonata.py:4072
+#: sonata.py:4341
 msgid "MPD Connection"
 msgstr "MPD Verbindung"
 
-#: sonata.py:4075
+#: sonata.py:4344
 msgid "Host"
 msgstr ""
 
-#: sonata.py:4082
+#: sonata.py:4351
 msgid "Port"
 msgstr ""
 
-#: sonata.py:4089
+#: sonata.py:4358
 msgid "Music dir"
 msgstr "Musik-Ordner"
 
-#: sonata.py:4096
+#: sonata.py:4365
 msgid "Password"
 msgstr "Passwort"
 
-#: sonata.py:4102
+#: sonata.py:4371
 msgid "Leave blank if no password is required."
 msgstr "Leer lassen falls kein Passwort benötigt wird."
 
-#: sonata.py:4108
+#: sonata.py:4377
 msgid "Enable"
 msgstr "Aktivieren"
 
-#: sonata.py:4116
+#: sonata.py:4385
 msgid "Fade length"
 msgstr "überblend Länge"
 
-#: sonata.py:4117
+#: sonata.py:4386
 msgid "sec"
 msgstr "sek"
 
-#: sonata.py:4134
+#: sonata.py:4403
 msgid "Autoconnect on start"
 msgstr "Automatisch verbinden"
 
-#: sonata.py:4137
+#: sonata.py:4406
 msgid "C_onnect"
 msgstr "_Verbinden"
 
-#: sonata.py:4139
+#: sonata.py:4408
 msgid "_Disconnect"
 msgstr "_Trennen"
 
-#: sonata.py:4169 sonata.py:4208
+#: sonata.py:4438 sonata.py:4488
 msgid "Display"
 msgstr "Anzeige"
 
-#: sonata.py:4172
+#: sonata.py:4441
 msgid "Enable album art"
 msgstr "Album-Cover anzeigen"
 
-#: sonata.py:4176
+#: sonata.py:4445
 msgid "Local only"
 msgstr "nur Lokal"
 
-#: sonata.py:4177
+#: sonata.py:4446
 msgid "Remote only"
 msgstr "nur Entfernt"
 
-#: sonata.py:4178
+#: sonata.py:4447
 msgid "Local, then remote"
 msgstr "Lokal, dann Entfernt"
 
-#: sonata.py:4179
+#: sonata.py:4448
 msgid "Remote, then local"
 msgstr "Entfernt, dann Lokal"
 
-#: sonata.py:4184
-msgid "Enable playback buttons"
+#: sonata.py:4453
+msgid "Save art to:"
+msgstr ""
+
+#: sonata.py:4458
+msgid "~/.covers/"
+msgstr ""
+
+#: sonata.py:4459
+msgid "cover.jpg"
+msgstr ""
+
+#: sonata.py:4460
+#, fuzzy
+msgid "album.jpg"
+msgstr "Alben."
+
+#: sonata.py:4461
+msgid "folder.jpg"
+msgstr ""
+
+#: sonata.py:4462
+#, fuzzy
+msgid "custom name"
+msgstr "Albumname"
+
+#: sonata.py:4467
+#, fuzzy
+msgid "Enable playback/volume buttons"
 msgstr "Wiedergabe-Knöpfe aktivieren"
 
-#: sonata.py:4187
-msgid "Enable volume button"
-msgstr "Lautstärke-Knöpf aktivieren"
-
-#: sonata.py:4190
+#: sonata.py:4470
 msgid "Enable statusbar"
 msgstr "Statusleiste aktivieren"
 
-#: sonata.py:4193
+#: sonata.py:4473
 #, fuzzy
 msgid "Enable lyrics"
 msgstr "Songtexte aktivieren"
 
-#: sonata.py:4198
+#: sonata.py:4478
 msgid "Enable system tray icon"
 msgstr "Benachrichtigungsleiste-Symbol aktivieren"
 
-#: sonata.py:4203
+#: sonata.py:4483
 msgid "Notification"
 msgstr "Benachrichtigung"
 
-#: sonata.py:4205
+#: sonata.py:4485
 msgid "Popup notification on song changes"
 msgstr "Benachrichtigung bei Liedwechseln anzeigen"
 
-#: sonata.py:4249
+#: sonata.py:4529
 msgid "Window Behavior"
 msgstr "Fenster Verhalten"
 
-#: sonata.py:4251
+#: sonata.py:4531
 msgid "Show window on all workspaces"
 msgstr "Fenster auf allen Arbeitsflächen anzeigen"
 
-#: sonata.py:4253
+#: sonata.py:4533
 msgid "Keep window above other windows"
 msgstr "Fenster im Vordergrund halten"
 
-#: sonata.py:4255
+#: sonata.py:4535
 msgid "Update MPD library on start"
 msgstr "Bibliothek beim Start auffrischen"
 
-#: sonata.py:4257
+#: sonata.py:4537
 msgid ""
 "If enabled, Sonata will automatically update your MPD library when it starts "
 "up."
@@ -675,11 +729,11 @@ msgstr ""
 "Falls aktivert, wird Sonata die Bibliothek automatisch beim starten "
 "auffrischen."
 
-#: sonata.py:4258
+#: sonata.py:4538
 msgid "Stop playback on exit"
 msgstr "Wiedergabe beim beenden anhalten"
 
-#: sonata.py:4260
+#: sonata.py:4540
 msgid ""
 "MPD allows playback even when the client is not open. If enabled, Sonata "
 "will behave like a more conventional music player and, instead, stop "
@@ -689,11 +743,12 @@ msgstr ""
 "verhält Sonata sich wie ein nomaler Musik-Player und stoppt die "
 "Wiedergabebeim beenden."
 
-#: sonata.py:4261
-msgid "Minimize to system tray on close"
+#: sonata.py:4541
+#, fuzzy
+msgid "Minimize to system tray on close/escape"
 msgstr "Zur Benachrichtigungsleiste minimieren beim Schließen"
 
-#: sonata.py:4263
+#: sonata.py:4543
 msgid ""
 "If enabled, closing Sonata will minimize it to the system tray. Note that "
 "it's currently impossible to detect if there actually is a system tray, so "
@@ -702,22 +757,22 @@ msgstr ""
 "Wenn aktiviert, wird Sonata beim schließen des Fensters zur "
 "Benachrichtigungsleiste minimiert."
 
-#: sonata.py:4265
+#: sonata.py:4545
 msgid "Play enqueued files on activate"
 msgstr "Dateien beim aktivieren abspielen"
 
-#: sonata.py:4267
+#: sonata.py:4547
 msgid ""
 "Automatically play enqueued items when activated via double-click or enter."
 msgstr ""
 "Automatisch Einträge abspielen wenn sie durch Doppelklick oder Enter "
 "aktiviert wurden."
 
-#: sonata.py:4275
+#: sonata.py:4555
 msgid "Write status file:"
 msgstr "Statusdatei schreiben:"
 
-#: sonata.py:4277 sonata.py:4280
+#: sonata.py:4557 sonata.py:4560
 msgid ""
 "If enabled, Sonata will create a xmms-infopipe like file containing "
 "information about the current song. Many applications support the xmms-info "
@@ -726,161 +781,199 @@ msgstr ""
 "Falls aktiviert, wird Sonata eine XMMS-Infopipe artige Datei erstellen "
 "welche Informationen über das Aktuelle Stück beinhalten."
 
-#: sonata.py:4287
+#: sonata.py:4567
 msgid "Miscellaneous"
 msgstr "Verschiedenes"
 
-#: sonata.py:4308
+#: sonata.py:4588
 msgid "Song Formatting"
 msgstr "Stück Formatierung"
 
-#: sonata.py:4311
+#: sonata.py:4591
 msgid "Current playlist:"
 msgstr "Aktuelle Wiedergabeliste"
 
-#: sonata.py:4318
+#: sonata.py:4598
 msgid "Library:"
 msgstr "Bibliothek:"
 
-#: sonata.py:4325
+#: sonata.py:4605
 msgid "Window title:"
 msgstr "Fenster-Titel:"
 
-#: sonata.py:4332
+#: sonata.py:4612
 msgid "Current song line 1:"
 msgstr "Stück Anzeige 1:"
 
-#: sonata.py:4339
+#: sonata.py:4619
 msgid "Current song line 2:"
 msgstr "Stück Anzeige 2:"
 
-#: sonata.py:4347
+#: sonata.py:4627
 msgid "Available options"
 msgstr "Vorhandene Optionen"
 
-#: sonata.py:4352
+#: sonata.py:4632
 msgid "Artist name"
 msgstr "Künstlername"
 
-#: sonata.py:4352
+#: sonata.py:4632
 msgid "Album name"
 msgstr "Albumname"
 
-#: sonata.py:4352
+#: sonata.py:4632
 msgid "Song name"
 msgstr "Liedtitel"
 
-#: sonata.py:4352
+#: sonata.py:4632
 msgid "Track number"
 msgstr "Stücknummer"
 
-#: sonata.py:4352 sonata.py:4838
+#: sonata.py:4632 sonata.py:5172
 msgid "Year"
 msgstr "Jahr"
 
-#: sonata.py:4355
+#: sonata.py:4635
 msgid "File name"
 msgstr "Dateiname"
 
-#: sonata.py:4355
+#: sonata.py:4635
 msgid "File path"
 msgstr "Dateipfad"
 
-#: sonata.py:4355
+#: sonata.py:4635
 msgid "Song length"
 msgstr "Stück Länge"
 
-#: sonata.py:4355
+#: sonata.py:4635
 msgid "Elapsed time (title only)"
 msgstr "Vergangene Zeit (nur Fenster-Titel)"
 
-#: sonata.py:4361
+#: sonata.py:4641
 msgid "Info displayed only if all enclosed tags are defined"
 msgstr ""
 
-#: sonata.py:4377
+#: sonata.py:4657
 msgid "_MPD"
 msgstr "_MPD"
 
-#: sonata.py:4379
+#: sonata.py:4659
 msgid "Dis_play"
 msgstr "_Anzeige"
 
-#: sonata.py:4381
+#: sonata.py:4661
 msgid "_Behavior"
 msgstr "_Verhalten"
 
-#: sonata.py:4383
+#: sonata.py:4663
 msgid "_Format"
 msgstr "_Format"
 
-#: sonata.py:4748
+#: sonata.py:4698
+msgid "To save artwork as"
+msgstr ""
+
+#: sonata.py:4698
+#, fuzzy
+msgid "you must specify a valid music directory."
+msgstr "existiert nicht. Bitte einen gültigen Musik-Ordner auswählen!"
+
+#: sonata.py:4699
+#, fuzzy
+msgid "Artwork Verification"
+msgstr "Benachrichtigung"
+
+#: sonata.py:4825
+msgid "Custom Artwork"
+msgstr ""
+
+#: sonata.py:4827
+msgid "Artwork filename"
+msgstr ""
+
+#: sonata.py:5078
 msgid "The path"
 msgstr "Der Pfad"
 
-#: sonata.py:4748
+#: sonata.py:5078
 msgid "does not exist. Please specify a valid music directory in preferences."
 msgstr "existiert nicht. Bitte einen gültigen Musik-Ordner auswählen!"
 
-#: sonata.py:4749 sonata.py:4783 sonata.py:5023 sonata.py:5067
+#: sonata.py:5079 sonata.py:5117 sonata.py:5356 sonata.py:5460
 msgid "Edit Tags"
 msgstr "Tags bearbeiten"
 
-#: sonata.py:4782
+#: sonata.py:5116
 msgid "No music files with editable tags found."
 msgstr "Keine Musikdateien mit veränderbaren Tags gefunden."
 
-#: sonata.py:4876
+#: sonata.py:5210
 msgid "Comment"
 msgstr "Kommentar"
 
-#: sonata.py:4946
+#: sonata.py:5279
 msgid "Increment each selected music file, starting at track 1 for this file."
 msgstr "Alle ausgewählten Stücke sequentiell durchnummerieren."
 
-#: sonata.py:4948
+#: sonata.py:5281
 msgid "Apply to all selected music files."
 msgstr "Bei allen ausgewählten Stücken eintragen."
 
-#: sonata.py:5023
+#: sonata.py:5356
 msgid "of"
 msgstr "von"
 
-#: sonata.py:5066
+#: sonata.py:5459
 msgid "Unable to save tag to music file."
 msgstr "Konnte Tags nicht speichern."
 
-#: sonata.py:5122
-msgid "An elegant music player for MPD."
+#: sonata.py:5515
+#, fuzzy
+msgid "An elegant music client for MPD."
 msgstr "Ein Eleganter Musik-Player für MPD."
 
-#: sonata.py:5127
+#: sonata.py:5520
 msgid "songs."
 msgstr "Lieder."
 
-#: sonata.py:5128
+#: sonata.py:5521
 msgid "albums."
 msgstr "Alben."
 
-#: sonata.py:5129
+#: sonata.py:5522
 msgid "artists."
 msgstr "Künstler."
 
-#: sonata.py:5134
+#: sonata.py:5527
 msgid "hours of bliss."
 msgstr "Stunden Glückseligkeit"
 
-#: sonata.py:5199
+#: sonata.py:5537
+#, fuzzy
+msgid "_Shortcuts"
+msgstr "_Sortieren"
+
+#: sonata.py:5551
+msgid "Shortcuts"
+msgstr ""
+
+#: sonata.py:5652
 msgid "Unable to launch a suitable browser."
 msgstr "Konnte keinen geeigneten Webbrowser starten."
 
-#: sonata.py:5484
+#: sonata.py:6091
+msgid "An instance of Sonata is already running."
+msgstr "Sonata läuft bereits."
+
+#: sonata.py:6095
 msgid ""
 "Sonata failed to connect to the D-BUS session bus: Unable to determine the "
 "address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for "
 "help)"
 msgstr ""
 
-#: sonata.py:5490
-msgid "An instance of Sonata is already running."
-msgstr "Sonata läuft bereits."
+#~ msgid "_Show Player"
+#~ msgstr "Player _anzeigen"
+
+#~ msgid "Enable volume button"
+#~ msgstr "Lautstärke-Knöpf aktivieren"
