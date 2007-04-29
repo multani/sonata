@@ -3865,20 +3865,17 @@ class Base(mpdclient3.mpd_connection):
         currdir = self.musicdir + songdir
         if os.path.exists(currdir):
             dialog.set_current_folder(currdir)
-        self.local_artist = getattr(self.songinfo, 'artist', "").replace("/", "")
-        self.local_album = getattr(self.songinfo, 'album', "").replace("/", "")
-        self.local_filename = getattr(self.songinfo, 'file', "").replace("/", "")
+        self.local_dest_filename = self.target_image_filename()
         dialog.show()
 
     def choose_image_local_response(self, dialog, response):
         if response == gtk.RESPONSE_OK:
             filename = dialog.get_filenames()[0]
-            dest_filename = self.target_image_filename(self.local_artist, self.local_album, self.local_filename)
             # Remove file if already set:
-            if os.path.exists(dest_filename):
-                os.remove(dest_filename)
+            if os.path.exists(self.local_dest_filename):
+                os.remove(self.local_dest_filename)
             # Copy file to covers dir:
-            shutil.copyfile(filename, dest_filename)
+            shutil.copyfile(filename, self.local_dest_filename)
             # And finally, set the image in the interface:
             self.lastalbumart = None
             self.update_album_art()
@@ -3939,9 +3936,9 @@ class Base(mpdclient3.mpd_connection):
         choose_dialog.show_all()
         self.chooseimage_visible = True
         self.remotefilelist = []
+        self.remote_dest_filename = self.target_image_filename()
         self.remote_artist = getattr(self.songinfo, 'artist', "")
         self.remote_album = getattr(self.songinfo, 'album', "")
-        self.remote_filename = getattr(self.songinfo, "file", "")
         self.remote_artistentry.set_text(self.remote_artist)
         self.remote_albumentry.set_text(self.remote_album)
         self.allow_art_search = True
@@ -4006,9 +4003,8 @@ class Base(mpdclient3.mpd_connection):
         image_num = int(path[0])
         if len(self.remotefilelist) > 0:
             filename = self.remotefilelist[image_num]
-            dest_filename = self.target_image_filename(self.remote_artist, self.remote_album, self.remote_filename)
             if os.path.exists(filename):
-                shutil.move(filename, dest_filename)
+                shutil.move(filename, self.remote_dest_filename)
                 # And finally, set the image in the interface:
                 self.lastalbumart = None
                 self.update_album_art()
@@ -5684,8 +5680,10 @@ Ctrl-Plus         Raise the volume""")
         model, selected = self.current.get_selection().get_selected_rows()
         song_id = None
         if len(selected) > 0:
+            # If items are selected, play the first selected item:
             song_id = model.get_value(model.get_iter(selected[0]), 0)
         elif len(model) > 0:
+            # If nothing is selected: play the first item:
             song_id = model.get_value(model.get_iter_first(), 0)
         if song_id:
             self.searchfilter_toggle(None)
