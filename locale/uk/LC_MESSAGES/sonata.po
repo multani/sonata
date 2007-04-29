@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sonata\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-04-29 13:57-0600\n"
+"POT-Creation-Date: 2007-04-29 14:14-0600\n"
 "PO-Revision-Date: 2007-02-09 11:04+0200\n"
 "Last-Translator: Dogmatist Demon <dogmaton@gmail.com>\n"
 "Language-Team: Ukranian\n"
@@ -655,23 +655,6 @@ msgstr "Спочатку з мережі, потім - локальні"
 msgid "Save art to:"
 msgstr ""
 
-#: sonata.py:4458
-msgid "~/.covers/"
-msgstr ""
-
-#: sonata.py:4459
-msgid "cover.jpg"
-msgstr ""
-
-#: sonata.py:4460
-#, fuzzy
-msgid "album.jpg"
-msgstr "Альбоми."
-
-#: sonata.py:4461
-msgid "folder.jpg"
-msgstr ""
-
 #: sonata.py:4462
 #, fuzzy
 msgid "custom name"
@@ -972,6 +955,10 @@ msgid ""
 msgstr ""
 "Не вдалося з'єднатися з D-BUS. Налаштуйте D-BUS, та спробуйте знову "
 "(спробуйте 'man dbus-launch' та 'man dbus-daemon' для довідки)."
+
+#, fuzzy
+#~ msgid "album.jpg"
+#~ msgstr "Альбоми."
 
 #~ msgid "_Show Player"
 #~ msgstr "Показати програвач"

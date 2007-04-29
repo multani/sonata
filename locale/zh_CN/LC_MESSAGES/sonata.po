@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sonata 1.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-04-29 13:57-0600\n"
+"POT-Creation-Date: 2007-04-29 14:14-0600\n"
 "PO-Revision-Date: 2007-04-28 16:09+0800\n"
 "Last-Translator: Desmond Chang <dochang@gmail.com>\n"
 "Language-Team: Simplified Chinese\n"
@@ -653,23 +653,6 @@ msgstr "先远程，后本地"
 msgid "Save art to:"
 msgstr ""
 
-#: sonata.py:4458
-msgid "~/.covers/"
-msgstr ""
-
-#: sonata.py:4459
-msgid "cover.jpg"
-msgstr ""
-
-#: sonata.py:4460
-#, fuzzy
-msgid "album.jpg"
-msgstr "张专辑"
-
-#: sonata.py:4461
-msgid "folder.jpg"
-msgstr ""
-
 #: sonata.py:4462
 #, fuzzy
 msgid "custom name"
@@ -965,6 +948,10 @@ msgid ""
 msgstr ""
 "Sonata 连接到 D-BUS session bus 失败：无法决定 message bus 的地址（尝试 'man "
 "dbus-launch' 和 'man dbus-daemon' 来得到帮助）"
+
+#, fuzzy
+#~ msgid "album.jpg"
+#~ msgstr "张专辑"
 
 #~ msgid "_Show Player"
 #~ msgstr "显示播放器(_S)"

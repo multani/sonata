@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sonata 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-04-29 13:57-0600\n"
+"POT-Creation-Date: 2007-04-29 14:14-0600\n"
 "PO-Revision-Date: 2007-02-05 14:06+0100\n"
 "Last-Translator:  Paul Johnson <thrillerator@googlemail.com>\n"
 "Language-Team: Sonata-DE <thrillerator@googlemail.com>\n"
@@ -657,23 +657,6 @@ msgstr "Entfernt, dann Lokal"
 msgid "Save art to:"
 msgstr ""
 
-#: sonata.py:4458
-msgid "~/.covers/"
-msgstr ""
-
-#: sonata.py:4459
-msgid "cover.jpg"
-msgstr ""
-
-#: sonata.py:4460
-#, fuzzy
-msgid "album.jpg"
-msgstr "Alben."
-
-#: sonata.py:4461
-msgid "folder.jpg"
-msgstr ""
-
 #: sonata.py:4462
 #, fuzzy
 msgid "custom name"
@@ -971,6 +954,10 @@ msgid ""
 "address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for "
 "help)"
 msgstr ""
+
+#, fuzzy
+#~ msgid "album.jpg"
+#~ msgstr "Alben."
 
 #~ msgid "_Show Player"
 #~ msgstr "Player _anzeigen"

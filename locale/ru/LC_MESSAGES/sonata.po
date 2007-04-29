@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sonata\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-04-29 13:57-0600\n"
+"POT-Creation-Date: 2007-04-29 14:14-0600\n"
 "PO-Revision-Date: 2007-01-15 18:16+0500\n"
 "Last-Translator: Ivan Kharin <bkb.box@bk.ru>\n"
 "Language-Team: badDron <andrew@infonet.by>\n"
@@ -665,23 +665,6 @@ msgstr "Удаленные, затем локальные"
 msgid "Save art to:"
 msgstr ""
 
-#: sonata.py:4458
-msgid "~/.covers/"
-msgstr ""
-
-#: sonata.py:4459
-msgid "cover.jpg"
-msgstr ""
-
-#: sonata.py:4460
-#, fuzzy
-msgid "album.jpg"
-msgstr "альбомов."
-
-#: sonata.py:4461
-msgid "folder.jpg"
-msgstr ""
-
 #: sonata.py:4462
 #, fuzzy
 msgid "custom name"
@@ -983,6 +966,10 @@ msgstr ""
 "Не удалось подключиться к D-Bus: невозможно определить адрес (попробуйте "
 "'man dbus-launch' и 'man dbus-daemon' для получения информации о решении "
 "проблемы)"
+
+#, fuzzy
+#~ msgid "album.jpg"
+#~ msgstr "альбомов."
 
 #~ msgid "_Show Player"
 #~ msgstr "По_казывать плейер"

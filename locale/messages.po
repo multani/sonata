@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-04-29 13:57-0600\n"
+"POT-Creation-Date: 2007-04-29 14:14-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -650,22 +650,6 @@ msgstr ""
 
 #: sonata.py:4453
 msgid "Save art to:"
-msgstr ""
-
-#: sonata.py:4458
-msgid "~/.covers/"
-msgstr ""
-
-#: sonata.py:4459
-msgid "cover.jpg"
-msgstr ""
-
-#: sonata.py:4460
-msgid "album.jpg"
-msgstr ""
-
-#: sonata.py:4461
-msgid "folder.jpg"
 msgstr ""
 
 #: sonata.py:4462
