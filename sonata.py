@@ -2116,8 +2116,10 @@ class Base(mpdclient3.mpd_connection):
             model, selected = self.browser_selection.get_selected_rows()
             if len(selected) >=1:
                 path = (len(selected)-1,)
-            else:
+            elif len(model) > 0:
                 path = (0,)
+            else:
+                return
         value = self.browserdata.get_value(self.browserdata.get_iter(path), 1)
         if value == "..":
             self.browse_parent_dir(None)
@@ -5067,8 +5069,9 @@ class Base(mpdclient3.mpd_connection):
         return full_filename
 
     def on_edittag_click(self, widget):
-        mpdpath = self.songinfo.file
-        self.edit_tags(widget, mpdpath)
+        if self.songinfo:
+            mpdpath = self.songinfo.file
+            self.edit_tags(widget, mpdpath)
 
     def edit_tags(self, widget, mpdpath=None):
         if not os.path.isdir(self.musicdir):

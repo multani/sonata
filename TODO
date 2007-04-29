@@ -1,5 +1,4 @@
 v1.1
-	speed up sorting by manipulating self.songs, self.currentdata appropriately?
 	remove egg code..?
 	translations (Sebastian Kemper <sebastian_ml@gmx.net> - german)
 	filtering..
@@ -18,3 +17,4 @@ Future:
 	local amazon sites (i.e. amazon.de)?
 	rename playlist (only possible in mpd svn?)
 	crop songs in current playlist?
+	genre mode (genre -> artist -> album)
