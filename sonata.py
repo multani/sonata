@@ -2413,7 +2413,7 @@ class Base(mpdclient3.mpd_connection):
         # If state changes
         if self.prevstatus == None or self.prevstatus.state != self.status.state:
 
-            if self.songinfo.has_key('album'):
+            if self.songinfo and self.songinfo.has_key('album'):
                 self.artist_for_album_name()
 
             # Update progressbar if the state changes too
@@ -2489,7 +2489,7 @@ class Base(mpdclient3.mpd_connection):
                 self.keep_song_visible_in_list()
             self.prev_boldrow = row
 
-        if self.songinfo.has_key('album'):
+        if self.songinfo and self.songinfo.has_key('album'):
             self.artist_for_album_name()
 
         self.update_cursong()
