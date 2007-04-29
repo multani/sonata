@@ -2767,20 +2767,20 @@ class Base(mpdclient3.mpd_connection):
 
     def check_for_local_images(self, songdir):
         self.set_default_icon_for_art(True)
-        if os.path.exists(self.target_image_filename(force_location=self.ART_LOCATION_HOMECOVERS)):
-            gobject.idle_add(self.set_image_for_cover, self.target_image_filename(force_location=self.ART_LOCATION_HOMECOVERS))
+        if os.path.exists(self.target_image_filename(self.ART_LOCATION_HOMECOVERS)):
+            gobject.idle_add(self.set_image_for_cover, self.target_image_filename(self.ART_LOCATION_HOMECOVERS))
             return True
-        elif os.path.exists(self.target_image_filename(force_location=self.ART_LOCATION_COVER)):
-            gobject.idle_add(self.set_image_for_cover, self.target_image_filename(force_location=self.ART_LOCATION_COVER))
+        elif os.path.exists(self.target_image_filename(self.ART_LOCATION_COVER)):
+            gobject.idle_add(self.set_image_for_cover, self.target_image_filename(self.ART_LOCATION_COVER))
             return True
-        elif os.path.exists(self.target_image_filename(force_location=self.ART_LOCATION_ALBUM)):
-            gobject.idle_add(self.set_image_for_cover, self.target_image_filename(force_location=self.ART_LOCATION_ALBUM))
+        elif os.path.exists(self.target_image_filename(self.ART_LOCATION_ALBUM)):
+            gobject.idle_add(self.set_image_for_cover, self.target_image_filename(self.ART_LOCATION_ALBUM))
             return True
-        elif os.path.exists(self.target_image_filename(force_location=self.ART_LOCATION_FOLDER)):
-            gobject.idle_add(self.set_image_for_cover, self.target_image_filename(force_location=self.ART_LOCATION_FOLDER))
+        elif os.path.exists(self.target_image_filename(self.ART_LOCATION_FOLDER)):
+            gobject.idle_add(self.set_image_for_cover, self.target_image_filename(self.ART_LOCATION_FOLDER))
             return True
-        elif self.art_location == self.ART_LOCATION_CUSTOM and len(self.art_location_custom_filename) > 0 and os.path.exists(self.target_image_filename(force_location=self.ART_LOCATION_CUSTOM)):
-            gobject.idle_add(self.set_image_for_cover, self.target_image_filename(force_location=self.ART_LOCATION_CUSTOM))
+        elif self.art_location == self.ART_LOCATION_CUSTOM and len(self.art_location_custom_filename) > 0 and os.path.exists(self.target_image_filename(self.ART_LOCATION_CUSTOM)):
+            gobject.idle_add(self.set_image_for_cover, self.target_image_filename(self.ART_LOCATION_CUSTOM))
             return True
         else:
             self.single_img_in_dir = self.get_single_img_in_path(songdir)
@@ -2853,15 +2853,15 @@ class Base(mpdclient3.mpd_connection):
         # this will ensure that only the artwork for the currently playing
         # song is displayed
         if self.conn and self.status and self.status.state in ['play', 'pause']:
-            if filename == self.target_image_filename(force_location=self.ART_LOCATION_HOMECOVERS):
+            if filename == self.target_image_filename(self.ART_LOCATION_HOMECOVERS):
                 return True
-            if filename == self.target_image_filename(force_location=self.ART_LOCATION_COVER):
+            if filename == self.target_image_filename(self.ART_LOCATION_COVER):
                 return True
-            if filename == self.target_image_filename(force_location=self.ART_LOCATION_ALBUM):
+            if filename == self.target_image_filename(self.ART_LOCATION_ALBUM):
                 return True
-            if filename == self.target_image_filename(force_location=self.ART_LOCATION_FOLDER):
+            if filename == self.target_image_filename(self.ART_LOCATION_FOLDER):
                 return True
-            if filename == self.target_image_filename(force_location=self.ART_LOCATION_CUSTOM):
+            if filename == self.target_image_filename(self.ART_LOCATION_CUSTOM):
                 return True
             if self.single_img_in_dir:
                 if filename == self.musicdir + songdir + "/" + self.single_img_in_dir:
@@ -3387,7 +3387,7 @@ class Base(mpdclient3.mpd_connection):
                     self.lastalbumart = None
                     self.update_album_art()
 
-    def target_image_filename(self, artist=None, album=None, force_location=None):
+    def target_image_filename(self, force_location=None):
         if self.conn:
             if force_location:
                 art_loc = force_location
@@ -3395,12 +3395,8 @@ class Base(mpdclient3.mpd_connection):
                 art_loc = self.art_location
             if art_loc == self.ART_LOCATION_HOMECOVERS:
                 # if artist/album/filename is not set, use self.songinfo:
-                if not album:
-                    album = getattr(self.songinfo, 'album', "")
-                if not artist:
-                    artist = self.current_artist_for_album_name[1]
-                album = album.replace("/", "")
-                artist = artist.replace("/", "")
+                album = getattr(self.songinfo, 'album', "").replace("/", "")
+                artist = self.current_artist_for_album_name[1].replace("/", "")
                 return os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
             elif art_loc == self.ART_LOCATION_COVER:
                 return self.musicdir + os.path.dirname(self.songinfo.file) + "/cover.jpg"
