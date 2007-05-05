@@ -3668,7 +3668,7 @@ class Base(mpdclient3.mpd_connection):
                             if albuminfo != self.albuminfoBuffer.get_text(self.albuminfoBuffer.get_start_iter(), self.albuminfoBuffer.get_end_iter()):
                                 self.albuminfoBuffer.set_text(albuminfo)
                                 if linktag:
-                                    self.albuminfoBuffer.apply_tag(linktag, self.albuminfoBuffer.get_iter_at_line_offset(1,0), self.albuminfoBuffer.get_iter_at_line_offset(2,0))
+                                    self.albuminfoBuffer.apply_tag(linktag, self.albuminfoBuffer.get_iter_at_line_offset(1,0), self.albuminfoBuffer.get_iter_at_line_offset(1, len(artist)))
                         else:
                             self.albuminfoBuffer.set_text(_("Album name not set."))
                         # Update lyrics:
