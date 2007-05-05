@@ -3656,7 +3656,7 @@ class Base(mpdclient3.mpd_connection):
                             if artist != _("Various Artists"):
                                 artistlinktag = self.albuminfoBuffer.create_tag()
                                 artistlinktag.set_property("foreground", "blue")
-                                artistlinktag.set_data("url", "http://www.wikipedia.org/wiki/" + artist)
+                                artistlinktag.set_data("url", "http://www.wikipedia.org/wiki/Special:Search/" + artist)
                             else:
                                 artistlinktag = None
                             albuminfo = albuminfo + artist + "\n"
@@ -3666,7 +3666,7 @@ class Base(mpdclient3.mpd_connection):
                             albuminfo = albuminfo + "\n\n" + trackinfo
                             albumlinktag = self.albuminfoBuffer.create_tag()
                             albumlinktag.set_property("foreground", "blue")
-                            albumlinktag.set_data("url", "http://www.wikipedia.org/wiki/" + self.songinfo.album)
+                            albumlinktag.set_data("url", "http://www.wikipedia.org/wiki/Special:Search/" + self.songinfo.album)
                             if albuminfo != self.albuminfoBuffer.get_text(self.albuminfoBuffer.get_start_iter(), self.albuminfoBuffer.get_end_iter()):
                                 self.albuminfoBuffer.set_text(albuminfo)
                                 self.albuminfoBuffer.apply_tag(albumlinktag, self.albuminfoBuffer.get_iter_at_line_offset(0,0), self.albuminfoBuffer.get_iter_at_line_offset(0, len(self.songinfo.album)))
