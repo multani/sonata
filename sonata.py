@@ -227,7 +227,7 @@ class Base(mpdclient3.mpd_connection):
         self.VIEW_ALBUM = 2
         self.LYRIC_TIMEOUT = 10
         self.NOTIFICATION_WIDTH_MAX = 500
-        self.NOTIFICATION_WIDTH_MIN = 300
+        self.NOTIFICATION_WIDTH_MIN = 350
         self.ART_LOCATION_HOMECOVERS = 0		# ~/.covers/[artist] - [album].jpg
         self.ART_LOCATION_COVER = 1				# file_dir/cover.jpg
         self.ART_LOCATION_ALBUM = 2				# file_dir/album.jpg
