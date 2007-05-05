@@ -2,10 +2,11 @@ v1.1
 	remove egg code..?
 	filtering..
 		potential crashes :/
-		test on slower laptop..
 
 v1.2
-	switching between user profiles?
+	switching between user profiles
+	shortcut/button to save all tagged files
+	don't allow vert resize when collapsed
 	
 Future:
 	lyrics -> allow user to edit, fetch, refresh, search terms..?
@@ -17,3 +18,5 @@ Future:
 	rename playlist (only possible in mpd svn?)
 	crop songs in current playlist?
 	genre mode (genre -> artist -> album)
+	columns in current/library
+	statistics

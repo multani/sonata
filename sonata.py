@@ -311,6 +311,7 @@ class Base(mpdclient3.mpd_connection):
         self.filterbox_visible = False
         self.edit_style_orig = None
         self.current_artist_for_album_name = [None, ""]
+        self.hovering_over_link = False
         show_prefs = False
         # For increased responsiveness after the initial load, we cache
         # the root artist and album view results and simply refresh on
@@ -3562,6 +3563,9 @@ class Base(mpdclient3.mpd_connection):
         self.infowindow.connect('delete_event', self.on_infowindow_hide)
         self.infowindow.connect('key_press_event', self.on_infowindow_keypress)
         self.infowindow.connect('configure_event', self.on_infowindow_configure, titlelabel, labels_right)
+        albuminfoView.connect('button_press_event', self.infowindow_button_press)
+        albuminfoView.connect("motion-notify-event", self.infowindow_motion_notify_event)
+        albuminfoView.connect("visibility-notify-event", self.infowindow_visibility_notify_event)
         if self.infowindow_visible:
             self.infowindow_update(True, update_all=True)
 
@@ -3649,6 +3653,13 @@ class Base(mpdclient3.mpd_connection):
                                     pass
                             (year, i) = remove_list_duplicates(year, [], False)
                             artist = self.current_artist_for_album_name[1]
+                            if artist != _("Various Artists"):
+                                linktag = self.albuminfoBuffer.create_tag()
+                                linktag.set_property("foreground", "blue")
+                                linktag.set_property("underline", pango.UNDERLINE_SINGLE)
+                                linktag.set_data("url", "http://www.wikipedia.org/wiki/" + artist)
+                            else:
+                                linktag = None
                             albuminfo = albuminfo + artist + "\n"
                             if len(year) == 1:
                                 albuminfo = albuminfo + year[0] + "\n"
@@ -3656,6 +3667,8 @@ class Base(mpdclient3.mpd_connection):
                             albuminfo = albuminfo + "\n\n" + trackinfo
                             if albuminfo != self.albuminfoBuffer.get_text(self.albuminfoBuffer.get_start_iter(), self.albuminfoBuffer.get_end_iter()):
                                 self.albuminfoBuffer.set_text(albuminfo)
+                                if linktag:
+                                    self.albuminfoBuffer.apply_tag(linktag, self.albuminfoBuffer.get_iter_at_line_offset(1,0), self.albuminfoBuffer.get_iter_at_line_offset(2,0))
                         else:
                             self.albuminfoBuffer.set_text(_("Album name not set."))
                         # Update lyrics:
@@ -3770,6 +3783,68 @@ class Base(mpdclient3.mpd_connection):
                         self.lyricsBuffer.set_text(lyrics)
                 except:
                     pass
+
+    def infowindow_button_press(self, text_view, event):
+        # Activate link under click
+        if event.button != 1: return False
+        try:
+            buffer = text_view.get_buffer()
+        except:
+            return False
+        try:
+            start, end = buffer.get_selection_bounds()
+        except ValueError:
+            pass
+        else:
+            if start.get_offset() != end.get_offset():
+                return False
+        x, y = text_view.window_to_buffer_coords(gtk.TEXT_WINDOW_WIDGET, int(event.x), int(event.y))
+        iter = text_view.get_iter_at_location(x, y)
+        self.follow_if_link(text_view, iter)
+        return False
+
+    def infowindow_motion_notify_event(self, text_view, event):
+        # Update the cursor image if the pointer moved.
+        x, y = text_view.window_to_buffer_coords(gtk.TEXT_WINDOW_WIDGET, int(event.x), int(event.y))
+        self.set_cursor_if_appropriate(text_view, x, y)
+        text_view.window.get_pointer()
+        return False
+
+    def infowindow_visibility_notify_event(self, text_view, event):
+        # Also update the cursor image if the window becomes visible
+        # (e.g. when a window covering it got iconified).
+        wx, wy, mod = text_view.window.get_pointer()
+        bx, by = text_view.window_to_buffer_coords(gtk.TEXT_WINDOW_WIDGET, wx, wy)
+        self.set_cursor_if_appropriate (text_view, bx, by)
+        return False
+
+    def set_cursor_if_appropriate(self, text_view, x, y):
+        # Looks at all tags covering the position (x, y) in the text view,
+        # and if one of them is a link, change the cursor to the "hands" cursor
+        # typically used by web browsers.
+        hovering = False
+        buffer = text_view.get_buffer()
+        iter = text_view.get_iter_at_location(x, y)
+        tags = iter.get_tags()
+        for tag in tags:
+            url = tag.get_data("url")
+            if url != 0:
+                hovering = True
+                break
+        if hovering != self.hovering_over_link:
+            self.hovering_over_link = hovering
+        if self.hovering_over_link:
+            text_view.get_window(gtk.TEXT_WINDOW_TEXT).set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
+        else:
+            text_view.get_window(gtk.TEXT_WINDOW_TEXT).set_cursor(gtk.gdk.Cursor(gtk.gdk.XTERM))
+
+    def follow_if_link(self, text_view, iter):
+        tags = iter.get_tags()
+        for tag in tags:
+            url = tag.get_data("url")
+                    if url != 0:
+                self.show_website(None, None, url)
+                break
 
     def get_pixbuf_of_size(self, pixbuf, size):
         # Creates a pixbuf that fits in the specified square of sizexsize
