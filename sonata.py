@@ -3654,21 +3654,24 @@ class Base(mpdclient3.mpd_connection):
                             (year, i) = remove_list_duplicates(year, [], False)
                             artist = self.current_artist_for_album_name[1]
                             if artist != _("Various Artists"):
-                                linktag = self.albuminfoBuffer.create_tag()
-                                linktag.set_property("foreground", "blue")
-                                linktag.set_property("underline", pango.UNDERLINE_SINGLE)
-                                linktag.set_data("url", "http://www.wikipedia.org/wiki/" + artist)
+                                artistlinktag = self.albuminfoBuffer.create_tag()
+                                artistlinktag.set_property("foreground", "blue")
+                                artistlinktag.set_data("url", "http://www.wikipedia.org/wiki/" + artist)
                             else:
-                                linktag = None
+                                artistlinktag = None
                             albuminfo = albuminfo + artist + "\n"
                             if len(year) == 1:
                                 albuminfo = albuminfo + year[0] + "\n"
                             albuminfo = albuminfo + convert_time(albumtime) + "\n"
                             albuminfo = albuminfo + "\n\n" + trackinfo
+                            albumlinktag = self.albuminfoBuffer.create_tag()
+                            albumlinktag.set_property("foreground", "blue")
+                            albumlinktag.set_data("url", "http://www.wikipedia.org/wiki/" + self.songinfo.album)
                             if albuminfo != self.albuminfoBuffer.get_text(self.albuminfoBuffer.get_start_iter(), self.albuminfoBuffer.get_end_iter()):
                                 self.albuminfoBuffer.set_text(albuminfo)
-                                if linktag:
-                                    self.albuminfoBuffer.apply_tag(linktag, self.albuminfoBuffer.get_iter_at_line_offset(1,0), self.albuminfoBuffer.get_iter_at_line_offset(1, len(artist)))
+                                self.albuminfoBuffer.apply_tag(albumlinktag, self.albuminfoBuffer.get_iter_at_line_offset(0,0), self.albuminfoBuffer.get_iter_at_line_offset(0, len(self.songinfo.album)))
+                                if artistlinktag:
+                                    self.albuminfoBuffer.apply_tag(artistlinktag, self.albuminfoBuffer.get_iter_at_line_offset(1,0), self.albuminfoBuffer.get_iter_at_line_offset(1, len(artist)))
                         else:
                             self.albuminfoBuffer.set_text(_("Album name not set."))
                         # Update lyrics:

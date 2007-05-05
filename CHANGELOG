@@ -4,7 +4,7 @@ v1.1 - Pending
 	+ Cover art pref: save to ~/.covers or file's respective dir
 	+ Support for GNOME session management
 	+ Allow searching through ALL metadata in library
-	+ Link artist name in song info window to wikipedia entry
+	+ Link artist and album name in song info window to wikipedia entry
 	+ Add shuffle, repeat, --visible, and --hidden commandline arguments
 	+ Show if mpd is updating in statusbar
 	+ Save last used option in library search
