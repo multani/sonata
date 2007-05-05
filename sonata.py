@@ -5038,8 +5038,7 @@ class Base(mpdclient3.mpd_connection):
             if event.get_coords()[1] > self.notebook.get_allocation()[1]:
                 return
         if event.button == 3:
-            self.set_menu_contextual_items_hidden()
-            self.UIManager.get_widget('/mainmenu/songinfo_menu/').show()
+            self.set_menu_contextual_items_visible(True)
             self.mainmenu.popup(None, None, None, event.button, event.time)
 
     def on_search_combo_change(self, combo):
@@ -5076,8 +5075,21 @@ class Base(mpdclient3.mpd_connection):
         else:
             return False
 
-    def set_menu_contextual_items_visible(self):
-        self.set_menu_contextual_items_hidden()
+    def set_menu_contextual_items_visible(self, show_songinfo_only=False):
+        if show_songinfo_only:
+            self.UIManager.get_widget('/mainmenu/songinfo_menu/').show()
+            self.UIManager.get_widget('/mainmenu/addmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/removemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/savemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/newmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/editmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
+            return
         if not self.expanded:
             return
         elif self.notebook.get_current_page() == self.TAB_CURRENT:
@@ -5086,10 +5098,24 @@ class Base(mpdclient3.mpd_connection):
                     self.UIManager.get_widget('/mainmenu/removemenu/').show()
                     if HAVE_TAGPY:
                         self.UIManager.get_widget('/mainmenu/edittagmenu/').show()
+                    else:
+                        self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
+                else:
+                    self.UIManager.get_widget('/mainmenu/removemenu/').hide()
                 if not self.filterbox_visible:
                     self.UIManager.get_widget('/mainmenu/clearmenu/').show()
                     self.UIManager.get_widget('/mainmenu/savemenu/').show()
                     self.UIManager.get_widget('/mainmenu/sortmenu/').show()
+                else:
+                    self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
+                    self.UIManager.get_widget('/mainmenu/savemenu/').hide()
+                    self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/addmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/newmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/editmenu/').hide()
         elif self.notebook.get_current_page() == self.TAB_LIBRARY:
             if len(self.browserdata) > 0:
                 if self.browser_selection.count_selected_rows() > 0:
@@ -5097,33 +5123,58 @@ class Base(mpdclient3.mpd_connection):
                     self.UIManager.get_widget('/mainmenu/replacemenu/').show()
                     if HAVE_TAGPY:
                         self.UIManager.get_widget('/mainmenu/edittagmenu/').show()
+                    else:
+                        self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
+                else:
+                    self.UIManager.get_widget('/mainmenu/addmenu/').hide()
+                    self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
                 self.UIManager.get_widget('/mainmenu/updatemenu/').show()
+            else:
+                self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/removemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/savemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/newmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/editmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
         elif self.notebook.get_current_page() == self.TAB_PLAYLISTS:
             if self.playlists_selection.count_selected_rows() > 0:
                 self.UIManager.get_widget('/mainmenu/addmenu/').show()
                 self.UIManager.get_widget('/mainmenu/replacemenu/').show()
                 self.UIManager.get_widget('/mainmenu/rmmenu/').show()
+            else:
+                self.UIManager.get_widget('/mainmenu/addmenu/').hide()
+                self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
+                self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/removemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/savemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/newmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/editmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
         elif self.notebook.get_current_page() == self.TAB_STREAMS:
             if self.streams_selection.count_selected_rows() > 0:
                 if self.streams_selection.count_selected_rows() == 1:
                     self.UIManager.get_widget('/mainmenu/editmenu/').show()
+                else:
+                    self.UIManager.get_widget('/mainmenu/editmenu/').hide()
                 self.UIManager.get_widget('/mainmenu/addmenu/').show()
                 self.UIManager.get_widget('/mainmenu/replacemenu/').show()
                 self.UIManager.get_widget('/mainmenu/rmmenu/').show()
+            else:
+                self.UIManager.get_widget('/mainmenu/addmenu/').hide()
+                self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
+                self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
             self.UIManager.get_widget('/mainmenu/newmenu/').show()
-
-    def set_menu_contextual_items_hidden(self):
-        self.UIManager.get_widget('/mainmenu/removemenu/').hide()
-        self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
-        self.UIManager.get_widget('/mainmenu/savemenu/').hide()
-        self.UIManager.get_widget('/mainmenu/addmenu/').hide()
-        self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
-        self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
-        self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
-        self.UIManager.get_widget('/mainmenu/newmenu/').hide()
-        self.UIManager.get_widget('/mainmenu/editmenu/').hide()
-        self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
-        self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/removemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/savemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
         self.UIManager.get_widget('/mainmenu/songinfo_menu/').hide()
 
     def find_path(self, filename):
