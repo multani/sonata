@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Sonata Music Client for MPD</title>
+<link rel="stylesheet" type="text/css" href="screenstyle.css" />
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+</head>
+<body>
+<div class="container">
+
+<div class="titleblock"><h1>Sonata</h1><p><i>An elegant music client for MPD</i></p></div>
+
+<div><ul class="navbar">
+		 <li><a href="index.html" class="nav">Home</a></li>
+		 <li><a href="screenshots.html" class="nav">Screenshots</a></li>
+		 <li><a href="download.html" class="nav">Download</a></li>
+		 <li><a href="documentation.html" class="nav">Docs</a></li>
+		 <li><a href="changelog.html" class="nav">Changelog</a></li>
+		 <li><a href="support.html" class="nav">Support</a></li>
+</ul></div>
+
+<div class="content2">
+
+		 <h2>Changelog</h2>
+
+			<p>February 13, 2007 (Version 1.0.1):<ul>
+			<li>Make lyrics fetching optional</li>
+			<li>Allow editing of stream name/url</li>
+			<li>Hide the notification window when it is clicked</li>
+			<li>Small usability improvements to gtk.StatusIcon</li>
+			<li>Improvements to reordering the current playlist with drag-n-drop</li>
+			<li>Bug: Info window freezes when editing currently playing song's tags</li>
+			<li>Bug: Tag editing doesn't work with older version (0.90.1) of tagpy</li>
+			<li>Bug: Prevent strange potential freeze with gc.collect()</li>
+			<li>Bug: Cover art doesn't update correctly if Local Only artwork set</li>
+			<li>Bug: Lyrics occassionally don't stay synced with current playing song</li>
+			</ul>
+
+			<p>January 21, 2007 (Version 1.0):<ul>
+			<li>Multiple views for library: filesystem, artists, albums</li>
+			<li>Editing of song tags (requires optional taglib & tagpy)</li>
+			<li>Auto-fetching of song lyrics (requires optional soappy)</li>
+			<li>Improved song info window and access to it</li>
+			<li>Allow pls/m3u/extm3u's as stream inputs</li>
+			<li>Sort current playlist (by metadata, random, reverse)</li>
+			<li>Optional statusbar (playlist length, time)</li>
+			<li>Revert to gtk's StatusIcon if gnome-python-extras isn't installed</li>
+			<li>Make system tray icon optional</li>
+			<li>Pref to write xmms-info like status file to use with IM, IRC.. (Tim)</li>
+			<li>Allow drag-n-drop of images to set album art</li>
+			<li>If there is only one image in the song's dir, set as art (Ivan)</li>
+			<li>Album art priority preference (local vs remove)</li>
+			<li>Formatting options (genre, song length, elapsed time, year) (Ivan)</li>
+			<li>Pref to play enqueued items on activate (i.e. enter/double-click)</li>
+			<li>Play friendler with other clients for shuffle/repeat/crossfade</li>
+			<li>Reduced startup time/memory usage</li>
+			<li>Use curly brackets {} to have formatting appear only if all enclosed tags are available</li>
+			<li>Ability to run on OLPC's Sugar user environment (Owen)</li>
+			<li>Added Ukranian translation (Господарисько Тарас)</li>
+			<li>Bug: No more freezes due to threading! Finally! Seriously!</li>
+			<li>Bug: Cannot set album art for album/artist with "/" in name</li>
+			<li>Bug: Prevent interface jumping because of progress bar font</li>
+			<li>Bug: Notification window isn't positioned correctly for dual-head</li>
+			</ul>
+	
+			<p>November 19, 2006 (Version 0.9):<ul>
+			<li>Added stream support</li>
+			<li>Use local artwork (cover.jpg, folder.jpg) first, if it exists (requires music_directory to be specified in preferences)</li>
+			<li>Allow crossfading (mixing) between songs</li>
+			<li>Fetch higher-resolution cover art</li>
+			<li>Allow specifying search terms for remote album art</li>
+			<li>Improved song info viewer</li>
+			<li>Make remote images window non-blocking</li>
+			<li>Popup song notification on un-pause</li>
+			<li>Pick up tooltip album background color from gtk theme</li>
+			<li>Store cover art in ~/.covers for consistency with gmpc</li>
+			<li>Add German translation (Paul Johnson)</li>
+			<li>Bug: Prevent infrequent crash when fetching album art</li>
+			<li>Bug: Intermittent interface freezes due to threading</li>
+			<li>Bug: Unable to delete playlists with ampersand, etc.</li>
+			<li>Bug: Player can become the wrong height on expand</li>
+			<li>Bug: Ensure local art is correctly applied on song changes</li>
+			<li>Bug: Searching library doesn't work for non-english locale</li>
+			</ul>
+
+			<p>October 19, 2006 (Version 0.8.1):<ul>
+			<li>Add Polish translation (Tomasz Dominikowski)</li>
+			<li>Bug: Correctly send mpd password when using manual connect</li>
+			<li>Bug: Prevent certain keys from causing events</li>
+			<li>Bug: Prevent potential crash if not able to obtain mpd status</li>
+			</ul>
+
+			<p>October 7, 2006 (Version 0.8):<ul>
+			<li>Allow user formatting of current playlist, library, and title</li>
+			<li>Pref for song notification location</li>
+			<li>Allow song notification for users without gnome-python-extras</li>
+			<li>Pref to hide playback buttons</li>
+			<li>Pref to update MPD library on start</li>
+			<li>--info, --status displays current song info or MPD status</li>
+			<li>Pref to autoconnect on start, connect/disconnect buttons</li>
+			<li>Fetch album art in background (non-blocking)</li>
+			<li>Correctly retain previous library state when ending search</li>
+			<li>Add russian translation [Andrew Lukoshko]</li>
+			<li>Bug: Display path when filename is empty or http/ftp prefixes</li>
+			<li>Bug: Fix crash if changing connection w/o gnome-python-extras</li>
+			<li>Bug: Prevent --help, --toggle, etc. from happening twice if dbus is installed</li>
+			<li>Bug: Some shortcuts don't work with numslock enabled</li>
+			</ul>
+
+			<p>September 27, 2006 (Version 0.7.1):<ul>
+			<li>Bug: Fix crash if dbus is not installed</li>
+			<li>Bug: Fix crash if song does not have some id3 info specified</li>
+			</ul>
+
+			<p>September 27, 2006 (Version 0.7):<ul>
+			<li>Ability to search library by type (can be disabled in prefs)</li>
+			<li>Optional notification popup on song changes</li>
+			<li>Show larger image on left-click of cover art</li>
+			<li>Reduce (pygmy's) default polling time</li>
+			<li>Retain selection of browsed directories in library</li>
+			<li>Retain selection after drag-n-drop</li>
+			<li>Keep width of tooltip fixed</li>
+			<li>Show previous instance of app if user tries to open a second instance [Mike Massonnet patch]</li>
+			<li>Add --version, --help; print usage</li>
+			<li>--toggle argument to minimize to tray or show (requires D-Bus)</li>
+			<li>Add french translation [Floréal M]</li>
+			<li>Additional shortcuts (see docs)</li>
+			<li>Bug: repeat/shuffle isn't updated if mpd is restarted</li>
+			<li>Bug: Unable to delete multiple playlists at once</li>
+			<li>Bug: Crash when playing ogg streams [patch]</li>
+			</ul>
+
+			<p>September 18, 2006 (Version 0.6):<ul>
+			<li>Add support for playlists (save, load, queue, delete)</li>
+			<li>Ability to use local image for album cover</li>
+			<li>Support for multimedia keys</li>
+			<li>Fetch cover art if an artist, but not album, is specified</li>
+			<li>Add Ctrl-U and Ctrl-Shift-U for updating library (see docs)</li>
+			<li>(Re-)display systray icon if tray is (re-)opened</li>
+			<li>Fix mpdclient3.py to return all playlist objects</li>
+			<li>Bug: Delete key doesn't remove songs from playlist</li>
+			</ul>
+
+			<p>September 15, 2006 (Version 0.5.2):<ul>
+			<li>Correctly update interface after updating MPD library</li>
+			<li>Interface prefs: show album art, show volume, sticky, above</li>
+			<li>Behavior prefs: minimize to systray, stop playback on exit</li>
+			<li>Increase iter time if connection timesout (to make gui responsive)</li>
+			<li>Use gtk.STOCK_JUSTIFY_FILL instead of custom playlist icon</li>
+			<li>Try gnome-open/exo-open first for opening help, then fallback</li>
+			<li>Ability to set translations (see TRANSLATIONS file)</li>
+			<li>Use dbus to prevent multiple instances</li>
+			<li>More shortcuts (see documentation)</li>
+			<li>Minor bugfixes</li>
+			</ul>
+
+			<p>September 13, 2006 (Version 0.5.1):<ul>
+			<li>Increment to mpdclient3 to prevent incompatibility issues</li>
+			<li>Bug: Running Sonata without systray causes crash</li>
+			</ul>
+
+			<p>September 12, 2006 (Version 0.5):<ul>
+			<li>Added album art (and ability to choose from alternatives if the one automatically selected is incorrect, via right-click)</li>
+			<li>Integrate playlist and library into one app</li>
+			<li>Change song progress with mousewheel over progressbar</li>
+			<li>Change volume with mousewheel over volume button, systray icon</li>
+			<li>Change volume icon based on volume level</li>
+			<li>Added playback, etc, shortcuts</li>
+			<li>Added Replace menu and dir/file icons to library browser</li>
+			<li>Removed toolbar, cleaned up interface</li>
+			<li>Removed horizontal scrollbar</li>
+			<li>Don't update systray icon based on playback status</li>
+			<li>Moved config to freedesktop.org standard</li>
+			<li>Keep app width constant when (un)expanding</li>
+			<li>Keep currently playing song visible in list</li>
+			<li>Removed python-empy, glade</li>
+			<li>Bug: mpdclient2/app doesn't accept passwords (crash)</li>
+			<li>Bug: mdpclient2 - lsinfo skips the first file found after dirs</li>
+			<li>Bug: Cannot remove multiple rows from right-click</li>
+			<li>Bug: Crash if user has MPD connection but no read access</li>
+			<li>Bug: GTK+ treeview search does not work</li>
+			<li>Bug: Right-Click checkbox doesnt set value on start</li>
+			<li>Bug: Doesn't properly retain view when browsing playlist</li>
+			<li>Added documentation</li>
+			<li>Other bugfixes, tweaks</li>
+			</ul>
+</div>
+
+<div class="footer">
+  <div class="right">
+    <p>&copy; 2007 Scott Horowitz</p>
+  </div>
+  <br/>
+</div>
+
+</div>
+</body>
+</html>

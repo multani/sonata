@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Sonata Music Client for MPD</title>
+<link rel="stylesheet" type="text/css" href="screenstyle.css" />
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+</head>
+<body>
+<div class="container">
+
+<div class="titleblock"><h1>Sonata</h1><p><i>An elegant music client for MPD</i></p></div>
+
+<div><ul class="navbar">
+		 <li><a href="index.html" class="nav">Home</a></li>
+		 <li><a href="screenshots.html" class="nav">Screenshots</a></li>
+		 <li><a href="download.html" class="nav">Download</a></li>
+		 <li><a href="documentation.html" class="nav">Docs</a></li>
+		 <li><a href="changelog.html" class="nav">Changelog</a></li>
+		 <li><a href="support.html" class="nav">Support</a></li>
+</ul></div>
+
+<div class="content2">
+
+		 <h2>Documentation</h2>
+
+			<p><b>Usage</b>
+
+			<p>Sonata is designed to be an elegant and intuitive interface for your
+			music collection. The main window can be collapsed into a "mini" view or
+			expanded by clicking on the current song (with the ">" next to it). 
+			Additional information, like song tags, album info, and lyrics, are
+			available in a secondary window that can be brought up by clicking on
+			the album art/cd in the top-left of the player, or by right-clicking
+			anywhere in the top of the player and choosing "song info".
+			
+			<p>Sonata's tabbed interface includes your current playlist, your library 
+			(browse by filesystem, artists, or albums), your saved playlists, and
+			any streams (pls/m3u is supported). Most actions are accessed through
+			right-click popup menus.
+
+			<p>Optional features: For systemtray support, PyGTK 2.10 or 
+			gnome-python-extras is required. For the ability to edit song tags, 
+			tagpy and taglib are required. For automatic fetching of song lyrics,
+			SOAPpy is required.
+
+			<p><b>Shortcuts</b>
+
+<pre>
+     Interface
+     ---------
+     Alt-1             Switch to current playlist
+     Alt-2             Switch to library
+     Alt-3             Switch to playlists
+     Alt-C             Connect to MPD
+     Alt-D             Disconnect from MPD
+     Alt-Down          Expand player
+     Alt-Up            Collapse player
+     Backspace         (Library) Go to parent directory
+     Ctrl-Delete       (Current) Clear list
+     Ctrl-D            (Library/Playlists) Add selected song/directory/playlist(s)
+     Ctrl-R            (Library/Playlists) Replace with selected song/directory/playlist(s)
+     Ctrl-Q            Quit (or close info window)
+     Ctrl-U            Update entire library
+     Ctrl-W            Quit (or close info window)
+     Ctrl-Shift-S      (Current) Save playlist
+     Ctrl-Shift-U      Update library for selected path(s)
+     Delete            (Current/Playlist) Remove item
+     Enter/Space       (Current) Play selected song;
+                       (Library/Playlists) Add selected song/playlist;
+                       (Library) Enter directory
+     Escape            Minimize to system tray ('Minimize to tray on close' must be enabled)
+     Menu              Display popup menu
+
+     Playback
+     --------
+     Ctrl-Left         Previous track
+     Ctrl-Right        Next track
+     Ctrl-P            Play/Pause
+     Ctrl-S            Stop
+     Ctrl-Minus        Lower the volume
+     Ctrl-Plus         Raise the volume
+</pre>
+
+			<p><b>Hidden Features</b>
+
+			<p>Remote Artwork - If remote artwork is enabled, Sonata will automatically search 
+			amazon.com for cover art and display the best match if one is found. You can also 
+			browse from amazon.com alternatives, or specify your own search terms, by 
+			right-clicking on the album art/cd and choosing "Use Remote Image...".
+
+			<p>Local Artwork - If local artwork is enabled, Sonata will search for a cover.jpg
+			or folder.jpg file in the song's directory. Additionally, if there is only one image
+			in the song's directory, it	will be chosen for display. (Note that these capabilities 
+			require your music_directory in Preferences be to specified.) Finally, you can also 
+			right-click on the album art/cd and choose "Use Local Image..." to specify your own 
+			image (or just drag and drop the image onto the interface).
+			
+			<p>Tag Editing - Sonata provides a pretty powerful tag editing interface, similar
+			to that found in EasyTag. You can select multiple files (or even folders) and apply
+			user changes to all selected files by clicking on the small button next to a given
+			field.
+
+			<p>Song Formatting - Sonata provides the user with flexibility to define how songs
+			are displayed in various places in the player. Note that you can enclose song formatting
+			in curly brackets so that enclosed information only shows up if <i>all</i> of the 
+			enclosed tags are found. For example, "{%T_}%A - %S{ [%B]}" will show 
+			"07_Pearl Jam - Oceans [Ten]" if the track and album information exists, and 
+			"Pearl Jam - Oceans" if neither tag exists.
+
+			<p>Find-As-You-Type - All of the lists have find-as-you-type navigation. If
+			the list has focus, press ctrl-f or just start typing (i.e. "ben") and you will
+			automatically be taken to the first entry in the list that starts with "ben".
+			Note that this is not case sensitive, so "Ben" will also be found.
+
+			<p>Window Toggling - You can set a shortcut with your window manager to call
+			"sonata --toggle" in order to quickly make the application visible or minimized
+			to the system tray. Note that this requires D-BUS.
+			
+			<p>Commandline arguments - Sonata has some playback arguments such that you can
+			set your own keybindings to actions like play or pause. Type "sonata --help" to
+			see the full list of available arguments.
+
+</div>
+
+<div class="footer">
+  <div class="right">
+    <p>&copy; 2007 Scott Horowitz</p>
+  </div>
+  <br/>
+</div>
+
+</div>
+</body>
+</html>

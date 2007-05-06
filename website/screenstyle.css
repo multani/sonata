@@ -1,0 +1,92 @@
+body {
+margin:10; padding:0; font-family:verdana, arial, sans-serif; font-size:80%; color:#666666; text-align:center;
+background-color:#EEEEEE;}
+
+p {
+margin:0.2em 0 1.2em 1em; padding:0.3em; align:justify;}
+
+h1 {
+padding:0; margin:0;font-size:250%; font-weight:normal; font-style:italic;
+color:#658bb5; font-family:"Trebuchet MS", verdana, arial, sans-serif;}
+
+h2 {
+background-color:#DDDDDD; color:#3B4471; font-size:100%; font-weight:normal; margin:0.5em; padding:0;
+font-style:italic; font-family:"Trebuchet MS", verdana, arial, sans-serif;}
+
+div {
+margin:0; padding:0; display:block;}
+
+a:link, a:visited {
+color:#658bb5; text-decoration:underline;}
+a:hover {
+color:#3B4471; text-decoration:underline;}
+a:active {
+color:#658bb5; text-decoration:underline;}
+img {
+border:0;}
+
+
+
+.container {
+background-color:#FFFFFF; margin:0 auto 0 auto; padding:0; width:65%;
+border: 1px solid #BBBBBB}
+
+.titleblock {
+padding:2em; margin:0; text-align:left;
+background-image:url(leaf.jpg); background-repeat:no-repeat; background-position:right center;}
+
+.titleblock p {
+text-indent:4em; color:#3B4471;}
+
+
+
+ul.navbar {
+list-style-type:none; float:left; display:block; width:100%; line-height:0.2em;
+clear:both; margin:0; padding:0; background-color:#999999;}
+
+ul.navbar li {
+display:inline;}
+
+a.nav:link, a.nav:visited {
+display:block; float:left; width:16.64%; padding:1.2em 0 1.2em 0; margin:0;
+text-decoration:none; background-color:#999999; color:#FFFFFF;}
+
+a.nav:hover, a.nav:active{
+display:block; float:left; width:16.64%; padding:1.2em 0 1.2em 0; margin:0;
+text-decoration:none; background-color:#658bb5; color:#FFFFFF;}
+
+
+
+.leftcontainer {
+float:left; clear:both; width:165px; margin:1em 0 0 0; padding:0;}
+
+.leftbox {
+margin:0.5em; padding:0.3em; border:1px solid #999999; text-align:center;}
+
+.leftcontainer h2 {
+text-align:left; padding:0 0 0 1.5em;}
+
+.linkbox a {display:block;}
+
+
+
+.content {
+clear:right; text-align:left; margin:2.5em 1.2em 0 165px; padding:1em 1ex 1em 1.5ex;}
+
+.content2 {
+clear:right; text-align:left; margin:2.5em 1.2em 0 1.2em; padding:1em 1ex 1em 1.5ex;}
+
+.content h2 {text-indent:0.5em;}
+
+.content2 h2 {text-indent:0.5em;}
+
+
+
+.footer {
+color:#999999; font-size:75%; margin:0.5em 2.2em 0.5em 2.5em; padding:0.8em;
+text-align:left; clear:both;}
+
+.footer .right {
+float:right; clear:right; text-align:right;}
+
+.footer p {margin:0;}
