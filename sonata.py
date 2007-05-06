@@ -5680,55 +5680,82 @@ class Base(mpdclient3.mpd_connection):
         return True
 
     def about_shortcuts(self, button):
+        # define the shortcuts and their descriptions
+        # these are all gettextable
+        mainshortcuts = \
+                [[ "Alt-1", _("Switch to current playlist") ],
+                 [ "Alt-2", _("Switch to library") ],
+                 [ "Alt-3", _("Switch to playlists") ],
+                 [ "Alt-C", _("Connect to MPD") ],
+                 [ "Alt-D", _("Disconnect from MPD") ],
+                 [ "Alt-Down", _("Expand player") ],
+                 [ "Alt-Up", _("Collapse player") ],
+                 [ "Ctrl-Q", _("Quit") ],
+                 [ "Ctrl-U", _("Update entire library") ],
+                 [ "Menu", _("Display popup menu") ],
+                 [ "Escape", _("Minimize to system tray (if enabled)") ]]
+        currentshortcuts = \
+                [[ "Enter/Space", _("Play selected song") ],
+                 [ "Delete", _("Remove song") ],
+                 [ "Ctrl-J", _("Toggle filter bar for jumping straight to track") ],
+                 [ "Ctrl-Shift-S", _("Save playlist") ],
+                 [ "Ctrl-Delete", _("Clear list") ]]
+        libraryshortcuts = \
+                [[ "Enter/Space", _("Add selected song(s) or enter directory") ],
+                 [ "Backspace", _("Go to parent directory") ],
+                 [ "Ctrl-D", _("Add selected song(s) or directory(s)") ],
+                 [ "Ctrl-R", _("Replace with selected song(s) or directory(s)") ],
+                 [ "Ctrl-Shift-U", _("Update library for selected path(s)") ]]
+        playlistshortcuts = \
+                [[ "Enter/Space", _("Add selected playlist(s)") ],
+                 [ "Delete", _("Remove playlist") ],
+                 [ "Ctrl-D", _("Add selected playlist(s)") ],
+                 [ "Ctrl-R", _("Replace with selected playlist(s)") ]]
+        playbackshortcuts = \
+                [[ "Ctrl-Left", _("Previous track") ],
+                 [ "Ctrl-Right", _("Next track") ],
+                 [ "Ctrl-P", _("Play/Pause") ],
+                 [ "Ctrl-S", _("Stop") ],
+                 [ "Ctrl-Minus", _("Lower the volume") ],
+                 [ "Ctrl-Plus", _("Raise the volume") ]]
+        # define the main array- this adds headings to each section of
+        # shortcuts that will be displayed
+        shortcuts = [[ _("Main Shortcuts"), mainshortcuts ],
+                [ _("Current Shortcuts"), currentshortcuts ],
+                [ _("Library Shortcuts"), libraryshortcuts ],
+                [ _("Playlist Shortcuts"), playlistshortcuts ],
+                [ _("Playback Shortcuts"), playbackshortcuts ]]
         dialog = gtk.Dialog(_("Shortcuts"), self.about_dialog, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE))
         dialog.set_default_response(gtk.RESPONSE_CLOSE)
-        dialog.set_size_request(477, 320)
-        ScrollWindow = gtk.ScrolledWindow()
-        ScrollWindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        shortcut_text = gtk.TextBuffer()
-        shortcutView = gtk.TextView(shortcut_text)
-        shortcutView.set_editable(False)
-        ScrollWindow.add_with_viewport(shortcutView)
-        dialog.vbox.pack_start(ScrollWindow, True, True, 0)
-        shortcut_text.set_text("""Interface
----------
-Alt-1             Switch to current playlist
-Alt-2             Switch to library
-Alt-3             Switch to playlists
-Alt-C             Connect to MPD
-Alt-D             Disconnect from MPD
-Alt-Down          Expand player
-Alt-Up            Collapse player
-Backspace         (Library) Go to parent directory
-Ctrl-Delete       (Current) Clear list
-Ctrl-D            (Library/Playlists) Add selected song/directory/playlist(s)
-Ctrl-J            (Current) Toggle filter bar for jumping straight to track
-Ctrl-R            (Library/Playlists) Replace with selected song/directory/playlist(s)
-Ctrl-Q            Quit
-Ctrl-U            Update entire library
-Ctrl-Shift-S      (Current) Save playlist
-Ctrl-Shift-U      Update library for selected path(s)
-Delete            (Current/Playlist) Remove item
-Enter/Space       (Current) Play selected song;
-                  (Library/Playlists) Add selected song/playlist;
-                  (Library) Enter directory
-Escape            Minimize to system tray ('Minimize to tray on close' must be enabled)
-Menu              Display popup menu
+        dialog.set_size_request(-1, 320)
+        scrollbox = gtk.ScrolledWindow()
+        scrollbox.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+        dialog.vbox.pack_start(scrollbox, True, True, 2)
 
-Playback
---------
-Ctrl-Left         Previous track
-Ctrl-Right        Next track
-Ctrl-P            Play/Pause
-Ctrl-S            Stop
-Ctrl-Minus        Lower the volume
-Ctrl-Plus         Raise the volume""")
-        familytag = shortcut_text.create_tag()
-        familytag.set_property("family-set", True)
-        familytag.set_property("family", "Monospace")
-        familytag.set_property("scale-set", True)
-        familytag.set_property("scale", pango.SCALE_SMALL)
-        shortcut_text.apply_tag(familytag, shortcut_text.get_start_iter(), shortcut_text.get_end_iter())
+        # each pair is a [ heading, shortcutlist ]
+        vbox = gtk.VBox()
+        for pair in shortcuts:
+            titlelabel = gtk.Label()
+            titlelabel.set_markup("<b>" + pair[0] + ":</b>")
+            vbox.pack_start(titlelabel, False, False, 2)
+
+            # print the items of [ shortcut, desc ]
+            for item in pair[1]:
+                tmphbox = gtk.HBox()
+
+                tmplabel = gtk.Label()
+                tmplabel.set_markup("<b>" + item[0] + ":</b>")
+                tmplabel.set_alignment(0, 0)
+
+                tmpdesc = gtk.Label(item[1])
+                tmpdesc.set_line_wrap(True)
+                tmpdesc.set_alignment(0, 0)
+
+                tmphbox.pack_start(tmplabel, False, False, 2)
+                tmphbox.pack_start(tmpdesc, True, True, 2)
+
+                vbox.pack_start(tmphbox, False, False, 2)
+        scrollbox.add_with_viewport(vbox)
         dialog.show_all()
         dialog.run()
         dialog.destroy()

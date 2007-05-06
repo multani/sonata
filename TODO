@@ -13,6 +13,7 @@ v1.2
 	shortcut/button to save all tagged files
 	don't allow vert resize when collapsed
 	fix 'by album', 'by artist', etc for translations
+	on_infowindow_show -> use loop
 	
 Future:
 	lyrics -> allow user to edit, fetch, refresh, search terms..?
