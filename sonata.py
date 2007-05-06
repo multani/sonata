@@ -650,8 +650,7 @@ class Base(mpdclient3.mpd_connection):
         self.filterbox.pack_start(gtk.Label(_("Filter") + ":"), False, False, 5)
         self.filterbox.pack_start(self.filterpattern, True, True, 5)
         filterclosebutton = gtk.Button()
-        filterclosebutton.set_image(gtk.image_new_from_stock(gtk.STOCK_CANCEL, gtk.ICON_SIZE_SMALL_TOOLBAR))
-        filterclosebutton.set_size_request(-1, self.filterpattern.size_request()[1])
+        filterclosebutton.set_image(gtk.image_new_from_stock(gtk.STOCK_CLOSE, gtk.ICON_SIZE_MENU))
         filterclosebutton.set_relief(gtk.RELIEF_NONE)
         self.filterbox.pack_start(filterclosebutton, False, False, 0)
         self.filterbox.set_no_show_all(True)
@@ -2675,12 +2674,14 @@ class Base(mpdclient3.mpd_connection):
                 except:
                     pass
                 if all_files_unchanged:
+                    # Update attributes only for item:
                     try:
                         iter = self.currentdata.get_iter((i, ))
                         self.currentdata.set(iter, 0, int(track.id), 1, item)
                     except:
                         pass
                 else:
+                    # Add new item:
                     self.currentdata.append([int(track.id), item])
             if not all_files_unchanged and not self.filterbox_visible:
                 if self.status.state in ['play', 'pause']:

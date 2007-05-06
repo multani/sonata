@@ -12,6 +12,7 @@ v1.2
 	switching between user profiles
 	shortcut/button to save all tagged files
 	don't allow vert resize when collapsed
+	fix 'by album', 'by artist', etc for translations
 	
 Future:
 	lyrics -> allow user to edit, fetch, refresh, search terms..?
@@ -25,3 +26,4 @@ Future:
 	genre mode (genre -> artist -> album)
 	columns in current/library
 	statistics
+	hover over album art -> show larger image in borderless popup after 0.5 sec?
