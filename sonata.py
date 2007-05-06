@@ -679,7 +679,7 @@ class Base(mpdclient3.mpd_connection):
             self.searchcombo.append_text(item)
         self.searchtext = gtk.Entry()
         self.searchbutton = gtk.Button(_('_End Search'))
-        self.searchbutton.set_image(gtk.image_new_from_stock(gtk.STOCK_CANCEL, gtk.ICON_SIZE_SMALL_TOOLBAR))
+        self.searchbutton.set_image(gtk.image_new_from_stock(gtk.STOCK_CLOSE, gtk.ICON_SIZE_MENU))
         self.searchbutton.set_size_request(-1, self.searchcombo.size_request()[1])
         self.searchbutton.set_no_show_all(True)
         self.searchbutton.hide()
