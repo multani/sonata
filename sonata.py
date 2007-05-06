@@ -1348,8 +1348,10 @@ class Base(mpdclient3.mpd_connection):
                     self.withdraw_app()
                 elif HAVE_EGG and self.trayicon.get_property('visible') == True:
                     self.withdraw_app()
-            elif self.filterbox_visible:
+            elif self.notebook.get_current_page() == self.TAB_CURRENT and self.filterbox_visible:
                 self.searchfilter_toggle(None)
+            elif self.notebook.get_current_page() == self.TAB_LIBRARY and self.searchbutton.get_property('visible'):
+                self.on_search_end(None)
         elif shortcut == 'Delete':
             self.remove(None)
 
