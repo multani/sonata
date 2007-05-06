@@ -178,26 +178,8 @@ class Base(mpdclient3.mpd_connection):
                         sys.exit()
             if args != []:
                 for a in args:
-                    if a in ("play"):
-                        self.single_connect_for_passed_arg("play")
-                    elif a in ("pause"):
-                        self.single_connect_for_passed_arg("pause")
-                    elif a in ("stop"):
-                        self.single_connect_for_passed_arg("stop")
-                    elif a in ("next"):
-                        self.single_connect_for_passed_arg("next")
-                    elif a in ("prev"):
-                        self.single_connect_for_passed_arg("prev")
-                    elif a in ("pp"):
-                        self.single_connect_for_passed_arg("toggle")
-                    elif a in ("info"):
-                        self.single_connect_for_passed_arg("info")
-                    elif a in ("status"):
-                        self.single_connect_for_passed_arg("status")
-                    elif a in ("repeat"):
-                        self.single_connect_for_passed_arg("repeat")
-                    elif a in ("shuffle"):
-                        self.single_connect_for_passed_arg("shuffle")
+                    if a in ("play", "pause", "stop", "next", "prev", "toggle", "info", "status", "repeat", "shuffle"):
+                        self.single_connect_for_passed_arg(a)
                     else:
                         self.print_usage()
                     sys.exit()
@@ -343,17 +325,12 @@ class Base(mpdclient3.mpd_connection):
         self.new_icon('album', file='sonata-album.png')
         icon_theme = gtk.icon_theme_get_default()
         (img_width, img_height) = gtk.icon_size_lookup(VOLUME_ICON_SIZE)
-        try:
-            self.new_icon('stock_volume-mute', fullpath=icon_theme.lookup_icon('stock_volume-mute', img_width, gtk.ICON_LOOKUP_USE_BUILTIN).get_filename())
-            self.new_icon('stock_volume-min', fullpath=icon_theme.lookup_icon('stock_volume-min', img_width, gtk.ICON_LOOKUP_USE_BUILTIN).get_filename())
-            self.new_icon('stock_volume-med', fullpath=icon_theme.lookup_icon('stock_volume-med', img_width, gtk.ICON_LOOKUP_USE_BUILTIN).get_filename())
-            self.new_icon('stock_volume-max', fullpath=icon_theme.lookup_icon('stock_volume-max', img_width, gtk.ICON_LOOKUP_USE_BUILTIN).get_filename())
-        except:
-            # Fallback to Sonata-included icons:
-            self.new_icon('stock_volume-mute', file='sonata-volume-mute.png')
-            self.new_icon('stock_volume-min', file='sonata-volume-min.png')
-            self.new_icon('stock_volume-med', file='sonata-volume-med.png')
-            self.new_icon('stock_volume-max', file='sonata-volume-max.png')
+        for iconname in ('stock_volume-mute', 'stock_volume-min', 'stock_volume-med', 'stock_volume-max'):
+            try:
+                self.new_icon(iconname, fullpath=icon_theme.lookup_icon(iconname, img_width, gtk.ICON_LOOKUP_USE_BUILTIN).get_filename())
+            except:
+                # Fallback to Sonata-included icons:
+                self.new_icon(iconname, file=iconname+'.png')
 
         # Popup menus:
         actions = (
@@ -566,36 +543,17 @@ class Base(mpdclient3.mpd_connection):
         topvbox = gtk.VBox()
         toptophbox = gtk.HBox()
         self.prevbutton = gtk.Button("", gtk.STOCK_MEDIA_PREVIOUS, True)
-        self.prevbutton.set_relief(gtk.RELIEF_NONE)
-        self.prevbutton.set_property('can-focus', False)
-        self.prevbutton.get_child().get_child().get_children()[1].set_text('')
-        toptophbox.pack_start(self.prevbutton, False, False, 0)
         self.ppbutton = gtk.Button("", gtk.STOCK_MEDIA_PLAY, True)
-        self.ppbutton.set_relief(gtk.RELIEF_NONE)
-        self.ppbutton.set_property('can-focus', False)
-        self.ppbutton.get_child().get_child().get_children()[1].set_text('')
-        toptophbox.pack_start(self.ppbutton, False, False, 0)
         self.stopbutton = gtk.Button("", gtk.STOCK_MEDIA_STOP, True)
-        self.stopbutton.set_relief(gtk.RELIEF_NONE)
-        self.stopbutton.set_property('can-focus', False)
-        self.stopbutton.get_child().get_child().get_children()[1].set_text('')
-        toptophbox.pack_start(self.stopbutton, False, False, 0)
         self.nextbutton = gtk.Button("", gtk.STOCK_MEDIA_NEXT, True)
-        self.nextbutton.set_relief(gtk.RELIEF_NONE)
-        self.nextbutton.set_property('can-focus', False)
-        self.nextbutton.get_child().get_child().get_children()[1].set_text('')
-        toptophbox.pack_start(self.nextbutton, False, False, 0)
-        if not self.show_playback:
-            self.prevbutton.set_no_show_all(True)
-            self.ppbutton.set_no_show_all(True)
-            self.stopbutton.set_no_show_all(True)
-            self.nextbutton.set_no_show_all(True)
-            self.prevbutton.hide()
-            self.ppbutton.hide()
-            self.stopbutton.hide()
-            self.nextbutton.hide()
-            self.volumebutton.set_no_show_all(True)
-            self.volumebutton.hide()
+        for mediabutton in (self.prevbutton, self.ppbutton, self.stopbutton, self.nextbutton):
+            mediabutton.set_relief(gtk.RELIEF_NONE)
+            mediabutton.set_property('can-focus', False)
+            mediabutton.get_child().get_child().get_children()[1].set_text('')
+            toptophbox.pack_start(mediabutton, False, False, 0)
+            if not self.show_playback:
+                mediabutton.set_no_show_all(True)
+                mediabutton.hide()
         progressbox = gtk.VBox()
         self.progresslabel = gtk.Label()
         self.progresslabel.set_size_request(-1, 6)
@@ -616,6 +574,9 @@ class Base(mpdclient3.mpd_connection):
         self.volumebutton.set_relief(gtk.RELIEF_NONE)
         self.volumebutton.set_property('can-focus', False)
         self.set_volumebutton("stock_volume-med")
+        if not self.show_playback:
+            self.volumebutton.set_no_show_all(True)
+            self.volumebutton.hide()
         toptophbox.pack_start(self.volumebutton, False, False, 0)
         topvbox.pack_start(toptophbox, False, False, 2)
         self.expander = gtk.Expander(_("Playlist"))
@@ -1532,11 +1493,8 @@ class Base(mpdclient3.mpd_connection):
 
     def handle_change_conn(self):
         if not self.conn:
-            self.ppbutton.set_property('sensitive', False)
-            self.stopbutton.set_property('sensitive', False)
-            self.prevbutton.set_property('sensitive', False)
-            self.nextbutton.set_property('sensitive', False)
-            self.volumebutton.set_property('sensitive', False)
+            for mediabutton in (self.ppbutton, self.stopbutton, self.prevbutton, self.nextbutton, self.volumebutton):
+                mediabutton.set_property('sensitive', False)
             try:
                 self.trayimage.set_from_stock('sonata',  gtk.ICON_SIZE_BUTTON)
             except:
@@ -1545,11 +1503,8 @@ class Base(mpdclient3.mpd_connection):
             self.current.get_model().clear()
             self.songs = None
         else:
-            self.ppbutton.set_property('sensitive', True)
-            self.stopbutton.set_property('sensitive', True)
-            self.prevbutton.set_property('sensitive', True)
-            self.nextbutton.set_property('sensitive', True)
-            self.volumebutton.set_property('sensitive', True)
+            for mediabutton in (self.ppbutton, self.stopbutton, self.prevbutton, self.nextbutton, self.volumebutton):
+                mediabutton.set_property('sensitive', True)
             if self.sonata_loaded:
                 self.browse(root='/')
             self.playlists_populate()
@@ -2598,10 +2553,8 @@ class Base(mpdclient3.mpd_connection):
                 self.trayalbumeventbox.show()
                 self.trayalbumimage2.show()
 
-            self.cursonglabel1.set_ellipsize(pango.ELLIPSIZE_END)
-            self.cursonglabel2.set_ellipsize(pango.ELLIPSIZE_END)
-            self.traycursonglabel1.set_ellipsize(pango.ELLIPSIZE_END)
-            self.traycursonglabel2.set_ellipsize(pango.ELLIPSIZE_END)
+            for label in (self.cursonglabel1, self.cursonglabel2, self.traycursonglabel1, self.cursonglabel2):
+                label.set_ellipsize(pango.ELLIPSIZE_END)
 
             self.set_ellipsize_workaround()
 
@@ -2623,10 +2576,8 @@ class Base(mpdclient3.mpd_connection):
             if newlabel2 != self.traycursonglabel2.get_label():
                 self.traycursonglabel2.set_markup(newlabel2)
         else:
-            self.cursonglabel1.set_ellipsize(pango.ELLIPSIZE_NONE)
-            self.cursonglabel2.set_ellipsize(pango.ELLIPSIZE_NONE)
-            self.traycursonglabel1.set_ellipsize(pango.ELLIPSIZE_NONE)
-            self.traycursonglabel2.set_ellipsize(pango.ELLIPSIZE_NONE)
+            for label in (self.cursonglabel1, self.cursonglabel2, self.traycursonglabel1, self.cursonglabel2):
+                label.set_ellipsize(pango.ELLIPSIZE_NONE)
 
             if self.expanded:
                 self.cursonglabel1.set_markup('<big><b>' + _('Stopped') + '</b></big>')
