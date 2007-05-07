@@ -3623,9 +3623,9 @@ class Base(mpdclient3.mpd_connection):
                             albumlinktag.set_data("url", "http://www.wikipedia.org/wiki/Special:Search/" + self.songinfo.album)
                             if albuminfo != self.albuminfoBuffer.get_text(self.albuminfoBuffer.get_start_iter(), self.albuminfoBuffer.get_end_iter()):
                                 self.albuminfoBuffer.set_text(albuminfo)
-                                self.albuminfoBuffer.apply_tag(albumlinktag, self.albuminfoBuffer.get_iter_at_line_offset(0,0), self.albuminfoBuffer.get_iter_at_line_offset(0, len(self.songinfo.album)))
+                                self.albuminfoBuffer.apply_tag(albumlinktag, self.albuminfoBuffer.get_iter_at_line_offset(0,0), self.albuminfoBuffer.get_iter_at_line_offset(0, len(self.songinfo.album.decode('utf-8'))))
                                 if artistlinktag:
-                                    self.albuminfoBuffer.apply_tag(artistlinktag, self.albuminfoBuffer.get_iter_at_line_offset(1,0), self.albuminfoBuffer.get_iter_at_line_offset(1, len(artist)))
+                                    self.albuminfoBuffer.apply_tag(artistlinktag, self.albuminfoBuffer.get_iter_at_line_offset(1,0), self.albuminfoBuffer.get_iter_at_line_offset(1, len(artist.decode('utf-8'))))
                         else:
                             self.albuminfoBuffer.set_text(_("Album name not set."))
                         # Update lyrics:

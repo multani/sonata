@@ -1,7 +1,4 @@
 v1.1
-	remove egg code..?
-	filtering..
-		potential crashes :/
 	website
 		documentation
 		update links on download page
@@ -13,7 +10,7 @@ v1.2
 	shortcut/button to save all tagged files
 	don't allow vert resize when collapsed
 	fix 'by album', 'by artist', etc for translations
-	on_infowindow_show -> use loop
+	clean up on_infowindow_show
 	
 Future:
 	lyrics -> allow user to edit, fetch, refresh, search terms..?
