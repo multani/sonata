@@ -330,7 +330,7 @@ class Base(mpdclient3.mpd_connection):
                 self.new_icon(iconname, fullpath=icon_theme.lookup_icon(iconname, img_width, gtk.ICON_LOOKUP_USE_BUILTIN).get_filename())
             except:
                 # Fallback to Sonata-included icons:
-                self.new_icon(iconname, file=iconname+'.png')
+                self.new_icon(iconname, file='sonata-'+iconname+'.png')
 
         # Popup menus:
         actions = (
@@ -1557,7 +1557,7 @@ class Base(mpdclient3.mpd_connection):
         if response == gtk.RESPONSE_ACCEPT:
             name = nameentry.get_text()
             uri = urlentry.get_text()
-            if len(name) > 0 and len(uri) > 0:
+            if len(name.decode('utf-8')) > 0 and len(uri.decode('utf-8')) > 0:
                 # Make sure this stream name doesn't already exit:
                 i = 0
                 for item in self.stream_names:
@@ -1968,8 +1968,8 @@ class Base(mpdclient3.mpd_connection):
             end_pos = format.find("}", begin_pos)
             substrings.append(format[begin_pos:end_pos+1])
             begin_pos = format.find("{", end_pos)
-        if end_pos+1 < len(format):
-            substrings.append(format[end_pos+1:len(format)])
+        if end_pos+1 < len(format.decode('utf-8')):
+            substrings.append(format[end_pos+1:len(format.decode('utf-8'))])
         return substrings
 
     def parse_formatting_for_substring(self, subformat, item, wintitle):
@@ -2035,7 +2035,7 @@ class Base(mpdclient3.mpd_connection):
                     if not has_brackets: text = text.replace("%E", "?")
                     else: return ""
         if text.startswith("{") and text.endswith("}"):
-            return text[1:len(text)-1]
+            return text[1:len(text.decode('utf-8'))-1]
         else:
             return text
 
