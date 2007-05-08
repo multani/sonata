@@ -42,62 +42,16 @@
 			any streams (pls/m3u is supported). Most actions are accessed through
 			right-click popup menus.
 
+			<p><b>Extras</b>
+			
 			<p>Optional features: For systemtray support, PyGTK 2.10 or 
 			gnome-python-extras is required. For the ability to edit song tags, 
 			tagpy and taglib are required. For automatic fetching of song lyrics,
 			SOAPpy is required.
 
-			<p><b>Shortcuts</b>
-
-<pre>
-     Interface
-     ---------
-     Alt-1             Switch to current playlist
-     Alt-2             Switch to library
-     Alt-3             Switch to playlists
-     Alt-C             Connect to MPD
-     Alt-D             Disconnect from MPD
-     Alt-Down          Expand player
-     Alt-Up            Collapse player
-     Backspace         (Library) Go to parent directory
-     Ctrl-Delete       (Current) Clear list
-     Ctrl-D            (Library/Playlists) Add selected song/directory/playlist(s)
-     Ctrl-R            (Library/Playlists) Replace with selected song/directory/playlist(s)
-     Ctrl-Q            Quit (or close info window)
-     Ctrl-U            Update entire library
-     Ctrl-W            Quit (or close info window)
-     Ctrl-Shift-S      (Current) Save playlist
-     Ctrl-Shift-U      Update library for selected path(s)
-     Delete            (Current/Playlist) Remove item
-     Enter/Space       (Current) Play selected song;
-                       (Library/Playlists) Add selected song/playlist;
-                       (Library) Enter directory
-     Escape            Minimize to system tray ('Minimize to tray on close' must be enabled)
-     Menu              Display popup menu
-
-     Playback
-     --------
-     Ctrl-Left         Previous track
-     Ctrl-Right        Next track
-     Ctrl-P            Play/Pause
-     Ctrl-S            Stop
-     Ctrl-Minus        Lower the volume
-     Ctrl-Plus         Raise the volume
-</pre>
-
-			<p><b>Hidden Features</b>
-
-			<p>Remote Artwork - If remote artwork is enabled, Sonata will automatically search 
-			amazon.com for cover art and display the best match if one is found. You can also 
-			browse from amazon.com alternatives, or specify your own search terms, by 
-			right-clicking on the album art/cd and choosing "Use Remote Image...".
-
-			<p>Local Artwork - If local artwork is enabled, Sonata will search for a cover.jpg
-			or folder.jpg file in the song's directory. Additionally, if there is only one image
-			in the song's directory, it	will be chosen for display. (Note that these capabilities 
-			require your music_directory in Preferences be to specified.) Finally, you can also 
-			right-click on the album art/cd and choose "Use Local Image..." to specify your own 
-			image (or just drag and drop the image onto the interface).
+			<p>"Jump to" Filter - Similar to xmms, Sonata provides a way to jump straight to a
+			specific track in your playlist. Just press Ctrl-J, enter part of your song or artist
+			name, press up/down to navigate to the song, and press enter to play it.
 			
 			<p>Tag Editing - Sonata provides a pretty powerful tag editing interface, similar
 			to that found in EasyTag. You can select multiple files (or even folders) and apply
@@ -112,7 +66,7 @@
 			"Pearl Jam - Oceans" if neither tag exists.
 
 			<p>Find-As-You-Type - All of the lists have find-as-you-type navigation. If
-			the list has focus, press ctrl-f or just start typing (i.e. "ben") and you will
+			the list has focus, press Ctrl-F or just start typing (i.e. "ben") and you will
 			automatically be taken to the first entry in the list that starts with "ben".
 			Note that this is not case sensitive, so "Ben" will also be found.
 
@@ -120,10 +74,62 @@
 			"sonata --toggle" in order to quickly make the application visible or minimized
 			to the system tray. Note that this requires D-BUS.
 			
-			<p>Commandline arguments - Sonata has some playback arguments such that you can
-			set your own keybindings to actions like play or pause. Type "sonata --help" to
+			<p>Commandline arguments - Sonata has some playback arguments that allows
+			you to set your own keybindings to actions like play or pause. Type "sonata --help" to
 			see the full list of available arguments.
 
+			<p><b>Shortcuts</b>
+
+			<p>Note: This list can also be found by going to About > Shortcuts.
+			
+			<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u>Main Shortcuts</u>:<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Alt-1</b>: Switch to current playlist<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Alt-2</b>: Switch to library<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Alt-3</b>: Switch to playlists<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Alt-4</b>: Switch to streams<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Alt-C</b>: Connect to MPD<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Alt-D</b>: Disconnect from MPD<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Alt-Down</b>: Expand player<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Alt-Up</b>: Collapse player<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-Q</b>: Quit<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-U</b>: Update entire library<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Menu</b>: Display popup menu<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Escape</b>: Minimize to system tray (if enabled)<br/>
+			
+			<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u>Playback Shortcuts</u>:<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-Left</b>: Previous track<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-Right</b>: Next track<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-P</b>: Play/Pause<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-S</b>: Stop<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-Minus</b>: Lower the volume<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-Plus</b>: Raise the volume<br/>	
+
+			<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u>Current Shortcuts</u>:<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Enter/Space</b>: Play selected song<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Delete</b>: Remove selected song(s)<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-J</b>: Toggle filter bar for jumping straight to track<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-Shift-S</b>: Save playlist<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-Delete</b>: Clear list<br/>
+			
+			<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u>Library Shortcuts</u>:<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Enter/Space</b>: Add selected song(s) or enter directory<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Backspace</b>: Go to parent directory<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-D</b>: Add selected song(s) or directory(s)<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-R</b>: Replace with selected song(s) or directory(s)<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-Shift-U</b>: Update library for selected path(s)<br/>
+			
+			<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u>Playlist Shortcuts</u>:<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Enter/Space</b>: Add selected playlist(s)<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Delete</b>: Remove selected playlist(s)<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-D</b>: Add selected playlist(s)<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-R</b>: Replace with selected playlist(s)<br/>
+			
+			<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u>Stream Shortcuts</u>:<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Enter/Space</b>: Add selected stream(s)<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Delete</b>: Remove selected stream(s)<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-D</b>: Add selected stream(s)<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-R</b>: Replace with selected stream(s)<br/>
+			
 </div>
 
 <div class="footer">

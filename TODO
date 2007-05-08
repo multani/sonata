@@ -1,10 +1,3 @@
-v1.1
-	website
-		documentation
-		update links on download page
-		changelog
-	translations
-
 v1.2
 	switching between user profiles (sonata --profile foo)
 	shortcut/button to save all tagged files

@@ -5637,6 +5637,7 @@ class Base(mpdclient3.mpd_connection):
                 [[ "Alt-1", _("Switch to current playlist") ],
                  [ "Alt-2", _("Switch to library") ],
                  [ "Alt-3", _("Switch to playlists") ],
+                 [ "Alt-4", _("Switch to streams") ],
                  [ "Alt-C", _("Connect to MPD") ],
                  [ "Alt-D", _("Disconnect from MPD") ],
                  [ "Alt-Down", _("Expand player") ],
@@ -5647,7 +5648,7 @@ class Base(mpdclient3.mpd_connection):
                  [ "Escape", _("Minimize to system tray (if enabled)") ]]
         currentshortcuts = \
                 [[ "Enter/Space", _("Play selected song") ],
-                 [ "Delete", _("Remove song") ],
+                 [ "Delete", _("Remove selected song(s)") ],
                  [ "Ctrl-J", _("Toggle filter bar for jumping straight to track") ],
                  [ "Ctrl-Shift-S", _("Save playlist") ],
                  [ "Ctrl-Delete", _("Clear list") ]]
@@ -5659,9 +5660,14 @@ class Base(mpdclient3.mpd_connection):
                  [ "Ctrl-Shift-U", _("Update library for selected path(s)") ]]
         playlistshortcuts = \
                 [[ "Enter/Space", _("Add selected playlist(s)") ],
-                 [ "Delete", _("Remove playlist") ],
+                 [ "Delete", _("Remove selected playlist(s)") ],
                  [ "Ctrl-D", _("Add selected playlist(s)") ],
                  [ "Ctrl-R", _("Replace with selected playlist(s)") ]]
+        streamshortcuts = \
+                [[ "Enter/Space", _("Add selected stream(s)") ],
+                 [ "Delete", _("Remove selected stream(s)") ],
+                 [ "Ctrl-D", _("Add selected stream(s)") ],
+                 [ "Ctrl-R", _("Replace with selected stream(s)") ]]
         playbackshortcuts = \
                 [[ "Ctrl-Left", _("Previous track") ],
                  [ "Ctrl-Right", _("Next track") ],
@@ -5672,10 +5678,11 @@ class Base(mpdclient3.mpd_connection):
         # define the main array- this adds headings to each section of
         # shortcuts that will be displayed
         shortcuts = [[ _("Main Shortcuts"), mainshortcuts ],
+                [ _("Playback Shortcuts"), playbackshortcuts ],
                 [ _("Current Shortcuts"), currentshortcuts ],
                 [ _("Library Shortcuts"), libraryshortcuts ],
                 [ _("Playlist Shortcuts"), playlistshortcuts ],
-                [ _("Playback Shortcuts"), playbackshortcuts ]]
+                [ _("Stream Shortcuts"), streamshortcuts ]]
         dialog = gtk.Dialog(_("Shortcuts"), self.about_dialog, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE))
         dialog.set_default_response(gtk.RESPONSE_CLOSE)
         dialog.set_size_request(-1, 320)
@@ -5687,7 +5694,7 @@ class Base(mpdclient3.mpd_connection):
         vbox = gtk.VBox()
         for pair in shortcuts:
             titlelabel = gtk.Label()
-            titlelabel.set_markup("<b>" + pair[0] + ":</b>")
+            titlelabel.set_markup("<b>" + pair[0] + "</b>")
             vbox.pack_start(titlelabel, False, False, 2)
 
             # print the items of [ shortcut, desc ]
@@ -5706,6 +5713,7 @@ class Base(mpdclient3.mpd_connection):
                 tmphbox.pack_start(tmpdesc, True, True, 2)
 
                 vbox.pack_start(tmphbox, False, False, 2)
+            vbox.pack_start(gtk.Label(" "), False, False, 2)
         scrollbox.add_with_viewport(vbox)
         dialog.show_all()
         dialog.run()
