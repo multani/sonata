@@ -3047,8 +3047,9 @@ class Base(mpdclient3.mpd_connection):
         self.infowindow_w, self.infowindow_h = new_width, new_height
         self.infowindow_x, self.infowindow_y = self.infowindow.get_position()
         labelwidth = self.infowindow.allocation.width - titlelabel.get_size_request()[0] - 50
-        for label in labels_right:
-            label.set_size_request(labelwidth, -1)
+        if labelwidth > 0:
+            for label in labels_right:
+                label.set_size_request(labelwidth, -1)
 
     def expand(self, action):
         if not self.expander.get_expanded():
@@ -3466,6 +3467,8 @@ class Base(mpdclient3.mpd_connection):
         vbox.pack_start(gtk.Label(), False, False, 0)
         nblabel1 = gtk.Label()
         nblabel1.set_text_with_mnemonic(_("_Song Info"))
+        tagsScrollWindow = gtk.ScrolledWindow()
+        tagsScrollWindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         for hbox in hboxes:
             vbox.pack_start(hbox, False, False, 3)
         if HAVE_TAGPY:
@@ -3478,7 +3481,8 @@ class Base(mpdclient3.mpd_connection):
             hbox_edittag.pack_start(gtk.Label(), True, True, 0)
             vbox.pack_start(gtk.Label(), True, True, 0)
             vbox.pack_start(hbox_edittag, False, False, 6)
-        self.infowindow_notebook.append_page(vbox, nblabel1)
+        tagsScrollWindow.add_with_viewport(vbox)
+        self.infowindow_notebook.append_page(tagsScrollWindow, nblabel1)
         # Add cover art:
         nblabel2 = gtk.Label()
         nblabel2.set_text_with_mnemonic(_("_Cover Art"))
