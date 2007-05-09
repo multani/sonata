@@ -2372,8 +2372,7 @@ class Base(mpdclient3.mpd_connection):
         # If state changes
         if self.prevstatus == None or self.prevstatus.state != self.status.state:
 
-            if self.songinfo and self.songinfo.has_key('album'):
-                self.artist_for_album_name()
+            self.get_new_artist()
 
             # Update progressbar if the state changes too
             self.update_progressbar()
@@ -2434,6 +2433,14 @@ class Base(mpdclient3.mpd_connection):
                     if self.infowindow_visible:
                         self.infowindow_update(update_all=True)
 
+    def get_new_artist(self):
+        if self.songinfo and self.songinfo.has_key('album'):
+            self.artist_for_album_name()
+        elif self.songinfo and self.songinfo.has_key('artist'):
+            self.current_artist_for_album_name = [self.songinfo, self.songinfo.artist]
+        elif not self.songinfo:
+            self.current_artist_for_album_name = [self.songinfo, ""]
+
     def set_volumebutton(self, stock_icon):
         image = gtk.image_new_from_stock(stock_icon, VOLUME_ICON_SIZE)
         self.volumebutton.set_image(image)
@@ -2448,8 +2455,7 @@ class Base(mpdclient3.mpd_connection):
                 self.keep_song_visible_in_list()
             self.prev_boldrow = row
 
-        if self.songinfo and self.songinfo.has_key('album'):
-            self.artist_for_album_name()
+        self.get_new_artist()
 
         self.update_cursong()
         self.update_wintitle()
