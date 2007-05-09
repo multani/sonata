@@ -2672,7 +2672,7 @@ class Base(mpdclient3.mpd_connection):
     def keep_song_visible_in_list(self):
         if self.filterbox_visible:
             return
-        if self.expander.get_expanded() and len(self.currentdata)>0:
+        if self.expanded and len(self.currentdata)>0:
             try:
                 row = self.songinfo.pos
                 visible_rect = self.current.get_visible_rect()
@@ -3052,13 +3052,13 @@ class Base(mpdclient3.mpd_connection):
                 label.set_size_request(labelwidth, -1)
 
     def expand(self, action):
-        if not self.expander.get_expanded():
+        if not self.expanded:
             self.expander.set_expanded(False)
             self.on_expander_activate(None)
             self.expander.set_expanded(True)
 
     def collapse(self, action):
-        if self.expander.get_expanded():
+        if self.expanded:
             self.expander.set_expanded(True)
             self.on_expander_activate(None)
             self.expander.set_expanded(False)
@@ -3070,6 +3070,13 @@ class Base(mpdclient3.mpd_connection):
         # before this current click
         window_about_to_be_expanded = not self.expander.get_expanded()
         if window_about_to_be_expanded:
+            if self.window.get_size()[1] == currheight:
+                # For WMs like ion3, the app will not actually resize
+                # when in collapsed mode, so prevent the waiting
+                # of the player to expand from happening:
+                skip_size_check = True
+            else:
+                skip_size_check = False
             if self.show_statusbar:
                 self.statusbar.show()
             self.notebook.show_all()
@@ -3085,8 +3092,9 @@ class Base(mpdclient3.mpd_connection):
         # we know the list is visible. This is pretty hacky, but works.
         if self.window_owner:
             if window_about_to_be_expanded:
-                while self.window.get_size()[1] == currheight:
-                    gtk.main_iteration()
+                if not skip_size_check:
+                    while self.window.get_size()[1] == currheight:
+                        gtk.main_iteration()
                 # Notebook is visible, now resize:
                 self.window.resize(self.w, self.h)
             else:
