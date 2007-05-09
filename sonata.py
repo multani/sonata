@@ -6209,6 +6209,8 @@ def start_dbus_interface(toggle=False):
                     print _("An instance of Sonata is already running.")
                     obj.show(dbus_interface='org.MPD.SonataInterface')
                 sys.exit()
+        except SystemExit:
+            raise
         except Exception:
             print _("Sonata failed to connect to the D-BUS session bus: Unable to determine the address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for help)")
 
