@@ -1,5 +1,4 @@
 v1.1.1 - Pending
-	+ Show song info for current song even when MPD is not playing
 	+ Bug: A 2nd instance isn't prevented with dbus/python 2.4 (Sebastian)
 	+ Bug: Incorrect artist can sometimes be set for album art/info (vEX)
 	+ Bug: Improve handling under tiling WMs like ion3
