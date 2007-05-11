@@ -178,7 +178,7 @@ class Base(mpdclient3.mpd_connection):
                         sys.exit()
             if args != []:
                 for a in args:
-                    if a in ("play", "pause", "stop", "next", "prev", "toggle", "info", "status", "repeat", "shuffle"):
+                    if a in ("play", "pause", "stop", "next", "prev", "pp", "info", "status", "repeat", "shuffle"):
                         self.single_connect_for_passed_arg(a)
                     else:
                         self.print_usage()
@@ -1074,7 +1074,7 @@ class Base(mpdclient3.mpd_connection):
                         self.conn.do.repeat(1)
                     elif self.status.repeat == '1':
                         self.conn.do.repeat(0)
-            elif type == "toggle":
+            elif type == "pp":
                 self.status = self.conn.do.status()
                 if self.status:
                     if self.status.state in ['play']:
