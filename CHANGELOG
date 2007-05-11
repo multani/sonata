@@ -1,6 +1,6 @@
 v1.1.1 - Pending
-	+ Bug: A 2nd instance isn't prevented with dbus/python 2.4 (Sebastian)
 	+ Bug: Incorrect artist can sometimes be set for album art/info (vEX)
+	+ Bug: A 2nd instance isn't prevented with dbus/python 2.4 (Sebastian)
 	+ Bug: Improve handling under tiling WMs like ion3
 
 v1.1 - May 7, 2007

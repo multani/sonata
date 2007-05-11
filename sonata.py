@@ -292,7 +292,7 @@ class Base(mpdclient3.mpd_connection):
         self.art_location_custom_filename = ""
         self.filterbox_visible = False
         self.edit_style_orig = None
-        self.current_artist_for_album_name = [None, ""]
+        self.reset_artist_for_album_name()
         self.hovering_over_link = False
         show_prefs = False
         # For increased responsiveness after the initial load, we cache
@@ -2372,7 +2372,7 @@ class Base(mpdclient3.mpd_connection):
         # If state changes
         if self.prevstatus == None or self.prevstatus.state != self.status.state:
 
-            self.get_new_artist()
+            self.get_new_artist_for_album_name()
 
             # Update progressbar if the state changes too
             self.update_progressbar()
@@ -2422,6 +2422,9 @@ class Base(mpdclient3.mpd_connection):
             elif self.prevstatus == None or self.prevstatus.get('updating_db', 0) != self.status.get('updating_db', 0):
                 if not (self.status and self.status.get('updating_db', 0)):
                     self.update_statusbar(False)
+                    # We need to make sure that we update the artist in case tags have changed:
+                    self.reset_artist_for_album_name()
+                    self.get_new_artist_for_album_name()
                     # Resetting albums_root and artists_root to None will cause
                     # the two lists to update to the new contents
                     self.albums_root = None
@@ -2433,9 +2436,9 @@ class Base(mpdclient3.mpd_connection):
                     if self.infowindow_visible:
                         self.infowindow_update(update_all=True)
 
-    def get_new_artist(self):
+    def get_new_artist_for_album_name(self):
         if self.songinfo and self.songinfo.has_key('album'):
-            self.artist_for_album_name()
+            self.set_artist_for_album_name()
         elif self.songinfo and self.songinfo.has_key('artist'):
             self.current_artist_for_album_name = [self.songinfo, self.songinfo.artist]
         elif not self.songinfo:
@@ -2455,7 +2458,7 @@ class Base(mpdclient3.mpd_connection):
                 self.keep_song_visible_in_list()
             self.prev_boldrow = row
 
-        self.get_new_artist()
+        self.get_new_artist_for_album_name()
 
         self.update_cursong()
         self.update_wintitle()
@@ -3673,7 +3676,7 @@ class Base(mpdclient3.mpd_connection):
                         self.infowindow_show_lyrics("", "", "", True)
                     self.albuminfoBuffer.set_text("")
 
-    def artist_for_album_name(self):
+    def set_artist_for_album_name(self):
         # Determine if album_name is a various artists album. We'll use a little
         # bit of hard-coded logic and assume that an album is a VA album if
         # there are more than 3 artists with the same album_name. The reason for
@@ -3697,6 +3700,9 @@ class Base(mpdclient3.mpd_connection):
             return_artist = _("Various Artists")
         self.current_artist_for_album_name = [self.songinfo, return_artist]
         return return_artist
+
+    def reset_artist_for_album_name(self):
+        self.current_artist_for_album_name = [None, ""]
 
     def infowindow_show_now(self):
         self.infowindow.show_all()
