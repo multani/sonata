@@ -1,6 +1,6 @@
 v1.2
 	switching between user profiles (sonata --profile foo)
-	shortcut/button to save all tagged files
+	button to save all tagged files
 	don't allow vert resize when collapsed
 	fix 'by album', 'by artist', etc for translations
 	clean up on_infowindow_show

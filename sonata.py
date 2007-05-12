@@ -2829,7 +2829,8 @@ class Base(mpdclient3.mpd_connection):
                 return True
             if filename == self.target_image_filename(self.ART_LOCATION_CUSTOM):
                 return True
-            if self.single_img_in_dir:
+            if self.single_img_in_dir and self.songinfo:
+                songdir = os.path.dirname(self.songinfo.file)
                 if filename == self.musicdir + songdir + "/" + self.single_img_in_dir:
                     return True
         # If we got this far, no match:
@@ -5096,6 +5097,7 @@ class Base(mpdclient3.mpd_connection):
             self.UIManager.get_widget('/mainmenu/editmenu/').hide()
         elif self.notebook.get_current_page() == self.TAB_LIBRARY:
             if len(self.browserdata) > 0:
+                self.UIManager.get_widget('/mainmenu/updatemenu/').show()
                 if self.browser_selection.count_selected_rows() > 0:
                     self.UIManager.get_widget('/mainmenu/addmenu/').show()
                     self.UIManager.get_widget('/mainmenu/replacemenu/').show()
@@ -5106,7 +5108,6 @@ class Base(mpdclient3.mpd_connection):
                 else:
                     self.UIManager.get_widget('/mainmenu/addmenu/').hide()
                     self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
-                self.UIManager.get_widget('/mainmenu/updatemenu/').show()
             else:
                 self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
             self.UIManager.get_widget('/mainmenu/removemenu/').hide()
@@ -5134,6 +5135,7 @@ class Base(mpdclient3.mpd_connection):
             self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
             self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
         elif self.notebook.get_current_page() == self.TAB_STREAMS:
+            self.UIManager.get_widget('/mainmenu/newmenu/').show()
             if self.streams_selection.count_selected_rows() > 0:
                 if self.streams_selection.count_selected_rows() == 1:
                     self.UIManager.get_widget('/mainmenu/editmenu/').show()
@@ -5146,7 +5148,6 @@ class Base(mpdclient3.mpd_connection):
                 self.UIManager.get_widget('/mainmenu/addmenu/').hide()
                 self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
                 self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/newmenu/').show()
             self.UIManager.get_widget('/mainmenu/removemenu/').hide()
             self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
             self.UIManager.get_widget('/mainmenu/savemenu/').hide()
@@ -5487,13 +5488,23 @@ class Base(mpdclient3.mpd_connection):
             except:
                 self.tagpy_is_91 = True
         if self.tagpy_is_91 == False:
-            return tag[field]()
+            try:
+                return tag[field]().strip()
+            except:
+                return tag[field]()
         else:
-            return tag[field]
+            try:
+                return tag[field].strip()
+            except:
+                return tag[field]
 
     def tagpy_set_tag(self, tag, field, value):
         # Since tagpy went through an API change from 0.90.1 to 0.91, we'll
         # implement both methods of setting the tag:
+        try:
+            value = value.strip()
+        except:
+            pass
         if field=='artist':
             if self.tagpy_is_91 == False:
                 tag.setArtist(value)
@@ -5556,12 +5567,10 @@ class Base(mpdclient3.mpd_connection):
             self.tagpy_set_tag(filetag.tag(), 'genre', entries[5].get_text())
             self.tagpy_set_tag(filetag.tag(), 'comment', entries[6].get_text())
             save_success = filetag.save()
-            if save_success:
-                if self.conn:
-                    if self.status:
-                        while self.status.get('updating_db', 0):
-                            gtk.main_iteration()
-                    self.conn.do.update(tags[self.tagnum]['mpdpath'])
+            if save_success and self.conn and self.status:
+                while self.status.get('updating_db', 0):
+                    gtk.main_iteration()
+                self.conn.do.update(tags[self.tagnum]['mpdpath'])
             else:
                 error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("Unable to save tag to music file."))
                 error_dialog.set_title(_("Edit Tags"))
