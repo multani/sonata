@@ -1,4 +1,5 @@
 v1.1.1 - Pending
+	+ Add Swedish translation (Daniel Nylander)
 	+ Bug: Incorrect artist can sometimes be set for album art/info (vEX)
 	+ Bug: A 2nd instance isn't prevented with dbus/python 2.4 (Sebastian)
 	+ Bug: Improve handling under tiling WMs like ion3
