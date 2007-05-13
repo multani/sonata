@@ -3612,9 +3612,9 @@ class Base(mpdclient3.mpd_connection):
                             tracks = self.browse_search_album(self.songinfo.album)
                             for track in tracks:
                                 if track.has_key('title'):
-                                    trackinfo = trackinfo + self.sanitize_tracknum(self.songinfo.track, False, 2) + ' - ' + track.title + '\n'
+                                    trackinfo = trackinfo + self.sanitize_tracknum(track.track, False, 2) + ' - ' + track.title + '\n'
                                 else:
-                                    trackinfo = trackinfo + self.sanitize_tracknum(self.songinfo.track, False, 2) + ' - ' + track.file.split('/')[-1] + '\n'
+                                    trackinfo = trackinfo + self.sanitize_tracknum(track.track, False, 2) + ' - ' + track.file.split('/')[-1] + '\n'
                                 if track.has_key('date'):
                                     year.append(track.date)
                                 try:
