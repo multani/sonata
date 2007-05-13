@@ -1087,10 +1087,7 @@ class Base(mpdclient3.mpd_connection):
                     print _("Artist") + ": " + getattr(self.songinfo, 'artist', '')
                     print _("Album") + ": " + getattr(self.songinfo, 'album', '')
                     print _("Date") + ": " + getattr(self.songinfo, 'date', '')
-                    try:
-                        print _("Track") + ": " + str(int(self.songinfo.track.split('/')[0])).zfill(2)
-                    except:
-                        pass
+                    print _("Track") + ": " + self.sanitize_tracknum(self.songinfo.track, False, 2)
                     print _("Genre") + ": " + getattr(self.songinfo, 'genre', '')
                     print _("File") + ": " + os.path.basename(self.songinfo.file)
                     at, length = [int(c) for c in self.status.time.split(':')]
@@ -1869,7 +1866,7 @@ class Base(mpdclient3.mpd_connection):
                 # Make sure it's an exact match:
                 if album.lower() == item.album.lower():
                     list.append(item)
-        list.sort(key=lambda x: int(getattr(x, 'track', '0').split('/')[0]))
+        list.sort(key=lambda x: self.sanitize_tracknum(getattr(x, 'track', '0'), True))
         return list
 
     def browse_search_artist(self, artist):
@@ -1903,7 +1900,7 @@ class Base(mpdclient3.mpd_connection):
                     elif not item.has_key('date'):
                         # Only show songs that have no year specified:
                         list.append(item)
-        list.sort(key=lambda x: int(getattr(x, 'track', '0').split('/')[0]))
+        list.sort(key=lambda x: self.sanitize_tracknum(getattr(x, 'track', '0'), True))
         return list
 
     def browser_retain_preupdate_selection(self, prev_selection, prev_selection_root, prev_selection_parent):
@@ -1998,7 +1995,7 @@ class Base(mpdclient3.mpd_connection):
                 else: return ""
         if "%T" in text:
             try:
-                text = text.replace("%T", str(int(item.track.split('/')[0])).zfill(2))
+                text = text.replace("%T", self.sanitize_tracknum(item.track, False, 2))
             except:
                 if not has_brackets: text = text.replace("%T", "0")
                 else: return ""
@@ -3600,10 +3597,7 @@ class Base(mpdclient3.mpd_connection):
                         self.infowindow_albumlabel.set_text(getattr(self.songinfo, 'album', ''))
                         self.infowindow_datelabel.set_text(getattr(self.songinfo, 'date', ''))
                         self.infowindow_genrelabel.set_text(getattr(self.songinfo, 'genre', ''))
-                        try:
-                            self.infowindow_tracklabel.set_text(str(int(self.songinfo.track.split('/')[0])).zfill(2))
-                        except:
-                            self.infowindow_tracklabel.set_text('')
+                        self.infowindow_tracklabel.set_text(self.sanitize_tracknum(self.songinfo.track, False, 2))
                         if os.path.exists(self.musicdir + os.path.dirname(self.songinfo.file)):
                             self.infowindow_pathlabel.set_text(self.musicdir + os.path.dirname(self.songinfo.file))
                         else:
@@ -3618,9 +3612,9 @@ class Base(mpdclient3.mpd_connection):
                             tracks = self.browse_search_album(self.songinfo.album)
                             for track in tracks:
                                 if track.has_key('title'):
-                                    trackinfo = trackinfo + getattr(track, 'track', '0').split('/')[0].zfill(2) + ' - ' + track.title + '\n'
+                                    trackinfo = trackinfo + self.sanitize_tracknum(self.songinfo.track, False, 2) + ' - ' + track.title + '\n'
                                 else:
-                                    trackinfo = trackinfo + getattr(track, 'track', '0').split('/')[0].zfill(2) + ' - ' + track.file.split('/')[-1] + '\n'
+                                    trackinfo = trackinfo + self.sanitize_tracknum(self.songinfo.track, False, 2) + ' - ' + track.file.split('/')[-1] + '\n'
                                 if track.has_key('date'):
                                     year.append(track.date)
                                 try:
@@ -5803,6 +5797,27 @@ class Base(mpdclient3.mpd_connection):
                                 error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _('Unable to launch a suitable browser.'))
                                 error_dialog.run()
                                 error_dialog.destroy()
+
+    def sanitize_tracknum(self, mpdtrack, return_int=False, str_padding=0):
+        # Takes the mpd outfor for tracknum and tries to convert it to
+        # simply the track number. Known forms for the mpd output
+        # can be "4", "4/10", and "4,10".
+        try:
+            if return_int:
+                return int(mpdtrack.split('/')[0])
+            else:
+                return str(int(mpdtrack.split('/')[0])).zfill(str_padding)
+        except:
+            try:
+                if return_int:
+                    return int(mpdtrack.split(',')[0])
+                else:
+                    return str(int(mpdtrack.split(',')[0])).zfill(str_padding)
+            except:
+                if return_int:
+                    return 0
+                else:
+                    return ""
 
     def searchfilter_toggle(self, widget):
         if self.filterbox_visible:
