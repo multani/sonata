@@ -421,7 +421,6 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="savemenu"/>
                 <menuitem action="edittagmenu"/>
                 <menuitem action="rmmenu"/>
-                <menuitem action="updatemenu"/>
                 <menu action="sortmenu">
                   <menuitem action="sortbytitle"/>
                   <menuitem action="sortbyartist"/>
@@ -433,6 +432,7 @@ class Base(mpdclient3.mpd_connection):
                 </menu>
                 <menuitem action="songinfo_menu"/>
                 <separator name="FM1"/>
+                <menuitem action="updatemenu"/>
                 <menuitem action="repeatmenu"/>
                 <menuitem action="shufflemenu"/>
                 <separator name="FM2"/>
