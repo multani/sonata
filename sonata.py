@@ -507,6 +507,7 @@ class Base(mpdclient3.mpd_connection):
 
         if self.window_owner:
             self.window.set_title('Sonata')
+            self.window.set_role('mainWindow')
             self.window.set_resizable(True)
             if self.ontop:
                 self.window.set_keep_above(True)
@@ -1532,6 +1533,7 @@ class Base(mpdclient3.mpd_connection):
             dialog.set_title(_("Edit Stream"))
         else:
             dialog.set_title(_("New Stream"))
+        dialog.set_role("streamsNew")
         hbox = gtk.HBox()
         namelabel = gtk.Label(_('Stream name') + ':')
         hbox.pack_start(namelabel, False, False, 5)
@@ -1565,6 +1567,7 @@ class Base(mpdclient3.mpd_connection):
                             # show error here
                             error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("A stream with this name already exists."))
                             error_dialog.set_title(_("New Stream"))
+                            error_dialog.set_role('newStreamError')
                             error_dialog.run()
                             error_dialog.destroy()
                             return
@@ -1583,6 +1586,7 @@ class Base(mpdclient3.mpd_connection):
         if self.conn:
             # Prompt user for playlist name:
             dialog = gtk.Dialog(_("Save Playlist"), self.window, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT))
+            dialog.set_role('savePlaylist')
             hbox = gtk.HBox()
             hbox.pack_start(gtk.Label(_('Playlist name') + ':'), False, False, 5)
             entry = gtk.Entry()
@@ -1605,6 +1609,7 @@ class Base(mpdclient3.mpd_connection):
                             # show error here
                             error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("A playlist with this name already exists."))
                             error_dialog.set_title(_("Save Playlist"))
+                            error_dialog.set_role('savePlaylistError')
                             error_dialog.run()
                             error_dialog.destroy()
                             return
@@ -3393,6 +3398,7 @@ class Base(mpdclient3.mpd_connection):
             return
         self.infowindow = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.infowindow.set_title(_('Song Info'))
+        self.infowindow.set_role('songInfo')
         if self.infowindow_h > -1 and self.infowindow_w > -1:
             self.infowindow.set_size_request(self.infowindow_w, self.infowindow_h)
         self.infowindow.set_geometry_hints(min_width=1, min_height=1)
@@ -3936,6 +3942,7 @@ class Base(mpdclient3.mpd_connection):
             choose_dialog = gtk.Dialog(_("Choose Cover Art"), self.infowindow, gtk.DIALOG_MODAL, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
         else:
             choose_dialog = gtk.Dialog(_("Choose Cover Art"), self.window, gtk.DIALOG_MODAL, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
+        choose_dialog.set_role('chooseCoverArt')
         choosebutton = choose_dialog.add_button(_("Choose"), gtk.RESPONSE_ACCEPT)
         chooseimage = gtk.Image()
         chooseimage.set_from_stock(gtk.STOCK_CONVERT, gtk.ICON_SIZE_BUTTON)
@@ -4322,6 +4329,7 @@ class Base(mpdclient3.mpd_connection):
             elif page_num == self.TAB_PLAYLISTS:
                 dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_YES_NO, _("Delete the selected playlist(s)?"))
                 dialog.set_title(_("Delete Playlist(s)"))
+                dialog.set_role('deletePlaylist')
                 response = dialog.run()
                 if response == gtk.RESPONSE_YES:
                     dialog.destroy()
@@ -4335,6 +4343,7 @@ class Base(mpdclient3.mpd_connection):
             elif page_num == self.TAB_STREAMS:
                 dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_YES_NO, _("Delete the selected stream(s)?"))
                 dialog.set_title(_("Delete Stream(s)"))
+                dialog.set_role('deleteStreams')
                 response = dialog.run()
                 if response == gtk.RESPONSE_YES:
                     dialog.destroy()
@@ -4381,6 +4390,7 @@ class Base(mpdclient3.mpd_connection):
 
     def prefs(self, widget):
         prefswindow = gtk.Dialog(_("Preferences"), self.window, flags=gtk.DIALOG_DESTROY_WITH_PARENT)
+        prefswindow.set_role('preferences')
         prefswindow.set_resizable(False)
         prefswindow.set_has_separator(False)
         hbox = gtk.HBox()
@@ -4748,6 +4758,7 @@ class Base(mpdclient3.mpd_connection):
                         filename = self.art_location_custom_filename
                     error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("To save artwork as") + " " + filename + ", " + _("you must specify a valid music directory."))
                     error_dialog.set_title(_("Artwork Verification"))
+                    error_dialog.set_role('artworkVerificationError')
                     error_dialog.run()
                     error_dialog.destroy()
                     # Set music_dir entry focused:
@@ -4874,6 +4885,7 @@ class Base(mpdclient3.mpd_connection):
     def get_art_location_custom(self, combobox):
         # Prompt user for playlist name:
         dialog = gtk.Dialog(_("Custom Artwork"), self.window, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
+        dialog.set_role('customArtwork')
         hbox = gtk.HBox()
         hbox.pack_start(gtk.Label(_('Artwork filename') + ':'), False, False, 5)
         entry = gtk.Entry()
@@ -5179,6 +5191,7 @@ class Base(mpdclient3.mpd_connection):
         if not os.path.isdir(self.musicdir):
             error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("The path") + " " + self.musicdir + " " + _("does not exist. Please specify a valid music directory in preferences."))
             error_dialog.set_title(_("Edit Tags"))
+            error_dialog.set_role('editTagsError')
             error_dialog.connect('response', self.choose_image_dialog_response)
             error_dialog.show()
             return
@@ -5217,6 +5230,7 @@ class Base(mpdclient3.mpd_connection):
             self.change_cursor(None)
             error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No music files with editable tags found."))
             error_dialog.set_title(_("Edit Tags"))
+            error_dialog.set_role('editTagsError')
             error_dialog.connect('response', self.choose_image_dialog_response)
             error_dialog.show()
             return
@@ -5224,6 +5238,7 @@ class Base(mpdclient3.mpd_connection):
             editwindow = gtk.Dialog("", self.window, gtk.DIALOG_MODAL)
         else:
             editwindow = gtk.Dialog("", self.infowindow, gtk.DIALOG_MODAL)
+        editwindow.set_role('editTags')
         editwindow.set_size_request(375, -1)
         editwindow.set_resizable(False)
         editwindow.set_has_separator(False)
@@ -5568,6 +5583,7 @@ class Base(mpdclient3.mpd_connection):
             else:
                 error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("Unable to save tag to music file."))
                 error_dialog.set_title(_("Edit Tags"))
+                error_dialog.set_role('editTagsError')
                 error_dialog.connect('response', self.choose_image_dialog_response)
                 error_dialog.show()
             if self.edit_next_tag(tags):
@@ -5711,6 +5727,7 @@ class Base(mpdclient3.mpd_connection):
                 [ _("Playlist Shortcuts"), playlistshortcuts ],
                 [ _("Stream Shortcuts"), streamshortcuts ]]
         dialog = gtk.Dialog(_("Shortcuts"), self.about_dialog, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE))
+        dialog.set_role('shortcuts')
         dialog.set_default_response(gtk.RESPONSE_CLOSE)
         dialog.set_size_request(-1, 320)
         scrollbox = gtk.ScrolledWindow()
@@ -5795,6 +5812,7 @@ class Base(mpdclient3.mpd_connection):
                                 pid = subprocess.Popen(["opera", docslink]).pid
                             except:
                                 error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _('Unable to launch a suitable browser.'))
+                                error_dialog.set_role('browserLoadError')
                                 error_dialog.run()
                                 error_dialog.destroy()
 
