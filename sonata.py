@@ -5637,6 +5637,7 @@ class Base(mpdclient3.mpd_connection):
         except:
             pass
         self.about_dialog.set_name('Sonata')
+        self.about_dialog.set_role('about')
         self.about_dialog.set_version(__version__)
         commentlabel = _('An elegant music client for MPD.')
         self.about_dialog.set_comments(commentlabel)
