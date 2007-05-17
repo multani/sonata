@@ -3076,7 +3076,7 @@ class Base(mpdclient3.mpd_connection):
         # before this current click
         window_about_to_be_expanded = not self.expander.get_expanded()
         if window_about_to_be_expanded:
-            if self.window.get_size()[1] == currheight:
+            if self.window.get_size()[1] == self.h:
                 # For WMs like ion3, the app will not actually resize
                 # when in collapsed mode, so prevent the waiting
                 # of the player to expand from happening:

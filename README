@@ -10,7 +10,7 @@ REQUIREMENTS:
 	(Optional) MPD
 	(Optional) Gnome-python-extras for the system tray icon
 	           (if PyGTK >= 2.10, no need for gnome-python-extras)
-	(Optional) taglib and tagpy 0.91 for editing metadata
+	(Optional) taglib and tagpy for editing metadata
 	(Optional) SOAPpy for automatic lyrics fetching
 	(Building) GCC
 	(Building) python-dev (on some distros)
