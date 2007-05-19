@@ -2,7 +2,7 @@
 # $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/sonata.py $
 # $Id: sonata.py 141 2006-09-11 04:51:07Z stonecrest $
 
-__version__ = "1.1"
+__version__ = "1.1.1"
 
 __license__ = """
 Sonata, an elegant GTK+ client for the Music Player Daemon
@@ -1088,7 +1088,7 @@ class Base(mpdclient3.mpd_connection):
                     print _("Artist") + ": " + getattr(self.songinfo, 'artist', '')
                     print _("Album") + ": " + getattr(self.songinfo, 'album', '')
                     print _("Date") + ": " + getattr(self.songinfo, 'date', '')
-                    print _("Track") + ": " + self.sanitize_tracknum(self.songinfo.track, False, 2)
+                    print _("Track") + ": " + self.sanitize_tracknum(getattr(self.songinfo, 'track', '0'), False, 2)
                     print _("Genre") + ": " + getattr(self.songinfo, 'genre', '')
                     print _("File") + ": " + os.path.basename(self.songinfo.file)
                     at, length = [int(c) for c in self.status.time.split(':')]
@@ -3603,7 +3603,7 @@ class Base(mpdclient3.mpd_connection):
                         self.infowindow_albumlabel.set_text(getattr(self.songinfo, 'album', ''))
                         self.infowindow_datelabel.set_text(getattr(self.songinfo, 'date', ''))
                         self.infowindow_genrelabel.set_text(getattr(self.songinfo, 'genre', ''))
-                        self.infowindow_tracklabel.set_text(self.sanitize_tracknum(self.songinfo.track, False, 2))
+                        self.infowindow_tracklabel.set_text(self.sanitize_tracknum(getattr(self.songinfo, 'track', '0'), False, 2))
                         if os.path.exists(self.musicdir + os.path.dirname(self.songinfo.file)):
                             self.infowindow_pathlabel.set_text(self.musicdir + os.path.dirname(self.songinfo.file))
                         else:
@@ -3618,9 +3618,9 @@ class Base(mpdclient3.mpd_connection):
                             tracks = self.browse_search_album(self.songinfo.album)
                             for track in tracks:
                                 if track.has_key('title'):
-                                    trackinfo = trackinfo + self.sanitize_tracknum(track.track, False, 2) + ' - ' + track.title + '\n'
+                                    trackinfo = trackinfo + self.sanitize_tracknum(getattr(track, 'track', '0'), False, 2) + ' - ' + track.title + '\n'
                                 else:
-                                    trackinfo = trackinfo + self.sanitize_tracknum(track.track, False, 2) + ' - ' + track.file.split('/')[-1] + '\n'
+                                    trackinfo = trackinfo + self.sanitize_tracknum(getattr(track, 'track', '0'), False, 2) + ' - ' + track.file.split('/')[-1] + '\n'
                                 if track.has_key('date'):
                                     year.append(track.date)
                                 try:

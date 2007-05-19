@@ -1,4 +1,4 @@
-v1.1.1 - Pending
+v1.1.1 - May 18, 2007
 	+ Add Swedish translation (Daniel Nylander)
 	+ Bug: Incorrect artist can sometimes be set for album art/info (vEX)
 	+ Bug: Artwork isn't set when there is a single image in the song's dir
