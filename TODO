@@ -12,10 +12,18 @@ Future:
 	connect in background via socket.setblocking(0)
 	libnotify?
 	test multiple streams at once..
-	local amazon sites (i.e. amazon.de)?
-	rename playlist (not possible..)
 	crop songs in current playlist?
 	genre mode (genre -> artist -> album)
 	columns in current/library
 	statistics
 	hover over album art -> show larger image in borderless popup after 0.5 sec?
+	better playlist support (mpd 0.13 only):
+		current tab:
+			- save... >
+				new playlist
+				to 'playlist1'
+				to 'playlist2'
+				...
+		playlist tab:
+			ability to view songs, reorder songs, remove songs, etc
+		rename playlist? not yet possible..
