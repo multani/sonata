@@ -2398,6 +2398,9 @@ class Base(mpdclient3.mpd_connection):
             if self.as_elapsed_time == 30000:
                 # If 30 seconds have elapsed for this song, submit track to audioscrobbler:
                 self.update_scrobbler()
+            elif self.as_elapsed_time > 100000:
+                # Prevent ridiculously large numbers...
+                self.as_elapsed_time = 30000 + self.iterate_time_when_connected
 
         # If elapsed time is shown in the window title, we need to update more often:
         if "%E" in self.titleformat:
