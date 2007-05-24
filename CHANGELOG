@@ -1,3 +1,6 @@
+v1.2 - Pending
+	+ Audioscrobbler support (requires python-elementtree) (Owen)
+
 v1.1.1 - May 18, 2007
 	+ Add Swedish translation (Daniel Nylander)
 	+ Bug: Incorrect artist can sometimes be set for album art/info (vEX)

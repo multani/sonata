@@ -82,6 +82,13 @@ except:
     HAVE_DBUS = False
 
 try:
+    import audioscrobbler
+    import time
+    HAVE_AUDIOSCROBBLER = True
+except:
+    HAVE_AUDIOSCROBBLER = False
+
+try:
     from sugar.activity import activity
     HAVE_STATUS_ICON = False
     HAVE_SUGAR = True
@@ -190,6 +197,8 @@ class Base(mpdclient3.mpd_connection):
             print "SOAPpy not found, fetching lyrics support disabled."
         if not HAVE_EGG and not HAVE_STATUS_ICON:
             print "PyGTK+ 2.10 or gnome-python-extras not found, system tray support disabled."
+        if not HAVE_AUDIOSCROBBLER:
+            print "Python-elementtree not found, audioscrobbler support disabled."
 
         start_dbus_interface(toggle_arg)
 
@@ -294,19 +303,19 @@ class Base(mpdclient3.mpd_connection):
         self.edit_style_orig = None
         self.reset_artist_for_album_name()
         self.hovering_over_link = False
+        self.use_scrobbler = False
+        self.as_username = ""
+        self.as_password = ""
+        self.as_elapsed_time = 0
         show_prefs = False
-        # For increased responsiveness after the initial load, we cache
-        # the root artist and album view results and simply refresh on
-        # any mpd update
+        # For increased responsiveness after the initial load, we cache the root artist and
+        # album view results and simply refresh on any mpd update
         self.albums_root = None
         self.artists_root = None
-        # If the connection to MPD times out, this will cause the
-        # interface to freeze while the socket.connect() calls
-        # are repeatedly executed. Therefore, if we were not
-        # able to make a connection, slow down the iteration
-        # check to once every 15 seconds.
-        # Eventually we'd like to ues non-blocking sockets in
-        # mpdclient3.py
+        # If the connection to MPD times out, this will cause the interface to freeze while
+        # the socket.connect() calls are repeatedly executed. Therefore, if we were not
+        # able to make a connection, slow down the iteration check to once every 15 seconds.
+        # Eventually we'd like to ues non-blocking sockets in mpdclient3.py
         self.iterate_time_when_connected = 500
         self.iterate_time_when_disconnected = 15000
 
@@ -359,10 +368,10 @@ class Base(mpdclient3.mpd_connection):
             ('addmenu', gtk.STOCK_ADD, _('_Add'), '<Ctrl>d', None, self.add_item),
             ('replacemenu', gtk.STOCK_REDO, _('_Replace'), '<Ctrl>r', None, self.replace_item),
             ('rmmenu', None, _('_Delete...'), None, None, self.remove),
-            ('sortbyartist', None, _('By') + ' ' + _('Artist'), None, None, self.on_sort_by_artist),
-            ('sortbyalbum', None, _('By') + ' ' + _('Album'), None, None, self.on_sort_by_album),
-            ('sortbytitle', None, _('By') + ' ' + _('Song Title'), None, None, self.on_sort_by_title),
-            ('sortbyfile', None, _('By') + ' ' + _('File Name'), None, None, self.on_sort_by_file),
+            ('sortbyartist', None, _('By Artist'), None, None, self.on_sort_by_artist),
+            ('sortbyalbum', None, _('By Album'), None, None, self.on_sort_by_album),
+            ('sortbytitle', None, _('By Song Title'), None, None, self.on_sort_by_title),
+            ('sortbyfile', None, _('By File Name'), None, None, self.on_sort_by_file),
             ('sortreverse', None, _('Reverse List'), None, None, self.on_sort_reverse),
             ('sortrandom', None, _('Random'), None, None, self.on_sort_random),
             ('currentkey', None, 'Current Playlist Key', '<Alt>1', None, self.switch_to_current),
@@ -491,6 +500,11 @@ class Base(mpdclient3.mpd_connection):
             self.iterate_time = self.iterate_time_when_disconnected
             self.status = None
             self.songinfo = None
+
+        # Audioscrobbler
+        self.scrob = None
+        self.scrob_post = None
+        self.init_scrobbler()
 
         # Remove the old sonata covers dir (cleanup)
         if os.path.exists(os.path.expanduser('~/.config/sonata/covers/')):
@@ -1431,6 +1445,13 @@ class Base(mpdclient3.mpd_connection):
             for i in range(num_streams):
                 self.stream_names.append(conf.get('streams', 'names[' + str(i) + ']'))
                 self.stream_uris.append(conf.get('streams', 'uris[' + str(i) + ']'))
+        if conf.has_option('audioscrobbler', 'use_audioscrobbler'):
+            self.use_scrobbler = conf.getboolean('audioscrobbler', 'use_audioscrobbler')
+        if conf.has_option('audioscrobbler', 'username'):
+            self.as_username = conf.get('audioscrobbler', 'username')
+        if conf.has_option('audioscrobbler', 'password'):
+            self.as_password = conf.get('audioscrobbler', 'password')
+
 
     def settings_save(self):
         conf = ConfigParser.ConfigParser()
@@ -1487,6 +1508,10 @@ class Base(mpdclient3.mpd_connection):
         for i in range(len(self.stream_names)):
             conf.set('streams', 'names[' + str(i) + ']', self.stream_names[i])
             conf.set('streams', 'uris[' + str(i) + ']', self.stream_uris[i])
+        conf.add_section('audioscrobbler')
+        conf.set('audioscrobbler', 'use_audioscrobbler', self.use_scrobbler)
+        conf.set('audioscrobbler', 'username', self.as_username)
+        conf.set('audioscrobbler', 'password', self.as_password)
         conf.write(file(os.path.expanduser('~/.config/sonata/sonatarc'), 'w'))
 
     def handle_change_conn(self):
@@ -2357,6 +2382,7 @@ class Base(mpdclient3.mpd_connection):
             self.update_wintitle()
             self.update_album_art()
             self.update_statusbar()
+            self.as_elapsed_time = 0
             return
 
         # Display current playlist
@@ -2366,6 +2392,12 @@ class Base(mpdclient3.mpd_connection):
         # Update progress frequently if we're playing
         if self.status.state in ['play', 'pause']:
             self.update_progressbar()
+
+        if self.status.state == 'play' and HAVE_AUDIOSCROBBLER and self.use_scrobbler:
+            self.as_elapsed_time = self.as_elapsed_time + self.iterate_time_when_connected
+            if self.as_elapsed_time == 30000:
+                # If 30 seconds have elapsed for this song, submit track to audioscrobbler:
+                self.update_scrobbler()
 
         # If elapsed time is shown in the window title, we need to update more often:
         if "%E" in self.titleformat:
@@ -2386,6 +2418,7 @@ class Base(mpdclient3.mpd_connection):
                 self.ppbutton.get_child().get_child().get_children()[1].set_text('')
                 self.UIManager.get_widget('/traymenu/playmenu').show()
                 self.UIManager.get_widget('/traymenu/pausemenu').hide()
+                self.as_elapsed_time = 0
             elif self.status.state == 'pause':
                 self.ppbutton.set_image(gtk.image_new_from_stock(gtk.STOCK_MEDIA_PLAY, gtk.ICON_SIZE_BUTTON))
                 self.ppbutton.get_child().get_child().get_children()[1].set_text('')
@@ -2466,6 +2499,22 @@ class Base(mpdclient3.mpd_connection):
         self.update_wintitle()
         self.update_album_art()
         self.infowindow_update(update_all=True)
+
+        self.as_elapsed_time = 0
+
+    def update_scrobbler(self):
+        if HAVE_AUDIOSCROBBLER and self.use_scrobbler:
+            if self.songinfo and self.songinfo.has_key('artist') and self.songinfo.has_key('title'):
+                self.init_scrobbler()
+                if self.scrob_post:
+                    thread = threading.Thread(target=self.scrob_post.posttrack,
+                                            args=(self.songinfo.artist,
+                                                    self.songinfo.title,
+                                                    getattr(self.songinfo, 'time', ''),
+                                                    time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()),
+                                                    getattr(self.songinfo, 'album', '')))
+                    thread.setDaemon(True)
+                    thread.start()
 
     def boldrow(self, row):
         if self.filterbox_visible:
@@ -4495,6 +4544,34 @@ class Base(mpdclient3.mpd_connection):
         table.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table.attach(crossfadebox, 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table.attach(gtk.Label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        # Audioscrobbler tab
+        if HAVE_AUDIOSCROBBLER:
+            # NEEDTOFIX: make more consistent with other tabs
+            as_frame = gtk.Frame(_("last.fm"))
+            as_frame.set_border_width(15)
+            as_vbox = gtk.VBox()
+            as_vbox.set_border_width(15)
+            as_checkbox = gtk.CheckButton(_("Use Audioscrobbler"))
+            as_checkbox.set_active(self.use_scrobbler)
+            as_checkbox.connect('toggled', self.use_scrobbler_toggled)
+            as_vbox.pack_start(as_checkbox, False)
+            as_table = gtk.Table(2, 2)
+            as_table.set_col_spacings(3)
+            as_user_label = gtk.Label(_("Username:"))
+            as_pass_label = gtk.Label(_("Password:"))
+            as_user_entry = gtk.Entry()
+            as_user_entry.set_text(self.as_username)
+            as_user_entry.connect('changed', self.prefs_as_username_changed)
+            as_pass_entry = gtk.Entry()
+            as_pass_entry.set_visibility(False)
+            as_pass_entry.set_text(self.as_password)
+            as_pass_entry.connect('changed', self.prefs_as_password_changed)
+            as_table.attach(as_user_label, 0, 1, 0, 1)
+            as_table.attach(as_user_entry, 1, 2, 0, 1)
+            as_table.attach(as_pass_label, 0, 1, 1, 2)
+            as_table.attach(as_pass_entry, 1, 2, 1, 2)
+            as_vbox.pack_start(as_table, False)
+            as_frame.add(as_vbox)
         # Display tab
         table2 = gtk.Table(7, 2, False)
         displaylabel = gtk.Label()
@@ -4724,10 +4801,14 @@ class Base(mpdclient3.mpd_connection):
         nblabel3.set_text_with_mnemonic(_("_Behavior"))
         nblabel4 = gtk.Label()
         nblabel4.set_text_with_mnemonic(_("_Format"))
+        nblabel5 = gtk.Label()
+        nblabel5.set_text_with_mnemonic(_("_Extras"))
         prefsnotebook.append_page(table, nblabel1)
         prefsnotebook.append_page(table2, nblabel2)
         prefsnotebook.append_page(table3, nblabel3)
         prefsnotebook.append_page(table4, nblabel4)
+        if HAVE_AUDIOSCROBBLER:
+            prefsnotebook.append_page(as_frame, nblabel5)
         hbox.pack_start(prefsnotebook, False, False, 10)
         prefswindow.vbox.pack_start(hbox, False, False, 10)
         close_button = prefswindow.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
@@ -4735,6 +4816,43 @@ class Base(mpdclient3.mpd_connection):
         close_button.grab_focus()
         prefswindow.connect('response', self.prefs_window_response, prefsnotebook, exit_stop, activate, win_ontop, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, hostentry, portentry, passwordentry)
         response = prefswindow.show()
+
+    def init_scrobbler(self):
+        if HAVE_AUDIOSCROBBLER and self.use_scrobbler:
+            if self.scrob is None:
+                self.scrob = audioscrobbler.AudioScrobbler()
+            if self.scrob_post is None:
+                self.scrob_post = self.scrob.post(self.as_username, self.as_password, verbose=True)
+            else:
+                if self.scrob_post.authenticated:
+                    return # We are authenticated
+                else:
+                    self.scrob_post = self.scrob.post(self.as_username, self.as_password, verbose=True)
+
+            try:
+                self.scrob_post.auth()
+            except Exception, e:
+                print "Error authenticating audioscrobbler"
+                self.scrob_post = None
+
+    def use_scrobbler_toggled(self, checkbox):
+        if HAVE_AUDIOSCROBBLER:
+            self.use_scrobbler = checkbox.get_active()
+            self.init_scrobbler()
+
+    def prefs_as_username_changed(self, entry):
+        if HAVE_AUDIOSCROBBLER:
+            self.as_username = entry.get_text()
+            if self.scrob_post:
+                if self.scrob_post.authenticated:
+                    self.scrob_post = None
+
+    def prefs_as_password_changed(self, entry):
+        if HAVE_AUDIOSCROBBLER:
+            self.as_password = entry.get_text()
+            if self.scrob_post:
+                if self.scrob_post.authenticated:
+                    self.scrob_post = None
 
     def prefs_window_response(self, window, response, prefsnotebook, exit_stop, activate, win_ontop, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, hostentry, portentry, passwordentry):
         if response == gtk.RESPONSE_CLOSE:
@@ -4820,6 +4938,8 @@ class Base(mpdclient3.mpd_connection):
                 else:
                     self.iterate_time = self.iterate_time_when_disconnected
                     self.browserdata.clear()
+            if self.use_scrobbler:
+                gobject.idle_add(self.init_scrobbler)
             self.settings_save()
             self.change_cursor(None)
         window.destroy()

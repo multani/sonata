@@ -1,8 +1,8 @@
 v1.2
+	audioscrobbler - consistency of pref tab; move song notif there?
 	switching between user profiles (sonata --profile foo)
 	button to save all tagged files
 	don't allow vert resize when collapsed
-	fix 'by album', 'by artist', etc for translations
 	clean up on_infowindow_show
 	include album/artist in remote artwork window
 	
