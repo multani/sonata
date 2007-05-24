@@ -25,7 +25,7 @@ setup(name='Sonata',
             'Programming Language :: Python',
             'Topic :: Multimedia :: Sound :: Players',
             ],
-        py_modules = ['sonata', 'mpdclient3'],
+        py_modules = ['sonata', 'mpdclient3', 'audioscrobbler'],
         ext_modules=[Extension(
         "mmkeys", ["mmkeys/mmkeyspy.c", "mmkeys/mmkeys.c", "mmkeys/mmkeysmodule.c"],
         extra_compile_args=capture("pkg-config --cflags gtk+-2.0 pygtk-2.0").split(),
