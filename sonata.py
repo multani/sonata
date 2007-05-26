@@ -4194,6 +4194,7 @@ class Base(mpdclient3.mpd_connection):
         self.window.move(self.x, self.y)
         if not self.expanded:
             self.notebook.set_no_show_all(True)
+            self.statusbar.set_no_show_all(True)
         self.window.show_all()
         if self.infowindow_visible:
             self.infowindow.show_all()
