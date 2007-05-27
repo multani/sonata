@@ -4354,7 +4354,7 @@ class Base(mpdclient3.mpd_connection):
         self.stop(None)
 
     def mmprev(self, keys, key):
-            self.prev(None)
+        self.prev(None)
 
     def mmnext(self, keys, key):
         self.next(None)
@@ -6412,6 +6412,26 @@ if HAVE_DBUS:
         def __init__(self, bus_name, object_path, window=None, sugar=False):
             dbus.service.Object.__init__(self, bus_name, object_path)
             Base.__init__(self, window, sugar)
+            try:
+                bus = dbus.SessionBus()
+                settingsDaemonObj = bus.get_object('org.gnome.SettingsDaemon', '/org/gnome/SettingsDaemon')
+                settingsDaemonInterface = dbus.Interface(settingsDaemonObj, 'org.gnome.SettingsDaemon')
+                settingsDaemonInterface.GrabMediaPlayerKeys('Sonata', 0)
+                settingsDaemonInterface .connect_to_signal('MediaPlayerKeyPressed', self.mediaPlayerKeysCallback)
+                HAVE_MMKEYS = False
+            except:
+                pass
+
+        def mediaPlayerKeysCallback(self, app, key):
+            if app == 'Sonata':
+                if key in ('Play', 'PlayPause', 'Pause'):
+                    self.pp(None)
+                elif key == 'Stop':
+                    self.stop(None)
+                elif key == 'Previous':
+                    self.prev(None)
+                elif key == 'Next':
+                    self.next(None)
 
         @dbus.service.method('org.MPD.SonataInterface')
         def show(self):

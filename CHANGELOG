@@ -1,5 +1,6 @@
 v1.2 - Pending
 	+ Audioscrobbler support (requires python-elementtree) (Owen)
+	+ Bug: Multimedia keys no longer work in Gnome 2.18 (Florian)
 	+ Bug: Hide statusbar in collapse mode when showing from systray
 
 v1.1.1 - May 18, 2007

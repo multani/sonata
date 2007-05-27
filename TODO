@@ -5,6 +5,7 @@ v1.2
 	don't allow vert resize when collapsed
 	clean up on_infowindow_show
 	include album/artist in remote artwork window
+	fix filename saving on non utf8 systems
 	
 Future:
 	lyrics -> allow user to edit, fetch, refresh, search terms..?
@@ -27,3 +28,4 @@ Future:
 		playlist tab:
 			ability to view songs, reorder songs, remove songs, etc
 		rename playlist? not yet possible..
+	use GtkVolumeButton
