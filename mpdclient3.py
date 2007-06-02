@@ -130,6 +130,7 @@ commands = {
 
     # <string type> <string what>
     ("find",   2): ('%s "%s" "%s"', MANY, '', plitem_delim),
+    ("rename", 2): ('%s "%s" "%s"', ZERO, '', []),
 
     # <string type> <string what>
     ("search", 2): ('%s "%s" "%s"', MANY, '', plitem_delim),

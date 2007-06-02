@@ -364,6 +364,7 @@ class Base(mpdclient3.mpd_connection):
             ('aboutmenu', None, _('_About...'), 'F1', None, self.about),
             ('newmenu', None, _('_New...'), '<Ctrl>n', None, self.streams_new),
             ('editmenu', None, _('_Edit...'), None, None, self.streams_edit),
+            ('renamemenu', None, _('_Rename...'), None, None, self.on_playlist_rename),
             ('edittagmenu', None, _('_Edit Tags...'), None, None, self.edit_tags),
             ('addmenu', gtk.STOCK_ADD, _('_Add'), '<Ctrl>d', None, self.add_item),
             ('replacemenu', gtk.STOCK_REDO, _('_Replace'), '<Ctrl>r', None, self.replace_item),
@@ -429,6 +430,7 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="clearmenu"/>
                 <menuitem action="savemenu"/>
                 <menuitem action="edittagmenu"/>
+                <menuitem action="renamemenu"/>
                 <menuitem action="rmmenu"/>
                 <menu action="sortmenu">
                   <menuitem action="sortbytitle"/>
@@ -1608,10 +1610,35 @@ class Base(mpdclient3.mpd_connection):
         self.iterate_now()
 
     def on_save_playlist(self, action):
+        plname = self.prompt_for_playlist_name(_("Save Playlist"), 'savePlaylist')
+        if plname:
+            if self.playlist_name_exists(_("Save Playlist"), 'savePlaylistError', plname):
+                return
+            self.conn.do.save(plname)
+            self.playlists_populate()
+            self.iterate_now()
+
+    def playlist_name_exists(self, title, role, plname, skip_plname=""):
+        # If the playlist already exists, return True; if the name matches skip_plname or
+        # the playlist doesn't exist, return False.
+        for item in self.conn.do.lsinfo():
+            if item.type == 'playlist':
+                if item.playlist == plname and plname != skip_plname:
+                    # show error here
+                    error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("A playlist with this name already exists."))
+                    error_dialog.set_title(title)
+                    error_dialog.set_role(role)
+                    error_dialog.run()
+                    error_dialog.destroy()
+                    return True
+        return False
+
+    def prompt_for_playlist_name(self, title, role):
+        plname = None
         if self.conn:
             # Prompt user for playlist name:
-            dialog = gtk.Dialog(_("Save Playlist"), self.window, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT))
-            dialog.set_role('savePlaylist')
+            dialog = gtk.Dialog(title, self.window, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT))
+            dialog.set_role(role)
             hbox = gtk.HBox()
             hbox.pack_start(gtk.Label(_('Playlist name') + ':'), False, False, 5)
             entry = gtk.Entry()
@@ -1626,22 +1653,8 @@ class Base(mpdclient3.mpd_connection):
                 plname = plname.replace("\\", "")
                 plname = plname.replace("/", "")
                 plname = plname.replace("\"", "")
-                # Make sure this playlist doesn't already exit:
-                for item in self.conn.do.lsinfo():
-                    if item.type == 'playlist':
-                        if item.playlist == plname:
-                            dialog.destroy()
-                            # show error here
-                            error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("A playlist with this name already exists."))
-                            error_dialog.set_title(_("Save Playlist"))
-                            error_dialog.set_role('savePlaylistError')
-                            error_dialog.run()
-                            error_dialog.destroy()
-                            return
-                self.conn.do.save(plname)
-                self.playlists_populate()
             dialog.destroy()
-            self.iterate_now()
+        return plname
 
     def playlists_populate(self):
         if self.conn:
@@ -1653,6 +1666,24 @@ class Base(mpdclient3.mpd_connection):
             playlistinfo.sort(key=lambda x: x.lower()) # Remove case sensitivity
             for item in playlistinfo:
                 self.playlistsdata.append([gtk.STOCK_JUSTIFY_FILL, item])
+
+    def on_playlist_rename(self, action):
+        plname = self.prompt_for_playlist_name(_("Rename Playlist"), 'renamePlaylist')
+        if plname:
+            model, selected = self.playlists_selection.get_selected_rows()
+            oldname = model.get_value(model.get_iter(selected[0]), 1)
+            if self.playlist_name_exists(_("Rename Playlist"), 'renamePlaylistError', plname, oldname):
+                return
+            self.conn.do.rename(oldname, plname)
+            self.playlists_populate()
+            self.iterate_now()
+            # Re-select item:
+            row = 0
+            for pl in self.playlistsdata:
+                if pl[1] == plname:
+                    self.playlists_selection.select_path((row,))
+                    return
+                row = row + 1
 
     def streams_populate(self):
         self.streamsdata.clear()
@@ -5191,6 +5222,7 @@ class Base(mpdclient3.mpd_connection):
             self.UIManager.get_widget('/mainmenu/songinfo_menu/').show()
             self.UIManager.get_widget('/mainmenu/addmenu/').hide()
             self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/renamemenu/').hide()
             self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
             self.UIManager.get_widget('/mainmenu/removemenu/').hide()
             self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
@@ -5223,6 +5255,7 @@ class Base(mpdclient3.mpd_connection):
                     self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
             self.UIManager.get_widget('/mainmenu/addmenu/').hide()
             self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/renamemenu/').hide()
             self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
             self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
             self.UIManager.get_widget('/mainmenu/newmenu/').hide()
@@ -5245,6 +5278,7 @@ class Base(mpdclient3.mpd_connection):
             self.UIManager.get_widget('/mainmenu/removemenu/').hide()
             self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
             self.UIManager.get_widget('/mainmenu/savemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/renamemenu/').hide()
             self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
             self.UIManager.get_widget('/mainmenu/newmenu/').hide()
             self.UIManager.get_widget('/mainmenu/editmenu/').hide()
@@ -5254,10 +5288,15 @@ class Base(mpdclient3.mpd_connection):
                 self.UIManager.get_widget('/mainmenu/addmenu/').show()
                 self.UIManager.get_widget('/mainmenu/replacemenu/').show()
                 self.UIManager.get_widget('/mainmenu/rmmenu/').show()
+                if self.playlists_selection.count_selected_rows() == 1 and self.mpd_major_version() >= 0.13:
+                    self.UIManager.get_widget('/mainmenu/renamemenu/').show()
+                else:
+                    self.UIManager.get_widget('/mainmenu/renamemenu/').hide()
             else:
                 self.UIManager.get_widget('/mainmenu/addmenu/').hide()
                 self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
                 self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
+                self.UIManager.get_widget('/mainmenu/renamemenu/').hide()
             self.UIManager.get_widget('/mainmenu/removemenu/').hide()
             self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
             self.UIManager.get_widget('/mainmenu/savemenu/').hide()
@@ -5280,6 +5319,7 @@ class Base(mpdclient3.mpd_connection):
                 self.UIManager.get_widget('/mainmenu/addmenu/').hide()
                 self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
                 self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
+            self.UIManager.get_widget('/mainmenu/renamemenu/').hide()
             self.UIManager.get_widget('/mainmenu/removemenu/').hide()
             self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
             self.UIManager.get_widget('/mainmenu/savemenu/').hide()
@@ -5287,6 +5327,17 @@ class Base(mpdclient3.mpd_connection):
             self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
             self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
         self.UIManager.get_widget('/mainmenu/songinfo_menu/').hide()
+
+    def mpd_major_version(self):
+        try:
+            if self.conn:
+                version = getattr(self.conn, "mpd_version", 0.0)
+                parts = version.split(".")
+                return float(parts[0] + "." + parts[1])
+            else:
+                return 0
+        except:
+            return 0
 
     def find_path(self, filename):
         full_filename = None
@@ -6417,8 +6468,7 @@ if HAVE_DBUS:
                 settingsDaemonObj = bus.get_object('org.gnome.SettingsDaemon', '/org/gnome/SettingsDaemon')
                 settingsDaemonInterface = dbus.Interface(settingsDaemonObj, 'org.gnome.SettingsDaemon')
                 settingsDaemonInterface.GrabMediaPlayerKeys('Sonata', 0)
-                settingsDaemonInterface .connect_to_signal('MediaPlayerKeyPressed', self.mediaPlayerKeysCallback)
-                HAVE_MMKEYS = False
+                settingsDaemonInterface.connect_to_signal('MediaPlayerKeyPressed', self.mediaPlayerKeysCallback)
             except:
                 pass
 

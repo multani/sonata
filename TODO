@@ -27,5 +27,4 @@ Future:
 				...
 		playlist tab:
 			ability to view songs, reorder songs, remove songs, etc
-		rename playlist? not yet possible..
 	use GtkVolumeButton

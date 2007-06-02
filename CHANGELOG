@@ -1,5 +1,6 @@
 v1.2 - Pending
 	+ Audioscrobbler support (requires python-elementtree) (Owen)
+	+ Ability to rename playlists (requires mpd >= 0.13)
 	+ Bug: Multimedia keys no longer work in Gnome 2.18 (Florian)
 	+ Bug: Hide statusbar in collapse mode when showing from systray
 
