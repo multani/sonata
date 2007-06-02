@@ -317,6 +317,7 @@ class Base(mpdclient3.mpd_connection):
         # able to make a connection, slow down the iteration check to once every 15 seconds.
         # Eventually we'd like to ues non-blocking sockets in mpdclient3.py
         self.iterate_time_when_connected = 500
+        self.iterate_time_when_connected_and_stopped = 1000 # Slow down polling when stopped
         self.iterate_time_when_disconnected = 15000
 
         self.settings_load()
@@ -1222,6 +1223,8 @@ class Base(mpdclient3.mpd_connection):
                 self.status = self.conn.do.status()
                 try:
                     test = self.status.state
+                    if self.status.state == 'stop':
+                        self.iterate_time = self.iterate_time_when_connected_and_stopped
                 except:
                     self.status = None
                 self.songinfo = self.conn.do.currentsong()
