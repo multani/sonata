@@ -95,7 +95,7 @@ if not HAVE_GNOME_MMKEYS:
         import mmkeys
         HAVE_MMKEYS = True
     except:
-        pass
+        HAVE_MMKEYS = False
 
 try:
     import audioscrobbler
