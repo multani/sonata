@@ -1,5 +1,6 @@
 v1.2
 	audioscrobbler - consistency of pref tab; move song notif there? disable textboxes when unchecked
+		- disable if python-elementtree is not installed
 	switching between user profiles (sonata --profile foo)
 	button to save all tagged files
 	don't allow vert resize when collapsed
