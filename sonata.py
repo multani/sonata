@@ -41,12 +41,6 @@ import threading
 import re
 
 try:
-    import mmkeys
-    HAVE_MMKEYS = True
-except:
-    HAVE_MMKEYS = False
-
-try:
     import gtk
     import pango
     import mpdclient3
@@ -80,6 +74,28 @@ try:
     HAVE_DBUS = True
 except:
     HAVE_DBUS = False
+
+HAVE_GNOME_MMKEYS = False
+if HAVE_DBUS:
+    try:
+        # mmkeys for gnome 2.18+
+        bus = dbus.SessionBus()
+        settingsDaemonObj = bus.get_object('org.gnome.SettingsDaemon', '/org/gnome/SettingsDaemon')
+        settingsDaemonInterface = dbus.Interface(settingsDaemonObj, 'org.gnome.SettingsDaemon')
+        settingsDaemonInterface.GrabMediaPlayerKeys('Sonata', 0)
+        settingsDaemonInterface.connect_to_signal('MediaPlayerKeyPressed', self.mediaPlayerKeysCallback)
+        HAVE_GNOME_MMKEYS = True
+        HAVE_MMKEYS = False
+    except:
+        pass
+
+if not HAVE_GNOME_MMKEYS:
+    try:
+        # if not gnome 2.18+, mmkeys for everyone else
+        import mmkeys
+        HAVE_MMKEYS = True
+    except:
+        pass
 
 try:
     import audioscrobbler
@@ -6466,14 +6482,6 @@ if HAVE_DBUS:
         def __init__(self, bus_name, object_path, window=None, sugar=False):
             dbus.service.Object.__init__(self, bus_name, object_path)
             Base.__init__(self, window, sugar)
-            try:
-                bus = dbus.SessionBus()
-                settingsDaemonObj = bus.get_object('org.gnome.SettingsDaemon', '/org/gnome/SettingsDaemon')
-                settingsDaemonInterface = dbus.Interface(settingsDaemonObj, 'org.gnome.SettingsDaemon')
-                settingsDaemonInterface.GrabMediaPlayerKeys('Sonata', 0)
-                settingsDaemonInterface.connect_to_signal('MediaPlayerKeyPressed', self.mediaPlayerKeysCallback)
-            except:
-                pass
 
         def mediaPlayerKeysCallback(self, app, key):
             if app == 'Sonata':
