@@ -83,7 +83,6 @@ if HAVE_DBUS:
         settingsDaemonObj = bus.get_object('org.gnome.SettingsDaemon', '/org/gnome/SettingsDaemon')
         settingsDaemonInterface = dbus.Interface(settingsDaemonObj, 'org.gnome.SettingsDaemon')
         settingsDaemonInterface.GrabMediaPlayerKeys('Sonata', 0)
-        settingsDaemonInterface.connect_to_signal('MediaPlayerKeyPressed', self.mediaPlayerKeysCallback)
         HAVE_GNOME_MMKEYS = True
         HAVE_MMKEYS = False
     except:
@@ -6488,6 +6487,8 @@ if HAVE_DBUS:
         def __init__(self, bus_name, object_path, window=None, sugar=False):
             dbus.service.Object.__init__(self, bus_name, object_path)
             Base.__init__(self, window, sugar)
+            if HAVE_GNOME_MMKEYS:
+                settingsDaemonInterface.connect_to_signal('MediaPlayerKeyPressed', self.mediaPlayerKeysCallback)
 
         def mediaPlayerKeysCallback(self, app, key):
             if app == 'Sonata':
