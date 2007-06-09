@@ -323,6 +323,7 @@ class Base(mpdclient3.mpd_connection):
         self.as_password = ""
         self.as_elapsed_time = 0
         show_prefs = False
+        self.charset = locale.getpreferredencoding()
         # For increased responsiveness after the initial load, we cache the root artist and
         # album view results and simply refresh on any mpd update
         self.albums_root = None
@@ -2888,7 +2889,6 @@ class Base(mpdclient3.mpd_connection):
     def set_image_for_cover(self, filename, infowindow_only=False):
         if self.filename_is_for_current_song(filename):
             if os.path.exists(filename):
-                self.create_dir_if_not_existing('~/.covers/')
                 # We use try here because the file might exist, but still
                 # be downloading so it's not complete
                 try:
@@ -3474,15 +3474,16 @@ class Base(mpdclient3.mpd_connection):
                 # if artist/album/filename is not set, use self.songinfo:
                 album = getattr(self.songinfo, 'album', "").replace("/", "")
                 artist = self.current_artist_for_album_name[1].replace("/", "")
-                return os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
+                targetfile = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
             elif art_loc == self.ART_LOCATION_COVER:
-                return self.musicdir + os.path.dirname(self.songinfo.file) + "/cover.jpg"
+                targetfile = self.musicdir + os.path.dirname(self.songinfo.file) + "/cover.jpg"
             elif art_loc == self.ART_LOCATION_FOLDER:
-                return self.musicdir + os.path.dirname(self.songinfo.file) + "/folder.jpg"
+                targetfile = self.musicdir + os.path.dirname(self.songinfo.file) + "/folder.jpg"
             elif art_loc == self.ART_LOCATION_ALBUM:
-                return self.musicdir + os.path.dirname(self.songinfo.file) + "/album.jpg"
+                targetfile = self.musicdir + os.path.dirname(self.songinfo.file) + "/album.jpg"
             elif art_loc == self.ART_LOCATION_CUSTOM:
-                return self.musicdir + os.path.dirname(self.songinfo.file) + "/" + self.art_location_custom_filename
+                targetfile = self.musicdir + os.path.dirname(self.songinfo.file) + "/" + self.art_location_custom_filename
+            return targetfile.encode(self.charset)
 
     def valid_image(self, file):
         test = gtk.gdk.pixbuf_get_file_info(file)
@@ -3842,7 +3843,7 @@ class Base(mpdclient3.mpd_connection):
                     # Save lyrics to file:
                     self.create_dir_if_not_existing('~/.lyrics/')
                     f = open(filename, 'w')
-                    f.write(lyrics)
+                    f.write(lyrics.encode(self.charset))
                     f.close()
                 else:
                     lyrics = _("Lyrics not found")
