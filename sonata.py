@@ -1356,10 +1356,6 @@ class Base(mpdclient3.mpd_connection):
             os.mkdir(os.path.expanduser('~/.config/'))
         if os.path.exists(os.path.expanduser('~/.config/sonata/')) == False:
             os.mkdir(os.path.expanduser('~/.config/sonata/'))
-        if os.path.exists(os.path.expanduser('~/.covers/')) == False:
-            os.mkdir(os.path.expanduser('~/.covers/'))
-        if os.path.exists(os.path.expanduser('~/.lyrics/')) == False:
-            os.mkdir(os.path.expanduser('~/.lyrics/'))
         if os.path.isfile(os.path.expanduser('~/.config/sonata/sonatarc')):
             conf.read(os.path.expanduser('~/.config/sonata/sonatarc'))
         elif os.path.isfile(os.path.expanduser('~/.sonatarc')):
@@ -2893,6 +2889,7 @@ class Base(mpdclient3.mpd_connection):
     def set_image_for_cover(self, filename, infowindow_only=False):
         if self.filename_is_for_current_song(filename):
             if os.path.exists(filename):
+                self.create_dir_if_not_existing('~/.covers/')
                 # We use try here because the file might exist, but still
                 # be downloading so it's not complete
                 try:
@@ -3463,6 +3460,7 @@ class Base(mpdclient3.mpd_connection):
                 paths[i] = os.path.abspath(paths[i])
                 if self.valid_image(paths[i]):
                     dest_filename = self.target_image_filename()
+                    self.create_dir_if_not_existing('~/.covers/')
                     shutil.copyfile(paths[i], dest_filename)
                     self.lastalbumart = None
                     self.update_album_art()
@@ -3843,6 +3841,7 @@ class Base(mpdclient3.mpd_connection):
                     lyrics = artist + " - " + title + "\n\n" + lyrics
                     gobject.idle_add(self.infowindow_show_lyrics, lyrics, artist, title)
                     # Save lyrics to file:
+                    self.create_dir_if_not_existing('~/.lyrics/')
                     f = open(filename, 'w')
                     f.write(lyrics)
                     f.close()
@@ -4033,6 +4032,7 @@ class Base(mpdclient3.mpd_connection):
             if os.path.exists(self.local_dest_filename):
                 os.remove(self.local_dest_filename)
             # Copy file to covers dir:
+            self.create_dir_if_not_existing('~/.covers/')
             shutil.copyfile(filename, self.local_dest_filename)
             # And finally, set the image in the interface:
             self.lastalbumart = None
@@ -4124,6 +4124,7 @@ class Base(mpdclient3.mpd_connection):
         if len(artist_search) == 0 and len(album_search) == 0:
             gobject.idle_add(self.choose_image_no_artist_or_album_dialog)
             return
+        self.create_dir_if_not_existing('~/.covers/')
         filename = os.path.expanduser("~/.covers/temp/<imagenum>.jpg")
         if os.path.exists(os.path.dirname(filename)):
             removeall(os.path.dirname(filename))
@@ -4163,6 +4164,7 @@ class Base(mpdclient3.mpd_connection):
         if len(self.remotefilelist) > 0:
             filename = self.remotefilelist[image_num]
             if os.path.exists(filename):
+                self.create_dir_if_not_existing('~/.covers/')
                 shutil.move(filename, self.remote_dest_filename)
                 # And finally, set the image in the interface:
                 self.lastalbumart = None
@@ -5824,6 +5826,10 @@ class Base(mpdclient3.mpd_connection):
         gobject.idle_add(lambda t: t.set_position(t.get_position()+1), entry)
         entry.stop_emission("insert-text")
         pass
+
+    def create_dir_if_not_existing(self, dir):
+        if os.path.exists(os.path.expanduser(dir)) == False:
+            os.mkdir(os.path.expanduser(dir))
 
     def about(self, action):
         self.about_dialog = gtk.AboutDialog()
