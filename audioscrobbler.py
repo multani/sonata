@@ -634,8 +634,8 @@ class AudioScrobblerPost:
             raise AudioScrobblerConnectionError('http', error.code, error.msg)
         except urllib2.URLError, error:
             self.authenticated = False
-            code = error.reason.args[0]
-            message = error.reason.args[1]
+            code = error.reason#.args[0]
+            message = error.reason#.args[1]
             raise AudioScrobblerConnectionError('network', code, message)
 
         self.last_shake = datetime.datetime.utcnow()
