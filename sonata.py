@@ -207,13 +207,13 @@ class Base(mpdclient3.mpd_connection):
                     sys.exit()
 
         if not HAVE_TAGPY:
-            print "Taglib and tagpy not found, tag editing support disabled."
+            print _("Taglib and/or tagpy not found, tag editing support disabled.")
         if not HAVE_WSDL:
-            print "SOAPpy not found, fetching lyrics support disabled."
+            print _("SOAPpy not found, fetching lyrics support disabled.")
         if not HAVE_EGG and not HAVE_STATUS_ICON:
-            print "PyGTK+ 2.10 or gnome-python-extras not found, system tray support disabled."
+            print _("PyGTK+ 2.10 or gnome-python-extras not found, system tray support disabled.")
         if not HAVE_AUDIOSCROBBLER:
-            print "Python-elementtree not found, audioscrobbler support disabled."
+            print _("Python-elementtree not found, audioscrobbler support disabled.")
 
         start_dbus_interface(toggle_arg)
 
@@ -3625,16 +3625,15 @@ class Base(mpdclient3.mpd_connection):
         tagsScrollWindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         for hbox in hboxes:
             vbox.pack_start(hbox, False, False, 3)
-        if HAVE_TAGPY:
-            # Add Edit button:
-            self.edittag_button = gtk.Button(' ' + _("_Edit..."))
-            self.edittag_button.set_image(gtk.image_new_from_stock(gtk.STOCK_EDIT, gtk.ICON_SIZE_MENU))
-            self.edittag_button.connect('clicked', self.on_edittag_click)
-            hbox_edittag = gtk.HBox()
-            hbox_edittag.pack_start(self.edittag_button, False, False, 10)
-            hbox_edittag.pack_start(gtk.Label(), True, True, 0)
-            vbox.pack_start(gtk.Label(), True, True, 0)
-            vbox.pack_start(hbox_edittag, False, False, 6)
+        # Add Edit button:
+        self.edittag_button = gtk.Button(' ' + _("_Edit..."))
+        self.edittag_button.set_image(gtk.image_new_from_stock(gtk.STOCK_EDIT, gtk.ICON_SIZE_MENU))
+        self.edittag_button.connect('clicked', self.on_edittag_click)
+        hbox_edittag = gtk.HBox()
+        hbox_edittag.pack_start(self.edittag_button, False, False, 10)
+        hbox_edittag.pack_start(gtk.Label(), True, True, 0)
+        vbox.pack_start(gtk.Label(), True, True, 0)
+        vbox.pack_start(hbox_edittag, False, False, 6)
         tagsScrollWindow.add_with_viewport(vbox)
         self.infowindow_notebook.append_page(tagsScrollWindow, nblabel1)
         # Add cover art:
@@ -3723,8 +3722,7 @@ class Base(mpdclient3.mpd_connection):
         if self.infowindow_visible:
             if self.conn:
                 if self.status and self.status.state in ['play', 'pause']:
-                    if HAVE_TAGPY:
-                        self.edittag_button.set_sensitive(True)
+                    self.edittag_button.set_sensitive(True)
                     at, length = [int(c) for c in self.status.time.split(':')]
                     at_time = convert_time(at)
                     try:
@@ -3803,8 +3801,7 @@ class Base(mpdclient3.mpd_connection):
                     if show_after_update and self.infowindow_visible:
                         gobject.idle_add(self.infowindow_show_now)
                 else:
-                    if HAVE_TAGPY:
-                        self.edittag_button.set_sensitive(False)
+                    self.edittag_button.set_sensitive(False)
                     self.infowindow_timelabel.set_text("")
                     self.infowindow_titlelabel.set_text("")
                     self.infowindow_artistlabel.set_text("")
@@ -5335,10 +5332,7 @@ class Base(mpdclient3.mpd_connection):
             if len(self.currentdata) > 0:
                 if self.current_selection.count_selected_rows() > 0:
                     self.UIManager.get_widget('/mainmenu/removemenu/').show()
-                    if HAVE_TAGPY:
-                        self.UIManager.get_widget('/mainmenu/edittagmenu/').show()
-                    else:
-                        self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
+                    self.UIManager.get_widget('/mainmenu/edittagmenu/').show()
                 else:
                     self.UIManager.get_widget('/mainmenu/removemenu/').hide()
                 if not self.filterbox_visible:
@@ -5362,10 +5356,7 @@ class Base(mpdclient3.mpd_connection):
                 if self.browser_selection.count_selected_rows() > 0:
                     self.UIManager.get_widget('/mainmenu/addmenu/').show()
                     self.UIManager.get_widget('/mainmenu/replacemenu/').show()
-                    if HAVE_TAGPY:
-                        self.UIManager.get_widget('/mainmenu/edittagmenu/').show()
-                    else:
-                        self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
+                    self.UIManager.get_widget('/mainmenu/edittagmenu/').show()
                 else:
                     self.UIManager.get_widget('/mainmenu/addmenu/').hide()
                     self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
@@ -5461,6 +5452,13 @@ class Base(mpdclient3.mpd_connection):
             self.edit_tags(widget, mpdpath)
 
     def edit_tags(self, widget, mpdpath=None):
+        if not HAVE_TAGPY:
+            error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("Taglib and/or tagpy not found, tag editing support disabled."))
+            error_dialog.set_title(_("Edit Tags"))
+            error_dialog.set_role('editTagsError')
+            error_dialog.connect('response', self.choose_image_dialog_response)
+            error_dialog.show()
+            return
         if not os.path.isdir(self.musicdir):
             error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("The path") + " " + self.musicdir + " " + _("does not exist. Please specify a valid music directory in preferences."))
             error_dialog.set_title(_("Edit Tags"))
