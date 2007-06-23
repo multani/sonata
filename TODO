@@ -1,11 +1,17 @@
 v1.2
-	move song notif to extras tab?
 	switching between user profiles (sonata --profile foo)
 	button to save all tagged files
 	don't allow vert resize when collapsed
 	clean up on_infowindow_show
 	include album/artist in remote artwork window
 	give better warnings about extras not installed (e.g. lyrics, status tray icon)
+	more messages with (and without) --verbose, e.g. if mpd fails
+	playlist saving (0.13 only)
+		current tab:
+			- save... >
+				new playlist...
+				to existing playlist... ---> popup window with dropdown of playlists
+				...
 	
 Future:
 	lyrics -> allow user to edit, fetch, refresh, search terms..?
@@ -19,12 +25,6 @@ Future:
 	statistics
 	hover over album art -> show larger image in borderless popup after 0.5 sec?
 	better playlist support (mpd 0.13 only):
-		current tab:
-			- save... >
-				new playlist
-				to 'playlist1'
-				to 'playlist2'
-				...
 		playlist tab:
 			ability to view songs, reorder songs, remove songs, etc
 	use GtkVolumeButton

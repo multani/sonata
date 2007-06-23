@@ -3688,7 +3688,7 @@ class Base(mpdclient3.mpd_connection):
             self.infowindow_update(True, update_all=True)
 
     def infowindow_add_lyrics_tab(self, show_tab=False):
-        if HAVE_WSDL and self.show_lyrics:
+        if self.show_lyrics:
             nblabel4 = gtk.Label()
             nblabel4.set_text_with_mnemonic(_("_Lyrics"))
             scrollWindow = gtk.ScrolledWindow()
@@ -3790,13 +3790,16 @@ class Base(mpdclient3.mpd_connection):
                         else:
                             self.albuminfoBuffer.set_text(_("Album name not set."))
                         # Update lyrics:
-                        if HAVE_WSDL and self.show_lyrics:
-                            if self.songinfo.has_key('artist') and self.songinfo.has_key('title'):
-                                lyricThread = threading.Thread(target=self.infowindow_get_lyrics, args=(self.songinfo.artist, self.songinfo.title))
-                                lyricThread.setDaemon(True)
-                                lyricThread.start()
+                        if self.show_lyrics:
+                            if HAVE_WSDL:
+                                if self.songinfo.has_key('artist') and self.songinfo.has_key('title'):
+                                    lyricThread = threading.Thread(target=self.infowindow_get_lyrics, args=(self.songinfo.artist, self.songinfo.title))
+                                    lyricThread.setDaemon(True)
+                                    lyricThread.start()
+                                else:
+                                    self.infowindow_show_lyrics(_("Artist or song title not set."), "", "", True)
                             else:
-                                self.infowindow_show_lyrics(_("Artist or song title not set."), "", "", True)
+                                self.infowindow_show_lyrics(_("SOAPpy not found, fetching lyrics support disabled."), "", "", True)
                     if show_after_update and self.infowindow_visible:
                         gobject.idle_add(self.infowindow_show_now)
                 else:
@@ -3812,8 +3815,11 @@ class Base(mpdclient3.mpd_connection):
                     self.infowindow_pathlabel.set_text("")
                     self.infowindow_filelabel.set_text("")
                     self.infowindow_bitratelabel.set_text("")
-                    if HAVE_WSDL and self.show_lyrics:
-                        self.infowindow_show_lyrics("", "", "", True)
+                    if self.show_lyrics:
+                        if HAVE_WSDL:
+                            self.infowindow_show_lyrics("", "", "", True)
+                        else:
+                            self.infowindow_show_lyrics(_("SOAPpy not found, fetching lyrics support disabled."), "", "", True)
                     self.albuminfoBuffer.set_text("")
 
     def set_artist_for_album_name(self):
@@ -4754,8 +4760,6 @@ class Base(mpdclient3.mpd_connection):
         display_lyrics = gtk.CheckButton(_("Enable lyrics"))
         display_lyrics.set_active(self.show_lyrics)
         display_lyrics.connect('toggled', self.prefs_lyrics_toggled)
-        if not HAVE_WSDL:
-            display_lyrics.set_sensitive(False)
         display_trayicon = gtk.CheckButton(_("Enable system tray icon"))
         display_trayicon.set_active(self.show_trayicon)
         if not HAVE_EGG and not HAVE_STATUS_ICON:
