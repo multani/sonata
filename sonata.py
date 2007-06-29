@@ -235,10 +235,12 @@ class Base(mpdclient3.mpd_connection):
         self.NOTIFICATION_WIDTH_MAX = 500
         self.NOTIFICATION_WIDTH_MIN = 350
         self.ART_LOCATION_HOMECOVERS = 0		# ~/.covers/[artist] - [album].jpg
-        self.ART_LOCATION_COVER = 1				# file_dir/cover.jpg
-        self.ART_LOCATION_ALBUM = 2				# file_dir/album.jpg
+        self.ART_LOCATION_COVER = 1			# file_dir/cover.jpg
+        self.ART_LOCATION_ALBUM = 2			# file_dir/album.jpg
         self.ART_LOCATION_FOLDER = 3			# file_dir/folder.jpg
         self.ART_LOCATION_CUSTOM = 4			# file_dir/[custom]
+        self.ART_LOCATION_NONE = 5			# Use default Sonata icons
+        self.ART_LOCATION_NONE_FLAG = "USE_DEFAULT"
 
         # Initialize vars:
         self.musicdir = os.path.expanduser("~/music")
@@ -2849,24 +2851,31 @@ class Base(mpdclient3.mpd_connection):
             artist = getattr(self.songinfo, 'artist', "").replace("/", "")
             album = getattr(self.songinfo, 'album', "").replace("/", "")
             filename = self.target_image_filename()
-            try:
-                if filename == self.lastalbumart:
-                    # No need to update..
-                    self.stop_art_update = False
-                    return
-                self.lastalbumart = None
-                songdir = os.path.dirname(self.songinfo.file)
-                if self.covers_pref == self.ART_LOCAL or self.covers_pref == self.ART_LOCAL_REMOTE:
-                    imgfound = self.check_for_local_images(songdir)
-                else:
+            if filename == self.lastalbumart:
+                # No need to update..
+                self.stop_art_update = False
+                return
+            self.lastalbumart = None
+            if os.path.exists(self.target_image_filename(self.ART_LOCATION_NONE)):
+                # Use default Sonata icons to prevent remote/local artwork searching:
+                self.set_default_icon_for_art(False)
+                return
+            songdir = os.path.dirname(self.songinfo.file)
+            if self.covers_pref == self.ART_LOCAL or self.covers_pref == self.ART_LOCAL_REMOTE:
+                imgfound = self.check_for_local_images(songdir)
+            else:
+                imgfound = self.check_remote_images(artist, album, filename)
+            if not imgfound:
+                if self.covers_pref == self.ART_LOCAL_REMOTE:
                     imgfound = self.check_remote_images(artist, album, filename)
-                if not imgfound:
-                    if self.covers_pref == self.ART_LOCAL_REMOTE:
-                        self.check_remote_images(artist, album, filename)
-                    elif self.covers_pref == self.ART_REMOTE_LOCAL:
-                        self.check_for_local_images(songdir)
-            except:
-                self.set_default_icon_for_art(True)
+                elif self.covers_pref == self.ART_REMOTE_LOCAL:
+                    imgfound = self.check_for_local_images(songdir)
+                if not imgfound and (len(artist) > 0 or len(album) > 0):
+                    # No remote or local artwork found, write filename to tell Sonata to use
+                    # default icons in the future (to prevent remote/local searching):
+                    filename = self.target_image_filename(self.ART_LOCATION_NONE)
+                    f = open(filename, 'w')
+                    f.close()
         else:
             self.set_default_icon_for_art(True)
 
@@ -3498,6 +3507,7 @@ class Base(mpdclient3.mpd_connection):
                 paths[i] = os.path.abspath(paths[i])
                 if self.valid_image(paths[i]):
                     dest_filename = self.target_image_filename()
+                    self.remove_art_location_none_file(dest_filename)
                     self.create_dir_if_not_existing('~/.covers/')
                     shutil.copyfile(paths[i], dest_filename)
                     self.lastalbumart = None
@@ -3510,7 +3520,6 @@ class Base(mpdclient3.mpd_connection):
             else:
                 art_loc = self.art_location
             if art_loc == self.ART_LOCATION_HOMECOVERS:
-                # if artist/album/filename is not set, use self.songinfo:
                 album = getattr(self.songinfo, 'album', "").replace("/", "")
                 artist = self.current_artist_for_album_name[1].replace("/", "")
                 targetfile = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
@@ -3522,6 +3531,11 @@ class Base(mpdclient3.mpd_connection):
                 targetfile = self.musicdir + os.path.dirname(self.songinfo.file) + "/album.jpg"
             elif art_loc == self.ART_LOCATION_CUSTOM:
                 targetfile = self.musicdir + os.path.dirname(self.songinfo.file) + "/" + self.art_location_custom_filename
+            elif art_loc == self.ART_LOCATION_NONE:
+                # flag filename to indicate that we should use the default Sonata icons:
+                album = getattr(self.songinfo, 'album', "").replace("/", "")
+                artist = self.current_artist_for_album_name[1].replace("/", "")
+                targetfile = os.path.expanduser("~/.covers/" + artist + "-" + album + "-" + self.ART_LOCATION_NONE_FLAG + ".jpg")
             return targetfile.encode(self.charset)
 
     def valid_image(self, file):
@@ -4077,6 +4091,7 @@ class Base(mpdclient3.mpd_connection):
             # Remove file if already set:
             if os.path.exists(self.local_dest_filename):
                 os.remove(self.local_dest_filename)
+            self.remove_art_location_none_file(self.local_dest_filename)
             # Copy file to covers dir:
             self.create_dir_if_not_existing('~/.covers/')
             shutil.copyfile(filename, self.local_dest_filename)
@@ -4084,6 +4099,13 @@ class Base(mpdclient3.mpd_connection):
             self.lastalbumart = None
             self.update_album_art()
         dialog.destroy()
+
+    def remove_art_location_none_file(self, base_filename=None):
+        # If the flag file exists (to tell Sonata to use the default artwork icons), remove the file
+        if base_filename:
+            delete_filename = os.path.dirname(base_filename) + "/" + os.path.splitext(os.path.basename(base_filename))[0] + "-" + self.ART_LOCATION_NONE_FLAG + os.path.splitext(os.path.basename(base_filename))[1]
+            if os.path.exists(delete_filename):
+                os.remove(delete_filename)
 
     def on_choose_image(self, widget):
         if self.remote_from_infowindow:
@@ -4210,6 +4232,7 @@ class Base(mpdclient3.mpd_connection):
         if len(self.remotefilelist) > 0:
             filename = self.remotefilelist[image_num]
             if os.path.exists(filename):
+                self.remove_art_location_none_file(self.remote_dest_filename)
                 self.create_dir_if_not_existing('~/.covers/')
                 shutil.move(filename, self.remote_dest_filename)
                 # And finally, set the image in the interface:
