@@ -368,6 +368,7 @@ class Base(mpdclient3.mpd_connection):
             ('songinfo_menu', gtk.STOCK_INFO, _('Song Info...'), None, None, self.on_infowindow_show),
             ('chooseimage_menu', gtk.STOCK_CONVERT, _('Use _Remote Image...'), None, None, self.on_choose_image),
             ('localimage_menu', gtk.STOCK_OPEN, _('Use _Local Image...'), None, None, self.on_choose_image_local),
+            ('resetimage_menu', gtk.STOCK_CLEAR, _('Reset to Default'), None, None, self.on_reset_image),
             ('playmenu', gtk.STOCK_MEDIA_PLAY, _('_Play'), None, None, self.pp),
             ('pausemenu', gtk.STOCK_MEDIA_PAUSE, _('_Pause'), None, None, self.pp),
             ('stopmenu', gtk.STOCK_MEDIA_STOP, _('_Stop'), None, None, self.stop),
@@ -427,6 +428,8 @@ class Base(mpdclient3.mpd_connection):
               <popup name="imagemenu">
                 <menuitem action="chooseimage_menu"/>
                 <menuitem action="localimage_menu"/>
+                <separator name="FM1"/>
+                <menuitem action="resetimage_menu"/>
               </popup>
               <popup name="traymenu">
                 <menuitem action="showmenu"/>
@@ -2819,6 +2822,11 @@ class Base(mpdclient3.mpd_connection):
             except:
                 pass
 
+    def on_reset_image(self, action):
+        self.create_art_location_none_file()
+        self.lastalbumart = None
+        self.update_album_art()
+
     def update_album_art(self):
         self.stop_art_update = True
         thread = threading.Thread(target=self.update_album_art2)
@@ -2863,11 +2871,15 @@ class Base(mpdclient3.mpd_connection):
                 if not imgfound and (len(artist) > 0 or len(album) > 0):
                     # No remote or local artwork found, write filename to tell Sonata to use
                     # default icons in the future (to prevent remote/local searching):
-                    filename = self.target_image_filename(self.ART_LOCATION_NONE)
-                    f = open(filename, 'w')
-                    f.close()
+                    self.create_art_location_none_file()
         else:
             self.set_default_icon_for_art(True)
+
+    def create_art_location_none_file(self):
+        # If this file exists, Sonata will use the "blank" default artwork for the song
+        filename = self.target_image_filename(self.ART_LOCATION_NONE)
+        f = open(filename, 'w')
+        f.close()
 
     def check_for_local_images(self, songdir):
         self.set_default_icon_for_art(True)
@@ -3473,6 +3485,10 @@ class Base(mpdclient3.mpd_connection):
                     self.UIManager.get_widget('/imagemenu/localimage_menu/').show()
                 artist = getattr(self.songinfo, 'artist', None)
                 album = getattr(self.songinfo, 'album', None)
+                if os.path.exists(self.target_image_filename(self.ART_LOCATION_NONE)):
+                    self.UIManager.get_widget('/imagemenu/resetimage_menu/').set_sensitive(False)
+                else:
+                    self.UIManager.get_widget('/imagemenu/resetimage_menu/').set_sensitive(True)
                 if artist or album:
                     self.imagemenu.popup(None, None, None, event.button, event.time)
         gobject.timeout_add(50, self.unblock_window_popup_handler)

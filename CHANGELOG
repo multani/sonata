@@ -1,6 +1,8 @@
 v1.2 - Pending
 	+ Audioscrobbler support (requires python-elementtree) (Owen)
 	+ Ability to rename playlists (requires mpd >= 0.13)
+	+ Prevent continually searching for artwork if it's not found the first time
+	+ Allows resetting artwork to the default image
 	+ Bug: Multimedia keys no longer work in Gnome 2.18 (Florian)
 	+ Bug: Hide statusbar in collapse mode when showing from systray
 	+ Bug: Cover artwork filename doesn't use system's locale charset
