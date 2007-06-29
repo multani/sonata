@@ -1621,12 +1621,7 @@ class Base(mpdclient3.mpd_connection):
                     if not edit_mode or (edit_mode and i <> stream_num):
                         if item == name:
                             dialog.destroy()
-                            # show error here
-                            error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("A stream with this name already exists."))
-                            error_dialog.set_title(_("New Stream"))
-                            error_dialog.set_role('newStreamError')
-                            error_dialog.run()
-                            error_dialog.destroy()
+                            show_error_msg(self.window, _("A stream with this name already exists."), _("New Stream"), 'newStreamError')
                             return
                     i = i + 1
                 if edit_mode:
@@ -1654,12 +1649,7 @@ class Base(mpdclient3.mpd_connection):
         for item in self.conn.do.lsinfo():
             if item.type == 'playlist':
                 if item.playlist == plname and plname != skip_plname:
-                    # show error here
-                    error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("A playlist with this name already exists."))
-                    error_dialog.set_title(title)
-                    error_dialog.set_role(role)
-                    error_dialog.run()
-                    error_dialog.destroy()
+                    show_error_msg(self.window, _("A playlist with this name already exists."), title, role)
                     return True
         return False
 
@@ -4981,11 +4971,7 @@ class Base(mpdclient3.mpd_connection):
             userentry.set_sensitive(self.use_scrobbler)
             passentry.set_sensitive(self.use_scrobbler)
         elif checkbox.get_active():
-            error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("Python-elementtree not found, audioscrobbler support disabled."))
-            error_dialog.set_title(_("Audioscrobbler Verification"))
-            error_dialog.set_role('pythonElementtreeError')
-            error_dialog.run()
-            error_dialog.destroy()
+            show_error_msg(self.window, _("Python-elementtree not found, audioscrobbler support disabled."), _("Audioscrobbler Verification"), 'pythonElementtreeError')
             checkbox.set_active(False)
 
     def prefs_as_username_changed(self, entry):
@@ -5024,11 +5010,7 @@ class Base(mpdclient3.mpd_connection):
                         filename = "album.jpg"
                     else:
                         filename = self.art_location_custom_filename
-                    error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("To save artwork as") + " " + filename + ", " + _("you must specify a valid music directory."))
-                    error_dialog.set_title(_("Artwork Verification"))
-                    error_dialog.set_role('artworkVerificationError')
-                    error_dialog.run()
-                    error_dialog.destroy()
+                    show_error_msg(self.window, _("To save artwork as") + " " + filename + ", " + _("you must specify a valid music directory."), _("Artwork Verification"), 'artworkVerificationError')
                     # Set music_dir entry focused:
                     prefsnotebook.set_current_page(0)
                     direntry.grab_focus()
@@ -6110,10 +6092,7 @@ class Base(mpdclient3.mpd_connection):
                             try:
                                 pid = subprocess.Popen(["opera", docslink]).pid
                             except:
-                                error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _('Unable to launch a suitable browser.'))
-                                error_dialog.set_role('browserLoadError')
-                                error_dialog.run()
-                                error_dialog.destroy()
+                                show_error_msg(self.window, _('Unable to launch a suitable browser.'), _('Launch Browser'), 'browserLoadError')
 
     def sanitize_tracknum(self, mpdtrack, return_int=False, str_padding=0):
         # Takes the mpd outfor for tracknum and tries to convert it to
@@ -6452,6 +6431,13 @@ if __name__ == "__main__":
     gtk.gdk.threads_enter()
     base.main()
     gtk.gdk.threads_leave()
+
+def show_error_msg(owner, message, title, role):
+    error_dialog = gtk.MessageDialog(owner, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, message)
+    error_dialog.set_title(title)
+    error_dialog.set_role(role)
+    error_dialog.run()
+    error_dialog.destroy()
 
 def convert_time(raw):
     # Converts raw time to 'hh:mm:ss' with leading zeros as appropriate
