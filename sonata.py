@@ -2823,6 +2823,8 @@ class Base(mpdclient3.mpd_connection):
                 pass
 
     def on_reset_image(self, action):
+        if os.path.exists(self.target_image_filename(self.ART_LOCATION_HOMECOVERS)):
+            os.remove(self.target_image_filename(self.ART_LOCATION_HOMECOVERS))
         self.create_art_location_none_file()
         self.lastalbumart = None
         self.update_album_art()
