@@ -13,7 +13,10 @@ class socket_talker(object):
         self.port = port
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.settimeout(3)
-        self.sock.connect((host, port))
+        try:
+            self.sock.connect((host, port))
+        except socket.error, msg:
+            print 'Cannot connect to MPD:', msg[1]
         self.file = self.sock.makefile("rb+")
         self.current_line = ''
         self.ack = ''

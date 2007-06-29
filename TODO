@@ -4,7 +4,6 @@ v1.2
 	don't allow vert resize when collapsed
 	clean up on_infowindow_show
 	include album/artist in remote artwork window
-	more messages with (and without) --verbose, e.g. if mpd fails
 	playlist saving (0.13 only)
 		current tab:
 			- save... >
