@@ -8,8 +8,7 @@ REQUIREMENTS:
 	(Required) PyGTK 2.6.0 or newer
 	(Required) GTK 2.6.0 or newer
 	(Optional) MPD
-	(Optional) Gnome-python-extras for the system tray icon
-	           (if PyGTK >= 2.10, no need for gnome-python-extras)
+	(Optional) Gnome-python-extras or PyGTK >= 2.10 for system tray
 	(Optional) taglib and tagpy for editing metadata
 	(Optional) SOAPpy for automatic lyrics fetching
 	(Optional) Python-elementtree for audioscrobbler support

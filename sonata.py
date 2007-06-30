@@ -5641,17 +5641,17 @@ class Base(mpdclient3.mpd_connection):
         table.attach(commenthbox, 1, 2, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 2, 0)
         table.attach(gtk.Label(), 1, 2, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 2, 0)
         editwindow.vbox.pack_start(table)
-        #saveall_button = gtk.Button(_("Save _All"))
-        #editwindow.action_area.pack_start(saveall_button)
-        #editwindow.action_area.pack_start(gtk.Label())
+        saveall_button = gtk.Button(_("Save _All"))
+        editwindow.action_area.pack_start(saveall_button)
+        editwindow.action_area.pack_start(gtk.Label())
         cancelbutton = editwindow.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT)
         savebutton = editwindow.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT)
-        editwindow.connect('delete_event', self.editwindow_hide)
+        editwindow.connect('delete_event', self.editwindow_hide, None, tags)
         entries = [titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, filelabel]
         buttons = [titlebutton, artistbutton, albumbutton, yearbutton, trackbutton, genrebutton, commentbutton]
         entries_names = ["title", "artist", "album", "year", "track", "genre", "comment"]
         editwindow.connect('response', self.editwindow_response, tags, entries, entries_names)
-        #saveall_button.connect('clicked', self.editwindow_save_all, editwindow, tags, entries, entries_names)
+        saveall_button.connect('clicked', self.editwindow_save_all, editwindow, tags, entries, entries_names)
         for i in range(len(entries)-1):
             entries[i].connect('changed', self.edit_entry_changed)
         for i in range(len(buttons)):
@@ -5772,7 +5772,7 @@ class Base(mpdclient3.mpd_connection):
                 self.edit_entry_changed(entries[i])
             else:
                 self.edit_entry_revert_color(entries[i])
-        gobject.idle_add(self.edit_set_action_area_sensitive, window.action_area)
+        self.edit_set_action_area_sensitive(window.action_area)
 
     def edit_set_action_area_sensitive(self, action_area):
         # Hacky workaround to allow the user to click the save button again when the
@@ -5850,7 +5850,7 @@ class Base(mpdclient3.mpd_connection):
 
     def editwindow_response(self, window, response, tags, entries, entries_names):
         if response == gtk.RESPONSE_REJECT:
-            self.editwindow_hide(window)
+            self.editwindow_hide(window, None, tags)
         elif response == gtk.RESPONSE_ACCEPT:
             window.action_area.set_sensitive(False)
             while window.action_area.get_property("sensitive") == True or gtk.events_pending():
@@ -5870,11 +5870,7 @@ class Base(mpdclient3.mpd_connection):
             self.tagpy_set_tag(filetag.tag(), 'genre', entries[5].get_text())
             self.tagpy_set_tag(filetag.tag(), 'comment', entries[6].get_text())
             save_success = filetag.save()
-            if save_success and self.conn and self.status:
-                while self.status.get('updating_db', 0):
-                    gtk.main_iteration()
-                self.conn.do.update(tags[self.tagnum]['mpdpath'])
-            else:
+            if not (save_success and self.conn and self.status):
                 error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("Unable to save tag to music file."))
                 error_dialog.set_title(_("Edit Tags"))
                 error_dialog.set_role('editTagsError')
@@ -5882,13 +5878,21 @@ class Base(mpdclient3.mpd_connection):
                 error_dialog.show()
             if self.edit_next_tag(tags):
                 # Next file:
-                gobject.timeout_add(250, self.editwindow_update, window, tags, entries, entries_names)
+                self.editwindow_update(window, tags, entries, entries_names)
             else:
                 # No more (valid) files:
-                self.editwindow_hide(window)
+                self.editwindow_hide(window, None, tags)
 
-    def editwindow_hide(self, window, data=None):
+    def editwindow_hide(self, window, data=None, tags=None):
+        gobject.idle_add(self.editwindow_mpd_update, tags)
         window.destroy()
+
+    def editwindow_mpd_update(self, tags):
+        if tags:
+            self.conn.send.command_list_begin()
+            for i in range(len(tags)):
+                self.conn.send.update(tags[i]['mpdpath'])
+            self.conn.do.command_list_end()
 
     def editwindow_populate_genre_combo(self, genrecombo):
         genres = ["", "A Cappella", "Acid", "Acid Jazz", "Acid Punk", "Acoustic", "Alt. Rock", "Alternative", "Ambient", "Anime", "Avantgarde", "Ballad", "Bass", "Beat", "Bebob", "Big Band", "Black Metal", "Bluegrass", "Blues", "Booty Bass", "BritPop", "Cabaret", "Celtic", "Chamber music", "Chanson", "Chorus", "Christian Gangsta Rap", "Christian Rap", "Christian Rock", "Classic Rock", "Classical", "Club", "Club-House", "Comedy", "Contemporary Christian", "Country", "Crossover", "Cult", "Dance", "Dance Hall", "Darkwave", "Death Metal", "Disco", "Dream", "Drum &amp; Bass", "Drum Solo", "Duet", "Easy Listening", "Electronic", "Ethnic", "Euro-House", "Euro-Techno", "Eurodance", "Fast Fusion", "Folk", "Folk-Rock", "Folklore", "Freestyle", "Funk", "Fusion", "Game", "Gangsta", "Goa", "Gospel", "Gothic", "Gothic Rock", "Grunge", "Hard Rock", "Hardcore", "Heavy Metal", "Hip-Hop", "House", "Humour", "Indie", "Industrial", "Instrumental", "Instrumental pop", "Instrumental rock", "JPop", "Jazz", "Jazz+Funk", "Jungle", "Latin", "Lo-Fi", "Meditative", "Merengue", "Metal", "Musical", "National Folk", "Native American", "Negerpunk", "New Age", "New Wave", "Noise", "Oldies", "Opera", "Other", "Polka", "Polsk Punk", "Pop", "Pop-Folk", "Pop/Funk", "Porn Groove", "Power Ballad", "Pranks", "Primus", "Progressive Rock", "Psychedelic", "Psychedelic Rock", "Punk", "Punk Rock", "R&amp;B", "Rap", "Rave", "Reggae", "Retro", "Revival", "Rhythmic soul", "Rock", "Rock &amp; Roll", "Salsa", "Samba", "Satire", "Showtunes", "Ska", "Slow Jam", "Slow Rock", "Sonata", "Soul", "Sound Clip", "Soundtrack", "Southern Rock", "Space", "Speech", "Swing", "Symphonic Rock", "Symphony", "Synthpop", "Tango", "Techno", "Techno-Industrial", "Terror", "Thrash Metal", "Top 40", "Trailer"]
