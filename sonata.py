@@ -2170,7 +2170,7 @@ class Base(mpdclient3.mpd_connection):
                     if not has_brackets: text = text.replace("%E", "?")
                     else: return ""
         if text.startswith("{") and text.endswith("}"):
-            return text[1:len(text.decode('utf-8'))-1]
+            return text[1:-1]
         else:
             return text
 
@@ -2776,11 +2776,10 @@ class Base(mpdclient3.mpd_connection):
             for label in (self.cursonglabel1, self.cursonglabel2, self.traycursonglabel1, self.cursonglabel2):
                 label.set_ellipsize(pango.ELLIPSIZE_NONE)
 
+            self.cursonglabel1.set_markup('<big><b>' + _('Stopped') + '</b></big>')
             if self.expanded:
-                self.cursonglabel1.set_markup('<big><b>' + _('Stopped') + '</b></big>')
                 self.cursonglabel2.set_markup('<small>' + _('Click to collapse') + '</small>')
             else:
-                self.cursonglabel1.set_markup('<big><b>' + _('Stopped') + '</b></big>')
                 self.cursonglabel2.set_markup('<small>' + _('Click to expand') + '</small>')
             if not self.conn:
                 self.traycursonglabel1.set_label(_('Not connected'))

@@ -1,25 +1,29 @@
 v1.2
+	profiles -> change radio button selection when using ctrl-c, ctrl-d
 	don't allow vert resize when collapsed
 	do some performance checking..
-	
-Future:
-	lyrics -> allow user to edit, fetch, refresh, search terms..?
-	make selection, dnd, more like thunar
-	connect in background via socket.setblocking(0)
-	libnotify?
-	test multiple streams at once..
-	crop songs in current playlist?
+	#3515
+	lyrics -> allow user to edit, fetch, refresh, search terms..? (#3491)
+	#3396
+
+v1.3
 	genre mode (genre -> artist -> album)
-	columns in current/library
-	mpd statistics
-	hover over album art -> show larger image in borderless popup after 0.5 sec?
 	better playlist support (mpd 0.13 only):
 		playlist tab:
 			ability to view songs, reorder songs, remove songs, etc
-	use GtkVolumeButton?
-	playlist saving (0.13 only)
 		current tab:
 			- save... >
 				new playlist...
 				to existing playlist... ---> popup window with dropdown of playlists
 				...
+	
+Future:
+	make selection, dnd, more like thunar
+	connect in background via socket.setblocking(0)
+	libnotify?
+	test multiple streams at once..
+	crop songs in current playlist?
+	columns in current/library (#3367)
+	mpd statistics
+	hover over album art -> show larger image in borderless popup after 0.5 sec?
+	use GtkVolumeButton?
