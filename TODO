@@ -1,7 +1,6 @@
 v1.2
-	switching between user profiles (sonata --profile foo)
 	don't allow vert resize when collapsed
-	clean up on_infowindow_show
+	do some performance checking..
 	
 Future:
 	lyrics -> allow user to edit, fetch, refresh, search terms..?

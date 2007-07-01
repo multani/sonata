@@ -140,9 +140,9 @@ class Connection(mpdclient3.mpd_connection):
 
     def __init__(self, Base):
         """Open a connection using the host/port values from the provided config. If conf is None, an empty object will be returned, suitable for comparing != to any other connection."""
-        host = Base.host
-        port = Base.port
-        password = Base.password
+        host = Base.host[Base.profile_num]
+        port = Base.port[Base.profile_num]
+        password = Base.password[Base.profile_num]
 
         if os.environ.has_key('MPD_HOST'):
             if '@' in os.environ['MPD_HOST']:
@@ -171,10 +171,11 @@ class Base(mpdclient3.mpd_connection):
         toggle_arg = False
         start_hidden = False
         start_visible = False
+        arg_profile = False
         # Read any passed options/arguments:
         if not sugar:
             try:
-                opts, args = getopt.getopt(sys.argv[1:], "tv", ["toggle", "version", "status", "info", "play", "pause", "stop", "next", "prev", "pp", "shuffle", "repeat", "hidden", "visible"])
+                opts, args = getopt.getopt(sys.argv[1:], "tv", ["toggle", "version", "status", "info", "play", "pause", "stop", "next", "prev", "pp", "shuffle", "repeat", "hidden", "visible", "profile="])
             except getopt.GetoptError:
                 # print help information and exit:
                 self.print_usage()
@@ -195,6 +196,8 @@ class Base(mpdclient3.mpd_connection):
                         start_visible = True
                     elif o in ("--hidden"):
                         start_hidden = True
+                    elif o in ("--profile"):
+                        arg_profile = True
                     else:
                         self.print_usage()
                         sys.exit()
@@ -243,11 +246,13 @@ class Base(mpdclient3.mpd_connection):
         self.ART_LOCATION_NONE_FLAG = "USE_DEFAULT"
 
         # Initialize vars:
-        self.musicdir = os.path.expanduser("~/music")
         socket.setdefaulttimeout(2)
-        self.host = 'localhost'
-        self.port = 6600
-        self.password = ''
+        self.profile_num = 0
+        self.profile_names = ['Default Profile']
+        self.musicdir = [os.path.expanduser("~/music")]
+        self.host = ['localhost']
+        self.port = [6600]
+        self.password = ['']
         self.x = 0
         self.y = 0
         self.w = 400
@@ -325,6 +330,9 @@ class Base(mpdclient3.mpd_connection):
         self.as_password = ""
         show_prefs = False
         self.charset = locale.getpreferredencoding()
+        self.updating_nameentry = False
+        self.merge_id = None
+        self.actionGroupProfiles = None
         # For increased responsiveness after the initial load, we cache the root artist and
         # album view results and simply refresh on any mpd update
         self.albums_root = None
@@ -344,6 +352,16 @@ class Base(mpdclient3.mpd_connection):
             self.withdrawn = False
         if self.autoconnect:
             self.user_connect = True
+        if arg_profile:
+            try:
+                if int(a) > 0 and int(a) <= len(self.profile_names):
+                    self.profile_num = int(a)-1
+                    print _("Starting Sonata with profile"), self.profile_names[self.profile_num]
+                else:
+                    print _("Not a valid profile number. Profile number must be between 1 and"), str(len(self.profile_names)) + "."
+            except:
+                print _("Not a valid profile number. Profile number must be between 1 and"), str(len(self.profile_names)) + "."
+                pass
 
         # Add some icons:
         self.iconfactory = gtk.IconFactory()
@@ -362,6 +380,7 @@ class Base(mpdclient3.mpd_connection):
         # Popup menus:
         actions = (
             ('sortmenu', None, _('_Sort List')),
+            ('profilesmenu', None, _('_Connection')),
             ('filesystemview', gtk.STOCK_HARDDISK, _('Filesystem'), None, None, self.on_libraryview_chosen),
             ('artistview', 'artist', _('Artist'), None, None, self.on_libraryview_chosen),
             ('albumview', 'album', _('Album'), None, None, self.on_libraryview_chosen),
@@ -379,7 +398,7 @@ class Base(mpdclient3.mpd_connection):
             ('clearmenu', gtk.STOCK_CLEAR, _('_Clear'), '<Ctrl>Delete', None, self.clear),
             ('savemenu', None, _('_Save Playlist...'), '<Ctrl><Shift>s', None, self.on_save_playlist),
             ('updatemenu', None, _('_Update Library'), None, None, self.updatedb),
-            ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'), None, None, self.prefs),
+            ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'), 'F5', None, self.prefs),
             ('aboutmenu', None, _('_About...'), 'F1', None, self.about),
             ('newmenu', None, _('_New...'), '<Ctrl>n', None, self.streams_new),
             ('editmenu', None, _('_Edit...'), None, None, self.streams_edit),
@@ -468,6 +487,8 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="repeatmenu"/>
                 <menuitem action="shufflemenu"/>
                 <separator name="FM2"/>
+                <menu action="profilesmenu">
+                </menu>
                 <menuitem action="preferencemenu"/>
                 <menuitem action="aboutmenu"/>
                 <menuitem action="quitmenu"/>
@@ -506,7 +527,7 @@ class Base(mpdclient3.mpd_connection):
         # Try to connect to MPD:
         self.conn = self.connect()
         if self.conn:
-            self.conn.do.password(self.password)
+            self.conn.do.password(self.password[self.profile_num])
             self.status = self.conn.do.status()
             self.iterate_time = self.iterate_time_when_connected
             try:
@@ -562,6 +583,7 @@ class Base(mpdclient3.mpd_connection):
         actionGroup.add_toggle_actions(toggle_actions)
         self.UIManager.insert_action_group(actionGroup, 0)
         self.UIManager.add_ui_from_string(uiDescription)
+        self.populate_profiles_for_menu()
         self.window.add_accel_group(self.UIManager.get_accel_group())
         self.mainmenu = self.UIManager.get_widget('/mainmenu')
         self.shufflemenu = self.UIManager.get_widget('/mainmenu/shufflemenu')
@@ -1050,6 +1072,7 @@ class Base(mpdclient3.mpd_connection):
         print "                       " + _("to tray or visible (requires D-Bus)")
         print "  --hidden             " + _("Start app hidden (requires systray)")
         print "  --visible            " + _("Start app visible (requires systray)")
+        print "  --profile=[NUM]      " + _("Start with profile [NUM]")
         print "  play                 " + _("Play song in playlist")
         print "  pause                " + _("Pause currently playing song")
         print "  stop                 " + _("Stop currently playing song")
@@ -1082,7 +1105,7 @@ class Base(mpdclient3.mpd_connection):
         self.conn = None
         self.conn = self.connect()
         if self.conn:
-            self.conn.do.password(self.password)
+            self.conn.do.password(self.password[self.profile_num])
             self.status = self.conn.do.status()
             try:
                 test = self.status.state
@@ -1181,6 +1204,38 @@ class Base(mpdclient3.mpd_connection):
         self.iconfactory.add(icon_name, sonataset)
         self.iconfactory.add_default()
 
+    def populate_profiles_for_menu(self):
+        if self.merge_id:
+            self.UIManager.remove_ui(self.merge_id)
+        if self.actionGroupProfiles:
+            self.UIManager.remove_action_group(self.actionGroupProfiles)
+        else:
+            self.actionGroupProfiles = gtk.ActionGroup('MPDProfiles')
+        self.UIManager.ensure_update()
+        actions = []
+        for i in range(len(self.profile_names)):
+            actions.append((self.profile_names[i], None, "[" + str(i+1) + "] " + self.profile_names[i], None, None, i))
+        actions.append(('disconnect', None, _('Disconnect'), None, None, len(self.profile_names)))
+        self.actionGroupProfiles.add_radio_actions(actions, self.profile_num, self.on_profiles_click)
+        uiDescription = """
+            <ui>
+              <popup name="mainmenu">
+                  <menu action="profilesmenu">
+            """
+        uiDescription = uiDescription + """<menuitem action=\"""" + 'disconnect' + """\" position="top"/>"""
+        for i in range(len(self.profile_names)):
+            uiDescription = uiDescription + """<menuitem action=\"""" + self.profile_names[len(self.profile_names)-i-1] + """\" position="top"/>"""
+        uiDescription = uiDescription + """</menu></popup></ui>"""
+        self.merge_id = self.UIManager.add_ui_from_string(uiDescription)
+        self.UIManager.insert_action_group(self.actionGroupProfiles, 0)
+        self.UIManager.get_widget('/hidden').set_property('visible', False)
+
+    def on_profiles_click(self, radioaction, current):
+        self.disconnectkey_pressed(None)
+        if current.get_current_value() < len(self.profile_names):
+            self.profile_num = current.get_current_value()
+            self.connectkey_pressed(None)
+
     def connect(self):
         if self.user_connect:
             try:
@@ -1190,35 +1245,12 @@ class Base(mpdclient3.mpd_connection):
         else:
             return None
 
-    def connectbutton_clicked(self, connectbutton, disconnectbutton, hostentry, portentry, passwordentry):
-        connectbutton.set_sensitive(False)
-        disconnectbutton.set_sensitive(True)
-        if hostentry.get_text() != self.host or portentry.get_text() != str(self.port) or passwordentry.get_text() != self.password:
-            self.host = hostentry.get_text()
-            try:
-                self.port = int(portentry.get_text())
-            except:
-                pass
-            self.password = passwordentry.get_text()
-        self.connectkey_pressed(None)
-        if self.conn:
-            connectbutton.set_sensitive(False)
-            disconnectbutton.set_sensitive(True)
-        else:
-            connectbutton.set_sensitive(True)
-            disconnectbutton.set_sensitive(False)
-
     def connectkey_pressed(self, event):
         self.user_connect = True
         self.conn = self.connect()
         if self.conn:
-            self.conn.do.password(self.password)
+            self.conn.do.password(self.password[self.profile_num])
         self.iterate_now(True)
-
-    def disconnectbutton_clicked(self, disconnectbutton, connectbutton):
-        self.disconnectkey_pressed(None)
-        connectbutton.set_sensitive(True)
-        disconnectbutton.set_sensitive(False)
 
     def disconnectkey_pressed(self, event):
         self.user_connect = False
@@ -1239,7 +1271,7 @@ class Base(mpdclient3.mpd_connection):
             if not self.conn:
                 self.conn = self.connect()
                 if self.conn:
-                    self.conn.do.password(self.password)
+                    self.conn.do.password(self.password[self.profile_num])
             if self.conn:
                 self.iterate_time = self.iterate_time_when_connected
                 self.status = self.conn.do.status()
@@ -1379,16 +1411,21 @@ class Base(mpdclient3.mpd_connection):
         elif os.path.isfile(os.path.expanduser('~/.sonatarc')):
             conf.read(os.path.expanduser('~/.sonatarc'))
             os.remove(os.path.expanduser('~/.sonatarc'))
+        # Compatibility with previous versions of Sonata:
+        # --------------------------------------------------------------------
         if conf.has_option('connection', 'host'):
-            self.host = conf.get('connection', 'host')
+            self.host[0] = conf.get('connection', 'host')
         if conf.has_option('connection', 'port'):
-            self.port = int(conf.get('connection', 'port'))
+            self.port[0] = int(conf.get('connection', 'port'))
         if conf.has_option('connection', 'password'):
-            self.password = conf.get('connection', 'password')
+            self.password[0] = conf.get('connection', 'password')
+        if conf.has_option('connection', 'musicdir'):
+            self.musicdir[0] = conf.get('connection', 'musicdir')
+        # --------------------------------------------------------------------
         if conf.has_option('connection', 'auto'):
             self.autoconnect = conf.getboolean('connection', 'auto')
-        if conf.has_option('connection', 'musicdir'):
-            self.musicdir = conf.get('connection', 'musicdir')
+        if conf.has_option('connection', 'profile_num'):
+            self.profile_num = conf.getint('connection', 'profile_num')
         if conf.has_option('player', 'x'):
             self.x = conf.getint('player', 'x')
         if conf.has_option('player', 'y'):
@@ -1486,16 +1523,33 @@ class Base(mpdclient3.mpd_connection):
             self.as_username = conf.get('audioscrobbler', 'username')
         if conf.has_option('audioscrobbler', 'password'):
             self.as_password = conf.get('audioscrobbler', 'password')
-
+        if conf.has_option('profiles', 'num_profiles'):
+            num_profiles = conf.getint('profiles', 'num_profiles')
+            self.profile_names = []
+            self.host = []
+            self.port = []
+            self.password = []
+            self.musicdir = []
+            for i in range(num_profiles):
+                self.profile_names.append(conf.get('profiles', 'names[' + str(i) + ']'))
+                self.host.append(conf.get('profiles', 'hosts[' + str(i) + ']'))
+                self.port.append(conf.getint('profiles', 'ports[' + str(i) + ']'))
+                self.password.append(conf.get('profiles', 'passwords[' + str(i) + ']'))
+                self.musicdir.append(conf.get('profiles', 'musicdirs[' + str(i) + ']'))
 
     def settings_save(self):
         conf = ConfigParser.ConfigParser()
+        conf.add_section('profiles')
+        conf.set('profiles', 'num_profiles', len(self.profile_names))
+        for i in range(len(self.profile_names)):
+            conf.set('profiles', 'names[' + str(i) + ']', self.profile_names[i])
+            conf.set('profiles', 'hosts[' + str(i) + ']', self.host[i])
+            conf.set('profiles', 'ports[' + str(i) + ']', self.port[i])
+            conf.set('profiles', 'passwords[' + str(i) + ']', self.password[i])
+            conf.set('profiles', 'musicdirs[' + str(i) + ']', self.musicdir[i])
         conf.add_section('connection')
-        conf.set('connection', 'host', self.host)
-        conf.set('connection', 'port', self.port)
-        conf.set('connection', 'password', self.password)
         conf.set('connection', 'auto', self.autoconnect)
-        conf.set('connection', 'musicdir', self.musicdir)
+        conf.set('connection', 'profile_num', self.profile_num)
         conf.add_section('player')
         conf.set('player', 'w', self.w)
         conf.set('player', 'h', self.h)
@@ -2858,7 +2912,7 @@ class Base(mpdclient3.mpd_connection):
             self.lastalbumart = None
             if os.path.exists(self.target_image_filename(self.ART_LOCATION_NONE)):
                 # Use default Sonata icons to prevent remote/local artwork searching:
-                self.set_default_icon_for_art(False)
+                self.set_default_icon_for_art()
                 return
             songdir = os.path.dirname(self.songinfo.file)
             if self.covers_pref == self.ART_LOCAL or self.covers_pref == self.ART_LOCAL_REMOTE:
@@ -2875,7 +2929,7 @@ class Base(mpdclient3.mpd_connection):
                     # default icons in the future (to prevent remote/local searching):
                     self.create_art_location_none_file()
         else:
-            self.set_default_icon_for_art(True)
+            self.set_default_icon_for_art()
 
     def create_art_location_none_file(self):
         # If this file exists, Sonata will use the "blank" default artwork for the song
@@ -2884,7 +2938,7 @@ class Base(mpdclient3.mpd_connection):
         f.close()
 
     def check_for_local_images(self, songdir):
-        self.set_default_icon_for_art(True)
+        self.set_default_icon_for_art()
         if os.path.exists(self.target_image_filename(self.ART_LOCATION_HOMECOVERS)):
             gobject.idle_add(self.set_image_for_cover, self.target_image_filename(self.ART_LOCATION_HOMECOVERS))
             return True
@@ -2903,30 +2957,29 @@ class Base(mpdclient3.mpd_connection):
         else:
             self.single_img_in_dir = self.get_single_img_in_path(songdir)
             if self.single_img_in_dir:
-                gobject.idle_add(self.set_image_for_cover, self.musicdir + songdir + "/" + self.single_img_in_dir)
+                gobject.idle_add(self.set_image_for_cover, self.musicdir[self.profile_num] + songdir + "/" + self.single_img_in_dir)
                 return True
         return False
 
     def check_remote_images(self, artist, album, filename):
-        self.set_default_icon_for_art(True)
+        self.set_default_icon_for_art()
         self.download_image_to_filename(artist, album, filename)
         if os.path.exists(filename):
             gobject.idle_add(self.set_image_for_cover, filename)
             return True
         return False
 
-    def set_default_icon_for_art(self, set_lastalbumart_none=False):
+    def set_default_icon_for_art(self):
         gobject.idle_add(self.albumimage.set_from_file, self.sonatacd)
         if self.infowindow_visible:
             gobject.idle_add(self.infowindow_image.set_from_file, self.sonatacd_large)
         gobject.idle_add(self.set_tooltip_art, gtk.gdk.pixbuf_new_from_file(self.sonatacd))
-        if set_lastalbumart_none:
-            self.lastalbumart = None
+        self.lastalbumart = None
 
     def get_single_img_in_path(self, songdir):
         single_img = None
-        if os.path.exists(self.musicdir + songdir):
-            for file in os.listdir(self.musicdir + songdir):
+        if os.path.exists(self.musicdir[self.profile_num] + songdir):
+            for file in os.listdir(self.musicdir[self.profile_num] + songdir):
                 # Check against gtk+ supported image formats
                 for i in gtk.gdk.pixbuf_get_formats():
                     if os.path.splitext(file)[1].replace(".","").lower() in i['extensions']:
@@ -2983,7 +3036,7 @@ class Base(mpdclient3.mpd_connection):
                 return True
             if self.single_img_in_dir and self.songinfo:
                 songdir = os.path.dirname(self.songinfo.file)
-                if filename == self.musicdir + songdir + "/" + self.single_img_in_dir:
+                if filename == self.musicdir[self.profile_num] + songdir + "/" + self.single_img_in_dir:
                     return True
         # If we got this far, no match:
         return False
@@ -3532,13 +3585,13 @@ class Base(mpdclient3.mpd_connection):
                 artist = self.current_artist_for_album_name[1].replace("/", "")
                 targetfile = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
             elif art_loc == self.ART_LOCATION_COVER:
-                targetfile = self.musicdir + os.path.dirname(self.songinfo.file) + "/cover.jpg"
+                targetfile = self.musicdir[self.profile_num] + os.path.dirname(self.songinfo.file) + "/cover.jpg"
             elif art_loc == self.ART_LOCATION_FOLDER:
-                targetfile = self.musicdir + os.path.dirname(self.songinfo.file) + "/folder.jpg"
+                targetfile = self.musicdir[self.profile_num] + os.path.dirname(self.songinfo.file) + "/folder.jpg"
             elif art_loc == self.ART_LOCATION_ALBUM:
-                targetfile = self.musicdir + os.path.dirname(self.songinfo.file) + "/album.jpg"
+                targetfile = self.musicdir[self.profile_num] + os.path.dirname(self.songinfo.file) + "/album.jpg"
             elif art_loc == self.ART_LOCATION_CUSTOM:
-                targetfile = self.musicdir + os.path.dirname(self.songinfo.file) + "/" + self.art_location_custom_filename
+                targetfile = self.musicdir[self.profile_num] + os.path.dirname(self.songinfo.file) + "/" + self.art_location_custom_filename
             elif art_loc == self.ART_LOCATION_NONE:
                 # flag filename to indicate that we should use the default Sonata icons:
                 album = getattr(self.songinfo, 'album', "").replace("/", "")
@@ -3763,8 +3816,8 @@ class Base(mpdclient3.mpd_connection):
                         self.infowindow_datelabel.set_text(getattr(self.songinfo, 'date', ''))
                         self.infowindow_genrelabel.set_text(getattr(self.songinfo, 'genre', ''))
                         self.infowindow_tracklabel.set_text(self.sanitize_tracknum(getattr(self.songinfo, 'track', '0'), False, 2))
-                        if os.path.exists(self.musicdir + os.path.dirname(self.songinfo.file)):
-                            self.infowindow_pathlabel.set_text(self.musicdir + os.path.dirname(self.songinfo.file))
+                        if os.path.exists(self.musicdir[self.profile_num] + os.path.dirname(self.songinfo.file)):
+                            self.infowindow_pathlabel.set_text(self.musicdir[self.profile_num] + os.path.dirname(self.songinfo.file))
                         else:
                             self.infowindow_pathlabel.set_text("/" + os.path.dirname(self.songinfo.file))
                         self.infowindow_filelabel.set_text(os.path.basename(self.songinfo.file))
@@ -4087,7 +4140,7 @@ class Base(mpdclient3.mpd_connection):
         dialog.connect("response", self.choose_image_local_response)
         dialog.set_default_response(gtk.RESPONSE_OK)
         songdir = os.path.dirname(self.songinfo.file)
-        currdir = self.musicdir + songdir
+        currdir = self.musicdir[self.profile_num] + songdir
         if os.path.exists(currdir):
             dialog.set_current_folder(currdir)
         self.local_dest_filename = self.target_image_filename()
@@ -4580,31 +4633,48 @@ class Base(mpdclient3.mpd_connection):
         hbox = gtk.HBox()
         prefsnotebook = gtk.Notebook()
         # MPD tab
-        table = gtk.Table(9, 2, False)
-        table.set_col_spacings(3)
         mpdlabel = gtk.Label()
         mpdlabel.set_markup('<b>' + _('MPD Connection') + '</b>')
         mpdlabel.set_alignment(0, 1)
+        controlbox = gtk.HBox()
+        profiles = gtk.combo_box_new_text()
+        add_profile = gtk.Button()
+        add_profile.set_image(gtk.image_new_from_stock(gtk.STOCK_ADD, gtk.ICON_SIZE_MENU))
+        self.tooltips.set_tip(add_profile, _("Add new profile"))
+        remove_profile = gtk.Button()
+        remove_profile.set_image(gtk.image_new_from_stock(gtk.STOCK_REMOVE, gtk.ICON_SIZE_MENU))
+        self.tooltips.set_tip(remove_profile, _("Remove current profile"))
+        self.prefs_populate_profile_combo(profiles, self.profile_num, remove_profile)
+        controlbox.pack_start(profiles, False, False, 2)
+        controlbox.pack_start(remove_profile, False, False, 2)
+        controlbox.pack_start(add_profile, False, False, 2)
+        namebox = gtk.HBox()
+        namelabel = gtk.Label(_("Name") + ":")
+        namelabel.set_alignment(0, 0.5)
+        namebox.pack_start(namelabel, False, False, 0)
+        nameentry = gtk.Entry()
+        nameentry.connect('changed', self.prefs_nameentry_changed, profiles, remove_profile)
+        namebox.pack_start(nameentry, True, True, 10)
         hostbox = gtk.HBox()
         hostlabel = gtk.Label(_("Host") + ":")
         hostlabel.set_alignment(0, 0.5)
         hostbox.pack_start(hostlabel, False, False, 0)
         hostentry = gtk.Entry()
-        hostentry.set_text(str(self.host))
+        hostentry.connect('changed', self.prefs_hostentry_changed, profiles)
         hostbox.pack_start(hostentry, True, True, 10)
         portbox = gtk.HBox()
         portlabel = gtk.Label(_("Port") + ":")
         portlabel.set_alignment(0, 0.5)
         portbox.pack_start(portlabel, False, False, 0)
         portentry = gtk.Entry()
-        portentry.set_text(str(self.port))
+        portentry.connect('changed', self.prefs_portentry_changed, profiles)
         portbox.pack_start(portentry, True, True, 10)
         dirbox = gtk.HBox()
         dirlabel = gtk.Label(_("Music dir") + ":")
         dirlabel.set_alignment(0, 0.5)
         dirbox.pack_start(dirlabel, False, False, 0)
         direntry = gtk.Entry()
-        direntry.set_text(str(self.musicdir))
+        direntry.connect('changed', self.prefs_direntry_changed, profiles)
         dirbox.pack_start(direntry, True, True, 10)
         passwordbox = gtk.HBox()
         passwordlabel = gtk.Label(_("Password") + ":")
@@ -4612,41 +4682,38 @@ class Base(mpdclient3.mpd_connection):
         passwordbox.pack_start(passwordlabel, False, False, 0)
         passwordentry = gtk.Entry()
         passwordentry.set_visibility(False)
-        passwordentry.set_text(str(self.password))
+        passwordentry.connect('changed', self.prefs_passwordentry_changed, profiles)
         self.tooltips.set_tip(passwordentry, _("Leave blank if no password is required."))
         passwordbox.pack_start(passwordentry, True, True, 10)
-        self.set_label_widths_equal([hostlabel, portlabel, passwordlabel, dirlabel])
+        self.set_label_widths_equal([namelabel, hostlabel, portlabel, passwordlabel, dirlabel])
         autoconnect = gtk.CheckButton(_("Autoconnect on start"))
         autoconnect.set_active(self.autoconnect)
-        connectbox = gtk.HBox()
-        connectbutton = gtk.Button(" " + _("C_onnect"))
-        connectbutton.set_image(gtk.image_new_from_stock(gtk.STOCK_CONNECT, gtk.ICON_SIZE_BUTTON))
-        disconnectbutton = gtk.Button(" " + _("_Disconnect"))
-        disconnectbutton.set_image(gtk.image_new_from_stock(gtk.STOCK_DISCONNECT, gtk.ICON_SIZE_BUTTON))
-        connectbox.pack_start(connectbutton, False, False, 0)
-        connectbox.pack_start(gtk.Label(), True, True, 0)
-        connectbox.pack_start(disconnectbutton, False, False, 0)
-        if self.conn:
-            connectbutton.set_sensitive(False)
-            disconnectbutton.set_sensitive(True)
-        else:
-            connectbutton.set_sensitive(True)
-            disconnectbutton.set_sensitive(False)
-        connectbutton.connect('clicked', self.connectbutton_clicked, disconnectbutton, hostentry, portentry, passwordentry)
-        disconnectbutton.connect('clicked', self.disconnectbutton_clicked, connectbutton)
+        profiles.connect('changed', self.prefs_profile_chosen, nameentry, hostentry, portentry, passwordentry, direntry)
+        add_profile.connect('clicked', self.prefs_add_profile, nameentry, profiles, remove_profile)
+        remove_profile.connect('clicked', self.prefs_remove_profile, profiles, remove_profile)
+        # Fill in entries with current profile:
+        self.prefs_profile_chosen(profiles, nameentry, hostentry, portentry, passwordentry, direntry)
+        mpd_frame = gtk.Frame()
+        table = gtk.Table(6, 2, False)
+        table.set_col_spacings(3)
         table.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(mpdlabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table.attach(gtk.Label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(hostbox, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table.attach(portbox, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table.attach(passwordbox, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table.attach(dirbox, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table.attach(autoconnect, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table.attach(gtk.Label(), 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table.attach(connectbox, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table.attach(gtk.Label(), 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table.attach(gtk.Label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table.attach(namebox, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(hostbox, 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(portbox, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(passwordbox, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(dirbox, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        table.attach(gtk.Label(), 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        mpd_frame.add(table)
+        mpd_frame.set_label_widget(controlbox)
+        mpd_table = gtk.Table(9, 2, False)
+        mpd_table.set_col_spacings(3)
+        mpd_table.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        mpd_table.attach(mpdlabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        mpd_table.attach(gtk.Label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
+        mpd_table.attach(mpd_frame, 1, 3, 4, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        mpd_table.attach(gtk.Label(), 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        mpd_table.attach(autoconnect, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        mpd_table.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         # Extras tab
         if not HAVE_AUDIOSCROBBLER:
             self.use_scrobbler = False
@@ -4945,7 +5012,7 @@ class Base(mpdclient3.mpd_connection):
         nblabel4.set_text_with_mnemonic(_("_Format"))
         nblabel5 = gtk.Label()
         nblabel5.set_text_with_mnemonic(_("_Extras"))
-        prefsnotebook.append_page(table, nblabel1)
+        prefsnotebook.append_page(mpd_table, nblabel1)
         prefsnotebook.append_page(table2, nblabel2)
         prefsnotebook.append_page(table3, nblabel3)
         prefsnotebook.append_page(table4, nblabel4)
@@ -5013,13 +5080,8 @@ class Base(mpdclient3.mpd_connection):
             self.ontop = win_ontop.get_active()
             self.covers_pref = display_art_combo.get_active()
             self.sticky = win_sticky.get_active()
-            self.musicdir = direntry.get_text()
-            self.musicdir = os.path.expanduser(self.musicdir)
-            if len(self.musicdir) > 0:
-                if self.musicdir[-1] != "/":
-                    self.musicdir = self.musicdir + "/"
             if self.show_covers and self.art_location != self.ART_LOCATION_HOMECOVERS:
-                if not os.path.isdir(self.musicdir):
+                if not os.path.isdir(self.musicdir[self.profile_num]):
                     if self.art_location == self.ART_LOCATION_COVER:
                         filename = "cover.jpg"
                     elif self.art_location == self.ART_LOCATION_FOLDER:
@@ -5070,27 +5132,103 @@ class Base(mpdclient3.mpd_connection):
             if self.infofile_path != infopath_options.get_text():
                 self.infofile_path = os.path.expanduser(infopath_options.get_text())
                 if self.use_infofile: self.update_infofile()
-            if hostentry.get_text() != self.host or portentry.get_text() != str(self.port) or passwordentry.get_text() != self.password:
-                self.host = hostentry.get_text()
-                try:
-                    self.port = int(portentry.get_text())
-                except:
-                    pass
-                self.password = passwordentry.get_text()
-                self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
-                self.conn = self.connect()
-                if self.conn:
-                    self.iterate_time = self.iterate_time_when_connected
-                    self.conn.do.password(self.password)
-                    self.iterate_now()
-                else:
-                    self.iterate_time = self.iterate_time_when_disconnected
-                    self.browserdata.clear()
+            # Try to connect (in case mpd connection info has been updated):
+            self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
+            self.conn = self.connect()
+            if self.conn:
+                self.iterate_time = self.iterate_time_when_connected
+                self.conn.do.password(self.password[self.profile_num])
+                self.iterate_now()
+            else:
+                self.iterate_time = self.iterate_time_when_disconnected
+                self.browserdata.clear()
             if self.use_scrobbler:
                 gobject.idle_add(self.scrobbler_init)
             self.settings_save()
+            self.populate_profiles_for_menu()
             self.change_cursor(None)
         window.destroy()
+
+    def prefs_nameentry_changed(self, entry, profile_combo, remove_profiles):
+        if not self.updating_nameentry:
+            prefs_profile_num = profile_combo.get_active()
+            self.profile_names[prefs_profile_num] = entry.get_text()
+            self.prefs_populate_profile_combo(profile_combo, prefs_profile_num, remove_profiles)
+
+    def prefs_hostentry_changed(self, entry, profile_combo):
+        prefs_profile_num = profile_combo.get_active()
+        self.host[prefs_profile_num] = entry.get_text()
+
+    def prefs_portentry_changed(self, entry, profile_combo):
+        prefs_profile_num = profile_combo.get_active()
+        try:
+            self.port[prefs_profile_num] = int(entry.get_text())
+        except:
+            pass
+
+    def prefs_passwordentry_changed(self, entry, profile_combo):
+        prefs_profile_num = profile_combo.get_active()
+        self.password[prefs_profile_num] = entry.get_text()
+
+    def prefs_direntry_changed(self, entry, profile_combo):
+        prefs_profile_num = profile_combo.get_active()
+        self.musicdir[prefs_profile_num] = os.path.expanduser(entry.get_text())
+        if len(self.musicdir[prefs_profile_num]) > 0:
+            if self.musicdir[prefs_profile_num][-1] != "/":
+                self.musicdir[prefs_profile_num] = self.musicdir[prefs_profile_num] + "/"
+
+    def prefs_add_profile(self, button, nameentry, profile_combo, remove_profiles):
+        self.updating_nameentry = True
+        prefs_profile_num = profile_combo.get_active()
+        self.profile_names.append(_("New Profile"))
+        nameentry.set_text(self.profile_names[len(self.profile_names)-1])
+        self.updating_nameentry = False
+        self.host.append(self.host[prefs_profile_num])
+        self.port.append(self.port[prefs_profile_num])
+        self.password.append(self.password[prefs_profile_num])
+        self.musicdir.append(self.musicdir[prefs_profile_num])
+        self.prefs_populate_profile_combo(profile_combo, len(self.profile_names)-1, remove_profiles)
+
+    def prefs_remove_profile(self, button, profile_combo, remove_profiles):
+        prefs_profile_num = profile_combo.get_active()
+        if prefs_profile_num == self.profile_num:
+            # Profile deleted, revert to first profile:
+            self.profile_num = 0
+            self.connectkey_pressed(None)
+        self.profile_names.pop(prefs_profile_num)
+        self.host.pop(prefs_profile_num)
+        self.port.pop(prefs_profile_num)
+        self.password.pop(prefs_profile_num)
+        self.musicdir.pop(prefs_profile_num)
+        if prefs_profile_num > 0:
+            self.prefs_populate_profile_combo(profile_combo, prefs_profile_num-1, remove_profiles)
+        else:
+            self.prefs_populate_profile_combo(profile_combo, 0, remove_profiles)
+
+    def prefs_profile_chosen(self, profile_combo, nameentry, hostentry, portentry, passwordentry, direntry):
+        prefs_profile_num = profile_combo.get_active()
+        self.updating_nameentry = True
+        nameentry.set_text(str(self.profile_names[prefs_profile_num]))
+        self.updating_nameentry = False
+        hostentry.set_text(str(self.host[prefs_profile_num]))
+        portentry.set_text(str(self.port[prefs_profile_num]))
+        passwordentry.set_text(str(self.password[prefs_profile_num]))
+        direntry.set_text(str(self.musicdir[prefs_profile_num]))
+
+    def prefs_populate_profile_combo(self, profile_combo, active_index, remove_profiles):
+        new_model = gtk.ListStore(str)
+        new_model.clear()
+        profile_combo.set_model(new_model)
+        for i in range(len(self.profile_names)):
+            if len(self.profile_names[i])	> 15:
+                profile_combo.append_text("[" + str(i+1) + "] " + self.profile_names[i][:15] + "...")
+            else:
+                profile_combo.append_text("[" + str(i+1) + "] " + self.profile_names[i])
+        profile_combo.set_active(active_index)
+        if len(self.profile_names) == 1:
+            remove_profiles.set_sensitive(False)
+        else:
+            remove_profiles.set_sensitive(True)
 
     def prefs_playback_toggled(self, button):
         if button.get_active():
@@ -5123,7 +5261,7 @@ class Base(mpdclient3.mpd_connection):
             art_combo.set_sensitive(True)
             art_hbox.set_sensitive(True)
             self.traytips.set_size_request(self.notification_width, -1)
-            self.set_default_icon_for_art(True)
+            self.set_default_icon_for_art()
             self.imageeventbox.set_no_show_all(False)
             self.imageeventbox.show_all()
             self.trayalbumeventbox.set_no_show_all(False)
@@ -5334,6 +5472,10 @@ class Base(mpdclient3.mpd_connection):
             return False
 
     def set_menu_contextual_items_visible(self, show_songinfo_only=False):
+        if len(self.profile_names) > 1:
+            self.UIManager.get_widget('/mainmenu/profilesmenu/').show()
+        else:
+            self.UIManager.get_widget('/mainmenu/profilesmenu/').hide()
         if show_songinfo_only:
             self.UIManager.get_widget('/mainmenu/songinfo_menu/').show()
             self.UIManager.get_widget('/mainmenu/addmenu/').hide()
@@ -5482,8 +5624,8 @@ class Base(mpdclient3.mpd_connection):
             error_dialog.connect('response', self.choose_image_dialog_response)
             error_dialog.show()
             return
-        if not os.path.isdir(self.musicdir):
-            error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("The path") + " " + self.musicdir + " " + _("does not exist. Please specify a valid music directory in preferences."))
+        if not os.path.isdir(self.musicdir[self.profile_num]):
+            error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("The path") + " " + self.musicdir[self.profile_num] + " " + _("does not exist. Please specify a valid music directory in preferences."))
             error_dialog.set_title(_("Edit Tags"))
             error_dialog.set_role('editTagsError')
             error_dialog.connect('response', self.choose_image_dialog_response)
@@ -5497,13 +5639,13 @@ class Base(mpdclient3.mpd_connection):
         temp_mpdpaths = []
         if mpdpath is not None:
             # Use current file in songinfo:
-            files.append(self.musicdir + mpdpath)
+            files.append(self.musicdir[self.profile_num] + mpdpath)
             temp_mpdpaths.append(mpdpath)
         elif self.notebook.get_current_page() == self.TAB_LIBRARY:
             # Populates files array with selected library items:
             items = self.browser_get_selected_items_recursive(False)
             for item in items:
-                files.append(self.musicdir + item)
+                files.append(self.musicdir[self.profile_num] + item)
                 temp_mpdpaths.append(item)
         elif self.notebook.get_current_page() == self.TAB_CURRENT:
             # Populates files array with selected current playlist items:
@@ -5513,7 +5655,7 @@ class Base(mpdclient3.mpd_connection):
                     item = self.songs[path[0]].file
                 else:
                     item = self.songs[self.songs_filter_rownums[path[0]]].file
-                files.append(self.musicdir + item)
+                files.append(self.musicdir[self.profile_num] + item)
                 temp_mpdpaths.append(item)
         # Initialize tags:
         tags = []
@@ -5980,7 +6122,9 @@ class Base(mpdclient3.mpd_connection):
         # define the shortcuts and their descriptions
         # these are all gettextable
         mainshortcuts = \
-                [[ "Alt-1", _("Switch to current playlist") ],
+                [[ "F1", _("About Sonata") ],
+                 [ "F5", _("Preferences") ],
+                 [ "Alt-1", _("Switch to current playlist") ],
                  [ "Alt-2", _("Switch to library") ],
                  [ "Alt-3", _("Switch to playlists") ],
                  [ "Alt-4", _("Switch to streams") ],

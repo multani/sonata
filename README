@@ -28,6 +28,7 @@ FEATURES:
 	+ Popup notification
 	+ Library searching and playlist filtering
 	+ Audioscrobbler (last.fm) support
+	+ Multiple MPD profiles
 	+ Keyboard friendly
 	+ Support for multimedia keys
 	+ Commandline control
