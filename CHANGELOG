@@ -3,6 +3,7 @@ v1.2 - Pending
 	+ Support for multiple profiles (and, e.g., "sonata --profile=2")
 	+ Ability to rename playlists (requires mpd >= 0.13)
 	+ Prevent continually searching for artwork/lyrics if not found the first time
+	+ Search for additional artwork filenames
 	+ Allows resetting artwork to the default image
 	+ 'Save All' button for tag editing window
 	+ Added Finnish translation (lkka Tuohela)

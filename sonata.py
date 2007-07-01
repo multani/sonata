@@ -244,6 +244,7 @@ class Base(mpdclient3.mpd_connection):
         self.ART_LOCATION_CUSTOM = 4			# file_dir/[custom]
         self.ART_LOCATION_NONE = 5			# Use default Sonata icons
         self.ART_LOCATION_NONE_FLAG = "USE_DEFAULT"
+        self.ART_LOCATIONS_MISC = ['front.jpg', '.folder.jpg', '.folder.png', 'AlbumArt.jpg', 'AlbumArtSmall.jpg']
 
         # Initialize vars:
         socket.setdefaulttimeout(2)
@@ -306,6 +307,7 @@ class Base(mpdclient3.mpd_connection):
         self.sonata_loaded = False
         self.call_gc_collect = False
         self.single_img_in_dir = None
+        self.misc_img_in_dir = None
         self.total_time = 0
         self.prev_boldrow = -1
         self.use_infofile = False
@@ -2938,6 +2940,8 @@ class Base(mpdclient3.mpd_connection):
 
     def check_for_local_images(self, songdir):
         self.set_default_icon_for_art()
+        self.misc_img_in_dir = None
+        self.single_img_in_dir = None
         if os.path.exists(self.target_image_filename(self.ART_LOCATION_HOMECOVERS)):
             gobject.idle_add(self.set_image_for_cover, self.target_image_filename(self.ART_LOCATION_HOMECOVERS))
             return True
@@ -2953,11 +2957,14 @@ class Base(mpdclient3.mpd_connection):
         elif self.art_location == self.ART_LOCATION_CUSTOM and len(self.art_location_custom_filename) > 0 and os.path.exists(self.target_image_filename(self.ART_LOCATION_CUSTOM)):
             gobject.idle_add(self.set_image_for_cover, self.target_image_filename(self.ART_LOCATION_CUSTOM))
             return True
-        else:
+        elif self.get_misc_img_in_path(songdir):
+            self.misc_img_in_dir = self.get_misc_img_in_path(songdir)
+            gobject.idle_add(self.set_image_for_cover, self.musicdir[self.profile_num] + songdir + "/" + self.misc_img_in_dir)
+            return True
+        elif self.get_single_img_in_path(songdir):
             self.single_img_in_dir = self.get_single_img_in_path(songdir)
-            if self.single_img_in_dir:
-                gobject.idle_add(self.set_image_for_cover, self.musicdir[self.profile_num] + songdir + "/" + self.single_img_in_dir)
-                return True
+            gobject.idle_add(self.set_image_for_cover, self.musicdir[self.profile_num] + songdir + "/" + self.single_img_in_dir)
+            return True
         return False
 
     def check_remote_images(self, artist, album, filename):
@@ -2989,6 +2996,13 @@ class Base(mpdclient3.mpd_connection):
             return single_img
         else:
             return False
+
+    def get_misc_img_in_path(self, songdir):
+        if os.path.exists(self.musicdir[self.profile_num] + songdir):
+            for f in self.ART_LOCATIONS_MISC:
+                if os.path.exists(self.musicdir[self.profile_num] + songdir + "/" + f):
+                    return f
+        return False
 
     def set_image_for_cover(self, filename, infowindow_only=False):
         if self.filename_is_for_current_song(filename):
@@ -3033,6 +3047,10 @@ class Base(mpdclient3.mpd_connection):
                 return True
             if filename == self.target_image_filename(self.ART_LOCATION_CUSTOM):
                 return True
+            if self.misc_img_in_dir and self.songinfo:
+                songdir = os.path.dirname(self.songinfo.file)
+                if filename == self.musicdir[self.profile_num] + songdir + "/" + self.misc_img_in_dir:
+                    return True
             if self.single_img_in_dir and self.songinfo:
                 songdir = os.path.dirname(self.songinfo.file)
                 if filename == self.musicdir[self.profile_num] + songdir + "/" + self.single_img_in_dir:

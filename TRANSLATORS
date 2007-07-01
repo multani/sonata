@@ -5,7 +5,7 @@ greatly appreciated.
 
 1. Download the latest locale/message.po file. Please use the SVN
 version, which can be found at:
-http://svn.berlios.de/svnroot/repos/sonata/trunk/po/sonata.po
+http://svn.berlios.de/svnroot/repos/sonata/trunk/po/messages.po
 
 2. Use poedit (http://www.poedit.org/) to create translations for
 all of the strings.
