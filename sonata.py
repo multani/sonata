@@ -3968,6 +3968,11 @@ class Base(mpdclient3.mpd_connection):
                 else:
                     lyrics = _("Lyrics not found")
                     gobject.idle_add(self.infowindow_show_lyrics, lyrics, artist, title)
+                    # Save error to file so that we don't retry the lyrics over and over:
+                    self.create_dir_if_not_existing('~/.lyrics/')
+                    f = open(filename, 'w')
+                    f.write(lyrics.encode(self.charset))
+                    f.close()
             except:
                 lyrics = _("Fetching lyrics failed")
                 gobject.idle_add(self.infowindow_show_lyrics, lyrics, artist, title)
