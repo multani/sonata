@@ -2,9 +2,10 @@ v1.2 - Pending
 	+ Audioscrobbler support (requires python-elementtree) (Owen)
 	+ Support for multiple profiles (and, e.g., "sonata --profile=2")
 	+ Ability to rename playlists (requires mpd >= 0.13)
-	+ Prevent continually searching for artwork if it's not found the first time
+	+ Prevent continually searching for artwork/lyrics if not found the first time
 	+ Allows resetting artwork to the default image
 	+ 'Save All' button for tag editing window
+	+ Added Finnish translation (lkka Tuohela)
 	+ Bug: Multimedia keys no longer work in Gnome 2.18 (Florian)
 	+ Bug: Hide statusbar in collapse mode when showing from systray
 	+ Bug: Cover artwork filename doesn't use system's locale charset

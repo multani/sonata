@@ -10,6 +10,39 @@ from distutils.core import setup, Extension
 def capture(cmd):
     return os.popen(cmd).read().strip()
 
+def removeall(path):
+    if not os.path.isdir(path):
+        return
+
+    files=os.listdir(path)
+
+    for x in files:
+        fullpath=os.path.join(path, x)
+        if os.path.isfile(fullpath):
+            f=os.remove
+            rmgeneric(fullpath, f)
+        elif os.path.isdir(fullpath):
+            removeall(fullpath)
+            f=os.rmdir
+            rmgeneric(fullpath, f)
+
+def rmgeneric(path, __func__):
+    try:
+        __func__(path)
+    except OSError, (errno, strerror):
+        pass
+
+# Create mo files:
+if not os.path.exists("mo/"):
+    os.mkdir("mo/")
+for lang in ('de', 'pl', 'ru', 'fr', 'zh_CN', 'sv', 'es', 'fi', 'uk'):
+    pofile = "po/" + lang + ".po"
+    mofile = "mo/" + lang + "/sonata.mo"
+    if not os.path.exists("mo/" + lang + "/"):
+        os.mkdir("mo/" + lang + "/")
+    print "generation", mofile
+    os.system("msgfmt %s -o %s" % (pofile, mofile))
+
 setup(name='Sonata',
         version='1.1.1',
         description='GTK+ client for the Music Player Daemon (MPD).',
@@ -35,12 +68,27 @@ setup(name='Sonata',
         data_files=[('share/sonata', ['README', 'CHANGELOG', 'TODO', 'TRANSLATORS']),
                     ('share/applications', ['sonata.desktop']),
                     ('share/pixmaps', ['pixmaps/sonata.png', 'pixmaps/sonata_large.png', 'pixmaps/sonatacd.png', 'pixmaps/sonatacd_large.png', 'pixmaps/sonata-artist.png', 'pixmaps/sonata-album.png', 'pixmaps/sonata-stock_volume-mute.png', 'pixmaps/sonata-stock_volume-min.png', 'pixmaps/sonata-stock_volume-med.png', 'pixmaps/sonata-stock_volume-max.png']),
-                    ('share/locale/de/LC_MESSAGES', ['locale/de/LC_MESSAGES/sonata.mo']),
-                    ('share/locale/pl/LC_MESSAGES', ['locale/pl/LC_MESSAGES/sonata.mo']),
-                    ('share/locale/ru/LC_MESSAGES', ['locale/ru/LC_MESSAGES/sonata.mo']),
-                    ('share/locale/fr/LC_MESSAGES', ['locale/fr/LC_MESSAGES/sonata.mo']),
-                    ('share/locale/zh_CN/LC_MESSAGES', ['locale/zh_CN/LC_MESSAGES/sonata.mo']),
-                    ('share/locale/sv/LC_MESSAGES', ['locale/sv/LC_MESSAGES/sonata.mo']),
-                    ('share/locale/es/LC_MESSAGES', ['locale/es/LC_MESSAGES/sonata.mo']),
-                    ('share/locale/uk/LC_MESSAGES', ['locale/uk/LC_MESSAGES/sonata.mo'])],
+                    ('share/locale/de/LC_MESSAGES', ['mo/de/sonata.mo']),
+                    ('share/locale/pl/LC_MESSAGES', ['mo/pl/sonata.mo']),
+                    ('share/locale/ru/LC_MESSAGES', ['mo/ru/sonata.mo']),
+                    ('share/locale/fr/LC_MESSAGES', ['mo/fr/sonata.mo']),
+                    ('share/locale/zh_CN/LC_MESSAGES', ['mo/zh_CN/sonata.mo']),
+                    ('share/locale/sv/LC_MESSAGES', ['mo/sv/sonata.mo']),
+                    ('share/locale/es/LC_MESSAGES', ['mo/es/sonata.mo']),
+                    ('share/locale/fi/LC_MESSAGES', ['mo/fi/sonata.mo']),
+                    ('share/locale/uk/LC_MESSAGES', ['mo/uk/sonata.mo'])],
         )
+
+# Cleanup (remove /build, /mo, and *.pyc files:
+print "Cleaning up..."
+try:
+    removeall("build/")
+    os.rmdir("build/")
+    removeall("mo/")
+    os.rmdir("mo/")
+    for f in os.listdir("."):
+        if os.path.isfile(f):
+            if os.path.splitext(os.path.basename(f))[1] == ".pyc":
+                os.remove(f)
+except:
+    pass
