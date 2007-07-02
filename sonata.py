@@ -774,6 +774,7 @@ class Base(mpdclient3.mpd_connection):
             self.cursonglabel2.set_markup('<small>' + _('Click to expand') + '</small>')
             if self.window_owner:
                 self.window.set_default_size(self.w, 1)
+                self.set_window_height_fixed()
         else:
             self.cursonglabel1.set_markup('<big><b>' + _('Stopped') + '</b></big>')
             self.cursonglabel2.set_markup('<small>' + _('Click to collapse') + '</small>')
@@ -3330,11 +3331,16 @@ class Base(mpdclient3.mpd_connection):
             self.tooltips.set_tip(self.expander, _("Click to collapse the player"))
             if self.status and self.status.state in ['play','pause']:
                 gobject.idle_add(self.keep_song_visible_in_list)
+            self.window.set_geometry_hints(max_height=-1)
         else:
             self.tooltips.set_tip(self.expander, _("Click to expand the player"))
+            self.set_window_height_fixed()
         # Put focus to the notebook:
         self.on_notebook_page_change(None, None, self.notebook.get_current_page())
         return
+
+    def set_window_height_fixed(self):
+        self.window.set_geometry_hints(self.window, max_width=self.h, max_height=-1)
 
     # This callback allows the user to seek to a specific portion of the song
     def on_progressbar_button_press_event(self, widget, event):
