@@ -368,6 +368,9 @@ class Base(mpdclient3.mpd_connection):
         # Add some icons:
         self.iconfactory = gtk.IconFactory()
         self.new_icon('sonata', file='sonata.png')
+        self.new_icon('sonata_pause', file='sonata_pause.png')
+        self.new_icon('sonata_play', file='sonata_play.png')
+        self.new_icon('sonata_disconnect', file='sonata_disconnect.png')
         self.new_icon('artist', file='sonata-artist.png')
         self.new_icon('album', file='sonata-album.png')
         icon_theme = gtk.icon_theme_get_default()
@@ -1617,6 +1620,10 @@ class Base(mpdclient3.mpd_connection):
             self.currentdata.clear()
             self.current.get_model().clear()
             self.songs = None
+            if HAVE_STATUS_ICON:
+                self.statusicon.set_from_stock('sonata_disconnect')
+            elif HAVE_EGG:
+                self.trayimage.set_from_stock('sonata_disconnect', gtk.ICON_SIZE_BUTTON)
         else:
             for mediabutton in (self.ppbutton, self.stopbutton, self.prevbutton, self.nextbutton, self.volumebutton):
                 mediabutton.set_property('sensitive', True)
@@ -2522,11 +2529,19 @@ class Base(mpdclient3.mpd_connection):
                 self.ppbutton.get_child().get_child().get_children()[1].set_text('')
                 self.UIManager.get_widget('/traymenu/playmenu').show()
                 self.UIManager.get_widget('/traymenu/pausemenu').hide()
+                if HAVE_STATUS_ICON:
+                    self.statusicon.set_from_stock('sonata')
+                elif HAVE_EGG:
+                    self.trayimage.set_from_stock('sonata', gtk.ICON_SIZE_BUTTON)
             elif self.status.state == 'pause':
                 self.ppbutton.set_image(gtk.image_new_from_stock(gtk.STOCK_MEDIA_PLAY, gtk.ICON_SIZE_BUTTON))
                 self.ppbutton.get_child().get_child().get_children()[1].set_text('')
                 self.UIManager.get_widget('/traymenu/playmenu').show()
                 self.UIManager.get_widget('/traymenu/pausemenu').hide()
+                if HAVE_STATUS_ICON:
+                    self.statusicon.set_from_stock('sonata_pause')
+                elif HAVE_EGG:
+                    self.trayimage.set_from_stock('sonata_pause', gtk.ICON_SIZE_BUTTON)
             elif self.status.state == 'play':
                 self.ppbutton.set_image(gtk.image_new_from_stock(gtk.STOCK_MEDIA_PAUSE, gtk.ICON_SIZE_BUTTON))
                 self.ppbutton.get_child().get_child().get_children()[1].set_text('')
@@ -2536,6 +2551,10 @@ class Base(mpdclient3.mpd_connection):
                     if self.prevstatus.state == 'pause':
                         # Forces the notification to popup if specified
                         self.labelnotify()
+                if HAVE_STATUS_ICON:
+                    self.statusicon.set_from_stock('sonata_play')
+                elif HAVE_EGG:
+                    self.trayimage.set_from_stock('sonata_play', gtk.ICON_SIZE_BUTTON)
             self.update_album_art()
             if self.status.state in ['play', 'pause']:
                 self.keep_song_visible_in_list()
@@ -3331,7 +3350,7 @@ class Base(mpdclient3.mpd_connection):
             self.tooltips.set_tip(self.expander, _("Click to collapse the player"))
             if self.status and self.status.state in ['play','pause']:
                 gobject.idle_add(self.keep_song_visible_in_list)
-            self.window.set_geometry_hints(max_height=-1)
+            self.window.set_geometry_hints(self.window)
         else:
             self.tooltips.set_tip(self.expander, _("Click to expand the player"))
             self.set_window_height_fixed()
