@@ -25,6 +25,7 @@ along with Sonata; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import warnings
 import sys
 import os
 import gobject
@@ -48,6 +49,8 @@ except ImportError, (strerror):
     print >>sys.stderr, "%s.  Please make sure you have this library installed into a directory in Python's path or in the same directory as Sonata.\n" % strerror
     sys.exit(1)
 
+# Prevent deprecation warning for egg:
+warnings.simplefilter('ignore', DeprecationWarning)
 try:
     import egg.trayicon
     HAVE_EGG = True
@@ -59,6 +62,8 @@ except ImportError:
         HAVE_STATUS_ICON = True
     else:
         HAVE_STATUS_ICON = False
+# Reset so that we can see any other deprecation warnings
+warnings.simplefilter('default', DeprecationWarning)
 
 try:
     import dbus
@@ -168,6 +173,7 @@ class Base(mpdclient3.mpd_connection):
 
         self.traytips = TrayIconTips()
 
+        self.trying_connection = False
         toggle_arg = False
         start_hidden = False
         start_visible = False
@@ -344,8 +350,7 @@ class Base(mpdclient3.mpd_connection):
         # able to make a connection, slow down the iteration check to once every 15 seconds.
         # Eventually we'd like to ues non-blocking sockets in mpdclient3.py
         self.iterate_time_when_connected = 500
-        self.iterate_time_when_connected_and_stopped = 1000 # Slow down polling when stopped
-        self.iterate_time_when_disconnected = 15000
+        self.iterate_time_when_disconnected_or_stopped = 1000 # Slow down polling when disconnected stopped
 
         self.settings_load()
         if start_hidden:
@@ -530,9 +535,8 @@ class Base(mpdclient3.mpd_connection):
             """
 
         # Try to connect to MPD:
-        self.conn = self.connect()
+        self.connect(blocking=True)
         if self.conn:
-            self.conn.do.password(self.password[self.profile_num])
             self.status = self.conn.do.status()
             self.iterate_time = self.iterate_time_when_connected
             try:
@@ -546,7 +550,7 @@ class Base(mpdclient3.mpd_connection):
         else:
             if self.initial_run:
                 show_prefs = True
-            self.iterate_time = self.iterate_time_when_disconnected
+            self.iterate_time = self.iterate_time_when_disconnected_or_stopped
             self.status = None
             self.songinfo = None
 
@@ -1109,9 +1113,8 @@ class Base(mpdclient3.mpd_connection):
         self.user_connect = True
         self.settings_load()
         self.conn = None
-        self.conn = self.connect()
+        self.connect(blocking=True, force_connection=True)
         if self.conn:
-            self.conn.do.password(self.password[self.profile_num])
             self.status = self.conn.do.status()
             try:
                 test = self.status.state
@@ -1242,20 +1245,32 @@ class Base(mpdclient3.mpd_connection):
             self.profile_num = current.get_current_value()
             self.connectkey_pressed(None)
 
-    def connect(self):
-        if self.user_connect:
-            try:
-                return Connection(self)
-            except (mpdclient3.socket.error, EOFError):
-                return None
+    def connect(self, blocking=False, force_connection=False):
+        if blocking:
+            self.connect2(blocking, force_connection)
         else:
-            return None
+            thread = threading.Thread(target=self.connect2, args=(blocking, force_connection))
+            thread.setDaemon(True)
+            thread.start()
+
+    def connect2(self, blocking, force_connection):
+        if self.trying_connection:
+            return
+        self.trying_connection = True
+        if self.user_connect or force_connection:
+            try:
+                self.conn = Connection(self)
+                if len(self.password[self.profile_num]) > 0:
+                    self.conn.do.password(self.password[self.profile_num])
+            except (mpdclient3.socket.error, EOFError):
+                self.conn = None
+        else:
+            self.conn = None
+        self.trying_connection = False
 
     def connectkey_pressed(self, event):
         self.user_connect = True
-        self.conn = self.connect()
-        if self.conn:
-            self.conn.do.password(self.password[self.profile_num])
+        self.connect()
         self.iterate_now(True)
 
     def disconnectkey_pressed(self, event):
@@ -1275,16 +1290,14 @@ class Base(mpdclient3.mpd_connection):
     def update_status(self):
         try:
             if not self.conn:
-                self.conn = self.connect()
-                if self.conn:
-                    self.conn.do.password(self.password[self.profile_num])
+                self.connect()
             if self.conn:
                 self.iterate_time = self.iterate_time_when_connected
                 self.status = self.conn.do.status()
                 try:
                     test = self.status.state
                     if self.status.state == 'stop':
-                        self.iterate_time = self.iterate_time_when_connected_and_stopped
+                        self.iterate_time = self.iterate_time_when_disconnected_or_stopped
                 except:
                     self.status = None
                 self.songinfo = self.conn.do.currentsong()
@@ -1304,7 +1317,7 @@ class Base(mpdclient3.mpd_connection):
                         self.xfade = int(self.status.xfade)
                         if self.xfade > 30: self.xfade = 30
             else:
-                self.iterate_time = self.iterate_time_when_disconnected
+                self.iterate_time = self.iterate_time_when_disconnected_or_stopped
                 self.status = None
                 self.songinfo = None
         except (mpdclient3.socket.error, EOFError):
@@ -5183,14 +5196,7 @@ class Base(mpdclient3.mpd_connection):
                 if self.use_infofile: self.update_infofile()
             # Try to connect (in case mpd connection info has been updated):
             self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
-            self.conn = self.connect()
-            if self.conn:
-                self.iterate_time = self.iterate_time_when_connected
-                self.conn.do.password(self.password[self.profile_num])
-                self.iterate_now()
-            else:
-                self.iterate_time = self.iterate_time_when_disconnected
-                self.browserdata.clear()
+            self.connect()
             if self.use_scrobbler:
                 gobject.idle_add(self.scrobbler_init)
             self.settings_save()
@@ -5525,10 +5531,6 @@ class Base(mpdclient3.mpd_connection):
             return False
 
     def set_menu_contextual_items_visible(self, show_songinfo_only=False):
-        if len(self.profile_names) > 1:
-            self.UIManager.get_widget('/mainmenu/profilesmenu/').show()
-        else:
-            self.UIManager.get_widget('/mainmenu/profilesmenu/').hide()
         if show_songinfo_only:
             self.UIManager.get_widget('/mainmenu/songinfo_menu/').show()
             self.UIManager.get_widget('/mainmenu/addmenu/').hide()

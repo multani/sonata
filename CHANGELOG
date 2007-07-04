@@ -7,6 +7,7 @@ v1.2 - Pending
 	+ Allows resetting artwork to the default image
 	+ 'Save All' button for tag editing window
 	+ MPD status in systray icon
+	+ Prevent GUI blocking when connecting to MPD, where possible
 	+ Added Finnish translation (lkka Tuohela)
 	+ Bug: Multimedia keys no longer work in Gnome 2.18 (Florian)
 	+ Bug: Hide statusbar in collapse mode when showing from systray

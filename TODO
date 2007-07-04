@@ -1,7 +1,6 @@
 v1.2
 	profiles -> change radio button selection when using ctrl-c, ctrl-d
 	lyrics -> allow user to edit, fetch, refresh, search terms..? (#3491)
-	connect to MPD in thread?
 
 v1.3
 	update to GPLv3
