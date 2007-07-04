@@ -11,6 +11,7 @@ v1.2 - Pending
 	+ Bug: Multimedia keys no longer work in Gnome 2.18 (Florian)
 	+ Bug: Hide statusbar in collapse mode when showing from systray
 	+ Bug: Cover artwork filename doesn't use system's locale charset
+	+ Bug: MPD_HOST variable doesn't work when it includes password
 
 v1.1.1 - May 18, 2007
 	+ Add Swedish translation (Daniel Nylander)

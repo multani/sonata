@@ -40,7 +40,7 @@ for lang in ('de', 'pl', 'ru', 'fr', 'zh_CN', 'sv', 'es', 'fi', 'uk'):
     mofile = "mo/" + lang + "/sonata.mo"
     if not os.path.exists("mo/" + lang + "/"):
         os.mkdir("mo/" + lang + "/")
-    print "generation", mofile
+    print "generating", mofile
     os.system("msgfmt %s -o %s" % (pofile, mofile))
 
 setup(name='Sonata',
@@ -84,8 +84,14 @@ print "Cleaning up..."
 try:
     removeall("build/")
     os.rmdir("build/")
+except:
+    pass
+try:
     removeall("mo/")
     os.rmdir("mo/")
+except:
+    pass
+try:
     for f in os.listdir("."):
         if os.path.isfile(f):
             if os.path.splitext(os.path.basename(f))[1] == ".pyc":

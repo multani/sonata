@@ -1,8 +1,6 @@
 v1.2
 	profiles -> change radio button selection when using ctrl-c, ctrl-d
-	do some performance checking..
 	lyrics -> allow user to edit, fetch, refresh, search terms..? (#3491)
-	#3396
 
 v1.3
 	update to GPLv3
