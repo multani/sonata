@@ -250,7 +250,7 @@ class Base(mpdclient3.mpd_connection):
         socket.setdefaulttimeout(2)
         self.profile_num = 0
         self.profile_names = ['Default Profile']
-        self.musicdir = [os.path.expanduser("~/music")]
+        self.musicdir = [self.sanitize_musicdir("~/music")]
         self.host = ['localhost']
         self.port = [6600]
         self.password = ['']
@@ -1426,7 +1426,7 @@ class Base(mpdclient3.mpd_connection):
         if conf.has_option('connection', 'password'):
             self.password[0] = conf.get('connection', 'password')
         if conf.has_option('connection', 'musicdir'):
-            self.musicdir[0] = conf.get('connection', 'musicdir')
+            self.musicdir[0] = self.sanitize_musicdir(conf.get('connection', 'musicdir'))
         # --------------------------------------------------------------------
         if conf.has_option('connection', 'auto'):
             self.autoconnect = conf.getboolean('connection', 'auto')
@@ -1541,7 +1541,7 @@ class Base(mpdclient3.mpd_connection):
                 self.host.append(conf.get('profiles', 'hosts[' + str(i) + ']'))
                 self.port.append(conf.getint('profiles', 'ports[' + str(i) + ']'))
                 self.password.append(conf.get('profiles', 'passwords[' + str(i) + ']'))
-                self.musicdir.append(conf.get('profiles', 'musicdirs[' + str(i) + ']'))
+                self.musicdir.append(self.sanitize_musicdir(conf.get('profiles', 'musicdirs[' + str(i) + ']')))
 
     def settings_save(self):
         conf = ConfigParser.ConfigParser()
@@ -3556,8 +3556,10 @@ class Base(mpdclient3.mpd_connection):
                 iters = [model.get_iter(path) for path in selected]
                 if len(iters) > 0:
                     # If there are selected rows, update these paths..
+                    self.conn.send.command_list_begin()
                     for iter in iters:
-                        self.conn.do.update(self.browserdata.get_value(iter, 1))
+                        self.conn.send.update(self.browserdata.get_value(iter, 1))
+                    self.conn.do.command_list_end()
                 else:
                     # If no selection, update the current path...
                     self.conn.do.update(self.browser.wd)
@@ -5219,10 +5221,14 @@ class Base(mpdclient3.mpd_connection):
 
     def prefs_direntry_changed(self, entry, profile_combo):
         prefs_profile_num = profile_combo.get_active()
-        self.musicdir[prefs_profile_num] = os.path.expanduser(entry.get_text())
-        if len(self.musicdir[prefs_profile_num]) > 0:
-            if self.musicdir[prefs_profile_num][-1] != "/":
-                self.musicdir[prefs_profile_num] = self.musicdir[prefs_profile_num] + "/"
+        self.musicdir[prefs_profile_num] = self.sanitize_musicdir(entry.get_text())
+
+    def sanitize_musicdir(self, mdir):
+        mdir = os.path.expanduser(mdir)
+        if len(mdir) > 0:
+            if mdir[-1] != "/":
+                mdir = mdir + "/"
+        return mdir
 
     def prefs_add_profile(self, button, nameentry, profile_combo, remove_profiles):
         self.updating_nameentry = True
@@ -5835,7 +5841,7 @@ class Base(mpdclient3.mpd_connection):
         editwindow.action_area.pack_start(gtk.Label())
         cancelbutton = editwindow.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT)
         savebutton = editwindow.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT)
-        editwindow.connect('delete_event', self.editwindow_hide, None, tags)
+        editwindow.connect('delete_event', self.editwindow_hide, tags)
         entries = [titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, filelabel]
         buttons = [titlebutton, artistbutton, albumbutton, yearbutton, trackbutton, genrebutton, commentbutton]
         entries_names = ["title", "artist", "album", "year", "track", "genre", "comment"]
@@ -6082,6 +6088,7 @@ class Base(mpdclient3.mpd_connection):
             for i in range(len(tags)):
                 self.conn.send.update(tags[i]['mpdpath'])
             self.conn.do.command_list_end()
+            self.iterate_now()
 
     def editwindow_populate_genre_combo(self, genrecombo):
         genres = ["", "A Cappella", "Acid", "Acid Jazz", "Acid Punk", "Acoustic", "Alt. Rock", "Alternative", "Ambient", "Anime", "Avantgarde", "Ballad", "Bass", "Beat", "Bebob", "Big Band", "Black Metal", "Bluegrass", "Blues", "Booty Bass", "BritPop", "Cabaret", "Celtic", "Chamber music", "Chanson", "Chorus", "Christian Gangsta Rap", "Christian Rap", "Christian Rock", "Classic Rock", "Classical", "Club", "Club-House", "Comedy", "Contemporary Christian", "Country", "Crossover", "Cult", "Dance", "Dance Hall", "Darkwave", "Death Metal", "Disco", "Dream", "Drum &amp; Bass", "Drum Solo", "Duet", "Easy Listening", "Electronic", "Ethnic", "Euro-House", "Euro-Techno", "Eurodance", "Fast Fusion", "Folk", "Folk-Rock", "Folklore", "Freestyle", "Funk", "Fusion", "Game", "Gangsta", "Goa", "Gospel", "Gothic", "Gothic Rock", "Grunge", "Hard Rock", "Hardcore", "Heavy Metal", "Hip-Hop", "House", "Humour", "Indie", "Industrial", "Instrumental", "Instrumental pop", "Instrumental rock", "JPop", "Jazz", "Jazz+Funk", "Jungle", "Latin", "Lo-Fi", "Meditative", "Merengue", "Metal", "Musical", "National Folk", "Native American", "Negerpunk", "New Age", "New Wave", "Noise", "Oldies", "Opera", "Other", "Polka", "Polsk Punk", "Pop", "Pop-Folk", "Pop/Funk", "Porn Groove", "Power Ballad", "Pranks", "Primus", "Progressive Rock", "Psychedelic", "Psychedelic Rock", "Punk", "Punk Rock", "R&amp;B", "Rap", "Rave", "Reggae", "Retro", "Revival", "Rhythmic soul", "Rock", "Rock &amp; Roll", "Salsa", "Samba", "Satire", "Showtunes", "Ska", "Slow Jam", "Slow Rock", "Sonata", "Soul", "Sound Clip", "Soundtrack", "Southern Rock", "Space", "Speech", "Swing", "Symphonic Rock", "Symphony", "Synthpop", "Tango", "Techno", "Techno-Industrial", "Terror", "Thrash Metal", "Top 40", "Trailer"]
