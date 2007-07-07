@@ -1,6 +1,7 @@
 v1.2 - Pending
 	+ Audioscrobbler support (requires python-elementtree) (Owen)
 	+ Support for multiple profiles (and, e.g., "sonata --profile=2")
+	+ Ability to set search terms for lyrics
 	+ Ability to rename playlists (requires mpd >= 0.13)
 	+ Prevent continually searching for artwork/lyrics if not found the first time
 	+ Search for additional artwork filenames

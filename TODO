@@ -1,6 +1,8 @@
 v1.2
-	profiles -> change radio button selection when using ctrl-c, ctrl-d
-	lyrics -> allow user to edit, fetch, refresh, search terms..? (#3491)
+	profiles -> change radio button selection when using ctrl-c, ctrl-d (also when not auto-connecting on startup)
+	icons...
+	website - update screenshots, docs?
+	translations
 
 v1.3
 	update to GPLv3

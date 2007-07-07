@@ -3822,6 +3822,7 @@ class Base(mpdclient3.mpd_connection):
         if self.show_lyrics:
             nblabel4 = gtk.Label()
             nblabel4.set_text_with_mnemonic(_("_Lyrics"))
+            lyricsbox = gtk.VBox()
             scrollWindow = gtk.ScrolledWindow()
             scrollWindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
             self.lyricsBuffer = gtk.TextBuffer()
@@ -3829,7 +3830,14 @@ class Base(mpdclient3.mpd_connection):
             lyricsView.set_editable(False)
             lyricsView.set_wrap_mode(gtk.WRAP_WORD)
             scrollWindow.add_with_viewport(lyricsView)
-            self.infowindow_notebook.append_page(scrollWindow, nblabel4)
+            lyricsbox.pack_start(scrollWindow, True, True)
+            lyricsbox_bottom = gtk.HBox()
+            self.lyrics_refresh = gtk.Button(' ' + _("_Search..."))
+            self.lyrics_refresh.set_image(gtk.image_new_from_stock(gtk.STOCK_FIND, gtk.ICON_SIZE_MENU))
+            self.lyrics_refresh.connect('clicked', self.on_lyrics_search, self.songinfo.artist, self.songinfo.title)
+            lyricsbox_bottom.pack_start(self.lyrics_refresh, False, False, 3)
+            lyricsbox.pack_start(lyricsbox_bottom, False, False, 3)
+            self.infowindow_notebook.append_page(lyricsbox, nblabel4)
             if show_tab:
                 self.infowindow.show_all()
 
@@ -3923,12 +3931,15 @@ class Base(mpdclient3.mpd_connection):
                         if self.show_lyrics:
                             if HAVE_WSDL:
                                 if self.songinfo.has_key('artist') and self.songinfo.has_key('title'):
-                                    lyricThread = threading.Thread(target=self.infowindow_get_lyrics, args=(self.songinfo.artist, self.songinfo.title))
+                                    self.lyrics_refresh.set_sensitive(True)
+                                    lyricThread = threading.Thread(target=self.infowindow_get_lyrics, args=(self.songinfo.artist, self.songinfo.title, self.songinfo.artist, self.songinfo.title))
                                     lyricThread.setDaemon(True)
                                     lyricThread.start()
                                 else:
+                                    self.lyrics_refresh.set_sensitive(False)
                                     self.infowindow_show_lyrics(_("Artist or song title not set."), "", "", True)
                             else:
+                                self.lyrics_refresh.set_sensitive(False)
                                 self.infowindow_show_lyrics(_("SOAPpy not found, fetching lyrics support disabled."), "", "", True)
                     if show_after_update and self.infowindow_visible:
                         gobject.idle_add(self.infowindow_show_now)
@@ -3944,6 +3955,7 @@ class Base(mpdclient3.mpd_connection):
                     self.infowindow_pathlabel.set_text("")
                     self.infowindow_filelabel.set_text("")
                     self.infowindow_bitratelabel.set_text("")
+                    self.lyrics_refresh.set_sensitive(False)
                     if self.show_lyrics:
                         if HAVE_WSDL:
                             self.infowindow_show_lyrics("", "", "", True)
@@ -3983,8 +3995,48 @@ class Base(mpdclient3.mpd_connection):
         self.infowindow.show_all()
         self.infowindow_visible = True
 
-    def infowindow_get_lyrics(self, artist, title):
-        fname = artist + '-' + title + '.txt'
+    def on_lyrics_search(self, event, artist, title):
+        dialog = gtk.Dialog('Lyrics Search', self.infowindow, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_FIND, gtk.RESPONSE_ACCEPT))
+        dialog.action_area.get_children()[0].set_label(_("Search"))
+        dialog.action_area.get_children()[0].set_image(gtk.image_new_from_stock(gtk.STOCK_FIND, gtk.ICON_SIZE_MENU))
+        dialog.set_role('lyricsSearch')
+        artist_hbox = gtk.HBox()
+        artist_label = gtk.Label(_('Artist Name') + ':')
+        artist_hbox.pack_start(artist_label, False, False, 5)
+        artist_entry = gtk.Entry()
+        artist_entry.set_text(artist)
+        artist_hbox.pack_start(artist_entry, True, True, 5)
+        title_hbox = gtk.HBox()
+        title_label = gtk.Label(_('Song Title') + ':')
+        title_hbox.pack_start(title_label, False, False, 5)
+        title_entry = gtk.Entry()
+        title_entry.set_text(title)
+        title_hbox.pack_start(title_entry, True, True, 5)
+        self.set_label_widths_equal([artist_label, title_label])
+        dialog.vbox.pack_start(artist_hbox)
+        dialog.vbox.pack_start(title_hbox)
+        dialog.set_default_response(gtk.RESPONSE_ACCEPT)
+        dialog.vbox.show_all()
+        response = dialog.run()
+        if response == gtk.RESPONSE_ACCEPT:
+            dialog.destroy()
+            # Delete current lyrics:
+            fname = artist + '-' + title + '.txt'
+            fname = fname.replace("\\", "")
+            fname = fname.replace("/", "")
+            fname = fname.replace("\"", "")
+            filename = os.path.expanduser('~/.lyrics/' + fname)
+            if os.path.exists(filename):
+                os.remove(filename)
+            # Search for new lyrics:
+            lyricThread = threading.Thread(target=self.infowindow_get_lyrics, args=(artist_entry.get_text(), title_entry.get_text(), artist, title))
+            lyricThread.setDaemon(True)
+            lyricThread.start()
+        else:
+            dialog.destroy()
+
+    def infowindow_get_lyrics(self, search_artist, search_title, filename_artist, filename_title):
+        fname = filename_artist + '-' + filename_title + '.txt'
         fname = fname.replace("\\", "")
         fname = fname.replace("/", "")
         fname = fname.replace("\"", "")
@@ -3994,10 +4046,10 @@ class Base(mpdclient3.mpd_connection):
             f = open(filename, 'r')
             lyrics = f.read()
             f.close()
-            gobject.idle_add(self.infowindow_show_lyrics, lyrics, artist, title)
+            gobject.idle_add(self.infowindow_show_lyrics, lyrics, filename_artist, filename_title)
         else:
             # Fetch lyrics from lyricwiki.org
-            gobject.idle_add(self.infowindow_show_lyrics, _("Fetching lyrics..."), artist, title)
+            gobject.idle_add(self.infowindow_show_lyrics, _("Fetching lyrics..."), filename_artist, filename_title)
             if self.lyricServer is None:
                 wsdlFile = "http://lyricwiki.org/server.php?wsdl"
                 try:
@@ -4008,16 +4060,16 @@ class Base(mpdclient3.mpd_connection):
                 except:
                     socket.setdefaulttimeout(timeout)
                     lyrics = _("Couldn't connect to LyricWiki")
-                    gobject.idle_add(self.infowindow_show_lyrics, lyrics, artist, title)
+                    gobject.idle_add(self.infowindow_show_lyrics, lyrics, filename_artist, filename_title)
                     self.lyricServer = None
                     return
             try:
                 timeout = socket.getdefaulttimeout()
                 socket.setdefaulttimeout(self.LYRIC_TIMEOUT)
-                lyrics = self.lyricServer.getSong(artist, title)["lyrics"]
+                lyrics = self.lyricServer.getSong(search_artist, search_title)["lyrics"]
                 if lyrics.lower() != "not found":
-                    lyrics = artist + " - " + title + "\n\n" + lyrics
-                    gobject.idle_add(self.infowindow_show_lyrics, lyrics, artist, title)
+                    lyrics = filename_artist + " - " + filename_title + "\n\n" + lyrics
+                    gobject.idle_add(self.infowindow_show_lyrics, lyrics, filename_artist, filename_title)
                     # Save lyrics to file:
                     self.create_dir_if_not_existing('~/.lyrics/')
                     f = open(filename, 'w')
@@ -4025,7 +4077,7 @@ class Base(mpdclient3.mpd_connection):
                     f.close()
                 else:
                     lyrics = _("Lyrics not found")
-                    gobject.idle_add(self.infowindow_show_lyrics, lyrics, artist, title)
+                    gobject.idle_add(self.infowindow_show_lyrics, lyrics, filename_artist, filename_title)
                     # Save error to file so that we don't retry the lyrics over and over:
                     self.create_dir_if_not_existing('~/.lyrics/')
                     f = open(filename, 'w')
@@ -4033,7 +4085,7 @@ class Base(mpdclient3.mpd_connection):
                     f.close()
             except:
                 lyrics = _("Fetching lyrics failed")
-                gobject.idle_add(self.infowindow_show_lyrics, lyrics, artist, title)
+                gobject.idle_add(self.infowindow_show_lyrics, lyrics, filename_artist, filename_title)
             socket.setdefaulttimeout(timeout)
 
     def infowindow_show_lyrics(self, lyrics, artist, title, force=False):
