@@ -3834,7 +3834,7 @@ class Base(mpdclient3.mpd_connection):
             lyricsbox_bottom = gtk.HBox()
             self.lyrics_refresh = gtk.Button(' ' + _("_Search..."))
             self.lyrics_refresh.set_image(gtk.image_new_from_stock(gtk.STOCK_FIND, gtk.ICON_SIZE_MENU))
-            self.lyrics_refresh.connect('clicked', self.on_lyrics_search, self.songinfo.artist, self.songinfo.title)
+            self.lyrics_refresh.connect('clicked', self.on_lyrics_search)
             lyricsbox_bottom.pack_start(self.lyrics_refresh, False, False, 3)
             lyricsbox.pack_start(lyricsbox_bottom, False, False, 3)
             self.infowindow_notebook.append_page(lyricsbox, nblabel4)
@@ -3995,7 +3995,9 @@ class Base(mpdclient3.mpd_connection):
         self.infowindow.show_all()
         self.infowindow_visible = True
 
-    def on_lyrics_search(self, event, artist, title):
+    def on_lyrics_search(self, event):
+        artist = self.songinfo.artist
+        title = self.songinfo.title
         dialog = gtk.Dialog('Lyrics Search', self.infowindow, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_FIND, gtk.RESPONSE_ACCEPT))
         dialog.action_area.get_children()[0].set_label(_("Search"))
         dialog.action_area.get_children()[0].set_image(gtk.image_new_from_stock(gtk.STOCK_FIND, gtk.ICON_SIZE_MENU))
