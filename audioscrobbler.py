@@ -270,7 +270,10 @@ __docformat__ = "restructuredtext"
 
 import datetime, locale, md5, pickle, re, site, sys, time, urllib, urllib2
 
-from elementtree.ElementTree import ElementTree
+try:
+    from xml.etree import ElementTree
+except:
+    from elementtree.ElementTree import ElementTree
 
 # This is lifted in the most part from iPodScrobbler (see docs above)
 # Get the base local encoding

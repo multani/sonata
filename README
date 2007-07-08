@@ -11,7 +11,7 @@ REQUIREMENTS:
 	(Optional) Gnome-python-extras or PyGTK >= 2.10 for system tray
 	(Optional) taglib and tagpy for editing metadata
 	(Optional) SOAPpy for automatic lyrics fetching
-	(Optional) Python-elementtree for audioscrobbler support
+	(Optional) Python 2.5 or python-elementtree for audioscrobbler support
 	(Building) GCC
 	(Building) python-dev (on some distros)
 

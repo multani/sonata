@@ -222,7 +222,7 @@ class Base(mpdclient3.mpd_connection):
         if not HAVE_EGG and not HAVE_STATUS_ICON:
             print _("PyGTK+ 2.10 or gnome-python-extras not found, system tray support disabled.")
         if not HAVE_AUDIOSCROBBLER:
-            print _("Python-elementtree not found, audioscrobbler support disabled.")
+            print _("Python 2.5 or python-elementtree not found, audioscrobbler support disabled.")
 
         start_dbus_interface(toggle_arg)
 
@@ -253,7 +253,7 @@ class Base(mpdclient3.mpd_connection):
         self.ART_LOCATIONS_MISC = ['front.jpg', '.folder.jpg', '.folder.png', 'AlbumArt.jpg', 'AlbumArtSmall.jpg']
 
         # Initialize vars:
-        socket.setdefaulttimeout(2)
+        socket.setdefaulttimeout(5)
         self.profile_num = 0
         self.profile_names = ['Default Profile']
         self.musicdir = [self.sanitize_musicdir("~/music")]
@@ -5173,7 +5173,7 @@ class Base(mpdclient3.mpd_connection):
             userentry.set_sensitive(self.use_scrobbler)
             passentry.set_sensitive(self.use_scrobbler)
         elif checkbox.get_active():
-            show_error_msg(self.window, _("Python-elementtree not found, audioscrobbler support disabled."), _("Audioscrobbler Verification"), 'pythonElementtreeError')
+            show_error_msg(self.window, _("Python 2.5 or python-elementtree not found, audioscrobbler support disabled."), _("Audioscrobbler Verification"), 'pythonElementtreeError')
             checkbox.set_active(False)
 
     def prefs_as_username_changed(self, entry):
