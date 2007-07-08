@@ -2611,7 +2611,7 @@ class Base(mpdclient3.mpd_connection):
             self.set_artist_for_album_name()
         elif self.songinfo and self.songinfo.has_key('artist'):
             self.current_artist_for_album_name = [self.songinfo, self.songinfo.artist]
-        elif not self.songinfo:
+        else:
             self.current_artist_for_album_name = [self.songinfo, ""]
 
     def set_volumebutton(self, stock_icon):
@@ -3641,6 +3641,7 @@ class Base(mpdclient3.mpd_connection):
                 album = getattr(self.songinfo, 'album', "").replace("/", "")
                 artist = self.current_artist_for_album_name[1].replace("/", "")
                 targetfile = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
+                #print targetfile
             elif art_loc == self.ART_LOCATION_COVER:
                 targetfile = self.musicdir[self.profile_num] + os.path.dirname(self.songinfo.file) + "/cover.jpg"
             elif art_loc == self.ART_LOCATION_FOLDER:
