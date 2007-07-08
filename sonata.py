@@ -6478,7 +6478,9 @@ class Base(mpdclient3.mpd_connection):
                     song_name = make_unbold(row[1])
                     matches.append([song_id, song_name])
             else:
-                # this make take some seconds...
+                # this make take some seconds... and we'll escape the search text because
+                # we'll be searching for a match in items that are also escaped.
+                todo = escape_html(todo)
                 todo = '.*' + todo.replace(' ', ' .*').lower()
                 regexp = re.compile(todo)
                 rownum = 0
