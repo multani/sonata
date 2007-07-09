@@ -271,8 +271,10 @@ __docformat__ = "restructuredtext"
 import datetime, locale, md5, pickle, re, site, sys, time, urllib, urllib2
 
 try:
+    # Python 2.5, module bundled:
     from xml.etree import ElementTree
 except:
+    # Python 2.4, separate module:
     from elementtree.ElementTree import ElementTree
 
 # This is lifted in the most part from iPodScrobbler (see docs above)

@@ -2,6 +2,7 @@ v1.2
 	profiles -> change radio button selection when using ctrl-c, ctrl-d (also when not auto-connecting on startup)
 	website - update screenshots, docs?
 	translations
+	audioscrobbler timeouts?
 
 v1.3
 	update to GPLv3
