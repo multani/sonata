@@ -9,7 +9,7 @@ v1.2 - Pending
 	+ 'Save All' button for tag editing window
 	+ Display MPD status in systray icon
 	+ Prevent GUI blocking when connecting to MPD, where possible
-	+ Added Finnish translation (lkka Tuohela)
+	+ Added Finnish translation (Ilkka Tuohela)
 	+ Bug: Multimedia keys no longer work in Gnome 2.18 (Florian)
 	+ Bug: Hide statusbar in collapse mode when showing from systray
 	+ Bug: Cover artwork filename doesn't use system's locale charset
