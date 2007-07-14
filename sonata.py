@@ -341,6 +341,7 @@ class Base(mpdclient3.mpd_connection):
         self.updating_nameentry = False
         self.merge_id = None
         self.actionGroupProfiles = None
+        self.skip_on_profiles_click = False
         # For increased responsiveness after the initial load, we cache the root artist and
         # album view results and simply refresh on any mpd update
         self.albums_root = None
@@ -1225,7 +1226,10 @@ class Base(mpdclient3.mpd_connection):
         for i in range(len(self.profile_names)):
             actions.append((self.profile_names[i], None, "[" + str(i+1) + "] " + self.profile_names[i], None, None, i))
         actions.append(('disconnect', None, _('Disconnect'), None, None, len(self.profile_names)))
-        self.actionGroupProfiles.add_radio_actions(actions, self.profile_num, self.on_profiles_click)
+        if not self.sonata_loaded and not self.conn:
+            self.actionGroupProfiles.add_radio_actions(actions, len(self.profile_names), self.on_profiles_click)
+        else:
+            self.actionGroupProfiles.add_radio_actions(actions, self.profile_num, self.on_profiles_click)
         uiDescription = """
             <ui>
               <popup name="mainmenu">
@@ -1240,6 +1244,8 @@ class Base(mpdclient3.mpd_connection):
         self.UIManager.get_widget('/hidden').set_property('visible', False)
 
     def on_profiles_click(self, radioaction, current):
+        if self.skip_on_profiles_click:
+            return
         self.disconnectkey_pressed(None)
         if current.get_current_value() < len(self.profile_names):
             self.profile_num = current.get_current_value()
@@ -1270,11 +1276,27 @@ class Base(mpdclient3.mpd_connection):
 
     def connectkey_pressed(self, event):
         self.user_connect = True
+        # Update selected radio button in menu:
+        self.skip_on_profiles_click = True
+        for gtkAction in self.actionGroupProfiles.list_actions():
+            if gtkAction.get_name() == self.profile_names[self.profile_num]:
+                gtkAction.activate()
+                break
+        self.skip_on_profiles_click = False
+        # Connect:
         self.connect()
         self.iterate_now(True)
 
     def disconnectkey_pressed(self, event):
         self.user_connect = False
+        # Update selected radio button in menu:
+        self.skip_on_profiles_click = True
+        for gtkAction in self.actionGroupProfiles.list_actions():
+            if gtkAction.get_name() == 'disconnect':
+                gtkAction.activate()
+                break
+        self.skip_on_profiles_click = False
+        # Disconnect:
         if self.conn:
             try:
                 self.conn.do.close()
