@@ -1,4 +1,4 @@
-v1.2 - Pending
+v1.2 - July 15, 2007
 	+ Audioscrobbler support (requires python 2.5 or python-elementtree) (Owen)
 	+ Support for multiple profiles (and, e.g., "sonata --profile=2")
 	+ Ability to set search terms for lyrics
