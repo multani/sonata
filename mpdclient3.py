@@ -26,7 +26,11 @@ class socket_talker(object):
 
     def get_line(self):
         if not self.current_line:
-            self.current_line = self.file.readline().rstrip("\n")
+            try:
+                self.current_line = self.file.readline().rstrip("\n")
+            except socket.error, msg:
+                # We'll just pass and hit the EOFError below..
+                pass
         if not self.current_line:
             raise EOFError
         if self.current_line == "OK" or self.current_line.startswith("ACK"):
@@ -334,6 +338,6 @@ def connect(**kw):
     password = kw.get('password', password)
 
     conn = mpd_connection(host, port, password)
-    if password:
+    if conn and password:
         conn.do.password(password)
     return conn
