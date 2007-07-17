@@ -335,5 +335,5 @@ def connect(**kw):
 
     conn = mpd_connection(host, port, password)
     if password:
-        conn.password(password)
+        conn.do.password(password)
     return conn
