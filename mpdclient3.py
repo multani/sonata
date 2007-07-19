@@ -29,6 +29,7 @@ class socket_talker(object):
             try:
                 self.current_line = self.file.readline().rstrip("\n")
             except socket.error, msg:
+                # This can happen if there's a socket timeout.
                 # We'll just pass and hit the EOFError below..
                 pass
         if not self.current_line:

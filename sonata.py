@@ -4289,12 +4289,13 @@ class Base(mpdclient3.mpd_connection):
         if response == gtk.RESPONSE_OK:
             filename = dialog.get_filenames()[0]
             # Remove file if already set:
-            if os.path.exists(self.local_dest_filename):
+            if os.path.exists(self.local_dest_filename) and self.local_dest_filename != filename:
                 os.remove(self.local_dest_filename)
             self.remove_art_location_none_file(self.local_dest_filename)
             # Copy file to covers dir:
             self.create_dir_if_not_existing('~/.covers/')
-            shutil.copyfile(filename, self.local_dest_filename)
+            if self.local_dest_filename != filename:
+                shutil.copyfile(filename, self.local_dest_filename)
             # And finally, set the image in the interface:
             self.lastalbumart = None
             self.update_album_art()
