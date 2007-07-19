@@ -3649,7 +3649,8 @@ class Base(mpdclient3.mpd_connection):
                     dest_filename = self.target_image_filename()
                     self.remove_art_location_none_file(dest_filename)
                     self.create_dir_if_not_existing('~/.covers/')
-                    shutil.copyfile(paths[i], dest_filename)
+                    if dest_filename != paths[i]:
+                        shutil.copyfile(paths[i], dest_filename)
                     self.lastalbumart = None
                     self.update_album_art()
 
@@ -4288,9 +4289,6 @@ class Base(mpdclient3.mpd_connection):
     def choose_image_local_response(self, dialog, response):
         if response == gtk.RESPONSE_OK:
             filename = dialog.get_filenames()[0]
-            # Remove file if already set:
-            if os.path.exists(self.local_dest_filename) and self.local_dest_filename != filename:
-                os.remove(self.local_dest_filename)
             self.remove_art_location_none_file(self.local_dest_filename)
             # Copy file to covers dir:
             self.create_dir_if_not_existing('~/.covers/')
