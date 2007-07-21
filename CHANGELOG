@@ -1,6 +1,7 @@
 v1.2.2 - Pending
 	+ Bug: Prevent connection error if the interface hasn't yet been run
 	+ Bug: Prevent possibility of deleting image file when choosing local art file
+	+ Bug: Don't load gnome-settings-daemon if it's not running (kinote)
 
 v1.2.1 - July 16, 2007
 	+ Bug: Using MPD with a password causes error

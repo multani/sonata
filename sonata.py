@@ -85,11 +85,14 @@ if HAVE_DBUS:
     try:
         # mmkeys for gnome 2.18+
         bus = dbus.SessionBus()
-        settingsDaemonObj = bus.get_object('org.gnome.SettingsDaemon', '/org/gnome/SettingsDaemon')
-        settingsDaemonInterface = dbus.Interface(settingsDaemonObj, 'org.gnome.SettingsDaemon')
-        settingsDaemonInterface.GrabMediaPlayerKeys('Sonata', 0)
-        HAVE_GNOME_MMKEYS = True
-        HAVE_MMKEYS = False
+        dbusObj = bus.get_object('org.freedesktop.DBus', '/org/freedesktop/DBus')
+        dbusInterface = dbus.Interface(dbusObj, 'org.freedesktop.DBus')
+        if dbusInterface.NameHasOwner('org.gnome.SettingsDaemon'):
+            settingsDaemonObj = bus.get_object('org.gnome.SettingsDaemon', '/org/gnome/SettingsDaemon')
+            settingsDaemonInterface = dbus.Interface(settingsDaemonObj, 'org.gnome.SettingsDaemon')
+            settingsDaemonInterface.GrabMediaPlayerKeys('Sonata', 0)
+            HAVE_GNOME_MMKEYS = True
+            HAVE_MMKEYS = False
     except:
         pass
 
