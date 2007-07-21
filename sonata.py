@@ -3132,28 +3132,24 @@ class Base(mpdclient3.mpd_connection):
             amazon_key = "12DR2PGAQT303YTEWP02"
             search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images&Keywords=" + album
             request = urllib2.Request(search_url)
-            request.add_header('Accept-encoding', 'gzip')
             opener = urllib2.build_opener()
             f = opener.open(request).read()
             curr_pos = 200    # Skip header..
-            # Check if any results were returned; if not, search
-            # again with just the artist name:
-            img_url = f[f.find("<URL>", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
+            # Check if any results were returned; if not, search  again with just the artist name:
+            img_url = f[f.find("<URL>http://", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
             if len(img_url) == 0:
                 search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images"
                 request = urllib2.Request(search_url)
-                request.add_header('Accept-encoding', 'gzip')
                 opener = urllib2.build_opener()
                 f = opener.open(request).read()
-                img_url = f[f.find("<URL>", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
+                img_url = f[f.find("<URL>http://", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
                 # And if that fails, try one last time with just the album name:
                 if len(img_url) == 0:
                     search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&ResponseGroup=Images&Keywords=" + album
                     request = urllib2.Request(search_url)
-                    request.add_header('Accept-encoding', 'gzip')
                     opener = urllib2.build_opener()
                     f = opener.open(request).read()
-                    img_url = f[f.find("<URL>", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
+                    img_url = f[f.find("<URL>http://", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
             if all_images:
                 curr_img = 1
                 img_url = " "
@@ -3163,35 +3159,36 @@ class Base(mpdclient3.mpd_connection):
                 while len(img_url) > 0 and curr_pos > 0:
                     img_url = ""
                     curr_pos = f.find("<LargeImage>", curr_pos+10)
-                    img_url = f[f.find("<URL>", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
-                    if len(img_url) > 0:
-                        if self.stop_art_update:
-                            self.downloading_image = False
-                            return imgfound
-                        dest_filename_curr = dest_filename.replace("<imagenum>", str(curr_img))
-                        urllib.urlretrieve(img_url, dest_filename_curr)
-                        if populate_imagelist:
-                            # This populates self.imagelist for the remote image window
-                            if os.path.exists(dest_filename_curr):
-                                pix = gtk.gdk.pixbuf_new_from_file(dest_filename_curr)
-                                pix = pix.scale_simple(148, 148, gtk.gdk.INTERP_HYPER)
-                                pix = self.pixbuf_add_border(pix)
-                                if self.stop_art_update:
-                                    self.downloading_image = False
-                                    return imgfound
-                                self.imagelist.append([curr_img, pix, ""])
-                                del pix
-                                self.remotefilelist.append(dest_filename_curr)
-                                imgfound = True
-                                if curr_img == 1:
-                                    self.allow_art_search = True
-                            self.change_cursor(None)
-                        curr_img += 1
-                        # Skip the next LargeImage:
-                        curr_pos = f.find("<LargeImage>", curr_pos+10)
+                    if curr_pos > 0:
+                        img_url = f[f.find("<URL>http://", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
+                        if len(img_url) > 0:
+                            if self.stop_art_update:
+                                self.downloading_image = False
+                                return imgfound
+                            dest_filename_curr = dest_filename.replace("<imagenum>", str(curr_img))
+                            urllib.urlretrieve(img_url, dest_filename_curr)
+                            if populate_imagelist:
+                                # This populates self.imagelist for the remote image window
+                                if os.path.exists(dest_filename_curr):
+                                    pix = gtk.gdk.pixbuf_new_from_file(dest_filename_curr)
+                                    pix = pix.scale_simple(148, 148, gtk.gdk.INTERP_HYPER)
+                                    pix = self.pixbuf_add_border(pix)
+                                    if self.stop_art_update:
+                                        self.downloading_image = False
+                                        return imgfound
+                                    self.imagelist.append([curr_img, pix, ""])
+                                    del pix
+                                    self.remotefilelist.append(dest_filename_curr)
+                                    imgfound = True
+                                    if curr_img == 1:
+                                        self.allow_art_search = True
+                                self.change_cursor(None)
+                            curr_img += 1
+                            # Skip the next LargeImage:
+                            curr_pos = f.find("<LargeImage>", curr_pos+10)
             else:
                 curr_pos = f.find("<LargeImage>", curr_pos+10)
-                img_url = f[f.find("<URL>", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
+                img_url = f[f.find("<URL>http://", curr_pos)+len("<URL>"):f.find("</URL>", curr_pos)]
                 if len(img_url) > 0:
                     urllib.urlretrieve(img_url, dest_filename)
                     imgfound = True
