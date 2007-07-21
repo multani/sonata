@@ -2648,8 +2648,9 @@ class Base(mpdclient3.mpd_connection):
         if self.status and self.status.has_key('song'):
             row = int(self.status.song)
             self.boldrow(row)
-            if not self.prevsonginfo or self.songinfo.file != self.prevsonginfo.file:
-                self.keep_song_visible_in_list()
+            if self.songinfo:
+                if not self.prevsonginfo or self.songinfo.file != self.prevsonginfo.file:
+                    self.keep_song_visible_in_list()
             self.prev_boldrow = row
 
         self.get_new_artist_for_album_name()

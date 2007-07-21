@@ -1,4 +1,4 @@
-v1.X - Pending
+v1.2.2 - Pending
 	+ Bug: Prevent connection error if the interface hasn't yet been run
 	+ Bug: Prevent possibility of deleting image file when choosing local art file
 
