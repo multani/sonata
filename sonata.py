@@ -173,6 +173,15 @@ class Base(mpdclient3.mpd_connection):
 
         self.traytips = TrayIconTips()
 
+        # Initialize vars (these can be needed if we have a cli argument, e.g., "sonata play")
+        socket.setdefaulttimeout(5)
+        self.profile_num = 0
+        self.profile_names = ['Default Profile']
+        self.musicdir = [self.sanitize_musicdir("~/music")]
+        self.host = ['localhost']
+        self.port = [6600]
+        self.password = ['']
+
         self.trying_connection = False
         toggle_arg = False
         start_hidden = False
@@ -252,14 +261,7 @@ class Base(mpdclient3.mpd_connection):
         self.ART_LOCATION_NONE_FLAG = "USE_DEFAULT"
         self.ART_LOCATIONS_MISC = ['front.jpg', '.folder.jpg', '.folder.png', 'AlbumArt.jpg', 'AlbumArtSmall.jpg']
 
-        # Initialize vars:
-        socket.setdefaulttimeout(5)
-        self.profile_num = 0
-        self.profile_names = ['Default Profile']
-        self.musicdir = [self.sanitize_musicdir("~/music")]
-        self.host = ['localhost']
-        self.port = [6600]
-        self.password = ['']
+        # Initialize vars for GUI
         self.x = 0
         self.y = 0
         self.w = 400
