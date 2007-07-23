@@ -1,5 +1,5 @@
-v1.2.2 - Pending
-	+ Bug: Fix artwork fetching (Amazon gzip'ed xml returning garbage)
+v1.2.2 - July 22, 2007
+	+ Bug: Fix artwork fetching (Amazon gzip'ed xml returns garbage)
 	+ Bug: Prevent connection error if the interface hasn't yet been run
 	+ Bug: Prevent possibility of deleting image file when choosing local art file
 	+ Bug: Don't load gnome-settings-daemon if it's not running (kinote)
