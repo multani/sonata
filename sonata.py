@@ -1433,15 +1433,15 @@ class Base(mpdclient3.mpd_connection):
         if shortcut == 'BackSpace':
             self.browse_parent_dir(None)
         elif shortcut == 'Escape':
-            if self.minimize_to_systray:
+            if self.notebook.get_current_page() == self.TAB_LIBRARY and self.searchbutton.get_property('visible'):
+                self.on_search_end(None)
+            elif self.notebook.get_current_page() == self.TAB_CURRENT and self.filterbox_visible:
+                self.searchfilter_toggle(None)
+            elif self.minimize_to_systray:
                 if HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible():
                     self.withdraw_app()
                 elif HAVE_EGG and self.trayicon.get_property('visible') == True:
                     self.withdraw_app()
-            elif self.notebook.get_current_page() == self.TAB_CURRENT and self.filterbox_visible:
-                self.searchfilter_toggle(None)
-            elif self.notebook.get_current_page() == self.TAB_LIBRARY and self.searchbutton.get_property('visible'):
-                self.on_search_end(None)
         elif shortcut == 'Delete':
             self.remove(None)
 
@@ -1852,6 +1852,8 @@ class Base(mpdclient3.mpd_connection):
         self.librarymenu.popup(None, None, self.libraryview_position_menu, 1, 0)
 
     def on_libraryview_chosen(self, action):
+        if self.searchbutton.get_property('visible'):
+            self.on_search_end(None)
         prev_view = self.view
         if action.get_name() == 'filesystemview':
             self.view = self.VIEW_FILESYSTEM
@@ -3584,12 +3586,16 @@ class Base(mpdclient3.mpd_connection):
 
     def updatedb(self, widget):
         if self.conn:
+            if self.searchbutton.get_property('visible'):
+                self.on_search_end(None)
             self.conn.do.update('/')
             self.iterate_now()
 
     def updatedb_path(self, action):
         if self.conn:
             if self.notebook.get_current_page() == self.TAB_LIBRARY:
+                if self.searchbutton.get_property('visible'):
+                    self.on_search_end(None)
                 model, selected = self.browser_selection.get_selected_rows()
                 iters = [model.get_iter(path) for path in selected]
                 if len(iters) > 0:
@@ -5576,6 +5582,8 @@ class Base(mpdclient3.mpd_connection):
             self.mainmenu.popup(None, None, None, event.button, event.time)
 
     def on_search_combo_change(self, combo):
+        if self.searchbutton.get_property('visible'):
+            self.on_search_end(None)
         self.last_search_num = combo.get_active()
 
     def on_search_activate(self, entry):
