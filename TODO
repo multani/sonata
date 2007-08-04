@@ -1,7 +1,6 @@
 v1.3
 	update to GPLv3
 	genre mode (genre -> artist -> album)
-	gettext plural forms (e.g. info window, delete confirmations)
 	better playlist support (mpd 0.13 only):
 		playlist tab:
 			ability to view songs, reorder songs, remove songs, etc
@@ -10,9 +9,9 @@ v1.3
 				new playlist...
 				to existing playlist... ---> popup window with dropdown of playlists
 				...
+	make selection, dnd, more like thunar
 	
 Future:
-	make selection, dnd, more like thunar
 	libnotify?
 	test multiple streams at once..
 	crop songs in current playlist?

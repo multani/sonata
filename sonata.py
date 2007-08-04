@@ -4712,12 +4712,12 @@ class Base(mpdclient3.mpd_connection):
                     self.conn.do.command_list_end()
             elif page_num == self.TAB_PLAYLISTS:
                 dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_YES_NO, _("Delete the selected playlist(s)?"))
-                dialog.set_title(_("Delete Playlist(s)"))
+                model, selected = self.playlists_selection.get_selected_rows()
+                dialog.set_title(gettext.ngettext("Delete Playlist", "Delete Playlists", int(len(selected))))
                 dialog.set_role('deletePlaylist')
                 response = dialog.run()
                 if response == gtk.RESPONSE_YES:
                     dialog.destroy()
-                    model, selected = self.playlists_selection.get_selected_rows()
                     iters = [model.get_iter(path) for path in selected]
                     for iter in iters:
                         self.conn.do.rm(unescape_html(self.playlistsdata.get_value(iter, 1)))
@@ -4726,12 +4726,12 @@ class Base(mpdclient3.mpd_connection):
                     dialog.destroy()
             elif page_num == self.TAB_STREAMS:
                 dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_YES_NO, _("Delete the selected stream(s)?"))
-                dialog.set_title(_("Delete Stream(s)"))
+                model, selected = self.streams_selection.get_selected_rows()
+                dialog.set_title(gettext.ngettext("Delete Stream", "Delete Streams", int(len(selected))))
                 dialog.set_role('deleteStreams')
                 response = dialog.run()
                 if response == gtk.RESPONSE_YES:
                     dialog.destroy()
-                    model, selected = self.streams_selection.get_selected_rows()
                     iters = [model.get_iter(path) for path in selected]
                     for iter in iters:
                         stream_removed = False
@@ -6231,14 +6231,14 @@ class Base(mpdclient3.mpd_connection):
         if self.conn:
             # Include MPD stats:
             stats = self.conn.do.stats()
-            statslabel = stats.songs + ' ' + _('songs.') + '\n'
-            statslabel = statslabel + stats.albums + ' ' + _('albums.') + '\n'
-            statslabel = statslabel + stats.artists + ' ' + _('artists.') + '\n'
+            statslabel = stats.songs + ' ' + gettext.ngettext('song', 'songs', int(stats.songs)) + '.\n'
+            statslabel = statslabel + stats.albums + ' ' + gettext.ngettext('album', 'albums', int(stats.albums)) + '.\n'
+            statslabel = statslabel + stats.artists + ' ' + gettext.ngettext('artist', 'artists', int(stats.artists)) + '.\n'
             try:
                 hours_of_playtime = convert_time(float(stats.db_playtime)).split(':')[-3]
             except:
                 hours_of_playtime = '0'
-            statslabel = statslabel + hours_of_playtime + ' ' + _('hours of bliss.')
+            statslabel = statslabel + hours_of_playtime + ' ' + gettext.ngettext('hour of bliss', 'hours of bliss', int(hours_of_playtime)) + '.'
             self.about_dialog.set_copyright(statslabel)
         self.about_dialog.set_license(__license__)
         self.about_dialog.set_authors(['Scott Horowitz <stonecrest@gmail.com>'])
