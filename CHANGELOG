@@ -1,3 +1,6 @@
+v1.3 - Pending
+	+ Added Italian translation (Gianni Vialetto)
+
 v1.2.2 - July 22, 2007
 	+ Bug: Fix artwork fetching (Amazon gzip'ed xml returns garbage)
 	+ Bug: Prevent connection error if the interface hasn't yet been run
