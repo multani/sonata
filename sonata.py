@@ -4706,8 +4706,8 @@ class Base(mpdclient3.mpd_connection):
                         self.currentdata.remove(iter)
                     self.conn.do.command_list_end()
             elif page_num == self.TAB_PLAYLISTS:
-                dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_YES_NO, _("Delete the selected playlist(s)?"))
                 model, selected = self.playlists_selection.get_selected_rows()
+                dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_YES_NO, gettext.ngettext("Delete the selected playlist?", "Delete the selected playlists?", int(len(selected))))
                 dialog.set_title(gettext.ngettext("Delete Playlist", "Delete Playlists", int(len(selected))))
                 dialog.set_role('deletePlaylist')
                 response = dialog.run()
@@ -4720,8 +4720,8 @@ class Base(mpdclient3.mpd_connection):
                 else:
                     dialog.destroy()
             elif page_num == self.TAB_STREAMS:
-                dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_YES_NO, _("Delete the selected stream(s)?"))
                 model, selected = self.streams_selection.get_selected_rows()
+                dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_YES_NO, gettext.ngettext("Delete the selected stream?", "Delete the selected streams?", int(len(selected))))
                 dialog.set_title(gettext.ngettext("Delete Stream", "Delete Streams", int(len(selected))))
                 dialog.set_role('deleteStreams')
                 response = dialog.run()
