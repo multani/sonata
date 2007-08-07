@@ -2486,12 +2486,7 @@ class Base(mpdclient3.mpd_connection):
         self.clear(None)
         self.add_item(widget)
         if play_after_replace and self.conn:
-            # Play first song:
-            try:
-                iter = self.currentdata.get_iter((0,0))
-                self.conn.do.playid(self.currentdata.get_value(iter, 0))
-            except:
-                pass
+            self.pp(None)
         self.iterate_now()
 
     def libraryview_position_menu(self, menu):
