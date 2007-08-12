@@ -6395,8 +6395,8 @@ class Base(mpdclient3.mpd_connection):
                                 show_error_msg(self.window, _('Unable to launch a suitable browser.'), _('Launch Browser'), 'browserLoadError')
 
     def sanitize_tracknum(self, mpdtrack, return_int=False, str_padding=0):
-        # Takes the mpd outfor for tracknum and tries to convert it to
-        # simply the track number. Known forms for the mpd output
+        # Takes the mpd tag for track and tries to convert it to
+        # simply the track number. Known forms for the mpd tag
         # can be "4", "4/10", and "4,10".
         try:
             if return_int:
@@ -6416,20 +6416,25 @@ class Base(mpdclient3.mpd_connection):
                     return ""
 
     def sanitize_discnum(self, mpddisc, return_int=False, str_padding=0):
-        # returns the mpddisc field in int or str form if the
-        # field is sane
-        # returns 0 or an empty string (maybe padded with 0)
-        # if the field is garbage
+        # Takes the mpd tag for disc and tries to convert it to
+        # simply the disc number. Known forms for the mpd tag
+        # can be "4" and "4/10" (and maybe "4,10")
         try:
             if return_int:
-                return int(mpddisc)
+                return int(mpddisc.split('/')[0])
             else:
-                return str(int(mpddisc)).zfill(str_padding)
+                return str(int(mpddisc.split('/')[0])).zfill(str_padding)
         except:
-            if return_int:
-                return 0
-            else:
-                return "".zfill(str_padding)
+            try:
+                if return_int:
+                    return int(mpddisc.split(',')[0])
+                else:
+                    return str(int(mpddisc.split(',')[0])).zfill(str_padding)
+            except:
+                if return_int:
+                    return 0
+                else:
+                    return "".zfill(str_padding)
 
     def searchfilter_toggle(self, widget):
         if self.filterbox_visible:
