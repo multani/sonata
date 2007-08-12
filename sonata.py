@@ -347,6 +347,11 @@ class Base(mpdclient3.mpd_connection):
         self.merge_id = None
         self.actionGroupProfiles = None
         self.skip_on_profiles_click = False
+        self.last_repeat = None
+        self.last_random = None
+        self.last_title = None
+        self.last_progress_frac = None
+        self.last_progress_text = None
         # For increased responsiveness after the initial load, we cache the root artist and
         # album view results and simply refresh on any mpd update
         self.albums_root = None
@@ -1328,20 +1333,18 @@ class Base(mpdclient3.mpd_connection):
                     self.status = None
                 self.songinfo = self.conn.do.currentsong()
                 if self.status:
-                    if self.status.repeat == '0':
-                        self.repeatmenu.set_active(False)
-                    elif self.status.repeat == '1':
-                        self.repeatmenu.set_active(True)
-                    if self.status.random == '0':
-                        self.shufflemenu.set_active(False)
-                    elif self.status.random == '1':
-                        self.shufflemenu.set_active(True)
+                    if not self.last_repeat or self.last_repeat != self.status.repeat:
+                        self.repeatmenu.set_active(self.status.repeat == '1')
+                    if not self.last_random or self.last_random != self.status.random:
+                        self.shufflemenu.set_active(self.status.random == '1')
                     if self.status.xfade == '0':
                         self.xfade_enabled = False
                     else:
                         self.xfade_enabled = True
                         self.xfade = int(self.status.xfade)
                         if self.xfade > 30: self.xfade = 30
+                    self.last_repeat = self.status.repeat
+                    self.last_random = self.status.random
             else:
                 self.iterate_time = self.iterate_time_when_disconnected_or_stopped
                 self.status = None
@@ -2612,9 +2615,11 @@ class Base(mpdclient3.mpd_connection):
 
         if self.conn:
             if self.status and self.status.get('updating_db'):
+                # MPD library is being updated
                 self.update_statusbar(True)
             elif self.prevstatus == None or self.prevstatus.get('updating_db', 0) != self.status.get('updating_db', 0):
                 if not (self.status and self.status.get('updating_db', 0)):
+                    # Update over:
                     self.update_statusbar(False)
                     # We need to make sure that we update the artist in case tags have changed:
                     self.reset_artist_for_album_name()
@@ -2735,24 +2740,28 @@ class Base(mpdclient3.mpd_connection):
         if self.conn and self.status and self.status.state in ['play', 'pause']:
             at, length = [float(c) for c in self.status.time.split(':')]
             try:
-                self.progressbar.set_fraction(at/length)
+                newfrac = at/length
             except:
-                self.progressbar.set_fraction(0)
+                newfrac = 0
         else:
-            self.progressbar.set_fraction(0)
+            newfrac = 0
+        if not self.last_progress_frac or self.last_progress_frac != newfrac:
+            self.progressbar.set_fraction(newfrac)
         if self.conn:
             if self.status and self.status.state in ['play', 'pause']:
                 at, length = [int(c) for c in self.status.time.split(':')]
                 at_time = convert_time(at)
                 try:
                     time = convert_time(int(self.songinfo.time))
-                    self.progressbar.set_text(at_time + " / " + time)
+                    newtime = at_time + " / " + time
                 except:
-                    self.progressbar.set_text(at_time)
+                    newtime = at_time
             else:
-                self.progressbar.set_text(' ')
+                newtime = ' '
         else:
-            self.progressbar.set_text(_('Not Connected'))
+            newtime = _('Not Connected')
+        if not self.last_progress_text or self.last_progress_text != newtime:
+            self.progressbar.set_text(newtime)
         return
 
     def update_statusbar(self, updatingdb=False):
@@ -2854,9 +2863,12 @@ class Base(mpdclient3.mpd_connection):
     def update_wintitle(self):
         if self.window_owner:
             if self.conn and self.status and self.status.state in ['play', 'pause']:
-                self.window.set_property('title', self.parse_formatting(self.titleformat, self.songinfo, False, True))
+                newtitle = self.parse_formatting(self.titleformat, self.songinfo, False, True)
             else:
-                self.window.set_property('title', 'Sonata')
+                newtitle = 'Sonata'
+            if not self.last_title or self.last_title != newtitle:
+                self.window.set_property('title', newtitle)
+                self.last_title = newtitle
 
     def update_playlist(self):
         if self.conn:
