@@ -2048,14 +2048,14 @@ class Base(mpdclient3.mpd_connection):
         self.view_artist_level_prev = self.view_artist_level
 
     def browse_search_album(self, album):
-        # Return songs of the specified album. Sorts by track number
+        # Return songs of the specified album. Sorts by disc and track number
         list = []
         for item in self.conn.do.search('album', album):
             if item.has_key('album'):
                 # Make sure it's an exact match:
                 if album.lower() == item.album.lower():
                     list.append(item)
-        list.sort(key=lambda x: self.sanitize_tracknum(getattr(x, 'track', '0'), True))
+        list.sort(key=lambda x: int(self.sanitize_discnum(getattr(x, 'disc', ''), False, 0) + self.sanitize_tracknum(getattr(x, 'track', '0'), False, 2)))
         return list
 
     def browse_search_artist(self, artist):
@@ -2069,7 +2069,8 @@ class Base(mpdclient3.mpd_connection):
         return list
 
     def browse_search_album_with_artist_and_year(self, artist, album, year):
-        # Return songs of specified album, artist, and year. Sorts by track
+        # Return songs of specified album, artist, and year. Sorts by disc and
+        # track num.
         # If year is None, skips that requirement
         list = []
         for item in self.conn.do.search('album', album, 'artist', artist):
@@ -2089,7 +2090,7 @@ class Base(mpdclient3.mpd_connection):
                     elif not item.has_key('date'):
                         # Only show songs that have no year specified:
                         list.append(item)
-        list.sort(key=lambda x: self.sanitize_tracknum(getattr(x, 'track', '0'), True))
+        list.sort(key=lambda x: int(self.sanitize_discnum(getattr(x, 'disc', ''), False, 0) + self.sanitize_tracknum(getattr(x, 'track', '0'), False, 2)))
         return list
 
     def browser_retain_preupdate_selection(self, prev_selection, prev_selection_root, prev_selection_parent):
@@ -6232,7 +6233,7 @@ class Base(mpdclient3.mpd_connection):
             self.about_dialog.set_copyright(statslabel)
         self.about_dialog.set_license(__license__)
         self.about_dialog.set_authors(['Scott Horowitz <stonecrest@gmail.com>'])
-        self.about_dialog.set_translator_credits('cz - Daniel Nylander <po@danielnylander.se>\nde - Paul Johnson <thrillerator@googlemail.com>\nes - Xoan Sampaiño <xoansampainho@gmail.com>\nfi - Ilkka Tuohelafr <hile@hack.fi>\nfr - Floreal M <florealm@gmail.com>\nit - Gianni Vialetto <forgottencrow@gmail.com>\npl - Tomasz Dominikowski <dominikowski@gmail.com>\nru - Ivan <bkb.box@bk.ru>\nsv - Daniel Nylander <po@danielnylander.se>\nuk - Господарисько Тарас <dogmaton@gmail.com>\nzh_CN - Desmond Chang <dochang@gmail.com>\n')
+        self.about_dialog.set_translator_credits('cz - Jakub Adler <jakubadler@gmail.com>\nde - Paul Johnson <thrillerator@googlemail.com>\nes - Xoan Sampaiño <xoansampainho@gmail.com>\nfi - Ilkka Tuohelafr <hile@hack.fi>\nfr - Floreal M <florealm@gmail.com>\nit - Gianni Vialetto <forgottencrow@gmail.com>\npl - Tomasz Dominikowski <dominikowski@gmail.com>\nru - Ivan <bkb.box@bk.ru>\nsv - Daniel Nylander <po@danielnylander.se>\nuk - Господарисько Тарас <dogmaton@gmail.com>\nzh_CN - Desmond Chang <dochang@gmail.com>\n')
         gtk.about_dialog_set_url_hook(self.show_website, "http://sonata.berlios.de/")
         self.about_dialog.set_website_label("http://sonata.berlios.de/")
         large_icon = gtk.gdk.pixbuf_new_from_file(self.find_path('sonata_large.png'))
@@ -6413,6 +6414,22 @@ class Base(mpdclient3.mpd_connection):
                     return 0
                 else:
                     return ""
+
+    def sanitize_discnum(self, mpddisc, return_int=False, str_padding=0):
+        # returns the mpddisc field in int or str form if the
+        # field is sane
+        # returns 0 or an empty string (maybe padded with 0)
+        # if the field is garbage
+        try:
+            if return_int:
+                return int(mpddisc)
+            else:
+                return str(int(mpddisc)).zfill(str_padding)
+        except:
+            if return_int:
+                return 0
+            else:
+                return "".zfill(str_padding)
 
     def searchfilter_toggle(self, widget):
         if self.filterbox_visible:
