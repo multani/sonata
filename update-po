@@ -1,0 +1,13 @@
+#!/bin/sh
+xgettext sonata.py
+mv -f messages.po po/
+(cd po
+ for i in *.po
+   do
+   if [ "$i" = "messages.po" ]
+     then
+     continue
+   fi
+   msgmerge -U $i messages.po
+ done
+)

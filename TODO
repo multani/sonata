@@ -10,6 +10,7 @@ v1.3
 				to existing playlist... ---> popup window with dropdown of playlists
 				...
 	make selection, dnd, more like thunar
+	dnd from other tabs to playlist tabs
 	
 Future:
 	libnotify?

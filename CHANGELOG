@@ -1,5 +1,6 @@
 v1.2.3 - Pending
 	+ Incorporate disc tag in album sorting (Emmanuel Viaud)
+	+ Significantly reduced wakeups/sec according to powertop
 	+ Added Italian translation (Gianni Vialetto)
 	+ Added Swedish translation (Daniel Nylander)
 	+ Bug: Czech translation incorrectly labeled Swedish
