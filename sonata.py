@@ -352,6 +352,8 @@ class Base(mpdclient3.mpd_connection):
         self.last_title = None
         self.last_progress_frac = None
         self.last_progress_text = None
+        self.last_info_time = None
+        self.last_info_bitrate = None
         # For increased responsiveness after the initial load, we cache the root artist and
         # album view results and simply refresh on any mpd update
         self.albums_root = None
@@ -1666,6 +1668,7 @@ class Base(mpdclient3.mpd_connection):
                 self.statusicon.set_from_stock('sonata_disconnect')
             elif HAVE_EGG:
                 self.trayimage.set_from_stock('sonata_disconnect', gtk.ICON_SIZE_BUTTON)
+            self.infowindow_update(blank_window=True)
         else:
             for mediabutton in (self.ppbutton, self.stopbutton, self.prevbutton, self.nextbutton, self.volumebutton):
                 mediabutton.set_property('sensitive', True)
@@ -3890,7 +3893,7 @@ class Base(mpdclient3.mpd_connection):
         if shortcut == '<Control>w' or shortcut == '<Control>q':
             self.on_infowindow_hide(widget)
 
-    def infowindow_update(self, show_after_update=False, update_all=False):
+    def infowindow_update(self, show_after_update=False, update_all=False, blank_window=False):
         # update_all = True means that every tag should update. This is
         # only the case on song and status changes. Otherwise we only
         # want to update the minimum number of widgets so the user can
@@ -3898,18 +3901,25 @@ class Base(mpdclient3.mpd_connection):
         if self.infowindow_visible:
             if self.conn:
                 if self.status and self.status.state in ['play', 'pause']:
-                    self.edittag_button.set_sensitive(True)
+                    if self.edittag_button.get_property('sensitive') == False:
+                        self.edittag_button.set_sensitive(True)
                     at, length = [int(c) for c in self.status.time.split(':')]
                     at_time = convert_time(at)
                     try:
                         time = convert_time(int(self.songinfo.time))
-                        self.infowindow_timelabel.set_text(at_time + " / " + time)
+                        newtime = at_time + " / " + time
                     except:
-                        self.infowindow_timelabel.set_text(at_time)
+                        newtime = at_time
+                    if not self.last_info_time or self.last_info_time != newtime:
+                        self.infowindow_timelabel.set_text(newtime)
+                    self.last_info_time = newtime
                     try:
-                        self.infowindow_bitratelabel.set_text(self.status.bitrate + " kbps")
+                        newbitrate = self.status.bitrate + " kbps"
                     except:
-                        self.infowindow_bitratelabel.set_text('')
+                        newbitrate = ''
+                    if not self.last_info_bitrate or self.last_info_bitrate != newbitrate:
+                        self.infowindow_bitratelabel.set_text(newbitrate)
+                    self.last_info_bitrate = newbitrate
                     if update_all:
                         self.infowindow_titlelabel.set_text(getattr(self.songinfo, 'title', ''))
                         self.infowindow_artistlabel.set_text(getattr(self.songinfo, 'artist', ''))
@@ -3980,24 +3990,30 @@ class Base(mpdclient3.mpd_connection):
                     if show_after_update and self.infowindow_visible:
                         gobject.idle_add(self.infowindow_show_now)
                 else:
-                    self.edittag_button.set_sensitive(False)
-                    self.infowindow_timelabel.set_text("")
-                    self.infowindow_titlelabel.set_text("")
-                    self.infowindow_artistlabel.set_text("")
-                    self.infowindow_albumlabel.set_text("")
-                    self.infowindow_datelabel.set_text("")
-                    self.infowindow_tracklabel.set_text("")
-                    self.infowindow_genrelabel.set_text("")
-                    self.infowindow_pathlabel.set_text("")
-                    self.infowindow_filelabel.set_text("")
-                    self.infowindow_bitratelabel.set_text("")
-                    self.lyrics_refresh.set_sensitive(False)
-                    if self.show_lyrics:
-                        if HAVE_WSDL:
-                            self.infowindow_show_lyrics("", "", "", True)
-                        else:
-                            self.infowindow_show_lyrics(_("SOAPpy not found, fetching lyrics support disabled."), "", "", True)
-                    self.albuminfoBuffer.set_text("")
+                    blank_window = True
+            if blank_window:
+                newtime = ''
+                newbitrate = ''
+                self.edittag_button.set_sensitive(False)
+                self.infowindow_timelabel.set_text("")
+                self.infowindow_titlelabel.set_text("")
+                self.infowindow_artistlabel.set_text("")
+                self.infowindow_albumlabel.set_text("")
+                self.infowindow_datelabel.set_text("")
+                self.infowindow_tracklabel.set_text("")
+                self.infowindow_genrelabel.set_text("")
+                self.infowindow_pathlabel.set_text("")
+                self.infowindow_filelabel.set_text("")
+                self.infowindow_bitratelabel.set_text("")
+                self.lyrics_refresh.set_sensitive(False)
+                if self.show_lyrics:
+                    if HAVE_WSDL:
+                        self.infowindow_show_lyrics("", "", "", True)
+                    else:
+                        self.infowindow_show_lyrics(_("SOAPpy not found, fetching lyrics support disabled."), "", "", True)
+                self.albuminfoBuffer.set_text("")
+                self.last_info_time = newtime
+                self.last_info_bitrate = newbitrate
 
     def set_artist_for_album_name(self):
         # Determine if album_name is a various artists album. We'll use a little
