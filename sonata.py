@@ -301,10 +301,10 @@ class Base(mpdclient3.mpd_connection):
         self.exit_now = False
         self.ignore_toggle_signal = False
         self.initial_run = True
-        self.currentformat = "%A - %S"
-        self.libraryformat = "%A - %S"
-        self.titleformat = "[Sonata] %A - %S"
-        self.currsongformat1 = "%S"
+        self.currentformat = "%A - %T"
+        self.libraryformat = "%A - %T"
+        self.titleformat = "[Sonata] %A - %T"
+        self.currsongformat1 = "%T"
         self.currsongformat2 = "by %A from %B"
         self.autoconnect = True
         self.user_connect = False
@@ -1552,16 +1552,28 @@ class Base(mpdclient3.mpd_connection):
             self.art_location = conf.getint('player', 'art_location')
         if conf.has_option('player', 'art_location_custom_filename'):
             self.art_location_custom_filename = conf.get('player', 'art_location_custom_filename')
-        if conf.has_option('format', 'current'):
-            self.currentformat = conf.get('format', 'current')
-        if conf.has_option('format', 'library'):
-            self.libraryformat = conf.get('format', 'library')
-        if conf.has_option('format', 'title'):
-            self.titleformat = conf.get('format', 'title')
-        if conf.has_option('format', 'currsong1'):
-            self.currsongformat1 = conf.get('format', 'currsong1')
-        if conf.has_option('format', 'currsong2'):
-            self.currsongformat2 = conf.get('format', 'currsong2')
+        if conf.has_section('currformat'):
+            if conf.has_option('currformat', 'current'):
+                self.currentformat = conf.get('currformat', 'current')
+            if conf.has_option('currformat', 'library'):
+                self.libraryformat = conf.get('currformat', 'library')
+            if conf.has_option('currformat', 'title'):
+                self.titleformat = conf.get('currformat', 'title')
+            if conf.has_option('currformat', 'currsong1'):
+                self.currsongformat1 = conf.get('currformat', 'currsong1')
+            if conf.has_option('currformat', 'currsong2'):
+                self.currsongformat2 = conf.get('currformat', 'currsong2')
+        elif conf.has_section('format'): # old format
+            if conf.has_option('format', 'current'):
+                self.currentformat = conf.get('format', 'current').replace("%T", "%N").replace("%S", "%T")
+            if conf.has_option('format', 'library'):
+                self.libraryformat = conf.get('format', 'library').replace("%T", "%N").replace("%S", "%T")
+            if conf.has_option('format', 'title'):
+                self.titleformat = conf.get('format', 'title').replace("%T", "%N").replace("%S", "%T")
+            if conf.has_option('format', 'currsong1'):
+                self.currsongformat1 = conf.get('format', 'currsong1').replace("%T", "%N").replace("%S", "%T")
+            if conf.has_option('format', 'currsong2'):
+                self.currsongformat2 = conf.get('format', 'currsong2').replace("%T", "%N").replace("%S", "%T")
         if conf.has_option('streams', 'num_streams'):
             num_streams = conf.getint('streams', 'num_streams')
             self.stream_names = []
@@ -1638,12 +1650,21 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'infowindow_h', self.infowindow_h)
         conf.set('player', 'art_location', self.art_location)
         conf.set('player', 'art_location_custom_filename', self.art_location_custom_filename)
+        # Old formats, before some letter changes. We'll keep this in for compatibility with
+        # older versions of Sonata for the time being.
         conf.add_section('format')
-        conf.set('format', 'current', self.currentformat)
-        conf.set('format', 'library', self.libraryformat)
-        conf.set('format', 'title', self.titleformat)
-        conf.set('format', 'currsong1', self.currsongformat1)
-        conf.set('format', 'currsong2', self.currsongformat2)
+        conf.set('format', 'current', self.currentformat.replace("%T", "%S").replace("%N", "%T"))
+        conf.set('format', 'library', self.libraryformat.replace("%T", "%S").replace("%N", "%T"))
+        conf.set('format', 'title', self.titleformat.replace("%T", "%S").replace("%N", "%T"))
+        conf.set('format', 'currsong1', self.currsongformat1.replace("%T", "%S").replace("%N", "%T"))
+        conf.set('format', 'currsong2', self.currsongformat2.replace("%T", "%S").replace("%N", "%T"))
+        # New format
+        conf.add_section('currformat')
+        conf.set('currformat', 'current', self.currentformat)
+        conf.set('currformat', 'library', self.libraryformat)
+        conf.set('currformat', 'title', self.titleformat)
+        conf.set('currformat', 'currsong1', self.currsongformat1)
+        conf.set('currformat', 'currsong2', self.currsongformat2)
         conf.add_section('streams')
         conf.set('streams', 'num_streams', len(self.stream_names))
         for i in range(len(self.stream_names)):
@@ -2185,17 +2206,23 @@ class Base(mpdclient3.mpd_connection):
             except:
                 if not has_brackets: text = text.replace("%B", _('Unknown'))
                 else: return ""
-        if "%S" in text:
+        if "%T" in text:
             try:
-                text = text.replace("%S", item.title)
+                text = text.replace("%T", item.title)
             except:
                 if not has_brackets: return self.filename_or_fullpath(item.file)
                 else: return ""
-        if "%T" in text:
+        if "%N" in text:
             try:
-                text = text.replace("%T", self.sanitize_tracknum(item.track, False, 2))
+                text = text.replace("%N", self.sanitize_tracknum(item.track, False, 2))
             except:
-                if not has_brackets: text = text.replace("%T", "0")
+                if not has_brackets: text = text.replace("%N", "0")
+                else: return ""
+        if "%S" in text:
+            try:
+                text = text.replace("%S", item.name)
+            except:
+                if not has_brackets: text = text.replace("%S", _('Unknown'))
                 else: return ""
         if "%G" in text:
             try:
@@ -5146,10 +5173,10 @@ class Base(mpdclient3.mpd_connection):
         availablevbox = gtk.VBox()
         availableformatbox = gtk.HBox()
         availableformatting = gtk.Label()
-        availableformatting.set_markup('<small><span font_family="Monospace">%A</span> - ' + _('Artist name') + '\n<span font_family="Monospace">%B</span> - ' + _('Album name') + '\n<span font_family="Monospace">%S</span> - ' + _('Song name') + '\n<span font_family="Monospace">%T</span> - ' + _('Track number') + '\n<span font_family="Monospace">%Y</span> - ' + _('Year') + '</small>')
+        availableformatting.set_markup('<small><span font_family="Monospace">%A</span> - ' + _('Artist name') + '\n<span font_family="Monospace">%B</span> - ' + _('Album name') + '\n<span font_family="Monospace">%T</span> - ' + _('Track name') + '\n<span font_family="Monospace">%N</span> - ' + _('Track number') + '\n<span font_family="Monospace">%Y</span> - ' + _('Year') + '</small>')
         availableformatting.set_alignment(0, 0)
         availableformatting2 = gtk.Label()
-        availableformatting2.set_markup('<small><span font_family="Monospace">%G</span> - ' + _('Genre') + '\n<span font_family="Monospace">%F</span> - ' + _('File name') + '\n<span font_family="Monospace">%P</span> - ' + _('File path') + '\n<span font_family="Monospace">%L</span> - ' + _('Song length') + '\n<span font_family="Monospace">%E</span> - ' + _('Elapsed time (title only)') + '</small>')
+        availableformatting2.set_markup('<small><span font_family="Monospace">%G</span> - ' + _('Genre') + '\n<span font_family="Monospace">%F</span> - ' + _('File name') + '\n<span font_family="Monospace">%S</span> - ' + _('Stream name') + '\n<span font_family="Monospace">%L</span> - ' + _('Song length') + '\n<span font_family="Monospace">%E</span> - ' + _('Elapsed time (title only)') + '</small>')
         availableformatting2.set_alignment(0, 0)
         availableformatbox.pack_start(availableformatting)
         availableformatbox.pack_start(availableformatting2)
