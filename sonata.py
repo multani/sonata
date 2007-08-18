@@ -392,6 +392,9 @@ class Base(mpdclient3.mpd_connection):
         self.new_icon('artist', file='sonata-artist.png')
         self.new_icon('album', file='sonata-album.png')
         icon_theme = gtk.icon_theme_get_default()
+        if HAVE_SUGAR:
+            activity_root = activity.get_bundle_path()
+            icon_theme.append_search_path(os.path.join(activity_root, 'share'))
         (img_width, img_height) = gtk.icon_size_lookup(VOLUME_ICON_SIZE)
         for iconname in ('stock_volume-mute', 'stock_volume-min', 'stock_volume-med', 'stock_volume-max'):
             try:
@@ -595,9 +598,6 @@ class Base(mpdclient3.mpd_connection):
                 self.window.set_keep_above(True)
             if self.sticky:
                 self.window.stick()
-        if HAVE_SUGAR:
-            theme = gtk.icon_theme_get_default()
-            theme.append_search_path(os.path.join(os.path.split(__file__)[0], 'share'))
         self.tooltips = gtk.Tooltips()
         self.UIManager = gtk.UIManager()
         actionGroup = gtk.ActionGroup('Actions')
@@ -783,10 +783,12 @@ class Base(mpdclient3.mpd_connection):
             self.statusbar.set_no_show_all(True)
         mainvbox.pack_start(self.statusbar, False, False, 0)
         mainhbox.pack_start(mainvbox, True, True, 3)
-        self.window.add(mainhbox)
         if self.window_owner:
+            self.window.add(mainhbox)
             self.window.move(self.x, self.y)
             self.window.set_size_request(270, -1)
+        elif HAVE_SUGAR:
+            self.window.set_canvas(mainhbox)
         if not self.expanded:
             self.notebook.set_no_show_all(True)
             self.notebook.hide()
