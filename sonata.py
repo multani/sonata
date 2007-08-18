@@ -5975,7 +5975,6 @@ class Base(mpdclient3.mpd_connection):
         editwindow.vbox.pack_start(table)
         saveall_button = gtk.Button(_("Save _All"))
         editwindow.action_area.pack_start(saveall_button)
-        editwindow.action_area.pack_start(gtk.Label())
         cancelbutton = editwindow.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT)
         savebutton = editwindow.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT)
         editwindow.connect('delete_event', self.editwindow_hide, tags)
