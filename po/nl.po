@@ -553,19 +553,21 @@ msgstr "Onbekend"
 #: sonata.py:2781
 msgid "minute"
 msgid_plural "minutes"
+msgstr[0] "minuut"
+msgstr[1] "minuten"
 
 #: sonata.py:2785
 msgid "hour and"
 msgid_plural "hours and"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "uur en"
+msgstr[1] "uur en"
 
 #: sonata.py:2787
 #: sonata.py:6237
 msgid "song"
 msgid_plural "songs"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "nummer"
+msgstr[1] "nummers"
 
 #: sonata.py:2795
 msgid "(updating mpd)"
@@ -685,26 +687,26 @@ msgstr "Geen album hoes gevonden."
 #: sonata.py:4718
 msgid "Delete the selected playlist?"
 msgid_plural "Delete the selected playlists?"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Geselecteerde afspeellijst verwijderen?"
+msgstr[1] "Geselecteerde afspeellijsten verwijderen?"
 
 #: sonata.py:4719
 msgid "Delete Playlist"
 msgid_plural "Delete Playlists"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Afspeellijst verwijderen"
+msgstr[1] "Afspeellijsten verwijderen"
 
 #: sonata.py:4732
 msgid "Delete the selected stream?"
 msgid_plural "Delete the selected streams?"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Geselecteerde stream verwijderen?"
+msgstr[1] "Geselecteerde streams verwijderen?"
 
 #: sonata.py:4733
 msgid "Delete Stream"
 msgid_plural "Delete Streams"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Stream verwijderen"
+msgstr[1] "Streams verwijderen"
 
 #: sonata.py:4779
 #: sonata.py:6272
@@ -1060,20 +1062,20 @@ msgstr "Een elegante muziekspeler voor MPD."
 #: sonata.py:6238
 msgid "album"
 msgid_plural "albums"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "album"
+msgstr[1] "albums"
 
 #: sonata.py:6239
 msgid "artist"
 msgid_plural "artists"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "artiest"
+msgstr[1] "artiesten"
 
 #: sonata.py:6244
 msgid "hour of bliss"
 msgid_plural "hours of bliss"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "uur vol genot"
+msgstr[1] "uren vol genot"
 
 #: sonata.py:6254
 msgid "_Shortcuts"
