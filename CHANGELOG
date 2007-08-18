@@ -3,6 +3,7 @@ v1.2.3 - Pending
 	+ Significantly reduced wakeups/sec according to powertop
 	+ Added Italian translation (Gianni Vialetto)
 	+ Added Swedish translation (Daniel Nylander)
+	+ Added Dutch translation (Olivier)
 	+ Bug: Czech translation incorrectly labeled Swedish
 	+ Bug: Song played after a replace is first in list, even in shuffle mode
 	+ Bug: Collapsed view doesn't work properly in some WMs (e.g. Fluxbox)
