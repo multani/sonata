@@ -5690,6 +5690,7 @@ class Base(mpdclient3.mpd_connection):
                     self.UIManager.get_widget('/mainmenu/edittagmenu/').show()
                 else:
                     self.UIManager.get_widget('/mainmenu/removemenu/').hide()
+                    self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
                 if not self.filterbox_visible:
                     self.UIManager.get_widget('/mainmenu/clearmenu/').show()
                     self.UIManager.get_widget('/mainmenu/savemenu/').show()
@@ -5698,6 +5699,12 @@ class Base(mpdclient3.mpd_connection):
                     self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
                     self.UIManager.get_widget('/mainmenu/savemenu/').hide()
                     self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
+            else:
+                self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
+                self.UIManager.get_widget('/mainmenu/savemenu/').hide()
+                self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
+                self.UIManager.get_widget('/mainmenu/removemenu/').hide()
+                self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
             self.UIManager.get_widget('/mainmenu/addmenu/').hide()
             self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
             self.UIManager.get_widget('/mainmenu/renamemenu/').hide()
@@ -5706,8 +5713,8 @@ class Base(mpdclient3.mpd_connection):
             self.UIManager.get_widget('/mainmenu/newmenu/').hide()
             self.UIManager.get_widget('/mainmenu/editmenu/').hide()
         elif self.notebook.get_current_page() == self.TAB_LIBRARY:
+            self.UIManager.get_widget('/mainmenu/updatemenu/').show()
             if len(self.browserdata) > 0:
-                self.UIManager.get_widget('/mainmenu/updatemenu/').show()
                 if self.browser_selection.count_selected_rows() > 0:
                     self.UIManager.get_widget('/mainmenu/addmenu/').show()
                     self.UIManager.get_widget('/mainmenu/replacemenu/').show()
@@ -5715,8 +5722,11 @@ class Base(mpdclient3.mpd_connection):
                 else:
                     self.UIManager.get_widget('/mainmenu/addmenu/').hide()
                     self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
+                    self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
             else:
-                self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
+                self.UIManager.get_widget('/mainmenu/addmenu/').hide()
+                self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
+                self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
             self.UIManager.get_widget('/mainmenu/removemenu/').hide()
             self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
             self.UIManager.get_widget('/mainmenu/savemenu/').hide()
