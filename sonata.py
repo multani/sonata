@@ -3691,7 +3691,9 @@ class Base(mpdclient3.mpd_connection):
                 paths[i] = os.path.abspath(paths[i])
                 if self.valid_image(paths[i]):
                     dest_filename = self.target_image_filename()
-                    self.remove_art_location_none_file(dest_filename)
+                    album = getattr(self.songinfo, 'album', "").replace("/", "")
+                    artist = self.current_artist_for_album_name[1].replace("/", "")
+                    self.remove_art_location_none_file(artist, album)
                     self.create_dir_if_not_existing('~/.covers/')
                     if dest_filename != paths[i]:
                         shutil.copyfile(paths[i], dest_filename)
@@ -4334,7 +4336,9 @@ class Base(mpdclient3.mpd_connection):
         dialog.set_preview_widget(preview)
         dialog.set_use_preview_label(False)
         dialog.connect("update-preview", self.update_preview, preview)
-        dialog.connect("response", self.choose_image_local_response)
+        album = getattr(self.songinfo, 'album', "").replace("/", "")
+        artist = self.current_artist_for_album_name[1].replace("/", "")
+        dialog.connect("response", self.choose_image_local_response, artist, album)
         dialog.set_default_response(gtk.RESPONSE_OK)
         songdir = os.path.dirname(self.songinfo.file)
         currdir = self.musicdir[self.profile_num] + songdir
@@ -4343,10 +4347,10 @@ class Base(mpdclient3.mpd_connection):
         self.local_dest_filename = self.target_image_filename()
         dialog.show()
 
-    def choose_image_local_response(self, dialog, response):
+    def choose_image_local_response(self, dialog, response, artist, album):
         if response == gtk.RESPONSE_OK:
             filename = dialog.get_filenames()[0]
-            self.remove_art_location_none_file(self.local_dest_filename)
+            self.remove_art_location_none_file(artist, album)
             # Copy file to covers dir:
             self.create_dir_if_not_existing('~/.covers/')
             if self.local_dest_filename != filename:
@@ -4356,12 +4360,11 @@ class Base(mpdclient3.mpd_connection):
             self.update_album_art()
         dialog.destroy()
 
-    def remove_art_location_none_file(self, base_filename=None):
+    def remove_art_location_none_file(self, artist, album):
         # If the flag file exists (to tell Sonata to use the default artwork icons), remove the file
-        if base_filename:
-            delete_filename = os.path.dirname(base_filename) + "/" + os.path.splitext(os.path.basename(base_filename))[0] + "-" + self.ART_LOCATION_NONE_FLAG + os.path.splitext(os.path.basename(base_filename))[1]
-            if os.path.exists(delete_filename):
-                os.remove(delete_filename)
+        delete_filename = os.path.expanduser("~/.covers/" + artist + "-" + album + "-" + self.ART_LOCATION_NONE_FLAG + ".jpg")
+        if os.path.exists(delete_filename):
+            os.remove(delete_filename)
 
     def on_choose_image(self, widget):
         if self.remote_from_infowindow:
@@ -4389,7 +4392,6 @@ class Base(mpdclient3.mpd_connection):
         imagewidget.set_margin(10)
         imagewidget.set_selection_mode(gtk.SELECTION_SINGLE)
         imagewidget.select_path("0")
-        imagewidget.connect('item-activated', self.replace_cover, choose_dialog)
         scroll.add(imagewidget)
         choose_dialog.vbox.pack_start(scroll, False, False, 0)
         searchexpander = gtk.expander_new_with_mnemonic(_("Edit search terms"))
@@ -4415,15 +4417,16 @@ class Base(mpdclient3.mpd_connection):
         vbox.pack_start(hbox2)
         searchexpander.add(vbox)
         choose_dialog.vbox.pack_start(searchexpander, True, True, 0)
-        choose_dialog.connect('response', self.choose_image_response, imagewidget, choose_dialog)
         choose_dialog.show_all()
         self.chooseimage_visible = True
         self.remotefilelist = []
         self.remote_dest_filename = self.target_image_filename()
-        self.remote_artist = getattr(self.songinfo, 'artist', "")
-        self.remote_album = getattr(self.songinfo, 'album', "")
-        self.remote_artistentry.set_text(self.remote_artist)
-        self.remote_albumentry.set_text(self.remote_album)
+        album = getattr(self.songinfo, 'album', "").replace("/", "")
+        artist = self.current_artist_for_album_name[1].replace("/", "")
+        imagewidget.connect('item-activated', self.replace_cover, choose_dialog, artist, album)
+        choose_dialog.connect('response', self.choose_image_response, imagewidget, choose_dialog, artist, album)
+        self.remote_artistentry.set_text(artist)
+        self.remote_albumentry.set_text(album)
         self.allow_art_search = True
         self.choose_image_update()
 
@@ -4471,24 +4474,24 @@ class Base(mpdclient3.mpd_connection):
     def choose_image_dialog_response(self, dialog, response_id):
         dialog.destroy()
 
-    def choose_image_response(self, dialog, response_id, imagewidget, choose_dialog):
+    def choose_image_response(self, dialog, response_id, imagewidget, choose_dialog, artist, album):
         self.stop_art_update = True
         if response_id == gtk.RESPONSE_ACCEPT:
             try:
-                self.replace_cover(imagewidget, imagewidget.get_selected_items()[0], choose_dialog)
+                self.replace_cover(imagewidget, imagewidget.get_selected_items()[0], choose_dialog, artist, album)
             except:
                 pass
         self.change_cursor(None)
         self.chooseimage_visible = False
         dialog.destroy()
 
-    def replace_cover(self, iconview, path, dialog):
+    def replace_cover(self, iconview, path, dialog, artist, album):
         self.stop_art_update = True
         image_num = int(path[0])
         if len(self.remotefilelist) > 0:
             filename = self.remotefilelist[image_num]
             if os.path.exists(filename):
-                self.remove_art_location_none_file(self.remote_dest_filename)
+                self.remove_art_location_none_file(artist, album)
                 self.create_dir_if_not_existing('~/.covers/')
                 shutil.move(filename, self.remote_dest_filename)
                 # And finally, set the image in the interface:
