@@ -9,7 +9,7 @@ v1.2.3 - Pending
 	+ Bug: Czech translation incorrectly labeled Swedish
 	+ Bug: Song played after a replace is first in list, even in shuffle mode
 	+ Bug: Collapsed view doesn't work properly in some WMs (e.g. Fluxbox)
-	+ Bug: Allow update library menu item even when library is empty
+	+ Bug: Display 'update library' menu item even when library is empty
 
 v1.2.2 - July 22, 2007
 	+ Bug: Fix artwork fetching (Amazon gzip'ed xml returns garbage)
