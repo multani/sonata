@@ -5,6 +5,7 @@ v1.2.3 - Pending
 	+ Added Italian translation (Gianni Vialetto)
 	+ Added Swedish translation (Daniel Nylander)
 	+ Added Dutch translation (Olivier)
+	+ Bug: Stupid parsing of amazon URLs, reduced success of cover art fetching
 	+ Bug: Default cover remains after refetching when not using ~/.covers
 	+ Bug: Czech translation incorrectly labeled Swedish
 	+ Bug: Song played after a replace is first in list, even in shuffle mode
