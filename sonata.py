@@ -3856,7 +3856,7 @@ class Base(mpdclient3.mpd_connection):
         self.infowindow_notebook.append_page(tagsScrollWindow, nblabel1)
         # Add cover art:
         nblabel2 = gtk.Label()
-        nblabel2.set_text_with_mnemonic(_("_Cover Art"))
+        nblabel2.set_text_with_mnemonic(_("C_over Art"))
         eventbox = gtk.EventBox()
         eventbox.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT | gtk.DEST_DEFAULT_DROP, [("text/uri-list", 0, 80)], gtk.gdk.ACTION_DEFAULT)
         self.infowindow_image = gtk.Image()
