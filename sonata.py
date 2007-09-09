@@ -2002,16 +2002,17 @@ class Base(mpdclient3.mpd_connection):
         self.browser.wd = root
         self.browser.freeze_child_notify()
         self.browserdata.clear()
+                bd = []  # will be put into browserdata later
         if self.view == self.VIEW_FILESYSTEM:
             if self.root != '/':
-                self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
-                self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
+                bd += [('0', [gtk.STOCK_HARDDISK, '/', '/'])]
+                bd += [('1', [gtk.STOCK_OPEN, '..', '..'])]
             for item in lsinfo:
                 if item.type == 'directory':
                     name = item.directory.split('/')[-1]
-                    self.browserdata.append([gtk.STOCK_OPEN, item.directory, escape_html(name)])
+                    bd += [('d' + name.lower(), [gtk.STOCK_OPEN, item.directory, escape_html(name)])]
                 elif item.type == 'file':
-                    self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
+                    bd += [('f' + item.file.lower(), ['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])]
         elif self.view == self.VIEW_ARTIST:
             if self.view_artist_level == 1:
                 self.view_artist_artist = ''
@@ -2024,10 +2025,10 @@ class Base(mpdclient3.mpd_connection):
                     (self.artists_root, i) = remove_list_duplicates(self.artists_root, [], False)
                     self.artists_root.sort(locale.strcoll)
                 for artist in self.artists_root:
-                    self.browserdata.append(['artist', artist, escape_html(artist)])
+                    bd += [(lower_no_the(artist), ['artist', artist, escape_html(artist)])]
             elif self.view_artist_level == 2:
-                self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
-                self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
+                bd += [('0', [gtk.STOCK_HARDDISK, '/', '/'])]
+                bd += [('1', [gtk.STOCK_OPEN, '..', '..'])]
                 if self.root != "..":
                     self.view_artist_artist = self.root
                 albums = []
@@ -2041,15 +2042,22 @@ class Base(mpdclient3.mpd_connection):
                         songs.append(item)
                 (albums, years) = remove_list_duplicates(albums, years, False)
                 for itemnum in range(len(albums)):
-                    self.browserdata.append(['album', years[itemnum] + albums[itemnum], escape_html(years[itemnum] + ' - ' + albums[itemnum])])
+                    bd += [('d' + years[itemnum] + lower_no_the(albums[itemnum]), ['album', years[itemnum] + albums[itemnum], escape_html(years[itemnum] + ' - ' + albums[itemnum])])]
                 for song in songs:
-                    self.browserdata.append(['sonata', song.file, self.parse_formatting(self.libraryformat, song, True)])
+                    bd += [('f' + lower_no_the(song.title), ['sonata', song.file, self.parse_formatting(self.libraryformat, song, True)])]
             else:
-                self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
-                self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
+                bd += [('0', [gtk.STOCK_HARDDISK, '/', '/'])]
+                bd += [('1', [gtk.STOCK_OPEN, '..', '..'])]
                 (self.view_artist_album, year) = self.browse_parse_albumview_path(root)
                 for item in self.browse_search_album_with_artist_and_year(self.view_artist_artist, self.view_artist_album, year):
-                    self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
+                                        num = '01%02i' % int(item.track)
+                                        try:
+                                                num = ('%02i%02i'
+                                                       % (int(item.disc),
+                                                          int(item.track)))
+                                        except AttributeError:
+                                                pass
+                    bd += [('f' + num, ['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])]
         elif self.view == self.VIEW_ALBUM:
             items = []
             if self.root == '/':
@@ -2060,12 +2068,25 @@ class Base(mpdclient3.mpd_connection):
                     (self.albums_root, i) = remove_list_duplicates(self.albums_root, [], False)
                     self.albums_root.sort(locale.strcoll)
                 for item in self.albums_root:
-                    self.browserdata.append(['album', item, escape_html(item)])
+                    bd += [('d' + lower_no_the(item), ['album', item, escape_html(item)])]
             else:
-                self.browserdata.append([gtk.STOCK_HARDDISK, '/', '/'])
-                self.browserdata.append([gtk.STOCK_OPEN, '..', '..'])
+                bd += [('0', [gtk.STOCK_HARDDISK, '/', '/'])]
+                bd += [('1', [gtk.STOCK_OPEN, '..', '..'])]
                 for item in self.browse_search_album(root):
-                    self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
+                                        num = '01%02i' % int(item.track)
+                                        try:
+                                                num = ('%02i%02i'
+                                                       % (int(item.disc),
+                                                          int(item.track)))
+                                        except AttributeError:
+                                                pass
+                    bd += [('f' + num, ['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])]
+
+                bd.sort(key=first_of_2tuple)
+
+                for sort, list in bd:
+                        self.browserdata.append(list)
+
         self.browser.thaw_child_notify()
 
         # Scroll back to set view for current dir:
@@ -3498,10 +3519,10 @@ class Base(mpdclient3.mpd_connection):
             pass
 
     def on_sort_by_artist(self, action):
-        self.sort('artist')
+        self.sort('artist', lower=lower_no_the)
 
     def on_sort_by_album(self, action):
-        self.sort('album')
+        self.sort('album', lower=lower_no_the)
 
     def on_sort_by_title(self, action):
         self.sort('title')
@@ -3509,7 +3530,7 @@ class Base(mpdclient3.mpd_connection):
     def on_sort_by_file(self, action):
         self.sort('file')
 
-    def sort(self, type):
+    def sort(self, type, lower=lambda x: x.lower()):
         if self.conn:
             self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
             while gtk.events_pending():
@@ -3524,7 +3545,7 @@ class Base(mpdclient3.mpd_connection):
                     dict["sortby"] = dict["sortby"].split('/')[-1]
                 dict["id"] = track.id
                 list.append(dict)
-            list.sort(key=lambda x: x["sortby"].lower()) # Remove case sensitivity
+            list.sort(key=lambda x: lower(x["sortby"])) # Remove case sensitivity
             # Now that we have the order, move the songs as appropriate:
             pos = 0
             self.conn.send.command_list_begin()
@@ -5667,12 +5688,18 @@ class Base(mpdclient3.mpd_connection):
         if self.searchtext.get_text() != "":
             list = self.conn.do.search(searchby, self.searchtext.get_text())
             self.browserdata.clear()
+                        bd = []
             for item in list:
                 if item.type == 'directory':
                     name = item.directory.split('/')[-1]
-                    self.browserdata.append([gtk.STOCK_OPEN, item.directory, escape_html(name)])
+                                        # sorting shouldn't really matter here. Ever seen a search turn up a directory?
+                    bd += [('d' + item.directory.lower(), [gtk.STOCK_OPEN, item.directory, escape_html(name)])]
                 elif item.type == 'file':
-                    self.browserdata.append(['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])
+                                        bd += [('f' + lower_no_the(item.artist) + '\t' + item.title.lower(), ['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])]
+                        bd.sort(key=first_of_2tuple)
+                        for sort, list in bd:
+                                self.browserdata.append(list)
+
             self.browser.grab_focus()
             self.browser.scroll_to_point(0, 0)
             self.searchbutton.show()
@@ -6958,6 +6985,14 @@ def remove_list_duplicates(inputlist, inputlist2=[], case_sensitive=True):
             if sync_lists:
                 outputlist2.append(inputlist2[i])
     return (outputlist, outputlist2)
+
+the_re = re.compile('^the ')
+def lower_no_the(s):
+        return the_re.sub('', s.lower())
+
+def first_of_2tuple(t):
+        fst, snd = t
+        return fst
 
 def start_dbus_interface(toggle=False):
     if HAVE_DBUS:

@@ -1,4 +1,6 @@
 v1.2.4 - Pending
+	+ Use case insensitive sorting for library (holy_robot)
+	+ Ignore "the" when sorting library in artist/album views (holy_robot)
 	+ Bug: Fix nl.po translation causing crash
 	+ Bug: Remember playlist position when adding from library
 
