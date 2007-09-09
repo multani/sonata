@@ -1,5 +1,4 @@
 v1.3
-	update to GPLv3
 	genre mode (genre -> artist -> album)
 	better playlist support (mpd 0.13 only):
 		playlist tab:
