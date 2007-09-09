@@ -1,5 +1,6 @@
 v1.2.4 - Pending
 	+ Bug: Fix nl.po translation causing crash
+	+ Bug: Remember playlist position when adding from library
 
 v1.2.3 - August 23, 2007
 	+ Incorporate disc tag in album sorting (Emmanuel Viaud)

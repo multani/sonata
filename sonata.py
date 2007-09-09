@@ -2911,6 +2911,8 @@ class Base(mpdclient3.mpd_connection):
             self.songs = self.conn.do.playlistinfo()
             all_files_unchanged = self.playlist_files_unchanged(prev_songs)
             self.total_time = 0
+            if self.sonata_loaded:
+                playlistposition = self.current.get_visible_rect()[1]
             self.current.freeze_child_notify()
             # Only clear and update the entire list if the items' files are
             # different than before. If they are the same, merely update the
@@ -2937,8 +2939,6 @@ class Base(mpdclient3.mpd_connection):
                     # Add new item:
                     self.currentdata.append([int(track.id), item])
             if not all_files_unchanged and not self.filterbox_visible:
-                if self.status.state in ['play', 'pause']:
-                    self.keep_song_visible_in_list()
                 self.current.set_model(self.currentdata)
                 self.current.set_search_column(1)
             if self.songinfo.has_key('pos'):
@@ -2946,6 +2946,8 @@ class Base(mpdclient3.mpd_connection):
                 self.boldrow(currsong)
                 self.prev_boldrow = currsong
             self.current.thaw_child_notify()
+            if self.sonata_loaded:
+                gobject.idle_add(self.playlist_retain_view, playlistposition)
             self.update_statusbar()
             if self.filterbox_visible:
                 self.searchfilter_feed_loop(self.filterpattern)
@@ -2962,6 +2964,13 @@ class Base(mpdclient3.mpd_connection):
             if self.songs[i].file != prev_songs[i].file:
                 return False
         return True
+
+    def playlist_retain_view(self, playlistposition):
+        # Attempt to retain library position:
+        try:
+            self.current.scroll_to_point(0, playlistposition)
+        except:
+            pass
 
     def keep_song_visible_in_list(self):
         if self.filterbox_visible:
