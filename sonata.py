@@ -1773,18 +1773,21 @@ class Base(mpdclient3.mpd_connection):
         if plname:
             if self.playlist_name_exists(_("Save Playlist"), 'savePlaylistError', plname):
                 return
+            self.conn.do.rm(plname)
             self.conn.do.save(plname)
             self.playlists_populate()
             self.iterate_now()
 
     def playlist_name_exists(self, title, role, plname, skip_plname=""):
-        # If the playlist already exists, return True; if the name matches skip_plname or
-        # the playlist doesn't exist, return False.
+        # If the playlist already exists, and the user does not want to replace it, return True; In
+        # all other cases, return False
         for item in self.conn.do.lsinfo():
             if item.type == 'playlist':
                 if item.playlist == plname and plname != skip_plname:
-                    show_error_msg(self.window, _("A playlist with this name already exists."), title, role)
-                    return True
+                    if show_error_msg_yesno(self.window, _("A playlist with this name already exists. Would you like to replace it?"), title, role) == gtk.RESPONSE_YES:
+                        return False
+                    else:
+                        return True
         return False
 
     def prompt_for_playlist_name(self, title, role):
@@ -1828,6 +1831,7 @@ class Base(mpdclient3.mpd_connection):
             oldname = model.get_value(model.get_iter(selected[0]), 1)
             if self.playlist_name_exists(_("Rename Playlist"), 'renamePlaylistError', plname, oldname):
                 return
+            self.conn.do.rm(plname)
             self.conn.do.rename(oldname, plname)
             self.playlists_populate()
             self.iterate_now()
@@ -4808,26 +4812,14 @@ class Base(mpdclient3.mpd_connection):
                     self.conn.do.command_list_end()
             elif page_num == self.TAB_PLAYLISTS:
                 model, selected = self.playlists_selection.get_selected_rows()
-                dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_YES_NO, gettext.ngettext("Delete the selected playlist?", "Delete the selected playlists?", int(len(selected))))
-                dialog.set_title(gettext.ngettext("Delete Playlist", "Delete Playlists", int(len(selected))))
-                dialog.set_role('deletePlaylist')
-                response = dialog.run()
-                if response == gtk.RESPONSE_YES:
-                    dialog.destroy()
+                if show_error_msg_yesno(self.window, gettext.ngettext("Delete the selected playlist?", "Delete the selected playlists?", int(len(selected))), gettext.ngettext("Delete Playlist", "Delete Playlists", int(len(selected))), 'deletePlaylist') == gtk.RESPONSE_YES:
                     iters = [model.get_iter(path) for path in selected]
                     for iter in iters:
                         self.conn.do.rm(unescape_html(self.playlistsdata.get_value(iter, 1)))
                     self.playlists_populate()
-                else:
-                    dialog.destroy()
             elif page_num == self.TAB_STREAMS:
                 model, selected = self.streams_selection.get_selected_rows()
-                dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_YES_NO, gettext.ngettext("Delete the selected stream?", "Delete the selected streams?", int(len(selected))))
-                dialog.set_title(gettext.ngettext("Delete Stream", "Delete Streams", int(len(selected))))
-                dialog.set_role('deleteStreams')
-                response = dialog.run()
-                if response == gtk.RESPONSE_YES:
-                    dialog.destroy()
+                if show_error_msg_yesno(self.window, gettext.ngettext("Delete the selected stream?", "Delete the selected streams?", int(len(selected))), gettext.ngettext("Delete Stream", "Delete Streams", int(len(selected))), 'deleteStreams') == gtk.RESPONSE_YES:
                     iters = [model.get_iter(path) for path in selected]
                     for iter in iters:
                         stream_removed = False
@@ -4838,8 +4830,6 @@ class Base(mpdclient3.mpd_connection):
                                     self.stream_uris.pop(i)
                                     stream_removed = True
                     self.streams_populate()
-                else:
-                    dialog.destroy()
             self.iterate_now()
 
     def randomize(self, widget):
@@ -6881,6 +6871,15 @@ def show_error_msg(owner, message, title, role):
     error_dialog.set_role(role)
     error_dialog.run()
     error_dialog.destroy()
+
+def show_error_msg_yesno(owner, message, title, role):
+    error_dialog = gtk.MessageDialog(owner, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_YES_NO, message)
+    error_dialog.set_title(title)
+    error_dialog.set_role(role)
+    response = error_dialog.run()
+    value = response
+    error_dialog.destroy()
+    return value
 
 def convert_time(raw):
     # Converts raw time to 'hh:mm:ss' with leading zeros as appropriate
