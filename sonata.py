@@ -2875,7 +2875,7 @@ class Base(mpdclient3.mpd_connection):
                 self.trayalbumeventbox.show()
                 self.trayalbumimage2.show()
 
-            for label in (self.cursonglabel1, self.cursonglabel2, self.traycursonglabel1, self.cursonglabel2):
+            for label in (self.cursonglabel1, self.cursonglabel2, self.traycursonglabel1, self.traycursonglabel2):
                 label.set_ellipsize(pango.ELLIPSIZE_END)
 
             self.set_ellipsize_workaround()
