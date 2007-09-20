@@ -5906,6 +5906,14 @@ class Base(mpdclient3.mpd_connection):
         for filenum in range(len(files)):
             tags.append({'title':'', 'artist':'', 'album':'', 'year':'', 'track':'', 'genre':'', 'comment':'', 'title-changed':False, 'artist-changed':False, 'album-changed':False, 'year-changed':False, 'track-changed':False, 'genre-changed':False, 'comment-changed':False, 'fullpath':files[filenum], 'mpdpath':temp_mpdpaths[filenum]})
         self.tagnum = -1
+        if not os.path.exists(tags[0]['fullpath']):
+            self.change_cursor(None)
+            error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("File ") + "\"" + tags[0]['fullpath'] + "\"" + _(" not found. Please specify a valid music directory in preferences."))
+            error_dialog.set_title(_("Edit Tags"))
+            error_dialog.set_role('editTagsError')
+            error_dialog.connect('response', self.choose_image_dialog_response)
+            error_dialog.show()
+            return
         if self.edit_next_tag(tags) == False:
             self.change_cursor(None)
             error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No music files with editable tags found."))
