@@ -436,6 +436,7 @@ class Base(mpdclient3.mpd_connection):
             ('sortbyalbum', None, _('By Album'), None, None, self.on_sort_by_album),
             ('sortbytitle', None, _('By Song Title'), None, None, self.on_sort_by_title),
             ('sortbyfile', None, _('By File Name'), None, None, self.on_sort_by_file),
+            ('sortbydirfile', None, _('By Dir & File Name'), None, None, self.on_sort_by_dirfile),
             ('sortreverse', None, _('Reverse List'), None, None, self.on_sort_reverse),
             ('sortrandom', None, _('Random'), None, None, self.on_sort_random),
             ('currentkey', None, 'Current Playlist Key', '<Alt>1', None, self.switch_to_current),
@@ -502,6 +503,7 @@ class Base(mpdclient3.mpd_connection):
                   <menuitem action="sortbyartist"/>
                   <menuitem action="sortbyalbum"/>
                   <menuitem action="sortbyfile"/>
+                  <menuitem action="sortbydirfile"/>
                   <separator name="FM3"/>
                   <menuitem action="sortrandom"/>
                   <menuitem action="sortreverse"/>
@@ -3537,6 +3539,9 @@ class Base(mpdclient3.mpd_connection):
     def on_sort_by_file(self, action):
         self.sort('file')
 
+    def on_sort_by_dirfile(self, action):
+        self.sort('dirfile')
+
     def sort(self, type, lower=lambda x: x.lower()):
         if self.conn:
             self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
@@ -3547,12 +3552,26 @@ class Base(mpdclient3.mpd_connection):
                 dict = {}
                 # Those items that don't have the specified tag will be put at
                 # the end of the list (hence the 'zzzzzzz'):
-                dict["sortby"] = getattr(track, type, 'zzzzzzzz')
-                if type == 'file':
-                    dict["sortby"] = dict["sortby"].split('/')[-1]
+                zzz = 'zzzzzzzz'
+                if type == 'artist':
+                    dict["sortby"] =  (lower_no_the(getattr(track,'artist', zzz)),
+                                getattr(track,'album' , zzz).lower(),
+                                self.sanitize_mpdtag(getattr(track,'disc', '0'), True, 0),
+                                self.sanitize_mpdtag(getattr(track,'track', '0'), True, 0))
+                elif type == 'album':
+                    dict["sortby"] =  (getattr(track,'album', zzz).lower(),
+                                self.sanitize_mpdtag(getattr(track,'disc', '0'), True, 0),
+                                self.sanitize_mpdtag(getattr(track,'track', '0'), True, 0))
+                elif type == 'file':
+                    dict["sortby"] = getattr(track,'file', zzz).lower().split('/')[-1]
+                elif type == 'dirfile':
+                    dict["sortby"] = getattr(track,'file', zzz).lower()
+                else:
+                    dict["sortby"] = getattr(track, type, zzz).lower()
                 dict["id"] = track.id
                 list.append(dict)
-            list.sort(key=lambda x: lower(x["sortby"])) # Remove case sensitivity
+            list.sort(key=lambda x: x["sortby"])
+
             # Now that we have the order, move the songs as appropriate:
             pos = 0
             self.conn.send.command_list_begin()
