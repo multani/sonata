@@ -5,6 +5,7 @@ v1.2.4 - Pending
 	+ Update license to GNU GPLv3
 	+ Bug: Fix nl.po translation causing crash
 	+ Bug: Remember playlist position when adding from library
+	+ Bug: MPD_HOST with password doesn't work on first install
 
 v1.2.3 - August 23, 2007
 	+ Incorporate disc tag in album sorting (Emmanuel Viaud)

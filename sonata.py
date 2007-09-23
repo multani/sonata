@@ -1278,8 +1278,12 @@ class Base(mpdclient3.mpd_connection):
         if self.user_connect or force_connection:
             try:
                 self.conn = Connection(self)
-                if len(self.password[self.profile_num]) > 0:
-                    self.conn.do.password(self.password[self.profile_num])
+                password = self.password[self.profile_num]
+                if os.environ.has_key('MPD_HOST'):
+                    if '@' in os.environ['MPD_HOST']:
+                        password, host = os.environ['MPD_HOST'].split('@')
+                if len(password) > 0:
+                    self.conn.do.password(password)
             except (mpdclient3.socket.error, EOFError):
                 self.conn = None
         else:
