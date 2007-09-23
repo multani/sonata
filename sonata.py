@@ -1172,7 +1172,7 @@ class Base(mpdclient3.mpd_connection):
                     print _("Artist") + ": " + getattr(self.songinfo, 'artist', '')
                     print _("Album") + ": " + getattr(self.songinfo, 'album', '')
                     print _("Date") + ": " + getattr(self.songinfo, 'date', '')
-                    print _("Track") + ": " + self.sanitize_tracknum(getattr(self.songinfo, 'track', '0'), False, 2)
+                    print _("Track") + ": " + self.sanitize_mpdtag(getattr(self.songinfo, 'track', '0'), False, 2)
                     print _("Genre") + ": " + getattr(self.songinfo, 'genre', '')
                     print _("File") + ": " + os.path.basename(self.songinfo.file)
                     at, length = [int(c) for c in self.status.time.split(':')]
@@ -2112,7 +2112,7 @@ class Base(mpdclient3.mpd_connection):
                 # Make sure it's an exact match:
                 if album.lower() == item.album.lower():
                     list.append(item)
-        list.sort(key=lambda x: int(self.sanitize_discnum(getattr(x, 'disc', ''), False, 0) + self.sanitize_tracknum(getattr(x, 'track', '0'), False, 2)))
+        list.sort(key=lambda x: int(self.sanitize_mpdtag(getattr(x, 'disc', ''), False, 0) + self.sanitize_mpdtag(getattr(x, 'track', '0'), False, 2)))
         return list
 
     def browse_search_artist(self, artist):
@@ -2147,7 +2147,7 @@ class Base(mpdclient3.mpd_connection):
                     elif not item.has_key('date'):
                         # Only show songs that have no year specified:
                         list.append(item)
-        list.sort(key=lambda x: int(self.sanitize_discnum(getattr(x, 'disc', ''), False, 0) + self.sanitize_tracknum(getattr(x, 'track', '0'), False, 2)))
+        list.sort(key=lambda x: int(self.sanitize_mpdtag(getattr(x, 'disc', ''), False, 0) + self.sanitize_mpdtag(getattr(x, 'track', '0'), False, 2)))
         return list
 
     def browser_retain_preupdate_selection(self, prev_selection, prev_selection_root, prev_selection_parent):
@@ -2242,7 +2242,7 @@ class Base(mpdclient3.mpd_connection):
                 else: return ""
         if "%N" in text:
             try:
-                text = text.replace("%N", self.sanitize_tracknum(item.track, False, 2))
+                text = text.replace("%N", self.sanitize_mpdtag(item.track, False, 2))
             except:
                 if not has_brackets: text = text.replace("%N", "0")
                 else: return ""
@@ -4012,7 +4012,7 @@ class Base(mpdclient3.mpd_connection):
                         self.infowindow_albumlabel.set_text(getattr(self.songinfo, 'album', ''))
                         self.infowindow_datelabel.set_text(getattr(self.songinfo, 'date', ''))
                         self.infowindow_genrelabel.set_text(getattr(self.songinfo, 'genre', ''))
-                        self.infowindow_tracklabel.set_text(self.sanitize_tracknum(getattr(self.songinfo, 'track', '0'), False, 2))
+                        self.infowindow_tracklabel.set_text(self.sanitize_mpdtag(getattr(self.songinfo, 'track', '0'), False, 2))
                         if os.path.exists(self.musicdir[self.profile_num] + os.path.dirname(self.songinfo.file)):
                             self.infowindow_pathlabel.set_text(self.musicdir[self.profile_num] + os.path.dirname(self.songinfo.file))
                         else:
@@ -4027,9 +4027,9 @@ class Base(mpdclient3.mpd_connection):
                             tracks = self.browse_search_album(self.songinfo.album)
                             for track in tracks:
                                 if track.has_key('title'):
-                                    trackinfo = trackinfo + self.sanitize_tracknum(getattr(track, 'track', '0'), False, 2) + ' - ' + track.title + '\n'
+                                    trackinfo = trackinfo + self.sanitize_mpdtag(getattr(track, 'track', '0'), False, 2) + ' - ' + track.title + '\n'
                                 else:
-                                    trackinfo = trackinfo + self.sanitize_tracknum(getattr(track, 'track', '0'), False, 2) + ' - ' + track.file.split('/')[-1] + '\n'
+                                    trackinfo = trackinfo + self.sanitize_mpdtag(getattr(track, 'track', '0'), False, 2) + ' - ' + track.file.split('/')[-1] + '\n'
                                 if track.has_key('date'):
                                     year.append(track.date)
                                 try:
@@ -6524,47 +6524,26 @@ class Base(mpdclient3.mpd_connection):
                             except:
                                 show_error_msg(self.window, _('Unable to launch a suitable browser.'), _('Launch Browser'), 'browserLoadError')
 
-    def sanitize_tracknum(self, mpdtrack, return_int=False, str_padding=0):
-        # Takes the mpd tag for track and tries to convert it to
-        # simply the track number. Known forms for the mpd tag
-        # can be "4", "4/10", and "4,10".
+    def sanitize_mpdtag(self, mpdtag, return_int=False, str_padding=0):
+        # Takes the mpd tag and tries to convert it to simply the
+        # track/disc number. Known forms for the mpd tag can be
+        # "4", "4/10", and "4,10".
         try:
             if return_int:
-                return int(mpdtrack.split('/')[0])
+                return int(mpdtag.split('/')[0])
             else:
-                return str(int(mpdtrack.split('/')[0])).zfill(str_padding)
+                return str(int(mpdtag.split('/')[0])).zfill(str_padding)
         except:
             try:
                 if return_int:
-                    return int(mpdtrack.split(',')[0])
+                    return int(mpdtag.split(',')[0])
                 else:
-                    return str(int(mpdtrack.split(',')[0])).zfill(str_padding)
+                    return str(int(mpdtag.split(',')[0])).zfill(str_padding)
             except:
                 if return_int:
                     return 0
                 else:
                     return ""
-
-    def sanitize_discnum(self, mpddisc, return_int=False, str_padding=0):
-        # Takes the mpd tag for disc and tries to convert it to
-        # simply the disc number. Known forms for the mpd tag
-        # can be "4" and "4/10" (and maybe "4,10")
-        try:
-            if return_int:
-                return int(mpddisc.split('/')[0])
-            else:
-                return str(int(mpddisc.split('/')[0])).zfill(str_padding)
-        except:
-            try:
-                if return_int:
-                    return int(mpddisc.split(',')[0])
-                else:
-                    return str(int(mpddisc.split(',')[0])).zfill(str_padding)
-            except:
-                if return_int:
-                    return 0
-                else:
-                    return "".zfill(str_padding)
 
     def searchfilter_toggle(self, widget):
         if self.filterbox_visible:
