@@ -6,6 +6,5 @@ Exec=sonata
 Terminal=false
 Type=Application
 Icon=sonata
-Categories=GTK;Application;AudioVideo;Player;
+Categories=GTK;AudioVideo;Player;
 StartupNotify=true
-Encoding=UTF-8

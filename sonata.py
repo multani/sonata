@@ -341,7 +341,7 @@ class Base(mpdclient3.mpd_connection):
         self.as_username = ""
         self.as_password = ""
         show_prefs = False
-        self.charset = locale.getpreferredencoding()
+        self.enc = locale.getpreferredencoding()
         self.updating_nameentry = False
         self.merge_id = None
         self.actionGroupProfiles = None
@@ -3763,7 +3763,6 @@ class Base(mpdclient3.mpd_connection):
                 album = getattr(self.songinfo, 'album', "").replace("/", "")
                 artist = self.current_artist_for_album_name[1].replace("/", "")
                 targetfile = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
-                #print targetfile
             elif art_loc == self.ART_LOCATION_COVER:
                 targetfile = self.musicdir[self.profile_num] + os.path.dirname(self.songinfo.file) + "/cover.jpg"
             elif art_loc == self.ART_LOCATION_FOLDER:
@@ -3777,7 +3776,10 @@ class Base(mpdclient3.mpd_connection):
                 album = getattr(self.songinfo, 'album', "").replace("/", "")
                 artist = self.current_artist_for_album_name[1].replace("/", "")
                 targetfile = os.path.expanduser("~/.covers/" + artist + "-" + album + "-" + self.ART_LOCATION_NONE_FLAG + ".jpg")
-            return targetfile.encode(self.charset)
+            try:
+                return targetfile.decode(self.enc).encode('utf8')
+            except:
+                return targetfile
 
     def valid_image(self, file):
         test = gtk.gdk.pixbuf_get_file_info(file)
@@ -4211,7 +4213,10 @@ class Base(mpdclient3.mpd_connection):
                     # Save lyrics to file:
                     self.create_dir_if_not_existing('~/.lyrics/')
                     f = open(filename, 'w')
-                    f.write(lyrics.encode(self.charset))
+                    try:
+                        f.write(lyrics.decode(self.enc).encode('utf8'))
+                    except:
+                        f.write(lyrics)
                     f.close()
                 else:
                     lyrics = _("Lyrics not found")
@@ -4219,7 +4224,10 @@ class Base(mpdclient3.mpd_connection):
                     # Save error to file so that we don't retry the lyrics over and over:
                     self.create_dir_if_not_existing('~/.lyrics/')
                     f = open(filename, 'w')
-                    f.write(lyrics.encode(self.charset))
+                    try:
+                        f.write(lyrics.decode(self.enc).encode('utf8'))
+                    except:
+                        f.write(lyrics)
                     f.close()
             except:
                 lyrics = _("Fetching lyrics failed")
