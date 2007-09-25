@@ -1233,8 +1233,8 @@ class Base(mpdclient3.mpd_connection):
             self.UIManager.remove_ui(self.merge_id)
         if self.actionGroupProfiles:
             self.UIManager.remove_action_group(self.actionGroupProfiles)
-        else:
-            self.actionGroupProfiles = gtk.ActionGroup('MPDProfiles')
+            self.actionGroupProfiles = None
+        self.actionGroupProfiles = gtk.ActionGroup('MPDProfiles')
         self.UIManager.ensure_update()
         actions = []
         for i in range(len(self.profile_names)):
