@@ -300,11 +300,12 @@ class Base(mpdclient3.mpd_connection):
         self.exit_now = False
         self.ignore_toggle_signal = False
         self.initial_run = True
-        self.currentformat = "%A - %T"
+        self.currentformat = "%A|%T"
         self.libraryformat = "%A - %T"
         self.titleformat = "[Sonata] %A - %T"
         self.currsongformat1 = "%T"
         self.currsongformat2 = "by %A from %B"
+        self.columnwidths = []
         self.autoconnect = True
         self.user_connect = False
         self.stream_names = []
@@ -685,7 +686,6 @@ class Base(mpdclient3.mpd_connection):
         self.expanderwindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.expanderwindow.set_shadow_type(gtk.SHADOW_IN)
         self.current = gtk.TreeView()
-        self.current.set_headers_visible(False)
         self.current.set_rules_hint(True)
         self.current.set_reorderable(True)
         self.current.set_enable_search(True)
@@ -976,19 +976,11 @@ class Base(mpdclient3.mpd_connection):
         self.sonatacd_large = self.find_path('sonatacd_large.png')
         self.albumimage.set_from_file(self.sonatacd)
 
-        # Initialize current playlist data and widget
-        self.currentdata = gtk.ListStore(int, str)
-        self.current.set_model(self.currentdata)
-        self.current.set_search_column(1)
-        self.currentcell = gtk.CellRendererText()
-        self.currentcell.set_property("ellipsize", pango.ELLIPSIZE_END)
-        self.currentcolumn = gtk.TreeViewColumn('Pango Markup', self.currentcell, markup=1)
-        self.currentcolumn.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
-        self.current.append_column(self.currentcolumn)
+        # Set up current view
+        self.parse_currentformat()
         self.current_selection.set_mode(gtk.SELECTION_MULTIPLE)
         self.current.enable_model_drag_source(gtk.gdk.BUTTON1_MASK, [('STRING', 0, 0)], gtk.gdk.ACTION_MOVE)
         self.current.enable_model_drag_dest([('STRING', 0, 0)], gtk.gdk.ACTION_MOVE)
-        self.current.set_fixed_height_mode(True)
 
         # Initialize playlist data and widget
         self.playlistsdata = gtk.ListStore(str, str)
@@ -1108,6 +1100,35 @@ class Base(mpdclient3.mpd_connection):
         print "  shuffle              " + _("Toggle shuffle mode")
         print "  info                 " + _("Display current song info")
         print "  status               " + _("Display MPD status")
+
+    def parse_currentformat(self):
+        # Initialize current playlist data and widget
+        self.columnformat = self.currentformat.split("|")
+        self.currentdata = gtk.ListStore(*([int] + [str] * len(self.columnformat)))
+        self.current.set_model(self.currentdata)
+        self.cellrenderer = gtk.CellRendererText()
+        self.cellrenderer.set_property("ellipsize", pango.ELLIPSIZE_END)
+        self.columns = []
+        index = 1
+        colnames = self.parse_formatting_for_column_names(self.currentformat)
+        if len(self.columnformat) >	len(self.columnwidths):
+            # Set columns as equally spaced:
+            self.columnwidths = []
+            for i in range(len(self.columnformat)):
+                self.columnwidths.append(int(self.current.allocation.width/len(self.columnformat)))
+        for i in range(len(self.columnformat)):
+            column = gtk.TreeViewColumn(colnames[i], self.cellrenderer, markup=(i + 1))
+            self.columns += [column]
+            column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+            column.set_resizable(True)
+            try:
+                column.set_fixed_width(max(int(self.columnwidths[i]), 10))
+            except:
+                column.set_fixed_width(150)
+            self.current.append_column(column)
+        self.current.set_search_column(1)
+        self.current.set_headers_visible(len(self.columnformat) > 1)
+        self.current.set_fixed_height_mode(True)
 
     def gnome_session_management(self):
         if HAVE_GNOME_UI:
@@ -1557,6 +1578,8 @@ class Base(mpdclient3.mpd_connection):
             self.art_location = conf.getint('player', 'art_location')
         if conf.has_option('player', 'art_location_custom_filename'):
             self.art_location_custom_filename = conf.get('player', 'art_location_custom_filename')
+        if conf.has_option('player', 'columnwidths'):
+            self.columnwidths = conf.get('player', 'columnwidths').split(",")
         if conf.has_section('currformat'):
             if conf.has_option('currformat', 'current'):
                 self.currentformat = conf.get('currformat', 'current')
@@ -1655,6 +1678,11 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'infowindow_h', self.infowindow_h)
         conf.set('player', 'art_location', self.art_location)
         conf.set('player', 'art_location_custom_filename', self.art_location_custom_filename)
+        tmp = ""
+        for i in range(len(self.columns) - 1):
+            tmp += str(self.columns[i].get_width()) + ","
+        tmp += str(self.columns[len(self.columns) - 1].get_width())
+        conf.set('player', 'columnwidths', tmp)
         # Old formats, before some letter changes. We'll keep this in for compatibility with
         # older versions of Sonata for the time being.
         conf.add_section('format')
@@ -2218,6 +2246,20 @@ class Base(mpdclient3.mpd_connection):
             substrings.append(format[end_pos+1:len(format.decode('utf-8'))])
         return substrings
 
+    def parse_formatting_for_column_names(self, format):
+        text = format.split("|")
+        for i in range(len(text)):
+            text[i] = text[i].replace("%A", _("Artist"))
+            text[i] = text[i].replace("%B", _("Album"))
+            text[i] = text[i].replace("%T", _("Track"))
+            text[i] = text[i].replace("%N", _("#"))
+            text[i] = text[i].replace("%Y", _("Year"))
+            text[i] = text[i].replace("%G", _("Genre"))
+            text[i] = text[i].replace("%F", _("File"))
+            text[i] = text[i].replace("%S", _("Stream"))
+            text[i] = text[i].replace("%L", _("Length"))
+        return text
+
     def parse_formatting_for_substring(self, subformat, item, wintitle):
         text = subformat
         if subformat.startswith("{") and subformat.endswith("}"):
@@ -2568,7 +2610,7 @@ class Base(mpdclient3.mpd_connection):
             row_y = 0
             if self.notebook.get_current_page() == self.TAB_CURRENT:
                 widget = self.current
-                column = self.currentcolumn
+                column = self.columns[0]
             elif self.notebook.get_current_page() == self.TAB_LIBRARY:
                 widget = self.browser
                 column = self.browsercolumn
@@ -2785,7 +2827,8 @@ class Base(mpdclient3.mpd_connection):
             return
         if row > -1:
             try:
-                self.currentdata[row][1] = make_bold(self.currentdata[row][1])
+                for i in range(len(self.currentdata[row]) - 1):
+                    self.currentdata[row][i + 1] = make_bold(self.currentdata[row][i + 1])
             except:
                 pass
 
@@ -2794,7 +2837,8 @@ class Base(mpdclient3.mpd_connection):
             return
         if row > -1:
             try:
-                self.currentdata[row][1] = make_unbold(self.currentdata[row][1])
+                for i in range(len(self.currentdata[row]) - 1):
+                    self.currentdata[row][i + 1] = make_unbold(self.currentdata[row][i + 1])
             except:
                 pass
 
@@ -2953,7 +2997,9 @@ class Base(mpdclient3.mpd_connection):
                     self.current.set_model(None)
             for i in range(len(self.songs)):
                 track = self.songs[i]
-                item = self.parse_formatting(self.currentformat, track, True)
+                items = []
+                for part in self.columnformat:
+                    items += [self.parse_formatting(part, track, True)]
                 try:
                     self.total_time = self.total_time + int(track.time)
                 except:
@@ -2962,12 +3008,14 @@ class Base(mpdclient3.mpd_connection):
                     # Update attributes only for item:
                     try:
                         iter = self.currentdata.get_iter((i, ))
-                        self.currentdata.set(iter, 0, int(track.id), 1, item)
+                        self.currentdata.set_value(iter, 0, int(track.id))
+                        for index in range(len(items)):
+                            self.currentdata.set_value(iter, index + 1, items[index])
                     except:
                         pass
                 else:
                     # Add new item:
-                    self.currentdata.append([int(track.id), item])
+                    self.currentdata.append([int(track.id)] + items)
             if not all_files_unchanged and not self.filterbox_visible:
                 self.current.set_model(self.currentdata)
                 self.current.set_search_column(1)
@@ -3009,7 +3057,7 @@ class Base(mpdclient3.mpd_connection):
             try:
                 row = self.songinfo.pos
                 visible_rect = self.current.get_visible_rect()
-                row_rect = self.current.get_background_area(row, self.currentcolumn)
+                row_rect = self.current.get_background_area(row, self.columns[0])
                 if row_rect.y + row_rect.height > visible_rect.height:
                     top_coord = (row_rect.y + row_rect.height - visible_rect.height) + visible_rect.y
                     self.current.scroll_to_point(-1, top_coord)
@@ -5133,7 +5181,7 @@ class Base(mpdclient3.mpd_connection):
         table2.attach(display_art, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table2.attach(display_art_hbox, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table2.attach(display_art_location_hbox, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(gtk.Label(), 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(gtk.Label(), 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table2.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(gtk.Label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 75, 0)
         table2.attach(gtk.Label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 75, 0)
@@ -5250,10 +5298,10 @@ class Base(mpdclient3.mpd_connection):
         availableformatbox.pack_start(availableformatting)
         availableformatbox.pack_start(availableformatting2)
         availablevbox.pack_start(availableformatbox, False, False, 0)
-        enclosedtags = gtk.Label()
-        enclosedtags.set_markup('<small>{ } - ' + _('Info displayed only if all enclosed tags are defined') + '</small>')
-        enclosedtags.set_alignment(0,0)
-        availablevbox.pack_start(enclosedtags, False, False, 4)
+        additionalinfo = gtk.Label()
+        additionalinfo.set_markup('<small>{ } - ' + _('Info displayed only if all enclosed tags are defined') + '\n' + '| - Creates columns in the current playlist' + '</small>')
+        additionalinfo.set_alignment(0,0)
+        availablevbox.pack_start(additionalinfo, False, False, 4)
         table4.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table4.attach(formatlabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table4.attach(gtk.Label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
@@ -5364,6 +5412,10 @@ class Base(mpdclient3.mpd_connection):
             self.autoconnect = autoconnect.get_active()
             if self.currentformat != currentoptions.get_text():
                 self.currentformat = currentoptions.get_text()
+                for column in self.current.get_columns():
+                    self.current.remove_column(column)
+                self.songs = None
+                self.parse_currentformat()
                 self.update_playlist()
             if self.libraryformat != libraryoptions.get_text():
                 self.libraryformat = libraryoptions.get_text()
