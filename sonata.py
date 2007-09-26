@@ -300,7 +300,8 @@ class Base(mpdclient3.mpd_connection):
         self.exit_now = False
         self.ignore_toggle_signal = False
         self.initial_run = True
-        self.currentformat = "%A|%T"
+        self.show_header = True
+        self.currentformat = "%A - %T|%L"
         self.libraryformat = "%A - %T"
         self.titleformat = "[Sonata] %A - %T"
         self.currsongformat1 = "%T"
@@ -1127,7 +1128,7 @@ class Base(mpdclient3.mpd_connection):
                 column.set_fixed_width(150)
             self.current.append_column(column)
         self.current.set_search_column(1)
-        self.current.set_headers_visible(len(self.columnformat) > 1)
+        self.current.set_headers_visible(len(self.columnformat) > 1 and self.show_header)
         self.current.set_fixed_height_mode(True)
 
     def gnome_session_management(self):
@@ -1580,6 +1581,8 @@ class Base(mpdclient3.mpd_connection):
             self.art_location_custom_filename = conf.get('player', 'art_location_custom_filename')
         if conf.has_option('player', 'columnwidths'):
             self.columnwidths = conf.get('player', 'columnwidths').split(",")
+        if conf.has_option('player', 'show_header'):
+            self.show_header = conf.getboolean('player', 'show_header')
         if conf.has_section('currformat'):
             if conf.has_option('currformat', 'current'):
                 self.currentformat = conf.get('currformat', 'current')
@@ -1683,6 +1686,7 @@ class Base(mpdclient3.mpd_connection):
             tmp += str(self.columns[i].get_width()) + ","
         tmp += str(self.columns[len(self.columns) - 1].get_width())
         conf.set('player', 'columnwidths', tmp)
+        conf.set('player', 'show_header', self.show_header)
         # Old formats, before some letter changes. We'll keep this in for compatibility with
         # older versions of Sonata for the time being.
         conf.add_section('format')
