@@ -1112,7 +1112,7 @@ class Base(mpdclient3.mpd_connection):
         self.columns = []
         index = 1
         colnames = self.parse_formatting_for_column_names(self.currentformat)
-        if len(self.columnformat) >	len(self.columnwidths):
+        if len(self.columnformat) <> len(self.columnwidths):
             # Set columns as equally spaced:
             self.columnwidths = []
             for i in range(len(self.columnformat)):
