@@ -301,7 +301,7 @@ class Base(mpdclient3.mpd_connection):
         self.ignore_toggle_signal = False
         self.initial_run = True
         self.show_header = True
-        self.currentformat = "%A - %T|%L"
+        self.currentformat = "%A - %T"
         self.libraryformat = "%A - %T"
         self.titleformat = "[Sonata] %A - %T"
         self.currsongformat1 = "%T"
@@ -2043,7 +2043,7 @@ class Base(mpdclient3.mpd_connection):
         self.browser.wd = root
         self.browser.freeze_child_notify()
         self.browserdata.clear()
-                bd = []  # will be put into browserdata later
+        bd = []  # will be put into browserdata later
         if self.view == self.VIEW_FILESYSTEM:
             if self.root != '/':
                 bd += [('0', [gtk.STOCK_HARDDISK, '/', '/'])]
@@ -2091,13 +2091,13 @@ class Base(mpdclient3.mpd_connection):
                 bd += [('1', [gtk.STOCK_OPEN, '..', '..'])]
                 (self.view_artist_album, year) = self.browse_parse_albumview_path(root)
                 for item in self.browse_search_album_with_artist_and_year(self.view_artist_artist, self.view_artist_album, year):
-                                        num = '01%02i' % int(item.track)
-                                        try:
-                                                num = ('%02i%02i'
-                                                       % (int(item.disc),
-                                                          int(item.track)))
-                                        except AttributeError:
-                                                pass
+                    num = '01%02i' % int(item.track)
+                    try:
+                        num = ('%02i%02i'
+                               % (int(item.disc),
+                              int(item.track)))
+                    except AttributeError:
+                        pass
                     bd += [('f' + num, ['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])]
         elif self.view == self.VIEW_ALBUM:
             items = []
@@ -2114,19 +2114,19 @@ class Base(mpdclient3.mpd_connection):
                 bd += [('0', [gtk.STOCK_HARDDISK, '/', '/'])]
                 bd += [('1', [gtk.STOCK_OPEN, '..', '..'])]
                 for item in self.browse_search_album(root):
-                                        num = '01%02i' % int(item.track)
-                                        try:
-                                                num = ('%02i%02i'
-                                                       % (int(item.disc),
-                                                          int(item.track)))
-                                        except AttributeError:
-                                                pass
+                    num = '01%02i' % int(item.track)
+                    try:
+                        num = ('%02i%02i'
+                               % (int(item.disc),
+                              int(item.track)))
+                    except AttributeError:
+                        pass
                     bd += [('f' + num, ['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])]
 
-                bd.sort(key=first_of_2tuple)
+        bd.sort(key=first_of_2tuple)
 
-                for sort, list in bd:
-                        self.browserdata.append(list)
+        for sort, list in bd:
+            self.browserdata.append(list)
 
         self.browser.thaw_child_notify()
 
@@ -4377,7 +4377,7 @@ class Base(mpdclient3.mpd_connection):
         tags = iter.get_tags()
         for tag in tags:
             url = tag.get_data("url")
-                    if url != 0:
+                if url != 0:
                 self.show_website(None, None, url)
                 break
 
@@ -5764,17 +5764,17 @@ class Base(mpdclient3.mpd_connection):
         if self.searchtext.get_text() != "":
             list = self.conn.do.search(searchby, self.searchtext.get_text())
             self.browserdata.clear()
-                        bd = []
+            bd = []
             for item in list:
                 if item.type == 'directory':
                     name = item.directory.split('/')[-1]
-                                        # sorting shouldn't really matter here. Ever seen a search turn up a directory?
+                    # sorting shouldn't really matter here. Ever seen a search turn up a directory?
                     bd += [('d' + item.directory.lower(), [gtk.STOCK_OPEN, item.directory, escape_html(name)])]
                 elif item.type == 'file':
-                                        bd += [('f' + lower_no_the(item.artist) + '\t' + item.title.lower(), ['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])]
-                        bd.sort(key=first_of_2tuple)
-                        for sort, list in bd:
-                                self.browserdata.append(list)
+                    bd += [('f' + lower_no_the(item.artist) + '\t' + item.title.lower(), ['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])]
+            bd.sort(key=first_of_2tuple)
+            for sort, list in bd:
+                self.browserdata.append(list)
 
             self.browser.grab_focus()
             self.browser.scroll_to_point(0, 0)
@@ -7060,11 +7060,11 @@ def remove_list_duplicates(inputlist, inputlist2=[], case_sensitive=True):
 
 the_re = re.compile('^the ')
 def lower_no_the(s):
-        return the_re.sub('', s.lower())
+    return the_re.sub('', s.lower())
 
 def first_of_2tuple(t):
-        fst, snd = t
-        return fst
+    fst, snd = t
+    return fst
 
 def start_dbus_interface(toggle=False):
     if HAVE_DBUS:
