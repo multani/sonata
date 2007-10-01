@@ -1113,7 +1113,7 @@ class Base(mpdclient3.mpd_connection):
         index = 1
         colnames = self.parse_formatting_for_column_names(self.currentformat)
         if len(self.columnformat) <> len(self.columnwidths):
-            # Set columns as equally spaced:
+            # Number of columns changed, set columns equally spaced:
             self.columnwidths = []
             for i in range(len(self.columnformat)):
                 self.columnwidths.append(int(self.current.allocation.width/len(self.columnformat)))
@@ -1130,6 +1130,8 @@ class Base(mpdclient3.mpd_connection):
         self.current.set_search_column(1)
         self.current.set_headers_visible(len(self.columnformat) > 1 and self.show_header)
         self.current.set_fixed_height_mode(True)
+        if len(self.columnformat) == 1:
+            self.current.columns_autosize()
 
     def gnome_session_management(self):
         if HAVE_GNOME_UI:
