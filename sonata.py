@@ -6366,6 +6366,7 @@ class Base(mpdclient3.mpd_connection):
                 self.editwindow_update(window, tags, entries, entries_names)
             else:
                 # No more (valid) files:
+                self.tagnum = self.tagnum + 1 # To ensure we update the last file in editwindow_mpd_update
                 self.editwindow_hide(window, None, tags)
 
     def editwindow_hide(self, window, data=None, tags=None):
@@ -6375,7 +6376,7 @@ class Base(mpdclient3.mpd_connection):
     def editwindow_mpd_update(self, tags):
         if tags:
             self.conn.send.command_list_begin()
-            for i in range(len(tags)):
+            for i in range(self.tagnum):
                 self.conn.send.update(tags[i]['mpdpath'])
             self.conn.do.command_list_end()
             self.iterate_now()
