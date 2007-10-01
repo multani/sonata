@@ -5771,7 +5771,10 @@ class Base(mpdclient3.mpd_connection):
                     # sorting shouldn't really matter here. Ever seen a search turn up a directory?
                     bd += [('d' + item.directory.lower(), [gtk.STOCK_OPEN, item.directory, escape_html(name)])]
                 elif item.type == 'file':
-                    bd += [('f' + lower_no_the(item.artist) + '\t' + item.title.lower(), ['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])]
+                    try:
+                        bd += [('f' + lower_no_the(item.artist) + '\t' + item.title.lower(), ['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])]
+                    except:
+                        bd += [('f' + item.file.lower(), ['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])]
             bd.sort(key=first_of_2tuple)
             for sort, list in bd:
                 self.browserdata.append(list)
