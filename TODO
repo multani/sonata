@@ -4,7 +4,6 @@ v1.2.4
 	the beatles -> beatles, the
 	columns in current - allow clicking on headers to sort; ellipsize headers
 	allow additional columns for library (like current)
-	enable always on top, then disable -> withdraw -> unwithdraw -> always on top is enabled again
 
 v1.3
 	genre mode (genre -> artist -> album)

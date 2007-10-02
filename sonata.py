@@ -4714,8 +4714,6 @@ class Base(mpdclient3.mpd_connection):
         if self.infowindow_visible:
             self.infowindow.show_all()
         self.notebook.set_no_show_all(False)
-        if self.sticky:
-            self.window.stick()
         self.withdrawn = False
         self.UIManager.get_widget('/traymenu/showmenu').set_active(True)
         gobject.idle_add(self.withdraw_app_undo_present_and_focus)
@@ -4723,6 +4721,10 @@ class Base(mpdclient3.mpd_connection):
     def withdraw_app_undo_present_and_focus(self):
         self.window.present() # Helps to raise the window (useful against focus stealing prevention)
         self.window.grab_focus()
+        if self.sticky:
+            self.window.stick()
+        if self.ontop:
+            self.window.set_keep_above(True)
 
     def withdraw_app(self):
         if HAVE_EGG or HAVE_STATUS_ICON:
