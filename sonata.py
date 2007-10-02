@@ -3041,8 +3041,7 @@ class Base(mpdclient3.mpd_connection):
                 self.searchfilter_feed_loop(self.filterpattern)
             # If we just sorted a column, display the sorting arrow:
             if self.column_sorted <> 0:
-                for column in self.current.get_columns():
-                    column.set_sort_indicator(False)
+                self.hide_all_header_indicators(self.current)
                 column = self.current.get_column(abs(self.column_sorted)-1)
                 column.set_sort_indicator(True)
                 if self.column_sorted > 0:
@@ -3070,6 +3069,10 @@ class Base(mpdclient3.mpd_connection):
             self.current.scroll_to_point(0, playlistposition)
         except:
             pass
+
+    def hide_all_header_indicators(self, treeview):
+        for column in treeview.get_columns():
+            column.set_sort_indicator(False)
 
     def keep_song_visible_in_list(self):
         if self.filterbox_visible:
@@ -3770,6 +3773,7 @@ class Base(mpdclient3.mpd_connection):
 
         if drag_context.action == gtk.gdk.ACTION_MOVE:
             drag_context.finish(True, True, timestamp)
+            self.hide_all_header_indicators(self.current)
         self.iterate_now()
 
     def on_current_button_press(self, widget, event):

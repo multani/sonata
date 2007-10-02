@@ -1,5 +1,5 @@
 v1.2.4 - Pending
-	+ Allow multiple columns in current playlist (xsdnyd)
+	+ Allow multiple columns in current playlist by using "|" (xsdnyd)
 	+ Use case insensitive sorting for library (holy_robot)
 	+ Ignore "the" when sorting library in artist/album views (holy_robot)
 	+ Better logic when sorting playlists and "dir+file" option (sed)
