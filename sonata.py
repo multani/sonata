@@ -1121,17 +1121,18 @@ class Base(mpdclient3.mpd_connection):
             column = gtk.TreeViewColumn(colnames[i], self.cellrenderer, markup=(i + 1))
             self.columns += [column]
             column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
-            column.set_resizable(True)
-            try:
-                column.set_fixed_width(max(int(self.columnwidths[i]), 10))
-            except:
-                column.set_fixed_width(150)
+            # If just one column, we want it to expand with the tree, so don't set a fixed_width; if
+            # multiple columns, size accordingly:
+            if len(self.columnformat) > 1:
+                column.set_resizable(True)
+                try:
+                    column.set_fixed_width(max(int(self.columnwidths[i]), 10))
+                except:
+                    column.set_fixed_width(150)
             self.current.append_column(column)
         self.current.set_search_column(1)
         self.current.set_headers_visible(len(self.columnformat) > 1 and self.show_header)
         self.current.set_fixed_height_mode(True)
-        if len(self.columnformat) == 1:
-            self.current.columns_autosize()
 
     def gnome_session_management(self):
         if HAVE_GNOME_UI:
