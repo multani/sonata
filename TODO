@@ -2,7 +2,10 @@ v1.2.4
 	allow overwriting existing streams
 	fix encoding issue
 	the beatles -> beatles, the
-	columns in current - allow clicking on headers to sort; ellipsize headers
+	treeview
+		- hide sort display if list re-ordered via dnd
+		- better algorithm for sorting song length (e.g. 1:10 vs 10:10)
+		- reordering rows is faster than reloading (see http://faq.pygtk.org/index.py?req=show&file=faq13.049.htp)
 	allow additional columns for library (like current)
 
 v1.3

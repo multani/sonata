@@ -355,6 +355,7 @@ class Base(mpdclient3.mpd_connection):
         self.last_progress_text = None
         self.last_info_time = None
         self.last_info_bitrate = None
+        self.column_sorted = 0
         # For increased responsiveness after the initial load, we cache the root artist and
         # album view results and simply refresh on any mpd update
         self.albums_root = None
@@ -1129,9 +1130,11 @@ class Base(mpdclient3.mpd_connection):
                     column.set_fixed_width(max(int(self.columnwidths[i]), 10))
                 except:
                     column.set_fixed_width(150)
+            column.connect('clicked', self.on_current_column_click)
             self.current.append_column(column)
         self.current.set_search_column(1)
         self.current.set_headers_visible(len(self.columnformat) > 1 and self.show_header)
+        self.current.set_headers_clickable(True)
         self.current.set_fixed_height_mode(True)
 
     def gnome_session_management(self):
@@ -3036,6 +3039,17 @@ class Base(mpdclient3.mpd_connection):
             self.update_statusbar()
             if self.filterbox_visible:
                 self.searchfilter_feed_loop(self.filterpattern)
+            # If we just sorted a column, display the sorting arrow:
+            if self.column_sorted <> 0:
+                for column in self.current.get_columns():
+                    column.set_sort_indicator(False)
+                column = self.current.get_column(abs(self.column_sorted)-1)
+                column.set_sort_indicator(True)
+                if self.column_sorted > 0:
+                    column.set_sort_order(gtk.SORT_ASCENDING)
+                else:
+                    column.set_sort_order(gtk.SORT_DESCENDING)
+                self.column_sorted = 0
             self.change_cursor(None)
 
     def playlist_files_unchanged(self, prev_songs):
@@ -3582,6 +3596,15 @@ class Base(mpdclient3.mpd_connection):
         except:
             pass
 
+    def on_current_column_click(self, column):
+        columns = self.current.get_columns()
+        col_num = 0
+        for col in columns:
+            col_num = col_num + 1
+            if column == col:
+                self.sort('col' + str(col_num))
+                return
+
     def on_sort_by_artist(self, action):
         self.sort('artist', lower=lower_no_the)
 
@@ -3603,6 +3626,23 @@ class Base(mpdclient3.mpd_connection):
             while gtk.events_pending():
                 gtk.main_iteration()
             list = []
+            track_num = 0
+
+            if type[0:3] == 'col':
+                col_num = int(type.replace('col', ''))
+                self.column_sorted = col_num
+                # Determine if we are sorting ascending or descending:
+                column = self.current.get_column(col_num-1)
+                if column.get_sort_indicator() and column.get_sort_order() == gtk.SORT_ASCENDING:
+                    # Reverse list...
+                    self.column_sorted = -1 * self.column_sorted
+                    self.on_sort_reverse(None)
+                    return
+                if col_num > len(self.columnformat):
+                    # This should never happen...
+                    return
+                type = "col"
+
             for track in self.songs:
                 dict = {}
                 # Those items that don't have the specified tag will be put at
@@ -3621,10 +3661,14 @@ class Base(mpdclient3.mpd_connection):
                     dict["sortby"] = getattr(track,'file', zzz).lower().split('/')[-1]
                 elif type == 'dirfile':
                     dict["sortby"] = getattr(track,'file', zzz).lower()
+                elif type == 'col':
+                    # Sort by column:
+                    dict["sortby"] = self.currentdata.get_value(self.currentdata.get_iter((track_num, 0)), col_num)
                 else:
                     dict["sortby"] = getattr(track, type, zzz).lower()
                 dict["id"] = track.id
                 list.append(dict)
+                track_num = track_num + 1
             list.sort(key=lambda x: x["sortby"])
 
             # Now that we have the order, move the songs as appropriate:
