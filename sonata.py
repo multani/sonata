@@ -6747,7 +6747,7 @@ class Base(mpdclient3.mpd_connection):
             except:
                 todo = self.filterbox_cmd_buf
                 pass
-            matches = gtk.ListStore(int, str)
+            matches = gtk.ListStore(*([int] + [str] * len(self.columnformat)))
             matches.clear()
             self.filterposition = self.current.get_visible_rect()[1] # Mapping between matches and self.currentdata
             rownum = 0
@@ -6759,9 +6759,10 @@ class Base(mpdclient3.mpd_connection):
                 for row in self.currentdata:
                     self.songs_filter_rownums.append(rownum)
                     rownum = rownum + 1
-                    song_id = row[0]
-                    song_name = make_unbold(row[1])
-                    matches.append([song_id, song_name])
+                    song_info = [row[0]]
+                    for i in range(len(self.columnformat)):
+                        song_info.append(make_unbold(row[i+1]))
+                    matches.append(song_info)
             else:
                 # this make take some seconds... and we'll escape the search text because
                 # we'll be searching for a match in items that are also escaped.
@@ -6778,11 +6779,15 @@ class Base(mpdclient3.mpd_connection):
                 else:
                     use_data = self.currentdata
                 for row in use_data:
-                    song_id = row[0]
-                    song_name = make_unbold(row[1])
-                    if regexp.match(song_name.lower()):
-                        matches.append([song_id, song_name])
-                        self.songs_filter_rownums.append(rownum)
+                    song_info = [row[0]]
+                    for i in range(len(self.columnformat)):
+                        song_info.append(make_unbold(row[i+1]))
+                    # Search for matches in all columns:
+                    for i in range(len(self.columnformat)):
+                        if regexp.match(song_info[i+1].lower()):
+                            matches.append(song_info)
+                            self.songs_filter_rownums.append(rownum)
+                            break
                     rownum = rownum + 1
             if self.prevtodo == todo:
                 # mpd update, retain view of treeview:

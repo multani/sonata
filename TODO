@@ -3,7 +3,6 @@ v1.2.4
 	fix encoding issue
 	the beatles -> beatles, the
 	treeview
-		- hide sort display if list re-ordered via dnd
 		- better algorithm for sorting song length (e.g. 1:10 vs 10:10)
 		- reordering rows is faster than reloading (see http://faq.pygtk.org/index.py?req=show&file=faq13.049.htp)
 	allow additional columns for library (like current)
