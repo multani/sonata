@@ -5392,6 +5392,11 @@ class Base(mpdclient3.mpd_connection):
         prefswindow.show_all()
         close_button.grab_focus()
         prefswindow.connect('response', self.prefs_window_response, prefsnotebook, exit_stop, activate, win_ontop, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, hostentry, portentry, passwordentry)
+        # Save previous connection properties to determine if we should try to
+        # connect to MPD after prefs are closed:
+        self.prev_host = self.host[self.profile_num]
+        self.prev_port = self.port[self.profile_num]
+        self.prev_password = self.password[self.profile_num]
         response = prefswindow.show()
 
     def scrobbler_init(self):
@@ -5505,9 +5510,10 @@ class Base(mpdclient3.mpd_connection):
             if self.infofile_path != infopath_options.get_text():
                 self.infofile_path = os.path.expanduser(infopath_options.get_text())
                 if self.use_infofile: self.update_infofile()
-            # Try to connect (in case mpd connection info has been updated):
-            self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
-            self.connect()
+            if self.prev_host != self.host[self.profile_num] or self.prev_port != self.port[self.profile_num] or self.prev_password != self.password[self.profile_num]:
+                # Try to connect if mpd connection info has been updated:
+                self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
+                self.connect()
             if self.use_scrobbler:
                 gobject.idle_add(self.scrobbler_init)
             self.settings_save()

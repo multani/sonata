@@ -6,6 +6,7 @@ v1.2.4
 		- better algorithm for sorting song length (e.g. 1:10 vs 10:10)
 		- reordering rows is faster than reloading (see http://faq.pygtk.org/index.py?req=show&file=faq13.049.htp)
 	allow additional columns for library (like current)
+	bug: closing prefs refreshes library...
 
 v1.3
 	genre mode (genre -> artist -> album)
