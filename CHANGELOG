@@ -1,8 +1,9 @@
-v1.2.4 - Pending
+v1.3 - Pending
 	+ Allow multiple columns in current playlist by using "|" (xsdnyd)
+	+ Use xmms-like search filter by default when user types (no more ctrl-j)
 	+ Use case insensitive sorting for library (holy_robot)
 	+ Ignore "the" when sorting library in artist/album views (holy_robot)
-	+ Better logic when sorting playlists and "dir+file" option (sed)
+	+ Better logic when sorting playlists and new "dir+file" sort option (sed)
 	+ Allow saving/overwriting an existing playlist
 	+ Update license to GNU GPLv3
 	+ Bug: Fix nl.po translation causing crash

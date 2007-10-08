@@ -462,7 +462,6 @@ class Base(mpdclient3.mpd_connection):
             ('updatekey2', None, 'Update Key 2', '<Ctrl><Shift>u', None, self.updatedb_path),
             ('connectkey', None, 'Connect Key', '<Alt>c', None, self.connectkey_pressed),
             ('disconnectkey', None, 'Disconnect Key', '<Alt>d', None, self.disconnectkey_pressed),
-            ('searchfilterkey', None, 'Search Filter Key', '<Ctrl>j', None, self.searchfilter_toggle),
             )
 
         toggle_actions = (
@@ -549,7 +548,6 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="updatekey2"/>
                 <menuitem action="connectkey"/>
                 <menuitem action="disconnectkey"/>
-                <menuitem action="searchfilterkey"/>
               </popup>
             </ui>
             """
@@ -690,7 +688,7 @@ class Base(mpdclient3.mpd_connection):
         self.current = gtk.TreeView()
         self.current.set_rules_hint(True)
         self.current.set_reorderable(True)
-        self.current.set_enable_search(True)
+        self.current.set_enable_search(False)
         self.current_selection = self.current.get_selection()
         self.expanderwindow.add(self.current)
         self.filterpattern = gtk.Entry()
@@ -1132,7 +1130,6 @@ class Base(mpdclient3.mpd_connection):
                     column.set_fixed_width(150)
             column.connect('clicked', self.on_current_column_click)
             self.current.append_column(column)
-        self.current.set_search_column(1)
         self.current.set_headers_visible(len(self.columnformat) > 1 and self.show_header)
         self.current.set_headers_clickable(True)
         self.current.set_fixed_height_mode(True)
@@ -1455,9 +1452,8 @@ class Base(mpdclient3.mpd_connection):
             self.scrob_submit_time = -1
 
     def iterate_status_icon(self):
-        # Polls for the users' cursor position to display the custom
-        # tooltip window when over the gtk.StatusIcon. We use this
-        # instead of self.iterate() in order to poll more often and
+        # Polls for the users' cursor position to display the custom tooltip window when over the
+        # gtk.StatusIcon. We use this instead of self.iterate() in order to poll more often and
         # increase responsiveness.
         if self.show_trayicon:
             if self.statusicon.is_embedded() and self.statusicon.get_visible():
@@ -1467,8 +1463,7 @@ class Base(mpdclient3.mpd_connection):
     def on_topwindow_keypress(self, widget, event):
         shortcut = gtk.accelerator_name(event.keyval, event.state)
         shortcut = shortcut.replace("<Mod2>", "")
-        # These shortcuts were moved here so that they don't
-        # interfere with searching the library
+        # These shortcuts were moved here so that they don't interfere with searching the library
         if shortcut == 'BackSpace':
             self.browse_parent_dir(None)
         elif shortcut == 'Escape':
@@ -1481,8 +1476,17 @@ class Base(mpdclient3.mpd_connection):
                     self.withdraw_app()
                 elif HAVE_EGG and self.trayicon.get_property('visible') == True:
                     self.withdraw_app()
+            return
         elif shortcut == 'Delete':
             self.remove(None)
+        if self.notebook.get_current_page() == self.TAB_CURRENT:
+            if event.state & (gtk.gdk.CONTROL_MASK | gtk.gdk.MOD1_MASK):
+                return
+            # We only want to toggle open the filterbar if the key press is actual text! This
+            # will ensure that we skip, e.g., F5, Alt, Ctrl, ...
+            if len(event.string) > 0:
+                if not self.filterbox_visible:
+                    self.searchfilter_toggle(None, event.string)
 
     def settings_load(self):
         # Load config:
@@ -3028,7 +3032,6 @@ class Base(mpdclient3.mpd_connection):
                     self.currentdata.append([int(track.id)] + items)
             if not all_files_unchanged and not self.filterbox_visible:
                 self.current.set_model(self.currentdata)
-                self.current.set_search_column(1)
             if self.songinfo.has_key('pos'):
                 currsong = int(self.songinfo.pos)
                 self.boldrow(currsong)
@@ -6541,7 +6544,6 @@ class Base(mpdclient3.mpd_connection):
         currentshortcuts = \
                 [[ "Enter/Space", _("Play selected song") ],
                  [ "Delete", _("Remove selected song(s)") ],
-                 [ "Ctrl-J", _("Toggle filter bar for jumping straight to track") ],
                  [ "Ctrl-Shift-S", _("Save playlist") ],
                  [ "Ctrl-Delete", _("Clear list") ]]
         libraryshortcuts = \
@@ -6683,7 +6685,7 @@ class Base(mpdclient3.mpd_connection):
                 else:
                     return ""
 
-    def searchfilter_toggle(self, widget):
+    def searchfilter_toggle(self, widget, initial_text=""):
         if self.filterbox_visible:
             self.filterbox_visible = False
             self.edit_style_orig = self.searchtext.get_style()
@@ -6694,17 +6696,18 @@ class Base(mpdclient3.mpd_connection):
         elif self.conn:
             self.switch_to_current(None)
             self.filterbox_visible = True
+            self.filterpattern.set_text(initial_text)
             self.filterposition = 0
             self.prevtodo = 'foo'
             self.filterbox.set_no_show_all(False)
             self.filterbox.show_all()
             # extra thread for background search work, synchronized with a condition and its internal mutex
             self.filterbox_cond = threading.Condition()
-            self.filterbox_cmd_buf = ''
+            self.filterbox_cmd_buf = initial_text
             qsearch_thread = threading.Thread(target=self.searchfilter_loop)
             qsearch_thread.setDaemon(True)
             qsearch_thread.start()
-            gobject.idle_add(self.filterpattern.grab_focus)
+            gobject.idle_add(self.search_entry_grab_focus, self.filterpattern)
 
     def searchfilter_on_enter(self, entry):
         model, selected = self.current.get_selection().get_selected_rows()
@@ -6811,7 +6814,6 @@ class Base(mpdclient3.mpd_connection):
 
     def searchfilter_revert_model(self):
         self.current.set_model(self.currentdata)
-        self.current.set_search_column(1)
         gobject.idle_add(self.keep_song_visible_in_list)
         gobject.idle_add(self.current.grab_focus)
 
@@ -6824,7 +6826,6 @@ class Base(mpdclient3.mpd_connection):
         # avoid pointless work and don't confuse the user
         if (self.current.get_property('visible') and flag == '$$$DONE###'):
             self.current.set_model(matches)
-            self.current.set_search_column(1)
             if len(matches) == 0:
                 gobject.idle_add(self.edit_entry_changed, self.filterpattern, True)
             else:
@@ -6838,8 +6839,11 @@ class Base(mpdclient3.mpd_connection):
         if event.keyval == gtk.gdk.keyval_from_name('Down') or event.keyval == gtk.gdk.keyval_from_name('Up'):
             self.current.grab_focus()
             self.current.emit("key-press-event", event)
-            gobject.idle_add(widget.grab_focus)
-            gobject.idle_add(widget.set_position, -1)
+            gobject.idle_add(self.search_entry_grab_focus, widget)
+
+    def search_entry_grab_focus(self, widget):
+        widget.grab_focus()
+        widget.set_position(-1)
 
     def main(self):
         gtk.main()
