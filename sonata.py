@@ -1803,8 +1803,12 @@ class Base(mpdclient3.mpd_connection):
                     if not edit_mode or (edit_mode and i <> stream_num):
                         if item == name:
                             dialog.destroy()
-                            show_error_msg(self.window, _("A stream with this name already exists."), _("New Stream"), 'newStreamError')
-                            return
+                            if show_error_msg_yesno(self.window, _("A stream with this name already exists. Would you like to replace it?"), _("New Stream"), 'newStreamError') == gtk.RESPONSE_YES:
+                                # Pop existing stream:
+                                self.stream_names.pop(i)
+                                self.stream_uris.pop(i)
+                            else:
+                                return
                     i = i + 1
                 if edit_mode:
                     self.stream_names.pop(stream_num)
@@ -5965,6 +5969,7 @@ class Base(mpdclient3.mpd_connection):
                 self.UIManager.get_widget('/mainmenu/rmmenu/').show()
             else:
                 self.UIManager.get_widget('/mainmenu/addmenu/').hide()
+                self.UIManager.get_widget('/mainmenu/editmenu/').hide()
                 self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
                 self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
             self.UIManager.get_widget('/mainmenu/renamemenu/').hide()

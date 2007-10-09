@@ -4,7 +4,7 @@ v1.3 - Pending
 	+ Use case insensitive sorting for library (holy_robot)
 	+ Ignore "the" when sorting library in artist/album views (holy_robot)
 	+ Better logic when sorting playlists and new "dir+file" sort option (sed)
-	+ Allow saving/overwriting an existing playlist
+	+ Allow saving/overwriting existing playlists and streams
 	+ Update license to GNU GPLv3
 	+ Bug: Fix nl.po translation causing crash
 	+ Bug: Remember playlist position when adding from library
