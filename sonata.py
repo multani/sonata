@@ -1484,7 +1484,7 @@ class Base(mpdclient3.mpd_connection):
                 return
             # We only want to toggle open the filterbar if the key press is actual text! This
             # will ensure that we skip, e.g., F5, Alt, Ctrl, ...
-            if len(event.string) > 0:
+            if len(event.string.strip()) > 0:
                 if not self.filterbox_visible:
                     self.searchfilter_toggle(None, event.string)
 
@@ -6836,7 +6836,7 @@ class Base(mpdclient3.mpd_connection):
                 gobject.idle_add(self.current.set_cursor, '0')
 
     def searchfilter_key_pressed(self, widget, event):
-        if event.keyval == gtk.gdk.keyval_from_name('Down') or event.keyval == gtk.gdk.keyval_from_name('Up'):
+        if event.keyval == gtk.gdk.keyval_from_name('Down') or event.keyval == gtk.gdk.keyval_from_name('Up') or event.keyval == gtk.gdk.keyval_from_name('Page_Down') or event.keyval == gtk.gdk.keyval_from_name('Page_Up'):
             self.current.grab_focus()
             self.current.emit("key-press-event", event)
             gobject.idle_add(self.search_entry_grab_focus, widget)
