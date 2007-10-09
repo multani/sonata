@@ -687,7 +687,10 @@ class AudioScrobblerPost:
         elif response[0].startswith('FAILED'):
             self.authenticated = False
             reason = response[0][6:]
-            msg = reason.decode('utf8').encode(enc)
+            try:
+                msg = reason.decode('utf8').encode(enc)
+            except:
+                msg = reason
             raise AudioScrobblerHandshakeError(msg)
 
         else:
@@ -742,13 +745,22 @@ class AudioScrobblerPost:
             self.log(msg)
         # Otherwise build the track dictionary and add it to the local cache
         else:
-            track = {'a[%s]': artist_name.decode(enc).encode('utf8'),
-                     't[%s]': song_title.decode(enc).encode('utf8'),
-                     'l[%s]': str(sane_length),
-                     'i[%s]': date_played,
-                     'b[%s]': album.decode(enc).encode('utf8'),
-                     'm[%s]': mbid.encode('utf8'),
-                    }
+            try:
+                track = {'a[%s]': artist_name.decode(enc).encode('utf8'),
+                        't[%s]': song_title.decode(enc).encode('utf8'),
+                        'l[%s]': str(sane_length),
+                        'i[%s]': date_played,
+                        'b[%s]': album.decode(enc).encode('utf8'),
+                        'm[%s]': mbid.encode('utf8'),
+                        }
+            except:
+                track = {'a[%s]': artist_name,
+                        't[%s]': song_title,
+                        'l[%s]': str(sane_length),
+                        'i[%s]': date_played,
+                        'b[%s]': album,
+                        'm[%s]': mbid.encode('utf8'),
+                        }
             self.cache.append(track)
 
     def post(self):
