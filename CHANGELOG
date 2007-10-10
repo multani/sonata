@@ -8,6 +8,7 @@ v1.3 - Pending
 	+ Update license to GNU GPLv3
 	+ Bug: Fix nl.po translation causing crash
 	+ Bug: Remember playlist position when adding from library
+	+ Bug: Fixed tracebacks with certain encodings ????????
 	+ Bug: MPD_HOST with password doesn't work on first install
 	+ Bug: Fix desktop file to match current XDG standard (nigel)
 

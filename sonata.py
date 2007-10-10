@@ -2402,17 +2402,18 @@ class Base(mpdclient3.mpd_connection):
 
     def browse_parent_dir(self, action):
         if self.notebook.get_current_page() == self.TAB_LIBRARY:
-            if self.browser.is_focus():
-                if self.view == self.VIEW_ARTIST:
-                    if self.view_artist_level > 1:
-                        self.view_artist_level = self.view_artist_level - 1
-                    if self.view_artist_level == 1:
-                        value = "/"
+            if not self.searchbutton.get_property('visible'):
+                if self.browser.is_focus():
+                    if self.view == self.VIEW_ARTIST:
+                        if self.view_artist_level > 1:
+                            self.view_artist_level = self.view_artist_level - 1
+                        if self.view_artist_level == 1:
+                            value = "/"
+                        else:
+                            value = self.view_artist_artist
                     else:
-                        value = self.view_artist_artist
-                else:
-                    value = '/'.join(self.browser.wd.split('/')[:-1]) or '/'
-                self.browse(None, value)
+                        value = '/'.join(self.browser.wd.split('/')[:-1]) or '/'
+                    self.browse(None, value)
 
     def on_treeview_selection_changed(self, *args):
         self.set_menu_contextual_items_visible()
