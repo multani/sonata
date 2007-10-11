@@ -2105,11 +2105,9 @@ class Base(mpdclient3.mpd_connection):
                 bd += [('1', [gtk.STOCK_OPEN, '..', '..'])]
                 (self.view_artist_album, year) = self.browse_parse_albumview_path(root)
                 for item in self.browse_search_album_with_artist_and_year(self.view_artist_artist, self.view_artist_album, year):
-                    num = '01%02i' % int(item.track)
+                    num = '01' + self.sanitize_mpdtag(item.track, False, 2)
                     try:
-                        num = ('%02i%02i'
-                               % (int(item.disc),
-                              int(item.track)))
+                        num = self.sanitize_mpdtag(item.disc, False, 2) + self.sanitize_mpdtag(item.track, False, 2)
                     except AttributeError:
                         pass
                     bd += [('f' + num, ['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])]
@@ -2128,11 +2126,9 @@ class Base(mpdclient3.mpd_connection):
                 bd += [('0', [gtk.STOCK_HARDDISK, '/', '/'])]
                 bd += [('1', [gtk.STOCK_OPEN, '..', '..'])]
                 for item in self.browse_search_album(root):
-                    num = '01%02i' % int(item.track)
+                    num = '01' + self.sanitize_mpdtag(item.track, False, 2)
                     try:
-                        num = ('%02i%02i'
-                               % (int(item.disc),
-                              int(item.track)))
+                        num = self.sanitize_mpdtag(item.disc, False, 2) + self.sanitize_mpdtag(item.track, False, 2)
                     except AttributeError:
                         pass
                     bd += [('f' + num, ['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])]
