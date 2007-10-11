@@ -2148,7 +2148,7 @@ class Base(mpdclient3.mpd_connection):
                 # Make sure it's an exact match:
                 if album.lower() == item.album.lower():
                     list.append(item)
-        list.sort(key=lambda x: int(self.sanitize_mpdtag(getattr(x, 'disc', ''), False, 2) + self.sanitize_mpdtag(getattr(x, 'track', '0'), False, 2)))
+        list.sort(key=lambda x: int(self.sanitize_mpdtag(getattr(x, 'disc', '0'), False, 2) + self.sanitize_mpdtag(getattr(x, 'track', '0'), False, 2)))
         return list
 
     def browse_search_artist(self, artist):
@@ -2183,7 +2183,7 @@ class Base(mpdclient3.mpd_connection):
                     elif not item.has_key('date'):
                         # Only show songs that have no year specified:
                         list.append(item)
-        list.sort(key=lambda x: int(self.sanitize_mpdtag(getattr(x, 'disc', ''), True, 2) + self.sanitize_mpdtag(getattr(x, 'track', '0'), True, 2)))
+        list.sort(key=lambda x: int(self.sanitize_mpdtag(getattr(x, 'disc', '0'), False, 2) + self.sanitize_mpdtag(getattr(x, 'track', '0'), False, 2)))
         return list
 
     def browser_retain_preupdate_selection(self, prev_selection, prev_selection_root, prev_selection_parent):
