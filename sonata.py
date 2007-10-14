@@ -3621,6 +3621,8 @@ class Base(mpdclient3.mpd_connection):
 
     def sort(self, type, lower=lambda x: x.lower()):
         if self.conn:
+            if len(self.songs) == 0:
+                return
             self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
             while gtk.events_pending():
                 gtk.main_iteration()

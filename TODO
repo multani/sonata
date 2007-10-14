@@ -9,7 +9,6 @@ v1.3
 		- right-click menu
 		- work with previous mpd
 		- adjust columns better (remove width from largest column...)
-	on first typed character, sonata filters twice
 
 v1.4
 	genre mode (genre -> artist -> album)
