@@ -92,6 +92,7 @@ commands = {
     ("status",        0): ('%s', ONE, 'status', []),
     ("play",          0): ('%s', ZERO, '', []),
     ("playlistinfo",  0): ('%s', MANY, '', plitem_delim),
+    ("queueinfo",  0): ('%s', MANY, '', plitem_delim),
     ("playlistid",    0): ('%s', MANY, '', plitem_delim),
     ("getqueueinfo",  0): ('%s', MANY, '', plitem_delim),
     ("lsinfo",        0): ('%s', MANY, '', plitem_delim),
@@ -106,6 +107,8 @@ commands = {
     ("enableoutput",  1): ("%s %d", ZERO, '', []),
     ("delete",        1): ('%s %d', ZERO, '', []), # <int song>
     ("deleteid",      1): ('%s %d', ZERO, '', []), # <int songid>
+    ("queueid",   1): ('%s "%d"', ZERO, '', []), # <int songid>
+    ("dequeue",   1): ('%s "%d"', ZERO, '', []), # <int song>
     ("playlistinfo",  1): ('%s %d', MANY, '', plitem_delim), # <int song>
     ("playlistid",    1): ('%s %d', MANY, '', plitem_delim), # <int songid>
     ("queue",         1): ('%s %d', ZERO, '', []), # <int songid>

@@ -949,7 +949,7 @@ class Base(mpdclient3.mpd_connection):
         self.notebook.connect('button_press_event', self.on_notebook_click)
         self.notebook.connect('switch-page', self.on_notebook_page_change)
         self.searchtext.connect('button_press_event', self.on_searchtext_click)
-        self.filterpattern.connect('changed', self.searchfilter_feed_loop)
+        self.filter_changed_handler = self.filterpattern.connect('changed', self.searchfilter_feed_loop)
         self.filterpattern.connect('activate', self.searchfilter_on_enter)
         self.filterpattern.connect('key-press-event', self.searchfilter_key_pressed)
         filterclosebutton.connect('clicked', self.searchfilter_toggle)
@@ -3662,7 +3662,7 @@ class Base(mpdclient3.mpd_connection):
                     dict["sortby"] = getattr(track,'file', zzz).lower()
                 elif type == 'col':
                     # Sort by column:
-                    dict["sortby"] = self.currentdata.get_value(self.currentdata.get_iter((track_num, 0)), col_num)
+                    dict["sortby"] = make_unbold(str(self.currentdata.get_value(self.currentdata.get_iter((track_num, 0)), col_num)).lower())
                 else:
                     dict["sortby"] = getattr(track, type, zzz).lower()
                 dict["id"] = track.id
@@ -6690,7 +6690,9 @@ class Base(mpdclient3.mpd_connection):
         elif self.conn:
             self.switch_to_current(None)
             self.filterbox_visible = True
+            self.filterpattern.handler_block(self.filter_changed_handler)
             self.filterpattern.set_text(initial_text)
+            self.filterpattern.handler_unblock(self.filter_changed_handler)
             self.filterposition = 0
             self.prevtodo = 'foo'
             self.filterbox.set_no_show_all(False)
@@ -7034,13 +7036,13 @@ def convert_time(raw):
         return h + ':' + m + ':' + s
 
 def make_bold(s):
-    if not (s.startswith('<b>') and s.endswith('</b>')):
+    if not (str(s).startswith('<b>') and str(s).endswith('</b>')):
         return '<b>%s</b>' % s
     else:
         return s
 
 def make_unbold(s):
-    if s.startswith('<b>') and s.endswith('</b>'):
+    if str(s).startswith('<b>') and str(s).endswith('</b>'):
         return s[3:-4]
     else:
         return s

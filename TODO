@@ -5,6 +5,11 @@ v1.3
 	allow additional columns for library (like current)
 	pref for lyrics saving location..
 	why does a horiz scrollbar sometimes appear???
+	queue support
+		- right-click menu
+		- work with previous mpd
+		- adjust columns better (remove width from largest column...)
+	on first typed character, sonata filters twice
 
 v1.4
 	genre mode (genre -> artist -> album)
