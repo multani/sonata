@@ -20,13 +20,13 @@ INSTALLATION:
 
 FEATURES:
 	+ Expanded and collapsed views
-	+ Automatic remote or local album art
+	+ Automatic remote and local album art
 	+ Automatic fetching of lyrics
 	+ Playlist and stream support
 	+ Support for editing song tags
-	+ System tray icon with tooltip
 	+ Popup notification
-	+ Library searching and playlist filtering
+	+ Playlist queue support
+	+ Library and playlist searching
 	+ Audioscrobbler (last.fm) support
 	+ Multiple MPD profiles
 	+ Keyboard friendly

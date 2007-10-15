@@ -36,7 +36,7 @@ except:
 	HAVE_DBUS = False
 
 if __name__ == "__main__":
-    if HAVE_DBUS:
+	if HAVE_DBUS:
 		try:
 			session_bus = dbus.SessionBus()
 			bus_name = dbus.service.BusName('org.MPD', bus=session_bus)
@@ -45,9 +45,9 @@ if __name__ == "__main__":
 			sys.exit()
 		except:
 			app = sonata.Base()
-    else:
-        app = sonata.Base()
-    try:
-        app.main()
-    except KeyboardInterrupt:
-        pass
+	else:
+		app = sonata.Base()
+	try:
+		app.main()
+	except KeyboardInterrupt:
+		pass

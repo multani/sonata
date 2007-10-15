@@ -4,11 +4,10 @@ v1.3
 		- reordering rows is faster than reloading (see http://faq.pygtk.org/index.py?req=show&file=faq13.049.htp)
 	allow additional columns for library (like current)
 	pref for lyrics saving location..
-	why does a horiz scrollbar sometimes appear???
-	queue support
-		- right-click menu
-		- work with previous mpd
-		- adjust columns better (remove width from largest column...)
+	playlist columns:
+		adjust columns better when multiple columns and queue appears
+		prevent horiz scrollbar from appearing
+	when performing actions in filterbar, retain selection/position
 
 v1.4
 	genre mode (genre -> artist -> album)
