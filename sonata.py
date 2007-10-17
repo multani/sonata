@@ -1145,7 +1145,7 @@ class Base(mpdclient3.mpd_connection):
                 if len(self.columnformat) > 1:
                     column.set_resizable(True)
                     try:
-                        column.set_fixed_width(max(int(self.columnwidths[i-1]), 10))
+                        column.set_fixed_width(max(self.columnwidths[i-1], 10))
                     except:
                         column.set_fixed_width(150)
                 column.connect('clicked', self.on_current_column_click)
@@ -1610,6 +1610,8 @@ class Base(mpdclient3.mpd_connection):
             self.art_location_custom_filename = conf.get('player', 'art_location_custom_filename')
         if conf.has_option('player', 'columnwidths'):
             self.columnwidths = conf.get('player', 'columnwidths').split(",")
+            for col in range(len(self.columnwidths)):
+                self.columnwidths[col] = int(self.columnwidths[col])
         if conf.has_option('player', 'show_header'):
             self.show_header = conf.getboolean('player', 'show_header')
         if conf.has_section('currformat'):
@@ -2675,7 +2677,7 @@ class Base(mpdclient3.mpd_connection):
         # Display current playlist
         if self.prevstatus == None or self.prevstatus.playlist != self.status.playlist:
             self.update_playlist(False)
-        elif self.prevstatus.playlistqueue != self.status.playlistqueue:
+        elif self.mpd_major_version() >= 0.14 and self.prevstatus.playlistqueue != self.status.playlistqueue:
             self.update_playlist(True)
 
         # Update progress frequently if we're playing
@@ -3008,14 +3010,15 @@ class Base(mpdclient3.mpd_connection):
         # Returns the mapping of songid to queueid for all songs
         # in the playlistqueue.
         map = []
-        playlistqueue = self.conn.do.queueinfo()
-        queueid = 0
-        for song in playlistqueue:
-            dict = {}
-            dict["id"] = song.id
-            dict["queueid"] = queueid
-            map.append(dict)
-            queueid += 1
+        if self.mpd_major_version() >= 0.14:
+            playlistqueue = self.conn.do.queueinfo()
+            queueid = 0
+            for song in playlistqueue:
+                dict = {}
+                dict["id"] = song.id
+                dict["queueid"] = queueid
+                map.append(dict)
+                queueid += 1
         return map
 
     def update_playlist(self, update_queuelist_only):
