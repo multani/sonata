@@ -4,10 +4,9 @@ v1.3
 		- reordering rows is faster than reloading (see http://faq.pygtk.org/index.py?req=show&file=faq13.049.htp)
 	allow additional columns for library (like current)
 	pref for lyrics saving location..
-	playlist columns:
-		adjust columns better when multiple columns and queue appears
-		prevent horiz scrollbar from appearing
-	when performing actions in filterbar, retain selection/position
+	queueing with multiple playlist columns:
+		adjust column widths better, prevent horiz scrollbar from appearing
+	set songid as column 0 instead of 1, use constants..
 
 v1.4
 	genre mode (genre -> artist -> album)

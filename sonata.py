@@ -417,8 +417,8 @@ class Base(mpdclient3.mpd_connection):
             ('localimage_menu', gtk.STOCK_OPEN, _('Use _Local Image...'), None, None, self.on_choose_image_local),
             ('resetimage_menu', gtk.STOCK_CLEAR, _('Reset to Default'), None, None, self.on_reset_image),
             ('playmenu', gtk.STOCK_MEDIA_PLAY, _('_Play'), None, None, self.pp),
-            ('queuemenu', None, _('Add to _Queue'), None, None, self.queue),
-            ('dequeuemenu', None, _('Remove from _Queue'), None, None, self.dequeue),
+            ('queuemenu', None, _('Add to _Queue'), '<Ctrl>e', None, self.queue),
+            ('dequeuemenu', None, _('Remove from _Queue'), '<Ctrl><Shift>e', None, self.dequeue),
             ('pausemenu', gtk.STOCK_MEDIA_PAUSE, _('_Pause'), None, None, self.pp),
             ('stopmenu', gtk.STOCK_MEDIA_STOP, _('_Stop'), None, None, self.stop),
             ('prevmenu', gtk.STOCK_MEDIA_PREVIOUS, _('_Previous'), None, None, self.prev),
@@ -433,7 +433,7 @@ class Base(mpdclient3.mpd_connection):
             ('newmenu', None, _('_New...'), '<Ctrl>n', None, self.streams_new),
             ('editmenu', None, _('_Edit...'), None, None, self.streams_edit),
             ('renamemenu', None, _('_Rename...'), None, None, self.on_playlist_rename),
-            ('edittagmenu', None, _('_Edit Tags...'), None, None, self.edit_tags),
+            ('edittagmenu', None, _('_Edit Tags...'), '<Ctrl>t', None, self.edit_tags),
             ('addmenu', gtk.STOCK_ADD, _('_Add'), '<Ctrl>d', None, self.add_item),
             ('replacemenu', gtk.STOCK_REDO, _('_Replace'), '<Ctrl>r', None, self.replace_item),
             ('rmmenu', None, _('_Delete...'), None, None, self.remove),
@@ -962,8 +962,9 @@ class Base(mpdclient3.mpd_connection):
         # This will ensure that "Not connected" is shown in the systray tooltip
         if not self.conn:
             self.update_cursong()
-        # Ensure that the systemtray icon is added here:
-        if self.window_owner:
+        # Ensure that the systemtray icon is added here. This is really only
+        # important if we're starting in hidden (minimized-to-tray) mode:
+        if self.window_owner and self.withdrawn:
             while gtk.events_pending():
                 gtk.main_iteration()
 
@@ -3047,6 +3048,7 @@ class Base(mpdclient3.mpd_connection):
                 self.currentdata.clear()
                 if not self.filterbox_visible:
                     self.current.set_model(None)
+            strqueue = []
             for i in range(len(self.songs)):
                 track = self.songs[i]
                 items = []
@@ -3057,26 +3059,19 @@ class Base(mpdclient3.mpd_connection):
                 except:
                     pass
                 # Check if song is in playlistqueue:
-                strqueue = ""
-                map_num = 0
-                for map in queue_map:
-                    if self.songs[i].id == map["id"]:
-                        strqueue = str(int(map["queueid"])+1)
-                        queue_map.pop(map_num)
-                        break
-                    map_num += 1
+                strqueue.append([self.songs[i].id, self.queueinfo_get_queueid(queue_map, self.songs[i].id)])
                 if all_files_unchanged:
                     iter = self.currentdata.get_iter((i, ))
-                if not update_queuelist_only or (update_queuelist_only and (strqueue != self.currentdata.get_value(iter, 0))):
+                if not update_queuelist_only or (update_queuelist_only and (strqueue[i][1] != self.currentdata.get_value(iter, 0))):
                     if all_files_unchanged:
                         # Update attributes only for item:
-                        self.currentdata.set_value(iter, 0, strqueue)
+                        self.currentdata.set_value(iter, 0, strqueue[i][1])
                         self.currentdata.set_value(iter, 1, int(track.id))
                         for index in range(len(items)):
                             self.currentdata.set_value(iter, index + 2, items[index])
                     else:
                         # Add new item:
-                        self.currentdata.append([strqueue] + [int(track.id)] + items)
+                        self.currentdata.append([strqueue[i][1]] + [int(track.id)] + items)
             if not all_files_unchanged and not self.filterbox_visible:
                 self.current.set_model(self.currentdata)
             if self.songinfo.has_key('pos'):
@@ -3090,13 +3085,16 @@ class Base(mpdclient3.mpd_connection):
                 if self.queuecolumn.get_visible():
                     self.queuecolumn.set_visible(False)
             self.current.thaw_child_notify()
-            if self.sonata_loaded:
-                gobject.idle_add(self.playlist_retain_view, playlistposition)
-            self.update_statusbar()
             if self.filterbox_visible:
                 # Refresh filtered results:
-                self.prevtodo = ""
-                self.searchfilter_feed_loop(self.filterpattern)
+                if update_queuelist_only:
+                    self.queueinfo_update_playlist(strqueue)
+                else:
+                    self.prevtodo = "RETAIN_POS_AND_SEL" # Hacky, but this ensures we retain the self.current position/selection
+                    self.searchfilter_feed_loop(self.filterpattern)
+            elif self.sonata_loaded:
+                gobject.idle_add(self.playlist_retain_view, playlistposition)
+            self.update_statusbar()
             # If we just sorted a column, display the sorting arrow:
             if self.column_sorted[0]:
                 if self.column_sorted[1] == gtk.SORT_DESCENDING:
@@ -3109,9 +3107,19 @@ class Base(mpdclient3.mpd_connection):
                     self.column_sorted = (None, gtk.SORT_DESCENDING)
             self.change_cursor(None)
 
+    def queueinfo_get_queueid(self, queue_map, songid):
+        strqueue = ""
+        map_num = 0
+        for map in queue_map:
+            if songid == map["id"]:
+                strqueue = str(int(map["queueid"])+1)
+                queue_map.pop(map_num)
+                break
+            map_num += 1
+        return strqueue
+
     def playlist_files_unchanged(self, prev_songs):
-        # Go through each playlist object and check if the current and previous
-        # filenames match:
+        # Go through each playlist object and check if the current and previous filenames match:
         if prev_songs == None:
             return False
         if len(prev_songs) != len(self.songs):
@@ -4995,7 +5003,7 @@ class Base(mpdclient3.mpd_connection):
         self.next(None)
 
     def queue(self, widget):
-        if self.conn:
+        if self.conn and self.mpd_major_version() >= 0.14:
             while gtk.events_pending():
                 gtk.main_iteration()
             # Add selected songs to playback queue:
@@ -5008,7 +5016,7 @@ class Base(mpdclient3.mpd_connection):
             self.iterate_now()
 
     def dequeue(self, widget):
-        if self.conn:
+        if self.conn and self.mpd_major_version() >= 0.14:
             while gtk.events_pending():
                 gtk.main_iteration()
             # Remove selected songs from playback queue:
@@ -6668,12 +6676,22 @@ class Base(mpdclient3.mpd_connection):
                  [ "Alt-Down", _("Expand player") ],
                  [ "Alt-Up", _("Collapse player") ],
                  [ "Ctrl-Q", _("Quit") ],
+                 [ "Ctrl-T", _("Edit selected song's tags") ],
                  [ "Ctrl-U", _("Update entire library") ],
                  [ "Menu", _("Display popup menu") ],
                  [ "Escape", _("Minimize to system tray (if enabled)") ]]
+        playbackshortcuts = \
+                [[ "Ctrl-Left", _("Previous track") ],
+                 [ "Ctrl-Right", _("Next track") ],
+                 [ "Ctrl-P", _("Play/Pause") ],
+                 [ "Ctrl-S", _("Stop") ],
+                 [ "Ctrl-Minus", _("Lower the volume") ],
+                 [ "Ctrl-Plus", _("Raise the volume") ]]
         currentshortcuts = \
                 [[ "Enter/Space", _("Play selected song") ],
                  [ "Delete", _("Remove selected song(s)") ],
+                 [ "Ctrl-E", _("Add selected song(s) to playlist queue") ],
+                 [ "Ctrl-Shift-E", _("Remove selected song(s) from playlist queue") ],
                  [ "Ctrl-Shift-S", _("Save playlist") ],
                  [ "Ctrl-Delete", _("Clear list") ]]
         libraryshortcuts = \
@@ -6692,13 +6710,6 @@ class Base(mpdclient3.mpd_connection):
                  [ "Delete", _("Remove selected stream(s)") ],
                  [ "Ctrl-D", _("Add selected stream(s)") ],
                  [ "Ctrl-R", _("Replace with selected stream(s)") ]]
-        playbackshortcuts = \
-                [[ "Ctrl-Left", _("Previous track") ],
-                 [ "Ctrl-Right", _("Next track") ],
-                 [ "Ctrl-P", _("Play/Pause") ],
-                 [ "Ctrl-S", _("Stop") ],
-                 [ "Ctrl-Minus", _("Lower the volume") ],
-                 [ "Ctrl-Plus", _("Raise the volume") ]]
         # define the main array- this adds headings to each section of
         # shortcuts that will be displayed
         shortcuts = [[ _("Main Shortcuts"), mainshortcuts ],
@@ -6829,7 +6840,6 @@ class Base(mpdclient3.mpd_connection):
             self.filterpattern.handler_block(self.filter_changed_handler)
             self.filterpattern.set_text(initial_text)
             self.filterpattern.handler_unblock(self.filter_changed_handler)
-            self.filterposition = 0
             self.prevtodo = 'foo'
             self.filterbox.set_no_show_all(False)
             self.filterbox.show_all()
@@ -6900,9 +6910,13 @@ class Base(mpdclient3.mpd_connection):
                 pass
             matches = gtk.ListStore(*([str] + [int] + [str] * len(self.columnformat)))
             matches.clear()
-            self.filterposition = self.current.get_visible_rect()[1] # Mapping between matches and self.currentdata
+            filterposition = self.current.get_visible_rect()[1]
+            model, selected = self.current_selection.get_selected_rows()
+            filterselected = []
+            for path in selected:
+                filterselected.append(path)
             rownum = 0
-            self.songs_filter_rownums = []
+            self.songs_filter_rownums = [] # Mapping between matches and self.currentdata
             if todo == '$$$QUIT###':
                 gobject.idle_add(self.searchfilter_revert_model)
                 return
@@ -6940,40 +6954,59 @@ class Base(mpdclient3.mpd_connection):
                             self.songs_filter_rownums.append(rownum)
                             break
                     rownum = rownum + 1
-            if self.prevtodo == todo:
+            if self.prevtodo == todo or self.prevtodo == "RETAIN_POS_AND_SEL":
                 # mpd update, retain view of treeview:
-                retain_top_pos = True
+                retain_position_and_selection = True
             else:
-                retain_top_pos = False
+                retain_position_and_selection = False
             self.filterbox_cond.acquire()
             self.filterbox_cmd_buf='$$$DONE###'
             try:
                 self.filterbox_cond.release()
             except:
                 pass
-            gobject.idle_add(self.searchfilter_set_matches, matches, retain_top_pos)
+            gobject.idle_add(self.searchfilter_set_matches, matches, filterposition, filterselected, retain_position_and_selection)
             self.prevtodo = todo
+
+    def queueinfo_update_playlist(self, strqueue):
+        model = self.current.get_model()
+        i = 0
+        for row in model:
+            queuestring = ""
+            # Items in model are 1) a subset of those in strqueue, and 2) in
+            # the same order, so we will keep popping the first item from
+            # strqueue until we find the correct item:
+            while int(row[1]) != int(strqueue[0][0]):
+                strqueue.pop(0)
+            # Item must be found, retrieve string and pop it:
+            queuestring = strqueue[0][1]
+            strqueue.pop(0)
+            iter = model.get_iter((i, ))
+            if queuestring != model.get_value(iter, 0):
+                model.set_value(iter, 0, queuestring)
+            i += 1
 
     def searchfilter_revert_model(self):
         self.current.set_model(self.currentdata)
         gobject.idle_add(self.keep_song_visible_in_list)
         gobject.idle_add(self.current.grab_focus)
 
-    def searchfilter_set_matches(self, matches, retain_top_pos):
+    def searchfilter_set_matches(self, matches, filterposition, filterselected, retain_position_and_selection):
         self.filterbox_cond.acquire()
         flag = self.filterbox_cmd_buf
         self.filterbox_cond.release()
-        # blit only when widget is still ok (segfault
-        # candidate, Gtk bug?) and no other search is running,
-        # avoid pointless work and don't confuse the user
+        # blit only when widget is still ok (segfault candidate, Gtk bug?) and no other
+        # search is running, avoid pointless work and don't confuse the user
         if (self.current.get_property('visible') and flag == '$$$DONE###'):
             self.current.set_model(matches)
             if len(matches) == 0:
                 gobject.idle_add(self.edit_entry_changed, self.filterpattern, True)
             else:
                 gobject.idle_add(self.edit_entry_revert_color, self.filterpattern)
-            if retain_top_pos and self.filterposition:
-                gobject.idle_add(self.current.scroll_to_point, 0, self.filterposition)
+            if retain_position_and_selection and filterposition:
+                gobject.idle_add(self.current.scroll_to_point, 0, filterposition)
+                for path in filterselected:
+                    gobject.idle_add(self.current_selection.select_path, path)
             else:
                 gobject.idle_add(self.current.set_cursor, '0')
 
