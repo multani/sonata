@@ -1716,7 +1716,13 @@ class Base(mpdclient3.mpd_connection):
         tmp = ""
         for i in range(len(self.columns) - 1):
             tmp += str(self.columns[i].get_width()) + ","
-        tmp += str(self.columns[len(self.columns) - 1].get_width())
+        if self.expanderwindow.get_hscrollbar().get_property('visible') == False:
+            # Set the last column as size 1, since it will expand if less than the available
+            # remaining treeview space anyway, and we don't want to force a horizontal
+            # scrollbar in some situations by setting too large of a colwidth:
+            tmp += str(1)
+        else:
+            tmp += str(self.columns[len(self.columns) - 1].get_width())
         conf.set('player', 'columnwidths', tmp)
         conf.set('player', 'show_header', self.show_header)
         # Old formats, before some letter changes. We'll keep this in for compatibility with
