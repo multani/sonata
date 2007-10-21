@@ -1,6 +1,6 @@
 v1.3 - Pending
 	+ Playlist queue support (requires mpd >= 0.14)
-	+ Allow multiple columns in current playlist by using "|" (xsdnyd)
+	+ Use-configurable columns in current playlist by using "|" (xsdnyd)
 	+ Use xmms-like search filter by default when user types (no more ctrl-j)
 	+ Ctrl-i shortcut to center currently playing song
 	+ Use case insensitive sorting for library (holy_robot)

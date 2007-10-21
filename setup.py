@@ -44,7 +44,7 @@ for lang in ('de', 'pl', 'ru', 'fr', 'zh_CN', 'sv', 'es', 'fi', 'uk', 'it', 'cz'
     os.system("msgfmt %s -o %s" % (pofile, mofile))
 
 setup(name='Sonata',
-        version='1.2.3',
+        version='1.3',
         description='GTK+ client for the Music Player Daemon (MPD).',
         author='Scott Horowitz',
         author_email='stonecrest@gmail.com',
