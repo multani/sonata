@@ -1716,13 +1716,14 @@ class Base(mpdclient3.mpd_connection):
         tmp = ""
         for i in range(len(self.columns) - 1):
             tmp += str(self.columns[i].get_width()) + ","
-        if self.expanderwindow.get_hscrollbar().get_property('visible') == False:
-            # Set the last column as size 1, since it will expand if less than the available
-            # remaining treeview space anyway, and we don't want to force a horizontal
-            # scrollbar in some situations by setting too large of a colwidth:
-            tmp += str(1)
-        else:
+        if self.expanderwindow.get_hscrollbar().get_property('visible'):
             tmp += str(self.columns[len(self.columns) - 1].get_width())
+        else:
+            # The last column may be larger than specified, since it expands to fill
+            # the treeview, so lets get the minimum of the current width and the
+            # fixed width. This will prevent a horizontal scrollbar from unnecessarily
+            # showing sometimes.
+            tmp += str(min(self.columns[len(self.columns) - 1].get_fixed_width(), self.columns[len(self.columns) - 1].get_width()))
         conf.set('player', 'columnwidths', tmp)
         conf.set('player', 'show_header', self.show_header)
         # Old formats, before some letter changes. We'll keep this in for compatibility with
@@ -2291,7 +2292,7 @@ class Base(mpdclient3.mpd_connection):
             text[i] = text[i].replace("%G", _("Genre"))
             text[i] = text[i].replace("%F", _("File"))
             text[i] = text[i].replace("%S", _("Stream"))
-            text[i] = text[i].replace("%L", _("Length"))
+            text[i] = text[i].replace("%L", _("Len"))
         return text
 
     def parse_formatting_for_substring(self, subformat, item, wintitle):
