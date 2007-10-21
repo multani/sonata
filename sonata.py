@@ -356,6 +356,7 @@ class Base(mpdclient3.mpd_connection):
         self.last_info_time = None
         self.last_info_bitrate = None
         self.column_sorted = (None, gtk.SORT_DESCENDING)				# TreeViewColumn, order
+        self.url_browser = ""
         # For increased responsiveness after the initial load, we cache the root artist and
         # album view results and simply refresh on any mpd update
         self.albums_root = None
@@ -1617,6 +1618,8 @@ class Base(mpdclient3.mpd_connection):
                 self.columnwidths[col] = int(self.columnwidths[col])
         if conf.has_option('player', 'show_header'):
             self.show_header = conf.getboolean('player', 'show_header')
+        if conf.has_option('player', 'browser'):
+            self.url_browser = conf.get('player', 'browser')
         if conf.has_section('currformat'):
             if conf.has_option('currformat', 'current'):
                 self.currentformat = conf.get('currformat', 'current')
@@ -1728,6 +1731,7 @@ class Base(mpdclient3.mpd_connection):
             tmp += str(min(self.columns[len(self.columns) - 1].get_fixed_width(), self.columns[len(self.columns) - 1].get_width()))
         conf.set('player', 'columnwidths', tmp)
         conf.set('player', 'show_header', self.show_header)
+        conf.set('player', 'browser', self.url_browser)
         # Old formats, before some letter changes. We'll keep this in for compatibility with
         # older versions of Sonata for the time being.
         conf.add_section('format')
@@ -6830,25 +6834,34 @@ class Base(mpdclient3.mpd_connection):
                 pass
 
     def browser_load(self, docslink):
-        try:
-            pid = subprocess.Popen(["gnome-open", docslink]).pid
-        except:
+        browser_error = False
+        if len(self.url_browser.strip()) > 0:
             try:
-                pid = subprocess.Popen(["exo-open", docslink]).pid
+                pid = subprocess.Popen([self.url_browser, docslink]).pid
+            except:
+                browser_error = True
+        else:
+            try:
+                pid = subprocess.Popen(["gnome-open", docslink]).pid
             except:
                 try:
-                    pid = subprocess.Popen(["kfmclient", "openURL", docslink]).pid
+                    pid = subprocess.Popen(["exo-open", docslink]).pid
                 except:
                     try:
-                        pid = subprocess.Popen(["firefox", docslink]).pid
+                        pid = subprocess.Popen(["kfmclient", "openURL", docslink]).pid
                     except:
                         try:
-                            pid = subprocess.Popen(["mozilla", docslink]).pid
+                            pid = subprocess.Popen(["firefox", docslink]).pid
                         except:
                             try:
-                                pid = subprocess.Popen(["opera", docslink]).pid
+                                pid = subprocess.Popen(["mozilla", docslink]).pid
                             except:
-                                show_error_msg(self.window, _('Unable to launch a suitable browser.'), _('Launch Browser'), 'browserLoadError')
+                                try:
+                                    pid = subprocess.Popen(["opera", docslink]).pid
+                                except:
+                                    browser_error = True
+        if browser_error:
+            show_error_msg(self.window, _('Unable to launch a suitable browser.'), _('Launch Browser'), 'browserLoadError')
 
     def sanitize_mpdtag(self, mpdtag, return_int=False, str_padding=0):
         # Takes the mpd tag and tries to convert it to simply the

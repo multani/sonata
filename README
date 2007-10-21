@@ -21,6 +21,7 @@ INSTALLATION:
 FEATURES:
 	+ Expanded and collapsed views
 	+ Automatic remote and local album art
+	+ User-configurable columns
 	+ Automatic fetching of lyrics
 	+ Playlist and stream support
 	+ Support for editing song tags
@@ -32,3 +33,6 @@ FEATURES:
 	+ Keyboard friendly
 	+ Support for multimedia keys
 	+ Commandline control
+
+DOCUMENTATION/FAQ:
+	http://sonata.berlios.de/documentation.html
