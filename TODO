@@ -1,12 +1,10 @@
 v1.3
-	treeview
-		- better algorithm for sorting song length (e.g. 1:10 vs 10:10)
-		- reordering rows is faster than reloading (see http://faq.pygtk.org/index.py?req=show&file=faq13.049.htp)
-	allow additional columns for library (like current)
 	pref for lyrics saving location..
 	queueing with multiple playlist columns: adjust column widths better
+	why the heck doesn't the treeviewcolumn header arrow update when sorting is reversed?
 
 v1.4
+	allow additional columns for library (like current)
 	genre mode (genre -> artist -> album)
 	better playlist support (mpd 0.13 only):
 		playlist tab:

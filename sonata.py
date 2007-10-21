@@ -3104,12 +3104,12 @@ class Base(mpdclient3.mpd_connection):
             # If we just sorted a column, display the sorting arrow:
             if self.column_sorted[0]:
                 if self.column_sorted[1] == gtk.SORT_DESCENDING:
-                    self.column_sorted[0].set_sort_order(gtk.SORT_ASCENDING)
                     self.hide_all_header_indicators(self.current, True)
+                    self.column_sorted[0].set_sort_order(gtk.SORT_ASCENDING)
                     self.column_sorted = (None, gtk.SORT_ASCENDING)
                 else:
-                    self.column_sorted[0].set_sort_order(gtk.SORT_DESCENDING)
                     self.hide_all_header_indicators(self.current, True)
+                    self.column_sorted[0].set_sort_order(gtk.SORT_DESCENDING)
                     self.column_sorted = (None, gtk.SORT_DESCENDING)
             self.change_cursor(None)
 
@@ -3717,15 +3717,21 @@ class Base(mpdclient3.mpd_connection):
             if type[0:3] == 'col':
                 col_num = int(type.replace('col', ''))
                 if column.get_sort_indicator():
+                    # If this column was already sorted, reverse list:
                     self.column_sorted = (column, self.column_sorted[1])
-                else:
-                    self.column_sorted = (column, gtk.SORT_DESCENDING)
-                # If this column was already sorted, reverse list:
-                if column.get_sort_indicator():
-                    # Reverse list...
                     self.on_sort_reverse(None)
                     return
+                else:
+                    self.column_sorted = (column, gtk.SORT_DESCENDING)
                 type = "col"
+
+            # If the first tag in the format is song length, we will make sure to compare
+            # the same number of items in the song length string (e.g. always use
+            # ##:##:##) and pad the first item to two (e.g. #:##:## -> ##:##:##)
+            custom_sort = False
+            if type == 'col':
+                if self.first_tag_of_format(self.currentformat, col_num, 'L'):
+                    custom_sort = True
 
             for track in self.songs:
                 dict = {}
@@ -3748,6 +3754,8 @@ class Base(mpdclient3.mpd_connection):
                 elif type == 'col':
                     # Sort by column:
                     dict["sortby"] = make_unbold(self.currentdata.get_value(self.currentdata.get_iter((track_num, 0)), col_num).lower())
+                    if custom_sort:
+                        dict["sortby"] = self.sanitize_song_length_for_sorting(dict["sortby"])
                     if column == self.queuecolumn:
                         if len(dict["sortby"]) == 0:
                             dict["sortby"] = "99999"
@@ -3756,6 +3764,7 @@ class Base(mpdclient3.mpd_connection):
                 dict["id"] = track.id
                 list.append(dict)
                 track_num = track_num + 1
+
             list.sort(key=lambda x: x["sortby"])
 
             # Now that we have the order, move the songs as appropriate:
@@ -3765,6 +3774,25 @@ class Base(mpdclient3.mpd_connection):
                 self.conn.send.moveid(int(item["id"]), pos)
                 pos = pos + 1
             self.conn.do.command_list_end()
+
+    def first_tag_of_format(self, format, colnum, tag_letter):
+        formats = format.split('|')
+        format = formats[colnum-2]
+        for pos in range(len(format)-1):
+            if format[pos] == '%':
+                if format[pos+1] == tag_letter:
+                    return True
+                else:
+                    break
+        return False
+
+    def sanitize_song_length_for_sorting(self, songlength):
+        items = songlength.split(':')
+        for i in range(len(items)):
+            items[i] = items[i].zfill(2)
+        for i in range(3-len(items)):
+            items.insert(0, "00")
+        return items[0] + ":" + items[1] + ":" + items[2]
 
     def on_sort_reverse(self, action):
         if self.conn:
