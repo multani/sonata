@@ -1,9 +1,9 @@
 v1.3
-	pref for lyrics saving location..
-	queueing with multiple playlist columns: adjust column widths better
+	queueing with multiple playlist columns: adjust column widths better?
 	why the heck doesn't the treeviewcolumn header arrow update when sorting is reversed?
 
 v1.4
+	pref for lyrics saving location..
 	allow additional columns for library (like current)
 	genre mode (genre -> artist -> album)
 	better playlist support (mpd 0.13 only):

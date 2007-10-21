@@ -464,6 +464,7 @@ class Base(mpdclient3.mpd_connection):
             ('updatekey2', None, 'Update Key 2', '<Ctrl><Shift>u', None, self.updatedb_path),
             ('connectkey', None, 'Connect Key', '<Alt>c', None, self.connectkey_pressed),
             ('disconnectkey', None, 'Disconnect Key', '<Alt>d', None, self.disconnectkey_pressed),
+            ('centerplaylistkey', None, 'Center Playlist Key', '<Ctrl>i', None, self.center_playlist),
             )
 
         toggle_actions = (
@@ -552,6 +553,7 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="updatekey2"/>
                 <menuitem action="connectkey"/>
                 <menuitem action="disconnectkey"/>
+                <menuitem action="centerplaylistkey"/>
               </popup>
             </ui>
             """
@@ -3125,6 +3127,9 @@ class Base(mpdclient3.mpd_connection):
             map_num += 1
         return strqueue
 
+    def center_playlist(self, event):
+        self.keep_song_visible_in_list(vertically_center=True)
+
     def playlist_files_unchanged(self, prev_songs):
         # Go through each playlist object and check if the current and previous filenames match:
         if prev_songs == None:
@@ -3152,7 +3157,7 @@ class Base(mpdclient3.mpd_connection):
             else:
                 column.set_sort_indicator(False)
 
-    def keep_song_visible_in_list(self):
+    def keep_song_visible_in_list(self, vertically_center=False):
         if self.filterbox_visible:
             return
         if self.expanded and len(self.currentdata)>0:
@@ -3160,11 +3165,15 @@ class Base(mpdclient3.mpd_connection):
                 row = self.songinfo.pos
                 visible_rect = self.current.get_visible_rect()
                 row_rect = self.current.get_background_area(row, self.columns[0])
-                if row_rect.y + row_rect.height > visible_rect.height:
-                    top_coord = (row_rect.y + row_rect.height - visible_rect.height) + visible_rect.y
+                if vertically_center:
+                    top_coord = (row_rect.y + row_rect.height - int(visible_rect.height/2)) + visible_rect.y
                     self.current.scroll_to_point(-1, top_coord)
-                elif row_rect.y < 0:
-                    self.current.scroll_to_cell(row)
+                else:
+                    if row_rect.y + row_rect.height > visible_rect.height:
+                        top_coord = (row_rect.y + row_rect.height - visible_rect.height) + visible_rect.y
+                        self.current.scroll_to_point(-1, top_coord)
+                    elif row_rect.y < 0:
+                        self.current.scroll_to_cell(row)
             except:
                 pass
 
@@ -6726,6 +6735,7 @@ class Base(mpdclient3.mpd_connection):
                 [[ "Enter/Space", _("Play selected song") ],
                  [ "Delete", _("Remove selected song(s)") ],
                  [ "Ctrl-E", _("Add selected song(s) to playlist queue") ],
+                 [ "Ctrl-I", _("Center currently playing song") ],
                  [ "Ctrl-Shift-E", _("Remove selected song(s) from playlist queue") ],
                  [ "Ctrl-Shift-S", _("Save playlist") ],
                  [ "Ctrl-Delete", _("Clear list") ]]
