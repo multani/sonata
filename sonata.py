@@ -3087,7 +3087,7 @@ class Base(mpdclient3.mpd_connection):
                         self.currentdata.append([strqueue[i][1]] + [int(track.id)] + items)
             if not all_files_unchanged and not self.filterbox_visible:
                 self.current.set_model(self.currentdata)
-            if self.songinfo.has_key('pos'):
+            if self.songinfo.has_key('pos') and not update_queuelist_only:
                 currsong = int(self.songinfo.pos)
                 self.boldrow(currsong)
                 self.prev_boldrow = currsong
