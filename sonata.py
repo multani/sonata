@@ -3744,8 +3744,7 @@ class Base(mpdclient3.mpd_connection):
             # ##:##:##) and pad the first item to two (e.g. #:##:## -> ##:##:##)
             custom_sort = False
             if type == 'col':
-                if self.first_tag_of_format(self.currentformat, col_num, 'L'):
-                    custom_sort = True
+                custom_sort, custom_pos = self.first_tag_of_format(self.currentformat, col_num, 'L')
 
             for track in self.songs:
                 dict = {}
@@ -3769,7 +3768,7 @@ class Base(mpdclient3.mpd_connection):
                     # Sort by column:
                     dict["sortby"] = make_unbold(self.currentdata.get_value(self.currentdata.get_iter((track_num, 0)), col_num).lower())
                     if custom_sort:
-                        dict["sortby"] = self.sanitize_song_length_for_sorting(dict["sortby"])
+                        dict["sortby"] = self.sanitize_song_length_for_sorting(dict["sortby"], custom_pos)
                     if column == self.queuecolumn:
                         if len(dict["sortby"]) == 0:
                             dict["sortby"] = "99999"
@@ -3790,17 +3789,20 @@ class Base(mpdclient3.mpd_connection):
             self.conn.do.command_list_end()
 
     def first_tag_of_format(self, format, colnum, tag_letter):
+        # Returns a tuple with whether the first tag of the format
+        # includes tag_letter and the position of the tag in the string:
         formats = format.split('|')
         format = formats[colnum-2]
         for pos in range(len(format)-1):
             if format[pos] == '%':
                 if format[pos+1] == tag_letter:
-                    return True
+                    return (True, pos)
                 else:
                     break
-        return False
+        return (False, 0)
 
-    def sanitize_song_length_for_sorting(self, songlength):
+    def sanitize_song_length_for_sorting(self, songlength, pos_of_string):
+        songlength = songlength[pos_of_string:]
         items = songlength.split(':')
         for i in range(len(items)):
             items[i] = items[i].zfill(2)
