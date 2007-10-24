@@ -125,6 +125,14 @@ try:
 except:
     HAVE_TAGPY = False
 
+if HAVE_TAGPY:
+    try:
+        # Set default tag encoding to utf8.. fixes some reported bugs.
+        import tagpy.id3v2 as id3v2
+        id3v2.FrameFactory.instance().setDefaultTextEncoding(tagpy.StringType.UTF8)
+    except:
+        pass
+
 try:
     from SOAPpy import WSDL
     HAVE_WSDL = True
