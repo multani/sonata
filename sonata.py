@@ -3371,6 +3371,7 @@ class Base(mpdclient3.mpd_connection):
         try:
             img_url = ""
             self.downloading_image = True
+            # Amazon currently doesn't support utf8 and suggests latin1 encoding instead:
             try:
                 artist = urllib.quote(artist.encode('latin1'))
                 album = urllib.quote(album.encode('latin1'))
@@ -6888,7 +6889,7 @@ class Base(mpdclient3.mpd_connection):
                 if return_int:
                     return 0
                 else:
-                    return ""
+                    return "0".zfill(str_padding)
 
     def searchfilter_toggle(self, widget, initial_text=""):
         if self.filterbox_visible:
