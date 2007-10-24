@@ -1,6 +1,6 @@
 v1.3 - Pending
 	+ Playlist queue support (requires mpd >= 0.14)
-	+ Use-configurable columns in current playlist by using "|" (xsdnyd)
+	+ Use-configurable columns in playlist by using "|" in prefs > format (xsdnyd)
 	+ Use xmms-like search filter by default when user types (no more ctrl-j)
 	+ Ctrl-i shortcut to center currently playing song
 	+ Use case insensitive sorting for library (holy_robot)
@@ -14,6 +14,7 @@ v1.3 - Pending
 	+ Bug: Fixed tracebacks with certain encodings ????????
 	+ Bug: MPD_HOST with password doesn't work on first install
 	+ Bug: Fix desktop file to match current XDG standard (nigel)
+	+ Bug: Search Amazon artwork using latin1 since it no longer supports utf8
 
 v1.2.3 - August 23, 2007
 	+ Incorporate disc tag in album sorting (Emmanuel Viaud)

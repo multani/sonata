@@ -3371,8 +3371,12 @@ class Base(mpdclient3.mpd_connection):
         try:
             img_url = ""
             self.downloading_image = True
-            artist = urllib.quote(artist)
-            album = urllib.quote(album)
+            try:
+                artist = urllib.quote(artist.encode('latin1'))
+                album = urllib.quote(album.encode('latin1'))
+            except:
+                artist = urllib.quote(artist)
+                album = urllib.quote(album)
             amazon_key = "12DR2PGAQT303YTEWP02"
             search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images&Keywords=" + album
             request = urllib2.Request(search_url)
