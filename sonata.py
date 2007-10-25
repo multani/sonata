@@ -3794,7 +3794,6 @@ class Base(mpdclient3.mpd_connection):
                 else:
                     dict["sortby"] = getattr(track, type, zzz).lower()
                 dict["id"] = int(track.id)
-                dict["pos"] = int(track.pos)
                 list.append(dict)
                 track_num = track_num + 1
 
@@ -3802,19 +3801,11 @@ class Base(mpdclient3.mpd_connection):
 
             # Now that we have the order, move the songs as appropriate:
             pos = 0
-            num_moved = 0
             self.conn.send.command_list_begin()
             for item in list:
-                # Only tell mpd to move items that will actually move:
-                if item["pos"] != pos:
-                    num_moved += 1
-                    self.conn.send.moveid(item["id"], pos)
+                self.conn.send.moveid(item["id"], pos)
                 pos += 1
             self.conn.do.command_list_end()
-
-            if num_moved == 0:
-                self.update_column_indicators()
-                self.change_cursor(None)
 
     def first_tag_of_format(self, format, colnum, tag_letter):
         # Returns a tuple with whether the first tag of the format
