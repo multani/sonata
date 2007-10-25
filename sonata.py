@@ -3443,9 +3443,10 @@ class Base(mpdclient3.mpd_connection):
                                     pix = pix.scale_simple(148, 148, gtk.gdk.INTERP_HYPER)
                                     pix = self.pixbuf_add_border(pix)
                                     if self.stop_art_update:
+                                        del pix
                                         self.downloading_image = False
                                         return imgfound
-                                    self.imagelist.append([curr_img, pix, ""])
+                                    self.imagelist.append([curr_img, pix])
                                     del pix
                                     self.remotefilelist.append(dest_filename_curr)
                                     imgfound = True
@@ -4692,32 +4693,29 @@ class Base(mpdclient3.mpd_connection):
 
     def on_choose_image(self, widget):
         if self.remote_from_infowindow:
-            choose_dialog = gtk.Dialog(_("Choose Cover Art"), self.infowindow, gtk.DIALOG_MODAL, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
+            self.choose_dialog = gtk.Dialog(_("Choose Cover Art"), self.infowindow, gtk.DIALOG_MODAL, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
         else:
-            choose_dialog = gtk.Dialog(_("Choose Cover Art"), self.window, gtk.DIALOG_MODAL, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
-        choose_dialog.set_role('chooseCoverArt')
-        choosebutton = choose_dialog.add_button(_("Choose"), gtk.RESPONSE_ACCEPT)
+            self.choose_dialog = gtk.Dialog(_("Choose Cover Art"), self.window, gtk.DIALOG_MODAL, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
+        self.choose_dialog.set_role('chooseCoverArt')
+        choosebutton = self.choose_dialog.add_button(_("Choose"), gtk.RESPONSE_ACCEPT)
         chooseimage = gtk.Image()
         chooseimage.set_from_stock(gtk.STOCK_CONVERT, gtk.ICON_SIZE_BUTTON)
         choosebutton.set_image(chooseimage)
-        choose_dialog.set_has_separator(False)
-        choose_dialog.set_default(choosebutton)
-        choose_dialog.set_resizable(False)
+        self.choose_dialog.set_has_separator(False)
+        self.choose_dialog.set_default(choosebutton)
+        self.choose_dialog.set_resizable(False)
         scroll = gtk.ScrolledWindow()
         scroll.set_size_request(350, 325)
         scroll.set_policy(gtk.POLICY_NEVER, gtk.POLICY_ALWAYS)
-        self.imagelist = gtk.ListStore(int, gtk.gdk.Pixbuf, str)
-        imagewidget = gtk.IconView(self.imagelist)
-        imagewidget.set_pixbuf_column(1)
-        imagewidget.set_text_column(2)
+        self.imagelist = gtk.ListStore(int, gtk.gdk.Pixbuf)
+        imagewidget = gtk.IconView()
         imagewidget.set_columns(2)
         imagewidget.set_item_width(150)
         imagewidget.set_spacing(5)
         imagewidget.set_margin(10)
         imagewidget.set_selection_mode(gtk.SELECTION_SINGLE)
-        imagewidget.select_path("0")
         scroll.add(imagewidget)
-        choose_dialog.vbox.pack_start(scroll, False, False, 0)
+        self.choose_dialog.vbox.pack_start(scroll, False, False, 0)
         searchexpander = gtk.expander_new_with_mnemonic(_("Edit search terms"))
         vbox = gtk.VBox()
         hbox1 = gtk.HBox()
@@ -4725,14 +4723,14 @@ class Base(mpdclient3.mpd_connection):
         hbox1.pack_start(artistlabel)
         self.remote_artistentry = gtk.Entry()
         self.tooltips.set_tip(self.remote_artistentry, _("Press enter to search for these terms."))
-        self.remote_artistentry.connect('activate', self.choose_image_update)
+        self.remote_artistentry.connect('activate', self.choose_image_update, imagewidget)
         hbox1.pack_start(self.remote_artistentry, True, True, 5)
         hbox2 = gtk.HBox()
         albumlabel = gtk.Label(_("Album") + ": ")
         hbox2.pack_start(albumlabel)
         self.remote_albumentry = gtk.Entry()
         self.tooltips.set_tip(self.remote_albumentry, _("Press enter to search for these terms."))
-        self.remote_albumentry.connect('activate', self.choose_image_update)
+        self.remote_albumentry.connect('activate', self.choose_image_update, imagewidget)
         hbox2.pack_start(self.remote_albumentry, True, True, 5)
         self.set_label_widths_equal([artistlabel, albumlabel])
         artistlabel.set_alignment(1, 0.5)
@@ -4740,21 +4738,21 @@ class Base(mpdclient3.mpd_connection):
         vbox.pack_start(hbox1)
         vbox.pack_start(hbox2)
         searchexpander.add(vbox)
-        choose_dialog.vbox.pack_start(searchexpander, True, True, 0)
-        choose_dialog.show_all()
+        self.choose_dialog.vbox.pack_start(searchexpander, True, True, 0)
+        self.choose_dialog.show_all()
         self.chooseimage_visible = True
         self.remotefilelist = []
         self.remote_dest_filename = self.target_image_filename()
         album = getattr(self.songinfo, 'album', "").replace("/", "")
         artist = self.current_artist_for_album_name[1].replace("/", "")
-        imagewidget.connect('item-activated', self.replace_cover, choose_dialog, artist, album)
-        choose_dialog.connect('response', self.choose_image_response, imagewidget, choose_dialog, artist, album)
+        imagewidget.connect('item-activated', self.replace_cover, artist, album)
+        self.choose_dialog.connect('response', self.choose_image_response, imagewidget, artist, album)
         self.remote_artistentry.set_text(artist)
         self.remote_albumentry.set_text(album)
         self.allow_art_search = True
-        self.choose_image_update()
+        self.choose_image_update(None, imagewidget)
 
-    def choose_image_update(self, entry=None):
+    def choose_image_update(self, entry, imagewidget):
         if not self.allow_art_search:
             return
         self.allow_art_search = False
@@ -4762,18 +4760,21 @@ class Base(mpdclient3.mpd_connection):
         while self.downloading_image:
             gtk.main_iteration()
         self.imagelist.clear()
+        imagewidget.set_text_column(-1)
+        imagewidget.set_model(self.imagelist)
+        imagewidget.set_pixbuf_column(1)
         self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
-        thread = threading.Thread(target=self.choose_image_update2)
+        thread = threading.Thread(target=self.choose_image_update2, args=(imagewidget, None))
         thread.setDaemon(True)
         thread.start()
 
-    def choose_image_update2(self):
+    def choose_image_update2(self, imagewidget, ignore):
         self.stop_art_update = False
         # Retrieve all images from amazon:
         artist_search = self.remote_artistentry.get_text()
         album_search = self.remote_albumentry.get_text()
         if len(artist_search) == 0 and len(album_search) == 0:
-            gobject.idle_add(self.choose_image_no_artist_or_album_dialog)
+            gobject.idle_add(self.choose_image_no_artist_or_album_dialog, imagewidget)
             return
         self.create_dir_if_not_existing('~/.covers/')
         filename = os.path.expanduser("~/.covers/temp/<imagenum>.jpg")
@@ -4785,31 +4786,41 @@ class Base(mpdclient3.mpd_connection):
         self.change_cursor(None)
         if self.chooseimage_visible:
             if not imgfound:
-                gobject.idle_add(self.choose_image_no_art_found)
+                gobject.idle_add(self.choose_image_no_art_found, imagewidget)
                 self.allow_art_search = True
         self.call_gc_collect = True
 
-    def choose_image_no_artist_or_album_dialog(self):
-        self.imagelist.append([0, gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 1, 1), _("No artist or album name found.")])
+    def choose_image_no_artist_or_album_dialog(self, imagewidget):
+        liststore = gtk.ListStore(int, str)
+        liststore.append([0, _("No artist or album name found.")])
+        imagewidget.set_pixbuf_column(-1)
+        imagewidget.set_model(liststore)
+        imagewidget.set_text_column(1)
 
-    def choose_image_no_art_found(self):
-        self.imagelist.append([0, gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 1, 1), _("No cover art found.")])
+    def choose_image_no_art_found(self, imagewidget):
+        liststore = gtk.ListStore(int, str)
+        liststore.append([0, _("No cover art found.")])
+        imagewidget.set_pixbuf_column(-1)
+        imagewidget.set_model(liststore)
+        imagewidget.set_text_column(1)
 
     def choose_image_dialog_response(self, dialog, response_id):
         dialog.destroy()
 
-    def choose_image_response(self, dialog, response_id, imagewidget, choose_dialog, artist, album):
+    def choose_image_response(self, dialog, response_id, imagewidget, artist, album):
         self.stop_art_update = True
         if response_id == gtk.RESPONSE_ACCEPT:
             try:
-                self.replace_cover(imagewidget, imagewidget.get_selected_items()[0], choose_dialog, artist, album)
+                self.replace_cover(imagewidget, imagewidget.get_selected_items()[0], artist, album)
             except:
+                dialog.destroy()
                 pass
+        else:
+            dialog.destroy()
         self.change_cursor(None)
         self.chooseimage_visible = False
-        dialog.destroy()
 
-    def replace_cover(self, iconview, path, dialog, artist, album):
+    def replace_cover(self, iconview, path, artist, album):
         self.stop_art_update = True
         image_num = int(path[0])
         if len(self.remotefilelist) > 0:
@@ -4825,7 +4836,7 @@ class Base(mpdclient3.mpd_connection):
                 if os.path.exists(os.path.dirname(filename)):
                     removeall(os.path.dirname(filename))
         self.chooseimage_visible = False
-        dialog.destroy()
+        self.choose_dialog.destroy()
         while self.downloading_image:
             gtk.main_iteration()
 
