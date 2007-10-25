@@ -17,12 +17,13 @@ v1.4
 				to existing playlist... ---> popup window with dropdown of playlists
 				...
 	make selection, dnd, more like thunar
-	dnd from other tabs to playlist tabs
+	speed up sorting by manipulating model (generic functions to swap/move model items)
 	
 Future:
 	libnotify?
 	test multiple streams at once..
 	crop songs in current playlist?
 	mpd statistics
+	dnd from other tabs to playlist tabs
 	hover over album art -> show larger image in borderless popup after 0.5 sec?
 	use GtkVolumeButton?

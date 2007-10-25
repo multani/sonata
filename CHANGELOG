@@ -9,6 +9,7 @@ v1.3 - Pending
 	+ Allow saving/overwriting existing playlists and streams
 	+ Hidden config options to set browser, hide column headers
 	+ Update license to GNU GPLv3
+	+ Added Brazilian translation (Alex Tercete Matos)
 	+ Bug: Fix nl.po translation causing crash
 	+ Bug: Remember playlist position when adding from library
 	+ Bug: Fixed tracebacks with certain encodings ????????
