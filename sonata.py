@@ -2547,8 +2547,10 @@ class Base(mpdclient3.mpd_connection):
         if self.conn:
             if self.notebook.get_current_page() == self.TAB_LIBRARY:
                 items = self.browser_get_selected_items_recursive(True)
+                self.conn.send.command_list_begin()
                 for item in items:
-                    self.conn.do.add(item)
+                    self.conn.send.add(item)
+                self.conn.do.command_list_end()
             elif self.notebook.get_current_page() == self.TAB_PLAYLISTS:
                 model, selected = self.playlists_selection.get_selected_rows()
                 for path in selected:
@@ -3114,7 +3116,7 @@ class Base(mpdclient3.mpd_connection):
                     self.prevtodo = "RETAIN_POS_AND_SEL" # Hacky, but this ensures we retain the self.current position/selection
                     self.searchfilter_feed_loop(self.filterpattern)
             elif self.sonata_loaded:
-                gobject.idle_add(self.playlist_retain_view, playlistposition)
+                self.playlist_retain_view(playlistposition)
             self.update_statusbar()
             # If we just sorted a column, display the sorting arrow:
             if self.column_sorted[0]:
@@ -5120,6 +5122,7 @@ class Base(mpdclient3.mpd_connection):
                     self.conn.do.clear()
                 elif len(selected) > 0:
                     selected.reverse()
+                    self.current.set_model(None)
                     self.conn.send.command_list_begin()
                     for path in selected:
                         if not self.filterbox_visible:
@@ -5132,6 +5135,7 @@ class Base(mpdclient3.mpd_connection):
                         self.songs.pop(rownum)
                         self.currentdata.remove(iter)
                     self.conn.do.command_list_end()
+                    self.current.set_model(model)
             elif page_num == self.TAB_PLAYLISTS:
                 model, selected = self.playlists_selection.get_selected_rows()
                 if show_error_msg_yesno(self.window, gettext.ngettext("Delete the selected playlist?", "Delete the selected playlists?", int(len(selected))), gettext.ngettext("Delete Playlist", "Delete Playlists", int(len(selected))), 'deletePlaylist') == gtk.RESPONSE_YES:
