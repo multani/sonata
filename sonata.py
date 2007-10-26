@@ -4360,8 +4360,8 @@ class Base(mpdclient3.mpd_connection):
                 self.infowindow_pathlabel.set_text("")
                 self.infowindow_filelabel.set_text("")
                 self.infowindow_bitratelabel.set_text("")
-                self.lyrics_refresh.set_sensitive(False)
                 if self.show_lyrics:
+                    self.lyrics_refresh.set_sensitive(False)
                     if HAVE_WSDL:
                         self.infowindow_show_lyrics("", "", "", True)
                     else:
