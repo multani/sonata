@@ -26,8 +26,8 @@ msgstr "Taglib e/ou tagpy não foram encontrados. O suporte à edição de tags 
 "foi desabilitado."
 
 #: sonata.py:232 sonata.py:4323 sonata.py:4347
-msgid "SOAPpy not found, fetching lyrics support disabled."
-msgstr "SOAPpy não foi encontrado. O suporte à busca de letras de música foi "
+msgid "ZSI not found, fetching lyrics support disabled."
+msgstr "ZSI não foi encontrado. O suporte à busca de letras de música foi "
 "desabilitado."
 
 #: sonata.py:234

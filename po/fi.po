@@ -26,8 +26,8 @@ msgstr ""
 "Taglib tai tagpy-kirjastoja ei löydy, merkintöjen muokkaus ei ole käytössä."
 
 #: sonata.py:232 sonata.py:4323 sonata.py:4347
-msgid "SOAPpy not found, fetching lyrics support disabled."
-msgstr "SOAPpy-kirjastoa ei löydy, sanoitusten haku ei ole käytössä."
+msgid "ZSI not found, fetching lyrics support disabled."
+msgstr "ZSI-kirjastoa ei löydy, sanoitusten haku ei ole käytössä."
 
 #: sonata.py:234
 msgid ""

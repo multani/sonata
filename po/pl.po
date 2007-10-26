@@ -30,8 +30,8 @@ msgstr ""
 "wyłączona."
 
 #: sonata.py:232 sonata.py:4323 sonata.py:4347
-msgid "SOAPpy not found, fetching lyrics support disabled."
-msgstr "SOAPpy nieodnaleziony, obsługa pobierania tekstów utworów wyłączona. "
+msgid "ZSI not found, fetching lyrics support disabled."
+msgstr "ZSI nieodnaleziony, obsługa pobierania tekstów utworów wyłączona. "
 
 #: sonata.py:234
 msgid ""

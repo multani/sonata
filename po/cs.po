@@ -1,50 +1,47 @@
+# Czech translation of sonata.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Sonata package.
+# Jakub Adler <jakubadler@gmail.com>, 2007.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-10-21 15:43-0600\n"
-"PO-Revision-Date: 2007-07-11 18:50+0100\n"
+"POT-Creation-Date: 2007-08-20 22:34-0600\n"
+"PO-Revision-Date: 2007-10-24 19:52+0100\n"
 "Last-Translator: Jakub Adler <jakubadler@gmail.com>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Poedit-SourceCharset: utf-8\n"
-"X-Poedit-Language: Czech\n"
-"X-Poedit-Country: CZECH REPUBLIC\n"
+"Plural-Forms: nplurals=3; plural=n==1 ? 0 : n>=2 && n<=4 ? 1 : 2;\n"
 
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
-# msgstr ""
-# "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 #: sonata.py:206
 msgid "The toggle argument requires D-Bus. Aborting."
 msgstr "Parametr potřebuje D-Bus. Ruší se."
 
-#: sonata.py:230 sonata.py:6203
+#: sonata.py:230
+#: sonata.py:6203
 msgid "Taglib and/or tagpy not found, tag editing support disabled."
-msgstr "Taglib nebo tagpy není dostupný, podpora editace tagů bude vypnuta."
+msgstr "Knihovna taglib a/nebo tagpy není dostupná, podpora editace tagů vypnuta."
 
-#: sonata.py:232 sonata.py:4323 sonata.py:4347
-msgid "SOAPpy not found, fetching lyrics support disabled."
-msgstr "SOAPpy není dostupný, získávání slov skladeb bude vypnuto."
+#: sonata.py:232
+#: sonata.py:4323
+#: sonata.py:4347
+msgid "ZSI not found, fetching lyrics support disabled."
+msgstr "ZSI není dostupný, získávání slov skladeb bude vypnuto."
 
 #: sonata.py:234
-msgid ""
-"PyGTK+ 2.10 or gnome-python-extras not found, system tray support disabled."
-msgstr ""
-"PyGTK+ 2.10 nebo gnome-python-extras nejsou dostupnÃ©, podpora systÃ©movÃ© "
-"oblasti bude vypnuta"
+msgid "PyGTK+ 2.10 or gnome-python-extras not found, system tray support disabled."
+msgstr "PyGTK+ 2.10 nebo gnome-python-extras nejsou dostupné, podpora systémové oblasti bude vypnuta."
 
-#: sonata.py:236 sonata.py:5593
-msgid ""
-"Python 2.5 or python-elementtree not found, audioscrobbler support disabled."
+#: sonata.py:236
+#: sonata.py:5593
+msgid "Python 2.5 or python-elementtree not found, audioscrobbler support disabled."
 msgstr "Python 2.5 nebo python-elementtree není dostupný,"
 
-#: sonata.py:297 sonata.py:5284
+#: sonata.py:297
+#: sonata.py:5284
 msgid "Entire song"
 msgstr "Celá skladba"
 
@@ -68,21 +65,38 @@ msgstr "Vlevo dole"
 msgid "Bottom Right"
 msgstr "Vpravo dole"
 
-#: sonata.py:316 sonata.py:414 sonata.py:1222 sonata.py:2293 sonata.py:4062
-#: sonata.py:4709 sonata.py:6295
+#: sonata.py:316
+#: sonata.py:414
+#: sonata.py:1222
+#: sonata.py:2293
+#: sonata.py:4062
+#: sonata.py:4709
+#: sonata.py:6295
 msgid "Artist"
 msgstr "Umělec"
 
-#: sonata.py:316 sonata.py:1221 sonata.py:4056 sonata.py:6285
+#: sonata.py:316
+#: sonata.py:1221
+#: sonata.py:4056
+#: sonata.py:6285
 msgid "Title"
 msgstr "Název"
 
-#: sonata.py:316 sonata.py:415 sonata.py:1223 sonata.py:2294 sonata.py:4068
-#: sonata.py:4716 sonata.py:6305
+#: sonata.py:316
+#: sonata.py:415
+#: sonata.py:1223
+#: sonata.py:2294
+#: sonata.py:4068
+#: sonata.py:4716
+#: sonata.py:6305
 msgid "Album"
 msgstr "Album"
 
-#: sonata.py:316 sonata.py:1226 sonata.py:2298 sonata.py:4086 sonata.py:5513
+#: sonata.py:316
+#: sonata.py:1226
+#: sonata.py:2298
+#: sonata.py:4086
+#: sonata.py:5513
 #: sonata.py:6340
 msgid "Genre"
 msgstr "Žánr"
@@ -99,17 +113,18 @@ msgstr "Vše"
 msgid "Starting Sonata with profile"
 msgstr "Spustit Sonatu s profilem"
 
-#: sonata.py:384 sonata.py:386
+#: sonata.py:384
+#: sonata.py:386
 msgid "Not a valid profile number. Profile number must be between 1 and"
-msgstr "Neplatné číslo profilu. Číslo profilu ..."
+msgstr "Neplatné číslo profilu. Číslo profilu musí být mezi 1 a"
 
 #: sonata.py:411
 msgid "_Sort List"
-msgstr "Seřa_dit seznam"
+msgstr "_Seřadit seznam"
 
 #: sonata.py:412
 msgid "_Connection"
-msgstr "_Spojení"
+msgstr "S_pojení"
 
 #: sonata.py:413
 msgid "Filesystem"
@@ -121,11 +136,11 @@ msgstr "Informace o skladbě..."
 
 #: sonata.py:417
 msgid "Use _Remote Image..."
-msgstr "Použít _vzdálený obrázek"
+msgstr "Použít _vzdálený obrázek..."
 
 #: sonata.py:418
 msgid "Use _Local Image..."
-msgstr "Použít lokální obrázek..."
+msgstr "Použít _lokální obrázek..."
 
 #: sonata.py:419
 msgid "Reset to Default"
@@ -137,11 +152,11 @@ msgstr "_Play"
 
 #: sonata.py:421
 msgid "Add to _Queue"
-msgstr ""
+msgstr "Přidat do _fronty"
 
 #: sonata.py:422
 msgid "Remove from _Queue"
-msgstr ""
+msgstr "Odstranit z _fronty"
 
 #: sonata.py:423
 msgid "_Pause"
@@ -169,7 +184,7 @@ msgstr "_Smazat"
 
 #: sonata.py:429
 msgid "_Clear"
-msgstr "_Vymazat vše"
+msgstr "Smazat _vše"
 
 #: sonata.py:430
 msgid "_Save Playlist..."
@@ -177,7 +192,7 @@ msgstr "_Uložit playlist"
 
 #: sonata.py:431
 msgid "_Update Library"
-msgstr "_Aktualizovat knihovnu"
+msgstr "_Aktualizovat databázi"
 
 #: sonata.py:432
 msgid "_Preferences..."
@@ -191,7 +206,8 @@ msgstr "_O Sonatě"
 msgid "_New..."
 msgstr "_Nový..."
 
-#: sonata.py:435 sonata.py:4134
+#: sonata.py:435
+#: sonata.py:4134
 msgid "_Edit..."
 msgstr "_Upravit..."
 
@@ -229,12 +245,11 @@ msgstr "Podle názvu skladby"
 
 #: sonata.py:444
 msgid "By File Name"
-msgstr "Podle jména soubotu"
+msgstr "Podle jména souboru"
 
 #: sonata.py:445
-#, fuzzy
 msgid "By Dir & File Name"
-msgstr "Podle jména soubotu"
+msgstr "Podle jména souboru a adresáře"
 
 #: sonata.py:446
 msgid "Reverse List"
@@ -254,9 +269,11 @@ msgstr "O_pakovat"
 
 #: sonata.py:474
 msgid "_Shuffle"
-msgstr "_Shuffle"
+msgstr "_Zamíchat"
 
-#: sonata.py:675 sonata.py:844 sonata.py:847
+#: sonata.py:675
+#: sonata.py:844
+#: sonata.py:847
 msgid "Playlist"
 msgstr "Playlist"
 
@@ -270,11 +287,11 @@ msgstr "Aktuální"
 
 #: sonata.py:734
 msgid "_End Search"
-msgstr "_Zrušit hledání"
+msgstr "_Ukončit hledání"
 
 #: sonata.py:740
 msgid "Library browsing view"
-msgstr "Typ prohlížení databáze"
+msgstr "Prohlížení databáze"
 
 #: sonata.py:753
 msgid "Library"
@@ -288,27 +305,38 @@ msgstr "Playlisty"
 msgid "Streams"
 msgstr "Streamy"
 
-#: sonata.py:803 sonata.py:808 sonata.py:1246 sonata.py:2998 sonata.py:3006
+#: sonata.py:803
+#: sonata.py:808
+#: sonata.py:1246
+#: sonata.py:2998
+#: sonata.py:3006
 msgid "Stopped"
 msgstr "Zastaveno"
 
-#: sonata.py:804 sonata.py:3002 sonata.py:3633
+#: sonata.py:804
+#: sonata.py:3002
+#: sonata.py:3633
 msgid "Click to expand"
 msgstr "Klikni pro rozšířené zobrazení"
 
-#: sonata.py:809 sonata.py:3000 sonata.py:3631
+#: sonata.py:809
+#: sonata.py:3000
+#: sonata.py:3631
 msgid "Click to collapse"
 msgstr "Klikni pro kompaktní zobrazení"
 
-#: sonata.py:813 sonata.py:2912
+#: sonata.py:813
+#: sonata.py:2912
 msgid "Not Connected"
 msgstr "Nepřipojeno"
 
-#: sonata.py:815 sonata.py:3647
+#: sonata.py:815
+#: sonata.py:3647
 msgid "Click to collapse the player"
 msgstr "Klikni pro kompaktní zobrazení"
 
-#: sonata.py:817 sonata.py:3652
+#: sonata.py:817
+#: sonata.py:3652
 msgid "Click to expand the player"
 msgstr "Klikni pro rozšířené zobrazení"
 
@@ -330,7 +358,7 @@ msgstr "Volby"
 
 #: sonata.py:1094
 msgid "Show this help and exit"
-msgstr "Zobrazit tuto nápovědu a skončit"
+msgstr "Zobrazí tuto nápovědu a skončit"
 
 #: sonata.py:1095
 msgid "Show version information and exit"
@@ -338,11 +366,11 @@ msgstr "Zobrazí informace o verzi a skončí"
 
 #: sonata.py:1096
 msgid "Toggles whether the app is minimized"
-msgstr ""
+msgstr "Přepíná, jestli je aplikace minimalizovaná"
 
 #: sonata.py:1097
 msgid "to tray or visible (requires D-Bus)"
-msgstr ""
+msgstr "v systémové oblasti, nebo viditelná (potřebný D-Bus)"
 
 #: sonata.py:1098
 msgid "Start app hidden (requires systray)"
@@ -386,7 +414,7 @@ msgstr "Přepnout do módu opakování"
 
 #: sonata.py:1108
 msgid "Toggle shuffle mode"
-msgstr "Přepnout do módu míchání"
+msgstr "Přepnout mód míchání"
 
 #: sonata.py:1109
 msgid "Display current song info"
@@ -396,23 +424,32 @@ msgstr "Zobrazit informace o aktuální skladbě"
 msgid "Display MPD status"
 msgstr "Zobrazit stav MPD"
 
-#: sonata.py:1224 sonata.py:4074
+#: sonata.py:1224
+#: sonata.py:4074
 msgid "Date"
 msgstr "Datum"
 
-#: sonata.py:1225 sonata.py:2295 sonata.py:4080 sonata.py:6321
+#: sonata.py:1225
+#: sonata.py:2295
+#: sonata.py:4080
+#: sonata.py:6321
 msgid "Track"
 msgstr "Stopa"
 
-#: sonata.py:1227 sonata.py:2299 sonata.py:4098
+#: sonata.py:1227
+#: sonata.py:2299
+#: sonata.py:4098
 msgid "File"
 msgstr "Soubor"
 
-#: sonata.py:1232 sonata.py:1234 sonata.py:4104
+#: sonata.py:1232
+#: sonata.py:1234
+#: sonata.py:4104
 msgid "Time"
 msgstr "Čas"
 
-#: sonata.py:1235 sonata.py:4110
+#: sonata.py:1235
+#: sonata.py:4110
 msgid "Bitrate"
 msgstr "Datový tok"
 
@@ -420,7 +457,9 @@ msgstr "Datový tok"
 msgid "MPD stopped"
 msgstr "MPD zastaveno"
 
-#: sonata.py:1242 sonata.py:1244 sonata.py:1246
+#: sonata.py:1242
+#: sonata.py:1244
+#: sonata.py:1246
 msgid "State"
 msgstr "Stav"
 
@@ -432,35 +471,42 @@ msgstr "Přehrávání"
 msgid "Paused"
 msgstr "Pozastaveno"
 
-#: sonata.py:1248 sonata.py:1250
+#: sonata.py:1248
+#: sonata.py:1250
 msgid "Repeat"
 msgstr "Opakovat"
 
-#: sonata.py:1248 sonata.py:1252
+#: sonata.py:1248
+#: sonata.py:1252
 msgid "Off"
 msgstr "Off"
 
-#: sonata.py:1250 sonata.py:1254
+#: sonata.py:1250
+#: sonata.py:1254
 msgid "On"
 msgstr "On"
 
-#: sonata.py:1252 sonata.py:1254
+#: sonata.py:1252
+#: sonata.py:1254
 msgid "Shuffle"
-msgstr "Promíchat"
+msgstr "Zamíchat"
 
 #: sonata.py:1255
 msgid "Volume"
 msgstr "Hlasitost"
 
-#: sonata.py:1257 sonata.py:1259
+#: sonata.py:1257
+#: sonata.py:1259
 msgid "Crossfade"
 msgstr "Prolínání"
 
-#: sonata.py:1257 sonata.py:5283
+#: sonata.py:1257
+#: sonata.py:5283
 msgid "second"
 msgstr "sekunda"
 
-#: sonata.py:1259 sonata.py:5285
+#: sonata.py:1259
+#: sonata.py:5285
 msgid "seconds"
 msgstr "sekund"
 
@@ -470,7 +516,7 @@ msgid ""
 "Please check your Sonata preferences."
 msgstr ""
 "Nelze se spojit s MPD.\n"
-"Prosím zkontrolujte..."
+"Prosím zkontrolujte nastavení Sonaty."
 
 #: sonata.py:1290
 msgid "Disconnect"
@@ -480,11 +526,13 @@ msgstr "Odpojit"
 msgid "Edit Stream"
 msgstr "Upravit stream"
 
-#: sonata.py:1809 sonata.py:1841
+#: sonata.py:1809
+#: sonata.py:1841
 msgid "New Stream"
 msgstr "Nový stream"
 
-#: sonata.py:1812 sonata.py:5513
+#: sonata.py:1812
+#: sonata.py:5513
 msgid "Stream name"
 msgstr "Jméno streamu"
 
@@ -493,65 +541,73 @@ msgid "Stream URL"
 msgstr "URL streamu"
 
 #: sonata.py:1841
-#, fuzzy
 msgid "A stream with this name already exists. Would you like to replace it?"
-msgstr "Stream s tímto jménem neexistuje."
+msgstr "Stream s tímto jménem už existuje. Chcete jej přepsat?"
 
-#: sonata.py:1859 sonata.py:1861
+#: sonata.py:1859
+#: sonata.py:1861
 msgid "Save Playlist"
 msgstr "Uložit playlist"
 
 #: sonata.py:1874
-#, fuzzy
 msgid "A playlist with this name already exists. Would you like to replace it?"
-msgstr "Playlist s tímto jménem už existuje."
+msgstr "Playlist s tímto jménem už existuje. Chcete jej přepsat"
 
 #: sonata.py:1887
 msgid "Playlist name"
 msgstr "Jméno playlistu"
 
-#: sonata.py:1915 sonata.py:1919
+#: sonata.py:1915
+#: sonata.py:1919
 msgid "Rename Playlist"
 msgstr "Přejmenovat playlist"
 
 #: sonata.py:2296
 msgid "#"
-msgstr ""
+msgstr "#"
 
-#: sonata.py:2297 sonata.py:5510 sonata.py:6315
+#: sonata.py:2297
+#: sonata.py:5510
+#: sonata.py:6315
 msgid "Year"
 msgstr "Rok"
 
 #: sonata.py:2300
-#, fuzzy
 msgid "Stream"
 msgstr "Streamy"
 
 #: sonata.py:2301
 msgid "Len"
-msgstr ""
+msgstr "Délka"
 
-#: sonata.py:2314 sonata.py:2320 sonata.py:2338 sonata.py:2344
+#: sonata.py:2314
+#: sonata.py:2320
+#: sonata.py:2338
+#: sonata.py:2344
 msgid "Unknown"
 msgstr "Neznámý"
 
 #: sonata.py:2931
 msgid "minute"
 msgid_plural "minutes"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "minua"
+msgstr[1] "minuty"
+msgstr[2] "minut"
 
 #: sonata.py:2935
 msgid "hour and"
 msgid_plural "hours and"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "hodina a"
+msgstr[1] "hodiny a"
+msgstr[2] "hodin a"
 
-#: sonata.py:2937 sonata.py:6682
+#: sonata.py:2937
+#: sonata.py:6682
 msgid "song"
 msgid_plural "songs"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "skladba"
+msgstr[1] "skladby"
+msgstr[2] "skladeb"
 
 #: sonata.py:2945
 msgid "(updating mpd)"
@@ -574,7 +630,6 @@ msgid "_Song Info"
 msgstr "Informace o _skladbě"
 
 #: sonata.py:4146
-#, fuzzy
 msgid "C_over Art"
 msgstr "_Obrázek alba"
 
@@ -584,13 +639,14 @@ msgstr "Informace o _albu"
 
 #: sonata.py:4197
 msgid "_Lyrics"
-msgstr "S_lova"
+msgstr "S_lova skladby"
 
 #: sonata.py:4208
 msgid "_Search..."
 msgstr "_Hledat..."
 
-#: sonata.py:4289 sonata.py:4373
+#: sonata.py:4289
+#: sonata.py:4373
 msgid "Various Artists"
 msgstr "Různí umělci"
 
@@ -640,9 +696,10 @@ msgstr "Obrázky"
 
 #: sonata.py:4641
 msgid "All files"
-msgstr "Vš¡echny soubory"
+msgstr "Všechny soubory"
 
-#: sonata.py:4680 sonata.py:4682
+#: sonata.py:4680
+#: sonata.py:4682
 msgid "Choose Cover Art"
 msgstr "Vybrat obrázek alba"
 
@@ -654,47 +711,49 @@ msgstr "Vybrat"
 msgid "Edit search terms"
 msgstr "Upravit hledaný výraz"
 
-#: sonata.py:4712 sonata.py:4719
+#: sonata.py:4712
+#: sonata.py:4719
 msgid "Press enter to search for these terms."
 msgstr "Stiskněte enter pro hledání tohoto výrazu."
 
 #: sonata.py:4778
 msgid "No artist or album name found."
-msgstr "Jméno umělce nenÃí dostupné"
+msgstr "Jméno umělce nebo alba není dostupné"
 
 #: sonata.py:4781
 msgid "No cover art found."
-msgstr "Obrá¡zek alba nenÃí dostupný"
+msgstr "Obrázek alba není dostupný"
 
 #: sonata.py:5111
-#, fuzzy
 msgid "Delete the selected playlist?"
 msgid_plural "Delete the selected playlists?"
-msgstr[0] "Smazat vybrané playlisty?"
+msgstr[0] "Smazat vybraný playlist?"
 msgstr[1] "Smazat vybrané playlisty?"
+msgstr[2] "Smazat vybrané playlisty?"
 
 #: sonata.py:5111
-#, fuzzy
 msgid "Delete Playlist"
 msgid_plural "Delete Playlists"
-msgstr[0] "Vymazat Playlist(y)"
-msgstr[1] "Vymazat Playlist(y)"
+msgstr[0] "Smazat playlist"
+msgstr[1] "Smazat playlisty"
+msgstr[2] "Smazat playlisty"
 
 #: sonata.py:5118
-#, fuzzy
 msgid "Delete the selected stream?"
 msgid_plural "Delete the selected streams?"
-msgstr[0] "Smazat vybrané streamy?"
+msgstr[0] "Smazat vybraný stream?"
 msgstr[1] "Smazat vybrané streamy?"
+msgstr[2] "Smazat vybrané streamy?"
 
 #: sonata.py:5118
-#, fuzzy
 msgid "Delete Stream"
 msgid_plural "Delete Streams"
 msgstr[0] "Smazat stream"
-msgstr[1] "Smazat stream"
+msgstr[1] "Smazat streamy"
+msgstr[2] "Smazat streamy"
 
-#: sonata.py:5158 sonata.py:6717
+#: sonata.py:5158
+#: sonata.py:6717
 msgid "Preferences"
 msgstr "Nastavení"
 
@@ -704,11 +763,11 @@ msgstr "Připojení k MPD"
 
 #: sonata.py:5172
 msgid "Add new profile"
-msgstr "Přidat profil"
+msgstr "Přidat nový profil"
 
 #: sonata.py:5175
 msgid "Remove current profile"
-msgstr "Smazat tento profil"
+msgstr "Smazat aktuální profil"
 
 #: sonata.py:5181
 msgid "Name"
@@ -744,7 +803,7 @@ msgstr "Navíc"
 
 #: sonata.py:5257
 msgid "Enable Audioscrobbler"
-msgstr ""
+msgstr "Povolit Audioscrobbler"
 
 #: sonata.py:5262
 msgid "Username:"
@@ -760,7 +819,7 @@ msgstr "Oznamování"
 
 #: sonata.py:5274
 msgid "Popup notification on song changes"
-msgstr "Vysouvací oznámení při změně skladby"
+msgstr "Vyskakovací oznámení při změně skladby"
 
 #: sonata.py:5300
 msgid "Enable Crossfade"
@@ -780,7 +839,7 @@ msgstr "Zobrazení"
 
 #: sonata.py:5350
 msgid "Enable album art"
-msgstr "Povolit obzázek alba"
+msgstr "Povolit obrázek alba"
 
 #: sonata.py:5353
 msgid "Local only"
@@ -832,71 +891,48 @@ msgstr "Zobrazit okno na všech plochách"
 
 #: sonata.py:5412
 msgid "Keep window above other windows"
-msgstr "Okno vždy nahoře"
+msgstr "Podržet okno nad ostatními okny"
 
 #: sonata.py:5414
 msgid "Update MPD library on start"
 msgstr "Aktualizovat databázi MPD při spuštění"
 
 #: sonata.py:5416
-msgid ""
-"If enabled, Sonata will automatically update your MPD library when it starts "
-"up."
-msgstr ""
-"Pokud je zapnuto, sonata může automaticky aktualizovat databázi MPD při "
-"spuštění."
+msgid "If enabled, Sonata will automatically update your MPD library when it starts up."
+msgstr "Pokud je zapnuto, sonata bude automaticky aktualizovat databázi MPD při spuštění."
 
 #: sonata.py:5417
 msgid "Stop playback on exit"
 msgstr "Zastavit přehrávání při vypnutí"
 
 #: sonata.py:5419
-msgid ""
-"MPD allows playback even when the client is not open. If enabled, Sonata "
-"will behave like a more conventional music player and, instead, stop "
-"playback upon exit."
-msgstr ""
-"MPD umožňuje přehrávání i když klient není spuštěn. Pokud je tato volba "
-"zapnuta, Sonata se může chovat jako běžné přehrávače a zastavit přehrávání "
-"při ukončení."
+msgid "MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit."
+msgstr "MPD umožňuje přehrávání i když klient není spuštěn. Pokud je tato volba zapnuta, Sonata se může chovat jako běžné přehrávače a zastavit přehrávání při ukončení."
 
 #: sonata.py:5420
 msgid "Minimize to system tray on close/escape"
 msgstr "Skrýt do systémové oblasti při zavření"
 
 #: sonata.py:5422
-msgid ""
-"If enabled, closing Sonata will minimize it to the system tray. Note that "
-"it's currently impossible to detect if there actually is a system tray, so "
-"only check this if you have one."
-msgstr ""
-"Pokud je zapnuto, při zavření bude Sonata pouze minimalizována do systémové "
-"oblasti."
+msgid "If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."
+msgstr "Pokud je zapnuto, při zavření bude Sonata pouze minimalizována do systémové oblasti. Nyní nejde zjistit, jestli je k dispozici systémová oblast, proto se ujistěte, že je možné systémovou oblast použít."
 
 #: sonata.py:5424
 msgid "Play enqueued files on activate"
 msgstr "Přehrát zařazené soubory při aktivaci"
 
 #: sonata.py:5426
-msgid ""
-"Automatically play enqueued items when activated via double-click or enter."
-msgstr ""
-"Automaticky přehrát zařazené položky pokud jsou aktivovány dvojitým "
-"kliknutím nebo entrem."
+msgid "Automatically play enqueued items when activated via double-click or enter."
+msgstr "Automaticky přehrát zařazené položky pokud jsou aktivovány dvojitým kliknutím nebo entrem."
 
 #: sonata.py:5434
 msgid "Write status file:"
 msgstr "Zapsat stav do souboru:"
 
-#: sonata.py:5436 sonata.py:5439
-msgid ""
-"If enabled, Sonata will create a xmms-infopipe like file containing "
-"information about the current song. Many applications support the xmms-info "
-"file (Instant Messengers, IRC Clients...)"
-msgstr ""
-"Pokud je zapnuto, Sonata může vytvořit xmms-infopipe jako soubor obsahující "
-"informace o aktuální skladbě. Mnoho aplikací soubor xmms-info podporuje "
-"(Instant messenger, IRC klienty...)"
+#: sonata.py:5436
+#: sonata.py:5439
+msgid "If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)"
+msgstr "Pokud je zapnuto, Sonata vytvoří xmms-infopipe jako soubor obsahující informace o aktuální skladbě. Mnoho aplikací soubor xmms-info podporuje (Instant messenger, IRC klienty...)"
 
 #: sonata.py:5446
 msgid "Miscellaneous"
@@ -908,7 +944,7 @@ msgstr "Formát skladby"
 
 #: sonata.py:5469
 msgid "Current playlist:"
-msgstr "Aktuální­ playlist"
+msgstr "Aktuální playlist"
 
 #: sonata.py:5476
 msgid "Library:"
@@ -920,15 +956,15 @@ msgstr "Titulek okna:"
 
 #: sonata.py:5490
 msgid "Current song line 1:"
-msgstr "Aktuální skladba řádek 1:"
+msgstr "Aktuální skladba, řádek 1:"
 
 #: sonata.py:5497
 msgid "Current song line 2:"
-msgstr "Aktuální skladba řádek 2:"
+msgstr "Aktuální skladba, řádek 2:"
 
 #: sonata.py:5505
 msgid "Available options"
-msgstr "DostupnÃ© volby"
+msgstr "Dostupné volby"
 
 #: sonata.py:5510
 msgid "Artist name"
@@ -939,13 +975,12 @@ msgid "Album name"
 msgstr "Jméno alba"
 
 #: sonata.py:5510
-#, fuzzy
 msgid "Track name"
-msgstr "Čí­slo stopy"
+msgstr "Jméno stopy"
 
 #: sonata.py:5510
 msgid "Track number"
-msgstr "Čí­slo stopy"
+msgstr "Číslo stopy"
 
 #: sonata.py:5513
 msgid "File name"
@@ -961,7 +996,7 @@ msgstr "Uplynulý čas (pouze v názvu)"
 
 #: sonata.py:5519
 msgid "Info displayed only if all enclosed tags are defined"
-msgstr "Informace zobrazeny pouze když všechny přiložené tagy jsou definovány"
+msgstr "Informace zobrazeny pouze když jsou všechny přiložené tagy definovány"
 
 #: sonata.py:5535
 msgid "_MPD"
@@ -985,19 +1020,19 @@ msgstr "_Navíc"
 
 #: sonata.py:5593
 msgid "Audioscrobbler Verification"
-msgstr ""
+msgstr "Ověření Audioscrobbleru"
 
 #: sonata.py:5627
 msgid "To save artwork as"
-msgstr ""
+msgstr "Pro uložení obrázku alba jako"
 
 #: sonata.py:5627
 msgid "you must specify a valid music directory."
-msgstr "musí­te zadat platný adresář s hudbou"
+msgstr "musí­te uvést platný adresář s hudbou"
 
 #: sonata.py:5627
 msgid "Artwork Verification"
-msgstr ""
+msgstr "Ověření obrázku alba"
 
 #: sonata.py:5719
 msgid "New Profile"
@@ -1005,13 +1040,17 @@ msgstr "Nový profil"
 
 #: sonata.py:5831
 msgid "Custom Artwork"
-msgstr "Vlastní předloha"
+msgstr "Vlastní obrázek alba"
 
 #: sonata.py:5834
 msgid "Artwork filename"
-msgstr ""
+msgstr "Jméno obrázku alba"
 
-#: sonata.py:6204 sonata.py:6211 sonata.py:6250 sonata.py:6258 sonata.py:6498
+#: sonata.py:6204
+#: sonata.py:6211
+#: sonata.py:6250
+#: sonata.py:6258
+#: sonata.py:6498
 #: sonata.py:6606
 msgid "Edit Tags"
 msgstr "Upravit tagy"
@@ -1022,21 +1061,19 @@ msgstr "Cesta"
 
 #: sonata.py:6210
 msgid "does not exist. Please specify a valid music directory in preferences."
-msgstr "neexistuje. Prosím zadejte platný adresář s hudbou."
+msgstr "neexistuje. Prosím zadejte platný adresář s hudbou v nastavení."
 
 #: sonata.py:6249
-#, fuzzy
 msgid "File "
 msgstr "Soubor"
 
 #: sonata.py:6249
-#, fuzzy
 msgid " not found. Please specify a valid music directory in preferences."
-msgstr "neexistuje. Prosím zadejte platný adresář s hudbou."
+msgstr "neexistuje. Prosím zadejte platný adresář s hudbou v nastavení."
 
 #: sonata.py:6257
 msgid "No music files with editable tags found."
-msgstr "Nejsou dostupné soubory s editovatelnými tygy."
+msgstr "Nejsou dostupné soubory s editovatelnými tagy."
 
 #: sonata.py:6353
 msgid "Comment"
@@ -1044,12 +1081,11 @@ msgstr "Komentář"
 
 #: sonata.py:6376
 msgid "Save _All"
-msgstr "Uložit _Vš¡e"
+msgstr "Uložit _Vše"
 
 #: sonata.py:6421
-#, fuzzy
 msgid "Increment each selected music file, starting at track 1 for this file."
-msgstr "Přidat každý vybraný hudební soubor."
+msgstr "Přidat každý vybraný hudební soubor, začátek od stopy 1 pro tento soubor."
 
 #: sonata.py:6423
 msgid "Apply to all selected music files."
@@ -1057,7 +1093,7 @@ msgstr "Použít na všechny vybrané hudební soubory"
 
 #: sonata.py:6498
 msgid "of"
-msgstr ""
+msgstr "z"
 
 #: sonata.py:6605
 msgid "Unable to save tag to music file."
@@ -1065,27 +1101,28 @@ msgstr "Nelze uložit tag do hudebního souboru"
 
 #: sonata.py:6677
 msgid "An elegant music client for MPD."
-msgstr "Elegantní­ klient pro MPD"
+msgstr "Elegantní klient pro MPD"
 
 #: sonata.py:6683
-#, fuzzy
 msgid "album"
 msgid_plural "albums"
-msgstr[0] "alba"
+msgstr[0] "album"
 msgstr[1] "alba"
+msgstr[2] "alb"
 
 #: sonata.py:6684
-#, fuzzy
 msgid "artist"
 msgid_plural "artists"
-msgstr[0] "umělci"
+msgstr[0] "umělec"
 msgstr[1] "umělci"
+msgstr[2] "umělců"
 
 #: sonata.py:6689
 msgid "hour of bliss"
 msgid_plural "hours of bliss"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "hodina blaha"
+msgstr[1] "hodiny blaha"
+msgstr[2] "hodin blaha"
 
 #: sonata.py:6699
 msgid "_Shortcuts"
@@ -1109,7 +1146,7 @@ msgstr "Přepnout na playlisty"
 
 #: sonata.py:6721
 msgid "Switch to streams"
-msgstr "Přepnout na stream"
+msgstr "Přepnout na streamy"
 
 #: sonata.py:6722
 msgid "Connect to MPD"
@@ -1132,9 +1169,8 @@ msgid "Quit"
 msgstr "Konec"
 
 #: sonata.py:6727
-#, fuzzy
 msgid "Edit selected song's tags"
-msgstr "Přehrát vybranou skladbu"
+msgstr "Upravit tagy vybrané skladby"
 
 #: sonata.py:6728
 msgid "Update entire library"
@@ -1142,19 +1178,19 @@ msgstr "Aktualizovat celou databázi"
 
 #: sonata.py:6729
 msgid "Display popup menu"
-msgstr "Zobrazit popup menu"
+msgstr "Zobrazit vyskakovací menu"
 
 #: sonata.py:6730
 msgid "Minimize to system tray (if enabled)"
-msgstr "Skrýt do systémové oblasti"
+msgstr "Skrýt do systémové oblasti (pokud je zapnuto)"
 
 #: sonata.py:6732
 msgid "Previous track"
-msgstr "Předchozí­ stopa"
+msgstr "Předchozí stopa"
 
 #: sonata.py:6733
 msgid "Next track"
-msgstr "Další­ stopa"
+msgstr "Další stopa"
 
 #: sonata.py:6734
 msgid "Play/Pause"
@@ -1181,19 +1217,16 @@ msgid "Remove selected song(s)"
 msgstr "Smazat vybrané skladby"
 
 #: sonata.py:6741
-#, fuzzy
 msgid "Add selected song(s) to playlist queue"
-msgstr "Přidat vybrané playlisty"
+msgstr "Přidat vybrané skladby do playlistu"
 
 #: sonata.py:6742
-#, fuzzy
 msgid "Center currently playing song"
 msgstr "Zastavit přehrávanou skladbu"
 
 #: sonata.py:6743
-#, fuzzy
 msgid "Remove selected song(s) from playlist queue"
-msgstr "Smazat vybrané skladby"
+msgstr "Smazat vybrané skladby z playlistu"
 
 #: sonata.py:6744
 msgid "Save playlist"
@@ -1217,13 +1250,14 @@ msgstr "Přidat vybrané skladby nebo adresáře"
 
 #: sonata.py:6750
 msgid "Replace with selected song(s) or directory(s)"
-msgstr "Přepsat vybranými skladbami nebo adresářemi"
+msgstr "Přepsat vybranými skladbami nebo adresáři"
 
 #: sonata.py:6751
 msgid "Update library for selected path(s)"
 msgstr "Aktualizovat databázi pro vybranou cestu"
 
-#: sonata.py:6753 sonata.py:6755
+#: sonata.py:6753
+#: sonata.py:6755
 msgid "Add selected playlist(s)"
 msgstr "Přidat vybrané playlisty"
 
@@ -1235,7 +1269,8 @@ msgstr "Smazat vybrané playlisty"
 msgid "Replace with selected playlist(s)"
 msgstr "Přepsat vybranými playlisty"
 
-#: sonata.py:6758 sonata.py:6760
+#: sonata.py:6758
+#: sonata.py:6760
 msgid "Add selected stream(s)"
 msgstr "Přidat vybrané streamy"
 
@@ -1245,7 +1280,7 @@ msgstr "Smazat vybrané streamy"
 
 #: sonata.py:6761
 msgid "Replace with selected stream(s)"
-msgstr "Přepsat vybraným streamen"
+msgstr "Přepsat vybranými streamy"
 
 #: sonata.py:6764
 msgid "Main Shortcuts"
@@ -1253,23 +1288,23 @@ msgstr "Hlavní zkratky"
 
 #: sonata.py:6765
 msgid "Playback Shortcuts"
-msgstr "Přehrávání"
+msgstr "Zkratky pro přehrávání"
 
 #: sonata.py:6766
 msgid "Current Shortcuts"
-msgstr "Aktuální playlist"
+msgstr "Zkratky pro aktuální playlist"
 
 #: sonata.py:6767
 msgid "Library Shortcuts"
-msgstr "Databáze"
+msgstr "Zkratky pro databázi"
 
 #: sonata.py:6768
 msgid "Playlist Shortcuts"
-msgstr "Playlist"
+msgstr "Zkratky pro playlist"
 
 #: sonata.py:6769
 msgid "Stream Shortcuts"
-msgstr "Stream"
+msgstr "Zkratky pro stream"
 
 #: sonata.py:6770
 msgid "Shortcuts"
@@ -1288,19 +1323,6 @@ msgid "An instance of Sonata is already running."
 msgstr "Jedna instance Sonaty je už spuštěna."
 
 #: sonata.py:7395
-msgid ""
-"Sonata failed to connect to the D-BUS session bus: Unable to determine the "
-"address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for "
-"help)"
-msgstr ""
-"Sonata selhala při spojovíní s D-BUS session bus: Nelze určit adresu zprávy "
-"bus (zkuste 'man dbus-launch a 'man dbus-daemon' pro pomoc)"
+msgid "Sonata failed to connect to the D-BUS session bus: Unable to determine the address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for help)"
+msgstr "Sonata selhala při spojovíní s D-BUS session bus: Nelze určit adresu zprávy bus (zkuste 'man dbus-launch a 'man dbus-daemon' pro pomoc)"
 
-#~ msgid "Song name"
-#~ msgstr "Jméno skladby"
-
-#~ msgid "File path"
-#~ msgstr "Cesta k souboru"
-
-#~ msgid "songs."
-#~ msgstr "skladby"

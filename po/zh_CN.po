@@ -25,8 +25,8 @@ msgid "Taglib and/or tagpy not found, tag editing support disabled."
 msgstr "Taglib 与/或 tagpy 未找到，禁用标签编辑功能。"
 
 #: sonata.py:232 sonata.py:4323 sonata.py:4347
-msgid "SOAPpy not found, fetching lyrics support disabled."
-msgstr "SOAPpy 未找到，禁用获取歌词功能。"
+msgid "ZSI not found, fetching lyrics support disabled."
+msgstr "ZSI 未找到，禁用获取歌词功能。"
 
 #: sonata.py:234
 msgid ""

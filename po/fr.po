@@ -32,8 +32,8 @@ msgstr ""
 "Taglib et/ou taggy non trouvé, l'édition des étiquettes ne sera pas possible."
 
 #: sonata.py:232 sonata.py:4323 sonata.py:4347
-msgid "SOAPpy not found, fetching lyrics support disabled."
-msgstr "SOAPpy non trouvé, le téléchargement des paroles ne sera pas possible."
+msgid "ZSI not found, fetching lyrics support disabled."
+msgstr "ZSI non trouvé, le téléchargement des paroles ne sera pas possible."
 
 #: sonata.py:234
 msgid ""

@@ -134,7 +134,7 @@ if HAVE_TAGPY:
         pass
 
 try:
-    from SOAPpy import WSDL
+    from ZSI import ServiceProxy
     HAVE_WSDL = True
 except:
     HAVE_WSDL = False
@@ -237,7 +237,7 @@ class Base(mpdclient3.mpd_connection):
         if not HAVE_TAGPY:
             print _("Taglib and/or tagpy not found, tag editing support disabled.")
         if not HAVE_WSDL:
-            print _("SOAPpy not found, fetching lyrics support disabled.")
+            print _("ZSI not found, fetching lyrics support disabled.")
         if not HAVE_EGG and not HAVE_STATUS_ICON:
             print _("PyGTK+ 2.10 or gnome-python-extras not found, system tray support disabled.")
         if not HAVE_AUDIOSCROBBLER:
@@ -4341,7 +4341,7 @@ class Base(mpdclient3.mpd_connection):
                                     self.infowindow_show_lyrics(_("Artist or song title not set."), "", "", True)
                             else:
                                 self.lyrics_refresh.set_sensitive(False)
-                                self.infowindow_show_lyrics(_("SOAPpy not found, fetching lyrics support disabled."), "", "", True)
+                                self.infowindow_show_lyrics(_("ZSI not found, fetching lyrics support disabled."), "", "", True)
                     if show_after_update and self.infowindow_visible:
                         gobject.idle_add(self.infowindow_show_now)
                 else:
@@ -4365,7 +4365,7 @@ class Base(mpdclient3.mpd_connection):
                     if HAVE_WSDL:
                         self.infowindow_show_lyrics("", "", "", True)
                     else:
-                        self.infowindow_show_lyrics(_("SOAPpy not found, fetching lyrics support disabled."), "", "", True)
+                        self.infowindow_show_lyrics(_("ZSI not found, fetching lyrics support disabled."), "", "", True)
                 self.albuminfoBuffer.set_text("")
                 self.last_info_time = newtime
                 self.last_info_bitrate = newbitrate
@@ -4465,7 +4465,7 @@ class Base(mpdclient3.mpd_connection):
                     self.lyricServer = True
                     timeout = socket.getdefaulttimeout()
                     socket.setdefaulttimeout(self.LYRIC_TIMEOUT)
-                    self.lyricServer = WSDL.Proxy(wsdlFile)
+                    self.lyricServer = ServiceProxy.ServiceProxy(wsdlFile)
                 except:
                     socket.setdefaulttimeout(timeout)
                     lyrics = _("Couldn't connect to LyricWiki")
@@ -4475,7 +4475,7 @@ class Base(mpdclient3.mpd_connection):
             try:
                 timeout = socket.getdefaulttimeout()
                 socket.setdefaulttimeout(self.LYRIC_TIMEOUT)
-                lyrics = self.lyricServer.getSong(search_artist, search_title)["lyrics"]
+                lyrics = self.lyricServer.getSong(artist=search_artist, song=search_title)['return']["lyrics"]
                 if lyrics.lower() != "not found":
                     lyrics = filename_artist + " - " + filename_title + "\n\n" + lyrics
                     gobject.idle_add(self.infowindow_show_lyrics, lyrics, filename_artist, filename_title)
@@ -6723,7 +6723,7 @@ class Base(mpdclient3.mpd_connection):
             self.about_dialog.set_copyright(statslabel)
         self.about_dialog.set_license(__license__)
         self.about_dialog.set_authors(['Scott Horowitz <stonecrest@gmail.com>'])
-        self.about_dialog.set_translator_credits('cz - Jakub Adler <jakubadler@gmail.com>\nde - Paul Johnson <thrillerator@googlemail.com>\nes - Xoan Sampaiño <xoansampainho@gmail.com>\nfi - Ilkka Tuohelafr <hile@hack.fi>\nfr - Floreal M <florealm@gmail.com>\nit - Gianni Vialetto <forgottencrow@gmail.com>\nnl - Olivier <litemotiv@gmail.com>\npl - Tomasz Dominikowski <dominikowski@gmail.com>\npt_BR - Alex Tercete Matos <alextercete@gmail.com>\nru - Ivan <bkb.box@bk.ru>\nsv - Daniel Nylander <po@danielnylander.se>\nuk - Господарисько Тарас <dogmaton@gmail.com>\nzh_CN - Desmond Chang <dochang@gmail.com>\n')
+        self.about_dialog.set_translator_credits('cs - Jakub Adler <jakubadler@gmail.com>\nda - Martin Dybdal <dybber@dybber.dk>\nde - Paul Johnson <thrillerator@googlemail.com>\nes - Xoan Sampaiño <xoansampainho@gmail.com>\nfi - Ilkka Tuohelafr <hile@hack.fi>\nfr - Floreal M <florealm@gmail.com>\nit - Gianni Vialetto <forgottencrow@gmail.com>\nnl - Olivier Keun <litemotiv@gmail.com>\npl - Tomasz Dominikowski <dominikowski@gmail.com>\npt_BR - Alex Tercete Matos <alextercete@gmail.com>\nru - Ivan <bkb.box@bk.ru>\nsv - Daniel Nylander <po@danielnylander.se>\nuk - Господарисько Тарас <dogmaton@gmail.com>\nzh_CN - Desmond Chang <dochang@gmail.com>\n')
         gtk.about_dialog_set_url_hook(self.show_website, "http://sonata.berlios.de/")
         self.about_dialog.set_website_label("http://sonata.berlios.de/")
         large_icon = gtk.gdk.pixbuf_new_from_file(self.find_path('sonata_large.png'))
