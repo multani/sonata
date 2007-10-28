@@ -1,7 +1,6 @@
 v1.3
 	why the heck doesn't the treeviewcolumn header arrow update when sorting is reversed?
-	website changelog, update some screenshots
-	translations
+	website changelog
 
 v1.4
 	pref for lyrics saving location..
@@ -20,6 +19,8 @@ v1.4
 	"_Search" -> "S_earch"
 	make self.profile_names and self.currsongformat2 translatable
 	lyrics -> ability to save changes
+	merge button_press_event functions
+	allow hiding progress bar
 	
 Future:
 	libnotify?
