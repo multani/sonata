@@ -1,5 +1,5 @@
-v1.3 - Pending
-	+ Playlist queue support (requires mpd 0.14)
+v1.3 - October 29, 2007
+	+ Playlist queue support (requires mpd 0.14 - currently mpd-svn)
 	+ Use-configurable columns in playlist by using "|" in prefs > format (xsdnyd)
 	+ Switch from SOAPpy to newer ZSI library for lyrics fetching
 	+ Use xmms-like search filter by default when user types (no more ctrl-j)
@@ -14,7 +14,7 @@ v1.3 - Pending
 	+ Added Danish translation (Martin Dybdal)
 	+ Bug: Fix nl.po translation causing crash
 	+ Bug: Remember playlist position when adding from library
-	+ Bug: Fixed tracebacks with certain encodings ????????
+	+ Bug: Fixed tracebacks with certain encodings
 	+ Bug: MPD_HOST with password doesn't work on first install
 	+ Bug: Fix desktop file to match current XDG standard (nigel)
 	+ Bug: Search Amazon artwork using latin1 since it no longer supports utf8

@@ -1,6 +1,5 @@
 v1.3
 	why the heck doesn't the treeviewcolumn header arrow update when sorting is reversed?
-	&amp; etc in lyrics, 
 	website changelog, update some screenshots
 	translations
 
@@ -20,6 +19,7 @@ v1.4
 	speed up sorting by manipulating model (generic functions to swap/move model items)
 	"_Search" -> "S_earch"
 	make self.profile_names and self.currsongformat2 translatable
+	lyrics -> ability to save changes
 	
 Future:
 	libnotify?

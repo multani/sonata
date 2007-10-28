@@ -4482,6 +4482,7 @@ class Base(mpdclient3.mpd_connection):
                     # Save lyrics to file:
                     self.create_dir_if_not_existing('~/.lyrics/')
                     f = open(filename, 'w')
+                    lyrics = unescape_html(lyrics)
                     try:
                         f.write(lyrics.decode(self.enc).encode('utf8'))
                     except:
