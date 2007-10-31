@@ -27,6 +27,30 @@
 
 		 <h2>Changelog</h2>
 		 
+		 	<p>October 29, 2007 (Version 1.3):<ul>
+			<li>Playlist queue support (requires mpd 0.14 - currently mpd-svn)</li>
+			<li>Use-configurable columns in playlist by using "|" in prefs > format (xsdnyd)</li>
+			<li>Switch from SOAPpy to newer ZSI library for lyrics fetching</li>
+			<li>Use xmms-like search filter by default when user types (no more ctrl-j)</li>
+			<li>Ctrl-i shortcut to center currently playing song</li>
+			<li>Use case insensitive sorting for library (holy_robot)</li>
+			<li>Ignore "the" when sorting library in artist/album views (holy_robot)</li>
+			<li>Better logic when sorting playlists and new "dir+file" sort option (sed)</li>
+			<li>Allow saving/overwriting existing playlists and streams</li>
+			<li>Hidden config options to set browser, hide column headers</li>
+			<li>Update license to GNU GPLv3</li>
+			<li>Added Brazilian translation (Alex Tercete Matos)</li>
+			<li>Added Danish translation (Martin Dybdal)</li>
+			<li>Bug: Fix nl.po translation causing crash</li>
+			<li>Bug: Remember playlist position when adding from library</li>
+			<li>Bug: Fixed tracebacks with certain encodings</li>
+			<li>Bug: MPD_HOST with password doesn't work on first install</li>
+			<li>Bug: Fix desktop file to match current XDG standard (nigel)</li>
+			<li>Bug: Search Amazon artwork using latin1 since it no longer supports utf8</li>
+			<li>Bug: Possible tag editing issues w/non-latin encoding (requires tagpy 0.93)</li>
+			<li>Bug: Fix czech translation to use cs.po</li>
+		 	</ul>
+
 		 	<p>August 23, 2007 (Version 1.2.3):<ul>
 			<li>Incorporate disc tag in album sorting (Emmanuel Viaud)</li>
 			<li>Significantly reduced wakeups/sec according to powertop</li>
