@@ -296,6 +296,7 @@ class Base(mpdclient3.mpd_connection):
         self.lyricServer = None
         self.show_notification = False
         self.show_playback = True
+        self.show_progress = True
         self.show_statusbar = False
         self.show_trayicon = True
         self.show_lyrics = True
@@ -655,10 +656,10 @@ class Base(mpdclient3.mpd_connection):
             if not self.show_playback:
                 mediabutton.set_no_show_all(True)
                 mediabutton.hide()
-        progressbox = gtk.VBox()
+        self.progressbox = gtk.VBox()
         self.progresslabel = gtk.Label()
         self.progresslabel.set_size_request(-1, 6)
-        progressbox.pack_start(self.progresslabel)
+        self.progressbox.pack_start(self.progresslabel)
         self.progresseventbox = gtk.EventBox()
         self.progressbar = gtk.ProgressBar()
         self.progressbar.set_orientation(gtk.PROGRESS_LEFT_TO_RIGHT)
@@ -666,11 +667,14 @@ class Base(mpdclient3.mpd_connection):
         self.progressbar.set_pulse_step(0.05)
         self.progressbar.set_ellipsize(pango.ELLIPSIZE_END)
         self.progresseventbox.add(self.progressbar)
-        progressbox.pack_start(self.progresseventbox, False, False, 0)
+        self.progressbox.pack_start(self.progresseventbox, False, False, 0)
         self.progresslabel2 = gtk.Label()
         self.progresslabel2.set_size_request(-1, 6)
-        progressbox.pack_start(self.progresslabel2)
-        toptophbox.pack_start(progressbox, True, True, 0)
+        self.progressbox.pack_start(self.progresslabel2)
+        toptophbox.pack_start(self.progressbox, True, True, 0)
+        if not self.show_progress:
+            self.progressbox.set_no_show_all(True)
+            self.progressbox.hide()
         self.volumebutton = gtk.ToggleButton("", True)
         self.volumebutton.set_relief(gtk.RELIEF_NONE)
         self.volumebutton.set_property('can-focus', False)
@@ -868,6 +872,9 @@ class Base(mpdclient3.mpd_connection):
         label2.set_markup('<span size="10"> </span>')
         innerbox.pack_start(label2)
         innerbox.pack_start(self.trayprogressbar, False, False, 0)
+        if not self.show_progress:
+            self.trayprogressbar.set_no_show_all(True)
+            self.trayprogressbar.hide()
         label3 = gtk.Label()
         label3.set_markup('<span size="10"> </span>')
         innerbox.pack_start(label3)
@@ -1586,6 +1593,8 @@ class Base(mpdclient3.mpd_connection):
             self.traytips.notifications_location = conf.getint('player', 'notif_location')
         if conf.has_option('player', 'playback'):
             self.show_playback = conf.getboolean('player', 'playback')
+        if conf.has_option('player', 'progressbar'):
+            self.show_progress = conf.getboolean('player', 'progressbar')
         if conf.has_option('player', 'crossfade'):
             crossfade = conf.getint('player', 'crossfade')
             # Backwards compatibility:
@@ -1711,6 +1720,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'update_on_start', self.update_on_start)
         conf.set('player', 'notif_location', self.traytips.notifications_location)
         conf.set('player', 'playback', self.show_playback)
+        conf.set('player', 'progressbar', self.show_progress)
         conf.set('player', 'xfade', self.xfade)
         conf.set('player', 'xfade_enabled', self.xfade_enabled)
         conf.set('player', 'covers_pref', self.covers_pref)
@@ -2973,7 +2983,8 @@ class Base(mpdclient3.mpd_connection):
             # self.labelnotify()) in order to ensure that the notification
             # popup will have the correct height when being displayed for
             # the first time after a stopped state.
-            self.trayprogressbar.show()
+            if self.show_progress:
+                self.trayprogressbar.show()
             self.traycursonglabel2.show()
             if self.show_covers:
                 self.trayalbumeventbox.show()
@@ -5412,6 +5423,9 @@ class Base(mpdclient3.mpd_connection):
         display_playback = gtk.CheckButton(_("Enable playback/volume buttons"))
         display_playback.set_active(self.show_playback)
         display_playback.connect('toggled', self.prefs_playback_toggled)
+        display_progress = gtk.CheckButton(_("Enable progressbar"))
+        display_progress.set_active(self.show_progress)
+        display_progress.connect('toggled', self.prefs_progress_toggled)
         display_statusbar = gtk.CheckButton(_("Enable statusbar"))
         display_statusbar.set_active(self.show_statusbar)
         display_statusbar.connect('toggled', self.prefs_statusbar_toggled)
@@ -5426,13 +5440,13 @@ class Base(mpdclient3.mpd_connection):
         table2.attach(displaylabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(gtk.Label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(display_playback, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_statusbar, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_trayicon, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_lyrics, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_art, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_art_hbox, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_art_location_hbox, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(gtk.Label(), 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_progress, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_statusbar, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_trayicon, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_lyrics, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_art, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_art_hbox, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_art_location_hbox, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table2.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table2.attach(gtk.Label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 75, 0)
         table2.attach(gtk.Label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 75, 0)
@@ -5825,6 +5839,20 @@ class Base(mpdclient3.mpd_connection):
             self.nextbutton.hide()
             self.volumebutton.set_no_show_all(True)
             self.volumebutton.hide()
+
+    def prefs_progress_toggled(self, button):
+        if button.get_active():
+            self.show_progress = True
+            self.progressbox.set_no_show_all(False)
+            self.trayprogressbar.set_no_show_all(False)
+            self.progressbox.show_all()
+            self.trayprogressbar.show_all()
+        else:
+            self.show_progress = False
+            self.progressbox.set_no_show_all(True)
+            self.trayprogressbar.set_no_show_all(True)
+            self.progressbox.hide()
+            self.trayprogressbar.hide()
 
     def prefs_art_toggled(self, button, art_combo, art_hbox):
         if button.get_active():

@@ -1,6 +1,5 @@
 v1.3.1
 	merge button_press_event functions
-	allow hiding progress bar
 
 v1.4
 	pref for lyrics saving location..
