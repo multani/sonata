@@ -186,7 +186,7 @@ class Base(mpdclient3.mpd_connection):
         # Initialize vars (these can be needed if we have a cli argument, e.g., "sonata play")
         socket.setdefaulttimeout(5)
         self.profile_num = 0
-        self.profile_names = ['Default Profile']
+        self.profile_names = [_('Default Profile')]
         self.musicdir = [self.sanitize_musicdir("~/music")]
         self.host = ['localhost']
         self.port = [6600]
@@ -313,7 +313,7 @@ class Base(mpdclient3.mpd_connection):
         self.libraryformat = "%A - %T"
         self.titleformat = "[Sonata] %A - %T"
         self.currsongformat1 = "%T"
-        self.currsongformat2 = "by %A from %B"
+        self.currsongformat2 = _("by") + " %A " + _("from") + " %B"
         self.columnwidths = []
         self.autoconnect = True
         self.user_connect = False
@@ -4226,7 +4226,7 @@ class Base(mpdclient3.mpd_connection):
             scrollWindow.add_with_viewport(lyricsView)
             lyricsbox.pack_start(scrollWindow, True, True)
             lyricsbox_bottom = gtk.HBox()
-            self.lyrics_refresh = gtk.Button(' ' + _("_Search..."))
+            self.lyrics_refresh = gtk.Button(' ' + _("S_earch..."))
             self.lyrics_refresh.set_image(gtk.image_new_from_stock(gtk.STOCK_FIND, gtk.ICON_SIZE_MENU))
             self.lyrics_refresh.connect('clicked', self.on_lyrics_search)
             lyricsbox_bottom.pack_start(self.lyrics_refresh, False, False, 3)
@@ -4406,7 +4406,7 @@ class Base(mpdclient3.mpd_connection):
         artist = self.songinfo.artist
         title = self.songinfo.title
         dialog = gtk.Dialog('Lyrics Search', self.infowindow, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_FIND, gtk.RESPONSE_ACCEPT))
-        dialog.action_area.get_children()[0].set_label(_("Search"))
+        dialog.action_area.get_children()[0].set_label(_("_Search"))
         dialog.action_area.get_children()[0].set_image(gtk.image_new_from_stock(gtk.STOCK_FIND, gtk.ICON_SIZE_MENU))
         dialog.set_role('lyricsSearch')
         artist_hbox = gtk.HBox()

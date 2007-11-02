@@ -1,8 +1,6 @@
 v1.3.1
 	merge button_press_event functions
 	allow hiding progress bar
-	"_Search" -> "S_earch"
-	make self.profile_names and self.currsongformat2 translatable
 
 v1.4
 	pref for lyrics saving location..

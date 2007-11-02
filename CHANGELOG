@@ -1,3 +1,6 @@
+v1.3.1 - Pending
+	+ Bug: Fix manpage path to be FHS compliant
+
 v1.3 - October 29, 2007
 	+ Playlist queue support (requires mpd 0.14 - currently mpd-svn)
 	+ Use-configurable columns in playlist by using "|" in prefs > format (xsdnyd)
