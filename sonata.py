@@ -476,6 +476,7 @@ class Base(mpdclient3.mpd_connection):
             ('disconnectkey', None, 'Disconnect Key', '<Alt>d', None, self.disconnectkey_pressed),
             ('centerplaylistkey', None, 'Center Playlist Key', '<Ctrl>i', None, self.center_playlist),
             ('searchkey', None, 'Search Key', '<Ctrl>h', None, self.searchkey_pressed),
+            ('infokey', None, 'Song Info Key', 'F2', None, self.infokey_pressed),
             )
 
         toggle_actions = (
@@ -566,6 +567,7 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="disconnectkey"/>
                 <menuitem action="centerplaylistkey"/>
                 <menuitem action="searchkey"/>
+                <menuitem action="infokey"/>
               </popup>
             </ui>
             """
@@ -4070,6 +4072,9 @@ class Base(mpdclient3.mpd_connection):
         else:
             return True
 
+    def infokey_pressed(self, event):
+        self.on_infowindow_show()
+
     def on_infowindow_show(self, action=None):
         if self.infowindow_visible:
             self.infowindow.present()
@@ -6785,6 +6790,7 @@ class Base(mpdclient3.mpd_connection):
         # these are all gettextable
         mainshortcuts = \
                 [[ "F1", _("About Sonata") ],
+                 [ "F2", _("Display song info window") ],
                  [ "F5", _("Preferences") ],
                  [ "Alt-1", _("Switch to current playlist") ],
                  [ "Alt-2", _("Switch to library") ],
