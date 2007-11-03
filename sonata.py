@@ -475,6 +475,7 @@ class Base(mpdclient3.mpd_connection):
             ('connectkey', None, 'Connect Key', '<Alt>c', None, self.connectkey_pressed),
             ('disconnectkey', None, 'Disconnect Key', '<Alt>d', None, self.disconnectkey_pressed),
             ('centerplaylistkey', None, 'Center Playlist Key', '<Ctrl>i', None, self.center_playlist),
+            ('searchkey', None, 'Search Key', '<Ctrl>h', None, self.searchkey_pressed),
             )
 
         toggle_actions = (
@@ -564,6 +565,7 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="connectkey"/>
                 <menuitem action="disconnectkey"/>
                 <menuitem action="centerplaylistkey"/>
+                <menuitem action="searchkey"/>
               </popup>
             </ui>
             """
@@ -4983,16 +4985,16 @@ class Base(mpdclient3.mpd_connection):
         self.iterate_now()
 
     def switch_to_current(self, action):
-        self.notebook.set_current_page(0)
+        self.notebook.set_current_page(self.TAB_CURRENT)
 
     def switch_to_library(self, action):
-        self.notebook.set_current_page(1)
+        self.notebook.set_current_page(self.TAB_LIBRARY)
 
     def switch_to_playlists(self, action):
-        self.notebook.set_current_page(2)
+        self.notebook.set_current_page(self.TAB_PLAYLISTS)
 
     def switch_to_streams(self, action):
-        self.notebook.set_current_page(3)
+        self.notebook.set_current_page(self.TAB_STREAMS)
 
     def lower_volume(self, action):
         new_volume = int(self.volumescale.get_adjustment().get_value()) - 5
@@ -6035,6 +6037,13 @@ class Base(mpdclient3.mpd_connection):
             self.set_menu_contextual_items_visible(True)
             self.mainmenu.popup(None, None, None, event.button, event.time)
 
+    def searchkey_pressed(self, event):
+        if self.notebook.get_current_page() != self.TAB_LIBRARY:
+            self.switch_to_library(None)
+        if self.searchbutton.get_property('visible'):
+            self.on_search_end(None)
+        gobject.idle_add(self.searchtext.grab_focus)
+
     def on_search_combo_change(self, combo):
         if self.searchbutton.get_property('visible'):
             self.on_search_end(None)
@@ -6785,6 +6794,7 @@ class Base(mpdclient3.mpd_connection):
                  [ "Alt-D", _("Disconnect from MPD") ],
                  [ "Alt-Down", _("Expand player") ],
                  [ "Alt-Up", _("Collapse player") ],
+                 [ "Ctrl-H", _("Search library") ],
                  [ "Ctrl-Q", _("Quit") ],
                  [ "Ctrl-T", _("Edit selected song's tags") ],
                  [ "Ctrl-U", _("Update entire library") ],

@@ -1,9 +1,12 @@
 v1.3.1
 	merge button_press_event functions
-	FR #3815
 	FR #3814
 	FR #3799
 	pref for lyrics saving location.. Patch 2152
+	rename functions
+		keypress_*
+		cb_*
+		etc.
 
 v1.4
 	allow additional columns for library (like current)

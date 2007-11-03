@@ -1,5 +1,6 @@
 v1.3.1 - Pending
 	+ Ability to hide progress bar (can create very minimal player)
+	+ Shortcut to search library (ctrl-h)
 	+ Bug: Fix manpage path to be FHS compliant
 
 v1.3 - October 29, 2007
