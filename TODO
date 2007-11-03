@@ -1,8 +1,11 @@
 v1.3.1
 	merge button_press_event functions
+	FR #3815
+	FR #3814
+	FR #3799
+	pref for lyrics saving location.. Patch 2152
 
 v1.4
-	pref for lyrics saving location..
 	allow additional columns for library (like current)
 	genre mode (genre -> artist -> album)
 	better playlist support (mpd 0.13 only):
