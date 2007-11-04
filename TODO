@@ -1,7 +1,5 @@
 v1.3.1
 	merge button_press_event functions
-	FR #3814
-	FR #3799
 	pref for lyrics saving location.. Patch 2152
 	rename functions
 		keypress_*

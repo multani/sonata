@@ -366,6 +366,7 @@ class Base(mpdclient3.mpd_connection):
         self.last_info_bitrate = None
         self.column_sorted = (None, gtk.SORT_DESCENDING)				# TreeViewColumn, order
         self.url_browser = ""
+        self.wd = '/'
         # For increased responsiveness after the initial load, we cache the root artist and
         # album view results and simply refresh on any mpd update
         self.albums_root = None
@@ -1042,8 +1043,6 @@ class Base(mpdclient3.mpd_connection):
         # Initialize browser data and widget
         self.browserposition = {}
         self.browserselectedpath = {}
-        self.root = '/'
-        self.browser.wd = '/'
         self.searchcombo.set_active(self.last_search_num)
         self.prevstatus = None
         self.browserdata = gtk.ListStore(str, str, str)
@@ -1641,6 +1640,8 @@ class Base(mpdclient3.mpd_connection):
             self.show_header = conf.getboolean('player', 'show_header')
         if conf.has_option('player', 'browser'):
             self.url_browser = conf.get('player', 'browser')
+        if conf.has_option('player', 'root'):
+            self.wd = conf.get('player', 'root')
         if conf.has_section('currformat'):
             if conf.has_option('currformat', 'current'):
                 self.currentformat = conf.get('currformat', 'current')
@@ -1754,6 +1755,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'columnwidths', tmp)
         conf.set('player', 'show_header', self.show_header)
         conf.set('player', 'browser', self.url_browser)
+        conf.set('player', 'root', self.wd)
         # Old formats, before some letter changes. We'll keep this in for compatibility with
         # older versions of Sonata for the time being.
         conf.add_section('format')
@@ -2076,7 +2078,7 @@ class Base(mpdclient3.mpd_connection):
         prev_selection = []
         prev_selection_root = False
         prev_selection_parent = False
-        if (self.view != self.VIEW_ARTIST and root == self.browser.wd) or (self.view == self.VIEW_ARTIST and self.view_artist_level == self.view_artist_level_prev):
+        if (self.view != self.VIEW_ARTIST and root == self.wd) or (self.view == self.VIEW_ARTIST and self.view_artist_level == self.view_artist_level_prev):
             # This will happen when the database is updated. So, lets save
             # the current selection in order to try to re-select it after
             # the update is over.
@@ -2088,35 +2090,34 @@ class Base(mpdclient3.mpd_connection):
                     prev_selection_parent = True
                 else:
                     prev_selection.append(model.get_value(model.get_iter(path), 1))
-            self.browserposition[self.browser.wd] = self.browser.get_visible_rect()[1]
+            self.browserposition[self.wd] = self.browser.get_visible_rect()[1]
             path_updated = True
         else:
             path_updated = False
 
-        self.root = root
         # The logic below is more consistent with, e.g., thunar
-        if (self.view != self.VIEW_ARTIST and len(root) > len(self.browser.wd)) or (self.view == self.VIEW_ARTIST and self.view_artist_level > self.view_artist_level_prev):
+        if (self.view != self.VIEW_ARTIST and len(root) > len(self.wd)) or (self.view == self.VIEW_ARTIST and self.view_artist_level > self.view_artist_level_prev):
             # Save position and row for where we just were if we've
             # navigated into a sub-directory:
-            self.browserposition[self.browser.wd] = self.browser.get_visible_rect()[1]
+            self.browserposition[self.wd] = self.browser.get_visible_rect()[1]
             model, rows = self.browser_selection.get_selected_rows()
             if len(rows) > 0:
                 value_for_selection = self.browserdata.get_value(self.browserdata.get_iter(rows[0]), 2)
                 if value_for_selection != ".." and value_for_selection != "/":
-                    self.browserselectedpath[self.browser.wd] = rows[0]
-        elif (self.view != self.VIEW_ARTIST and root != self.browser.wd) or (self.view == self.VIEW_ARTIST and self.view_artist_level != self.view_artist_level_prev):
+                    self.browserselectedpath[self.wd] = rows[0]
+        elif (self.view != self.VIEW_ARTIST and root != self.wd) or (self.view == self.VIEW_ARTIST and self.view_artist_level != self.view_artist_level_prev):
             # If we've navigated to a parent directory, don't save
             # anything so that the user will enter that subdirectory
             # again at the top position with nothing selected
-            self.browserposition[self.browser.wd] = 0
-            self.browserselectedpath[self.browser.wd] = None
+            self.browserposition[self.wd] = 0
+            self.browserselectedpath[self.wd] = None
 
-        self.browser.wd = root
+        self.wd = root
         self.browser.freeze_child_notify()
         self.browserdata.clear()
         bd = []  # will be put into browserdata later
         if self.view == self.VIEW_FILESYSTEM:
-            if self.root != '/':
+            if self.wd != '/':
                 bd += [('0', [gtk.STOCK_HARDDISK, '/', '/'])]
                 bd += [('1', [gtk.STOCK_OPEN, '..', '..'])]
             for item in lsinfo:
@@ -2141,8 +2142,8 @@ class Base(mpdclient3.mpd_connection):
             elif self.view_artist_level == 2:
                 bd += [('0', [gtk.STOCK_HARDDISK, '/', '/'])]
                 bd += [('1', [gtk.STOCK_OPEN, '..', '..'])]
-                if self.root != "..":
-                    self.view_artist_artist = self.root
+                if self.wd != "..":
+                    self.view_artist_artist = self.wd
                 albums = []
                 songs = []
                 years = []
@@ -2166,7 +2167,7 @@ class Base(mpdclient3.mpd_connection):
                     bd += [('f' + num, ['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])]
         elif self.view == self.VIEW_ALBUM:
             items = []
-            if self.root == '/':
+            if self.wd == '/':
                 if self.albums_root is None:
                     self.albums_root = []
                     for item in self.conn.do.list('album'):
@@ -2262,8 +2263,8 @@ class Base(mpdclient3.mpd_connection):
         # select_items should be false if the same directory has merely
         # been refreshed (updated)
         try:
-            if self.browser.wd in self.browserposition:
-                self.browser.scroll_to_point(0, self.browserposition[self.browser.wd])
+            if self.wd in self.browserposition:
+                self.browser.scroll_to_point(0, self.browserposition[self.wd])
             else:
                 self.browser.scroll_to_point(0, 0)
         except:
@@ -2279,7 +2280,7 @@ class Base(mpdclient3.mpd_connection):
                 else:
                     return
             else:
-                item = self.browser.wd
+                item = self.wd
             if item in self.browserselectedpath:
                 try:
                     if self.browserselectedpath[item]:
@@ -2457,7 +2458,7 @@ class Base(mpdclient3.mpd_connection):
                         else:
                             value = self.view_artist_artist
                     else:
-                        value = '/'.join(self.browser.wd.split('/')[:-1]) or '/'
+                        value = '/'.join(self.wd.split('/')[:-1]) or '/'
                     self.browse(None, value)
 
     def on_treeview_selection_changed(self, *args):
@@ -2511,9 +2512,9 @@ class Base(mpdclient3.mpd_connection):
         items = []
         model, selected = self.browser_selection.get_selected_rows()
         if self.view == self.VIEW_FILESYSTEM or self.search_mode_enabled():
-            if return_root and not self.search_mode_enabled() and ((self.root == "/" and len(selected) == len(model)) or (self.root != "/" and len(selected) >= len(model)-2)):
+            if return_root and not self.search_mode_enabled() and ((self.wd == "/" and len(selected) == len(model)) or (self.wd != "/" and len(selected) >= len(model)-2)):
                 # Everything selected, this is faster..
-                items.append(self.root)
+                items.append(self.wd)
             else:
                 for path in selected:
                     while gtk.events_pending():
@@ -2548,7 +2549,7 @@ class Base(mpdclient3.mpd_connection):
                 while gtk.events_pending():
                     gtk.main_iteration()
                 if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
-                    if self.root == "/":
+                    if self.wd == "/":
                         for item in self.browse_search_album(model.get_value(model.get_iter(path), 1)):
                             items.append(item.file)
                     else:
@@ -2801,7 +2802,7 @@ class Base(mpdclient3.mpd_connection):
                     self.albums_root = None
                     self.artists_root = None
                     # Now update the library and playlist tabs
-                    self.browse(root=self.root)
+                    self.browse(root=self.wd)
                     self.playlists_populate()
                     # Update infowindow if it's visible:
                     if self.infowindow_visible:
@@ -3978,7 +3979,7 @@ class Base(mpdclient3.mpd_connection):
                     self.conn.do.command_list_end()
                 else:
                     # If no selection, update the current path...
-                    self.conn.do.update(self.browser.wd)
+                    self.conn.do.update(self.wd)
                 self.iterate_now()
 
     def on_image_activate(self, widget, event):
@@ -5696,7 +5697,7 @@ class Base(mpdclient3.mpd_connection):
                 self.update_playlist(False)
             if self.libraryformat != libraryoptions.get_text():
                 self.libraryformat = libraryoptions.get_text()
-                self.browse(root=self.browser.wd)
+                self.browse(root=self.wd)
             if self.titleformat != titleoptions.get_text():
                 self.titleformat = titleoptions.get_text()
                 self.update_wintitle()
@@ -6085,7 +6086,7 @@ class Base(mpdclient3.mpd_connection):
         self.searchbutton.hide()
         self.searchbutton.set_no_show_all(True)
         self.searchtext.set_text("")
-        self.browse(root=self.browser.wd)
+        self.browse(root=self.wd)
         self.browser.grab_focus()
 
     def search_mode_enabled(self):

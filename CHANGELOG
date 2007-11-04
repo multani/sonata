@@ -1,6 +1,8 @@
 v1.3.1 - Pending
 	+ Ability to hide progress bar (can create very minimal player)
+	+ Retain library path when re-opening Sonata
 	+ Shortcut to search library (ctrl-h)
+	+ Shortcut to display song info window (f2)
 	+ Bug: Fix manpage path to be FHS compliant
 
 v1.3 - October 29, 2007
