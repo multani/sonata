@@ -2323,6 +2323,8 @@ class Base(mpdclient3.mpd_connection):
             text[i] = text[i].replace("%F", _("File"))
             text[i] = text[i].replace("%S", _("Stream"))
             text[i] = text[i].replace("%L", _("Len"))
+            if text[i].count("{") == text[i].count("}"):
+                text[i] = text[i].replace("{","").replace("}","")
         return text
 
     def parse_formatting_for_substring(self, subformat, item, wintitle):

@@ -5,8 +5,6 @@ v1.3.1
 		keypress_*
 		cb_*
 		etc.
-	bug 12355
-	bug 12354
 	bug 12341
 	patch 2230
 	remove song from filter, preserve treeview position..
