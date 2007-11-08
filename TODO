@@ -9,6 +9,7 @@ v1.3.1
 	bug 12354
 	bug 12341
 	patch 2230
+	remove song from filter, preserve treeview position..
 
 v1.4
 	allow additional columns for library (like current)

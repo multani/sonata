@@ -3,6 +3,7 @@ v1.3.1 - Pending
 	+ Retain library path when re-opening Sonata
 	+ Shortcut to search library (ctrl-h)
 	+ Shortcut to display song info window (f2)
+	+ Bug: Filter + Edit Tags edits another song than selected
 	+ Bug: Fix manpage path to be FHS compliant
 
 v1.3 - October 29, 2007

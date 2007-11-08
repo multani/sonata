@@ -367,6 +367,7 @@ class Base(mpdclient3.mpd_connection):
         self.column_sorted = (None, gtk.SORT_DESCENDING)				# TreeViewColumn, order
         self.url_browser = ""
         self.wd = '/'
+        self.filter_row_mapping = [] # Mapping between filter rows and self.currentdata rows
         # For increased responsiveness after the initial load, we cache the root artist and
         # album view results and simply refresh on any mpd update
         self.albums_root = None
@@ -5151,7 +5152,7 @@ class Base(mpdclient3.mpd_connection):
                         if not self.filterbox_visible:
                             rownum = path[0]
                         else:
-                            rownum = self.songs_filter_rownums[path[0]]
+                            rownum = self.filter_row_mapping[path[0]]
                         iter = self.currentdata.get_iter((rownum, 0))
                         self.conn.send.deleteid(self.current_get_songid(iter, self.currentdata))
                         # Prevents the entire playlist from refreshing:
@@ -6313,7 +6314,7 @@ class Base(mpdclient3.mpd_connection):
                 if not self.filterbox_visible:
                     item = self.songs[path[0]].file
                 else:
-                    item = self.songs[self.songs_filter_rownums[path[0]]].file
+                    item = self.songs[self.filter_row_mapping[path[0]]].file
                 files.append(self.musicdir[self.profile_num] + item)
                 temp_mpdpaths.append(item)
         # Initialize tags:
@@ -7053,13 +7054,19 @@ class Base(mpdclient3.mpd_connection):
             for path in selected:
                 filterselected.append(path)
             rownum = 0
-            self.songs_filter_rownums = [] # Mapping between matches and self.currentdata
+            # Store previous rownums in temporary list, in case we are
+            # about to populate the songfilter with a subset of the
+            # current filter. This will allow us to preserve the mapping.
+            prev_rownums = []
+            for song in self.filter_row_mapping:
+                prev_rownums.append(song)
+            self.filter_row_mapping = []
             if todo == '$$$QUIT###':
                 gobject.idle_add(self.searchfilter_revert_model)
                 return
             elif len(todo) == 0:
                 for row in self.currentdata:
-                    self.songs_filter_rownums.append(rownum)
+                    self.filter_row_mapping.append(rownum)
                     rownum = rownum + 1
                     song_info = [row[0]]
                     for i in range(len(self.columnformat)+1):
@@ -7077,8 +7084,10 @@ class Base(mpdclient3.mpd_connection):
                     # previous selection (e.g. "h" -> "ha"), search
                     # for files only in the current model, not the
                     # entire self.currentdata
+                    subset = True
                     use_data = self.current.get_model()
                 else:
+                    subset = False
                     use_data = self.currentdata
                 for row in use_data:
                     song_info = [row[0]]
@@ -7088,7 +7097,10 @@ class Base(mpdclient3.mpd_connection):
                     for i in range(len(self.columnformat)+1):
                         if regexp.match(str(song_info[i+1]).lower()):
                             matches.append(song_info)
-                            self.songs_filter_rownums.append(rownum)
+                            if subset:
+                                self.filter_row_mapping.append(prev_rownums[rownum])
+                            else:
+                                self.filter_row_mapping.append(rownum)
                             break
                     rownum = rownum + 1
             if self.prevtodo == todo or self.prevtodo == "RETAIN_POS_AND_SEL":
