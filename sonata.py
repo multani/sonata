@@ -1641,8 +1641,15 @@ class Base(mpdclient3.mpd_connection):
             self.show_header = conf.getboolean('player', 'show_header')
         if conf.has_option('player', 'browser'):
             self.url_browser = conf.get('player', 'browser')
-        if conf.has_option('player', 'root'):
-            self.wd = conf.get('player', 'root')
+        if conf.has_section('library'):
+            if conf.has_option('library', 'root'):
+                self.wd = conf.get('library', 'root')
+            if conf.has_option('library', 'root_artist_level'):
+                self.view_artist_level = conf.getint('library', 'root_artist_level')
+            if conf.has_option('library', 'root_artist_artist'):
+                self.view_artist_artist = conf.get('library', 'root_artist_artist')
+            if conf.has_option('library', 'root_artist_album'):
+                self.view_artist_album = conf.get('library', 'root_artist_album')
         if conf.has_section('currformat'):
             if conf.has_option('currformat', 'current'):
                 self.currentformat = conf.get('currformat', 'current')
@@ -1756,7 +1763,11 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'columnwidths', tmp)
         conf.set('player', 'show_header', self.show_header)
         conf.set('player', 'browser', self.url_browser)
-        conf.set('player', 'root', self.wd)
+        conf.add_section('library')
+        conf.set('library', 'root', self.wd)
+        conf.set('library', 'root_artist_level', self.view_artist_level)
+        conf.set('library', 'root_artist_artist', self.view_artist_artist)
+        conf.set('library', 'root_artist_album', self.view_artist_album)
         # Old formats, before some letter changes. We'll keep this in for compatibility with
         # older versions of Sonata for the time being.
         conf.add_section('format')
