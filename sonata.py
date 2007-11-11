@@ -2127,6 +2127,7 @@ class Base(mpdclient3.mpd_connection):
                     bd += [('d' + name.lower(), [gtk.STOCK_OPEN, item.directory, escape_html(name)])]
                 elif item.type == 'file':
                     bd += [('f' + item.file.lower(), ['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])]
+            bd.sort(key=first_of_2tuple)
         elif self.view == self.VIEW_ARTIST:
             if self.view_artist_level == 1:
                 self.view_artist_artist = ''
@@ -2140,6 +2141,7 @@ class Base(mpdclient3.mpd_connection):
                     self.artists_root.sort(locale.strcoll)
                 for artist in self.artists_root:
                     bd += [(lower_no_the(artist), ['artist', artist, escape_html(artist)])]
+                bd.sort(key=first_of_2tuple)
             elif self.view_artist_level == 2:
                 bd += [('0', [gtk.STOCK_HARDDISK, '/', '/'])]
                 bd += [('1', [gtk.STOCK_OPEN, '..', '..'])]
@@ -2159,6 +2161,7 @@ class Base(mpdclient3.mpd_connection):
                     bd += [('d' + years[itemnum] + lower_no_the(albums[itemnum]), ['album', years[itemnum] + albums[itemnum], escape_html(years[itemnum] + ' - ' + albums[itemnum])])]
                 for song in songs:
                     bd += [('f' + lower_no_the(song.title), ['sonata', song.file, self.parse_formatting(self.libraryformat, song, True)])]
+                bd.sort(key=first_of_2tuple)
             else:
                 bd += [('0', [gtk.STOCK_HARDDISK, '/', '/'])]
                 bd += [('1', [gtk.STOCK_OPEN, '..', '..'])]
@@ -2166,6 +2169,7 @@ class Base(mpdclient3.mpd_connection):
                 for item in self.browse_search_album_with_artist_and_year(self.view_artist_artist, self.view_artist_album, year):
                     num = self.sanitize_mpdtag(getattr(item, 'disc', '1'), False, 2) + self.sanitize_mpdtag(getattr(item, 'track', '1'), False, 2)
                     bd += [('f' + num, ['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])]
+                # List already sorted in self.browse_parse_albumview_path...
         elif self.view == self.VIEW_ALBUM:
             items = []
             if self.wd == '/':
@@ -2177,14 +2181,14 @@ class Base(mpdclient3.mpd_connection):
                     self.albums_root.sort(locale.strcoll)
                 for item in self.albums_root:
                     bd += [('d' + lower_no_the(item), ['album', item, escape_html(item)])]
+                bd.sort(key=first_of_2tuple)
             else:
                 bd += [('0', [gtk.STOCK_HARDDISK, '/', '/'])]
                 bd += [('1', [gtk.STOCK_OPEN, '..', '..'])]
                 for item in self.browse_search_album(root):
                     num = self.sanitize_mpdtag(getattr(item, 'disc', '1'), False, 2) + self.sanitize_mpdtag(getattr(item, 'track', '1'), False, 2)
                     bd += [('f' + num, ['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])]
-
-        bd.sort(key=first_of_2tuple)
+                # List already sorted in self.browse_parse_albumview_path...
 
         for sort, list in bd:
             self.browserdata.append(list)
@@ -6950,21 +6954,18 @@ class Base(mpdclient3.mpd_connection):
         # track/disc number. Known forms for the mpd tag can be
         # "4", "4/10", and "4,10".
         try:
-            if return_int:
-                return int(mpdtag.split('/')[0])
-            else:
-                return str(int(mpdtag.split('/')[0])).zfill(str_padding)
+            ret = int(mpdtag.split('/')[0])
         except:
             try:
-                if return_int:
-                    return int(mpdtag.split(',')[0])
-                else:
-                    return str(int(mpdtag.split(',')[0])).zfill(str_padding)
+                ret = int(mpdtag.split(',')[0])
             except:
-                if return_int:
-                    return 0
-                else:
-                    return "0".zfill(str_padding)
+                ret = 0
+        # Don't allow negative numbers:
+        if ret < 0:
+            ret = 0
+        if not return_int:
+            ret = str(ret).zfill(str_padding)
+        return ret
 
     def searchfilter_toggle(self, widget, initial_text=""):
         if self.filterbox_visible:
