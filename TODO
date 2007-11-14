@@ -32,3 +32,4 @@ Future:
 	dnd from other tabs to playlist tabs
 	hover over album art -> show larger image in borderless popup after 0.5 sec?
 	use GtkVolumeButton?
+	update audioscrobbler to protocol 1.2

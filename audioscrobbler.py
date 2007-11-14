@@ -807,6 +807,10 @@ class AudioScrobblerPost:
                     code = error.reason.args[0]
                     message = error.reason.args[1]
             raise AudioScrobblerConnectionError('network', code, message)
+        except:
+            code = '000'
+            message = sys.exc_info()[1]
+            raise AudioScrobblerConnectionError('network', code, message)
 
         self.last_post = now
         response = url_handle.readlines()
