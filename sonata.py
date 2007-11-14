@@ -368,6 +368,7 @@ class Base(mpdclient3.mpd_connection):
         self.url_browser = ""
         self.wd = '/'
         self.filter_row_mapping = [] # Mapping between filter rows and self.currentdata rows
+        self.plpos = None
         # For increased responsiveness after the initial load, we cache the root artist and
         # album view results and simply refresh on any mpd update
         self.albums_root = None
@@ -2483,40 +2484,13 @@ class Base(mpdclient3.mpd_connection):
         self.set_menu_contextual_items_visible()
 
     def on_browser_button_press(self, widget, event):
-        self.volume_hide()
-        if event.button == 3:
-            self.set_menu_contextual_items_visible()
-            self.mainmenu.popup(None, None, None, event.button, event.time)
-            # Don't change the selection for a right-click. This
-            # will allow the user to select multiple rows and then
-            # right-click (instead of right-clicking and having
-            # the current selection change to the current row)
-            if self.browser_selection.count_selected_rows() > 1:
-                return True
+        self.button_press(widget, event)
 
     def playlists_button_press(self, widget, event):
-        self.volume_hide()
-        if event.button == 3:
-            self.set_menu_contextual_items_visible()
-            self.mainmenu.popup(None, None, None, event.button, event.time)
-            # Don't change the selection for a right-click. This
-            # will allow the user to select multiple rows and then
-            # right-click (instead of right-clicking and having
-            # the current selection change to the current row)
-            if self.playlists_selection.count_selected_rows() > 1:
-                return True
+        self.button_press(widget, event)
 
     def streams_button_press(self, widget, event):
-        self.volume_hide()
-        if event.button == 3:
-            self.set_menu_contextual_items_visible()
-            self.mainmenu.popup(None, None, None, event.button, event.time)
-            # Don't change the selection for a right-click. This
-            # will allow the user to select multiple rows and then
-            # right-click (instead of right-clicking and having
-            # the current selection change to the current row)
-            if self.streams_selection.count_selected_rows() > 1:
-                return True
+        self.button_press(widget, event)
 
     def play_item(self, playid):
         if self.conn:
@@ -3141,16 +3115,17 @@ class Base(mpdclient3.mpd_connection):
             else:
                 if self.queuecolumn.get_visible():
                     self.queuecolumn.set_visible(False)
-            self.current.thaw_child_notify()
             if self.filterbox_visible:
                 # Refresh filtered results:
                 if update_queuelist_only:
                     self.queueinfo_update_playlist(strqueue)
                 else:
                     self.prevtodo = "RETAIN_POS_AND_SEL" # Hacky, but this ensures we retain the self.current position/selection
+                    self.plpos = playlistposition
                     self.searchfilter_feed_loop(self.filterpattern)
             elif self.sonata_loaded:
                 self.playlist_retain_view(playlistposition)
+                self.current.thaw_child_notify()
             self.update_statusbar()
             self.update_column_indicators()
             self.change_cursor(None)
@@ -3958,6 +3933,9 @@ class Base(mpdclient3.mpd_connection):
         self.iterate_now()
 
     def on_current_button_press(self, widget, event):
+        self.button_press(widget, event)
+
+    def button_press(self, widget, event):
         self.volume_hide()
         if event.button == 3:
             self.set_menu_contextual_items_visible()
@@ -3966,7 +3944,7 @@ class Base(mpdclient3.mpd_connection):
             # will allow the user to select multiple rows and then
             # right-click (instead of right-clicking and having
             # the current selection change to the current row)
-            if self.current_selection.count_selected_rows() > 1:
+            if widget.get_selection().count_selected_rows() > 1:
                 return True
 
     def on_current_button_released(self, widget, event):
@@ -5077,7 +5055,8 @@ class Base(mpdclient3.mpd_connection):
 
     def volume_hide(self):
         self.volumebutton.set_active(False)
-        self.volumewindow.hide()
+        if self.volumewindow.get_property('visible'):
+            self.volumewindow.hide()
 
     # Control callbacks
     def pp(self, widget):
@@ -7060,6 +7039,7 @@ class Base(mpdclient3.mpd_connection):
             except:
                 todo = self.filterbox_cmd_buf
                 pass
+            self.current.freeze_child_notify()
             matches = gtk.ListStore(*([str] + [int] + [str] * len(self.columnformat)))
             matches.clear()
             filterposition = self.current.get_visible_rect()[1]
@@ -7100,6 +7080,12 @@ class Base(mpdclient3.mpd_connection):
                     # entire self.currentdata
                     subset = True
                     use_data = self.current.get_model()
+                    if len(use_data) != len(prev_rownums):
+                        # Not exactly sure why this happens sometimes
+                        # so lets just revert to prevent a possible, but
+                        # infrequent, crash. The only downside is speed.
+                        subset = False
+                        use_data = self.currentdata
                 else:
                     subset = False
                     use_data = self.currentdata
@@ -7120,6 +7106,9 @@ class Base(mpdclient3.mpd_connection):
             if self.prevtodo == todo or self.prevtodo == "RETAIN_POS_AND_SEL":
                 # mpd update, retain view of treeview:
                 retain_position_and_selection = True
+                if self.plpos:
+                    filterposition = self.plpos
+                    self.plpos = None
             else:
                 retain_position_and_selection = False
             self.filterbox_cond.acquire()
@@ -7151,6 +7140,7 @@ class Base(mpdclient3.mpd_connection):
 
     def searchfilter_revert_model(self):
         self.current.set_model(self.currentdata)
+        self.current.thaw_child_notify()
         gobject.idle_add(self.keep_song_visible_in_list)
         gobject.idle_add(self.current.grab_focus)
 
@@ -7167,11 +7157,12 @@ class Base(mpdclient3.mpd_connection):
             else:
                 gobject.idle_add(self.edit_entry_revert_color, self.filterpattern)
             if retain_position_and_selection and filterposition:
-                gobject.idle_add(self.current.scroll_to_point, 0, filterposition)
+                self.current.scroll_to_point(0, filterposition)
                 for path in filterselected:
-                    gobject.idle_add(self.current_selection.select_path, path)
+                    self.current_selection.select_path(path)
             else:
-                gobject.idle_add(self.current.set_cursor, '0')
+                self.current.set_cursor('0')
+            self.current.thaw_child_notify()
 
     def searchfilter_key_pressed(self, widget, event):
         if event.keyval == gtk.gdk.keyval_from_name('Down') or event.keyval == gtk.gdk.keyval_from_name('Up') or event.keyval == gtk.gdk.keyval_from_name('Page_Down') or event.keyval == gtk.gdk.keyval_from_name('Page_Up'):

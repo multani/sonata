@@ -1,13 +1,13 @@
 v1.3.1
-	merge button_press_event functions
 	pref for lyrics saving location.. Patch 2152
 	rename functions
 		keypress_*
 		cb_*
 		etc.
-	bug 12341
 	patch 2230
-	remove song from filter, preserve treeview position..
+	remove song from filter, why visual refresh?
+	check for newfrac < 0 or newfrac > 1
+	further reduce wakeups?
 
 v1.4
 	allow additional columns for library (like current)
