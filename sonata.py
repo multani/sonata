@@ -2484,13 +2484,13 @@ class Base(mpdclient3.mpd_connection):
         self.set_menu_contextual_items_visible()
 
     def on_browser_button_press(self, widget, event):
-        self.button_press(widget, event)
+        if self.button_press(widget, event): return True
 
     def playlists_button_press(self, widget, event):
-        self.button_press(widget, event)
+        if self.button_press(widget, event): return True
 
     def streams_button_press(self, widget, event):
-        self.button_press(widget, event)
+        if self.button_press(widget, event): return True
 
     def play_item(self, playid):
         if self.conn:
@@ -3933,7 +3933,7 @@ class Base(mpdclient3.mpd_connection):
         self.iterate_now()
 
     def on_current_button_press(self, widget, event):
-        self.button_press(widget, event)
+        if self.button_press(widget, event): return True
 
     def button_press(self, widget, event):
         self.volume_hide()
