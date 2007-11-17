@@ -2323,8 +2323,7 @@ class Base(mpdclient3.mpd_connection):
             end_pos = format.find("}", begin_pos)
             substrings.append(format[begin_pos:end_pos+1])
             begin_pos = format.find("{", end_pos)
-        if end_pos+1 < len(format.decode('utf-8')):
-            substrings.append(format[end_pos+1:len(format.decode('utf-8'))])
+        substrings.append(format[end_pos+1:])
         return substrings
 
     def parse_formatting_for_column_names(self, format):
