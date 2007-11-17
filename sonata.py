@@ -2912,7 +2912,8 @@ class Base(mpdclient3.mpd_connection):
         else:
             newfrac = 0
         if not self.last_progress_frac or self.last_progress_frac != newfrac:
-            self.progressbar.set_fraction(newfrac)
+            if newfrac >= 0 and newfrac <= 1:
+                self.progressbar.set_fraction(newfrac)
         if self.conn:
             if self.status and self.status.state in ['play', 'pause']:
                 at, length = [int(c) for c in self.status.time.split(':')]
