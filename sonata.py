@@ -1529,7 +1529,10 @@ class Base(mpdclient3.mpd_connection):
             # will ensure that we skip, e.g., F5, Alt, Ctrl, ...
             if len(event.string.strip()) > 0:
                 if not self.filterbox_visible:
-                    self.searchfilter_toggle(None, event.string)
+                    if event.string != "/":
+                        self.searchfilter_toggle(None, event.string)
+                    else:
+                        self.searchfilter_toggle(None)
 
     def settings_load(self):
         # Load config:
