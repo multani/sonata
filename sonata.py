@@ -4518,7 +4518,7 @@ class Base(mpdclient3.mpd_connection):
                         f.write(lyrics)
                     f.close()
             except:
-                lyrics = _("Fetching lyrics failed")
+                lyrics = _("Fetching lyrics failed") + ": " + sys.exc_info()[1]
                 gobject.idle_add(self.infowindow_show_lyrics, lyrics, filename_artist, filename_title)
             socket.setdefaulttimeout(timeout)
 
