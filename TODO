@@ -1,12 +1,8 @@
 v1.3.1
 	pref for lyrics saving location.. Patch 2152
-	rename functions
-		keypress_*
-		cb_*
-		etc.
 	patch 2230
 	remove song from filter, why visual refresh?
-	further reduce wakeups?
+	possible remote artwork crash..
 
 v1.4
 	allow additional columns for library (like current)

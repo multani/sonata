@@ -472,7 +472,6 @@ class Base(mpdclient3.mpd_connection):
             ('raisekey2', None, 'Raise Volume Key 2', '<Ctrl>equal', None, self.raise_volume),
             ('quitkey', None, 'Quit Key', '<Ctrl>q', None, self.on_delete_event_yes),
             ('quitkey2', None, 'Quit Key 2', '<Ctrl>w', None, self.on_delete_event_yes),
-            ('menukey', None, 'Menu Key', 'Menu', None, self.menukey_press),
             ('updatekey', None, 'Update Key', '<Ctrl>u', None, self.updatedb),
             ('updatekey2', None, 'Update Key 2', '<Ctrl><Shift>u', None, self.updatedb_path),
             ('connectkey', None, 'Connect Key', '<Alt>c', None, self.connectkey_pressed),
@@ -563,7 +562,6 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="lowerkey"/>
                 <menuitem action="raisekey"/>
                 <menuitem action="raisekey2"/>
-                <menuitem action="menukey"/>
                 <menuitem action="updatekey"/>
                 <menuitem action="updatekey2"/>
                 <menuitem action="connectkey"/>
@@ -941,9 +939,8 @@ class Base(mpdclient3.mpd_connection):
         self.current.connect('drag_data_received', self.on_drag_drop)
         self.current.connect('row_activated', self.on_current_click)
         self.current.connect('button_press_event', self.on_current_button_press)
-        self.current.connect('button_release_event', self.on_current_button_released)
         self.current_selection.connect('changed', self.on_treeview_selection_changed)
-        self.current.connect('popup_menu', self.on_current_popup_menu)
+        self.current.connect('popup_menu', self.on_popup_menu)
         self.shufflemenu.connect('toggled', self.on_shuffle_clicked)
         self.repeatmenu.connect('toggled', self.on_repeat_clicked)
         self.volumescale.connect('change_value', self.on_volumescale_change)
@@ -955,15 +952,18 @@ class Base(mpdclient3.mpd_connection):
         self.browser.connect('button_press_event', self.on_browser_button_press)
         self.browser.connect('key-press-event', self.on_browser_key_press)
         self.browser_selection.connect('changed', self.on_treeview_selection_changed)
+        self.browser.connect('popup_menu', self.on_popup_menu)
         self.libraryview.connect('clicked', self.libraryview_popup)
         self.playlists.connect('button_press_event', self.playlists_button_press)
         self.playlists.connect('row_activated', self.playlists_activated)
         self.playlists_selection.connect('changed', self.on_treeview_selection_changed)
         self.playlists.connect('key-press-event', self.playlists_key_press)
+        self.playlists.connect('popup_menu', self.on_popup_menu)
         self.streams.connect('button_press_event', self.streams_button_press)
         self.streams.connect('row_activated', self.on_streams_activated)
         self.streams_selection.connect('changed', self.on_treeview_selection_changed)
         self.streams.connect('key-press-event', self.on_streams_key_press)
+        self.streams.connect('popup_menu', self.on_popup_menu)
         self.ppbutton.connect('button_press_event', self.popup_menu)
         self.prevbutton.connect('button_press_event', self.popup_menu)
         self.stopbutton.connect('button_press_event', self.popup_menu)
@@ -2666,9 +2666,6 @@ class Base(mpdclient3.mpd_connection):
             x, y, width, height = self.current.get_allocation()
             # Find first selected visible row and popup the menu
             # from there
-            i = 0
-            row_found = False
-            row_y = 0
             if self.notebook.get_current_page() == self.TAB_CURRENT:
                 widget = self.current
                 column = self.columns[0]
@@ -2683,19 +2680,15 @@ class Base(mpdclient3.mpd_connection):
                 column = self.streamscolumn
             rows = widget.get_selection().get_selected_rows()[1]
             visible_rect = widget.get_visible_rect()
-            while not row_found and i < len(rows):
-                row = rows[i]
+            row_y = 0
+            for row in rows:
                 row_rect = widget.get_background_area(row, column)
                 if row_rect.y + row_rect.height <= visible_rect.height and row_rect.y >= 0:
-                    row_found = True
                     row_y = row_rect.y + 30
-                i += 1
+                    break
             return (self.x + width - 150, self.y + y + row_y, True)
         else:
             return (self.x + 250, self.y + 80, True)
-
-    def menukey_press(self, action):
-        self.mainmenu.popup(None, None, self.position_menu, 0, 0)
 
     def handle_change_status(self):
         if self.status == None:
@@ -3942,7 +3935,11 @@ class Base(mpdclient3.mpd_connection):
         self.volume_hide()
         if event.button == 3:
             self.set_menu_contextual_items_visible()
-            self.mainmenu.popup(None, None, None, event.button, event.time)
+            # Calling the popup in idle_add is important. It allows the menu items
+            # to have been shown/hidden before the menu is popped up. Otherwise, if
+            # the menu pops up too quickly, it can result in automatically clicking
+            # menu items for the user!
+            gobject.idle_add(self.mainmenu.popup, None, None, None, event.button, event.time)
             # Don't change the selection for a right-click. This
             # will allow the user to select multiple rows and then
             # right-click (instead of right-clicking and having
@@ -3950,11 +3947,9 @@ class Base(mpdclient3.mpd_connection):
             if widget.get_selection().count_selected_rows() > 1:
                 return True
 
-    def on_current_button_released(self, widget, event):
-        return
-
-    def on_current_popup_menu(self, widget):
-        self.mainmenu.popup(None, None, None, 3, 0)
+    def on_popup_menu(self, widget):
+        self.set_menu_contextual_items_visible()
+        gobject.idle_add(self.mainmenu.popup, None, None, self.position_menu, 3, 0)
 
     def updatedb(self, widget):
         if self.conn:
@@ -6041,7 +6036,7 @@ class Base(mpdclient3.mpd_connection):
                 return
         if event.button == 3:
             self.set_menu_contextual_items_visible(True)
-            self.mainmenu.popup(None, None, None, event.button, event.time)
+            gobject.idle_add(self.mainmenu.popup, None, None, None, event.button, event.time)
 
     def searchkey_pressed(self, event):
         if self.notebook.get_current_page() != self.TAB_LIBRARY:
@@ -6104,7 +6099,7 @@ class Base(mpdclient3.mpd_connection):
         return False
 
     def set_menu_contextual_items_visible(self, show_songinfo_only=False):
-        if show_songinfo_only:
+        if show_songinfo_only or not self.expanded:
             self.UIManager.get_widget('/mainmenu/songinfo_menu/').show()
             self.UIManager.get_widget('/mainmenu/addmenu/').hide()
             self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
@@ -6120,8 +6115,6 @@ class Base(mpdclient3.mpd_connection):
             self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
             self.UIManager.get_widget('/mainmenu/queuemenu/').hide()
             self.UIManager.get_widget('/mainmenu/dequeuemenu/').hide()
-            return
-        if not self.expanded:
             return
         elif self.notebook.get_current_page() == self.TAB_CURRENT:
             if len(self.currentdata) > 0:

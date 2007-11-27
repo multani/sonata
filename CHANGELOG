@@ -3,6 +3,7 @@ v1.3.1 - Pending
 	+ Retain library path when re-opening Sonata
 	+ Shortcut to search library (ctrl-h)
 	+ Shortcut to display song info window (f2)
+	+ Bug: Right-click menu can cause accidental actions with some gtk themes
 	+ Bug: Prevent crash on negative disc/track numbers
 	+ Bug: {} displays in the Current column title
 	+ Bug: Filter + Edit Tags edits a different song than selected
