@@ -467,9 +467,9 @@ class Base(mpdclient3.mpd_connection):
             ('stopkey', None, 'Stop Key', '<Ctrl>s', None, self.stop),
             ('prevkey', None, 'Previous Key', '<Ctrl>Left', None, self.prev),
             ('nextkey', None, 'Next Key', '<Ctrl>Right', None, self.next),
-            ('lowerkey', None, 'Lower Volume Key', '<Ctrl>minus', None, self.lower_volume),
-            ('raisekey', None, 'Raise Volume Key', '<Ctrl>plus', None, self.raise_volume),
-            ('raisekey2', None, 'Raise Volume Key 2', '<Ctrl>equal', None, self.raise_volume),
+            ('lowerkey', None, 'Lower Volume Key', '<Ctrl>minus', None, self.volume_lower),
+            ('raisekey', None, 'Raise Volume Key', '<Ctrl>plus', None, self.volume_raise),
+            ('raisekey2', None, 'Raise Volume Key 2', '<Ctrl>equal', None, self.volume_raise),
             ('quitkey', None, 'Quit Key', '<Ctrl>q', None, self.on_delete_event_yes),
             ('quitkey2', None, 'Quit Key 2', '<Ctrl>w', None, self.on_delete_event_yes),
             ('updatekey', None, 'Update Key', '<Ctrl>u', None, self.updatedb),
@@ -1510,7 +1510,9 @@ class Base(mpdclient3.mpd_connection):
         if shortcut == 'BackSpace':
             self.browse_parent_dir(None)
         elif shortcut == 'Escape':
-            if self.notebook.get_current_page() == self.TAB_LIBRARY and self.searchbutton.get_property('visible'):
+            if self.volumewindow.get_property('visible'):
+                self.volume_hide()
+            elif self.notebook.get_current_page() == self.TAB_LIBRARY and self.searchbutton.get_property('visible'):
                 self.on_search_end(None)
             elif self.notebook.get_current_page() == self.TAB_CURRENT and self.filterbox_visible:
                 self.searchfilter_toggle(None)
@@ -1522,6 +1524,12 @@ class Base(mpdclient3.mpd_connection):
             return
         elif shortcut == 'Delete':
             self.remove(None)
+        elif self.volumewindow.get_property('visible') and (shortcut == 'Up' or shortcut == 'Down'):
+            if shortcut == 'Up':
+                self.volume_raise(None)
+            else:
+                self.volume_lower(None)
+            return True
         if self.notebook.get_current_page() == self.TAB_CURRENT:
             if event.state & (gtk.gdk.CONTROL_MASK | gtk.gdk.MOD1_MASK):
                 return
@@ -3298,7 +3306,8 @@ class Base(mpdclient3.mpd_connection):
         return False
 
     def set_default_icon_for_art(self):
-        gobject.idle_add(self.albumimage.set_from_file, self.sonatacd)
+        if self.albumimage.get_property('file') != self.sonatacd:
+            gobject.idle_add(self.albumimage.set_from_file, self.sonatacd)
         if self.infowindow_visible:
             gobject.idle_add(self.infowindow_image.set_from_file, self.sonatacd_large)
         gobject.idle_add(self.set_tooltip_art, gtk.gdk.pixbuf_new_from_file(self.sonatacd))
@@ -4996,14 +5005,14 @@ class Base(mpdclient3.mpd_connection):
     def switch_to_streams(self, action):
         self.notebook.set_current_page(self.TAB_STREAMS)
 
-    def lower_volume(self, action):
+    def volume_lower(self, action):
         new_volume = int(self.volumescale.get_adjustment().get_value()) - 5
         if new_volume < 0:
             new_volume = 0
         self.volumescale.get_adjustment().set_value(new_volume)
         self.on_volumescale_change(self.volumescale, 0, 0)
 
-    def raise_volume(self, action):
+    def volume_raise(self, action):
         new_volume = int(self.volumescale.get_adjustment().get_value()) + 5
         if new_volume > 100:
             new_volume = 100
@@ -5027,9 +5036,9 @@ class Base(mpdclient3.mpd_connection):
     def on_volumebutton_scroll(self, widget, event):
         if self.conn:
             if event.direction == gtk.gdk.SCROLL_UP:
-                self.raise_volume(None)
+                self.volume_raise(None)
             elif event.direction == gtk.gdk.SCROLL_DOWN:
-                self.lower_volume(None)
+                self.volume_lower(None)
         return
 
     def on_volumescale_scroll(self, widget, event):
