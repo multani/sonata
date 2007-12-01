@@ -4,7 +4,6 @@ v1.3.1
 	remove song from filter, why visual refresh?
 	possible remote artwork crash..
 	center currently playing song - pref? default?
-	hours -> days
 
 v1.4
 	allow additional columns for library (like current)

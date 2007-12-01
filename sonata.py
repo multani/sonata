@@ -2938,14 +2938,20 @@ class Base(mpdclient3.mpd_connection):
     def update_statusbar(self, updatingdb=False):
         if self.conn and self.status and self.show_statusbar:
             try:
+                days = None
                 hours = None
                 mins = None
                 total_time = convert_time(self.total_time)
                 try:
                     mins = total_time.split(":")[-2]
                     hours = total_time.split(":")[-3]
+                    if int(hours) >= 24:
+                        days = str(int(hours)/24)
+                        hours = str(int(hours) - int(days)*24).zfill(2)
                 except:
                     pass
+                if days:
+                    days_text = gettext.ngettext('day', 'days', int(days))
                 if mins:
                     if mins.startswith('0') and len(mins) > 1:
                         mins = mins[1:]
@@ -2953,13 +2959,15 @@ class Base(mpdclient3.mpd_connection):
                 if hours:
                     if hours.startswith('0'):
                         hours = hours[1:]
-                    hours_text = gettext.ngettext('hour and', 'hours and', int(hours))
+                    hours_text = gettext.ngettext('hour', 'hours', int(hours))
                 # Show text:
                 songs_text = gettext.ngettext('song', 'songs', int(self.status.playlistlength))
-                if hours:
-                    status_text = str(self.status.playlistlength) + ' ' + songs_text + ', ' + hours + ' ' + hours_text + ' ' + mins + ' ' + mins_text
+                if days:
+                    status_text = str(self.status.playlistlength) + ' ' + songs_text + '   ' + days + ' ' + days_text + ', ' + hours + ' ' + hours_text + ', ' + _('and') + ' ' + mins + ' ' + mins_text
+                elif hours:
+                    status_text = str(self.status.playlistlength) + ' ' + songs_text + '   ' + hours + ' ' + hours_text + ' ' + _('and') + ' ' + mins + ' ' + mins_text
                 elif mins:
-                    status_text = str(self.status.playlistlength) + ' ' + songs_text + ', ' + mins + ' ' + mins_text
+                    status_text = str(self.status.playlistlength) + ' ' + songs_text + '   ' + mins + ' ' + mins_text
                 else:
                     status_text = ""
                 if updatingdb:
@@ -6766,7 +6774,11 @@ class Base(mpdclient3.mpd_connection):
                 hours_of_playtime = convert_time(float(stats.db_playtime)).split(':')[-3]
             except:
                 hours_of_playtime = '0'
-            statslabel = statslabel + hours_of_playtime + ' ' + gettext.ngettext('hour of bliss', 'hours of bliss', int(hours_of_playtime)) + '.'
+            if int(hours_of_playtime) >= 24:
+                days_of_playtime = str(int(hours_of_playtime)/24)
+                statslabel = statslabel + days_of_playtime + ' ' + gettext.ngettext('day of bliss', 'days of bliss', int(days_of_playtime)) + '.'
+            else:
+                statslabel = statslabel + hours_of_playtime + ' ' + gettext.ngettext('hour of bliss', 'hours of bliss', int(hours_of_playtime)) + '.'
             self.about_dialog.set_copyright(statslabel)
         self.about_dialog.set_license(__license__)
         self.about_dialog.set_authors(['Scott Horowitz <stonecrest@gmail.com>'])
