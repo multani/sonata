@@ -1094,7 +1094,7 @@ class Base(mpdclient3.mpd_connection):
         # Ensure that sonata is loaded before we display the notif window
         self.sonata_loaded = True
         self.labelnotify()
-        self.keep_song_visible_in_list()
+        self.keep_song_centered_in_list()
 
         if HAVE_STATUS_ICON:
             gobject.timeout_add(250, self.iterate_status_icon)
@@ -2765,7 +2765,7 @@ class Base(mpdclient3.mpd_connection):
                     self.trayimage.set_from_stock('sonata_play', gtk.ICON_SIZE_BUTTON)
             self.update_album_art()
             if self.status.state in ['play', 'pause']:
-                self.keep_song_visible_in_list()
+                self.keep_song_centered_in_list()
 
         if self.prevstatus is None or self.status.volume != self.prevstatus.volume:
             try:
@@ -2823,7 +2823,7 @@ class Base(mpdclient3.mpd_connection):
             self.boldrow(row)
             if self.songinfo:
                 if not self.prevsonginfo or self.songinfo.file != self.prevsonginfo.file:
-                    self.keep_song_visible_in_list()
+                    gobject.idle_add(self.keep_song_centered_in_list)
             self.prev_boldrow = row
 
         self.get_new_artist_for_album_name()
@@ -3166,7 +3166,7 @@ class Base(mpdclient3.mpd_connection):
         return strqueue
 
     def center_playlist(self, event):
-        self.keep_song_visible_in_list(vertically_center=True)
+        self.keep_song_centered_in_list()
 
     def playlist_files_unchanged(self, prev_songs):
         # Go through each playlist object and check if the current and previous filenames match:
@@ -3195,23 +3195,17 @@ class Base(mpdclient3.mpd_connection):
             else:
                 column.set_sort_indicator(False)
 
-    def keep_song_visible_in_list(self, vertically_center=False):
+    def keep_song_centered_in_list(self):
         if self.filterbox_visible:
             return
         if self.expanded and len(self.currentdata)>0:
+            self.current.realize()
             try:
                 row = self.songinfo.pos
                 visible_rect = self.current.get_visible_rect()
                 row_rect = self.current.get_background_area(row, self.columns[0])
-                if vertically_center:
-                    top_coord = (row_rect.y + row_rect.height - int(visible_rect.height/2)) + visible_rect.y
-                    self.current.scroll_to_point(-1, top_coord)
-                else:
-                    if row_rect.y + row_rect.height > visible_rect.height:
-                        top_coord = (row_rect.y + row_rect.height - visible_rect.height) + visible_rect.y
-                        self.current.scroll_to_point(-1, top_coord)
-                    elif row_rect.y < 0:
-                        self.current.scroll_to_cell(row)
+                top_coord = (row_rect.y + row_rect.height - int(visible_rect.height/2)) + visible_rect.y
+                self.current.scroll_to_point(-1, top_coord)
             except:
                 pass
 
@@ -3688,7 +3682,7 @@ class Base(mpdclient3.mpd_connection):
             self.expanded = True
             self.tooltips.set_tip(self.expander, _("Click to collapse the player"))
             if self.status and self.status.state in ['play','pause']:
-                gobject.idle_add(self.keep_song_visible_in_list)
+                gobject.idle_add(self.keep_song_centered_in_list)
             self.window.set_geometry_hints(self.window)
         else:
             self.tooltips.set_tip(self.expander, _("Click to expand the player"))
@@ -7013,7 +7007,7 @@ class Base(mpdclient3.mpd_connection):
         if song_id:
             self.searchfilter_toggle(None)
             self.conn.do.playid(song_id)
-            self.keep_song_visible_in_list()
+            self.keep_song_centered_in_list()
 
     def current_get_songid(self, iter, model):
         return int(model.get_value(iter, 1))
@@ -7159,7 +7153,7 @@ class Base(mpdclient3.mpd_connection):
     def searchfilter_revert_model(self):
         self.current.set_model(self.currentdata)
         self.current.thaw_child_notify()
-        gobject.idle_add(self.keep_song_visible_in_list)
+        gobject.idle_add(self.keep_song_centered_in_list)
         gobject.idle_add(self.current.grab_focus)
 
     def searchfilter_set_matches(self, matches, filterposition, filterselected, retain_position_and_selection):
