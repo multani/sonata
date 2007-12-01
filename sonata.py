@@ -3263,6 +3263,7 @@ class Base(mpdclient3.mpd_connection):
             self.set_default_icon_for_art()
 
     def create_art_location_none_file(self):
+        self.create_dir_if_not_existing('~/.covers/')
         # If this file exists, Sonata will use the "blank" default artwork for the song
         filename = self.target_image_filename(self.ART_LOCATION_NONE)
         f = open(filename, 'w')
