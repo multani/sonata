@@ -1,14 +1,16 @@
 v1.3.1 - Pending
-	+ Ability to hide progress bar (can create very minimal player)
-	+ Retain library path when re-opening Sonata
+	+ Vertically center currently playing song
 	+ Allow screen center for notification popup
+	+ Retain library path when re-opening Sonata
+	+ Ability to hide progress bar (can create very minimal player)
 	+ Shortcut to search library (ctrl-h)
 	+ Shortcut to display song info window (f2)
 	+ Bug: Right-click menu can cause accidental actions with some gtk themes
 	+ Bug: Prevent crash on negative disc/track numbers
-	+ Bug: {} displays in the Current column title
 	+ Bug: Filter + Edit Tags edits a different song than selected
 	+ Bug: Prevent possible exception regarding cover art on first load
+	+ Bug: Allow MPD_HOST to override GUI
+	+ Bug: {} displays in the Current column title
 	+ Bug: Fix manpage path to be FHS compliant
 
 v1.3 - October 29, 2007

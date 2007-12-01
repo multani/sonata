@@ -155,17 +155,11 @@ class Connection(mpdclient3.mpd_connection):
 
     def __init__(self, Base):
         """Open a connection using the host/port values from the provided config. If conf is None, an empty object will be returned, suitable for comparing != to any other connection."""
-        host = Base.host[Base.profile_num]
-        port = Base.port[Base.profile_num]
-        password = Base.password[Base.profile_num]
 
-        if os.environ.has_key('MPD_HOST'):
-            if '@' in os.environ['MPD_HOST']:
-                password, host = os.environ['MPD_HOST'].split('@')
-            else:
-                host = os.environ['MPD_HOST']
-        if os.environ.has_key('MPD_PORT'):
-            port = int(os.environ['MPD_PORT'])
+        host, port, password = Base.mpd_env_vars()
+        if not host: host = Base.host[Base.profile_num]
+        if not port: port = Base.port[Base.profile_num]
+        if not password: password = Base.password[Base.profile_num]
 
         mpdclient3.mpd_connection.__init__(self, host, port, password)
         mpdclient3.connect(host=host, port=port, password=password)
@@ -1297,6 +1291,8 @@ class Base(mpdclient3.mpd_connection):
         self.iconfactory.add_default()
 
     def populate_profiles_for_menu(self):
+        host, port, password = self.mpd_env_vars()
+        if host or port: return
         if self.merge_id:
             self.UIManager.remove_ui(self.merge_id)
         if self.actionGroupProfiles:
@@ -1348,10 +1344,9 @@ class Base(mpdclient3.mpd_connection):
         if self.user_connect or force_connection:
             try:
                 self.conn = Connection(self)
-                password = self.password[self.profile_num]
-                if os.environ.has_key('MPD_HOST'):
-                    if '@' in os.environ['MPD_HOST']:
-                        password, host = os.environ['MPD_HOST'].split('@')
+                host, port, password = self.mpd_env_vars()
+                if not password:
+                    password = self.password[self.profile_num]
                 if len(password) > 0:
                     self.conn.do.password(password)
             except (mpdclient3.socket.error, EOFError):
@@ -5242,21 +5237,18 @@ class Base(mpdclient3.mpd_connection):
         namelabel.set_alignment(0, 0.5)
         namebox.pack_start(namelabel, False, False, 0)
         nameentry = gtk.Entry()
-        nameentry.connect('changed', self.prefs_nameentry_changed, profiles, remove_profile)
         namebox.pack_start(nameentry, True, True, 10)
         hostbox = gtk.HBox()
         hostlabel = gtk.Label(_("Host") + ":")
         hostlabel.set_alignment(0, 0.5)
         hostbox.pack_start(hostlabel, False, False, 0)
         hostentry = gtk.Entry()
-        hostentry.connect('changed', self.prefs_hostentry_changed, profiles)
         hostbox.pack_start(hostentry, True, True, 10)
         portbox = gtk.HBox()
         portlabel = gtk.Label(_("Port") + ":")
         portlabel.set_alignment(0, 0.5)
         portbox.pack_start(portlabel, False, False, 0)
         portentry = gtk.Entry()
-        portentry.connect('changed', self.prefs_portentry_changed, profiles)
         portbox.pack_start(portentry, True, True, 10)
         dirbox = gtk.HBox()
         dirlabel = gtk.Label(_("Music dir") + ":")
@@ -5271,17 +5263,47 @@ class Base(mpdclient3.mpd_connection):
         passwordbox.pack_start(passwordlabel, False, False, 0)
         passwordentry = gtk.Entry()
         passwordentry.set_visibility(False)
-        passwordentry.connect('changed', self.prefs_passwordentry_changed, profiles)
         self.tooltips.set_tip(passwordentry, _("Leave blank if no password is required."))
         passwordbox.pack_start(passwordentry, True, True, 10)
         self.set_label_widths_equal([namelabel, hostlabel, portlabel, passwordlabel, dirlabel])
         autoconnect = gtk.CheckButton(_("Autoconnect on start"))
         autoconnect.set_active(self.autoconnect)
-        profiles.connect('changed', self.prefs_profile_chosen, nameentry, hostentry, portentry, passwordentry, direntry)
-        add_profile.connect('clicked', self.prefs_add_profile, nameentry, profiles, remove_profile)
-        remove_profile.connect('clicked', self.prefs_remove_profile, profiles, remove_profile)
         # Fill in entries with current profile:
         self.prefs_profile_chosen(profiles, nameentry, hostentry, portentry, passwordentry, direntry)
+        # Update display if $MPD_HOST or $MPD_PORT is set:
+        host, port, password = self.mpd_env_vars()
+        if host or port:
+            using_mpd_env_vars = True
+            if not host: host = ""
+            if not port: port = ""
+            if not password: password = ""
+            hostentry.set_text(str(host))
+            hostentry.set_sensitive(False)
+            portentry.set_text(str(port))
+            portentry.set_sensitive(False)
+            passwordentry.set_text(str(password))
+            passwordentry.set_sensitive(False)
+            nameentry.set_text(_("Using MPD_HOST/PORT"))
+            nameentry.set_sensitive(False)
+            profiles.set_sensitive(False)
+            add_profile.set_sensitive(False)
+            remove_profile.set_sensitive(False)
+        else:
+            using_mpd_env_vars = False
+            hostentry.set_sensitive(True)
+            portentry.set_sensitive(True)
+            passwordentry.set_sensitive(True)
+            nameentry.set_sensitive(True)
+            profiles.set_sensitive(True)
+            add_profile.set_sensitive(True)
+            remove_profile.set_sensitive(True)
+            nameentry.connect('changed', self.prefs_nameentry_changed, profiles, remove_profile)
+            hostentry.connect('changed', self.prefs_hostentry_changed, profiles)
+            portentry.connect('changed', self.prefs_portentry_changed, profiles)
+            passwordentry.connect('changed', self.prefs_passwordentry_changed, profiles)
+            profiles.connect('changed', self.prefs_profile_chosen, nameentry, hostentry, portentry, passwordentry, direntry)
+            add_profile.connect('clicked', self.prefs_add_profile, nameentry, profiles, remove_profile)
+            remove_profile.connect('clicked', self.prefs_remove_profile, profiles, remove_profile)
         mpd_frame = gtk.Frame()
         table = gtk.Table(6, 2, False)
         table.set_col_spacings(3)
@@ -5614,13 +5636,26 @@ class Base(mpdclient3.mpd_connection):
         close_button = prefswindow.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
         prefswindow.show_all()
         close_button.grab_focus()
-        prefswindow.connect('response', self.prefs_window_response, prefsnotebook, exit_stop, activate, win_ontop, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, hostentry, portentry, passwordentry)
+        prefswindow.connect('response', self.prefs_window_response, prefsnotebook, exit_stop, activate, win_ontop, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, hostentry, portentry, passwordentry, using_mpd_env_vars)
         # Save previous connection properties to determine if we should try to
         # connect to MPD after prefs are closed:
         self.prev_host = self.host[self.profile_num]
         self.prev_port = self.port[self.profile_num]
         self.prev_password = self.password[self.profile_num]
         response = prefswindow.show()
+
+    def mpd_env_vars(self):
+        host = None
+        port = None
+        password = None
+        if os.environ.has_key('MPD_HOST'):
+            if '@' in os.environ['MPD_HOST']:
+                password, host = os.environ['MPD_HOST'].split('@')
+            else:
+                host = os.environ['MPD_HOST']
+        if os.environ.has_key('MPD_PORT'):
+            port = int(os.environ['MPD_PORT'])
+        return (host, port, password)
 
     def scrobbler_init(self):
         if HAVE_AUDIOSCROBBLER and self.use_scrobbler and len(self.as_username) > 0 and len(self.as_password) > 0:
@@ -5670,7 +5705,7 @@ class Base(mpdclient3.mpd_connection):
                 if self.scrob_post.authenticated:
                     self.scrob_post = None
 
-    def prefs_window_response(self, window, response, prefsnotebook, exit_stop, activate, win_ontop, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, hostentry, portentry, passwordentry):
+    def prefs_window_response(self, window, response, prefsnotebook, exit_stop, activate, win_ontop, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, hostentry, portentry, passwordentry, using_mpd_env_vars):
         if response == gtk.RESPONSE_CLOSE:
             self.stop_on_exit = exit_stop.get_active()
             self.play_on_activate = activate.get_active()
@@ -5733,10 +5768,11 @@ class Base(mpdclient3.mpd_connection):
             if self.infofile_path != infopath_options.get_text():
                 self.infofile_path = os.path.expanduser(infopath_options.get_text())
                 if self.use_infofile: self.update_infofile()
-            if self.prev_host != self.host[self.profile_num] or self.prev_port != self.port[self.profile_num] or self.prev_password != self.password[self.profile_num]:
-                # Try to connect if mpd connection info has been updated:
-                self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
-                self.connect()
+            if not using_mpd_env_vars:
+                if self.prev_host != self.host[self.profile_num] or self.prev_port != self.port[self.profile_num] or self.prev_password != self.password[self.profile_num]:
+                    # Try to connect if mpd connection info has been updated:
+                    self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
+                    self.connect()
             if self.use_scrobbler:
                 gobject.idle_add(self.scrobbler_init)
             self.settings_save()
