@@ -304,7 +304,7 @@ class Base(mpdclient3.mpd_connection):
         self.update_on_start = False
         self.minimize_to_systray = False
         self.popuptimes = ['2', '3', '5', '10', '15', '30', _('Entire song')]
-        self.popuplocations = [_('System tray'), _('Top Left'), _('Top Right'), _('Bottom Left'), _('Bottom Right')]
+        self.popuplocations = [_('System tray'), _('Top Left'), _('Top Right'), _('Bottom Left'), _('Bottom Right'), _('Screen Center')]
         self.popup_option = 2
         self.exit_now = False
         self.ignore_toggle_signal = False
@@ -7273,6 +7273,8 @@ class TrayIconTips(gtk.Window):
             return monitor.x, monitor.y + monitor.height - h
         elif self.notifications_location == 4:
             return monitor.x + monitor.width - w, monitor.y + monitor.height - h
+        elif self.notifications_location == 5:
+            return monitor.x + (monitor.width - w)/2, monitor.y + (monitor.height - h)/2
 
     def _event_handler (self, widget):
         widget.connect_after("event-after", self._motion_cb)
