@@ -3423,16 +3423,6 @@ class Base(mpdclient3.mpd_connection):
                 url_end = f.find("</URL>", curr_pos)
                 if url_start > -1 and url_end > -1:
                     img_url = f[url_start:url_end]
-                # And if that fails, try one last time with just the album name:
-                if len(img_url) == 0:
-                    search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&ResponseGroup=Images&Keywords=" + album
-                    request = urllib2.Request(search_url)
-                    opener = urllib2.build_opener()
-                    f = opener.open(request).read()
-                    url_start = f.find("<URL>http://", curr_pos)+len("<URL>")
-                    url_end = f.find("</URL>", curr_pos)
-                    if url_start > -1 and url_end > -1:
-                        img_url = f[url_start:url_end]
             if all_images:
                 curr_img = 1
                 img_url = " "
