@@ -2131,9 +2131,19 @@ class Base(mpdclient3.mpd_connection):
             self.browserposition[self.wd] = 0
             self.browserselectedpath[self.wd] = None
 
+        # In case sonata is killed or crashes, we'll save the browser state
+        # in 5 seconds (first removing any current settings_save timeouts)
+        if self.wd != root:
+            try:
+                gobject.source_remove(self.save_timeout)
+            except:
+                pass
+            self.save_timeout = gobject.timeout_add(5000, self.settings_save)
+
         self.wd = root
         self.browser.freeze_child_notify()
         self.browserdata.clear()
+
         bd = []  # will be put into browserdata later
         if self.view == self.VIEW_FILESYSTEM:
             if self.wd != '/':
