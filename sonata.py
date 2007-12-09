@@ -4340,18 +4340,17 @@ class Base(mpdclient3.mpd_connection):
                             self.albuminfoBuffer.set_text(_("Album name not set."))
                         # Update lyrics:
                         if self.show_lyrics:
-                            if HAVE_WSDL:
-                                if self.songinfo.has_key('artist') and self.songinfo.has_key('title'):
-                                    self.lyrics_refresh.set_sensitive(True)
-                                    lyricThread = threading.Thread(target=self.infowindow_get_lyrics, args=(self.songinfo.artist, self.songinfo.title, self.songinfo.artist, self.songinfo.title))
-                                    lyricThread.setDaemon(True)
-                                    lyricThread.start()
-                                else:
-                                    self.lyrics_refresh.set_sensitive(False)
-                                    self.infowindow_show_lyrics(_("Artist or song title not set."), "", "", True)
-                            else:
+                            if self.songinfo.has_key('artist') and self.songinfo.has_key('title'):
+                                self.lyrics_refresh.set_sensitive(True)
+                                lyricThread = threading.Thread(target=self.infowindow_get_lyrics, args=(self.songinfo.artist, self.songinfo.title, self.songinfo.artist, self.songinfo.title))
+                                lyricThread.setDaemon(True)
+                                lyricThread.start()
+                            elif not HAVE_WSDL:
                                 self.lyrics_refresh.set_sensitive(False)
                                 self.infowindow_show_lyrics(_("ZSI not found, fetching lyrics support disabled."), "", "", True)
+                            else:
+                                self.lyrics_refresh.set_sensitive(False)
+                                self.infowindow_show_lyrics(_("Artist or song title not set."), "", "", True)
                     if show_after_update and self.infowindow_visible:
                         gobject.idle_add(self.infowindow_show_now)
                 else:
@@ -4372,10 +4371,7 @@ class Base(mpdclient3.mpd_connection):
                 self.infowindow_bitratelabel.set_text("")
                 if self.show_lyrics:
                     self.lyrics_refresh.set_sensitive(False)
-                    if HAVE_WSDL:
-                        self.infowindow_show_lyrics("", "", "", True)
-                    else:
-                        self.infowindow_show_lyrics(_("ZSI not found, fetching lyrics support disabled."), "", "", True)
+                    self.infowindow_show_lyrics("", "", "", True)
                 self.albuminfoBuffer.set_text("")
                 self.last_info_time = newtime
                 self.last_info_bitrate = newbitrate
@@ -4467,6 +4463,10 @@ class Base(mpdclient3.mpd_connection):
             f.close()
             gobject.idle_add(self.infowindow_show_lyrics, lyrics, filename_artist, filename_title)
         else:
+            if not HAVE_WSDL:
+                gobject.idle_add(self.lyrics_refresh.set_sensitive, False)
+                gobject.idle_add(self.infowindow_show_lyrics, _("ZSI not found, fetching lyrics support disabled."), "", "", True)
+                return
             # Fetch lyrics from lyricwiki.org
             gobject.idle_add(self.infowindow_show_lyrics, _("Fetching lyrics..."), filename_artist, filename_title)
             if self.lyricServer is None:

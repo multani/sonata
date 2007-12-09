@@ -3,6 +3,7 @@ v1.3.1 - Pending
 	+ Allow screen center for notification popup
 	+ Retain library path when re-opening Sonata
 	+ Ability to hide progress bar (can create very minimal player)
+	+ Skip fallback artwork search of just album name if primary searches fail
 	+ Shortcut to search library (ctrl-h)
 	+ Shortcut to display song info window (f2)
 	+ Bug: Right-click menu can cause accidental actions with some gtk themes
