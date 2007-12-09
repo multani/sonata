@@ -1,6 +1,7 @@
 v1.3.1 - Pending
 	+ Vertically center currently playing song
 	+ Allow screen center for notification popup
+	+ Preference for saving lyrics to music file's directory (like artwork)
 	+ Retain library path when re-opening Sonata
 	+ Ability to hide progress bar (can create very minimal player)
 	+ Skip fallback artwork search of just album name if primary searches fail

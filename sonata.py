@@ -256,14 +256,16 @@ class Base(mpdclient3.mpd_connection):
         self.LYRIC_TIMEOUT = 10
         self.NOTIFICATION_WIDTH_MAX = 500
         self.NOTIFICATION_WIDTH_MIN = 350
-        self.ART_LOCATION_HOMECOVERS = 0		# ~/.covers/[artist] - [album].jpg
-        self.ART_LOCATION_COVER = 1			# file_dir/cover.jpg
-        self.ART_LOCATION_ALBUM = 2			# file_dir/album.jpg
+        self.ART_LOCATION_HOMECOVERS = 0		# ~/.covers/[artist]-[album].jpg
+        self.ART_LOCATION_COVER = 1				# file_dir/cover.jpg
+        self.ART_LOCATION_ALBUM = 2				# file_dir/album.jpg
         self.ART_LOCATION_FOLDER = 3			# file_dir/folder.jpg
         self.ART_LOCATION_CUSTOM = 4			# file_dir/[custom]
-        self.ART_LOCATION_NONE = 5			# Use default Sonata icons
+        self.ART_LOCATION_NONE = 5				# Use default Sonata icons
         self.ART_LOCATION_NONE_FLAG = "USE_DEFAULT"
         self.ART_LOCATIONS_MISC = ['front.jpg', '.folder.jpg', '.folder.png', 'AlbumArt.jpg', 'AlbumArtSmall.jpg']
+        self.LYRICS_LOCATION_HOME = 0			# ~/.lyrics/[artist]-[song].txt
+        self.LYRICS_LOCATION_PATH = 1			# file_dir/[artist]-[song].txt
 
         # Initialize vars for GUI
         self.x = 0
@@ -338,6 +340,7 @@ class Base(mpdclient3.mpd_connection):
         self.tagpy_is_91 = None
         self.art_location = self.ART_LOCATION_HOMECOVERS
         self.art_location_custom_filename = ""
+        self.lyrics_location = self.LYRICS_LOCATION_HOME
         self.filterbox_visible = False
         self.edit_style_orig = None
         self.reset_artist_for_album_name()
@@ -1640,6 +1643,8 @@ class Base(mpdclient3.mpd_connection):
             self.art_location = conf.getint('player', 'art_location')
         if conf.has_option('player', 'art_location_custom_filename'):
             self.art_location_custom_filename = conf.get('player', 'art_location_custom_filename')
+        if conf.has_option('player', 'lyrics_location'):
+            self.lyrics_location = conf.getint('player', 'lyrics_location')
         if conf.has_option('player', 'columnwidths'):
             self.columnwidths = conf.get('player', 'columnwidths').split(",")
             for col in range(len(self.columnwidths)):
@@ -1756,6 +1761,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'infowindow_h', self.infowindow_h)
         conf.set('player', 'art_location', self.art_location)
         conf.set('player', 'art_location_custom_filename', self.art_location_custom_filename)
+        conf.set('player', 'lyrics_location', self.lyrics_location)
         tmp = ""
         for i in range(len(self.columns) - 1):
             tmp += str(self.columns[i].get_width()) + ","
@@ -1936,10 +1942,7 @@ class Base(mpdclient3.mpd_connection):
             dialog.vbox.show_all()
             response = dialog.run()
             if response == gtk.RESPONSE_ACCEPT:
-                plname = entry.get_text()
-                plname = plname.replace("\\", "")
-                plname = plname.replace("/", "")
-                plname = plname.replace("\"", "")
+                plname = strip_all_slashes(entry.get_text())
             dialog.destroy()
         return plname
 
@@ -4039,9 +4042,24 @@ class Base(mpdclient3.mpd_connection):
                     self.lastalbumart = None
                     self.update_album_art()
 
+    def target_lyrics_filename(self, artist, title, force_location=None):
+        if self.conn:
+            if force_location is not None:
+                lyrics_loc = force_location
+            else:
+                lyrics_loc = self.lyrics_location
+            if lyrics_loc == self.LYRICS_LOCATION_HOME:
+                targetfile = os.path.expanduser("~/.lyrics/" + artist + "-" + title + ".txt")
+            elif lyrics_loc == self.LYRICS_LOCATION_PATH:
+                targetfile = self.musicdir[self.profile_num] + os.path.dirname(self.songinfo.file) + "/" + artist + "-" + title + ".txt"
+            try:
+                return targetfile.decode(self.enc).encode('utf8')
+            except:
+                return targetfile
+
     def target_image_filename(self, force_location=None):
         if self.conn:
-            if force_location:
+            if force_location is not None:
                 art_loc = force_location
             else:
                 art_loc = self.art_location
@@ -4446,10 +4464,7 @@ class Base(mpdclient3.mpd_connection):
         if response == gtk.RESPONSE_ACCEPT:
             dialog.destroy()
             # Delete current lyrics:
-            fname = artist + '-' + title + '.txt'
-            fname = fname.replace("\\", "")
-            fname = fname.replace("/", "")
-            fname = fname.replace("\"", "")
+            fname = strip_all_slashes(artist + '-' + title + '.txt')
             filename = os.path.expanduser('~/.lyrics/' + fname)
             if os.path.exists(filename):
                 os.remove(filename)
@@ -4461,13 +4476,11 @@ class Base(mpdclient3.mpd_connection):
             dialog.destroy()
 
     def infowindow_get_lyrics(self, search_artist, search_title, filename_artist, filename_title):
-        fname = filename_artist + '-' + filename_title + '.txt'
-        fname = fname.replace("\\", "")
-        fname = fname.replace("/", "")
-        fname = fname.replace("\"", "")
-        filename = os.path.expanduser('~/.lyrics/' + fname)
-        if os.path.exists(filename):
-            # Re-use lyrics from file, if it exists:
+        filename_artist = strip_all_slashes(filename_artist)
+        filename_title = strip_all_slashes(filename_title)
+        filename = self.infowindow_check_for_local_lyrics(filename_artist, filename_title)
+        if filename:
+            # Re-use lyrics from file:
             f = open(filename, 'r')
             lyrics = f.read()
             f.close()
@@ -4477,6 +4490,8 @@ class Base(mpdclient3.mpd_connection):
                 gobject.idle_add(self.lyrics_refresh.set_sensitive, False)
                 gobject.idle_add(self.infowindow_show_lyrics, _("ZSI not found, fetching lyrics support disabled."), "", "", True)
                 return
+            # Use default filename:
+            filename = self.target_lyrics_filename(filename_artist, filename_title)
             # Fetch lyrics from lyricwiki.org
             gobject.idle_add(self.infowindow_show_lyrics, _("Fetching lyrics..."), filename_artist, filename_title)
             if self.lyricServer is None:
@@ -4523,6 +4538,13 @@ class Base(mpdclient3.mpd_connection):
                 lyrics = _("Fetching lyrics failed") + ": " + sys.exc_info()[1]
                 gobject.idle_add(self.infowindow_show_lyrics, lyrics, filename_artist, filename_title)
             socket.setdefaulttimeout(timeout)
+
+    def infowindow_check_for_local_lyrics(self, artist, title):
+        if os.path.exists(self.target_lyrics_filename(artist, title, self.LYRICS_LOCATION_HOME)):
+            return self.target_lyrics_filename(artist, title, self.LYRICS_LOCATION_HOME)
+        elif os.path.exists(self.target_lyrics_filename(artist, title, self.LYRICS_LOCATION_PATH)):
+            return self.target_lyrics_filename(artist, title, self.LYRICS_LOCATION_PATH)
+        return None
 
     def infowindow_show_lyrics(self, lyrics, artist, title, force=False):
         if self.infowindow_visible:
@@ -5438,9 +5460,9 @@ class Base(mpdclient3.mpd_connection):
         display_art_combo.append_text(_("Remote, then local"))
         display_art_combo.set_active(self.covers_pref)
         display_art_combo.set_sensitive(self.show_covers)
-        display_blank = gtk.Label()
-        display_blank.set_alignment(1, 0.5)
-        display_art_hbox.pack_start(display_blank)
+        orderart_label = gtk.Label(_("Search order:"))
+        orderart_label.set_alignment(1, 0.5)
+        display_art_hbox.pack_start(orderart_label)
         display_art_hbox.pack_start(display_art_combo, False, False, 5)
         display_art_location_hbox = gtk.HBox()
         saveart_label = gtk.Label(_("Save art to:"))
@@ -5449,10 +5471,10 @@ class Base(mpdclient3.mpd_connection):
         display_art_location = gtk.combo_box_new_text()
         display_art_location_hbox.pack_start(display_art_location, False, False, 5)
         display_art_location.append_text("~/.covers/")
-        display_art_location.append_text("cover.jpg")
-        display_art_location.append_text("album.jpg")
-        display_art_location.append_text("folder.jpg")
-        display_art_location.append_text(_("custom name"))
+        display_art_location.append_text("../" + _("file_path") + "/cover.jpg")
+        display_art_location.append_text("../" + _("file_path") + "/album.jpg")
+        display_art_location.append_text("../" + _("file_path") + "/folder.jpg")
+        display_art_location.append_text("../" + _("file_path") + "/" + _("custom"))
         display_art_location.set_active(self.art_location)
         display_art_location.set_sensitive(self.show_covers)
         display_art_location.connect('changed', self.prefs_art_location_changed)
@@ -5468,7 +5490,18 @@ class Base(mpdclient3.mpd_connection):
         display_statusbar.connect('toggled', self.prefs_statusbar_toggled)
         display_lyrics = gtk.CheckButton(_("Enable lyrics"))
         display_lyrics.set_active(self.show_lyrics)
-        display_lyrics.connect('toggled', self.prefs_lyrics_toggled)
+        display_lyrics_location_hbox = gtk.HBox()
+        savelyrics_label = gtk.Label(_("Save lyrics to:"))
+        savelyrics_label.set_alignment(1, 0.5)
+        display_lyrics_location_hbox.pack_start(savelyrics_label)
+        display_lyrics_location = gtk.combo_box_new_text()
+        display_lyrics_location_hbox.pack_start(display_lyrics_location, False, False, 5)
+        display_lyrics_location.append_text("~/.lyrics/")
+        display_lyrics_location.append_text("../" + _("file_path") + "/")
+        display_lyrics_location.set_active(self.lyrics_location)
+        display_lyrics_location.set_sensitive(self.show_covers)
+        display_lyrics_location.connect('changed', self.prefs_lyrics_location_changed)
+        display_lyrics.connect('toggled', self.prefs_lyrics_toggled, display_lyrics_location_hbox)
         display_trayicon = gtk.CheckButton(_("Enable system tray icon"))
         display_trayicon.set_active(self.show_trayicon)
         if not HAVE_EGG and not HAVE_STATUS_ICON:
@@ -5481,10 +5514,10 @@ class Base(mpdclient3.mpd_connection):
         table2.attach(display_statusbar, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table2.attach(display_trayicon, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table2.attach(display_lyrics, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_art, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_art_hbox, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_art_location_hbox, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
+        table2.attach(display_lyrics_location_hbox, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_art, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_art_hbox, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_art_location_hbox, 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table2.attach(gtk.Label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 75, 0)
         table2.attach(gtk.Label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 75, 0)
         # Behavior tab
@@ -5712,17 +5745,16 @@ class Base(mpdclient3.mpd_connection):
             self.ontop = win_ontop.get_active()
             self.covers_pref = display_art_combo.get_active()
             self.sticky = win_sticky.get_active()
+            if self.show_lyrics and self.lyrics_location != self.LYRICS_LOCATION_HOME:
+                if not os.path.isdir(self.musicdir[self.profile_num]):
+                    show_error_msg(self.window, _("To save lyrics to the music file's directory, you must specify a valid music directory."), _("Music Dir Verification"), 'musicdirVerificationError')
+                    # Set music_dir entry focused:
+                    prefsnotebook.set_current_page(0)
+                    direntry.grab_focus()
+                    return
             if self.show_covers and self.art_location != self.ART_LOCATION_HOMECOVERS:
                 if not os.path.isdir(self.musicdir[self.profile_num]):
-                    if self.art_location == self.ART_LOCATION_COVER:
-                        filename = "cover.jpg"
-                    elif self.art_location == self.ART_LOCATION_FOLDER:
-                        filename = "folder.jpg"
-                    elif self.art_location == self.ART_LOCATION_ALBUM:
-                        filename = "album.jpg"
-                    else:
-                        filename = self.art_location_custom_filename
-                    show_error_msg(self.window, _("To save artwork as") + " " + filename + ", " + _("you must specify a valid music directory."), _("Artwork Verification"), 'artworkVerificationError')
+                    show_error_msg(self.window, _("To save artwork to the music file's directory, you must specify a valid music directory."), _("Music Dir Verification"), 'musicdirVerificationError')
                     # Set music_dir entry focused:
                     prefsnotebook.set_current_page(0)
                     direntry.grab_focus()
@@ -5934,6 +5966,9 @@ class Base(mpdclient3.mpd_connection):
             self.show_covers = False
             self.update_cursong()
 
+    def prefs_lyrics_location_changed(self, combobox):
+        self.lyrics_location = combobox.get_active()
+
     def prefs_art_location_changed(self, combobox):
         if combobox.get_active() == self.ART_LOCATION_CUSTOM:
             self.get_art_location_custom(combobox)
@@ -5959,13 +5994,15 @@ class Base(mpdclient3.mpd_connection):
             combobox.set_active(self.art_location)
         dialog.destroy()
 
-    def prefs_lyrics_toggled(self, button):
+    def prefs_lyrics_toggled(self, button, lyrics_hbox):
         if button.get_active():
+            lyrics_hbox.set_sensitive(True)
             self.show_lyrics = True
             if self.infowindow_visible:
                 self.infowindow_add_lyrics_tab(True)
                 self.infowindow_update(update_all=True)
         else:
+            lyrics_hbox.set_sensitive(False)
             self.show_lyrics = False
             if self.infowindow_visible:
                 self.infowindow_remove_lyrics_tab()
@@ -7440,6 +7477,12 @@ def unescape_html(s):
     s = s.replace('&amp;', '&')
     s = s.replace('&lt;', '<')
     s = s.replace('&gt;', '>')
+    return s
+
+def strip_all_slashes(s):
+    s = s.replace("\\", "")
+    s = s.replace("/", "")
+    s = s.replace("\"", "")
     return s
 
 def rmgeneric(path, __func__):
