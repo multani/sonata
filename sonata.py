@@ -4520,6 +4520,9 @@ class Base(mpdclient3.mpd_connection):
         # marking albums by different artists that aren't actually VA (e.g.
         # albums with the name "Untitled", "Self-titled", and so on). Either
         # the artist name or "Various Artists" will be returned.
+        # Update: We will also check that the files are in the same path
+        # to attempt to prevent Various Artists being set on a very common
+        # album name like 'Unplugged'.
         if self.current_artist_for_album_name[0] == self.songinfo:
             # Re-use existing info:
             return self.current_artist_for_album_name[1]
@@ -4528,9 +4531,10 @@ class Base(mpdclient3.mpd_connection):
         return_artist = ""
         for song in songs:
             if song.has_key('artist'):
-                artists.append(song.artist)
-                if self.songinfo.file == song.file:
-                    return_artist = song.artist
+                if os.path.dirname(self.songinfo.file) == os.path.dirname(song.file):
+                    artists.append(song.artist)
+                    if self.songinfo.file == song.file:
+                        return_artist = song.artist
         (artists, i) = remove_list_duplicates(artists, [], False)
         if len(artists) > 3:
             return_artist = _("Various Artists")
