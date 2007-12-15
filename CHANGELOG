@@ -1,12 +1,13 @@
 v1.3.1 - Pending
+	+ Integrate info window into main player
 	+ Vertically center currently playing song
 	+ Allow screen center for notification popup
 	+ Preference for saving lyrics to music file's directory (like artwork)
+	+ Allow repositioning/hiding notebook tabs (e.g. playlists, streams)
 	+ Retain library path when re-opening Sonata
 	+ Ability to hide progress bar (can create very minimal player)
 	+ Skip fallback artwork search of just album name if primary searches fail
 	+ Shortcut to search library (ctrl-h)
-	+ Shortcut to display song info window (f2)
 	+ Bug: Right-click menu can cause accidental actions with some gtk themes
 	+ Bug: Prevent crash on negative disc/track numbers
 	+ Bug: Filter + Edit Tags edits a different song than selected
@@ -14,6 +15,7 @@ v1.3.1 - Pending
 	+ Bug: Allow MPD_HOST to override GUI
 	+ Bug: {} displays in the Current column title
 	+ Bug: Fix manpage path to be FHS compliant
+	+ Bug: Ensure that the version of ZSI is compatible with sonata
 
 v1.3 - October 29, 2007
 	+ Playlist queue support (requires mpd 0.14 - currently mpd-svn)

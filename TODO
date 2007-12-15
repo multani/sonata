@@ -1,8 +1,14 @@
-v1.3.1
+v1.4
 	patch 2230
 	remove song from filter, why visual refresh?
+	make tabs configurable (right-click menu), save states
+	info tab - album info expander?
+	integrate playlist/stream tabs into library as psuedo-dirs?
+		show in all views...
+		option to hide playlists/streams?
+	show entire main expander text in tooltip
 
-v1.4
+v1.5
 	allow additional columns for library (like current)
 	genre mode (genre -> artist -> album)
 	better playlist support (mpd 0.13 only):

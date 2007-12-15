@@ -10,7 +10,7 @@ REQUIREMENTS:
 	(Optional) MPD 0.12 or newer
 	(Optional) Gnome-python-extras or PyGTK >= 2.10 for system tray
 	(Optional) taglib and tagpy for editing metadata
-	(Optional) ZSI for automatic lyrics fetching
+	(Optional) ZSI 2.0 or newer for automatic lyrics fetching
 	(Optional) Python 2.5 or python-elementtree for audioscrobbler support
 	(Building) GCC
 	(Building) python-dev (on some distros)
