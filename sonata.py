@@ -2793,7 +2793,7 @@ class Base(mpdclient3.mpd_connection):
                     self.lyricServer = ServiceProxy.ServiceProxy(wsdlFile)
                 except:
                     socket.setdefaulttimeout(timeout)
-                    lyrics = _("Couldn't connect to LyricWiki") + ": " + sys.exc_info()[1]
+                    lyrics = _("Couldn't connect to LyricWiki")
                     gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
                     self.lyricServer = None
                     gobject.idle_add(self.info_searchlabel.set_markup, search_str)
