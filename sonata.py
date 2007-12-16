@@ -4411,6 +4411,9 @@ class Base(mpdclient3.mpd_connection):
                 self.set_image_for_cover(self.lastalbumart, True)
                 self.info_tagbox.show_all()
             self.volume_hide()
+        elif event.button == 1:
+            if self.current_tab != self.TAB_INFO:
+                self.switch_to_tab_name(self.TAB_INFO)
         elif event.button == 3:
             if self.conn and self.status and self.status.state in ['play', 'pause']:
                 self.UIManager.get_widget('/imagemenu/chooseimage_menu/').hide()
