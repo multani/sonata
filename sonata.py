@@ -838,12 +838,10 @@ class Base(mpdclient3.mpd_connection):
             self.cursonglabel2.set_markup('<small>' + _('Click to collapse') + '</small>')
             if self.window_owner:
                 self.window.set_default_size(self.w, self.h)
+        self.tooltips.set_tip(self.expander, self.cursonglabel1.get_text())
         if not self.conn:
             self.progressbar.set_text(_('Not Connected'))
-        if self.expanded:
-            self.tooltips.set_tip(self.expander, _("Click to collapse the player"))
-        else:
-            self.tooltips.set_tip(self.expander, _("Click to expand the player"))
+        self.tooltips.set_tip(self.libraryview, _("Library browsing view"))
         if gtk.pygtk_version >= (2, 10, 0):
             for child in self.notebook.get_children():
                 self.notebook.set_tab_reorderable(child, True)
@@ -3416,6 +3414,7 @@ class Base(mpdclient3.mpd_connection):
                 self.traycursonglabel1.set_markup(newlabel1)
             if newlabel2 != self.traycursonglabel2.get_label():
                 self.traycursonglabel2.set_markup(newlabel2)
+            self.tooltips.set_tip(self.expander, self.cursonglabel1.get_text() + "\n" + self.cursonglabel2.get_text())
         else:
             for label in (self.cursonglabel1, self.cursonglabel2, self.traycursonglabel1, self.cursonglabel2):
                 label.set_ellipsize(pango.ELLIPSIZE_NONE)
@@ -3425,6 +3424,7 @@ class Base(mpdclient3.mpd_connection):
                 self.cursonglabel2.set_markup('<small>' + _('Click to collapse') + '</small>')
             else:
                 self.cursonglabel2.set_markup('<small>' + _('Click to expand') + '</small>')
+            self.tooltips.set_tip(self.expander, self.cursonglabel1.get_text())
             if not self.conn:
                 self.traycursonglabel1.set_label(_('Not connected'))
             else:
@@ -4056,12 +4056,9 @@ class Base(mpdclient3.mpd_connection):
                 self.window.resize(self.w, 1)
         if window_about_to_be_expanded:
             self.expanded = True
-            self.tooltips.set_tip(self.expander, _("Click to collapse the player"))
             if self.status and self.status.state in ['play','pause']:
                 gobject.idle_add(self.keep_song_centered_in_list)
             self.window.set_geometry_hints(self.window)
-        else:
-            self.tooltips.set_tip(self.expander, _("Click to expand the player"))
         # Put focus to the notebook:
         self.on_notebook_page_change(self.notebook, 0, self.notebook.get_current_page())
         return

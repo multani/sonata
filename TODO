@@ -6,7 +6,6 @@ v1.4
 	integrate playlist/stream tabs into library as psuedo-dirs?
 		show in all views...
 		option to hide playlists/streams?
-	show entire main expander text in tooltip
 	don't hard-code blue link color, theme colors
 
 v1.5
