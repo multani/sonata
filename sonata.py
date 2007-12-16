@@ -3748,7 +3748,6 @@ class Base(mpdclient3.mpd_connection):
                     del pix1
                 if self.info_imagebox.get_size_request()[0] == -1:
                     fullwidth = self.notebook.get_allocation()[2] - 50
-                    if fullwidth > 350:	fullwidth = 350
                     (pix2, w, h) = self.get_pixbuf_of_size(pix, fullwidth)
                 else:
                     (pix2, w, h) = self.get_pixbuf_of_size(pix, 150)
