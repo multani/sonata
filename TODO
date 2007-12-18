@@ -2,7 +2,7 @@ v1.4
 	patch 2230
 	remove song from filter, why visual refresh?
 	make tabs configurable (right-click menu), save states
-	info tab - album info expander?
+	info tab - album info expander? horiz scrollbar
 	integrate playlist/stream tabs into library as psuedo-dirs?
 		show in all views...
 		option to hide playlists/streams?

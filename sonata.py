@@ -364,7 +364,7 @@ class Base(mpdclient3.mpd_connection):
         self.plpos = None
         self.info_song_expanded = True
         self.info_lyrics_expanded = True
-        self.info_song_more = True
+        self.info_song_more = False
         # For increased responsiveness after the initial load, we cache the root artist and
         # album view results and simply refresh on any mpd update
         self.albums_root = None
@@ -1257,10 +1257,9 @@ class Base(mpdclient3.mpd_connection):
         for label in labels_left:
             label.set_alignment(0, 0)
         labels_right = [self.info_titlelabel, self.info_artistlabel, self.info_albumlabel, self.info_genrelabel, self.info_datelabel, self.info_tracklabel, self.info_filelabel, self.info_bitratelabel]
-        labelwidth = self.notebook.get_size_request()[0] - titlelabel.get_size_request()[0] - 200
         for label in labels_right:
             label.set_alignment(0, 0)
-            #label.set_line_wrap(True)
+            label.set_line_wrap(True)
             if label != self.info_artistlabel and label != self.info_albumlabel:
                 label.set_selectable(True)
             else:
@@ -1274,7 +1273,7 @@ class Base(mpdclient3.mpd_connection):
         for hbox in hboxes:
             self.info_tagbox.pack_start(hbox, False, False, vert_spacing)
         self.info_tagbox.pack_start(mischbox, False, False, vert_spacing)
-        inner_hbox.pack_start(self.info_tagbox, True, True, horiz_spacing)
+        inner_hbox.pack_start(self.info_tagbox, False, False, horiz_spacing)
         self.info_song.add(inner_hbox)
         outter_vbox.pack_start(self.info_song, False, False, margin)
         # Lyrics
@@ -1320,7 +1319,7 @@ class Base(mpdclient3.mpd_connection):
         self.info_song_more = temp
         if self.info_song_more:
             self.on_link_click(moreevbox, None, 'more')
-        outter_hbox.pack_start(outter_vbox, True, True, margin)
+        outter_hbox.pack_start(outter_vbox, False, False, margin)
         self.info.add_with_viewport(outter_hbox)
 
     def info_expanded(self, expander):
@@ -2683,7 +2682,7 @@ class Base(mpdclient3.mpd_connection):
         if self.current_tab == self.TAB_INFO:
             if self.conn:
                 if self.status and self.status.state in ['play', 'pause']:
-                    self.info_editlabel.set_markup(link_markup(_("edit tags"), True))
+                    self.info_editlabel.set_markup(link_markup(_("edit tags"), True, True))
                     try:
                         newbitrate = self.status.bitrate + " kbps"
                     except:
@@ -2760,7 +2759,7 @@ class Base(mpdclient3.mpd_connection):
         filename_artist = strip_all_slashes(filename_artist)
         filename_title = strip_all_slashes(filename_title)
         filename = self.info_check_for_local_lyrics(filename_artist, filename_title)
-        search_str = link_markup(_("search"), True)
+        search_str = link_markup(_("search"), True, True)
         if filename:
             # Re-use lyrics from file:
             f = open(filename, 'r')
@@ -6039,10 +6038,10 @@ class Base(mpdclient3.mpd_connection):
         elif type == 'more':
             previous_is_more = (self.info_morelabel.get_text() == '(more)')
             if previous_is_more:
-                self.info_morelabel.set_markup(link_markup(_("hide"), True))
+                self.info_morelabel.set_markup(link_markup(_("hide"), True, True))
                 self.info_song_more = True
             else:
-                self.info_morelabel.set_markup(link_markup(_("more"), True))
+                self.info_morelabel.set_markup(link_markup(_("more"), True, True))
                 self.info_song_more = False
             if self.info_song_more:
                 self.info_filehbox.set_no_show_all(False)
@@ -7468,10 +7467,12 @@ def is_binary(f):
         return True
     return False
 
-def link_markup(s, enclose_in_parentheses=False):
+def link_markup(s, enclose_in_parentheses=False, small=False):
     if enclose_in_parentheses:
         s = "(" + s + ")"
-    s = "<span color='blue'><small>" + s + "</small></span>"
+    if small:
+        s = "<small>" + s + "</small>"
+    s = "<span color='blue'>" + s + "</span>"
     return s
 
 def removeall(path):
