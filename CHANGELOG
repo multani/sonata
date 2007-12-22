@@ -1,4 +1,4 @@
-v1.3.1 - Pending
+v1.4 - Pending
 	+ Integrate info window into main player
 	+ Vertically center currently playing song
 	+ Allow screen center for notification popup
@@ -8,6 +8,7 @@ v1.3.1 - Pending
 	+ Ability to hide progress bar (can create very minimal player)
 	+ Skip fallback artwork search of just album name if primary searches fail
 	+ Shortcut to search library (ctrl-h)
+	+ Use gtk theme's link-color if available (only for gtk 2.12 and above)
 	+ Bug: Right-click menu can cause accidental actions with some gtk themes
 	+ Bug: Prevent crash on negative disc/track numbers
 	+ Bug: Filter + Edit Tags edits a different song than selected

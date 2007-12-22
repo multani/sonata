@@ -6,7 +6,7 @@ v1.4
 	integrate playlist/stream tabs into library as psuedo-dirs?
 		show in all views...
 		option to hide playlists/streams?
-	don't hard-code blue link color, theme colors
+	theme colors
 
 v1.5
 	allow additional columns for library (like current)

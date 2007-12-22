@@ -854,7 +854,6 @@ class Base(mpdclient3.mpd_connection):
                         break
 
         # Systray:
-        self.NOTIFICATION_WIDTH_MAX
         outtertipbox = gtk.VBox()
         tipbox = gtk.HBox()
         self.trayalbumeventbox = gtk.EventBox()
@@ -1153,6 +1152,13 @@ class Base(mpdclient3.mpd_connection):
         margin = 5
         outter_hbox = gtk.HBox()
         outter_vbox = gtk.VBox()
+        # Realizing self.window will allow us to retrieve the theme's
+        # link-color; we can then apply to it various widgets:
+        try:
+            self.window.realize()
+            self.linkcolor = self.window.style_get_property("link-color").to_string()
+        except:
+            self.linkcolor = None
         # Song info
         self.info_song = gtk.Expander()
         self.info_song.set_property("can-focus", False)
@@ -2682,7 +2688,7 @@ class Base(mpdclient3.mpd_connection):
         if self.current_tab == self.TAB_INFO:
             if self.conn:
                 if self.status and self.status.state in ['play', 'pause']:
-                    self.info_editlabel.set_markup(link_markup(_("edit tags"), True, True))
+                    self.info_editlabel.set_markup(link_markup(_("edit tags"), True, True, self.linkcolor))
                     try:
                         newbitrate = self.status.bitrate + " kbps"
                     except:
@@ -2703,11 +2709,11 @@ class Base(mpdclient3.mpd_connection):
                             album_use_link = True
                         self.info_titlelabel.set_text(getattr(self.songinfo, 'title', ''))
                         if artist_use_link:
-                            self.info_artistlabel.set_markup(link_markup(self.songinfo.artist))
+                            self.info_artistlabel.set_markup(link_markup(self.songinfo.artist, False, False, self.linkcolor))
                         else:
                             self.info_artistlabel.set_text(getattr(self.songinfo, 'artist', ''))
                         if album_use_link:
-                            self.info_albumlabel.set_markup(link_markup(self.songinfo.album))
+                            self.info_albumlabel.set_markup(link_markup(self.songinfo.album, False, False, self.linkcolor))
                         else:
                             self.info_albumlabel.set_text(getattr(self.songinfo, 'album', ''))
                         self.info_datelabel.set_text(getattr(self.songinfo, 'date', ''))
@@ -2759,7 +2765,7 @@ class Base(mpdclient3.mpd_connection):
         filename_artist = strip_all_slashes(filename_artist)
         filename_title = strip_all_slashes(filename_title)
         filename = self.info_check_for_local_lyrics(filename_artist, filename_title)
-        search_str = link_markup(_("search"), True, True)
+        search_str = link_markup(_("search"), True, True, self.linkcolor)
         if filename:
             # Re-use lyrics from file:
             f = open(filename, 'r')
@@ -2823,7 +2829,7 @@ class Base(mpdclient3.mpd_connection):
                         f.write(lyrics)
                     f.close()
             except:
-                lyrics = _("Fetching lyrics failed") + ": " + sys.exc_info()[1]
+                lyrics = _("Fetching lyrics failed")
                 gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
             gobject.idle_add(self.info_searchlabel.set_markup, search_str)
             socket.setdefaulttimeout(timeout)
@@ -6038,10 +6044,10 @@ class Base(mpdclient3.mpd_connection):
         elif type == 'more':
             previous_is_more = (self.info_morelabel.get_text() == '(more)')
             if previous_is_more:
-                self.info_morelabel.set_markup(link_markup(_("hide"), True, True))
+                self.info_morelabel.set_markup(link_markup(_("hide"), True, True, self.linkcolor))
                 self.info_song_more = True
             else:
-                self.info_morelabel.set_markup(link_markup(_("more"), True, True))
+                self.info_morelabel.set_markup(link_markup(_("more"), True, True, self.linkcolor))
                 self.info_song_more = False
             if self.info_song_more:
                 self.info_filehbox.set_no_show_all(False)
@@ -7467,12 +7473,16 @@ def is_binary(f):
         return True
     return False
 
-def link_markup(s, enclose_in_parentheses=False, small=False):
+def link_markup(s, enclose_in_parentheses, small, linkcolor):
     if enclose_in_parentheses:
         s = "(" + s + ")"
     if small:
         s = "<small>" + s + "</small>"
-    s = "<span color='blue'>" + s + "</span>"
+    if linkcolor:
+        color = linkcolor
+    else:
+        color = "blue" #no theme color, default to blue..
+    s = "<span color='" + color + "'>" + s + "</span>"
     return s
 
 def removeall(path):
