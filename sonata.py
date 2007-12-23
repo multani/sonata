@@ -365,6 +365,11 @@ class Base(mpdclient3.mpd_connection):
         self.info_song_expanded = True
         self.info_lyrics_expanded = True
         self.info_song_more = False
+        self.current_tab_visible = True
+        self.library_tab_visible = True
+        self.playlists_tab_visible = True
+        self.streams_tab_visible = True
+        self.info_tab_visible = True
         # For increased responsiveness after the initial load, we cache the root artist and
         # album view results and simply refresh on any mpd update
         self.albums_root = None
@@ -480,6 +485,11 @@ class Base(mpdclient3.mpd_connection):
             ('showmenu', None, _('_Show Sonata'), None, None, self.withdraw_app_toggle, not self.withdrawn),
             ('repeatmenu', None, _('_Repeat'), None, None, self.on_repeat_clicked, False),
             ('shufflemenu', None, _('_Shuffle'), None, None, self.on_shuffle_clicked, False),
+            (self.TAB_CURRENT, None, self.TAB_CURRENT, None, None, self.tab_toggle, self.current_tab_visible),
+            (self.TAB_LIBRARY, None, self.TAB_LIBRARY, None, None, self.tab_toggle, self.library_tab_visible),
+            (self.TAB_PLAYLISTS, None, self.TAB_PLAYLISTS, None, None, self.tab_toggle, self.playlists_tab_visible),
+            (self.TAB_STREAMS, None, self.TAB_STREAMS, None, None, self.tab_toggle, self.streams_tab_visible),
+            (self.TAB_INFO, None, self.TAB_INFO, None, None, self.tab_toggle, self.info_tab_visible),
                 )
 
         uiDescription = """
@@ -564,8 +574,12 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="centerplaylistkey"/>
                 <menuitem action="searchkey"/>
               </popup>
-            </ui>
+              <popup name="notebookmenu">
             """
+
+        for tab in [self.TAB_CURRENT, self.TAB_LIBRARY, self.TAB_PLAYLISTS, self.TAB_STREAMS, self.TAB_INFO]:
+            uiDescription = uiDescription + "<menuitem action=\"" + tab + "\"/>"
+        uiDescription = uiDescription + "</popup></ui>"
 
         # Try to connect to MPD:
         self.connect(blocking=True)
@@ -634,6 +648,7 @@ class Base(mpdclient3.mpd_connection):
         self.imagemenu = self.UIManager.get_widget('/imagemenu')
         self.traymenu = self.UIManager.get_widget('/traymenu')
         self.librarymenu = self.UIManager.get_widget('/librarymenu')
+        self.notebookmenu = self.UIManager.get_widget('/notebookmenu')
         mainhbox = gtk.HBox()
         mainvbox = gtk.VBox()
         tophbox = gtk.HBox()
@@ -731,8 +746,11 @@ class Base(mpdclient3.mpd_connection):
         playlisthbox.pack_start(gtk.Label(str=self.TAB_CURRENT), False, False, 2)
         playlisthbox.show_all()
         self.notebook.append_page(vbox_current, playlisthbox)
-        browservbox = gtk.VBox()
+        if not self.current_tab_visible:
+            self.notebook.get_children()[0].set_no_show_all(True)
+            self.notebook.get_children()[0].hide_all()
         # Library tab
+        browservbox = gtk.VBox()
         expanderwindow2 = gtk.ScrolledWindow()
         expanderwindow2.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         expanderwindow2.set_shadow_type(gtk.SHADOW_IN)
@@ -770,6 +788,9 @@ class Base(mpdclient3.mpd_connection):
         libraryhbox.pack_start(gtk.Label(str=self.TAB_LIBRARY), False, False, 2)
         libraryhbox.show_all()
         self.notebook.append_page(browservbox, libraryhbox)
+        if not self.library_tab_visible:
+            self.notebook.get_children()[1].set_no_show_all(True)
+            self.notebook.get_children()[1].hide_all()
         # Playlists tab
         expanderwindow3 = gtk.ScrolledWindow()
         expanderwindow3.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -786,6 +807,9 @@ class Base(mpdclient3.mpd_connection):
         playlistshbox.pack_start(gtk.Label(str=self.TAB_PLAYLISTS), False, False, 2)
         playlistshbox.show_all()
         self.notebook.append_page(expanderwindow3, playlistshbox)
+        if not self.playlists_tab_visible:
+            self.notebook.get_children()[2].set_no_show_all(True)
+            self.notebook.get_children()[2].hide_all()
         # Streams tab
         expanderwindow4 = gtk.ScrolledWindow()
         expanderwindow4.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -802,6 +826,9 @@ class Base(mpdclient3.mpd_connection):
         streamshbox.pack_start(gtk.Label(str=self.TAB_STREAMS), False, False, 2)
         streamshbox.show_all()
         self.notebook.append_page(expanderwindow4, streamshbox)
+        if not self.streams_tab_visible:
+            self.notebook.get_children()[3].set_no_show_all(True)
+            self.notebook.get_children()[3].hide_all()
         # Info tab
         self.info = gtk.ScrolledWindow()
         self.info.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -813,6 +840,9 @@ class Base(mpdclient3.mpd_connection):
         self.info_widgets_initialize()
         self.notebook.append_page(self.info, infohbox)
         mainvbox.pack_start(self.notebook, True, True, 5)
+        if not self.info_tab_visible:
+            self.notebook.get_children()[4].set_no_show_all(True)
+            self.notebook.get_children()[4].hide_all()
         self.statusbar = gtk.Statusbar()
         self.statusbar.set_has_resize_grip(True)
         if not self.show_statusbar or not self.expanded:
@@ -845,11 +875,12 @@ class Base(mpdclient3.mpd_connection):
         if gtk.pygtk_version >= (2, 10, 0):
             for child in self.notebook.get_children():
                 self.notebook.set_tab_reorderable(child, True)
-        # Update tab positions:
+        # Update tab positions and hide tabs as per the user's settings:
         if tab_positions:
             for tabnum in range(len(tab_positions)):
                 for tabnum2 in range(len(self.notebook.get_children())):
-                    if self.get_notebook_tab_text(self.notebook, tabnum2) == tab_positions[tabnum]:
+                    tabname = self.get_notebook_tab_text(self.notebook, tabnum2)
+                    if tabname == tab_positions[tabnum]:
                         self.notebook.reorder_child(self.notebook.get_children()[tabnum2], tabnum)
                         break
 
@@ -1872,6 +1903,16 @@ class Base(mpdclient3.mpd_connection):
                 while conf.has_option('notebook', 'tab' + str(tab_num)):
                     tab_positions.append(conf.get('notebook', 'tab' + str(tab_num)))
                     tab_num += 1
+            if conf.has_option('notebook', 'current_tab_visible'):
+                self.current_tab_visible = conf.getboolean('notebook', 'current_tab_visible')
+            if conf.has_option('notebook', 'library_tab_visible'):
+                self.library_tab_visible = conf.getboolean('notebook', 'library_tab_visible')
+            if conf.has_option('notebook', 'playlists_tab_visible'):
+                self.playlists_tab_visible = conf.getboolean('notebook', 'playlists_tab_visible')
+            if conf.has_option('notebook', 'streams_tab_visible'):
+                self.streams_tab_visible = conf.getboolean('notebook', 'streams_tab_visible')
+            if conf.has_option('notebook', 'info_tab_visible'):
+                self.info_tab_visible = conf.getboolean('notebook', 'info_tab_visible')
         if conf.has_section('library'):
             if conf.has_option('library', 'root'):
                 self.wd = conf.get('library', 'root')
@@ -1999,6 +2040,11 @@ class Base(mpdclient3.mpd_connection):
         # Save tab positions:
         for tab_num in range(len(self.notebook.get_children())):
             conf.set('notebook', 'tab' + str(tab_num), self.get_notebook_tab_text(self.notebook, tab_num))
+        conf.set('notebook', 'current_tab_visible', self.current_tab_visible)
+        conf.set('notebook', 'library_tab_visible', self.library_tab_visible)
+        conf.set('notebook', 'playlists_tab_visible', self.playlists_tab_visible)
+        conf.set('notebook', 'streams_tab_visible', self.streams_tab_visible)
+        conf.set('notebook', 'info_tab_visible', self.info_tab_visible)
         conf.add_section('library')
         conf.set('library', 'root', self.wd)
         conf.set('library', 'root_artist_level', self.view_artist_level)
@@ -2709,11 +2755,11 @@ class Base(mpdclient3.mpd_connection):
                             album_use_link = True
                         self.info_titlelabel.set_text(getattr(self.songinfo, 'title', ''))
                         if artist_use_link:
-                            self.info_artistlabel.set_markup(link_markup(self.songinfo.artist, False, False, self.linkcolor))
+                            self.info_artistlabel.set_markup(link_markup(escape_html(self.songinfo.artist), False, False, self.linkcolor))
                         else:
                             self.info_artistlabel.set_text(getattr(self.songinfo, 'artist', ''))
                         if album_use_link:
-                            self.info_albumlabel.set_markup(link_markup(self.songinfo.album, False, False, self.linkcolor))
+                            self.info_albumlabel.set_markup(link_markup(escape_html(self.songinfo.album), False, False, self.linkcolor))
                         else:
                             self.info_albumlabel.set_text(getattr(self.songinfo, 'album', ''))
                         self.info_datelabel.set_text(getattr(self.songinfo, 'date', ''))
@@ -4941,10 +4987,7 @@ class Base(mpdclient3.mpd_connection):
         self.iterate_now()
 
     def switch_to_tab_name(self, tab_name):
-        for tab_num in range(len(self.notebook.get_children())):
-            if self.get_notebook_tab_text(self.notebook, tab_num) == tab_name:
-                self.notebook.set_current_page(tab_num)
-                break
+        self.notebook.set_current_page(self.get_notebook_tab_num(self.notebook, tab_name))
 
     def switch_to_tab1(self, action):
         self.notebook.set_current_page(0)
@@ -6069,6 +6112,14 @@ class Base(mpdclient3.mpd_connection):
     def on_notebook_click(self, widget, event):
         if event.button == 1:
             self.volume_hide()
+        elif event.button == 3:
+            self.notebookmenu.popup(None, None, None, 1, 0)
+            return True
+
+    def get_notebook_tab_num(self, notebook, tabname):
+        for tab in range(len(notebook.get_children())):
+            if self.get_notebook_tab_text(self.notebook, tab) == tabname:
+                return tab
 
     def get_notebook_tab_text(self, notebook, tab_num):
         child = notebook.get_children()[tab_num]
@@ -6105,6 +6156,38 @@ class Base(mpdclient3.mpd_connection):
         if event.button == 3:
             self.set_menu_contextual_items_visible(True)
             gobject.idle_add(self.mainmenu.popup, None, None, None, event.button, event.time)
+
+    def tab_toggle(self, toggleAction):
+        name = toggleAction.get_name()
+        if not toggleAction.get_active():
+            # Make sure we aren't hiding the last visible tab:
+            num_tabs_vis = 0
+            for tab in self.notebook.get_children():
+                if tab.get_property('visible'):
+                    num_tabs_vis += 1
+            if num_tabs_vis == 1:
+                # Keep menu item checking and exit..
+                toggleAction.set_active(True)
+                return
+        # Store value:
+        if name == self.TAB_CURRENT:
+            self.current_tab_visible = toggleAction.get_active()
+        elif name == self.TAB_LIBRARY:
+            self.library_tab_visible = toggleAction.get_active()
+        elif name == self.TAB_PLAYLISTS:
+            self.playlists_tab_visible = toggleAction.get_active()
+        elif name == self.TAB_STREAMS:
+            self.streams_tab_visible = toggleAction.get_active()
+        elif name == self.TAB_INFO:
+            self.info_tab_visible = toggleAction.get_active()
+        # Hide/show:
+        tabnum = self.get_notebook_tab_num(self.notebook, name)
+        if toggleAction.get_active():
+            self.notebook.get_children()[tabnum].set_no_show_all(False)
+            self.notebook.get_children()[tabnum].show_all()
+        else:
+            self.notebook.get_children()[tabnum].hide_all()
+            self.notebook.get_children()[tabnum].set_no_show_all(True)
 
     def searchkey_pressed(self, event):
         if self.current_tab != self.TAB_LIBRARY:
