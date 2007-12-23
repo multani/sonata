@@ -879,7 +879,7 @@ class Base(mpdclient3.mpd_connection):
         if tab_positions:
             for tabnum in range(len(tab_positions)):
                 for tabnum2 in range(len(self.notebook.get_children())):
-                    tabname = self.get_notebook_tab_text(self.notebook, tabnum2)
+                    tabname = self.notebook_get_tab_text(self.notebook, tabnum2)
                     if tabname == tab_positions[tabnum]:
                         self.notebook.reorder_child(self.notebook.get_children()[tabnum2], tabnum)
                         break
@@ -2039,7 +2039,7 @@ class Base(mpdclient3.mpd_connection):
         conf.add_section('notebook')
         # Save tab positions:
         for tab_num in range(len(self.notebook.get_children())):
-            conf.set('notebook', 'tab' + str(tab_num), self.get_notebook_tab_text(self.notebook, tab_num))
+            conf.set('notebook', 'tab' + str(tab_num), self.notebook_get_tab_text(self.notebook, tab_num))
         conf.set('notebook', 'current_tab_visible', self.current_tab_visible)
         conf.set('notebook', 'library_tab_visible', self.library_tab_visible)
         conf.set('notebook', 'playlists_tab_visible', self.playlists_tab_visible)
@@ -4987,22 +4987,27 @@ class Base(mpdclient3.mpd_connection):
         self.iterate_now()
 
     def switch_to_tab_name(self, tab_name):
-        self.notebook.set_current_page(self.get_notebook_tab_num(self.notebook, tab_name))
+        self.notebook.set_current_page(self.notebook_get_tab_num(self.notebook, tab_name))
+
+    def switch_to_tab_num(self, tab_num):
+        vis_tabnum = self.notebook_get_visible_tab_num(self.notebook, tab_num)
+        if vis_tabnum <> -1:
+            self.notebook.set_current_page(vis_tabnum)
 
     def switch_to_tab1(self, action):
-        self.notebook.set_current_page(0)
+        self.switch_to_tab_num(0)
 
     def switch_to_tab2(self, action):
-        self.notebook.set_current_page(1)
+        self.switch_to_tab_num(1)
 
     def switch_to_tab3(self, action):
-        self.notebook.set_current_page(2)
+        self.switch_to_tab_num(2)
 
     def switch_to_tab4(self, action):
-        self.notebook.set_current_page(3)
+        self.switch_to_tab_num(3)
 
     def switch_to_tab5(self, action):
-        self.notebook.set_current_page(4)
+        self.switch_to_tab_num(4)
 
     def volume_lower(self, action):
         new_volume = int(self.volumescale.get_adjustment().get_value()) - 5
@@ -6116,17 +6121,35 @@ class Base(mpdclient3.mpd_connection):
             self.notebookmenu.popup(None, None, None, 1, 0)
             return True
 
-    def get_notebook_tab_num(self, notebook, tabname):
-        for tab in range(len(notebook.get_children())):
-            if self.get_notebook_tab_text(self.notebook, tab) == tabname:
+    def notebook_get_tab_num(self, notebook, tabname):
+        for tab in range(notebook.get_n_pages()):
+            if self.notebook_get_tab_text(self.notebook, tab) == tabname:
                 return tab
 
-    def get_notebook_tab_text(self, notebook, tab_num):
-        child = notebook.get_children()[tab_num]
-        return notebook.get_tab_label(child).get_children()[1].get_text()
+    def notebook_tab_is_visible(self, notebook, tabname):
+        tab = self.notebook.get_children()[self.notebook_get_tab_num(notebook, tabname)]
+        if tab.get_property('visible'):
+            return True
+        else:
+            return False
+
+    def notebook_get_visible_tab_num(self, notebook, tab_num):
+        # Get actual tab number for visible tab_num. If there is not
+        # a visible tab for tab_num, return -1.\
+        curr_tab = -1
+        for tab in range(notebook.get_n_pages()):
+            if notebook.get_children()[tab].get_property('visible'):
+                curr_tab += 1
+                if curr_tab == tab_num:
+                    return tab
+        return -1
+
+    def notebook_get_tab_text(self, notebook, tab_num):
+        tab = notebook.get_children()[tab_num]
+        return notebook.get_tab_label(tab).get_children()[1].get_text()
 
     def on_notebook_page_change(self, notebook, page, page_num):
-        self.current_tab = self.get_notebook_tab_text(self.notebook, page_num)
+        self.current_tab = self.notebook_get_tab_text(self.notebook, page_num)
         if self.current_tab == self.TAB_CURRENT:
             gobject.idle_add(self.give_widget_focus, self.current)
         elif self.current_tab == self.TAB_LIBRARY:
@@ -6181,7 +6204,7 @@ class Base(mpdclient3.mpd_connection):
         elif name == self.TAB_INFO:
             self.info_tab_visible = toggleAction.get_active()
         # Hide/show:
-        tabnum = self.get_notebook_tab_num(self.notebook, name)
+        tabnum = self.notebook_get_tab_num(self.notebook, name)
         if toggleAction.get_active():
             self.notebook.get_children()[tabnum].set_no_show_all(False)
             self.notebook.get_children()[tabnum].show_all()
@@ -6190,6 +6213,9 @@ class Base(mpdclient3.mpd_connection):
             self.notebook.get_children()[tabnum].set_no_show_all(True)
 
     def searchkey_pressed(self, event):
+        # Ensure library tab is visible
+        if not self.notebook_tab_is_visible(self.notebook, self.TAB_LIBRARY):
+            return
         if self.current_tab != self.TAB_LIBRARY:
             self.switch_to_tab_name(self.TAB_LIBRARY)
         if self.searchbutton.get_property('visible'):
@@ -7111,7 +7137,6 @@ class Base(mpdclient3.mpd_connection):
             self.searchfilter_stop_loop(self.filterbox);
             self.filterpattern.set_text("")
         elif self.conn:
-            self.switch_to_tab_name(self.TAB_CURRENT)
             self.filterbox_visible = True
             self.filterpattern.handler_block(self.filter_changed_handler)
             self.filterpattern.set_text(initial_text)
