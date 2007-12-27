@@ -2091,7 +2091,7 @@ class Base(mpdclient3.mpd_connection):
                 self.statusicon.set_from_stock('sonata_disconnect')
             elif HAVE_EGG:
                 self.trayimage.set_from_stock('sonata_disconnect', gtk.ICON_SIZE_BUTTON)
-            self.info_update(blank_window=True)
+            self.info_update(True)
         else:
             for mediabutton in (self.ppbutton, self.stopbutton, self.prevbutton, self.nextbutton, self.volumebutton):
                 mediabutton.set_property('sensitive', True)
