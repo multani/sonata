@@ -3,29 +3,19 @@ v1.4
 	remove song from filter, why visual refresh?
 	info tab - album info expander? horiz scrollbar
 	theme colors
-	better playlist support (mpd 0.13 only):
-		current tab:
-			- save... >
-				new playlist...
-				to existing playlist... ---> popup window with dropdown of playlists
-				...
+	better playlist support (mpd 0.13+ only):
+		ability to view songs, reorder songs, remove songs, etc
 
 v1.5
 	allow additional columns for library (like current)
 	genre mode (genre -> artist -> album)
-	better playlist support (mpd 0.13 only):
-		playlist tab:
-			ability to view songs, reorder songs, remove songs, etc
 	make selection, dnd, more like thunar
 	speed up sorting by manipulating model (generic functions to swap/move model items)
-	lyrics -> ability to save changes
 	
 Future:
-	libnotify?
+	lyrics -> ability to save changes
 	test multiple streams at once..
 	crop songs in current playlist?
 	mpd statistics
-	dnd from other tabs to playlist tabs
-	hover over album art -> show larger image in borderless popup after 0.5 sec?
 	use GtkVolumeButton?
 	update audioscrobbler to protocol 1.2

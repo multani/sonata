@@ -347,7 +347,9 @@ class Base(mpdclient3.mpd_connection):
         self.enc = locale.getpreferredencoding()
         self.updating_nameentry = False
         self.merge_id = None
+        self.mergepl_id = None
         self.actionGroupProfiles = None
+        self.actionGroupPlaylists = None
         self.skip_on_profiles_click = False
         self.last_repeat = None
         self.last_random = None
@@ -440,7 +442,7 @@ class Base(mpdclient3.mpd_connection):
             ('quitmenu', gtk.STOCK_QUIT, _('_Quit'), None, None, self.on_delete_event_yes),
             ('removemenu', gtk.STOCK_REMOVE, _('_Remove'), None, None, self.remove),
             ('clearmenu', gtk.STOCK_CLEAR, _('_Clear'), '<Ctrl>Delete', None, self.clear),
-            ('savemenu', None, _('_New Playlist...'), '<Ctrl><Shift>s', None, self.on_save_playlist),
+            ('savemenu', None, _('_New Playlist...'), '<Ctrl><Shift>s', None, self.on_playlist_save),
             ('updatemenu', None, _('_Update Library'), None, None, self.updatedb),
             ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'), 'F5', None, self.prefs),
             ('aboutmenu', None, _('_About...'), 'F1', None, self.about),
@@ -1556,6 +1558,32 @@ class Base(mpdclient3.mpd_connection):
         self.iconfactory.add(icon_name, sonataset)
         self.iconfactory.add_default()
 
+    def populate_playlists_for_menu(self, playlistinfo):
+        if self.mergepl_id:
+            self.UIManager.remove_ui(self.mergepl_id)
+        if self.actionGroupPlaylists:
+            self.UIManager.remove_action_group(self.actionGroupPlaylists)
+            self.actionGroupPlaylists = None
+        self.actionGroupPlaylists = gtk.ActionGroup('MPDPlaylists')
+        self.UIManager.ensure_update()
+        actions = []
+        for i in range(len(playlistinfo)):
+            action_name = "Playlist: " + playlistinfo[i].replace("&", "")
+            actions.append((action_name, None, unescape_html(playlistinfo[i]), None, None, self.on_playlist_add_songs))
+        self.actionGroupPlaylists.add_actions(actions)
+        uiDescription = """
+            <ui>
+              <popup name="mainmenu">
+                  <menu action="playlistmenu">
+            """
+        for i in range(len(playlistinfo)):
+            action_name = "Playlist: " + playlistinfo[i].replace("&", "")
+            uiDescription = uiDescription + """<menuitem action=\"""" + action_name + """\" position="bottom"/>"""
+        uiDescription = uiDescription + """</menu></popup></ui>"""
+        self.mergepl_id = self.UIManager.add_ui_from_string(uiDescription)
+        self.UIManager.insert_action_group(self.actionGroupPlaylists, 0)
+        self.UIManager.get_widget('/hidden').set_property('visible', False)
+
     def populate_profiles_for_menu(self):
         host, port, password = self.mpd_env_vars()
         if host or port: return
@@ -1568,7 +1596,8 @@ class Base(mpdclient3.mpd_connection):
         self.UIManager.ensure_update()
         actions = []
         for i in range(len(self.profile_names)):
-            actions.append((self.profile_names[i], None, "[" + str(i+1) + "] " + self.profile_names[i], None, None, i))
+            action_name = "Profile: " + self.profile_names[i].replace("&", "")
+            actions.append((action_name, None, "[" + str(i+1) + "] " + self.profile_names[i], None, None, i))
         actions.append(('disconnect', None, _('Disconnect'), None, None, len(self.profile_names)))
         if not self.sonata_loaded and not self.conn:
             self.actionGroupProfiles.add_radio_actions(actions, len(self.profile_names), self.on_profiles_click)
@@ -1581,7 +1610,8 @@ class Base(mpdclient3.mpd_connection):
             """
         uiDescription = uiDescription + """<menuitem action=\"""" + 'disconnect' + """\" position="top"/>"""
         for i in range(len(self.profile_names)):
-            uiDescription = uiDescription + """<menuitem action=\"""" + self.profile_names[len(self.profile_names)-i-1] + """\" position="top"/>"""
+            action_name = "Profile: " + self.profile_names[len(self.profile_names)-i-1].replace("&", "")
+            uiDescription = uiDescription + """<menuitem action=\"""" + action_name + """\" position="top"/>"""
         uiDescription = uiDescription + """</menu></popup></ui>"""
         self.merge_id = self.UIManager.add_ui_from_string(uiDescription)
         self.UIManager.insert_action_group(self.actionGroupProfiles, 0)
@@ -2197,7 +2227,7 @@ class Base(mpdclient3.mpd_connection):
         dialog.destroy()
         self.iterate_now()
 
-    def on_save_playlist(self, action):
+    def on_playlist_save(self, action):
         plname = self.prompt_for_playlist_name(_("Save Playlist"), 'savePlaylist')
         if plname:
             if self.playlist_name_exists(_("Save Playlist"), 'savePlaylistError', plname):
@@ -2206,6 +2236,13 @@ class Base(mpdclient3.mpd_connection):
             self.conn.do.save(plname)
             self.playlists_populate()
             self.iterate_now()
+
+    def on_playlist_add_songs(self, action):
+        plname = unescape_html(action.get_name().replace("Playlist: ", ""))
+        self.conn.send.command_list_begin()
+        for song in self.songs:
+            self.conn.send.playlistadd(plname, song.file)
+        self.conn.do.command_list_end()
 
     def playlist_name_exists(self, title, role, plname, skip_plname=""):
         # If the playlist already exists, and the user does not want to replace it, return True; In
@@ -2249,12 +2286,14 @@ class Base(mpdclient3.mpd_connection):
             playlistinfo.sort(key=lambda x: x.lower()) # Remove case sensitivity
             for item in playlistinfo:
                 self.playlistsdata.append([gtk.STOCK_JUSTIFY_FILL, item])
+            if self.mpd_major_version() >= 0.13:
+                self.populate_playlists_for_menu(playlistinfo)
 
     def on_playlist_rename(self, action):
         plname = self.prompt_for_playlist_name(_("Rename Playlist"), 'renamePlaylist')
         if plname:
             model, selected = self.playlists_selection.get_selected_rows()
-            oldname = model.get_value(model.get_iter(selected[0]), 1)
+            oldname = unescape_html(model.get_value(model.get_iter(selected[0]), 1))
             if self.playlist_name_exists(_("Rename Playlist"), 'renamePlaylistError', plname, oldname):
                 return
             self.conn.do.rm(plname)
@@ -3039,7 +3078,7 @@ class Base(mpdclient3.mpd_connection):
             elif self.current_tab == self.TAB_PLAYLISTS:
                 model, selected = self.playlists_selection.get_selected_rows()
                 for path in selected:
-                    self.conn.do.load(model.get_value(model.get_iter(path), 1))
+                    self.conn.do.load(unescape_html(model.get_value(model.get_iter(path), 1)))
             elif self.current_tab == self.TAB_STREAMS:
                 model, selected = self.streams_selection.get_selected_rows()
                 for path in selected:
@@ -7578,6 +7617,7 @@ def escape_html(s):
 
 def unescape_html(s):
     s = s.replace('&amp;', '&')
+    s = s.replace('amp;', '&')
     s = s.replace('&lt;', '<')
     s = s.replace('&gt;', '>')
     return s

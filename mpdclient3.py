@@ -122,15 +122,17 @@ commands = {
     ("plchanges",     1): ('%s %d', MANY, '', plitem_delim), # <playlist version>
     ("pause",         1): ('%s %d', ZERO, '', []), # <bool pause>
 
-    ("update",      1): ('%s "%s"', ONE, 'update', []), # <string path>
-    ("listall",     1): ('%s "%s"', MANY, '', plitem_delim), # <string path>
-    ("listallinfo", 1): ('%s "%s"', MANY, '', plitem_delim), # <string path>
-    ("lsinfo",      1): ('%s "%s"', MANY, '', plitem_delim), # <string directory>
-    ("add",         1): ('%s "%s"', ZERO, '', []), # <string>
-    ("load",        1): ('%s "%s"', ZERO, '', []), # <string name>
-    ("rm",          1): ('%s "%s"', ZERO, '', []), # <string name>
-    ("save",        1): ('%s "%s"', ZERO, '', []), # <string playlist name>
-    ("password",    1): ('%s "%s"', ZERO, '', []), # <string password>
+    ("update",        1): ('%s "%s"', ONE, 'update', []), # <string path>
+    ("listall",       1): ('%s "%s"', MANY, '', plitem_delim), # <string path>
+    ("listallinfo",   1): ('%s "%s"', MANY, '', plitem_delim), # <string path>
+    ("lsinfo",        1): ('%s "%s"', MANY, '', plitem_delim), # <string directory>
+    ("add",           1): ('%s "%s"', ZERO, '', []), # <string>
+    ("load",          1): ('%s "%s"', ZERO, '', []), # <string name>
+    ("rm",            1): ('%s "%s"', ZERO, '', []), # <string name>
+    ("save",          1): ('%s "%s"', ZERO, '', []), # <string playlist name>
+    ("password",      1): ('%s "%s"', ZERO, '', []), # <string password>
+    ("playlistclear", 1): ('%s "%s"', ZERO, '', []), # <string playlist name>
+
 
     ("move",   2): ("%s %d %d", ZERO, '', []), # <int from> <int to>
     ("moveid", 2): ("%s %d %d", ZERO, '', []), # <int songid from> <int to>
@@ -139,15 +141,16 @@ commands = {
     ("seek",   2): ("%s %d %d", ZERO, '', []), # <int song> <int time>
     ("seekid", 2): ("%s %d %d", ZERO, '', []), # <int songid> <int time>
 
-    # <string type> <string what>
-    ("find",   2): ('%s "%s" "%s"', MANY, '', plitem_delim),
-    ("rename", 2): ('%s "%s" "%s"', ZERO, '', []),
+    ("find",           2): ('%s "%s" "%s"', MANY, '', plitem_delim),
+    ("rename",         2): ('%s "%s" "%s"', ZERO, '', []),
+    ("playlistadd",    2): ('%s "%s" "%s"', ZERO, '', []), # <str playlist name> <str path>
+    ("playlistdelete", 2): ('%s "%s" "%s"', ZERO, '', []), # <str playlist name> <int song id>
+
+    ("playlistmove", 3): ('%s "%s" "%s" "%s"', ZERO, '', []), # <str playlist name> <ing song id> <int position>
 
     # <string type> <string what>
     ("search", 2): ('%s "%s" "%s"', MANY, '', plitem_delim),
     ("search", 4): ('%s "%s" "%s" "%s" "%s"', MANY, '', plitem_delim),
-
-    # list <metadata arg1> [<metadata arg2> <search term>]
 
     # <metadata arg1>
     ("list", 1): ('%s "%s"', MANY, '', litem_delim),
