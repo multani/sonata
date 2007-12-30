@@ -5,6 +5,7 @@ v1.4 - Pending
 	+ Preference for saving lyrics to music file's directory (like artwork)
 	+ Allow hiding/reordering notebook tabs (e.g. playlists, streams, info)
 	+ Retain library path when re-opening Sonata
+	+ Remove confusing 'remote only' and 'remote, then local' artwork options
 	+ Ability to hide progress bar (can create very minimal player)
 	+ Skip fallback artwork search of just album name if primary searches fail
 	+ Shortcut to search library (ctrl-h)

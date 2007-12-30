@@ -250,9 +250,7 @@ class Base(mpdclient3.mpd_connection):
         self.TAB_STREAMS = _("Streams")
         self.TAB_INFO = _("Info")
         self.ART_LOCAL = 0
-        self.ART_REMOTE = 1
-        self.ART_LOCAL_REMOTE = 2
-        self.ART_REMOTE_LOCAL = 3
+        self.ART_LOCAL_REMOTE = 1
         self.VIEW_FILESYSTEM = 0
         self.VIEW_ARTIST = 1
         self.VIEW_ALBUM = 2
@@ -422,6 +420,7 @@ class Base(mpdclient3.mpd_connection):
         # Popup menus:
         actions = (
             ('sortmenu', None, _('_Sort List')),
+            ('playlistmenu', None, _('Sa_ve to...')),
             ('profilesmenu', None, _('_Connection')),
             ('filesystemview', gtk.STOCK_HARDDISK, _('Filesystem'), None, None, self.on_libraryview_chosen),
             ('artistview', 'artist', _('Artist'), None, None, self.on_libraryview_chosen),
@@ -439,7 +438,7 @@ class Base(mpdclient3.mpd_connection):
             ('quitmenu', gtk.STOCK_QUIT, _('_Quit'), None, None, self.on_delete_event_yes),
             ('removemenu', gtk.STOCK_REMOVE, _('_Remove'), None, None, self.remove),
             ('clearmenu', gtk.STOCK_CLEAR, _('_Clear'), '<Ctrl>Delete', None, self.clear),
-            ('savemenu', None, _('_Save Playlist...'), '<Ctrl><Shift>s', None, self.on_save_playlist),
+            ('savemenu', None, _('_New Playlist...'), '<Ctrl><Shift>s', None, self.on_save_playlist),
             ('updatemenu', None, _('_Update Library'), None, None, self.updatedb),
             ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'), 'F5', None, self.prefs),
             ('aboutmenu', None, _('_About...'), 'F1', None, self.about),
@@ -518,7 +517,10 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="editmenu"/>
                 <menuitem action="removemenu"/>
                 <menuitem action="clearmenu"/>
-                <menuitem action="savemenu"/>
+                <menu action="playlistmenu">
+                  <menuitem action="savemenu"/>
+                  <separator name="FM4"/>
+                </menu>
                 <menuitem action="edittagmenu"/>
                 <menuitem action="renamemenu"/>
                 <menuitem action="rmmenu"/>
@@ -1863,6 +1865,11 @@ class Base(mpdclient3.mpd_connection):
             self.xfade_enabled = conf.getboolean('player', 'xfade_enabled')
         if conf.has_option('player', 'covers_pref'):
             self.covers_pref = conf.getint('player', 'covers_pref')
+            # Specifying remote artwork first is too confusing and probably
+            # rarely used, so we're removing this option and defaulting users
+            # back to the default 'local, then remote' option.
+            if self.covers_pref > self.ART_LOCAL_REMOTE:
+                self.covers_pref = self.ART_LOCAL_REMOTE
         if conf.has_option('player', 'use_infofile'):
             self.use_infofile = conf.getboolean('player', 'use_infofile')
         if conf.has_option('player', 'infofile_path'):
@@ -3694,15 +3701,10 @@ class Base(mpdclient3.mpd_connection):
                 self.set_default_icon_for_art()
                 return
             songdir = os.path.dirname(self.songinfo.file)
-            if self.covers_pref == self.ART_LOCAL or self.covers_pref == self.ART_LOCAL_REMOTE:
-                imgfound = self.check_for_local_images(songdir)
-            else:
-                imgfound = self.check_remote_images(artist, album, filename)
+            imgfound = self.check_for_local_images(songdir)
             if not imgfound:
                 if self.covers_pref == self.ART_LOCAL_REMOTE:
                     imgfound = self.check_remote_images(artist, album, filename)
-                elif self.covers_pref == self.ART_REMOTE_LOCAL:
-                    imgfound = self.check_for_local_images(songdir)
                 if not imgfound and (len(artist) > 0 or len(album) > 0):
                     # No remote or local artwork found, write filename to tell Sonata to use
                     # default icons in the future (to prevent remote/local searching):
@@ -4471,8 +4473,7 @@ class Base(mpdclient3.mpd_connection):
                 self.UIManager.get_widget('/imagemenu/localimage_menu/').hide()
                 if self.covers_pref != self.ART_LOCAL:
                     self.UIManager.get_widget('/imagemenu/chooseimage_menu/').show()
-                if self.covers_pref != self.ART_REMOTE:
-                    self.UIManager.get_widget('/imagemenu/localimage_menu/').show()
+                self.UIManager.get_widget('/imagemenu/localimage_menu/').show()
                 artist = getattr(self.songinfo, 'artist', None)
                 album = getattr(self.songinfo, 'album', None)
                 if os.path.exists(self.target_image_filename(self.ART_LOCATION_NONE)):
@@ -5438,9 +5439,7 @@ class Base(mpdclient3.mpd_connection):
         display_art.set_active(self.show_covers)
         display_art_combo = gtk.combo_box_new_text()
         display_art_combo.append_text(_("Local only"))
-        display_art_combo.append_text(_("Remote only"))
         display_art_combo.append_text(_("Local, then remote"))
-        display_art_combo.append_text(_("Remote, then local"))
         display_art_combo.set_active(self.covers_pref)
         display_art_combo.set_sensitive(self.show_covers)
         orderart_label = gtk.Label(_("Search order:"))
@@ -6283,7 +6282,7 @@ class Base(mpdclient3.mpd_connection):
             self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
             self.UIManager.get_widget('/mainmenu/removemenu/').hide()
             self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/savemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/playlistmenu/').hide()
             self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
             self.UIManager.get_widget('/mainmenu/newmenu/').hide()
             self.UIManager.get_widget('/mainmenu/editmenu/').hide()
@@ -6302,11 +6301,11 @@ class Base(mpdclient3.mpd_connection):
                     self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
                 if not self.filterbox_visible:
                     self.UIManager.get_widget('/mainmenu/clearmenu/').show()
-                    self.UIManager.get_widget('/mainmenu/savemenu/').show()
+                    self.UIManager.get_widget('/mainmenu/playlistmenu/').show()
                     self.UIManager.get_widget('/mainmenu/sortmenu/').show()
                 else:
                     self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
-                    self.UIManager.get_widget('/mainmenu/savemenu/').hide()
+                    self.UIManager.get_widget('/mainmenu/playlistmenu/').hide()
                     self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
                 if self.mpd_major_version() >= 0.14:
                     if self.current_selection_item_found_in_queue():
@@ -6320,7 +6319,7 @@ class Base(mpdclient3.mpd_connection):
                     self.UIManager.get_widget('/mainmenu/dequeuemenu/').hide()
             else:
                 self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
-                self.UIManager.get_widget('/mainmenu/savemenu/').hide()
+                self.UIManager.get_widget('/mainmenu/playlistmenu/').hide()
                 self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
                 self.UIManager.get_widget('/mainmenu/removemenu/').hide()
                 self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
@@ -6350,7 +6349,7 @@ class Base(mpdclient3.mpd_connection):
                 self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
             self.UIManager.get_widget('/mainmenu/removemenu/').hide()
             self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/savemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/playlistmenu/').hide()
             self.UIManager.get_widget('/mainmenu/renamemenu/').hide()
             self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
             self.UIManager.get_widget('/mainmenu/newmenu/').hide()
@@ -6374,7 +6373,7 @@ class Base(mpdclient3.mpd_connection):
                 self.UIManager.get_widget('/mainmenu/renamemenu/').hide()
             self.UIManager.get_widget('/mainmenu/removemenu/').hide()
             self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/savemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/playlistmenu/').hide()
             self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
             self.UIManager.get_widget('/mainmenu/newmenu/').hide()
             self.UIManager.get_widget('/mainmenu/editmenu/').hide()
@@ -6400,7 +6399,7 @@ class Base(mpdclient3.mpd_connection):
             self.UIManager.get_widget('/mainmenu/renamemenu/').hide()
             self.UIManager.get_widget('/mainmenu/removemenu/').hide()
             self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/savemenu/').hide()
+            self.UIManager.get_widget('/mainmenu/playlistmenu/').hide()
             self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
             self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
             self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
@@ -6988,7 +6987,7 @@ class Base(mpdclient3.mpd_connection):
                  [ "Ctrl-E", _("Add selected song(s) to playlist queue") ],
                  [ "Ctrl-I", _("Center currently playing song") ],
                  [ "Ctrl-Shift-E", _("Remove selected song(s) from playlist queue") ],
-                 [ "Ctrl-Shift-S", _("Save playlist") ],
+                 [ "Ctrl-Shift-S", _("Save to new playlist") ],
                  [ "Ctrl-Delete", _("Clear list") ]]
         libraryshortcuts = \
                 [[ "Enter/Space", _("Add selected song(s) or enter directory") ],

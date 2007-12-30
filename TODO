@@ -6,6 +6,14 @@ v1.4
 		show in all views...
 		option to hide playlists/streams?
 	theme colors
+	artwork remote stuff... clean up!
+	right-clicking in info tab, shows tab hiding/showing menu
+	better playlist support (mpd 0.13 only):
+		current tab:
+			- save... >
+				new playlist...
+				to existing playlist... ---> popup window with dropdown of playlists
+				...
 
 v1.5
 	allow additional columns for library (like current)
@@ -13,11 +21,6 @@ v1.5
 	better playlist support (mpd 0.13 only):
 		playlist tab:
 			ability to view songs, reorder songs, remove songs, etc
-		current tab:
-			- save... >
-				new playlist...
-				to existing playlist... ---> popup window with dropdown of playlists
-				...
 	make selection, dnd, more like thunar
 	speed up sorting by manipulating model (generic functions to swap/move model items)
 	lyrics -> ability to save changes
