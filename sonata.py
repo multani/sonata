@@ -3108,6 +3108,8 @@ class Base(mpdclient3.mpd_connection):
             num_selected = self.playlists_selection.count_selected_rows()
         elif self.current_tab == self.TAB_STREAMS:
             num_selected = self.streams_selection.count_selected_rows()
+        else:
+            return
         if num_selected == 0:
             return
         self.clear(None)
