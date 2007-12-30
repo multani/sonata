@@ -848,9 +848,9 @@ class Base(mpdclient3.mpd_connection):
             self.notebook.get_children()[3].set_no_show_all(True)
             self.notebook.get_children()[3].hide_all()
         # Info tab
-        self.info = gtk.ScrolledWindow()
-        self.info.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.info.set_shadow_type(gtk.SHADOW_IN)
+        info = gtk.ScrolledWindow()
+        info.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        info.set_shadow_type(gtk.SHADOW_IN)
         infoevbox = gtk.EventBox()
         infohbox = gtk.HBox()
         infohbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_JUSTIFY_FILL, gtk.ICON_SIZE_MENU), False, False, 2)
@@ -858,8 +858,8 @@ class Base(mpdclient3.mpd_connection):
         infoevbox.add(infohbox)
         infoevbox.show_all()
         infoevbox.connect("button_press_event", self.on_tab_click)
-        self.info_widgets_initialize()
-        self.notebook.append_page(self.info, infoevbox)
+        self.info_widgets_initialize(info)
+        self.notebook.append_page(info, infoevbox)
         mainvbox.pack_start(self.notebook, True, True, 5)
         if not self.info_tab_visible:
             self.notebook.get_children()[4].set_no_show_all(True)
@@ -1047,6 +1047,7 @@ class Base(mpdclient3.mpd_connection):
         self.searchtext.connect('activate', self.on_search_activate)
         self.searchbutton.connect('clicked', self.on_search_end)
         self.notebook.connect('button_press_event', self.on_notebook_click)
+        self.notebook.connect('size-allocate', self.on_notebook_resize)
         self.notebook.connect('switch-page', self.on_notebook_page_change)
         self.searchtext.connect('button_press_event', self.on_searchtext_click)
         self.filter_changed_handler = self.filterpattern.connect('changed', self.searchfilter_feed_loop)
@@ -1198,7 +1199,7 @@ class Base(mpdclient3.mpd_connection):
         print "  info                 " + _("Display current song info")
         print "  status               " + _("Display MPD status")
 
-    def info_widgets_initialize(self):
+    def info_widgets_initialize(self, info_scrollwindow):
         vert_spacing = 1
         horiz_spacing = 2
         margin = 5
@@ -1232,10 +1233,10 @@ class Base(mpdclient3.mpd_connection):
         inner_hbox.pack_start(self.info_imagebox, False, False, horiz_spacing)
         gobject.idle_add(self.info_image.set_from_file, self.sonatacd_large)
         titlehbox = gtk.HBox()
-        titlelabel = gtk.Label()
-        titlelabel.set_markup("<b>" + _("Title") + ":</b>")
+        self.titlelabel = gtk.Label()
+        self.titlelabel.set_markup("<b>" + _("Title") + ":</b>")
         self.info_titlelabel = gtk.Label("")
-        titlehbox.pack_start(titlelabel, False, False, horiz_spacing)
+        titlehbox.pack_start(self.titlelabel, False, False, horiz_spacing)
         titlehbox.pack_start(self.info_titlelabel, False, False, horiz_spacing)
         artisthbox = gtk.HBox()
         artistlabel = gtk.Label()
@@ -1310,14 +1311,18 @@ class Base(mpdclient3.mpd_connection):
         self.info_bitratelabel = gtk.Label("")
         self.info_bitratehbox.pack_start(bitratelabel, False, False, horiz_spacing)
         self.info_bitratehbox.pack_start(self.info_bitratelabel, False, False, horiz_spacing)
-        labels_left = [titlelabel, artistlabel, albumlabel, datelabel, tracklabel, genrelabel, filelabel, bitratelabel]
+        labels_left = [self.titlelabel, artistlabel, albumlabel, datelabel, tracklabel, genrelabel, filelabel, bitratelabel]
         self.set_label_widths_equal(labels_left)
         for label in labels_left:
             label.set_alignment(0, 0)
-        labels_right = [self.info_titlelabel, self.info_artistlabel, self.info_albumlabel, self.info_genrelabel, self.info_datelabel, self.info_tracklabel, self.info_filelabel, self.info_bitratelabel]
-        for label in labels_right:
+        self.labels_right = [self.info_titlelabel, self.info_artistlabel, self.info_albumlabel, self.info_genrelabel, self.info_datelabel, self.info_tracklabel, self.info_filelabel, self.info_bitratelabel]
+        for label in self.labels_right:
             label.set_alignment(0, 0)
             label.set_line_wrap(True)
+            try: # Only recent versions of pygtk/gtk have this
+                label.set_line_wrap_mode(pango.WRAP_CHAR)
+            except:
+                pass
             if label != self.info_artistlabel and label != self.info_albumlabel:
                 label.set_selectable(True)
             else:
@@ -1378,7 +1383,7 @@ class Base(mpdclient3.mpd_connection):
         if self.info_song_more:
             self.on_link_click(moreevbox, None, 'more')
         outter_hbox.pack_start(outter_vbox, False, False, margin)
-        self.info.add_with_viewport(outter_hbox)
+        info_scrollwindow.add_with_viewport(outter_hbox)
 
     def info_expanded(self, expander):
         # Ensure that we always have one expander expanded:
@@ -4109,12 +4114,13 @@ class Base(mpdclient3.mpd_connection):
         else: self.w = width
         self.x, self.y = self.window.get_position()
         self.set_ellipsize_workaround()
-        if self.show_covers:
-            try:
-                gobject.source_remove(self.resize_image_on_idle)
-            except:
-                pass
-            self.resize_image_on_idle = gobject.idle_add(self.set_image_for_cover, self.lastalbumart, True)
+
+    def on_notebook_resize(self, widget, event):
+        # Resize labels in info tab to prevent horiz scrollbar
+        labelwidth = self.notebook.allocation.width - self.titlelabel.get_size_request()[0] - self.info_imagebox.get_size_request()[0] - 60 # 60 accounts for vert scrollbar, box paddings, etc..
+        if labelwidth > 0:
+            for label in self.labels_right:
+                label.set_size_request(labelwidth, -1)
 
     def expand(self, action):
         if not self.expanded:
