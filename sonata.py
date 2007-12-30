@@ -3853,27 +3853,27 @@ class Base(mpdclient3.mpd_connection):
             if os.path.exists(filename):
                 # We use try here because the file might exist, but still
                 # be downloading so it's not complete
-                #try:
-                pix = gtk.gdk.pixbuf_new_from_file(filename)
-                if not info_img_only:
-                    (pix1, w, h) = self.get_pixbuf_of_size(pix, 75)
-                    pix1 = self.pixbuf_add_border(pix1)
-                    pix1 = self.pixbuf_pad(pix1, 77, 77)
-                    self.albumimage.set_from_pixbuf(pix1)
-                    self.set_tooltip_art(pix1)
-                    del pix1
-                if self.info_imagebox.get_size_request()[0] == -1:
-                    fullwidth = self.notebook.get_allocation()[2] - 50
-                    (pix2, w, h) = self.get_pixbuf_of_size(pix, fullwidth)
-                else:
-                    (pix2, w, h) = self.get_pixbuf_of_size(pix, 150)
-                pix2 = self.pixbuf_add_border(pix2)
-                self.info_image.set_from_pixbuf(pix2)
-                del pix2
-                self.lastalbumart = filename
-                del pix
-                #except:
-                    #pass
+                try:
+                    pix = gtk.gdk.pixbuf_new_from_file(filename)
+                    if not info_img_only:
+                        (pix1, w, h) = self.get_pixbuf_of_size(pix, 75)
+                        pix1 = self.pixbuf_add_border(pix1)
+                        pix1 = self.pixbuf_pad(pix1, 77, 77)
+                        self.albumimage.set_from_pixbuf(pix1)
+                        self.set_tooltip_art(pix1)
+                        del pix1
+                    if self.info_imagebox.get_size_request()[0] == -1:
+                        fullwidth = self.notebook.get_allocation()[2] - 50
+                        (pix2, w, h) = self.get_pixbuf_of_size(pix, fullwidth)
+                    else:
+                        (pix2, w, h) = self.get_pixbuf_of_size(pix, 150)
+                    pix2 = self.pixbuf_add_border(pix2)
+                    self.info_image.set_from_pixbuf(pix2)
+                    del pix2
+                    self.lastalbumart = filename
+                    del pix
+                except:
+                    pass
                 self.call_gc_collect = True
 
     def filename_is_for_current_song(self, filename):
