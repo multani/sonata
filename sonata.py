@@ -424,7 +424,7 @@ class Base(mpdclient3.mpd_connection):
         # Popup menus:
         actions = (
             ('sortmenu', None, _('_Sort List')),
-            ('playlistmenu', None, _('Sa_ve to...')),
+            ('playlistmenu', None, _('Sa_ve List to')),
             ('profilesmenu', None, _('_Connection')),
             ('filesystemview', gtk.STOCK_HARDDISK, _('Filesystem'), None, None, self.on_libraryview_chosen),
             ('artistview', 'artist', _('Artist'), None, None, self.on_libraryview_chosen),
@@ -849,7 +849,7 @@ class Base(mpdclient3.mpd_connection):
             self.notebook.get_children()[3].hide_all()
         # Info tab
         info = gtk.ScrolledWindow()
-        info.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        info.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
         info.set_shadow_type(gtk.SHADOW_IN)
         infoevbox = gtk.EventBox()
         infohbox = gtk.HBox()
