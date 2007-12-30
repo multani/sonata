@@ -455,7 +455,7 @@ class Base(mpdclient3.mpd_connection):
             ('sortbyfile', None, _('By File Name'), None, None, self.on_sort_by_file),
             ('sortbydirfile', None, _('By Dir & File Name'), None, None, self.on_sort_by_dirfile),
             ('sortreverse', None, _('Reverse List'), None, None, self.on_sort_reverse),
-            ('sortrandom', None, _('Random'), None, None, self.on_sort_random),
+            ('sortrandom', None, _('Random'), '<Alt>r', None, self.on_sort_random),
             ('tab1key', None, 'Tab1 Key', '<Alt>1', None, self.switch_to_tab1),
             ('tab2key', None, 'Tab2 Key', '<Alt>2', None, self.switch_to_tab2),
             ('tab3key', None, 'Tab3 Key', '<Alt>3', None, self.switch_to_tab3),
@@ -517,10 +517,6 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="editmenu"/>
                 <menuitem action="removemenu"/>
                 <menuitem action="clearmenu"/>
-                <menu action="playlistmenu">
-                  <menuitem action="savemenu"/>
-                  <separator name="FM4"/>
-                </menu>
                 <menuitem action="edittagmenu"/>
                 <menuitem action="renamemenu"/>
                 <menuitem action="rmmenu"/>
@@ -535,6 +531,10 @@ class Base(mpdclient3.mpd_connection):
                   <separator name="FM3"/>
                   <menuitem action="sortrandom"/>
                   <menuitem action="sortreverse"/>
+                </menu>
+                <menu action="playlistmenu">
+                  <menuitem action="savemenu"/>
+                  <separator name="FM4"/>
                 </menu>
                 <separator name="FM1"/>
                 <menuitem action="updatemenu"/>
@@ -6959,13 +6959,10 @@ class Base(mpdclient3.mpd_connection):
         mainshortcuts = \
                 [[ "F1", _("About Sonata") ],
                  [ "F5", _("Preferences") ],
-                 [ "Alt-1", _("Switch to 1st tab") ],
-                 [ "Alt-2", _("Switch to 2nd tab") ],
-                 [ "Alt-3", _("Switch to 3rd tab") ],
-                 [ "Alt-4", _("Switch to 4th tab") ],
-                 [ "Alt-5", _("Switch to 5th tab") ],
+                 [ "Alt-[1-5]", _("Switch to [1st-5th] tab") ],
                  [ "Alt-C", _("Connect to MPD") ],
                  [ "Alt-D", _("Disconnect from MPD") ],
+                 [ "Alt-R", _("Randomize current playlist") ],
                  [ "Alt-Down", _("Expand player") ],
                  [ "Alt-Up", _("Collapse player") ],
                  [ "Ctrl-H", _("Search library") ],
@@ -6988,7 +6985,8 @@ class Base(mpdclient3.mpd_connection):
                  [ "Ctrl-I", _("Center currently playing song") ],
                  [ "Ctrl-Shift-E", _("Remove selected song(s) from playlist queue") ],
                  [ "Ctrl-Shift-S", _("Save to new playlist") ],
-                 [ "Ctrl-Delete", _("Clear list") ]]
+                 [ "Ctrl-Delete", _("Clear list") ],
+                 [ "Alt-R", _("Randomize list") ]]
         libraryshortcuts = \
                 [[ "Enter/Space", _("Add selected song(s) or enter directory") ],
                  [ "Backspace", _("Go to parent directory") ],

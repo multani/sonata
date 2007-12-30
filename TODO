@@ -2,11 +2,7 @@ v1.4
 	patch 2230
 	remove song from filter, why visual refresh?
 	info tab - album info expander? horiz scrollbar
-	integrate playlist/stream tabs into library as psuedo-dirs?
-		show in all views...
-		option to hide playlists/streams?
 	theme colors
-	artwork remote stuff... clean up!
 	right-clicking in info tab, shows tab hiding/showing menu
 	better playlist support (mpd 0.13 only):
 		current tab:
