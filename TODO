@@ -6,7 +6,6 @@ v1.4
 	better playlist support (mpd 0.13+ only):
 		ability to view songs, reorder songs, remove songs, etc
 	edit->save all: allow canceling, x at top right, prevent user typing
-	remove '0000'
 
 v1.5
 	allow additional columns for library (like current)

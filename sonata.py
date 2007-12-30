@@ -2521,12 +2521,15 @@ class Base(mpdclient3.mpd_connection):
                 for item in self.browse_search_artist(self.view_artist_artist):
                     try:
                         albums.append(item.album)
-                        years.append(getattr(item, 'date', '0').split('-')[0].zfill(4))
+                        years.append(getattr(item, 'date', '9999').split('-')[0].zfill(4))
                     except:
                         songs.append(item)
                 (albums, years) = remove_list_duplicates(albums, years, False)
                 for itemnum in range(len(albums)):
-                    bd += [('d' + years[itemnum] + lower_no_the(albums[itemnum]), ['album', years[itemnum] + albums[itemnum], escape_html(years[itemnum] + ' - ' + albums[itemnum])])]
+                    if years[itemnum] == '9999':
+                        bd += [('d' + years[itemnum] + lower_no_the(albums[itemnum]), ['album', years[itemnum] + albums[itemnum], escape_html(albums[itemnum])])]
+                    else:
+                        bd += [('d' + years[itemnum] + lower_no_the(albums[itemnum]), ['album', years[itemnum] + albums[itemnum], escape_html(years[itemnum] + ' - ' + albums[itemnum])])]
                 for song in songs:
                     bd += [('f' + lower_no_the(song.title), ['sonata', song.file, self.parse_formatting(self.libraryformat, song, True)])]
                 bd.sort(key=first_of_2tuple)
@@ -2604,7 +2607,7 @@ class Base(mpdclient3.mpd_connection):
                     list.append(item)
                 else:
                     # Make sure it also matches the year:
-                    if year != '0000' and item.has_key('date'):
+                    if year != '9999' and item.has_key('date'):
                         # Only show songs whose years match the year var:
                         try:
                             if int(item.date.split('-')[0]) == int(year):
