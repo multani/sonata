@@ -370,6 +370,7 @@ class Base(mpdclient3.mpd_connection):
         self.playlists_tab_visible = True
         self.streams_tab_visible = True
         self.info_tab_visible = True
+        self.last_status_text = ""
         # For increased responsiveness after the initial load, we cache the root artist and
         # album view results and simply refresh on any mpd update
         self.albums_root = None
@@ -2144,7 +2145,8 @@ class Base(mpdclient3.mpd_connection):
             except:
                 pass
             self.currentdata.clear()
-            self.current.get_model().clear()
+            if self.current.get_model():
+                self.current.get_model().clear()
             self.songs = None
             if HAVE_STATUS_ICON:
                 self.statusicon.set_from_stock('sonata_disconnect')
@@ -3489,11 +3491,13 @@ class Base(mpdclient3.mpd_connection):
                     status_text = ""
                 if updatingdb:
                     status_text = status_text + "   " + _("(updating mpd)")
-                self.statusbar.push(self.statusbar.get_context_id(""), status_text)
             except:
-                self.statusbar.push(self.statusbar.get_context_id(""), "")
+                status_text = ""
         elif self.show_statusbar:
-            self.statusbar.push(self.statusbar.get_context_id(""), "")
+            status_text = ""
+        if status_text != self.last_status_text:
+            self.statusbar.push(self.statusbar.get_context_id(""), status_text)
+            self.last_status_text = status_text
 
     def set_ellipsize_workaround(self):
         # Hacky workaround to ellipsize the expander - see http://bugzilla.gnome.org/show_bug.cgi?id=406528
@@ -3592,40 +3596,38 @@ class Base(mpdclient3.mpd_connection):
                 prev_songs = None
             if not update_queuelist_only:
                 self.songs = self.conn.do.playlistinfo()
-                all_files_unchanged = self.playlist_files_unchanged(prev_songs)
-            else:
-                all_files_unchanged = True
             queue_map = self.playlistqueue_get_mapping()
-            has_queue = False
             if len(queue_map) > 0:
                 has_queue = True
+            else:
+                has_queue = False
             self.total_time = 0
             if self.sonata_loaded:
                 playlistposition = self.current.get_visible_rect()[1]
             self.current.freeze_child_notify()
-            # Only clear and update the entire list if the items' files are
-            # different than before. If they are the same, merely update the
-            # attributes so that the treeview visible_rect is retained.
-            if not all_files_unchanged:
-                self.currentdata.clear()
-                if not self.filterbox_visible:
-                    self.current.set_model(None)
+            if not self.filterbox_visible:
+                self.current.set_model(None)
             strqueue = []
-            for i in range(len(self.songs)):
+            songlen = len(self.songs)
+            currlen = len(self.currentdata)
+            # Add/update songs in current playlist:
+            for i in range(songlen):
                 track = self.songs[i]
-                items = []
-                for part in self.columnformat:
-                    items += [self.parse_formatting(part, track, True)]
                 try:
                     self.total_time = self.total_time + int(track.time)
                 except:
                     pass
                 # Check if song is in playlistqueue:
                 strqueue.append([self.songs[i].id, self.queueinfo_get_queueid(queue_map, self.songs[i].id)])
-                if all_files_unchanged:
+                iter = None
+                if i < currlen and prev_songs:
                     iter = self.currentdata.get_iter((i, ))
-                if not update_queuelist_only or (update_queuelist_only and (strqueue[i][1] != self.currentdata.get_value(iter, 0))):
-                    if all_files_unchanged:
+                update_item = False
+                if not update_queuelist_only or (update_queuelist_only and iter and strqueue[i][1] != self.currentdata.get_value(iter, 0)):
+                    items = []
+                    for part in self.columnformat:
+                        items += [self.parse_formatting(part, track, True)]
+                    if i < currlen and iter:
                         # Update attributes only for item:
                         self.currentdata.set_value(iter, 0, strqueue[i][1])
                         self.currentdata.set_value(iter, 1, int(track.id))
@@ -3634,18 +3636,20 @@ class Base(mpdclient3.mpd_connection):
                     else:
                         # Add new item:
                         self.currentdata.append([strqueue[i][1]] + [int(track.id)] + items)
-            if not all_files_unchanged and not self.filterbox_visible:
+            # Remove excess songs:
+            for i in range(currlen-songlen):
+                iter = self.currentdata.get_iter((currlen-1-i,))
+                self.currentdata.remove(iter)
+            if not self.filterbox_visible:
                 self.current.set_model(self.currentdata)
             if self.songinfo.has_key('pos') and not update_queuelist_only:
                 currsong = int(self.songinfo.pos)
                 self.boldrow(currsong)
                 self.prev_boldrow = currsong
-            if has_queue:
-                if not self.queuecolumn.get_visible():
-                    self.queuecolumn.set_visible(True)
-            else:
-                if self.queuecolumn.get_visible():
-                    self.queuecolumn.set_visible(False)
+            if has_queue and not self.queuecolumn.get_visible():
+                self.queuecolumn.set_visible(True)
+            elif not has_queue and self.queuecolumn.get_visible():
+                self.queuecolumn.set_visible(False)
             if self.filterbox_visible:
                 # Refresh filtered results:
                 if update_queuelist_only:
@@ -3657,8 +3661,8 @@ class Base(mpdclient3.mpd_connection):
             elif self.sonata_loaded:
                 self.playlist_retain_view(playlistposition)
                 self.current.thaw_child_notify()
-            self.update_statusbar()
             self.update_column_indicators()
+            self.update_statusbar()
             self.change_cursor(None)
 
     def update_column_indicators(self):
@@ -3686,17 +3690,6 @@ class Base(mpdclient3.mpd_connection):
 
     def center_playlist(self, event):
         self.keep_song_centered_in_list()
-
-    def playlist_files_unchanged(self, prev_songs):
-        # Go through each playlist object and check if the current and previous filenames match:
-        if prev_songs == None:
-            return False
-        if len(prev_songs) != len(self.songs):
-            return False
-        for i in range(len(self.songs)):
-            if self.songs[i].file != prev_songs[i].file:
-                return False
-        return True
 
     def playlist_retain_view(self, playlistposition):
         # Attempt to retain library position:
@@ -4289,7 +4282,6 @@ class Base(mpdclient3.mpd_connection):
             if len(self.songs) == 0:
                 return
 
-            self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
             while gtk.events_pending():
                 gtk.main_iteration()
             list = []
@@ -4347,7 +4339,6 @@ class Base(mpdclient3.mpd_connection):
 
             list.sort(key=lambda x: x["sortby"])
 
-            # Now that we have the order, move the songs as appropriate:
             pos = 0
             self.conn.send.command_list_begin()
             for item in list:
@@ -4379,7 +4370,6 @@ class Base(mpdclient3.mpd_connection):
 
     def on_sort_reverse(self, action):
         if self.conn:
-            self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
             while gtk.events_pending():
                 gtk.main_iteration()
             top = 0

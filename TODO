@@ -2,16 +2,16 @@ v1.4
 	patch 2230
 	remove song from filter, why visual refresh?
 	info tab - album info expander?
-	theme colors
+	theme colors?
 	better playlist support (mpd 0.13+ only):
 		ability to view songs, reorder songs, remove songs, etc
 	edit->save all: allow canceling, x at top right, prevent user typing
+	bug 12731 - speed up sorting by disconnecting, manipulating model
 
 v1.5
 	allow additional columns for library (like current)
 	genre mode (genre -> artist -> album)
 	make selection, dnd, more like thunar
-	speed up sorting by manipulating model (generic functions to swap/move model items)
 	
 Future:
 	lyrics -> ability to save changes
