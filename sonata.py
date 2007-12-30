@@ -379,6 +379,8 @@ class Base(mpdclient3.mpd_connection):
         self.iterate_time_when_connected = 500
         self.iterate_time_when_disconnected_or_stopped = 1000 # Slow down polling when disconnected stopped
 
+        self.all_tab_names = [self.TAB_CURRENT, self.TAB_LIBRARY, self.TAB_PLAYLISTS, self.TAB_STREAMS, self.TAB_INFO]
+
         tab_positions = self.settings_load()
         if start_hidden:
             self.withdrawn = True
@@ -579,7 +581,7 @@ class Base(mpdclient3.mpd_connection):
               <popup name="notebookmenu">
             """
 
-        for tab in [self.TAB_CURRENT, self.TAB_LIBRARY, self.TAB_PLAYLISTS, self.TAB_STREAMS, self.TAB_INFO]:
+        for tab in self.all_tab_names:
             uiDescription = uiDescription + "<menuitem action=\"" + tab + "\"/>"
         uiDescription = uiDescription + "</popup></ui>"
 
@@ -743,11 +745,14 @@ class Base(mpdclient3.mpd_connection):
         vbox_current = gtk.VBox()
         vbox_current.pack_start(self.expanderwindow, True, True)
         vbox_current.pack_start(self.filterbox, False, False, 5)
+        playlistevbox = gtk.EventBox()
         playlisthbox = gtk.HBox()
         playlisthbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_CDROM, gtk.ICON_SIZE_MENU), False, False, 2)
         playlisthbox.pack_start(gtk.Label(str=self.TAB_CURRENT), False, False, 2)
-        playlisthbox.show_all()
-        self.notebook.append_page(vbox_current, playlisthbox)
+        playlistevbox.add(playlisthbox)
+        playlistevbox.show_all()
+        playlistevbox.connect("button_press_event", self.on_tab_click)
+        self.notebook.append_page(vbox_current, playlistevbox)
         if not self.current_tab_visible:
             self.notebook.get_children()[0].set_no_show_all(True)
             self.notebook.get_children()[0].hide_all()
@@ -785,11 +790,14 @@ class Base(mpdclient3.mpd_connection):
         self.searchbox.pack_start(self.searchbutton, False, False, 2)
         browservbox.pack_start(expanderwindow2, True, True, 2)
         browservbox.pack_start(self.searchbox, False, False, 2)
+        libraryevbox = gtk.EventBox()
         libraryhbox = gtk.HBox()
         libraryhbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_HARDDISK, gtk.ICON_SIZE_MENU), False, False, 2)
         libraryhbox.pack_start(gtk.Label(str=self.TAB_LIBRARY), False, False, 2)
-        libraryhbox.show_all()
-        self.notebook.append_page(browservbox, libraryhbox)
+        libraryevbox.add(libraryhbox)
+        libraryevbox.show_all()
+        libraryevbox.connect("button_press_event", self.on_tab_click)
+        self.notebook.append_page(browservbox, libraryevbox)
         if not self.library_tab_visible:
             self.notebook.get_children()[1].set_no_show_all(True)
             self.notebook.get_children()[1].hide_all()
@@ -804,11 +812,14 @@ class Base(mpdclient3.mpd_connection):
         self.playlists.set_enable_search(True)
         self.playlists_selection = self.playlists.get_selection()
         expanderwindow3.add(self.playlists)
+        playlistsevbox = gtk.EventBox()
         playlistshbox = gtk.HBox()
         playlistshbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_JUSTIFY_CENTER, gtk.ICON_SIZE_MENU), False, False, 2)
         playlistshbox.pack_start(gtk.Label(str=self.TAB_PLAYLISTS), False, False, 2)
-        playlistshbox.show_all()
-        self.notebook.append_page(expanderwindow3, playlistshbox)
+        playlistsevbox.add(playlistshbox)
+        playlistsevbox.show_all()
+        playlistsevbox.connect("button_press_event", self.on_tab_click)
+        self.notebook.append_page(expanderwindow3, playlistsevbox)
         if not self.playlists_tab_visible:
             self.notebook.get_children()[2].set_no_show_all(True)
             self.notebook.get_children()[2].hide_all()
@@ -823,11 +834,14 @@ class Base(mpdclient3.mpd_connection):
         self.streams.set_enable_search(True)
         self.streams_selection = self.streams.get_selection()
         expanderwindow4.add(self.streams)
+        streamsevbox = gtk.EventBox()
         streamshbox = gtk.HBox()
         streamshbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_NETWORK, gtk.ICON_SIZE_MENU), False, False, 2)
         streamshbox.pack_start(gtk.Label(str=self.TAB_STREAMS), False, False, 2)
-        streamshbox.show_all()
-        self.notebook.append_page(expanderwindow4, streamshbox)
+        streamsevbox.add(streamshbox)
+        streamsevbox.show_all()
+        streamsevbox.connect("button_press_event", self.on_tab_click)
+        self.notebook.append_page(expanderwindow4, streamsevbox)
         if not self.streams_tab_visible:
             self.notebook.get_children()[3].set_no_show_all(True)
             self.notebook.get_children()[3].hide_all()
@@ -835,12 +849,15 @@ class Base(mpdclient3.mpd_connection):
         self.info = gtk.ScrolledWindow()
         self.info.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.info.set_shadow_type(gtk.SHADOW_IN)
+        infoevbox = gtk.EventBox()
         infohbox = gtk.HBox()
         infohbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_JUSTIFY_FILL, gtk.ICON_SIZE_MENU), False, False, 2)
         infohbox.pack_start(gtk.Label(str=self.TAB_INFO), False, False, 2)
-        infohbox.show_all()
+        infoevbox.add(infohbox)
+        infoevbox.show_all()
+        infoevbox.connect("button_press_event", self.on_tab_click)
         self.info_widgets_initialize()
-        self.notebook.append_page(self.info, infohbox)
+        self.notebook.append_page(self.info, infoevbox)
         mainvbox.pack_start(self.notebook, True, True, 5)
         if not self.info_tab_visible:
             self.notebook.get_children()[4].set_no_show_all(True)
@@ -6115,12 +6132,14 @@ class Base(mpdclient3.mpd_connection):
         elif type == 'search':
             self.on_lyrics_search(None)
 
+    def on_tab_click(self, widget, event):
+        if event.button == 3:
+            self.notebookmenu.popup(None, None, None, 1, 0)
+            return True
+
     def on_notebook_click(self, widget, event):
         if event.button == 1:
             self.volume_hide()
-        elif event.button == 3:
-            self.notebookmenu.popup(None, None, None, 1, 0)
-            return True
 
     def notebook_get_tab_num(self, notebook, tabname):
         for tab in range(notebook.get_n_pages()):
@@ -6147,7 +6166,7 @@ class Base(mpdclient3.mpd_connection):
 
     def notebook_get_tab_text(self, notebook, tab_num):
         tab = notebook.get_children()[tab_num]
-        return notebook.get_tab_label(tab).get_children()[1].get_text()
+        return notebook.get_tab_label(tab).get_child().get_children()[1].get_text()
 
     def on_notebook_page_change(self, notebook, page, page_num):
         self.current_tab = self.notebook_get_tab_text(self.notebook, page_num)
