@@ -5,6 +5,6 @@ Comment=An elegant GTK+ MPD client
 Exec=sonata
 Terminal=false
 Type=Application
-Icon=sonata
+Icon=sonata.png
 Categories=GTK;AudioVideo;Player;
 StartupNotify=true

@@ -1321,7 +1321,7 @@ class Base(mpdclient3.mpd_connection):
             label.set_alignment(0, 0)
             label.set_line_wrap(True)
             try: # Only recent versions of pygtk/gtk have this
-                label.set_line_wrap_mode(pango.WRAP_CHAR)
+                label.set_line_wrap_mode(pango.WRAP_WORD_CHAR)
             except:
                 pass
             if label != self.info_artistlabel and label != self.info_albumlabel:
@@ -6993,6 +6993,7 @@ class Base(mpdclient3.mpd_connection):
             self.about_dialog.set_copyright(statslabel)
         self.about_dialog.set_license(__license__)
         self.about_dialog.set_authors(['Scott Horowitz <stonecrest@gmail.com>'])
+        self.about_dialog.set_artists(['Adrian Chromenko <adrian@rest0re.org>'])
         self.about_dialog.set_translator_credits('be@latin - Ihar Hrachyshka <ihar.hrachyshka@gmail.com>\ncs - Jakub Adler <jakubadler@gmail.com>\nda - Martin Dybdal <dybber@dybber.dk>\nde - Paul Johnson <thrillerator@googlemail.com>\nes - Xoan Sampaiño <xoansampainho@gmail.com>\nfi - Ilkka Tuohelafr <hile@hack.fi>\nfr - Floreal M <florealm@gmail.com>\nit - Gianni Vialetto <forgottencrow@gmail.com>\nnl - Olivier Keun <litemotiv@gmail.com>\npl - Tomasz Dominikowski <dominikowski@gmail.com>\npt_BR - Alex Tercete Matos <alextercete@gmail.com>\nru - Ivan <bkb.box@bk.ru>\nsv - Daniel Nylander <po@danielnylander.se>\nuk - Господарисько Тарас <dogmaton@gmail.com>\nzh_CN - Desmond Chang <dochang@gmail.com>\n')
         gtk.about_dialog_set_url_hook(self.show_website, "http://sonata.berlios.de/")
         self.about_dialog.set_website_label("http://sonata.berlios.de/")
