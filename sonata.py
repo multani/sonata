@@ -3221,6 +3221,12 @@ class Base(mpdclient3.mpd_connection):
             return (self.x + 250, self.y + 80, True)
 
     def handle_change_status(self):
+        # Called when one of the following items are changed:
+        #  1. Current playlist (song added, removed, etc)
+        #  2. Repeat/random/xfade/volume
+        #  3. Currently selected song in playlist
+        #  4. Status (playing/paused/stopped)
+        #  5. Playlistqueue
         if self.status == None:
             # clean up and bail out
             self.update_progressbar()
@@ -3338,6 +3344,12 @@ class Base(mpdclient3.mpd_connection):
         self.volumebutton.set_image(image)
 
     def handle_change_song(self):
+        # Called when one of the following items are changed for the current
+        # mpd song in the playlist:
+        #  1. Song tags or filename (e.g. if tags are edited)
+        #  2. Position in playlist (e.g. if playlist is sorted)
+        # Note that the song does not have to be playing; it can reflect the
+        # next song that will be played.
         self.unbold_boldrow(self.prev_boldrow)
 
         if self.status and self.status.has_key('song'):
