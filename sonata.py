@@ -2421,6 +2421,8 @@ class Base(mpdclient3.mpd_connection):
                         root = self.view_artist_artist
                     else:
                         break
+                else:
+                    break
             elif self.view == self.VIEW_FILESYSTEM:
                 if root == '/':
                     # Nothing in the library at all
@@ -2982,13 +2984,14 @@ class Base(mpdclient3.mpd_connection):
             else:
                 return
         value = self.browserdata.get_value(self.browserdata.get_iter(path), 1)
+        icon = self.browserdata.get_value(self.browserdata.get_iter(path), 0)
         if value == "..":
             self.browse_parent_dir(None)
         else:
             if self.view == self.VIEW_ARTIST:
                 if value == "/":
                     self.view_artist_level = 1
-                else:
+                elif icon != 'sonata':
                     self.view_artist_level = self.view_artist_level + 1
             self.browse(None, value)
 
