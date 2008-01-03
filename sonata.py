@@ -2149,7 +2149,7 @@ class Base(mpdclient3.mpd_connection):
                 self.current.get_model().clear()
             self.songs = None
             if HAVE_STATUS_ICON:
-                self.statusicon.set_from_stock('sonata_disconnect')
+                self.statusicon.set_from_file(self.find_path('sonata_disconnect.png'))
             elif HAVE_EGG:
                 self.trayimage.set_from_stock('sonata_disconnect', gtk.ICON_SIZE_BUTTON)
             self.info_update(True)
@@ -3269,7 +3269,7 @@ class Base(mpdclient3.mpd_connection):
                 self.UIManager.get_widget('/traymenu/playmenu').show()
                 self.UIManager.get_widget('/traymenu/pausemenu').hide()
                 if HAVE_STATUS_ICON:
-                    self.statusicon.set_from_stock('sonata')
+                    self.statusicon.set_from_file(self.find_path('sonata.png'))
                 elif HAVE_EGG:
                     self.trayimage.set_from_stock('sonata', gtk.ICON_SIZE_BUTTON)
             elif self.status.state == 'pause':
@@ -3278,7 +3278,7 @@ class Base(mpdclient3.mpd_connection):
                 self.UIManager.get_widget('/traymenu/playmenu').show()
                 self.UIManager.get_widget('/traymenu/pausemenu').hide()
                 if HAVE_STATUS_ICON:
-                    self.statusicon.set_from_stock('sonata_pause')
+                    self.statusicon.set_from_file(self.find_path('sonata_pause.png'))
                 elif HAVE_EGG:
                     self.trayimage.set_from_stock('sonata_pause', gtk.ICON_SIZE_BUTTON)
             elif self.status.state == 'play':
@@ -3291,7 +3291,7 @@ class Base(mpdclient3.mpd_connection):
                         # Forces the notification to popup if specified
                         self.labelnotify()
                 if HAVE_STATUS_ICON:
-                    self.statusicon.set_from_stock('sonata_play')
+                    self.statusicon.set_from_file(self.find_path('sonata_play.png'))
                 elif HAVE_EGG:
                     self.trayimage.set_from_stock('sonata_play', gtk.ICON_SIZE_BUTTON)
             self.update_album_art()
@@ -3370,7 +3370,7 @@ class Base(mpdclient3.mpd_connection):
         self.update_album_art()
         self.info_update(True)
 
-        if not self.prevsonginfo or self.songinfo.file != self.prevsonginfo.file:
+        if self.songinfo and (not self.prevsonginfo or self.songinfo.file != self.prevsonginfo.file):
             self.scrobbler_prepare()
 
     def scrobbler_prepare(self):
@@ -7137,7 +7137,7 @@ class Base(mpdclient3.mpd_connection):
         # Make system tray 'icon' to sit in the system tray
         if HAVE_STATUS_ICON:
             self.statusicon = gtk.StatusIcon()
-            self.statusicon.set_from_stock('sonata')
+            self.statusicon.set_from_file(self.find_path('sonata.png'))
             self.statusicon.set_visible(self.show_trayicon)
             self.statusicon.connect('popup_menu', self.trayaction_menu)
             self.statusicon.connect('activate', self.trayaction_activate)
