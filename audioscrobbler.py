@@ -782,6 +782,7 @@ class AudioScrobblerPost:
         for track in self.cache[:number]:
             for k in track.keys():
                 params[k % (count,)] = track[k]
+            count += 1
 
         self.auth()
         params.update(self.auth_details)

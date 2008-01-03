@@ -3370,7 +3370,8 @@ class Base(mpdclient3.mpd_connection):
         self.update_album_art()
         self.info_update(True)
 
-        self.scrobbler_prepare()
+        if not self.prevsonginfo or self.songinfo.file != self.prevsonginfo.file:
+            self.scrobbler_prepare()
 
     def scrobbler_prepare(self):
         if HAVE_AUDIOSCROBBLER:
