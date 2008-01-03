@@ -3470,49 +3470,50 @@ class Base(mpdclient3.mpd_connection):
         return
 
     def update_statusbar(self, updatingdb=False):
-        if self.conn and self.status and self.show_statusbar:
-            try:
-                days = None
-                hours = None
-                mins = None
-                total_time = convert_time(self.total_time)
+        if self.show_statusbar:
+            if self.conn and self.status:
                 try:
-                    mins = total_time.split(":")[-2]
-                    hours = total_time.split(":")[-3]
-                    if int(hours) >= 24:
-                        days = str(int(hours)/24)
-                        hours = str(int(hours) - int(days)*24).zfill(2)
+                    days = None
+                    hours = None
+                    mins = None
+                    total_time = convert_time(self.total_time)
+                    try:
+                        mins = total_time.split(":")[-2]
+                        hours = total_time.split(":")[-3]
+                        if int(hours) >= 24:
+                            days = str(int(hours)/24)
+                            hours = str(int(hours) - int(days)*24).zfill(2)
+                    except:
+                        pass
+                    if days:
+                        days_text = gettext.ngettext('day', 'days', int(days))
+                    if mins:
+                        if mins.startswith('0') and len(mins) > 1:
+                            mins = mins[1:]
+                        mins_text = gettext.ngettext('minute', 'minutes', int(mins))
+                    if hours:
+                        if hours.startswith('0'):
+                            hours = hours[1:]
+                        hours_text = gettext.ngettext('hour', 'hours', int(hours))
+                    # Show text:
+                    songs_text = gettext.ngettext('song', 'songs', int(self.status.playlistlength))
+                    if days:
+                        status_text = str(self.status.playlistlength) + ' ' + songs_text + '   ' + days + ' ' + days_text + ', ' + hours + ' ' + hours_text + ', ' + _('and') + ' ' + mins + ' ' + mins_text
+                    elif hours:
+                        status_text = str(self.status.playlistlength) + ' ' + songs_text + '   ' + hours + ' ' + hours_text + ' ' + _('and') + ' ' + mins + ' ' + mins_text
+                    elif mins:
+                        status_text = str(self.status.playlistlength) + ' ' + songs_text + '   ' + mins + ' ' + mins_text
+                    else:
+                        status_text = ""
+                    if updatingdb:
+                        status_text = status_text + "   " + _("(updating mpd)")
                 except:
-                    pass
-                if days:
-                    days_text = gettext.ngettext('day', 'days', int(days))
-                if mins:
-                    if mins.startswith('0') and len(mins) > 1:
-                        mins = mins[1:]
-                    mins_text = gettext.ngettext('minute', 'minutes', int(mins))
-                if hours:
-                    if hours.startswith('0'):
-                        hours = hours[1:]
-                    hours_text = gettext.ngettext('hour', 'hours', int(hours))
-                # Show text:
-                songs_text = gettext.ngettext('song', 'songs', int(self.status.playlistlength))
-                if days:
-                    status_text = str(self.status.playlistlength) + ' ' + songs_text + '   ' + days + ' ' + days_text + ', ' + hours + ' ' + hours_text + ', ' + _('and') + ' ' + mins + ' ' + mins_text
-                elif hours:
-                    status_text = str(self.status.playlistlength) + ' ' + songs_text + '   ' + hours + ' ' + hours_text + ' ' + _('and') + ' ' + mins + ' ' + mins_text
-                elif mins:
-                    status_text = str(self.status.playlistlength) + ' ' + songs_text + '   ' + mins + ' ' + mins_text
-                else:
                     status_text = ""
-                if updatingdb:
-                    status_text = status_text + "   " + _("(updating mpd)")
-            except:
+            else:
                 status_text = ""
-        elif self.show_statusbar:
-            status_text = ""
-        if status_text != self.last_status_text:
-            self.statusbar.push(self.statusbar.get_context_id(""), status_text)
-            self.last_status_text = status_text
+            if status_text != self.last_status_text:
+                self.statusbar.push(self.statusbar.get_context_id(""), status_text)
+                self.last_status_text = status_text
 
     def set_ellipsize_workaround(self):
         # Hacky workaround to ellipsize the expander - see http://bugzilla.gnome.org/show_bug.cgi?id=406528

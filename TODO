@@ -1,5 +1,5 @@
 v1.4
-	patch 2230
+	patch 2230?
 	remove song from filter, why visual refresh?
 	info tab - album info expander?
 	theme colors?
@@ -7,6 +7,7 @@ v1.4
 		ability to view songs, reorder songs, remove songs, etc
 	edit->save all: allow canceling, x at top right, prevent user typing
 	bug 12731 - speed up sorting by disconnecting, manipulating model
+	update audioscrobbler to protocol 1.2
 
 v1.5
 	allow additional columns for library (like current)
@@ -19,4 +20,3 @@ Future:
 	crop songs in current playlist?
 	mpd statistics
 	use GtkVolumeButton?
-	update audioscrobbler to protocol 1.2
