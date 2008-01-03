@@ -4364,6 +4364,7 @@ class Base(mpdclient3.mpd_connection):
                 self.conn.send.moveid(item["id"], pos)
                 pos += 1
             self.conn.do.command_list_end()
+            self.iterate_now()
 
     def first_tag_of_format(self, format, colnum, tag_letter):
         # Returns a tuple with whether the first tag of the format
@@ -4399,6 +4400,7 @@ class Base(mpdclient3.mpd_connection):
                 top = top + 1
                 bot = bot - 1
             self.conn.do.command_list_end()
+            self.iterate_now()
 
     def on_sort_random(self, action):
         if self.conn:
