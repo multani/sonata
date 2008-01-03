@@ -2839,7 +2839,10 @@ class Base(mpdclient3.mpd_connection):
                             self.info_albumlabel.set_text(getattr(self.songinfo, 'album', ''))
                         self.info_datelabel.set_text(getattr(self.songinfo, 'date', ''))
                         self.info_genrelabel.set_text(getattr(self.songinfo, 'genre', ''))
-                        self.info_tracklabel.set_text(self.sanitize_mpdtag(getattr(self.songinfo, 'track', '0'), False, 2))
+                        if self.songinfo.has_key('track'):
+                            self.info_tracklabel.set_text(self.sanitize_mpdtag(getattr(self.songinfo, 'track', '0'), False, 0))
+                        else:
+                            self.info_tracklabel.set_text("")
                         if os.path.exists(self.musicdir[self.profile_num] + os.path.dirname(self.songinfo.file)):
                             self.info_filelabel.set_text(self.musicdir[self.profile_num] + self.songinfo.file)
                         else:
@@ -4527,7 +4530,7 @@ class Base(mpdclient3.mpd_connection):
 
     def on_image_activate(self, widget, event):
         self.window.handler_block(self.mainwinhandler)
-        if event.button == 1 and widget == self.info_imagebox:
+        if event.button == 1 and widget == self.info_imagebox and self.lastalbumart:
             if self.info_tagbox.get_property("visible"):
                 self.info_imagebox.set_size_request(-1,-1)
                 self.set_image_for_cover(self.lastalbumart, True)
