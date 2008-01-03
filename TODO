@@ -2,12 +2,11 @@ v1.4
 	patch 2230?
 	remove song from filter, why visual refresh?
 	info tab - album info expander?
-	theme colors?
 	better playlist support (mpd 0.13+ only):
 		ability to view songs, reorder songs, remove songs, etc
 	edit->save all: allow canceling, x at top right, prevent user typing
 	update audioscrobbler to protocol 1.2
-	artwork: cd covers, larger systray icons
+	artwork: larger systray icons
 
 v1.5
 	allow additional columns for library (like current)

@@ -1350,11 +1350,14 @@ class Base(mpdclient3.mpd_connection):
         self.info_lyrics.set_label_widget(lyricslabel)
         lyricsbox = gtk.VBox()
         lyricsbox_top = gtk.HBox()
-        self.lyricsBuffer = gtk.TextBuffer()
-        lyricsView = gtk.TextView(self.lyricsBuffer)
-        lyricsView.set_editable(False)
-        lyricsView.set_wrap_mode(gtk.WRAP_WORD)
-        lyricsbox_top.pack_start(lyricsView, True, True, horiz_spacing)
+        self.lyricsText = gtk.Label()
+        self.lyricsText.set_alignment(0,0)
+        self.lyricsText.set_selectable(True)
+        try: # Only recent versions of pygtk/gtk have this
+            self.lyricsText.set_line_wrap_mode(pango.WRAP_WORD_CHAR)
+        except:
+            pass
+        lyricsbox_top.pack_start(self.lyricsText, True, True, horiz_spacing)
         lyricsbox.pack_start(lyricsbox_top, True, True, vert_spacing)
         lyricsbox_bottom = gtk.HBox()
         searchevbox = gtk.EventBox()
@@ -2962,12 +2965,12 @@ class Base(mpdclient3.mpd_connection):
         if force:
             # For error messages where there is no appropriate artist or
             # title, we pass force=True:
-            self.lyricsBuffer.set_text(lyrics)
+            self.lyricsText.set_text(lyrics)
         elif self.status and self.status.state in ['play', 'pause'] and self.songinfo:
             # Verify that we are displaying the correct lyrics:
             try:
                 if strip_all_slashes(self.songinfo.artist) == artist and strip_all_slashes(self.songinfo.title) == title:
-                    self.lyricsBuffer.set_text(lyrics)
+                    self.lyricsText.set_text(lyrics)
             except:
                 pass
 
