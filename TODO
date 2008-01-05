@@ -4,7 +4,7 @@ v1.4
 	info tab - album info expander?
 	edit->save all: allow canceling, x at top right, prevent user typing
 	update audioscrobbler to protocol 1.2
-	artwork: larger systray icons
+	artwork: album covers?
 
 v1.5
 	better playlist support (mpd 0.13+ only):

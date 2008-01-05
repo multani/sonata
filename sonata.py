@@ -6,7 +6,7 @@ __version__ = "1.3"
 
 __license__ = """
 Sonata, an elegant GTK+ client for the Music Player Daemon
-Copyright 2006-2007 Scott Horowitz <stonecrest@gmail.com>
+Copyright 2006-2008 Scott Horowitz <stonecrest@gmail.com>
 
 This file is part of Sonata.
 
