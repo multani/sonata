@@ -169,9 +169,11 @@ AudioScrobblerPost: Update Your Personal Play History
 A set of classes for posting playlist information to your Last.fm account.
 Please note that you will need your own account to use these classes.
 
+Updated to work with version 1.2 of the Audioscrobbler protocol.
+
 Some stuff about the time management and internal cache should go here.
 
-Basic usage
+Basic usage (outdated)
 -----------
 >>> track = dict(artist_name="The Flaming Lips",
                  song_title="The Yeah Yeah Yeah Song",
@@ -296,10 +298,10 @@ audioscrobbler_request_version = '1.0'
 audioscrobbler_request_host = 'ws.audioscrobbler.com'
 
 # AudioScrobblerPost configuration settings
-audioscrobbler_post_version = u'1.1'
+audioscrobbler_post_version = u'1.2' #updated
 audioscrobbler_post_host = 'post.audioscrobbler.com'
 client_name = u'tst'
-pyscrobbler_version = u'1.0' # This is set to 1.0 while we use
+pyscrobbler_version = u'1.0.0.0' # This is set to 1.0 while we use
                              # client_name = u'tst' as we keep getting
                              # UPDATE responses with anything less.
 
@@ -577,6 +579,7 @@ class AudioScrobblerPost:
     Provide the ability to post tracks played to a user's Last.fm
     account
     """
+    #Updated to protocol version 1.2
 
     def __init__(self,
                  username=u'',
@@ -606,6 +609,7 @@ class AudioScrobblerPost:
         self.authenticated = False
         self.updateurl = None
         self.posturl = None
+        self.npurl = None
 
     def auth(self):
 
@@ -613,20 +617,20 @@ class AudioScrobblerPost:
 
         if self.authenticated:
             return True
-        now = datetime.datetime.utcnow()
-        interval = datetime.timedelta(minutes=30)
-        if self.last_shake is not None and self.last_shake + interval > now:
-            last_shake_string = self.last_shake.strftime("%Y-%m-%d %H:%M:%S")
-            msg = ("Tried to reauthenticate too soon after last try "
-                   "(last try at %s)" % (last_shake_string,))
-            raise AudioScrobblerHandshakeError(msg)
+
+        timestamp = str(int(time.time()))
+        password = self.params['password']
+        auth_token = md5.md5(md5.md5(password).hexdigest() + timestamp).hexdigest()
 
         p = {}
         p['hs'] = 'true'
-        p['u'] = self.params['username']
+        p['p'] = self.params['protocol_version']
         p['c'] = self.params['client_name']
         p['v'] = self.params['client_version']
-        p['p'] = self.params['protocol_version']
+        p['u'] = self.params['username']
+        p['t'] = timestamp
+        p['a'] = auth_token
+
         plist = [(k, urllib.quote_plus(v.encode('utf8'))) for k, v in p.items()]
 
         authparams = urllib.urlencode(plist)
@@ -643,46 +647,36 @@ class AudioScrobblerPost:
             message = error.reason#.args[1]
             raise AudioScrobblerConnectionError('network', code, message)
 
-        self.last_shake = datetime.datetime.utcnow()
         response = url_handle.readlines()
         if len(response) == 0:
             raise AudioScrobblerHandshakeError('Got nothing back from the server')
 
-        # Get the interval if there is one
-        find_interval = re.match('INTERVAL (\d+)', response[-1])
-        if find_interval is not None:
-            self.interval = int(find_interval.group(1))
-
         username = self.params['username']
         password = self.params['password']
+
         # First we test the best and most likely case
-
-        if response[0].startswith('UPTODATE'):
-            ask = response[1].strip()
-            answer = md5.md5(md5.md5(password).hexdigest() + ask).hexdigest()
-            self.auth_details['u'] = urllib.quote_plus(username.encode('utf8'))
+        if response[0].startswith('OK'):
+            answer = response[1].strip()
             self.auth_details['s'] = answer
-            self.posturl = response[2].strip()
+            self.npurl = response[2].strip()
+            self.posturl = response[3].strip()
             self.authenticated = True
-
-        # Next we test the least significant failure.
-        elif response[0].startswith('UPDATE'):
-            updateurl = result[0][7:].strip()
-
-            ask = response[1].strip()
-            answer = md5.md5(md5.md5(password).hexdigest() + ask).hexdigest()
-
-            self.auth_details['u'] = urllib.quote_plus(username.encode('utf8'))
-            self.auth_details['s'] = answer
-            self.posturl = response[2].strip()
-            self.authenticated = True
-            self.updateavailable = updateurl
 
         # Then the various failure states....
-        elif response[0].startswith('BADUSER'):
+        elif response[0].startswith('BANNED'):
             self.authenticated = False
-            msg = "Username '%s' unknown by Last.fm"
-            raise AudioScrobblerHandshakeError(msg % (username,))
+            msg = "this client version has been banned from the server."
+            raise AudioScrobblerHandshakeError(msg)
+
+        elif response[0].startswith('BADAUTH'):
+            self.authenticated = False
+            msg = "The authentication details provided were incorrect."
+            raise AudioScrobblerHandshakeError(msg)
+
+        elif response[0].startswith('BADTIME'):
+            self.authenticated = False
+            msg = "The timestamp provided was not close enough to the current time."
+            raise AudioScrobblerHandshakeError(msg)
 
         elif response[0].startswith('FAILED'):
             self.authenticated = False
@@ -703,8 +697,10 @@ class AudioScrobblerPost:
                   song_title,
                   length,
                   date_played,
+                  tracknumber=u'',
                   album=u'',
-                  mbid=u''):
+                  mbid=u'',
+                  source=u'P'):
 
         """
         Add the track to the local cache, and try to post it to the server
@@ -714,8 +710,10 @@ class AudioScrobblerPost:
                       song_title=song_title,
                       length=length,
                       date_played=date_played,
+                      tracknumber=tracknumber,
                       album=album,
-                      mbid=mbid)
+                      mbid=mbid,
+                      source=source)
         self.post()
 
     __call__ = posttrack
@@ -725,8 +723,10 @@ class AudioScrobblerPost:
                  song_title,
                  length,
                  date_played,
+                 tracknumber=u'',
                  album=u'',
-                 mbid=u''):
+                 mbid=u'',
+                 source=u'P'):
 
         """ Add a track to the local cache """
 
@@ -752,6 +752,9 @@ class AudioScrobblerPost:
                         'i[%s]': date_played,
                         'b[%s]': album.decode(enc).encode('utf8'),
                         'm[%s]': mbid.encode('utf8'),
+                        'r[%s]': u'',
+                        'n[%s]': tracknumber.decode(enc).encode('utf8'),
+                        'o[%s]': source.decode(enc).encode('utf8'),
                         }
             except:
                 track = {'a[%s]': artist_name,
@@ -760,8 +763,60 @@ class AudioScrobblerPost:
                         'i[%s]': date_played,
                         'b[%s]': album,
                         'm[%s]': mbid.encode('utf8'),
+                        'r[%s]': u'',
+                        'n[%s]': tracknumber.encode('utf8'),
+                        'o[%s]': source.encode('utf8'),
                         }
             self.cache.append(track)
+
+    def nowplaying(self,
+                  artist_name,
+                  song_title,
+                  length=u'',
+                  tracknumber=u'',
+                  album=u'',
+                  mbid=u''):
+
+        self.auth()
+        #params.update(self.auth_details)
+
+        p = {}
+        p['s'] = self.auth_details['s']
+
+        try:
+            p['a'] = artist_name.decode(enc).encode('utf8')
+            p['t'] = song_title.decode(enc).encode('utf8')
+            p['b'] = album.decode(enc).encode('utf8')
+            p['l'] = length.encode('utf8')
+            p['n'] = tracknumber.encode('utf8')
+            p['m'] = mbid.encode('utf8')
+        except:
+            p['a'] = artist_name
+            p['t'] = song_title
+            p['b'] = album
+            p['l'] = length.encode('utf8')
+            p['n'] = tracknumber.encode('utf8')
+            p['m'] = mbid.encode('utf8')
+
+        npdata = urllib.urlencode(p)
+
+        req = urllib2.Request(url=self.npurl, data=npdata)
+
+        try:
+            url_handle = urllib2.urlopen(req)
+        except urllib2.HTTPError, error:
+            self.authenticated = False
+            raise AudioScrobblerConnectionError('http', error.code, error.msg)
+        except:
+            code = '000'
+            message = sys.exc_info()[1]
+            raise AudioScrobblerConnectionError('network', code, message)
+
+        response = url_handle.readlines()
+        if response[0].startswith('OK'):
+            self.log("Now playing track updated.")
+        elif response[0].startswith('BADSESSION'):
+            self.authenticated = False
 
     def post(self):
 
@@ -790,9 +845,7 @@ class AudioScrobblerPost:
         req = urllib2.Request(url=self.posturl, data=postdata)
 
         now = datetime.datetime.utcnow()
-        interval = datetime.timedelta(seconds=self.interval)
-        if self.last_post is not None and self.last_post + interval > now:
-            time.sleep(self.interval)
+
         try:
             url_handle = urllib2.urlopen(req)
         except urllib2.HTTPError, error:
@@ -816,17 +869,12 @@ class AudioScrobblerPost:
         self.last_post = now
         response = url_handle.readlines()
 
-        # Get the interval if there is one
-        find_interval = re.match('INTERVAL (\d+)', response[-1])
-        if find_interval is not None:
-            self.interval = int(find_interval.group(1))
-
         # Test the various responses possibilities:
         if response[0].startswith('OK'):
             self.log("Uploaded %s tracks successfully" % (number,))
             del self.cache[:number]
-        elif response[0].startswith('BADAUTH'):
-            self.log("Got BADAUTH")
+        elif response[0].startswith('BADSESSION'):
+            self.log("Got BADSESSION")
             self.authenticated = False
         elif response[0].startswith('FAILED'):
             reason = response[0][6:].strip()
@@ -846,7 +894,7 @@ class AudioScrobblerPost:
 
         """ Add a line to the log, print it if verbose """
 
-        time = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.loglines.append("%s: %s" % (time, msg))
         if self.verbose:
             print self.loglines[-1]

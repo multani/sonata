@@ -39,6 +39,7 @@ import shutil
 import getopt
 import threading
 import re
+import time
 
 try:
     import gtk
@@ -374,6 +375,12 @@ class Base(mpdclient3.mpd_connection):
         self.info_art_enlarged = False
         self.eggtrayfile = None
         self.eggtrayheight = None
+        self.scrob = None
+        self.scrob_post = None
+        self.scrob_start_time = ""
+        self.scrob_playing_duration = 0
+        self.scrob_last_prepared = ""
+        self.scrob_time_now = None
         # For increased responsiveness after the initial load, we cache the root artist and
         # album view results and simply refresh on any mpd update
         self.albums_root = None
@@ -609,10 +616,6 @@ class Base(mpdclient3.mpd_connection):
             self.songinfo = None
 
         # Audioscrobbler
-        self.scrob = None
-        self.scrob_post = None
-        self.scrob_start_time = ""
-        self.scrob_submit_time = -1
         self.scrobbler_init()
 
         # Remove the old sonata covers dir (cleanup)
@@ -1140,7 +1143,7 @@ class Base(mpdclient3.mpd_connection):
 
         self.streams_populate()
 
-        self.iterate_now(True)
+        self.iterate_now()
         if self.window_owner:
             if self.withdrawn:
                 if (HAVE_EGG and self.trayicon.get_property('visible')) or (HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible()):
@@ -1674,7 +1677,7 @@ class Base(mpdclient3.mpd_connection):
         self.skip_on_profiles_click = False
         # Connect:
         self.connect()
-        self.iterate_now(True)
+        self.iterate_now()
 
     def disconnectkey_pressed(self, event):
         self.user_connect = False
@@ -1741,17 +1744,14 @@ class Base(mpdclient3.mpd_connection):
         self.update_status()
         self.info_update(False)
 
-        # Do this before self.scrob_submit_time is defined in self.handle_change_song() so
-        # that we can prevent submission of tracks on sonata start or mpd connection
-        if self.use_scrobbler and self.status and self.status.state == "play":
-            at, length = [int(c) for c in self.status.time.split(':')]
-            if self.scrob_submit_time != -1 and at > self.scrob_submit_time:
-                self.scrobbler_post()
-
         if self.conn != self.prevconn:
             self.handle_change_conn()
         if self.status != self.prevstatus:
             self.handle_change_status()
+        if self.use_scrobbler:
+            # We update this here because self.handle_change_status() won't be
+            # called while the client is paused.
+            self.scrob_time_now = time.time()
         if self.songinfo != self.prevsonginfo:
             self.handle_change_song()
 
@@ -1784,18 +1784,13 @@ class Base(mpdclient3.mpd_connection):
         except:
             pass
 
-    def iterate_now(self, reset_scrob_submit_time=False):
+    def iterate_now(self):
         # Since self.iterate_time_when_connected has been
         # slowed down to 500ms, we'll call self.iterate_now()
         # whenever the user performs an action that requires
         # updating the client
         self.iterate_stop()
         self.iterate()
-
-        # Ensure that we don't submit info if we open sonata (or connect to mpd) and a track is playing
-        # and otherwise meets the submission criteria:
-        if reset_scrob_submit_time:
-            self.scrob_submit_time = -1
 
     def iterate_status_icon(self):
         # Polls for the users' cursor position to display the custom tooltip window when over the
@@ -3348,6 +3343,30 @@ class Base(mpdclient3.mpd_connection):
                     # Update infow if it's visible:
                     self.info_update(True)
 
+        if self.use_scrobbler:
+            if self.status and self.status.state == 'play':
+                if not self.prevstatus or (self.prevstatus and self.prevstatus.state == 'stop'):
+                    # Switched from stop to play, prepare current track:
+                    self.scrobbler_prepare()
+                elif self.prevsonginfo and self.scrob_last_prepared != self.songinfo.file:
+                    # New song is playing, post previous track if time criteria is met:
+                    if self.scrob_playing_duration > 4 * 60 or self.scrob_playing_duration > int(self.prevsonginfo.time)/2:
+                        if self.scrob_start_time != "":
+                            self.scrobbler_post()
+                    # Prepare current track:
+                    self.scrobbler_prepare()
+                elif self.scrob_time_now:
+                    # Keep track of the total amount of time that the current song
+                    # has been playing:
+                    self.scrob_playing_duration += time.time() - self.scrob_time_now
+            elif self.status and self.status.state == 'stop':
+                if self.prevsonginfo:
+                    if self.scrob_playing_duration > 4 * 60 or self.scrob_playing_duration > int(self.prevsonginfo.time)/2:
+                        # User stopped the client, post previous track if time
+                        # criteria is met:
+                        if self.scrob_start_time != "":
+                            self.scrobbler_post()
+
     def get_new_artist_for_album_name(self):
         if self.songinfo and self.songinfo.has_key('album'):
             self.set_artist_for_album_name()
@@ -3384,28 +3403,27 @@ class Base(mpdclient3.mpd_connection):
         self.update_album_art()
         self.info_update(True)
 
-        if self.songinfo and (not self.prevsonginfo or self.songinfo.file != self.prevsonginfo.file):
-            self.scrobbler_prepare()
-
     def scrobbler_prepare(self):
         if HAVE_AUDIOSCROBBLER:
             self.scrob_start_time = ""
-            self.scrob_submit_time = -1
+            self.scrob_last_prepared = ""
+            self.scrob_playing_duration = 0
 
             if self.use_scrobbler and self.songinfo:
-                if self.songinfo.has_key('time'):
-                    self.scrob_start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
-                    # Submission time is either halfway or after four minutes,
-                    # so if the song is more than 8 minutes long we use four minutes.
-                    # audioscrobbler.py won't submit if the song is < 30 secs
-                    if int(self.songinfo['time']) > 8 * 60:
-                        self.scrob_submit_time = 4 * 60
-                    else:
-                        self.scrob_submit_time = int(self.songinfo['time']) / 2
+                if self.songinfo.has_key('time') and int(self.songinfo.time) > 30:
+                    self.scrobbler_np()
 
-    def scrobbler_post(self):
+                    self.scrob_start_time = str(int(time.time()))
+                    self.scrob_last_prepared = self.songinfo.file
+
+    def scrobbler_np(self):
+        thread = threading.Thread(target=self._do_scrobbler_np)
+        thread.setDaemon(True)
+        thread.start()
+
+    def _do_scrobbler_np(self):
         self.scrobbler_init()
-        if self.scrob_post and self.songinfo:
+        if self.use_scrobbler and self.songinfo:
             if self.songinfo.has_key('artist') and \
                self.songinfo.has_key('title') and \
                self.songinfo.has_key('time'):
@@ -3413,17 +3431,51 @@ class Base(mpdclient3.mpd_connection):
                     album = u''
                 else:
                     album = self.songinfo['album']
-                self.scrob_post.addtrack(self.songinfo['artist'],
-                                                self.songinfo['title'],
-                                                self.songinfo['time'],
+                if not self.songinfo.has_key('track'):
+                    tracknumber = u''
+                else:
+                    tracknumber = self.songinfo['track']
+
+        """
+        We can get the following error just by starting Sonata when offline:
+        #AttributeError: 'NoneType' object has no attribute 'nowplaying'
+        """
+        try:
+            self.scrob_post.nowplaying(self.songinfo['artist'],
+                                            self.songinfo['title'],
+                                            self.songinfo['time'],
+                                            self.scrob_start_time,
+                                            tracknumber,
+                                            album)
+        except :
+            pass
+        time.sleep(10)
+
+    def scrobbler_post(self):
+        self.scrobbler_init()
+        if self.scrob_post and self.prevsonginfo:
+            if self.prevsonginfo.has_key('artist') and \
+               self.prevsonginfo.has_key('title') and \
+               self.prevsonginfo.has_key('time'):
+                if not self.prevsonginfo.has_key('album'):
+                    album = u''
+                else:
+                    album = self.prevsonginfo['album']
+                if not self.prevsonginfo.has_key('track'):
+                    tracknumber = u''
+                else:
+                    tracknumber = self.prevsonginfo['track']
+                self.scrob_post.addtrack(self.prevsonginfo['artist'],
+                                                self.prevsonginfo['title'],
+                                                self.prevsonginfo['time'],
                                                 self.scrob_start_time,
+                                                tracknumber,
                                                 album)
 
                 thread = threading.Thread(target=self._do_post_scrobbler)
                 thread.setDaemon(True)
                 thread.start()
         self.scrob_start_time = ""
-        self.scrob_submit_time = -1
 
     def _do_post_scrobbler(self):
         for i in range(0,3):
@@ -6171,9 +6223,6 @@ class Base(mpdclient3.mpd_connection):
 
     def seek(self, song, seektime):
         self.conn.do.seek(song, seektime)
-        # Reset scrobbler because of seek event
-        self.scrob_start_time = ""
-        self.scrob_submit_time = -1
         self.iterate_now()
         return
 
