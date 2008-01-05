@@ -371,6 +371,7 @@ class Base(mpdclient3.mpd_connection):
         self.streams_tab_visible = True
         self.info_tab_visible = True
         self.last_status_text = ""
+        self.info_art_enlarged = False
         # For increased responsiveness after the initial load, we cache the root artist and
         # album view results and simply refresh on any mpd update
         self.albums_root = None
@@ -850,7 +851,7 @@ class Base(mpdclient3.mpd_connection):
             self.notebook.get_children()[3].hide_all()
         # Info tab
         info = gtk.ScrolledWindow()
-        info.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+        info.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         info.set_shadow_type(gtk.SHADOW_IN)
         infoevbox = gtk.EventBox()
         infohbox = gtk.HBox()
@@ -1230,7 +1231,10 @@ class Base(mpdclient3.mpd_connection):
         self.info_imagebox.connect('drag_motion', self.on_image_motion_cb)
         self.info_imagebox.connect('drag_data_received', self.on_image_drop_cb)
         self.info_imagebox.add(self.info_image)
-        self.info_imagebox.set_size_request(152, -1)
+        if self.info_art_enlarged:
+            self.info_imagebox.set_size_request(-1, -1)
+        else:
+            self.info_imagebox.set_size_request(152, -1)
         inner_hbox.pack_start(self.info_imagebox, False, False, horiz_spacing)
         gobject.idle_add(self.info_image.set_from_file, self.sonatacd_large)
         titlehbox = gtk.HBox()
@@ -1958,6 +1962,8 @@ class Base(mpdclient3.mpd_connection):
             self.show_header = conf.getboolean('player', 'show_header')
         if conf.has_option('player', 'browser'):
             self.url_browser = conf.get('player', 'browser')
+        if conf.has_option('player', 'info_art_enlarged'):
+            self.info_art_enlarged = conf.getboolean('player', 'info_art_enlarged')
         tab_positions = None
         tab_num = 0
         if conf.has_section('notebook'):
@@ -2085,6 +2091,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'info_song_expanded', self.info_song_expanded)
         conf.set('player', 'info_lyrics_expanded', self.info_lyrics_expanded)
         conf.set('player', 'info_song_more', self.info_song_more)
+        conf.set('player', 'info_art_enlarged', self.info_art_enlarged)
         tmp = ""
         for i in range(len(self.columns) - 1):
             tmp += str(self.columns[i].get_width()) + ","
@@ -4136,8 +4143,8 @@ class Base(mpdclient3.mpd_connection):
 
     def on_notebook_resize(self, widget, event):
         # Resize labels in info tab to prevent horiz scrollbar
-        labelwidth = self.notebook.allocation.width - self.titlelabel.get_size_request()[0] - self.info_imagebox.get_size_request()[0] - 60 # 60 accounts for vert scrollbar, box paddings, etc..
-        if labelwidth > 0:
+        labelwidth = self.notebook.allocation.width - self.titlelabel.allocation.width - self.info_imagebox.allocation.width - 60 # 60 accounts for vert scrollbar, box paddings, etc..
+        if labelwidth > 100:
             for label in self.labels_right:
                 label.set_size_request(labelwidth, -1)
 
@@ -4537,15 +4544,17 @@ class Base(mpdclient3.mpd_connection):
     def on_image_activate(self, widget, event):
         self.window.handler_block(self.mainwinhandler)
         if event.button == 1 and widget == self.info_imagebox and self.lastalbumart:
-            if self.info_tagbox.get_property("visible"):
+            if not self.info_art_enlarged:
                 self.info_imagebox.set_size_request(-1,-1)
                 self.set_image_for_cover(self.lastalbumart, True)
-                self.info_tagbox.hide_all()
+                self.info_art_enlarged = True
             else:
                 self.info_imagebox.set_size_request(152, -1)
                 self.set_image_for_cover(self.lastalbumart, True)
-                self.info_tagbox.show_all()
+                self.info_art_enlarged = False
             self.volume_hide()
+            # Force a resize of the info labels, if needed:
+            gobject.idle_add(self.on_notebook_resize, self.notebook, None)
         elif event.button == 1:
             if self.current_tab != self.TAB_INFO:
                 self.switch_to_tab_name(self.TAB_INFO)

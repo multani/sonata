@@ -7,6 +7,7 @@ v1.4
 	edit->save all: allow canceling, x at top right, prevent user typing
 	update audioscrobbler to protocol 1.2
 	artwork: larger systray icons
+	libegg panel sizes
 
 v1.5
 	allow additional columns for library (like current)
