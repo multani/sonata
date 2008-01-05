@@ -372,6 +372,8 @@ class Base(mpdclient3.mpd_connection):
         self.info_tab_visible = True
         self.last_status_text = ""
         self.info_art_enlarged = False
+        self.eggtrayfile = None
+        self.eggtrayheight = None
         # For increased responsiveness after the initial load, we cache the root artist and
         # album view results and simply refresh on any mpd update
         self.albums_root = None
@@ -406,9 +408,6 @@ class Base(mpdclient3.mpd_connection):
         # Add some icons:
         self.iconfactory = gtk.IconFactory()
         self.new_icon('sonata', file='sonata.png')
-        self.new_icon('sonata_pause', file='sonata_pause.png')
-        self.new_icon('sonata_play', file='sonata_play.png')
-        self.new_icon('sonata_disconnect', file='sonata_disconnect.png')
         self.new_icon('artist', file='sonata-artist.png')
         self.new_icon('album', file='sonata-album.png')
         icon_theme = gtk.icon_theme_get_default()
@@ -2151,7 +2150,8 @@ class Base(mpdclient3.mpd_connection):
             for mediabutton in (self.ppbutton, self.stopbutton, self.prevbutton, self.nextbutton, self.volumebutton):
                 mediabutton.set_property('sensitive', False)
             try:
-                self.trayimage.set_from_stock('sonata',  gtk.ICON_SIZE_BUTTON)
+                self.eggtrayfile = self.find_path('sonata.png')
+                self.trayimage.set_from_pixbuf(self.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
             except:
                 pass
             self.currentdata.clear()
@@ -2161,7 +2161,8 @@ class Base(mpdclient3.mpd_connection):
             if HAVE_STATUS_ICON:
                 self.statusicon.set_from_file(self.find_path('sonata_disconnect.png'))
             elif HAVE_EGG:
-                self.trayimage.set_from_stock('sonata_disconnect', gtk.ICON_SIZE_BUTTON)
+                self.eggtrayfile = self.find_path('sonata_disconnect.png')
+                self.trayimage.set_from_pixbuf(self.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
             self.info_update(True)
         else:
             for mediabutton in (self.ppbutton, self.stopbutton, self.prevbutton, self.nextbutton, self.volumebutton):
@@ -3281,7 +3282,8 @@ class Base(mpdclient3.mpd_connection):
                 if HAVE_STATUS_ICON:
                     self.statusicon.set_from_file(self.find_path('sonata.png'))
                 elif HAVE_EGG:
-                    self.trayimage.set_from_stock('sonata', gtk.ICON_SIZE_BUTTON)
+                    self.eggtrayfile = self.find_path('sonata.png')
+                    self.trayimage.set_from_pixbuf(self.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
             elif self.status.state == 'pause':
                 self.ppbutton.set_image(gtk.image_new_from_stock(gtk.STOCK_MEDIA_PLAY, gtk.ICON_SIZE_BUTTON))
                 self.ppbutton.get_child().get_child().get_children()[1].set_text('')
@@ -3290,7 +3292,8 @@ class Base(mpdclient3.mpd_connection):
                 if HAVE_STATUS_ICON:
                     self.statusicon.set_from_file(self.find_path('sonata_pause.png'))
                 elif HAVE_EGG:
-                    self.trayimage.set_from_stock('sonata_pause', gtk.ICON_SIZE_BUTTON)
+                    self.eggtrayfile = self.find_path('sonata_pause.png')
+                    self.trayimage.set_from_pixbuf(self.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
             elif self.status.state == 'play':
                 self.ppbutton.set_image(gtk.image_new_from_stock(gtk.STOCK_MEDIA_PAUSE, gtk.ICON_SIZE_BUTTON))
                 self.ppbutton.get_child().get_child().get_children()[1].set_text('')
@@ -3303,7 +3306,8 @@ class Base(mpdclient3.mpd_connection):
                 if HAVE_STATUS_ICON:
                     self.statusicon.set_from_file(self.find_path('sonata_play.png'))
                 elif HAVE_EGG:
-                    self.trayimage.set_from_stock('sonata_play', gtk.ICON_SIZE_BUTTON)
+                    self.eggtrayfile = self.find_path('sonata_play.png')
+                    self.trayimage.set_from_pixbuf(self.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
             self.update_album_art()
             if self.status.state in ['play', 'pause']:
                 self.keep_song_centered_in_list()
@@ -5063,6 +5067,12 @@ class Base(mpdclient3.mpd_connection):
     # Change volume on mousewheel over systray icon:
     def trayaction_scroll(self, widget, event):
         self.on_volumebutton_scroll(widget, event)
+
+    def trayaction_size(self, widget, allocation):
+        if not self.eggtrayheight or self.eggtrayheight != widget.allocation.height:
+            self.eggtrayheight = widget.allocation.height
+            if self.eggtrayfile > 5:
+                self.trayimage.set_from_pixbuf(self.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
 
     def quit_activate(self, widget):
         self.window.destroy()
@@ -7157,9 +7167,9 @@ class Base(mpdclient3.mpd_connection):
             self.trayeventbox = gtk.EventBox()
             self.trayeventbox.connect('button_press_event', self.trayaction)
             self.trayeventbox.connect('scroll-event', self.trayaction_scroll)
+            self.trayeventbox.connect('size-allocate', self.trayaction_size)
             self.traytips.set_tip(self.trayeventbox)
             self.trayimage = gtk.Image()
-            self.trayimage.set_from_stock('sonata', gtk.ICON_SIZE_BUTTON)
             self.trayeventbox.add(self.trayimage)
             try:
                 self.trayicon = egg.trayicon.TrayIcon("TrayIcon")

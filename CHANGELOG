@@ -9,6 +9,7 @@ v1.4 - Pending
 	+ Remove confusing 'remote only' and 'remote, then local' artwork options
 	+ Ability to hide progress bar (can create very minimal player)
 	+ Skip fallback artwork search of just album name if primary searches fail
+	+ Make system tray icon scalable
 	+ Shortcuts to search library (ctrl-h), randomize current playlist (alt-r)
 	+ Use gtk theme's link-color if available (only for gtk 2.12 and above)
 	+ Bug: Right-click menu can cause accidental actions with some gtk themes
