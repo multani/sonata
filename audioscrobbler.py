@@ -813,8 +813,7 @@ class AudioScrobblerPost:
 
         response = url_handle.readlines()
         if response[0].startswith('OK'):
-            self.log("Now playing track updated.")
-            print "  ", p['t'], 'by', p['a'], 'from', p['b']
+            self.log("Now playing track updated ('%s' by '%s')." % (p['t'], p['a']))
         elif response[0].startswith('BADSESSION'):
             self.authenticated = False
 
@@ -871,18 +870,17 @@ class AudioScrobblerPost:
 
         # Test the various responses possibilities:
         if response[0].startswith('OK'):
-            self.log("Uploaded %s track(s) successfully" % (number,))
             for song in self.cache[:number]:
-                print "  ", song['a[%s]'], "by", song['t[%s]'], 'from', song['b[%s]']
+                self.log("Uploaded track successfully ('%s' by '%s')." % (song['t[%s]'], song['a[%s]']))
             del self.cache[:number]
         elif response[0].startswith('BADSESSION'):
-            self.log("Got BADSESSION")
+            self.log("Got BADSESSION.")
             self.authenticated = False
         elif response[0].startswith('FAILED'):
             reason = response[0][6:].strip()
             raise AudioScrobblerPostFailed(reason)
         else:
-            msg = "Server returned something unexpected"
+            msg = "Server returned something unexpected."
             raise AudioScrobblerPostFailed(msg)
 
     def flushcache(self):

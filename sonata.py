@@ -3410,7 +3410,9 @@ class Base(mpdclient3.mpd_connection):
             self.scrob_playing_duration = 0
 
             if self.use_scrobbler and self.songinfo:
-                if self.songinfo.has_key('time') and int(self.songinfo.time) > 30:
+                # No need to check if the song is 30 seconds or longer,
+                # audioscrobbler.py takes care of that.
+                if self.songinfo.has_key('time'):
                     self.scrobbler_np()
 
                     self.scrob_start_time = str(int(time.time()))
