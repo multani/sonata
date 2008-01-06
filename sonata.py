@@ -3486,6 +3486,16 @@ class Base(mpdclient3.mpd_connection):
                 pass
             time.sleep(10)
 
+    def scrobbler_save_cache(self):
+        filename = os.path.expanduser('~/.config/sonata/ascache')
+        if self.scrob_post:
+            self.scrob_post.savecache(filename)
+
+    def scrobbler_retrieve_cache(self):
+        filename = os.path.expanduser('~/.config/sonata/ascache')
+        if self.scrob_post:
+            self.scrob_post.retrievecache(filename)
+
     def boldrow(self, row):
         if self.filterbox_visible:
             return
@@ -4175,6 +4185,8 @@ class Base(mpdclient3.mpd_connection):
                 self.withdraw_app()
                 return True
         self.settings_save()
+        if self.use_scrobbler:
+            self.scrobbler_save_cache()
         if self.conn and self.stop_on_exit:
             self.stop(None)
         sys.exit()
@@ -5842,6 +5854,8 @@ class Base(mpdclient3.mpd_connection):
         except Exception, e:
             print "Error authenticating audioscrobbler", e
             self.scrob_post = None
+        if self.scrob_post:
+            self.scrobbler_retrieve_cache()
 
     def use_scrobbler_toggled(self, checkbox, userentry, passentry, userlabel, passlabel):
         if HAVE_AUDIOSCROBBLER:

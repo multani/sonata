@@ -2,6 +2,7 @@ v1.4 - Pending
 	+ Integrate info window into main player
 	+ Increased speed for various actions
 	+ Update to audioscrobbler protocol 1.2 and scrobbling bug fixes (mveers)
+	+ Implemented caching of scrobbles across client restarts
 	+ Vertically center currently playing song
 	+ Allow screen center for notification popup
 	+ Preference for saving lyrics to music file's directory (like artwork)

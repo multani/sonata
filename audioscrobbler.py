@@ -270,7 +270,7 @@ __version__ = "$Revision$"[11:-2]
 __docformat__ = "restructuredtext"
 
 
-import datetime, locale, md5, pickle, re, site, sys, time, urllib, urllib2
+import datetime, locale, md5, site, sys, time, urllib, urllib2, ConfigParser, os
 
 try:
     # Python 2.5, module bundled:
@@ -805,11 +805,13 @@ class AudioScrobblerPost:
             url_handle = urllib2.urlopen(req)
         except urllib2.HTTPError, error:
             self.authenticated = False
-            raise AudioScrobblerConnectionError('http', error.code, error.msg)
+            print AudioScrobblerConnectionError('http', error.code, error.msg)
+            return
         except:
             code = '000'
             message = sys.exc_info()[1]
-            raise AudioScrobblerConnectionError('network', code, message)
+            print AudioScrobblerConnectionError('network', code, message)
+            return
 
         response = url_handle.readlines()
         if response[0].startswith('OK'):
@@ -889,6 +891,48 @@ class AudioScrobblerPost:
 
         while len(self.cache) > 0:
             self.post()
+
+    def savecache(self, filename):
+
+        """ Save all tracks in the cache to a file """
+
+        conf = ConfigParser.ConfigParser()
+
+        # Save each track in cache:
+        count = 0
+        for track in self.cache:
+            conf.add_section('Track ' + str(count))
+            for k in track.keys():
+                conf.set('Track ' + str(count), k, track[k])
+            count += 1
+
+        conf.write(file(filename, 'w'))
+
+    def retrievecache(self, filename):
+
+        """
+        Retrieve all cached tracks from a file so that cached tracks
+        are preserved across client restarts
+        """
+
+        if not os.path.isfile(filename):
+            return
+
+        conf = ConfigParser.ConfigParser()
+        conf.read(filename)
+
+        # Retrieve each cached track from file:
+        count = 0
+        while conf.has_section('Track ' + str(count)):
+            track = {}
+            for key in ['a','t','l','i','b','m','r','n','o']:
+                if conf.has_option('Track ' + str(count), key + '[%s]'):
+                    track[key + '[%s]'] = conf.get('Track ' + str(count), key + '[%s]')
+            self.cache.append(track)
+            count += 1
+
+        # Cached tracks retrieved, delete file:
+        os.remove(filename)
 
     def log(self, msg):
 
