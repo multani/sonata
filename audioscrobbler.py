@@ -778,7 +778,6 @@ class AudioScrobblerPost:
                   mbid=u''):
 
         self.auth()
-        #params.update(self.auth_details)
 
         p = {}
         p['s'] = self.auth_details['s']
@@ -815,6 +814,7 @@ class AudioScrobblerPost:
         response = url_handle.readlines()
         if response[0].startswith('OK'):
             self.log("Now playing track updated.")
+            print "  ", p['t'], 'by', p['a'], 'from', p['b']
         elif response[0].startswith('BADSESSION'):
             self.authenticated = False
 
@@ -871,7 +871,9 @@ class AudioScrobblerPost:
 
         # Test the various responses possibilities:
         if response[0].startswith('OK'):
-            self.log("Uploaded %s tracks successfully" % (number,))
+            self.log("Uploaded %s track(s) successfully" % (number,))
+            for song in self.cache[:number]:
+                print "  ", song['a[%s]'], "by", song['t[%s]'], 'from', song['b[%s]']
             del self.cache[:number]
         elif response[0].startswith('BADSESSION'):
             self.log("Got BADSESSION")

@@ -3436,19 +3436,13 @@ class Base(mpdclient3.mpd_connection):
                 else:
                     tracknumber = self.songinfo['track']
 
-        """
-        We can get the following error just by starting Sonata when offline:
-        #AttributeError: 'NoneType' object has no attribute 'nowplaying'
-        """
-        try:
+        if self.scrob_post:
             self.scrob_post.nowplaying(self.songinfo['artist'],
                                             self.songinfo['title'],
                                             self.songinfo['time'],
-                                            self.scrob_start_time,
                                             tracknumber,
-                                            album)
-        except :
-            pass
+                                            album,
+                                            self.scrob_start_time)
         time.sleep(10)
 
     def scrobbler_post(self):
