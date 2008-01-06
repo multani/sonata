@@ -3839,16 +3839,13 @@ class Base(mpdclient3.mpd_connection):
             if not imgfound:
                 if self.covers_pref == self.ART_LOCAL_REMOTE:
                     imgfound = self.check_remote_images(artist, album, filename)
-                if not imgfound and (len(artist) > 0 or len(album) > 0):
-                    # No remote or local artwork found, write filename to tell Sonata to use
-                    # default icons in the future (to prevent remote/local searching):
-                    self.create_art_location_none_file()
         else:
             self.set_default_icon_for_art()
 
     def create_art_location_none_file(self):
-        self.create_dir_if_not_existing('~/.covers/')
         # If this file exists, Sonata will use the "blank" default artwork for the song
+        # We will only use this if the user explicitly resets the artwork.
+        self.create_dir_if_not_existing('~/.covers/')
         filename = self.target_image_filename(self.ART_LOCATION_NONE)
         f = open(filename, 'w')
         f.close()
