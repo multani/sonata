@@ -2880,6 +2880,17 @@ class Base(mpdclient3.mpd_connection):
         filename = self.info_check_for_local_lyrics(filename_artist, filename_title)
         search_str = link_markup(_("search"), True, True, self.linkcolor)
         if filename:
+            # If the lyrics only contain "not found", delete the file and try to
+            # fetch new lyrics. If there is a bug in Sonata/SZI/LyricWiki that
+            # prevents lyrics from being found, storing the "not found" will
+            # prevent a future release from correctly fetching the lyrics.
+            f = open(filename, 'r')
+            lyrics = f.read()
+            f.close()
+            if lyrics == _("Lyrics not found"):
+                os.remove(filename)
+                filename = self.info_check_for_local_lyrics(filename_artist, filename_title)
+        if filename:
             # Re-use lyrics from file:
             f = open(filename, 'r')
             lyrics = f.read()
@@ -2933,14 +2944,6 @@ class Base(mpdclient3.mpd_connection):
                 else:
                     lyrics = _("Lyrics not found")
                     gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
-                    # Save error to file so that we don't retry the lyrics over and over:
-                    self.create_dir_if_not_existing('~/.lyrics/')
-                    f = open(filename, 'w')
-                    try:
-                        f.write(lyrics.decode(self.enc).encode('utf8'))
-                    except:
-                        f.write(lyrics)
-                    f.close()
             except:
                 lyrics = _("Fetching lyrics failed")
                 gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
