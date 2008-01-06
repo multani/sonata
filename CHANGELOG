@@ -1,6 +1,5 @@
 v1.4 - Pending
 	+ Integrate info window into main player
-	+ Increased speed for various actions
 	+ Update to audioscrobbler protocol 1.2 and scrobbling bug fixes (mveers)
 	+ Implemented caching of scrobbles across client restarts
 	+ Vertically center currently playing song
@@ -18,6 +17,7 @@ v1.4 - Pending
 	+ Bug: Prevent crash on negative disc/track numbers
 	+ Bug: Filter + Edit Tags edits a different song than selected
 	+ Bug: Prevent possible exception regarding cover art on first load
+	+ Bug: Fix retrieving some non-English lyrics (ecik)
 	+ Bug: Allow MPD_HOST to override GUI
 	+ Bug: {} displays in the Current column title
 	+ Bug: Fix manpage path to be FHS compliant

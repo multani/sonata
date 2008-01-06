@@ -3,8 +3,6 @@ v1.4
 	remove song from filter, why visual refresh?
 	info tab - album info expander?
 	edit->save all: allow canceling, x at top right, prevent user typing
-	update audioscrobbler to protocol 1.2
-		cache should be retained over client restarts
 	artwork: album covers?
 
 v1.5

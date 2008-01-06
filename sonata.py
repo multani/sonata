@@ -24,27 +24,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import warnings
-import sys
-import os
-import gobject
-import ConfigParser
-import urllib, urllib2
-import socket
-import gc
-import subprocess
-import gettext
-import locale
-import shutil
-import getopt
-import threading
-import re
-import time
+import warnings, sys, os, gobject, ConfigParser, urllib, urllib2
+import socket, gc, subprocess, gettext, locale, shutil, getopt
+import threading, re, time
 
 try:
-    import gtk
-    import pango
-    import mpdclient3
+    import gtk, pango, mpdclient3
 except ImportError, (strerror):
     print >>sys.stderr, "%s.  Please make sure you have this library installed into a directory in Python's path or in the same directory as Sonata.\n" % strerror
     sys.exit(1)
@@ -66,8 +51,7 @@ except ImportError:
 warnings.simplefilter('default', DeprecationWarning)
 
 try:
-    import dbus
-    import dbus.service
+    import dbus, dbus.service
     if getattr(dbus, "version", (0,0,0)) >= (0,41,0):
         import dbus.glib
     if getattr(dbus, "version", (0,0,0)) >= (0,80,0):
@@ -106,7 +90,6 @@ if not HAVE_GNOME_MMKEYS:
 
 try:
     import audioscrobbler
-    import time
     HAVE_AUDIOSCROBBLER = True
 except:
     HAVE_AUDIOSCROBBLER = False
@@ -2934,7 +2917,7 @@ class Base(mpdclient3.mpd_connection):
             try:
                 timeout = socket.getdefaulttimeout()
                 socket.setdefaulttimeout(self.LYRIC_TIMEOUT)
-                lyrics = self.lyricServer.getSong(artist=search_artist, song=search_title)['return']["lyrics"]
+                lyrics = self.lyricServer.getSong(artist=urllib.quote(search_artist), song=urllib.quote(search_title))['return']["lyrics"]
                 if lyrics.lower() != "not found":
                     lyrics = filename_artist + " - " + filename_title + "\n\n" + lyrics
                     gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
