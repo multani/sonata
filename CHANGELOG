@@ -3,6 +3,7 @@ v1.4 - Pending
 	+ Update to audioscrobbler protocol 1.2 and scrobbling bug fixes (mveers)
 	+ Implemented caching of scrobbles across client restarts
 	+ Vertically center currently playing song
+	+ Updated artwork (Adrian Chromenko)
 	+ Allow screen center for notification popup
 	+ Preference for saving lyrics to music file's directory (like artwork)
 	+ Allow hiding and reordering notebook tabs (e.g. playlists, streams, info)

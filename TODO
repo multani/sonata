@@ -1,7 +1,6 @@
 v1.4
 	patch 2230?
 	remove song from filter, why visual refresh?
-	info tab - album info expander?
 	edit->save all: allow canceling, x at top right, prevent user typing
 	artwork: album covers?
 
