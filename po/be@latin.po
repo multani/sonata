@@ -1,7 +1,7 @@
 # Biełaruski pierakład Sonata.
 # Copyright (C) 2007 Ihar Hrachyshka
 # This file is distributed under the same license as the sonata package.
-# Ihar Hrachyshka <ihar.hrachyshka@gmail.com>, 2007.
+# Ihar Hrachyshka <ihar.hrachyshka@gmail.com>, 2007, 2008.
 #
 msgid ""
 msgstr ""
@@ -10,8 +10,7 @@ msgstr ""
 "POT-Creation-Date: 2008-01-09 18:43-0700\n"
 "PO-Revision-Date: 2007-12-10 02:24+0200\n"
 "Last-Translator: Ihar Hrachyshka <ihar.hrachyshka@gmail.com>\n"
-"Language-Team: Belarusian (Latin script) <translation-team-be-latin@lists."
-"sourceforge.net>\n"
+"Language-Team: Belarusian (Latin script) <translation-team-be-latin@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -19,9 +18,8 @@ msgstr ""
 "10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #: sonata.py:169
-#, fuzzy
 msgid "Default Profile"
-msgstr "Novy profil"
+msgstr "Zmoŭčany profil"
 
 #: sonata.py:194
 msgid "The toggle argument requires D-Bus. Aborting."
@@ -64,9 +62,8 @@ msgid "Streams"
 msgstr "Płyni"
 
 #: sonata.py:235
-#, fuzzy
 msgid "Info"
-msgstr "Źviestki ab pieśni"
+msgstr "Źviestki"
 
 #: sonata.py:284 sonata.py:5516
 msgid "Entire song"
@@ -94,15 +91,15 @@ msgstr "Unizie sprava"
 
 #: sonata.py:285
 msgid "Screen Center"
-msgstr ""
+msgstr "Pasiaredzinie ekranu"
 
 #: sonata.py:295
 msgid "by"
-msgstr ""
+msgstr "ad"
 
 #: sonata.py:295
 msgid "from"
-msgstr ""
+msgstr "z"
 
 #: sonata.py:302 sonata.py:421 sonata.py:1233 sonata.py:1502 sonata.py:2684
 #: sonata.py:4886 sonata.py:6676
@@ -144,9 +141,8 @@ msgid "_Sort List"
 msgstr "_Uparadkuj śpis"
 
 #: sonata.py:418
-#, fuzzy
 msgid "Sa_ve List to"
-msgstr "Zachoŭvaj vokładki ŭ:"
+msgstr "_Zapišy śpis u"
 
 #: sonata.py:419
 msgid "_Connection"
@@ -209,9 +205,8 @@ msgid "_Clear"
 msgstr "_Ačyść"
 
 #: sonata.py:436
-#, fuzzy
 msgid "_New Playlist..."
-msgstr "_Zapišy śpis..."
+msgstr "_Novy śpis..."
 
 #: sonata.py:437
 msgid "_Update Library"
@@ -415,11 +410,11 @@ msgstr "Źviestki ab pieśni"
 
 #: sonata.py:1239
 msgid "Launch artist in Wikipedia"
-msgstr ""
+msgstr "Adčyni artykuł pra vykanaŭca ź Wikipedyi"
 
 #: sonata.py:1251
 msgid "Launch album in Wikipedia"
-msgstr ""
+msgstr "Adčyni artykuł pra albom ź Wikipedyi"
 
 #: sonata.py:1263 sonata.py:1504
 msgid "Date"
@@ -431,12 +426,11 @@ msgstr "Pieśnia"
 
 #: sonata.py:1280
 msgid "Toggle extra tags"
-msgstr ""
+msgstr "Pieraklučy dadatkovyja tagi"
 
 #: sonata.py:1288
-#, fuzzy
 msgid "Edit song tags"
-msgstr "Redahuj tagi dla zaznačanaj pieśni"
+msgstr "Redahuj tagi dla pieśni"
 
 #: sonata.py:1294 sonata.py:1507 sonata.py:2690
 msgid "File"
@@ -447,13 +441,12 @@ msgid "Bitrate"
 msgstr "Častata bitaŭ"
 
 #: sonata.py:1338
-#, fuzzy
 msgid "Lyrics"
-msgstr "_Słovy"
+msgstr "Słovy"
 
 #: sonata.py:1358
 msgid "Search Lyricwiki.org for lyrics"
-msgstr ""
+msgstr "Šukaj słovy na Lyricwiki.org"
 
 #: sonata.py:1512 sonata.py:1514
 msgid "Time"
@@ -576,9 +569,8 @@ msgid "Unknown"
 msgstr "Nieviadoma"
 
 #: sonata.py:2801
-#, fuzzy
 msgid "edit tags"
-msgstr "Redahuj tagi"
+msgstr "redahuj tagi"
 
 #: sonata.py:2814 sonata.py:4729
 msgid "Various Artists"
@@ -589,9 +581,8 @@ msgid "Artist or song title not set."
 msgstr "Nazva vykanaŭcy ci pieśni nie akreślenaja."
 
 #: sonata.py:2881
-#, fuzzy
 msgid "search"
-msgstr "Šukaj"
+msgstr "šukaj"
 
 #: sonata.py:2890 sonata.py:2945
 msgid "Lyrics not found"
@@ -612,9 +603,9 @@ msgstr "Niaŭdałaja zahruzka słovaŭ"
 #: sonata.py:3551
 msgid "day"
 msgid_plural "days"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "dzień"
+msgstr[1] "dni"
+msgstr[2] "dzion"
 
 #: sonata.py:3555
 msgid "minute"
@@ -624,12 +615,11 @@ msgstr[1] "chviliny"
 msgstr[2] "chvilin"
 
 #: sonata.py:3559
-#, fuzzy
 msgid "hour"
 msgid_plural "hours"
-msgstr[0] "hadzina i"
-msgstr[1] "hadziny i"
-msgstr[2] "hadzin i"
+msgstr[0] "hadzina"
+msgstr[1] "hadziny"
+msgstr[2] "hadzin"
 
 #: sonata.py:3561 sonata.py:7067
 msgid "song"
@@ -639,9 +629,8 @@ msgstr[1] "pieśni"
 msgstr[2] "pieśniaŭ"
 
 #: sonata.py:3563 sonata.py:3565
-#, fuzzy
 msgid "and"
-msgstr "Vypadkova"
+msgstr "i"
 
 #: sonata.py:3571
 msgid "(updating mpd)"
@@ -652,9 +641,8 @@ msgid "Not connected"
 msgstr "Nie spałučany"
 
 #: sonata.py:4295
-#, fuzzy
 msgid "_Search"
-msgstr "Šukaj"
+msgstr "_Šukaj"
 
 #: sonata.py:4299
 msgid "Artist Name"
@@ -774,7 +762,7 @@ msgstr "Aŭtamatyčna spałučajsia pry ŭklučeńni"
 
 #: sonata.py:5436
 msgid "Using MPD_HOST/PORT"
-msgstr ""
+msgstr "Užyta MPD_HOST/PORT"
 
 #: sonata.py:5482
 msgid "Extras"
@@ -829,9 +817,8 @@ msgid "Local, then remote"
 msgstr "Lakalna, paśla addalena"
 
 #: sonata.py:5589
-#, fuzzy
 msgid "Search order:"
-msgstr "Šukaj"
+msgstr "Paradak pošuku:"
 
 #: sonata.py:5594
 msgid "Save art to:"
@@ -839,21 +826,19 @@ msgstr "Zachoŭvaj vokładki ŭ:"
 
 #: sonata.py:5600 sonata.py:5601 sonata.py:5602 sonata.py:5603 sonata.py:5626
 msgid "file_path"
-msgstr ""
+msgstr "ściežka_fajłu"
 
 #: sonata.py:5603
-#, fuzzy
 msgid "custom"
-msgstr "asablivaja nazva"
+msgstr "asabliva"
 
 #: sonata.py:5608
 msgid "Enable playback/volume buttons"
 msgstr "Uklučy knopki hrańnia/kiravańnia hučnaściu"
 
 #: sonata.py:5611
-#, fuzzy
 msgid "Enable progressbar"
-msgstr "Uklučy Crossfade"
+msgstr "Uklučy panel prahresu"
 
 #: sonata.py:5614
 msgid "Enable statusbar"
@@ -864,9 +849,8 @@ msgid "Enable lyrics"
 msgstr "Uklučy słovy"
 
 #: sonata.py:5620
-#, fuzzy
 msgid "Save lyrics to:"
-msgstr "Zachoŭvaj vokładki ŭ:"
+msgstr "Zachoŭvaj słovy ŭ:"
 
 #: sonata.py:5631
 msgid "Enable system tray icon"
@@ -1037,23 +1021,24 @@ msgid "Audioscrobbler Verification"
 msgstr "Pravierka Audioscrobblera"
 
 #: sonata.py:5878
-#, fuzzy
 msgid ""
 "To save lyrics to the music file's directory, you must specify a valid music "
 "directory."
-msgstr "treba akreślić kataloh z muzykaj."
+msgstr ""
+"Kab zachoŭvać słovy ŭ katalohu muzyčnaha fajłu, treba akreślić sapraŭdny "
+"kataloh z muzykaj."
 
 #: sonata.py:5878 sonata.py:5885
-#, fuzzy
 msgid "Music Dir Verification"
-msgstr "Pravierka Audioscrobblera"
+msgstr "Pravierka katalohu z muzykaj"
 
 #: sonata.py:5885
-#, fuzzy
 msgid ""
 "To save artwork to the music file's directory, you must specify a valid "
 "music directory."
-msgstr "treba akreślić kataloh z muzykaj."
+msgstr ""
+"Kab zachoŭvać vokładki ŭ katalohu muzyčnaha fajłu, treba akreślić sapraŭdny "
+"kataloh z muzykaj."
 
 #: sonata.py:5978
 msgid "New Profile"
@@ -1069,11 +1054,11 @@ msgstr "Nazva fajłu z vokładkaj"
 
 #: sonata.py:6237
 msgid "hide"
-msgstr ""
+msgstr "schavaj"
 
 #: sonata.py:6240
 msgid "more"
-msgstr ""
+msgstr "bolej"
 
 #: sonata.py:6588 sonata.py:6595 sonata.py:6634 sonata.py:6642 sonata.py:6883
 #: sonata.py:6991
@@ -1110,7 +1095,7 @@ msgstr "Zapišy _ŭsio"
 
 #: sonata.py:6806
 msgid "Increment each selected music file, starting at track 1 for this file."
-msgstr ""
+msgstr "Pavialičyć kožny vybrany muzyčny fajł, pačaŭšy ad 1. ściežki dla hetaha fajłu."
 
 #: sonata.py:6808
 msgid "Apply to all selected music files."
@@ -1143,12 +1128,11 @@ msgstr[1] "vykanaŭcy"
 msgstr[2] "vykanaŭcaŭ"
 
 #: sonata.py:7076
-#, fuzzy
 msgid "day of bliss"
 msgid_plural "days of bliss"
-msgstr[0] "hadzina ščaścia"
-msgstr[1] "hadziny ščaścia"
-msgstr[2] "hadzin ščaścia"
+msgstr[0] "dzień ščaścia"
+msgstr[1] "dni ščaścia"
+msgstr[2] "dzion ščaścia"
 
 #: sonata.py:7078
 msgid "hour of bliss"
@@ -1166,9 +1150,8 @@ msgid "About Sonata"
 msgstr "Ab Sonacie"
 
 #: sonata.py:7108
-#, fuzzy
 msgid "Switch to [1st-5th] tab"
-msgstr "Pieraklučysia na płyni"
+msgstr "Pieraklučysia na 1-5. kartku"
 
 #: sonata.py:7109
 msgid "Connect to MPD"
@@ -1179,9 +1162,8 @@ msgid "Disconnect from MPD"
 msgstr "Adłučy ad MPD"
 
 #: sonata.py:7111
-#, fuzzy
 msgid "Randomize current playlist"
-msgstr "Dziejny śpis:"
+msgstr "Pieratasuj dziejny śpis"
 
 #: sonata.py:7112
 msgid "Expand player"
@@ -1192,9 +1174,8 @@ msgid "Collapse player"
 msgstr "Zharni player"
 
 #: sonata.py:7114
-#, fuzzy
 msgid "Search library"
-msgstr "Pieraklučysia na biblijateku"
+msgstr "Šukaj u biblijatecy"
 
 #: sonata.py:7115
 msgid "Quit"
@@ -1261,18 +1242,16 @@ msgid "Remove selected song(s) from playlist queue"
 msgstr "Vydal zaznačanyja pieśni z čarhi śpisu"
 
 #: sonata.py:7133
-#, fuzzy
 msgid "Save to new playlist"
-msgstr "Zapišy śpis"
+msgstr "Zapišy ŭ novy śpis"
 
 #: sonata.py:7134
 msgid "Clear list"
 msgstr "Ačyść śpis"
 
 #: sonata.py:7135
-#, fuzzy
 msgid "Randomize list"
-msgstr "Źmiani nazvu śpisu"
+msgstr "Pieratasuj śpis"
 
 #: sonata.py:7137
 msgid "Add selected song(s) or enter directory"

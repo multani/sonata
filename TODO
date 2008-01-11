@@ -3,6 +3,8 @@ v1.4
 	remove song from filter, why visual refresh?
 	edit->save all: allow canceling, x at top right, prevent user typing
 	artwork: album covers?
+	website (logo, screenshots, ...)
+	translations
 
 v1.5
 	better playlist support (mpd 0.13+ only):
