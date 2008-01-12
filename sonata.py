@@ -354,6 +354,11 @@ class Base(mpdclient3.mpd_connection):
         self.playlists_tab_visible = True
         self.streams_tab_visible = True
         self.info_tab_visible = True
+        self.current_tab_pos = 0
+        self.library_tab_pos = 1
+        self.playlists_tab_pos = 2
+        self.streams_tab_pos = 3
+        self.info_tab_pos = 4
         self.last_status_text = ""
         self.info_art_enlarged = False
         self.eggtrayfile = None
@@ -377,7 +382,7 @@ class Base(mpdclient3.mpd_connection):
 
         self.all_tab_names = [self.TAB_CURRENT, self.TAB_LIBRARY, self.TAB_PLAYLISTS, self.TAB_STREAMS, self.TAB_INFO]
 
-        tab_positions = self.settings_load()
+        self.settings_load()
         if start_hidden:
             self.withdrawn = True
         if start_visible:
@@ -742,9 +747,10 @@ class Base(mpdclient3.mpd_connection):
         playlistevbox.show_all()
         playlistevbox.connect("button_press_event", self.on_tab_click)
         self.notebook.append_page(vbox_current, playlistevbox)
+        current_tab = self.notebook.get_children()[0]
         if not self.current_tab_visible:
-            self.notebook.get_children()[0].set_no_show_all(True)
-            self.notebook.get_children()[0].hide_all()
+            current_tab.set_no_show_all(True)
+            current_tab.hide_all()
         # Library tab
         browservbox = gtk.VBox()
         expanderwindow2 = gtk.ScrolledWindow()
@@ -787,9 +793,10 @@ class Base(mpdclient3.mpd_connection):
         libraryevbox.show_all()
         libraryevbox.connect("button_press_event", self.on_tab_click)
         self.notebook.append_page(browservbox, libraryevbox)
+        library_tab = self.notebook.get_children()[1]
         if not self.library_tab_visible:
-            self.notebook.get_children()[1].set_no_show_all(True)
-            self.notebook.get_children()[1].hide_all()
+            library_tab.set_no_show_all(True)
+            library_tab.hide_all()
         # Playlists tab
         expanderwindow3 = gtk.ScrolledWindow()
         expanderwindow3.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -809,9 +816,10 @@ class Base(mpdclient3.mpd_connection):
         playlistsevbox.show_all()
         playlistsevbox.connect("button_press_event", self.on_tab_click)
         self.notebook.append_page(expanderwindow3, playlistsevbox)
+        playlists_tab = self.notebook.get_children()[2]
         if not self.playlists_tab_visible:
-            self.notebook.get_children()[2].set_no_show_all(True)
-            self.notebook.get_children()[2].hide_all()
+            playlists_tab.set_no_show_all(True)
+            playlists_tab.hide_all()
         # Streams tab
         expanderwindow4 = gtk.ScrolledWindow()
         expanderwindow4.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -831,9 +839,10 @@ class Base(mpdclient3.mpd_connection):
         streamsevbox.show_all()
         streamsevbox.connect("button_press_event", self.on_tab_click)
         self.notebook.append_page(expanderwindow4, streamsevbox)
+        streams_tab = self.notebook.get_children()[3]
         if not self.streams_tab_visible:
-            self.notebook.get_children()[3].set_no_show_all(True)
-            self.notebook.get_children()[3].hide_all()
+            streams_tab.set_no_show_all(True)
+            streams_tab.hide_all()
         # Info tab
         info = gtk.ScrolledWindow()
         info.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -848,9 +857,10 @@ class Base(mpdclient3.mpd_connection):
         self.info_widgets_initialize(info)
         self.notebook.append_page(info, infoevbox)
         mainvbox.pack_start(self.notebook, True, True, 5)
+        info_tab = self.notebook.get_children()[4]
         if not self.info_tab_visible:
-            self.notebook.get_children()[4].set_no_show_all(True)
-            self.notebook.get_children()[4].hide_all()
+            info_tab.set_no_show_all(True)
+            info_tab.hide_all()
         self.statusbar = gtk.Statusbar()
         self.statusbar.set_has_resize_grip(True)
         if not self.show_statusbar or not self.expanded:
@@ -883,14 +893,12 @@ class Base(mpdclient3.mpd_connection):
         if gtk.pygtk_version >= (2, 10, 0):
             for child in self.notebook.get_children():
                 self.notebook.set_tab_reorderable(child, True)
-        # Update tab positions and hide tabs as per the user's settings:
-        if tab_positions:
-            for tabnum in range(len(tab_positions)):
-                for tabnum2 in range(len(self.notebook.get_children())):
-                    tabname = self.notebook_get_tab_text(self.notebook, tabnum2)
-                    if tabname == tab_positions[tabnum]:
-                        self.notebook.reorder_child(self.notebook.get_children()[tabnum2], tabnum)
-                        break
+        # Update tab positions:
+        self.notebook.reorder_child(current_tab, self.current_tab_pos)
+        self.notebook.reorder_child(library_tab, self.library_tab_pos)
+        self.notebook.reorder_child(playlists_tab, self.playlists_tab_pos)
+        self.notebook.reorder_child(streams_tab, self.streams_tab_pos)
+        self.notebook.reorder_child(info_tab, self.info_tab_pos)
 
         # Systray:
         outtertipbox = gtk.VBox()
@@ -1454,7 +1462,7 @@ class Base(mpdclient3.mpd_connection):
 
     def single_connect_for_passed_arg(self, type):
         self.user_connect = True
-        tab_positions = self.settings_load()
+        self.settings_load()
         self.conn = None
         self.connect(blocking=True, force_connection=True)
         if self.conn:
@@ -1824,7 +1832,7 @@ class Base(mpdclient3.mpd_connection):
                         self.searchfilter_toggle(None)
 
     def settings_load(self):
-        # Load config; Returns the user's saved tab_positions
+        # Load config
         conf = ConfigParser.ConfigParser()
         if os.path.exists(os.path.expanduser('~/.config/')) == False:
             os.mkdir(os.path.expanduser('~/.config/'))
@@ -1941,14 +1949,7 @@ class Base(mpdclient3.mpd_connection):
             self.url_browser = conf.get('player', 'browser')
         if conf.has_option('player', 'info_art_enlarged'):
             self.info_art_enlarged = conf.getboolean('player', 'info_art_enlarged')
-        tab_positions = None
-        tab_num = 0
         if conf.has_section('notebook'):
-            if conf.has_option('notebook', 'tab' + str(tab_num)):
-                tab_positions = []
-                while conf.has_option('notebook', 'tab' + str(tab_num)):
-                    tab_positions.append(conf.get('notebook', 'tab' + str(tab_num)))
-                    tab_num += 1
             if conf.has_option('notebook', 'current_tab_visible'):
                 self.current_tab_visible = conf.getboolean('notebook', 'current_tab_visible')
             if conf.has_option('notebook', 'library_tab_visible'):
@@ -1959,6 +1960,16 @@ class Base(mpdclient3.mpd_connection):
                 self.streams_tab_visible = conf.getboolean('notebook', 'streams_tab_visible')
             if conf.has_option('notebook', 'info_tab_visible'):
                 self.info_tab_visible = conf.getboolean('notebook', 'info_tab_visible')
+            if conf.has_option('notebook', 'current_tab_pos'):
+                self.current_tab_pos = conf.getint('notebook', 'current_tab_pos')
+            if conf.has_option('notebook', 'library_tab_pos'):
+                self.library_tab_pos = conf.getint('notebook', 'library_tab_pos')
+            if conf.has_option('notebook', 'playlists_tab_pos'):
+                self.playlists_tab_pos = conf.getint('notebook', 'playlists_tab_pos')
+            if conf.has_option('notebook', 'streams_tab_pos'):
+                self.streams_tab_pos = conf.getint('notebook', 'streams_tab_pos')
+            if conf.has_option('notebook', 'info_tab_pos'):
+                self.info_tab_pos = conf.getint('notebook', 'info_tab_pos')
         if conf.has_section('library'):
             if conf.has_option('library', 'root'):
                 self.wd = conf.get('library', 'root')
@@ -2016,7 +2027,6 @@ class Base(mpdclient3.mpd_connection):
                 self.port.append(conf.getint('profiles', 'ports[' + str(i) + ']'))
                 self.password.append(conf.get('profiles', 'passwords[' + str(i) + ']'))
                 self.musicdir.append(self.sanitize_musicdir(conf.get('profiles', 'musicdirs[' + str(i) + ']')))
-        return tab_positions
 
     def settings_save(self):
         conf = ConfigParser.ConfigParser()
@@ -2085,13 +2095,21 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'browser', self.url_browser)
         conf.add_section('notebook')
         # Save tab positions:
-        for tab_num in range(len(self.notebook.get_children())):
-            conf.set('notebook', 'tab' + str(tab_num), self.notebook_get_tab_text(self.notebook, tab_num))
         conf.set('notebook', 'current_tab_visible', self.current_tab_visible)
         conf.set('notebook', 'library_tab_visible', self.library_tab_visible)
         conf.set('notebook', 'playlists_tab_visible', self.playlists_tab_visible)
         conf.set('notebook', 'streams_tab_visible', self.streams_tab_visible)
         conf.set('notebook', 'info_tab_visible', self.info_tab_visible)
+        self.current_tab_pos = self.notebook_get_tab_num(self.notebook, self.TAB_CURRENT)
+        self.library_tab_pos = self.notebook_get_tab_num(self.notebook, self.TAB_LIBRARY)
+        self.playlists_tab_pos = self.notebook_get_tab_num(self.notebook, self.TAB_PLAYLISTS)
+        self.streams_tab_pos = self.notebook_get_tab_num(self.notebook, self.TAB_STREAMS)
+        self.info_tab_pos = self.notebook_get_tab_num(self.notebook, self.TAB_INFO)
+        conf.set('notebook', 'current_tab_pos', self.current_tab_pos)
+        conf.set('notebook', 'library_tab_pos', self.library_tab_pos)
+        conf.set('notebook', 'playlists_tab_pos', self.playlists_tab_pos)
+        conf.set('notebook', 'streams_tab_pos', self.streams_tab_pos)
+        conf.set('notebook', 'info_tab_pos', self.info_tab_pos)
         conf.add_section('library')
         conf.set('library', 'root', self.wd)
         conf.set('library', 'root_artist_level', self.view_artist_level)
