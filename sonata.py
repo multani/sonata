@@ -3411,7 +3411,7 @@ class Base(mpdclient3.mpd_connection):
 
     def _do_scrobbler_np(self):
         self.scrobbler_init()
-        if self.use_scrobbler and self.songinfo:
+        if self.use_scrobbler and self.scrob_post and self.songinfo:
             if self.songinfo.has_key('artist') and \
                self.songinfo.has_key('title') and \
                self.songinfo.has_key('time'):
@@ -3423,9 +3423,7 @@ class Base(mpdclient3.mpd_connection):
                     tracknumber = u''
                 else:
                     tracknumber = self.songinfo['track']
-
-        if self.scrob_post:
-            self.scrob_post.nowplaying(self.songinfo['artist'],
+                self.scrob_post.nowplaying(self.songinfo['artist'],
                                             self.songinfo['title'],
                                             self.songinfo['time'],
                                             tracknumber,
@@ -3435,7 +3433,7 @@ class Base(mpdclient3.mpd_connection):
 
     def scrobbler_post(self):
         self.scrobbler_init()
-        if self.scrob_post and self.prevsonginfo:
+        if self.use_scrobbler and self.scrob_post and self.prevsonginfo:
             if self.prevsonginfo.has_key('artist') and \
                self.prevsonginfo.has_key('title') and \
                self.prevsonginfo.has_key('time'):
