@@ -2633,7 +2633,7 @@ class Base(mpdclient3.mpd_connection):
         # been refreshed (updated)
         try:
             if self.wd in self.browserposition:
-                self.browser.scroll_to_point(0, self.browserposition[self.wd])
+                self.browser.scroll_to_point(-1, self.browserposition[self.wd])
             else:
                 self.browser.scroll_to_point(0, 0)
         except:
@@ -3718,7 +3718,7 @@ class Base(mpdclient3.mpd_connection):
                 self.currentdata.remove(iter)
             if not self.filterbox_visible:
                 self.current.set_model(self.currentdata)
-            if self.songinfo.has_key('pos') and not update_queuelist_only:
+            if self.songinfo.has_key('pos'):
                 currsong = int(self.songinfo.pos)
                 self.boldrow(currsong)
                 self.prev_boldrow = currsong
@@ -3735,7 +3735,7 @@ class Base(mpdclient3.mpd_connection):
                     self.plpos = playlistposition
                     self.searchfilter_feed_loop(self.filterpattern)
             elif self.sonata_loaded:
-                self.playlist_retain_view(playlistposition)
+                self.playlist_retain_view(self.current, playlistposition)
                 self.current.thaw_child_notify()
             self.update_column_indicators()
             self.update_statusbar()
@@ -3767,10 +3767,18 @@ class Base(mpdclient3.mpd_connection):
     def center_playlist(self, event):
         self.keep_song_centered_in_list()
 
-    def playlist_retain_view(self, playlistposition):
+    def playlist_retain_view(self, listview, playlistposition):
         # Attempt to retain library position:
         try:
-            self.current.scroll_to_point(0, playlistposition)
+            # This is the weirdest thing I've ever seen. But if, for
+            # example, you edit a song twice, the position of the
+            # playlist will revert to the top the second time because
+            # we are telling gtk to scroll to the same point as
+            # before. So we will simply scroll to the top and then
+            # back to the actual position. The first position change
+            # shouldn't be visible by the user.
+            listview.scroll_to_point(-1, 0)
+            listview.scroll_to_point(-1, playlistposition)
         except:
             pass
 
@@ -5295,7 +5303,10 @@ class Base(mpdclient3.mpd_connection):
                     self.conn.do.clear()
                 elif len(selected) > 0:
                     selected.reverse()
-                    self.current.set_model(None)
+                    if not self.filterbox_visible:
+                        # If we remove an item from the filtered results, this
+                        # causes a visual refresh in the interface.
+                        self.current.set_model(None)
                     self.conn.send.command_list_begin()
                     for path in selected:
                         if not self.filterbox_visible:
@@ -5308,7 +5319,8 @@ class Base(mpdclient3.mpd_connection):
                         self.songs.pop(rownum)
                         self.currentdata.remove(iter)
                     self.conn.do.command_list_end()
-                    self.current.set_model(model)
+                    if not self.filterbox_visible:
+                        self.current.set_model(model)
             elif self.current_tab == self.TAB_PLAYLISTS:
                 model, selected = self.playlists_selection.get_selected_rows()
                 if show_error_msg_yesno(self.window, gettext.ngettext("Delete the selected playlist?", "Delete the selected playlists?", int(len(selected))), gettext.ngettext("Delete Playlist", "Delete Playlists", int(len(selected))), 'deletePlaylist') == gtk.RESPONSE_YES:
@@ -7283,6 +7295,7 @@ class Base(mpdclient3.mpd_connection):
             self.searchfilter_stop_loop(self.filterbox);
             self.filterpattern.set_text("")
         elif self.conn:
+            self.playlist_pos_before_filter = self.current.get_visible_rect()[1]
             self.filterbox_visible = True
             self.filterpattern.handler_block(self.filter_changed_handler)
             self.filterpattern.set_text(initial_text)
@@ -7372,7 +7385,7 @@ class Base(mpdclient3.mpd_connection):
                 prev_rownums.append(song)
             self.filter_row_mapping = []
             if todo == '$$$QUIT###':
-                gobject.idle_add(self.searchfilter_revert_model)
+                gobject.idle_add(self.searchfilter_revert_model, self.playlist_pos_before_filter)
                 return
             elif len(todo) == 0:
                 for row in self.currentdata:
@@ -7454,10 +7467,10 @@ class Base(mpdclient3.mpd_connection):
                 model.set_value(iter, 0, queuestring)
             i += 1
 
-    def searchfilter_revert_model(self):
+    def searchfilter_revert_model(self, filterposition):
         self.current.set_model(self.currentdata)
+        self.playlist_retain_view(self.current, filterposition)
         self.current.thaw_child_notify()
-        gobject.idle_add(self.keep_song_centered_in_list)
         gobject.idle_add(self.current.grab_focus)
 
     def searchfilter_set_matches(self, matches, filterposition, filterselected, retain_position_and_selection):
@@ -7468,16 +7481,16 @@ class Base(mpdclient3.mpd_connection):
         # search is running, avoid pointless work and don't confuse the user
         if (self.current.get_property('visible') and flag == '$$$DONE###'):
             self.current.set_model(matches)
-            if len(matches) == 0:
-                gobject.idle_add(self.edit_entry_changed, self.filterpattern, True)
-            else:
-                gobject.idle_add(self.edit_entry_revert_color, self.filterpattern)
             if retain_position_and_selection and filterposition:
-                self.current.scroll_to_point(0, filterposition)
+                self.playlist_retain_view(self.current, filterposition)
                 for path in filterselected:
                     self.current_selection.select_path(path)
             else:
                 self.current.set_cursor('0')
+            if len(matches) == 0:
+                gobject.idle_add(self.edit_entry_changed, self.filterpattern, True)
+            else:
+                gobject.idle_add(self.edit_entry_revert_color, self.filterpattern)
             self.current.thaw_child_notify()
 
     def searchfilter_key_pressed(self, widget, event):
