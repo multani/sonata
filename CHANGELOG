@@ -1,4 +1,4 @@
-v1.4 - Pending
+v1.4 - January 15, 2008
 	+ Integrate info window into main player
 	+ Update to audioscrobbler protocol 1.2 and scrobbling bug fixes (mveers)
 	+ Implemented caching of scrobbles across client restarts
