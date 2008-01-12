@@ -6961,6 +6961,11 @@ class Base(mpdclient3.mpd_connection):
                 tag.comment = value
 
     def editwindow_save_all(self, button, window, tags, entries, entries_names):
+        for entry in entries:
+            try: # Skip GtkLabels
+                entry.set_property('editable', False)
+            except:
+                pass
         while window.get_property('visible'):
             self.editwindow_response(window, gtk.RESPONSE_ACCEPT, tags, entries, entries_names)
 
