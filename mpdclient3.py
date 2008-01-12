@@ -11,12 +11,26 @@ class socket_talker(object):
     def __init__(self, host, port):
         self.host = host
         self.port = port
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.settimeout(3)
-        try:
-            self.sock.connect((host, port))
-        except socket.error, msg:
-            print 'Cannot connect to MPD:', msg
+        # Try to connect via IPv6 if supported, but on failure
+        # fall back to IPv4. This helps not only in cases with
+        # broken IPv6 networking (fairly common), but also works
+        # in cases where someone explicitly uses an IPv4 address
+        # for the host, without having to explicitly check for it.
+        self.sock = None
+        if socket.has_ipv6:
+            try:
+                self.sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+                self.sock.settimeout(3)
+                self.sock.connect((host, port))
+            except socket.error, msg:
+                self.sock = None
+        if not self.sock:
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.settimeout(3)
+            try:
+                self.sock.connect((host, port))
+            except socket.error, msg:
+                print 'Cannot connect to MPD:', msg
         self.file = self.sock.makefile("rb+")
         self.current_line = ''
         self.ack = ''
