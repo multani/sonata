@@ -172,6 +172,31 @@ class Base(mpdclient3.mpd_connection):
         self.port = [6600]
         self.password = ['']
 
+        # Constants
+        self.TAB_CURRENT = _("Current")
+        self.TAB_LIBRARY = _("Library")
+        self.TAB_PLAYLISTS = _("Playlists")
+        self.TAB_STREAMS = _("Streams")
+        self.TAB_INFO = _("Info")
+        self.ART_LOCAL = 0
+        self.ART_LOCAL_REMOTE = 1
+        self.VIEW_FILESYSTEM = 0
+        self.VIEW_ARTIST = 1
+        self.VIEW_ALBUM = 2
+        self.LYRIC_TIMEOUT = 10
+        self.NOTIFICATION_WIDTH_MAX = 500
+        self.NOTIFICATION_WIDTH_MIN = 350
+        self.ART_LOCATION_HOMECOVERS = 0		# ~/.covers/[artist]-[album].jpg
+        self.ART_LOCATION_COVER = 1				# file_dir/cover.jpg
+        self.ART_LOCATION_ALBUM = 2				# file_dir/album.jpg
+        self.ART_LOCATION_FOLDER = 3			# file_dir/folder.jpg
+        self.ART_LOCATION_CUSTOM = 4			# file_dir/[custom]
+        self.ART_LOCATION_NONE = 5				# Use default Sonata icons
+        self.ART_LOCATION_NONE_FLAG = "USE_DEFAULT"
+        self.ART_LOCATIONS_MISC = ['front.jpg', '.folder.jpg', '.folder.png', 'AlbumArt.jpg', 'AlbumArtSmall.jpg']
+        self.LYRICS_LOCATION_HOME = 0			# ~/.lyrics/[artist]-[song].txt
+        self.LYRICS_LOCATION_PATH = 1			# file_dir/[artist]-[song].txt
+
         self.trying_connection = False
         toggle_arg = False
         start_hidden = False
@@ -226,31 +251,6 @@ class Base(mpdclient3.mpd_connection):
         start_dbus_interface(toggle_arg)
 
         self.gnome_session_management()
-
-        # Constants
-        self.TAB_CURRENT = _("Current")
-        self.TAB_LIBRARY = _("Library")
-        self.TAB_PLAYLISTS = _("Playlists")
-        self.TAB_STREAMS = _("Streams")
-        self.TAB_INFO = _("Info")
-        self.ART_LOCAL = 0
-        self.ART_LOCAL_REMOTE = 1
-        self.VIEW_FILESYSTEM = 0
-        self.VIEW_ARTIST = 1
-        self.VIEW_ALBUM = 2
-        self.LYRIC_TIMEOUT = 10
-        self.NOTIFICATION_WIDTH_MAX = 500
-        self.NOTIFICATION_WIDTH_MIN = 350
-        self.ART_LOCATION_HOMECOVERS = 0		# ~/.covers/[artist]-[album].jpg
-        self.ART_LOCATION_COVER = 1				# file_dir/cover.jpg
-        self.ART_LOCATION_ALBUM = 2				# file_dir/album.jpg
-        self.ART_LOCATION_FOLDER = 3			# file_dir/folder.jpg
-        self.ART_LOCATION_CUSTOM = 4			# file_dir/[custom]
-        self.ART_LOCATION_NONE = 5				# Use default Sonata icons
-        self.ART_LOCATION_NONE_FLAG = "USE_DEFAULT"
-        self.ART_LOCATIONS_MISC = ['front.jpg', '.folder.jpg', '.folder.png', 'AlbumArt.jpg', 'AlbumArtSmall.jpg']
-        self.LYRICS_LOCATION_HOME = 0			# ~/.lyrics/[artist]-[song].txt
-        self.LYRICS_LOCATION_PATH = 1			# file_dir/[artist]-[song].txt
 
         # Initialize vars for GUI
         self.current_tab = self.TAB_CURRENT
