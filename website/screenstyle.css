@@ -3,10 +3,10 @@ margin:10; padding:0; font-family:verdana, arial, sans-serif; font-size:80%; col
 background-color:#EEEEEE;}
 
 p {
-margin:0.2em 0 1.2em 1em; padding:0.3em; align:justify;}
+margin:0.2em 0 1.2em 0.6em; padding:0.3em; align:justify;}
 
 h1 {
-padding:0; margin:0;font-size:250%; font-weight:normal; font-style:italic;
+padding:0; margin:0; font-size:250%; font-weight:normal; font-style:italic;
 color:#658bb5; font-family:"Trebuchet MS", verdana, arial, sans-serif;}
 
 h2 {
@@ -32,8 +32,8 @@ background-color:#FFFFFF; margin:0 auto 0 auto; padding:0; width:65%;
 border: 1px solid #BBBBBB}
 
 .titleblock {
-padding:2em; margin:0; text-align:left;
-background-image:url(leaf.jpg); background-repeat:no-repeat; background-position:right center;}
+padding:2em 2em 2em 11em; margin:0; text-align:left;
+background-image:url(images/logo.png); background-repeat:no-repeat; background-position:left center;}
 
 .titleblock p {
 text-indent:4em; color:#3B4471;}

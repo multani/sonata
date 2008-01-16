@@ -1,11 +1,8 @@
-v1.4
-	patch 2230?
-	website (logo, screenshots, ...)
-
 v1.5
 	translations 
 		missing "| Creates columns in the current playlist"
 		second/seconds - three plural forms needed
+	patch 2230?
 	better playlist support (mpd 0.13+ only):
 		ability to view songs, reorder songs, remove songs, etc
 	allow additional columns for library (like current)

@@ -27,6 +27,34 @@
 
 		 <h2>Changelog</h2>
 		 
+		 	<p>January 15, 2008 (Version 1.4):<ul>
+			<li>Integrate info window into main player</li>
+			<li>Update to audioscrobbler protocol 1.2 and scrobbling bug fixes (mveers)</li>
+			<li>Implemented caching of scrobbles across client restarts</li>
+			<li>Vertically center currently playing song</li>
+			<li>Updated artwork (Adrian Chromenko)</li>
+			<li>IPv6 support for the mpd connection (Shane Kerr)</li>
+			<li>Allow screen center for notification popup</li>
+			<li>Preference for saving lyrics to music file's directory (like artwork)</li>
+			<li>Allow hiding and reordering notebook tabs (e.g. playlists, streams, info)</li>
+			<li>Retain library path when re-opening Sonata</li>
+			<li>Remove confusing 'remote only' and 'remote, then local' artwork options</li>
+			<li>Ability to hide progress bar (can create very minimal player)</li>
+			<li>Skip fallback artwork search of just album name if primary searches fail</li>
+			<li>Make system tray icon scalable</li>
+			<li>Shortcuts to search library (ctrl-h), randomize current playlist (alt-r)</li>
+			<li>Use gtk theme's link-color if available (only for gtk 2.12 and above)</li>
+			<li>Bug: Right-click menu can cause accidental actions with some gtk themes</li>
+			<li>Bug: Prevent crash on negative disc/track numbers</li>
+			<li>Bug: Filter + Edit Tags edits a different song than selected</li>
+			<li>Bug: Prevent possible exception regarding cover art on first load</li>
+			<li>Bug: Fix retrieving some non-English lyrics (ecik)</li>
+			<li>Bug: Allow MPD_HOST to override GUI</li>
+			<li>Bug: {} displays in the Current column title</li>
+			<li>Bug: Fix manpage path to be FHS compliant</li>
+			<li>Bug: Ensure that the version of ZSI is compatible with sonata</li>
+		 	</ul>
+
 		 	<p>October 29, 2007 (Version 1.3):<ul>
 			<li>Playlist queue support (requires mpd 0.14 - currently mpd-svn)</li>
 			<li>Use-configurable columns in playlist by using "|" in prefs > format (xsdnyd)</li>
