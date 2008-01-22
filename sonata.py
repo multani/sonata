@@ -6260,7 +6260,7 @@ class Base(mpdclient3.mpd_connection):
         elif type == 'album':
             self.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + self.songinfo.album)
         elif type == 'more':
-            previous_is_more = (self.info_morelabel.get_text() == '(more)')
+            previous_is_more = (self.info_morelabel.get_text() == "(" + _("more") + ")")
             if previous_is_more:
                 self.info_morelabel.set_markup(link_markup(_("hide"), True, True, self.linkcolor))
                 self.info_song_more = True
