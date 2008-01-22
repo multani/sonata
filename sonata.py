@@ -745,6 +745,7 @@ class Base(mpdclient3.mpd_connection):
         playlisthbox.pack_start(gtk.Label(str=self.TAB_CURRENT), False, False, 2)
         playlistevbox.add(playlisthbox)
         playlistevbox.show_all()
+        playlistevbox.set_property("visible-window", False)
         playlistevbox.connect("button_press_event", self.on_tab_click)
         self.notebook.append_page(vbox_current, playlistevbox)
         current_tab = self.notebook.get_children()[0]
@@ -791,6 +792,7 @@ class Base(mpdclient3.mpd_connection):
         libraryhbox.pack_start(gtk.Label(str=self.TAB_LIBRARY), False, False, 2)
         libraryevbox.add(libraryhbox)
         libraryevbox.show_all()
+        libraryevbox.set_property("visible-window", False)
         libraryevbox.connect("button_press_event", self.on_tab_click)
         self.notebook.append_page(browservbox, libraryevbox)
         library_tab = self.notebook.get_children()[1]
@@ -814,6 +816,7 @@ class Base(mpdclient3.mpd_connection):
         playlistshbox.pack_start(gtk.Label(str=self.TAB_PLAYLISTS), False, False, 2)
         playlistsevbox.add(playlistshbox)
         playlistsevbox.show_all()
+        playlistsevbox.set_property("visible-window", False)
         playlistsevbox.connect("button_press_event", self.on_tab_click)
         self.notebook.append_page(expanderwindow3, playlistsevbox)
         playlists_tab = self.notebook.get_children()[2]
@@ -837,6 +840,7 @@ class Base(mpdclient3.mpd_connection):
         streamshbox.pack_start(gtk.Label(str=self.TAB_STREAMS), False, False, 2)
         streamsevbox.add(streamshbox)
         streamsevbox.show_all()
+        streamsevbox.set_property("visible-window", False)
         streamsevbox.connect("button_press_event", self.on_tab_click)
         self.notebook.append_page(expanderwindow4, streamsevbox)
         streams_tab = self.notebook.get_children()[3]
@@ -853,6 +857,7 @@ class Base(mpdclient3.mpd_connection):
         infohbox.pack_start(gtk.Label(str=self.TAB_INFO), False, False, 2)
         infoevbox.add(infohbox)
         infoevbox.show_all()
+        infoevbox.set_property("visible-window", False)
         infoevbox.connect("button_press_event", self.on_tab_click)
         self.info_widgets_initialize(info)
         self.notebook.append_page(info, infoevbox)
