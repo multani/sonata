@@ -2145,18 +2145,13 @@ class Base(mpdclient3.mpd_connection):
         if not self.conn:
             for mediabutton in (self.ppbutton, self.stopbutton, self.prevbutton, self.nextbutton, self.volumebutton):
                 mediabutton.set_property('sensitive', False)
-            try:
-                self.eggtrayfile = self.find_path('sonata.png')
-                self.trayimage.set_from_pixbuf(self.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
-            except:
-                pass
             self.currentdata.clear()
             if self.current.get_model():
                 self.current.get_model().clear()
             self.songs = None
             if HAVE_STATUS_ICON:
                 self.statusicon.set_from_file(self.find_path('sonata_disconnect.png'))
-            elif HAVE_EGG:
+            elif HAVE_EGG and self.eggtrayheight:
                 self.eggtrayfile = self.find_path('sonata_disconnect.png')
                 self.trayimage.set_from_pixbuf(self.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
             self.info_update(True)
@@ -3280,7 +3275,7 @@ class Base(mpdclient3.mpd_connection):
                 self.UIManager.get_widget('/traymenu/pausemenu').hide()
                 if HAVE_STATUS_ICON:
                     self.statusicon.set_from_file(self.find_path('sonata.png'))
-                elif HAVE_EGG:
+                elif HAVE_EGG and self.eggtrayheight:
                     self.eggtrayfile = self.find_path('sonata.png')
                     self.trayimage.set_from_pixbuf(self.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
             elif self.status.state == 'pause':
@@ -3290,7 +3285,7 @@ class Base(mpdclient3.mpd_connection):
                 self.UIManager.get_widget('/traymenu/pausemenu').hide()
                 if HAVE_STATUS_ICON:
                     self.statusicon.set_from_file(self.find_path('sonata_pause.png'))
-                elif HAVE_EGG:
+                elif HAVE_EGG and self.eggtrayheight:
                     self.eggtrayfile = self.find_path('sonata_pause.png')
                     self.trayimage.set_from_pixbuf(self.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
             elif self.status.state == 'play':
@@ -3304,7 +3299,7 @@ class Base(mpdclient3.mpd_connection):
                         self.labelnotify()
                 if HAVE_STATUS_ICON:
                     self.statusicon.set_from_file(self.find_path('sonata_play.png'))
-                elif HAVE_EGG:
+                elif HAVE_EGG and self.eggtrayheight:
                     self.eggtrayfile = self.find_path('sonata_play.png')
                     self.trayimage.set_from_pixbuf(self.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
             self.update_album_art()

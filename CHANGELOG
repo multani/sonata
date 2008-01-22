@@ -1,3 +1,6 @@
+v1.4.1 - January 22, 2008
+	+ Bug: Crash when using libegg with system tray icon disabled
+
 v1.4 - January 15, 2008
 	+ Integrate info window into main player
 	+ Update to audioscrobbler protocol 1.2 and scrobbling bug fixes (mveers)
