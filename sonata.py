@@ -6244,7 +6244,7 @@ class Base(mpdclient3.mpd_connection):
 
     def on_link_enter(self, widget, event):
         if widget.get_children()[0].get_use_markup() == True:
-            self.change_cursor(gtk.gdk.Cursor(gtk.gdk.HAND1))
+            self.change_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
 
     def on_link_leave(self, widget, event):
         self.change_cursor(None)
