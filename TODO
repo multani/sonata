@@ -1,7 +1,9 @@
-v1.5
+v1.4.1
 	translations 
-		missing "| Creates columns in the current playlist"
 		second/seconds - three plural forms needed
+	album info in song info tab
+
+v1.5
 	patch 2230?
 	better playlist support (mpd 0.13+ only):
 		ability to view songs, reorder songs, remove songs, etc

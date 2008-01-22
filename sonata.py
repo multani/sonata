@@ -1546,10 +1546,7 @@ class Base(mpdclient3.mpd_connection):
                         else:
                             print _("Shuffle") + ": " + _("On")
                         print _("Volume") + ": " + self.status.volume + "/100"
-                        if self.status.xfade == '1':
-                            print _('Crossfade') + ": " + self.status.xfade + ' ' + _('second')
-                        else:
-                            print _('Crossfade') + ": " + self.status.xfade + ' ' + _('seconds')
+                        print _('Crossfade') + ": " + self.status.xfade + ' ' + gettext.ngettext('second', 'seconds', int(self.status.xfade))
                     except:
                         pass
         else:
@@ -5539,10 +5536,8 @@ class Base(mpdclient3.mpd_connection):
         notifhbox.pack_start(notif_blank)
         notification_options = gtk.combo_box_new_text()
         for i in self.popuptimes:
-            if i == '1':
-                notification_options.append_text(i + ' ' + _('second'))
-            elif i != _('Entire song'):
-                notification_options.append_text(i + ' ' + _('seconds'))
+            if i != _('Entire song'):
+                notification_options.append_text(i + ' ' + gettext.ngettext('second', 'seconds', int(i)))
             else:
                 notification_options.append_text(i)
         notification_options.set_active(self.popup_option)
@@ -5788,7 +5783,7 @@ class Base(mpdclient3.mpd_connection):
         availableformatbox.pack_start(availableformatting2)
         availablevbox.pack_start(availableformatbox, False, False, 0)
         additionalinfo = gtk.Label()
-        additionalinfo.set_markup('<small>{ } - ' + _('Info displayed only if all enclosed tags are defined') + '\n' + '| - Creates columns in the current playlist' + '</small>')
+        additionalinfo.set_markup('<small>{ } - ' + _('Info displayed only if all enclosed tags are defined') + '\n' + '| - ' + _('Creates columns in the current playlist') + '</small>')
         additionalinfo.set_alignment(0,0)
         availablevbox.pack_start(additionalinfo, False, False, 4)
         table4.attach(gtk.Label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
