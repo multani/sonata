@@ -1,5 +1,6 @@
 v1.4.1 - January 22, 2008
 	+ Use hand2 instead of hand1 for song info links
+	+ Bug: Traceback can occur after enabling audioscrobbler
 	+ Bug: Crash when using libegg with system tray icon disabled
 
 v1.4 - January 15, 2008

@@ -3347,7 +3347,7 @@ class Base(mpdclient3.mpd_connection):
                 if not self.prevstatus or (self.prevstatus and self.prevstatus.state == 'stop'):
                     # Switched from stop to play, prepare current track:
                     self.scrobbler_prepare()
-                elif self.prevsonginfo and self.scrob_last_prepared != self.songinfo.file:
+                elif self.prevsonginfo and self.prevsonginfo.has_key('time') and self.scrob_last_prepared != self.songinfo.file:
                     # New song is playing, post previous track if time criteria is met:
                     if self.scrob_playing_duration > 4 * 60 or self.scrob_playing_duration > int(self.prevsonginfo.time)/2:
                         if self.scrob_start_time != "":
@@ -3359,7 +3359,7 @@ class Base(mpdclient3.mpd_connection):
                     # has been playing:
                     self.scrob_playing_duration += time.time() - self.scrob_time_now
             elif self.status and self.status.state == 'stop':
-                if self.prevsonginfo:
+                if self.prevsonginfo and self.prevsonginfo.has_key('time'):
                     if self.scrob_playing_duration > 4 * 60 or self.scrob_playing_duration > int(self.prevsonginfo.time)/2:
                         # User stopped the client, post previous track if time
                         # criteria is met:
