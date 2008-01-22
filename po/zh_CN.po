@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sonata 1.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-01-14 23:37+0800\n"
+"POT-Creation-Date: 2008-01-22 15:17-0700\n"
 "PO-Revision-Date: 2008-01-15 00:41+0800\n"
 "Last-Translator: Desmond Chang <dochang@gmail.com>\n"
 "Language-Team: Simplified Chinese\n"
@@ -44,11 +44,11 @@ msgstr "曲目信息"
 msgid "The toggle argument requires D-Bus. Aborting."
 msgstr "toggle 参数需要 D-Bus。放弃中。"
 
-#: sonata.py:243 sonata.py:6615
+#: sonata.py:243 sonata.py:6610
 msgid "Taglib and/or tagpy not found, tag editing support disabled."
 msgstr "TagLib 与/或 TagPy 未找到，不能编辑标签。"
 
-#: sonata.py:245 sonata.py:2865 sonata.py:2925
+#: sonata.py:245 sonata.py:2862 sonata.py:2922
 msgid "ZSI not found, fetching lyrics support disabled."
 msgstr "ZSI 未找到，不能获取歌词。"
 
@@ -57,12 +57,12 @@ msgid ""
 "PyGTK+ 2.10 or gnome-python-extras not found, system tray support disabled."
 msgstr "PyGTK+ 2.10 或 gnome-python-extras 未找到，禁用系统托盘。"
 
-#: sonata.py:249 sonata.py:5880
+#: sonata.py:249 sonata.py:5875
 msgid ""
 "Python 2.5 or python-elementtree not found, audioscrobbler support disabled."
 msgstr "Python 2.5 或 python-elementtree 未找到，禁用 audioscrobbler。"
 
-#: sonata.py:284 sonata.py:5544
+#: sonata.py:284 sonata.py:5539
 msgid "Entire song"
 msgstr "整首曲目"
 
@@ -98,22 +98,22 @@ msgstr ""
 msgid "from"
 msgstr ""
 
-#: sonata.py:302 sonata.py:426 sonata.py:1241 sonata.py:1510 sonata.py:2702
-#: sonata.py:4910 sonata.py:6704
+#: sonata.py:302 sonata.py:426 sonata.py:1246 sonata.py:1515 sonata.py:2699
+#: sonata.py:4907 sonata.py:6699
 msgid "Artist"
 msgstr "艺术家"
 
-#: sonata.py:302 sonata.py:1235 sonata.py:1509 sonata.py:6694
+#: sonata.py:302 sonata.py:1240 sonata.py:1514 sonata.py:6689
 msgid "Title"
 msgstr "标题"
 
-#: sonata.py:302 sonata.py:427 sonata.py:1253 sonata.py:1511 sonata.py:2703
-#: sonata.py:4917 sonata.py:6714
+#: sonata.py:302 sonata.py:427 sonata.py:1258 sonata.py:1516 sonata.py:2700
+#: sonata.py:4914 sonata.py:6709
 msgid "Album"
 msgstr "专辑"
 
-#: sonata.py:302 sonata.py:1265 sonata.py:1514 sonata.py:2707 sonata.py:5785
-#: sonata.py:6749
+#: sonata.py:302 sonata.py:1270 sonata.py:1519 sonata.py:2704 sonata.py:5780
+#: sonata.py:6744
 msgid "Genre"
 msgstr "风格"
 
@@ -285,7 +285,7 @@ msgstr "重复(_R)"
 msgid "_Shuffle"
 msgstr "随机(_S)"
 
-#: sonata.py:703 sonata.py:927 sonata.py:930
+#: sonata.py:703 sonata.py:932 sonata.py:935
 msgid "Playlist"
 msgstr "播放列表"
 
@@ -293,211 +293,209 @@ msgstr "播放列表"
 msgid "Filter"
 msgstr "过滤"
 
-#: sonata.py:771
+#: sonata.py:772
 msgid "_End Search"
 msgstr "结束搜索(_E)"
 
-#: sonata.py:777 sonata.py:892
+#: sonata.py:778 sonata.py:897
 msgid "Library browsing view"
 msgstr "数据库浏览方式"
 
-#: sonata.py:880 sonata.py:885 sonata.py:1534 sonata.py:3644 sonata.py:3653
+#: sonata.py:885 sonata.py:890 sonata.py:1539 sonata.py:3641 sonata.py:3650
 msgid "Stopped"
 msgstr "已停止"
 
-#: sonata.py:881 sonata.py:3648 sonata.py:4258
+#: sonata.py:886 sonata.py:3645 sonata.py:4255
 msgid "Click to expand"
 msgstr "点击展开"
 
-#: sonata.py:886 sonata.py:3646 sonata.py:4256
+#: sonata.py:891 sonata.py:3643 sonata.py:4253
 msgid "Click to collapse"
 msgstr "点击折叠"
 
-#: sonata.py:891 sonata.py:3545
+#: sonata.py:896 sonata.py:3542
 msgid "Not Connected"
 msgstr "未连接"
 
-#: sonata.py:1170
+#: sonata.py:1175
 msgid "Version: Sonata"
 msgstr "版本： Sonata"
 
-#: sonata.py:1171
+#: sonata.py:1176
 msgid "Website: http://sonata.berlios.de/"
 msgstr "网站： http://sonata.berlios.de/"
 
-#: sonata.py:1176
+#: sonata.py:1181
 msgid "Usage: sonata [OPTION]"
 msgstr "用法： sonata [选项]"
 
-#: sonata.py:1178
+#: sonata.py:1183
 msgid "Options"
 msgstr "选项"
 
-#: sonata.py:1179
+#: sonata.py:1184
 msgid "Show this help and exit"
 msgstr "显示帮助信息并退出"
 
-#: sonata.py:1180
+#: sonata.py:1185
 msgid "Show version information and exit"
 msgstr "显示版本信息并退出"
 
-#: sonata.py:1181
+#: sonata.py:1186
 msgid "Toggles whether the app is minimized"
 msgstr "切换是否将应用程序最小化"
 
-#: sonata.py:1182
+#: sonata.py:1187
 msgid "to tray or visible (requires D-Bus)"
 msgstr "到托盘或可见（需要 D-Bus）"
 
-#: sonata.py:1183
+#: sonata.py:1188
 msgid "Start app hidden (requires systray)"
 msgstr "启动应用程序时隐藏（需要系统托盘）"
 
-#: sonata.py:1184
+#: sonata.py:1189
 msgid "Start app visible (requires systray)"
 msgstr "启动应用程序时可见（需要系统托盘）"
 
-#: sonata.py:1185
+#: sonata.py:1190
 msgid "Start with profile [NUM]"
 msgstr "以档案 NUM 启动"
 
-#: sonata.py:1186
+#: sonata.py:1191
 msgid "Play song in playlist"
 msgstr "播放队列中的曲目"
 
-#: sonata.py:1187
+#: sonata.py:1192
 msgid "Pause currently playing song"
 msgstr "暂停当前播放的曲目"
 
-#: sonata.py:1188
+#: sonata.py:1193
 msgid "Stop currently playing song"
 msgstr "停止当前播放的曲目"
 
-#: sonata.py:1189
+#: sonata.py:1194
 msgid "Play next song in playlist"
 msgstr "播放队列中的下一曲目"
 
-#: sonata.py:1190
+#: sonata.py:1195
 msgid "Play previous song in playlist"
 msgstr "播放队列中的上一曲目"
 
-#: sonata.py:1191
+#: sonata.py:1196
 msgid "Toggle play/pause; plays if stopped"
 msgstr "切换播放/暂停；如果已停止就播放"
 
-#: sonata.py:1192
+#: sonata.py:1197
 msgid "Toggle repeat mode"
 msgstr "切换重复模式"
 
-#: sonata.py:1193
+#: sonata.py:1198
 msgid "Toggle shuffle mode"
 msgstr "切换随机模式"
 
-#: sonata.py:1194
+#: sonata.py:1199
 msgid "Display current song info"
 msgstr "显示当前曲目信息"
 
-#: sonata.py:1195
+#: sonata.py:1200
 msgid "Display MPD status"
 msgstr "显示 MPD 状态"
 
-#: sonata.py:1216
+#: sonata.py:1221
 msgid "Song Info"
 msgstr "曲目信息"
 
-#: sonata.py:1247
+#: sonata.py:1252
 msgid "Launch artist in Wikipedia"
 msgstr "显示维基百科上该艺术家的资料"
 
-#: sonata.py:1259
+#: sonata.py:1264
 msgid "Launch album in Wikipedia"
 msgstr "显示维基百科上该专辑的资料"
 
-#: sonata.py:1271 sonata.py:1512
+#: sonata.py:1276 sonata.py:1517
 msgid "Date"
 msgstr "日期"
 
-#: sonata.py:1277 sonata.py:1513 sonata.py:2704 sonata.py:6730
+#: sonata.py:1282 sonata.py:1518 sonata.py:2701 sonata.py:6725
 msgid "Track"
 msgstr "音轨"
 
-#: sonata.py:1288
+#: sonata.py:1293
 msgid "Toggle extra tags"
 msgstr "切换显示余下的标签"
 
-#: sonata.py:1296
+#: sonata.py:1301
 msgid "Edit song tags"
 msgstr "编辑曲目标签"
 
-#: sonata.py:1302 sonata.py:1515 sonata.py:2708
+#: sonata.py:1307 sonata.py:1520 sonata.py:2705
 msgid "File"
 msgstr "文件"
 
-#: sonata.py:1308 sonata.py:1523
+#: sonata.py:1313 sonata.py:1528
 msgid "Bitrate"
 msgstr "比特率"
 
-#: sonata.py:1346
+#: sonata.py:1351
 msgid "Lyrics"
 msgstr "歌词"
 
-#: sonata.py:1366
+#: sonata.py:1371
 msgid "Search Lyricwiki.org for lyrics"
 msgstr "在 Lyricwiki.org 上搜索歌词"
 
-#: sonata.py:1520 sonata.py:1522
+#: sonata.py:1525 sonata.py:1527
 msgid "Time"
 msgstr "时间"
 
-#: sonata.py:1525
+#: sonata.py:1530
 msgid "MPD stopped"
 msgstr "MPD 已停止"
 
-#: sonata.py:1530 sonata.py:1532 sonata.py:1534
+#: sonata.py:1535 sonata.py:1537 sonata.py:1539
 msgid "State"
 msgstr "状态"
 
-#: sonata.py:1530
+#: sonata.py:1535
 msgid "Playing"
 msgstr "播放中"
 
-#: sonata.py:1532
+#: sonata.py:1537
 msgid "Paused"
 msgstr "已暂停"
 
-#: sonata.py:1536 sonata.py:1538
+#: sonata.py:1541 sonata.py:1543
 msgid "Repeat"
 msgstr "重复"
 
-#: sonata.py:1536 sonata.py:1540
+#: sonata.py:1541 sonata.py:1545
 msgid "Off"
 msgstr "关"
 
-#: sonata.py:1538 sonata.py:1542
+#: sonata.py:1543 sonata.py:1547
 msgid "On"
 msgstr "开"
 
-#: sonata.py:1540 sonata.py:1542
+#: sonata.py:1545 sonata.py:1547
 msgid "Shuffle"
 msgstr "随机"
 
-#: sonata.py:1543
+#: sonata.py:1548
 msgid "Volume"
 msgstr "音量"
 
-#: sonata.py:1545 sonata.py:1547
+#: sonata.py:1549
 msgid "Crossfade"
 msgstr "渐变"
 
-#: sonata.py:1545 sonata.py:5543
+#: sonata.py:1549 sonata.py:5540
+#, fuzzy
 msgid "second"
-msgstr "秒"
+msgid_plural "seconds"
+msgstr[0] "秒"
 
-#: sonata.py:1547 sonata.py:5545
-msgid "seconds"
-msgstr "秒"
-
-#: sonata.py:1551
+#: sonata.py:1553
 msgid ""
 "Unable to connect to MPD.\n"
 "Please check your Sonata preferences."
@@ -505,365 +503,365 @@ msgstr ""
 "不能连接到 MPD。\n"
 "请检查你的偏好设置。"
 
-#: sonata.py:1607
+#: sonata.py:1609
 msgid "Disconnect"
 msgstr "断开连接"
 
-#: sonata.py:2193
+#: sonata.py:2190
 msgid "Edit Stream"
 msgstr "编辑流"
 
-#: sonata.py:2195 sonata.py:2227
+#: sonata.py:2192 sonata.py:2224
 msgid "New Stream"
 msgstr "新建流"
 
-#: sonata.py:2198 sonata.py:5785
+#: sonata.py:2195 sonata.py:5780
 msgid "Stream name"
 msgstr "流媒体名字"
 
-#: sonata.py:2205
+#: sonata.py:2202
 msgid "Stream URL"
 msgstr "流媒体 URL"
 
-#: sonata.py:2227
+#: sonata.py:2224
 msgid "A stream with this name already exists. Would you like to replace it?"
 msgstr "流的名字已经存在。是否替换？"
 
-#: sonata.py:2245 sonata.py:2247
+#: sonata.py:2242 sonata.py:2244
 msgid "Save Playlist"
 msgstr "保存播放列表"
 
-#: sonata.py:2267
+#: sonata.py:2264
 msgid "A playlist with this name already exists. Would you like to replace it?"
 msgstr "播放列表的名字已经存在。是否替换？"
 
-#: sonata.py:2280
+#: sonata.py:2277
 msgid "Playlist name"
 msgstr "播放列表名字"
 
-#: sonata.py:2307 sonata.py:2311
+#: sonata.py:2304 sonata.py:2308
 msgid "Rename Playlist"
 msgstr "重命名播放列表"
 
-#: sonata.py:2705
+#: sonata.py:2702
 msgid "#"
 msgstr "#"
 
-#: sonata.py:2706 sonata.py:5782 sonata.py:6724
+#: sonata.py:2703 sonata.py:5777 sonata.py:6719
 msgid "Year"
 msgstr "年份"
 
-#: sonata.py:2709
+#: sonata.py:2706
 msgid "Stream"
 msgstr "流媒体"
 
-#: sonata.py:2710
+#: sonata.py:2707
 msgid "Len"
 msgstr "长度"
 
-#: sonata.py:2725 sonata.py:2731 sonata.py:2749 sonata.py:2755
+#: sonata.py:2722 sonata.py:2728 sonata.py:2746 sonata.py:2752
 msgid "Unknown"
 msgstr "未知"
 
-#: sonata.py:2819
+#: sonata.py:2816
 msgid "edit tags"
 msgstr "编辑标签"
 
-#: sonata.py:2832 sonata.py:4753
+#: sonata.py:2829 sonata.py:4750
 msgid "Various Artists"
 msgstr "多位艺术家"
 
-#: sonata.py:2868
+#: sonata.py:2865
 msgid "Artist or song title not set."
 msgstr "艺术家或曲目标题未设置。"
 
-#: sonata.py:2899
+#: sonata.py:2896
 msgid "search"
 msgstr "搜索"
 
-#: sonata.py:2908 sonata.py:2963
+#: sonata.py:2905 sonata.py:2960
 msgid "Lyrics not found"
 msgstr "未发现歌词"
 
-#: sonata.py:2931
+#: sonata.py:2928
 msgid "Fetching lyrics..."
 msgstr "获取歌词中..."
 
-#: sonata.py:2941
+#: sonata.py:2938
 msgid "Couldn't connect to LyricWiki"
 msgstr "无法连接到 LyricWiki"
 
-#: sonata.py:2966
+#: sonata.py:2963
 msgid "Fetching lyrics failed"
 msgstr "获取歌词失败"
 
-#: sonata.py:3567
+#: sonata.py:3564
 msgid "day"
 msgid_plural "days"
 msgstr[0] "天"
 
-#: sonata.py:3571
+#: sonata.py:3568
 msgid "minute"
 msgid_plural "minutes"
 msgstr[0] "分钟"
 
-#: sonata.py:3575
+#: sonata.py:3572
 msgid "hour"
 msgid_plural "hours"
 msgstr[0] "小时"
 
-#: sonata.py:3577 sonata.py:7100
+#: sonata.py:3574 sonata.py:7095
 msgid "song"
 msgid_plural "songs"
 msgstr[0] "首曲目"
 
-#: sonata.py:3579 sonata.py:3581
+#: sonata.py:3576 sonata.py:3578
 msgid "and"
 msgstr ""
 
-#: sonata.py:3587
+#: sonata.py:3584
 msgid "(updating mpd)"
 msgstr "（正在更新 mpd）"
 
-#: sonata.py:3651
+#: sonata.py:3648
 msgid "Not connected"
 msgstr "未连接"
 
-#: sonata.py:4319
+#: sonata.py:4316
 msgid "_Search"
 msgstr "搜索(_S)"
 
-#: sonata.py:4323
+#: sonata.py:4320
 msgid "Artist Name"
 msgstr "艺术家"
 
-#: sonata.py:4329
+#: sonata.py:4326
 msgid "Song Title"
 msgstr "曲目标题"
 
-#: sonata.py:4842
+#: sonata.py:4839
 msgid "Open Image"
 msgstr "打开图像"
 
-#: sonata.py:4844
+#: sonata.py:4841
 msgid "Images"
 msgstr "图像"
 
-#: sonata.py:4848
+#: sonata.py:4845
 msgid "All files"
 msgstr "所有文件"
 
-#: sonata.py:4886
+#: sonata.py:4883
 msgid "Choose Cover Art"
 msgstr "选择封面"
 
-#: sonata.py:4888
+#: sonata.py:4885
 msgid "Choose"
 msgstr "选择"
 
-#: sonata.py:4907
+#: sonata.py:4904
 msgid "Edit search terms"
 msgstr "编辑搜索词条"
 
-#: sonata.py:4913 sonata.py:4920
+#: sonata.py:4910 sonata.py:4917
 msgid "Press enter to search for these terms."
 msgstr "按 enter 键来搜索这些词条。"
 
-#: sonata.py:4983
+#: sonata.py:4980
 msgid "No artist or album name found."
 msgstr "未发现艺术家或专辑名。"
 
-#: sonata.py:4990
+#: sonata.py:4987
 msgid "No cover art found."
 msgstr "未发现封面。"
 
-#: sonata.py:5344
+#: sonata.py:5341
 msgid "Delete the selected playlist?"
 msgid_plural "Delete the selected playlists?"
 msgstr[0] "删除已选择的播放列表？"
 
-#: sonata.py:5344
+#: sonata.py:5341
 msgid "Delete Playlist"
 msgid_plural "Delete Playlists"
 msgstr[0] "删除播放列表"
 
-#: sonata.py:5351
+#: sonata.py:5348
 msgid "Delete the selected stream?"
 msgid_plural "Delete the selected streams?"
 msgstr[0] "删除已选择的流媒体？"
 
-#: sonata.py:5351
+#: sonata.py:5348
 msgid "Delete Stream"
 msgid_plural "Delete Streams"
 msgstr[0] "删除流媒体"
 
-#: sonata.py:5391 sonata.py:7140
+#: sonata.py:5388 sonata.py:7135
 msgid "Preferences"
 msgstr "偏好"
 
-#: sonata.py:5399
+#: sonata.py:5396
 msgid "MPD Connection"
 msgstr "MPD 连接"
 
-#: sonata.py:5405
+#: sonata.py:5402
 msgid "Add new profile"
 msgstr "添加新的档案"
 
-#: sonata.py:5408
+#: sonata.py:5405
 msgid "Remove current profile"
 msgstr "删除当前档案"
 
-#: sonata.py:5414
+#: sonata.py:5411
 msgid "Name"
 msgstr "名字"
 
-#: sonata.py:5420
+#: sonata.py:5417
 msgid "Host"
 msgstr "主机"
 
-#: sonata.py:5426
+#: sonata.py:5423
 msgid "Port"
 msgstr "端口"
 
-#: sonata.py:5432
+#: sonata.py:5429
 msgid "Music dir"
 msgstr "音乐目录"
 
-#: sonata.py:5439
+#: sonata.py:5436
 msgid "Password"
 msgstr "口令"
 
-#: sonata.py:5444
+#: sonata.py:5441
 msgid "Leave blank if no password is required."
 msgstr "如果不需要口令则留空。"
 
-#: sonata.py:5447
+#: sonata.py:5444
 msgid "Autoconnect on start"
 msgstr "启动时自动连接"
 
-#: sonata.py:5464
+#: sonata.py:5461
 msgid "Using MPD_HOST/PORT"
 msgstr "使用 MPD_HOST/PORT"
 
-#: sonata.py:5510
+#: sonata.py:5507
 msgid "Extras"
 msgstr "其它"
 
-#: sonata.py:5517
+#: sonata.py:5514
 msgid "Enable Audioscrobbler"
 msgstr "启用 Audioscrobbler"
 
-#: sonata.py:5522
+#: sonata.py:5519
 msgid "Username:"
 msgstr "用户名："
 
-#: sonata.py:5523
+#: sonata.py:5520
 msgid "Password:"
 msgstr "口令："
 
-#: sonata.py:5532
+#: sonata.py:5529
 msgid "Notification"
 msgstr "提示"
 
-#: sonata.py:5534
+#: sonata.py:5531
 msgid "Popup notification on song changes"
 msgstr "当曲目改变时弹出提示"
 
-#: sonata.py:5560
+#: sonata.py:5555
 msgid "Enable Crossfade"
 msgstr "启用渐变"
 
-#: sonata.py:5568
+#: sonata.py:5563
 msgid "Fade length"
 msgstr "渐变长度"
 
-#: sonata.py:5570
+#: sonata.py:5565
 msgid "sec"
 msgstr "秒"
 
-#: sonata.py:5607
+#: sonata.py:5602
 msgid "Display"
 msgstr "显示"
 
-#: sonata.py:5610
+#: sonata.py:5605
 msgid "Enable album art"
 msgstr "启用封面"
 
-#: sonata.py:5613
+#: sonata.py:5608
 msgid "Local only"
 msgstr "仅限本地"
 
-#: sonata.py:5614
+#: sonata.py:5609
 msgid "Local, then remote"
 msgstr "先本地，后远程"
 
-#: sonata.py:5617
+#: sonata.py:5612
 msgid "Search order:"
 msgstr "搜索顺序："
 
-#: sonata.py:5622
+#: sonata.py:5617
 msgid "Save art to:"
 msgstr "保存封面到："
 
-#: sonata.py:5628 sonata.py:5629 sonata.py:5630 sonata.py:5631 sonata.py:5654
+#: sonata.py:5623 sonata.py:5624 sonata.py:5625 sonata.py:5626 sonata.py:5649
 msgid "file_path"
 msgstr "文件路径"
 
-#: sonata.py:5631
+#: sonata.py:5626
 msgid "custom"
 msgstr "自定义"
 
-#: sonata.py:5636
+#: sonata.py:5631
 msgid "Enable playback/volume buttons"
 msgstr "启用播放/音量按钮"
 
-#: sonata.py:5639
+#: sonata.py:5634
 msgid "Enable progressbar"
 msgstr "启用进度条"
 
-#: sonata.py:5642
+#: sonata.py:5637
 msgid "Enable statusbar"
 msgstr "启用状态栏"
 
-#: sonata.py:5645
+#: sonata.py:5640
 msgid "Enable lyrics"
 msgstr "启用歌词"
 
-#: sonata.py:5648
+#: sonata.py:5643
 msgid "Save lyrics to:"
 msgstr "保存歌词到："
 
-#: sonata.py:5659
+#: sonata.py:5654
 msgid "Enable system tray icon"
 msgstr "启用系统托盘图标"
 
-#: sonata.py:5680
+#: sonata.py:5675
 msgid "Window Behavior"
 msgstr "窗口行为"
 
-#: sonata.py:5682
+#: sonata.py:5677
 msgid "Show window on all workspaces"
 msgstr "在所有工作区显示窗口"
 
-#: sonata.py:5684
+#: sonata.py:5679
 msgid "Keep window above other windows"
 msgstr "将窗口置于其它窗口上方"
 
-#: sonata.py:5686
+#: sonata.py:5681
 msgid "Update MPD library on start"
 msgstr "启动时更新 MPD 数据库"
 
-#: sonata.py:5688
+#: sonata.py:5683
 msgid ""
 "If enabled, Sonata will automatically update your MPD library when it starts "
 "up."
 msgstr "如果启用，Sonata 将在启动时自动更新你的 MPD 数据库。"
 
-#: sonata.py:5689
+#: sonata.py:5684
 msgid "Stop playback on exit"
 msgstr "退出时停止播放"
 
-#: sonata.py:5691
+#: sonata.py:5686
 msgid ""
 "MPD allows playback even when the client is not open. If enabled, Sonata "
 "will behave like a more conventional music player and, instead, stop "
@@ -872,11 +870,11 @@ msgstr ""
 "即使客户端没有打开，MPD 仍然允许播放。如果启用此选项，Sonata 将更像一个习惯上"
 "的音乐播放器，在退出的时候停止播放。"
 
-#: sonata.py:5692
+#: sonata.py:5687
 msgid "Minimize to system tray on close/escape"
 msgstr "关闭时最小化到系统托盘"
 
-#: sonata.py:5694
+#: sonata.py:5689
 msgid ""
 "If enabled, closing Sonata will minimize it to the system tray. Note that "
 "it's currently impossible to detect if there actually is a system tray, so "
@@ -885,20 +883,20 @@ msgstr ""
 "如果启用，Sonata 关闭时将会最小化到系统托盘上。注意目前它还不能检测到是否真的"
 "有系统托盘，所以仅当你有系统托盘时才选择此选项。"
 
-#: sonata.py:5696
+#: sonata.py:5691
 msgid "Play enqueued files on activate"
 msgstr "播放加入队列的文件"
 
-#: sonata.py:5698
+#: sonata.py:5693
 msgid ""
 "Automatically play enqueued items when activated via double-click or enter."
 msgstr "当通过双击或按 enter 键向队列中加入曲目后，自动播放加入的曲目。"
 
-#: sonata.py:5706
+#: sonata.py:5701
 msgid "Write status file:"
 msgstr "将状态写入文件："
 
-#: sonata.py:5708 sonata.py:5711
+#: sonata.py:5703 sonata.py:5706
 msgid ""
 "If enabled, Sonata will create a xmms-infopipe like file containing "
 "information about the current song. Many applications support the xmms-info "
@@ -907,402 +905,407 @@ msgstr ""
 "如果启用，Sonata 将建立一个类似管道的文件 xmms-info，包含关于当前曲目的信息。"
 "许多应用程序支持 xmms-info 文件（即时通讯软件、IRC 客户端……）"
 
-#: sonata.py:5718
+#: sonata.py:5713
 msgid "Miscellaneous"
 msgstr "其它"
 
-#: sonata.py:5738
+#: sonata.py:5733
 msgid "Song Formatting"
 msgstr "曲目格式"
 
-#: sonata.py:5741
+#: sonata.py:5736
 msgid "Current playlist:"
 msgstr "当前播放列表："
 
-#: sonata.py:5748
+#: sonata.py:5743
 msgid "Library:"
 msgstr "数据库："
 
-#: sonata.py:5755
+#: sonata.py:5750
 msgid "Window title:"
 msgstr "窗口标题："
 
-#: sonata.py:5762
+#: sonata.py:5757
 msgid "Current song line 1:"
 msgstr "当前曲目第一行："
 
-#: sonata.py:5769
+#: sonata.py:5764
 msgid "Current song line 2:"
 msgstr "当前曲目第二行："
 
-#: sonata.py:5777
+#: sonata.py:5772
 msgid "Available options"
 msgstr "可用选项"
 
-#: sonata.py:5782
+#: sonata.py:5777
 msgid "Artist name"
 msgstr "艺术家名字"
 
-#: sonata.py:5782
+#: sonata.py:5777
 msgid "Album name"
 msgstr "专辑名"
 
-#: sonata.py:5782
+#: sonata.py:5777
 msgid "Track name"
 msgstr "音轨名"
 
-#: sonata.py:5782
+#: sonata.py:5777
 msgid "Track number"
 msgstr "音轨编号"
 
-#: sonata.py:5785
+#: sonata.py:5780
 msgid "File name"
 msgstr "文件名"
 
-#: sonata.py:5785
+#: sonata.py:5780
 msgid "Song length"
 msgstr "曲目长度"
 
-#: sonata.py:5785
+#: sonata.py:5780
 msgid "Elapsed time (title only)"
 msgstr "已播放时间（仅限标题用）"
 
-#: sonata.py:5791
+#: sonata.py:5786
 msgid "Info displayed only if all enclosed tags are defined"
 msgstr "仅当结组中的所有标签都有定义时才会显示信息"
 
-#: sonata.py:5807
+#: sonata.py:5786
+#, fuzzy
+msgid "Creates columns in the current playlist"
+msgstr "随机排列当前播放列表"
+
+#: sonata.py:5802
 msgid "_MPD"
 msgstr "_MPD"
 
-#: sonata.py:5809
+#: sonata.py:5804
 msgid "_Display"
 msgstr "显示(_D)"
 
-#: sonata.py:5811
+#: sonata.py:5806
 msgid "_Behavior"
 msgstr "行为(_B)"
 
-#: sonata.py:5813
+#: sonata.py:5808
 msgid "_Format"
 msgstr "格式(_F)"
 
-#: sonata.py:5815
+#: sonata.py:5810
 msgid "_Extras"
 msgstr "其它(_E)"
 
-#: sonata.py:5880
+#: sonata.py:5875
 msgid "Audioscrobbler Verification"
 msgstr "Audioscrobbler 确认"
 
-#: sonata.py:5906
+#: sonata.py:5901
 msgid ""
 "To save lyrics to the music file's directory, you must specify a valid music "
 "directory."
 msgstr "要将歌词保存到音乐文件的目录中，你必须指定一个有效的音乐目录。"
 
-#: sonata.py:5906 sonata.py:5913
+#: sonata.py:5901 sonata.py:5908
 msgid "Music Dir Verification"
 msgstr "音乐文件目录确认"
 
-#: sonata.py:5913
+#: sonata.py:5908
 msgid ""
 "To save artwork to the music file's directory, you must specify a valid "
 "music directory."
 msgstr "要将封面保存到音乐文件的目录中，你必须指定一个有效的音乐目录。"
 
-#: sonata.py:6006
+#: sonata.py:6001
 msgid "New Profile"
 msgstr "新档案"
 
-#: sonata.py:6139
+#: sonata.py:6134
 msgid "Custom Artwork"
 msgstr "自定义封面"
 
-#: sonata.py:6142
+#: sonata.py:6137
 msgid "Artwork filename"
 msgstr "封面文件名"
 
-#: sonata.py:6265
-msgid "hide"
-msgstr "隐藏"
-
-#: sonata.py:6268
+#: sonata.py:6258 sonata.py:6263
 msgid "more"
 msgstr "更多"
 
-#: sonata.py:6616 sonata.py:6623 sonata.py:6662 sonata.py:6670 sonata.py:6911
-#: sonata.py:7024
+#: sonata.py:6260
+msgid "hide"
+msgstr "隐藏"
+
+#: sonata.py:6611 sonata.py:6618 sonata.py:6657 sonata.py:6665 sonata.py:6906
+#: sonata.py:7019
 msgid "Edit Tags"
 msgstr "编辑标签"
 
-#: sonata.py:6622
+#: sonata.py:6617
 msgid "The path"
 msgstr "路径"
 
-#: sonata.py:6622
+#: sonata.py:6617
 msgid "does not exist. Please specify a valid music directory in preferences."
 msgstr "不存在。请在偏好设置中指定一个有效的音乐目录。"
 
-#: sonata.py:6661
+#: sonata.py:6656
 msgid "File "
 msgstr "文件 "
 
-#: sonata.py:6661
+#: sonata.py:6656
 msgid " not found. Please specify a valid music directory in preferences."
 msgstr " 未找到。请在偏好设置中指定一个有效的音乐目录。"
 
-#: sonata.py:6669
+#: sonata.py:6664
 msgid "No music files with editable tags found."
 msgstr "没有可以编辑标签的音乐文件。"
 
-#: sonata.py:6762
+#: sonata.py:6757
 msgid "Comment"
 msgstr "注解"
 
-#: sonata.py:6788
+#: sonata.py:6783
 msgid "Save _All"
 msgstr "保存全部(_A)"
 
-#: sonata.py:6834
+#: sonata.py:6829
 msgid "Increment each selected music file, starting at track 1 for this file."
 msgstr ""
 "设置此文件的音轨编号为 1，从此文件开始递增地设置每一个已选择的音乐文件的音轨"
 "编号。"
 
-#: sonata.py:6836
+#: sonata.py:6831
 msgid "Apply to all selected music files."
 msgstr "应用到所有已选择的音乐文件。"
 
-#: sonata.py:6911
+#: sonata.py:6906
 msgid "of"
 msgstr "of"
 
-#: sonata.py:7023
+#: sonata.py:7018
 msgid "Unable to save tag to music file."
 msgstr "不能将标签保存到音乐文件。"
 
-#: sonata.py:7095
+#: sonata.py:7090
 msgid "An elegant music client for MPD."
 msgstr "一个精美的 MPD 客户端"
 
-#: sonata.py:7101
+#: sonata.py:7096
 msgid "album"
 msgid_plural "albums"
 msgstr[0] "张专辑"
 
-#: sonata.py:7102
+#: sonata.py:7097
 msgid "artist"
 msgid_plural "artists"
 msgstr[0] "位艺术家"
 
-#: sonata.py:7109
+#: sonata.py:7104
 msgid "day of bliss"
 msgid_plural "days of bliss"
 msgstr[0] "天的幸福"
 
-#: sonata.py:7111
+#: sonata.py:7106
 msgid "hour of bliss"
 msgid_plural "hours of bliss"
 msgstr[0] "个小时的幸福"
 
-#: sonata.py:7122
+#: sonata.py:7117
 msgid "_Shortcuts"
 msgstr "快捷键(_S)"
 
-#: sonata.py:7139
+#: sonata.py:7134
 msgid "About Sonata"
 msgstr "关于 Sonata"
 
-#: sonata.py:7141
+#: sonata.py:7136
 msgid "Switch to [1st-5th] tab"
 msgstr "切换到第 1-5 个标签页"
 
-#: sonata.py:7142
+#: sonata.py:7137
 msgid "Connect to MPD"
 msgstr "连接到 MPD"
 
-#: sonata.py:7143
+#: sonata.py:7138
 msgid "Disconnect from MPD"
 msgstr "断开与 MPD 的连接"
 
-#: sonata.py:7144
+#: sonata.py:7139
 msgid "Randomize current playlist"
 msgstr "随机排列当前播放列表"
 
-#: sonata.py:7145
+#: sonata.py:7140
 msgid "Expand player"
 msgstr "展开播放器"
 
-#: sonata.py:7146
+#: sonata.py:7141
 msgid "Collapse player"
 msgstr "折叠播放器"
 
-#: sonata.py:7147
+#: sonata.py:7142
 msgid "Search library"
 msgstr "搜索数据库"
 
-#: sonata.py:7148
+#: sonata.py:7143
 msgid "Quit"
 msgstr "退出"
 
-#: sonata.py:7149
+#: sonata.py:7144
 msgid "Edit selected song's tags"
 msgstr "编辑已选择曲目的标签"
 
-#: sonata.py:7150
+#: sonata.py:7145
 msgid "Update entire library"
 msgstr "更新整个数据库"
 
-#: sonata.py:7151
+#: sonata.py:7146
 msgid "Display popup menu"
 msgstr "显示弹出菜单"
 
-#: sonata.py:7152
+#: sonata.py:7147
 msgid "Minimize to system tray (if enabled)"
 msgstr "最小化到系统托盘（如果可以）"
 
-#: sonata.py:7154
+#: sonata.py:7149
 msgid "Previous track"
 msgstr "上一条音轨"
 
-#: sonata.py:7155
+#: sonata.py:7150
 msgid "Next track"
 msgstr "下一条音轨"
 
-#: sonata.py:7156
+#: sonata.py:7151
 msgid "Play/Pause"
 msgstr "播放/暂停"
 
-#: sonata.py:7157
+#: sonata.py:7152
 msgid "Stop"
 msgstr "停止"
 
-#: sonata.py:7158
+#: sonata.py:7153
 msgid "Lower the volume"
 msgstr "降低音量"
 
-#: sonata.py:7159
+#: sonata.py:7154
 msgid "Raise the volume"
 msgstr "提高音量"
 
-#: sonata.py:7161
+#: sonata.py:7156
 msgid "Play selected song"
 msgstr "播放选择的曲目"
 
-#: sonata.py:7162
+#: sonata.py:7157
 msgid "Remove selected song(s)"
 msgstr "删除选择的曲目"
 
-#: sonata.py:7163
+#: sonata.py:7158
 msgid "Add selected song(s) to playlist queue"
 msgstr "添加选择的曲目到播放队列"
 
-#: sonata.py:7164
+#: sonata.py:7159
 msgid "Center currently playing song"
 msgstr "居中显示当前播放的曲目"
 
-#: sonata.py:7165
+#: sonata.py:7160
 msgid "Remove selected song(s) from playlist queue"
 msgstr "从播放队列中删除选择的曲目"
 
-#: sonata.py:7166
+#: sonata.py:7161
 msgid "Save to new playlist"
 msgstr "保存到新的播放列表"
 
-#: sonata.py:7167
+#: sonata.py:7162
 msgid "Clear list"
 msgstr "清除列表"
 
-#: sonata.py:7168
+#: sonata.py:7163
 msgid "Randomize list"
 msgstr "随机排列播放列表"
 
-#: sonata.py:7170
+#: sonata.py:7165
 msgid "Add selected song(s) or enter directory"
 msgstr "添加选择的曲目或进入目录"
 
-#: sonata.py:7171
+#: sonata.py:7166
 msgid "Go to parent directory"
 msgstr "转到上一级目录"
 
-#: sonata.py:7172
+#: sonata.py:7167
 msgid "Add selected song(s) or directory(s)"
 msgstr "添加选择的曲目或目录"
 
-#: sonata.py:7173
+#: sonata.py:7168
 msgid "Replace with selected song(s) or directory(s)"
 msgstr "替换为选择的曲目或目录"
 
-#: sonata.py:7174
+#: sonata.py:7169
 msgid "Update library for selected path(s)"
 msgstr "对选择的路径更新数据库"
 
-#: sonata.py:7176 sonata.py:7178
+#: sonata.py:7171 sonata.py:7173
 msgid "Add selected playlist(s)"
 msgstr "添加选择的播放列表"
 
-#: sonata.py:7177
+#: sonata.py:7172
 msgid "Remove selected playlist(s)"
 msgstr "删除选择的播放列表"
 
-#: sonata.py:7179
+#: sonata.py:7174
 msgid "Replace with selected playlist(s)"
 msgstr "替换为选择的播放列表"
 
-#: sonata.py:7181 sonata.py:7183
+#: sonata.py:7176 sonata.py:7178
 msgid "Add selected stream(s)"
 msgstr "添加选择的流"
 
-#: sonata.py:7182
+#: sonata.py:7177
 msgid "Remove selected stream(s)"
 msgstr "删除选择的流"
 
-#: sonata.py:7184
+#: sonata.py:7179
 msgid "Replace with selected stream(s)"
 msgstr "替换为选择的流"
 
-#: sonata.py:7187
+#: sonata.py:7182
 msgid "Main Shortcuts"
 msgstr "全局快捷键"
 
-#: sonata.py:7188
+#: sonata.py:7183
 msgid "Playback Shortcuts"
 msgstr "播放快捷键"
 
-#: sonata.py:7189
+#: sonata.py:7184
 msgid "Current Shortcuts"
 msgstr "当前曲目快捷键"
 
-#: sonata.py:7190
+#: sonata.py:7185
 msgid "Library Shortcuts"
 msgstr "数据库快捷键"
 
-#: sonata.py:7191
+#: sonata.py:7186
 msgid "Playlist Shortcuts"
 msgstr "播放列表快捷键"
 
-#: sonata.py:7192
+#: sonata.py:7187
 msgid "Stream Shortcuts"
 msgstr "流媒体快捷键"
 
-#: sonata.py:7193
+#: sonata.py:7188
 msgid "Shortcuts"
 msgstr "快捷键"
 
-#: sonata.py:7287
+#: sonata.py:7282
 msgid "Unable to launch a suitable browser."
 msgstr "无法启动合适的浏览器。"
 
-#: sonata.py:7287
+#: sonata.py:7282
 msgid "Launch Browser"
 msgstr "启动浏览器"
 
-#: sonata.py:7853
+#: sonata.py:7848
 msgid "An instance of Sonata is already running."
 msgstr "Sonata 正在运行中。"
 
-#: sonata.py:7859
+#: sonata.py:7854
 msgid ""
 "Sonata failed to connect to the D-BUS session bus: Unable to determine the "
 "address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for "
@@ -1310,6 +1313,9 @@ msgid ""
 msgstr ""
 "Sonata 连接到 D-BUS session bus 失败：无法决定 message bus 的地址（尝试 'man "
 "dbus-launch' 和 'man dbus-daemon' 来获取帮助）"
+
+#~ msgid "seconds"
+#~ msgstr "秒"
 
 #~ msgid "Song Info..."
 #~ msgstr "曲目信息..."
