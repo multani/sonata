@@ -2813,7 +2813,6 @@ class Base(mpdclient3.mpd_connection):
         if self.current_tab == self.TAB_INFO:
             if self.conn:
                 if self.status and self.status.state in ['play', 'pause']:
-                    self.info_editlabel.set_markup(link_markup(_("edit tags"), True, True, self.linkcolor))
                     try:
                         newbitrate = self.status.bitrate + " kbps"
                     except:
@@ -2849,8 +2848,10 @@ class Base(mpdclient3.mpd_connection):
                             self.info_tracklabel.set_text("")
                         if os.path.exists(self.musicdir[self.profile_num] + os.path.dirname(self.songinfo.file)):
                             self.info_filelabel.set_text(self.musicdir[self.profile_num] + self.songinfo.file)
+                            self.info_editlabel.set_markup(link_markup(_("edit tags"), True, True, self.linkcolor))
                         else:
-                            self.info_filelabel.set_text("/" + self.songinfo.file)
+                            self.info_filelabel.set_text(self.songinfo.file)
+                            self.info_editlabel.set_text("")
                         # Update lyrics:
                         if self.show_lyrics:
                             if self.songinfo.has_key('artist') and self.songinfo.has_key('title'):
