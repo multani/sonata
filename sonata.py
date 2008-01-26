@@ -1353,6 +1353,7 @@ class Base(mpdclient3.mpd_connection):
         lyricsbox = gtk.VBox()
         lyricsbox_top = gtk.HBox()
         self.lyricsText = gtk.Label()
+        self.lyricsText.set_use_markup(True)
         self.lyricsText.set_alignment(0,0)
         self.lyricsText.set_selectable(True)
         try: # Only recent versions of pygtk/gtk have this
@@ -2948,6 +2949,7 @@ class Base(mpdclient3.mpd_connection):
                 if lyrics.lower() != "not found":
                     lyrics = filename_artist + " - " + filename_title + "\n\n" + lyrics
                     lyrics = unescape_html(lyrics)
+                    lyrics = wiki_to_html(lyrics)
                     gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
                     # Save lyrics to file:
                     self.create_dir_if_not_existing('~/.lyrics/')
@@ -2971,12 +2973,12 @@ class Base(mpdclient3.mpd_connection):
         if force:
             # For error messages where there is no appropriate artist or
             # title, we pass force=True:
-            self.lyricsText.set_text(lyrics)
+            self.lyricsText.set_markup(lyrics)
         elif self.status and self.status.state in ['play', 'pause'] and self.songinfo:
             # Verify that we are displaying the correct lyrics:
             try:
                 if strip_all_slashes(self.songinfo.artist) == artist and strip_all_slashes(self.songinfo.title) == title:
-                    self.lyricsText.set_text(lyrics)
+                    self.lyricsText.set_markup(lyrics)
             except:
                 pass
 
@@ -7740,6 +7742,22 @@ def unescape_html(s):
     s = s.replace('&gt;', '>')
     s = s.replace('&quot;', '"')
     s = s.replace('&nbsp;', ' ')
+    return s
+
+def wiki_to_html(s):
+    tag_pairs = [["'''", "<b>", "</b>"], ["''", "<i>", "</i>"]]
+    for tag in tag_pairs:
+        tag_start = True
+        pos = 0
+        while pos > -1:
+            pos = s.find(tag[0], pos)
+            if pos > -1:
+                if tag_start:
+                    s = s[:pos] + tag[1] + s[pos+3:]
+                else:
+                    s = s[:pos] + tag[2] + s[pos+3:]
+                pos += 1
+                tag_start = not tag_start
     return s
 
 def strip_all_slashes(s):

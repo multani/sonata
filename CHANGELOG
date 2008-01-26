@@ -5,7 +5,7 @@ v1.4.1 - January 22, 2008
 	+ Bug: Can't click (more) link in non-English locales
 	+ Bug: Crash when using libegg with system tray icon disabled
 	+ Bug: Disable tag editing link in info tab for streams/remote files
-	+ Bug: Unescape common html codes from lyrics fetching
+	+ Bug: Unescape common html codes from lyrics fetching, enable formatting
 
 v1.4 - January 15, 2008
 	+ Integrate info window into main player
