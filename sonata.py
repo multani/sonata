@@ -348,6 +348,7 @@ class Base(mpdclient3.mpd_connection):
         self.plpos = None
         self.info_song_expanded = True
         self.info_lyrics_expanded = True
+        self.info_album_expanded = True
         self.info_song_more = False
         self.current_tab_visible = True
         self.library_tab_visible = True
@@ -1213,13 +1214,13 @@ class Base(mpdclient3.mpd_connection):
         except:
             self.linkcolor = None
         # Song info
-        self.info_song = gtk.Expander()
-        self.info_song.set_property("can-focus", False)
-        self.info_song.set_expanded(self.info_song_expanded)
-        self.info_song.connect("activate", self.info_expanded)
+        info_song = gtk.Expander()
+        info_song.set_property("can-focus", False)
+        info_song.set_expanded(self.info_song_expanded)
+        info_song.connect("activate", self.info_expanded, "song")
         songinfolabel = gtk.Label()
-        songinfolabel.set_markup("<big><b>" + _("Song Info") + "</b></big>")
-        self.info_song.set_label_widget(songinfolabel)
+        songinfolabel.set_markup("<b>" + _("Song Info") + "</b>")
+        info_song.set_label_widget(songinfolabel)
         inner_hbox = gtk.HBox()
         self.info_imagebox = gtk.EventBox()
         self.info_imagebox.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT | gtk.DEST_DEFAULT_DROP, [("text/uri-list", 0, 80)], gtk.gdk.ACTION_DEFAULT)
@@ -1340,15 +1341,15 @@ class Base(mpdclient3.mpd_connection):
             self.info_tagbox.pack_start(hbox, False, False, vert_spacing)
         self.info_tagbox.pack_start(mischbox, False, False, vert_spacing)
         inner_hbox.pack_start(self.info_tagbox, False, False, horiz_spacing)
-        self.info_song.add(inner_hbox)
-        outter_vbox.pack_start(self.info_song, False, False, margin)
+        info_song.add(inner_hbox)
+        outter_vbox.pack_start(info_song, False, False, margin)
         # Lyrics
         self.info_lyrics = gtk.Expander()
         self.info_lyrics.set_property("can-focus", False)
         self.info_lyrics.set_expanded(self.info_lyrics_expanded)
-        self.info_lyrics.connect("activate", self.info_expanded)
+        self.info_lyrics.connect("activate", self.info_expanded, "lyrics")
         lyricslabel = gtk.Label()
-        lyricslabel.set_markup("<big><b>" + _("Lyrics") + "</b></big>")
+        lyricslabel.set_markup("<b>" + _("Lyrics") + "</b>")
         self.info_lyrics.set_label_widget(lyricslabel)
         lyricsbox = gtk.VBox()
         lyricsbox_top = gtk.HBox()
@@ -1356,6 +1357,7 @@ class Base(mpdclient3.mpd_connection):
         self.lyricsText.set_use_markup(True)
         self.lyricsText.set_alignment(0,0)
         self.lyricsText.set_selectable(True)
+        self.lyricsText.set_line_wrap(True)
         try: # Only recent versions of pygtk/gtk have this
             self.lyricsText.set_line_wrap_mode(pango.WRAP_WORD_CHAR)
         except:
@@ -1375,6 +1377,29 @@ class Base(mpdclient3.mpd_connection):
         lyricsbox.pack_start(lyricsbox_bottom, False, False, vert_spacing)
         self.info_lyrics.add(lyricsbox)
         outter_vbox.pack_start(self.info_lyrics, False, False, margin)
+        # Album info
+        info_album = gtk.Expander()
+        info_album.set_property("can-focus", False)
+        info_album.set_expanded(self.info_album_expanded)
+        info_album.connect("activate", self.info_expanded, "album")
+        albumlabel = gtk.Label()
+        albumlabel.set_markup("<b>" + _("Album Info") + "</b>")
+        info_album.set_label_widget(albumlabel)
+        albumbox = gtk.VBox()
+        albumbox_top = gtk.HBox()
+        self.albumText = gtk.Label()
+        self.albumText.set_use_markup(True)
+        self.albumText.set_alignment(0,0)
+        self.albumText.set_selectable(True)
+        self.albumText.set_line_wrap(True)
+        try: # Only recent versions of pygtk/gtk have this
+            self.albumText.set_line_wrap_mode(pango.WRAP_WORD_CHAR)
+        except:
+            pass
+        albumbox_top.pack_start(self.albumText, False, False, horiz_spacing)
+        albumbox.pack_start(albumbox_top, False, False, vert_spacing)
+        info_album.add(albumbox)
+        outter_vbox.pack_start(info_album, False, False, margin)
         # Finish..
         if not self.show_lyrics:
             self.info_lyrics.hide_all()
@@ -1392,16 +1417,14 @@ class Base(mpdclient3.mpd_connection):
         outter_hbox.pack_start(outter_vbox, False, False, margin)
         info_scrollwindow.add_with_viewport(outter_hbox)
 
-    def info_expanded(self, expander):
-        # Ensure that we always have one expander expanded:
-        if expander == self.info_song:
-            self.info_song_expanded = not expander.get_expanded()
-            if not self.info_song_expanded and not self.info_lyrics_expanded:
-                self.info_lyrics.set_expanded(True)
-        elif expander == self.info_lyrics:
-            self.info_lyrics_expanded = not expander.get_expanded()
-            if not self.info_song_expanded and not self.info_lyrics_expanded:
-                self.info_song.set_expanded(True)
+    def info_expanded(self, expander, type):
+        expanded = not expander.get_expanded()
+        if type == "song":
+            self.info_song_expanded = expanded
+        elif type == "lyrics":
+            self.info_lyrics_expanded = expanded
+        elif type == "album":
+            self.info_album_expanded = expanded
 
     def parse_currentformat(self):
         # Initialize current playlist data and widget
@@ -1940,6 +1963,8 @@ class Base(mpdclient3.mpd_connection):
             self.info_song_expanded = conf.getboolean('player', 'info_song_expanded')
         if conf.has_option('player', 'info_lyrics_expanded'):
             self.info_lyrics_expanded = conf.getboolean('player', 'info_lyrics_expanded')
+        if conf.has_option('player', 'info_album_expanded'):
+            self.info_album_expanded = conf.getboolean('player', 'info_album_expanded')
         if conf.has_option('player', 'info_song_more'):
             self.info_song_more = conf.getboolean('player', 'info_song_more')
         if conf.has_option('player', 'columnwidths'):
@@ -2080,6 +2105,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'lyrics_location', self.lyrics_location)
         conf.set('player', 'info_song_expanded', self.info_song_expanded)
         conf.set('player', 'info_lyrics_expanded', self.info_lyrics_expanded)
+        conf.set('player', 'info_album_expanded', self.info_album_expanded)
         conf.set('player', 'info_song_more', self.info_song_more)
         conf.set('player', 'info_art_enlarged', self.info_art_enlarged)
         tmp = ""
@@ -2822,13 +2848,10 @@ class Base(mpdclient3.mpd_connection):
                         self.info_bitratelabel.set_text(newbitrate)
                     self.last_info_bitrate = newbitrate
                     if update_all:
-                        # Use artist Wikipedia link?
+                        # Use artist/album Wikipedia links?
                         artist_use_link = False
                         if self.songinfo.has_key('artist'):
-                            artist = self.current_artist_for_album_name[1]
-                            if artist != _("Various Artists"):
-                                artist_use_link = True
-                        # Use album Wikipedia link?
+                            artist_use_link = True
                         album_use_link = False
                         if self.songinfo.has_key('album'):
                             album_use_link = True
@@ -2853,6 +2876,37 @@ class Base(mpdclient3.mpd_connection):
                         else:
                             self.info_filelabel.set_text(self.songinfo.file)
                             self.info_editlabel.set_text("")
+                        if self.songinfo.has_key('album'):
+                            # Update album info:
+                            year = []
+                            albumtime = 0
+                            trackinfo = ""
+                            albuminfo = self.songinfo.album + "\n"
+                            tracks = self.browse_search_album(self.songinfo.album)
+                            for track in tracks:
+                                if track.has_key('title'):
+                                    trackinfo = trackinfo + self.sanitize_mpdtag(getattr(track, 'track', '0'), False, 2) + '. ' + track.title + '\n'
+                                else:
+                                    trackinfo = trackinfo + self.sanitize_mpdtag(getattr(track, 'track', '0'), False, 2) + '. ' + track.file.split('/')[-1] + '\n'
+                                if track.has_key('date'):
+                                    year.append(track.date)
+                                try:
+                                    albumtime = albumtime + int(track.time)
+                                except:
+                                    pass
+                            (year, i) = remove_list_duplicates(year, [], False)
+                            artist = self.current_artist_for_album_name[1]
+                            artist_use_link = False
+                            if artist != _("Various Artists"):
+                                artist_use_link = True
+                            albuminfo = albuminfo + artist + "\n"
+                            if len(year) == 1:
+                                albuminfo = albuminfo + year[0] + "\n"
+                            albuminfo = albuminfo + convert_time(albumtime) + "\n"
+                            albuminfo = albuminfo + "\n" + trackinfo
+                            self.albumText.set_markup(albuminfo)
+                        else:
+                            self.albumText.set_text(_("Album name not set."))
                         # Update lyrics:
                         if self.show_lyrics:
                             if self.songinfo.has_key('artist') and self.songinfo.has_key('title'):
@@ -2882,6 +2936,7 @@ class Base(mpdclient3.mpd_connection):
                 if self.show_lyrics:
                     self.info_searchlabel.set_text("")
                     self.info_show_lyrics("", "", "", True)
+                self.albumText.set_text("")
                 self.last_info_bitrate = newbitrate
 
     def info_check_for_local_lyrics(self, artist, title):
@@ -4217,11 +4272,15 @@ class Base(mpdclient3.mpd_connection):
         self.set_ellipsize_workaround()
 
     def on_notebook_resize(self, widget, event):
-        # Resize labels in info tab to prevent horiz scrollbar
+        # Resize labels in info tab to prevent horiz scrollbar:
         labelwidth = self.notebook.allocation.width - self.titlelabel.allocation.width - self.info_imagebox.allocation.width - 60 # 60 accounts for vert scrollbar, box paddings, etc..
         if labelwidth > 100:
             for label in self.labels_right:
                 label.set_size_request(labelwidth, -1)
+        # Resize lyrics/album gtk labels:
+        labelwidth = self.notebook.allocation.width - 40 # 60 accounts for vert scrollbar, box paddings, etc..
+        self.lyricsText.set_size_request(labelwidth, -1)
+        self.albumText.set_size_request(labelwidth, -1)
 
     def expand(self, action):
         if not self.expanded:
