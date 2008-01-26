@@ -430,8 +430,6 @@ class Base(mpdclient3.mpd_connection):
             ('localimage_menu', gtk.STOCK_OPEN, _('Use _Local Image...'), None, None, self.on_choose_image_local),
             ('resetimage_menu', gtk.STOCK_CLEAR, _('Reset to Default'), None, None, self.on_reset_image),
             ('playmenu', gtk.STOCK_MEDIA_PLAY, _('_Play'), None, None, self.pp),
-            ('queuemenu', None, _('Add to _Queue'), '<Ctrl>e', None, self.queue),
-            ('dequeuemenu', None, _('Remove from _Queue'), '<Ctrl><Shift>e', None, self.dequeue),
             ('pausemenu', gtk.STOCK_MEDIA_PAUSE, _('_Pause'), None, None, self.pp),
             ('stopmenu', gtk.STOCK_MEDIA_STOP, _('_Stop'), None, None, self.stop),
             ('prevmenu', gtk.STOCK_MEDIA_PREVIOUS, _('_Previous'), None, None, self.prev),
@@ -521,8 +519,6 @@ class Base(mpdclient3.mpd_connection):
                 <menuitem action="edittagmenu"/>
                 <menuitem action="renamemenu"/>
                 <menuitem action="rmmenu"/>
-                <menuitem action="queuemenu"/>
-                <menuitem action="dequeuemenu"/>
                 <menu action="sortmenu">
                   <menuitem action="sortbytitle"/>
                   <menuitem action="sortbyartist"/>
@@ -1429,18 +1425,10 @@ class Base(mpdclient3.mpd_connection):
     def parse_currentformat(self):
         # Initialize current playlist data and widget
         self.columnformat = self.currentformat.split("|")
-        self.currentdata = gtk.ListStore(*([str] + [int] + [str] * len(self.columnformat)))
+        self.currentdata = gtk.ListStore(*([int] + [str] * len(self.columnformat)))
         self.current.set_model(self.currentdata)
         cellrenderer = gtk.CellRendererText()
         cellrenderer.set_property("ellipsize", pango.ELLIPSIZE_END)
-        cellrenderer2 = gtk.CellRendererText()
-        cellrenderer2.set_property("xalign", 0.5)
-        # Lets get a little fancy and try to use a smaller font (based on the default):
-        try:
-            default_font_size = int(gtk.settings_get_default().props.gtk_font_name[-2:])
-            cellrenderer2.set_property("size-points", default_font_size-2)
-        except:
-            pass
         self.columns = []
         index = 1
         colnames = self.parse_formatting_for_column_names(self.currentformat)
@@ -1449,28 +1437,20 @@ class Base(mpdclient3.mpd_connection):
             self.columnwidths = []
             for i in range(len(self.columnformat)):
                 self.columnwidths.append(int(self.current.allocation.width/len(self.columnformat)))
-        for i in range(len(self.columnformat)+1):
-            if i == 0:
-                # Add playlistqueue column:
-                self.queuecolumn = gtk.TreeViewColumn("Q", cellrenderer2, markup=(i))
-                self.queuecolumn.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
-                self.queuecolumn.set_resizable(False)
-                self.queuecolumn.connect('clicked', self.on_current_column_click)
-                self.current.append_column(self.queuecolumn)
-            else:
-                column = gtk.TreeViewColumn(colnames[i-1], cellrenderer, markup=(i+1))
-                self.columns += [column]
-                column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
-                # If just one column, we want it to expand with the tree, so don't set a fixed_width; if
-                # multiple columns, size accordingly:
-                if len(self.columnformat) > 1:
-                    column.set_resizable(True)
-                    try:
-                        column.set_fixed_width(max(self.columnwidths[i-1], 10))
-                    except:
-                        column.set_fixed_width(150)
-                column.connect('clicked', self.on_current_column_click)
-                self.current.append_column(column)
+        for i in range(len(self.columnformat)):
+            column = gtk.TreeViewColumn(colnames[i], cellrenderer, markup=(i+1))
+            self.columns += [column]
+            column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+            # If just one column, we want it to expand with the tree, so don't set a fixed_width; if
+            # multiple columns, size accordingly:
+            if len(self.columnformat) > 1:
+                column.set_resizable(True)
+                try:
+                    column.set_fixed_width(max(self.columnwidths[i], 10))
+                except:
+                    column.set_fixed_width(150)
+            column.connect('clicked', self.on_current_column_click)
+            self.current.append_column(column)
         self.current.set_headers_visible(len(self.columnformat) > 1 and self.show_header)
         self.current.set_headers_clickable(not self.filterbox_visible)
 
@@ -3291,7 +3271,6 @@ class Base(mpdclient3.mpd_connection):
         #  2. Repeat/random/xfade/volume
         #  3. Currently selected song in playlist
         #  4. Status (playing/paused/stopped)
-        #  5. Playlistqueue
         if self.status == None:
             # clean up and bail out
             self.update_progressbar()
@@ -3303,9 +3282,7 @@ class Base(mpdclient3.mpd_connection):
 
         # Display current playlist
         if self.prevstatus == None or self.prevstatus.playlist != self.status.playlist:
-            self.update_playlist(False)
-        elif self.mpd_major_version() >= 0.14 and self.prevstatus.playlistqueue != self.status.playlistqueue:
-            self.update_playlist(True)
+            self.update_playlist()
 
         # Update progress frequently if we're playing
         if self.status.state in ['play', 'pause']:
@@ -3555,7 +3532,7 @@ class Base(mpdclient3.mpd_connection):
             return
         if row > -1:
             try:
-                for i in range(1,len(self.currentdata[row]) - 1):
+                for i in range(len(self.currentdata[row]) - 1):
                     self.currentdata[row][i + 1] = make_bold(self.currentdata[row][i + 1])
             except:
                 pass
@@ -3565,7 +3542,7 @@ class Base(mpdclient3.mpd_connection):
             return
         if row > -1:
             try:
-                for i in range(1, len(self.currentdata[row]) - 1):
+                for i in range(len(self.currentdata[row]) - 1):
                     self.currentdata[row][i + 1] = make_unbold(self.currentdata[row][i + 1])
             except:
                 pass
@@ -3719,41 +3696,19 @@ class Base(mpdclient3.mpd_connection):
                 self.window.set_property('title', newtitle)
                 self.last_title = newtitle
 
-    def playlistqueue_get_mapping(self):
-        # Returns the mapping of songid to queueid for all songs
-        # in the playlistqueue.
-        map = []
-        if self.mpd_major_version() >= 0.14:
-            playlistqueue = self.conn.do.queueinfo()
-            queueid = 0
-            for song in playlistqueue:
-                dict = {}
-                dict["id"] = song.id
-                dict["queueid"] = queueid
-                map.append(dict)
-                queueid += 1
-        return map
-
-    def update_playlist(self, update_queuelist_only):
+    def update_playlist(self):
         if self.conn:
             try:
                 prev_songs = self.songs
             except:
                 prev_songs = None
-            if not update_queuelist_only:
-                self.songs = self.conn.do.playlistinfo()
-            queue_map = self.playlistqueue_get_mapping()
-            if len(queue_map) > 0:
-                has_queue = True
-            else:
-                has_queue = False
+            self.songs = self.conn.do.playlistinfo()
             self.total_time = 0
             if self.sonata_loaded:
                 playlistposition = self.current.get_visible_rect()[1]
             self.current.freeze_child_notify()
             if not self.filterbox_visible:
                 self.current.set_model(None)
-            strqueue = []
             songlen = len(self.songs)
             currlen = len(self.currentdata)
             # Add/update songs in current playlist:
@@ -3763,25 +3718,21 @@ class Base(mpdclient3.mpd_connection):
                     self.total_time = self.total_time + int(track.time)
                 except:
                     pass
-                # Check if song is in playlistqueue:
-                strqueue.append([self.songs[i].id, self.queueinfo_get_queueid(queue_map, self.songs[i].id)])
                 iter = None
                 if i < currlen and prev_songs:
                     iter = self.currentdata.get_iter((i, ))
                 update_item = False
-                if not update_queuelist_only or (update_queuelist_only and iter and strqueue[i][1] != self.currentdata.get_value(iter, 0)):
-                    items = []
-                    for part in self.columnformat:
-                        items += [self.parse_formatting(part, track, True)]
-                    if i < currlen and iter:
-                        # Update attributes only for item:
-                        self.currentdata.set_value(iter, 0, strqueue[i][1])
-                        self.currentdata.set_value(iter, 1, int(track.id))
-                        for index in range(len(items)):
-                            self.currentdata.set_value(iter, index + 2, items[index])
-                    else:
-                        # Add new item:
-                        self.currentdata.append([strqueue[i][1]] + [int(track.id)] + items)
+                items = []
+                for part in self.columnformat:
+                    items += [self.parse_formatting(part, track, True)]
+                if i < currlen and iter:
+                    # Update attributes only for item:
+                    self.currentdata.set_value(iter, 0, int(track.id))
+                    for index in range(len(items)):
+                        self.currentdata.set_value(iter, index + 1, items[index])
+                else:
+                    # Add new item:
+                    self.currentdata.append([int(track.id)] + items)
             # Remove excess songs:
             for i in range(currlen-songlen):
                 iter = self.currentdata.get_iter((currlen-1-i,))
@@ -3792,18 +3743,11 @@ class Base(mpdclient3.mpd_connection):
                 currsong = int(self.songinfo.pos)
                 self.boldrow(currsong)
                 self.prev_boldrow = currsong
-            if has_queue and not self.queuecolumn.get_visible():
-                self.queuecolumn.set_visible(True)
-            elif not has_queue and self.queuecolumn.get_visible():
-                self.queuecolumn.set_visible(False)
             if self.filterbox_visible:
                 # Refresh filtered results:
-                if update_queuelist_only:
-                    self.queueinfo_update_playlist(strqueue)
-                else:
-                    self.prevtodo = "RETAIN_POS_AND_SEL" # Hacky, but this ensures we retain the self.current position/selection
-                    self.plpos = playlistposition
-                    self.searchfilter_feed_loop(self.filterpattern)
+                self.prevtodo = "RETAIN_POS_AND_SEL" # Hacky, but this ensures we retain the self.current position/selection
+                self.plpos = playlistposition
+                self.searchfilter_feed_loop(self.filterpattern)
             elif self.sonata_loaded:
                 self.playlist_retain_view(self.current, playlistposition)
                 self.current.thaw_child_notify()
@@ -3822,17 +3766,6 @@ class Base(mpdclient3.mpd_connection):
                 self.hide_all_header_indicators(self.current, True)
                 self.column_sorted[0].set_sort_order(gtk.SORT_DESCENDING)
                 self.column_sorted = (None, gtk.SORT_DESCENDING)
-
-    def queueinfo_get_queueid(self, queue_map, songid):
-        strqueue = ""
-        map_num = 0
-        for map in queue_map:
-            if songid == map["id"]:
-                strqueue = str(int(map["queueid"])+1)
-                queue_map.pop(map_num)
-                break
-            map_num += 1
-        return strqueue
 
     def center_playlist(self, event):
         self.keep_song_centered_in_list()
@@ -4408,9 +4341,6 @@ class Base(mpdclient3.mpd_connection):
             dialog.destroy()
 
     def on_current_column_click(self, column):
-        if column == self.queuecolumn:
-            self.sort('col0', column)
-            return
         columns = self.current.get_columns()
         col_num = 0
         for col in columns:
@@ -4485,9 +4415,6 @@ class Base(mpdclient3.mpd_connection):
                     dict["sortby"] = make_unbold(self.currentdata.get_value(self.currentdata.get_iter((track_num, 0)), col_num).lower())
                     if custom_sort:
                         dict["sortby"] = self.sanitize_song_length_for_sorting(dict["sortby"], custom_pos)
-                    if column == self.queuecolumn:
-                        if len(dict["sortby"]) == 0:
-                            dict["sortby"] = "99999"
                 else:
                     dict["sortby"] = getattr(track, type, zzz).lower()
                 dict["id"] = int(track.id)
@@ -5338,38 +5265,6 @@ class Base(mpdclient3.mpd_connection):
     def mmnext(self, keys, key):
         self.next(None)
 
-    def queue(self, widget):
-        if self.conn and self.mpd_major_version() >= 0.14:
-            while gtk.events_pending():
-                gtk.main_iteration()
-            # Add selected songs to playback queue:
-            model, selected = self.current_selection.get_selected_rows()
-            self.conn.send.command_list_begin()
-            for path in selected:
-                song_id = self.current_get_songid(model.get_iter(path), model)
-                self.conn.send.queueid(song_id)
-            self.conn.do.command_list_end()
-            self.iterate_now()
-
-    def dequeue(self, widget):
-        if self.conn and self.mpd_major_version() >= 0.14:
-            while gtk.events_pending():
-                gtk.main_iteration()
-            # Remove selected songs from playback queue:
-            model, selected = self.current_selection.get_selected_rows()
-            dequeue_list = []
-            for path in selected:
-                queue_pos = self.current_get_queuepos(model.get_iter(path), model)
-                if queue_pos != -1:
-                    dequeue_list.append(queue_pos)
-            dequeue_list.sort()
-            dequeue_list.reverse()
-            self.conn.send.command_list_begin()
-            for pos in dequeue_list:
-                self.conn.send.dequeue(pos)
-            self.conn.do.command_list_end()
-            self.iterate_now()
-
     def remove(self, widget):
         if self.conn:
             while gtk.events_pending():
@@ -5982,7 +5877,7 @@ class Base(mpdclient3.mpd_connection):
                     self.current.remove_column(column)
                 self.songs = None
                 self.parse_currentformat()
-                self.update_playlist(False)
+                self.update_playlist()
             if self.libraryformat != libraryoptions.get_text():
                 self.libraryformat = libraryoptions.get_text()
                 self.browse(root=self.wd)
@@ -6497,14 +6392,6 @@ class Base(mpdclient3.mpd_connection):
         else:
             return False
 
-    def current_selection_item_found_in_queue(self):
-        model, selected = self.current_selection.get_selected_rows()
-        for path in selected:
-            iter = model.get_iter(path)
-            if self.current_get_queuepos(iter, model) != -1:
-                return True
-        return False
-
     def set_menu_contextual_items_visible(self, show_songinfo_only=False):
         if show_songinfo_only or not self.expanded:
             self.UIManager.get_widget('/mainmenu/addmenu/').hide()
@@ -6519,8 +6406,6 @@ class Base(mpdclient3.mpd_connection):
             self.UIManager.get_widget('/mainmenu/editmenu/').hide()
             self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
             self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/queuemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/dequeuemenu/').hide()
             return
         elif self.current_tab == self.TAB_CURRENT:
             if len(self.currentdata) > 0:
@@ -6538,24 +6423,12 @@ class Base(mpdclient3.mpd_connection):
                     self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
                     self.UIManager.get_widget('/mainmenu/playlistmenu/').hide()
                     self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
-                if self.mpd_major_version() >= 0.14:
-                    if self.current_selection_item_found_in_queue():
-                        self.UIManager.get_widget('/mainmenu/dequeuemenu/').show()
-                        self.UIManager.get_widget('/mainmenu/queuemenu/').hide()
-                    else:
-                        self.UIManager.get_widget('/mainmenu/queuemenu/').show()
-                        self.UIManager.get_widget('/mainmenu/dequeuemenu/').hide()
-                else:
-                    self.UIManager.get_widget('/mainmenu/queuemenu/').hide()
-                    self.UIManager.get_widget('/mainmenu/dequeuemenu/').hide()
             else:
                 self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
                 self.UIManager.get_widget('/mainmenu/playlistmenu/').hide()
                 self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
                 self.UIManager.get_widget('/mainmenu/removemenu/').hide()
                 self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
-                self.UIManager.get_widget('/mainmenu/queuemenu/').hide()
-                self.UIManager.get_widget('/mainmenu/dequeuemenu/').hide()
             self.UIManager.get_widget('/mainmenu/addmenu/').hide()
             self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
             self.UIManager.get_widget('/mainmenu/renamemenu/').hide()
@@ -6586,8 +6459,6 @@ class Base(mpdclient3.mpd_connection):
             self.UIManager.get_widget('/mainmenu/newmenu/').hide()
             self.UIManager.get_widget('/mainmenu/editmenu/').hide()
             self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/queuemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/dequeuemenu/').hide()
         elif self.current_tab == self.TAB_PLAYLISTS:
             if self.playlists_selection.count_selected_rows() > 0:
                 self.UIManager.get_widget('/mainmenu/addmenu/').show()
@@ -6610,8 +6481,6 @@ class Base(mpdclient3.mpd_connection):
             self.UIManager.get_widget('/mainmenu/editmenu/').hide()
             self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
             self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/queuemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/dequeuemenu/').hide()
         elif self.current_tab == self.TAB_STREAMS:
             self.UIManager.get_widget('/mainmenu/newmenu/').show()
             if self.streams_selection.count_selected_rows() > 0:
@@ -6634,8 +6503,6 @@ class Base(mpdclient3.mpd_connection):
             self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
             self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
             self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/queuemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/dequeuemenu/').hide()
 
     def mpd_major_version(self):
         try:
@@ -7218,9 +7085,7 @@ class Base(mpdclient3.mpd_connection):
         currentshortcuts = \
                 [[ "Enter/Space", _("Play selected song") ],
                  [ "Delete", _("Remove selected song(s)") ],
-                 [ "Ctrl-E", _("Add selected song(s) to playlist queue") ],
                  [ "Ctrl-I", _("Center currently playing song") ],
-                 [ "Ctrl-Shift-E", _("Remove selected song(s) from playlist queue") ],
                  [ "Ctrl-Shift-S", _("Save to new playlist") ],
                  [ "Ctrl-Delete", _("Clear list") ],
                  [ "Alt-R", _("Randomize list") ]]
@@ -7403,13 +7268,7 @@ class Base(mpdclient3.mpd_connection):
             self.keep_song_centered_in_list()
 
     def current_get_songid(self, iter, model):
-        return int(model.get_value(iter, 1))
-
-    def current_get_queuepos(self, iter, model):
-        try:
-            return int(model.get_value(iter, 0))-1
-        except:
-            return -1
+        return int(model.get_value(iter, 0))
 
     def searchfilter_feed_loop(self, editable):
         # Lets only trigger the searchfilter_loop if 200ms pass without a change
@@ -7445,7 +7304,7 @@ class Base(mpdclient3.mpd_connection):
                 todo = self.filterbox_cmd_buf
                 pass
             self.current.freeze_child_notify()
-            matches = gtk.ListStore(*([str] + [int] + [str] * len(self.columnformat)))
+            matches = gtk.ListStore(*([int] + [str] * len(self.columnformat)))
             matches.clear()
             filterposition = self.current.get_visible_rect()[1]
             model, selected = self.current_selection.get_selected_rows()
@@ -7468,7 +7327,7 @@ class Base(mpdclient3.mpd_connection):
                     self.filter_row_mapping.append(rownum)
                     rownum = rownum + 1
                     song_info = [row[0]]
-                    for i in range(len(self.columnformat)+1):
+                    for i in range(len(self.columnformat)):
                         song_info.append(make_unbold(row[i+1]))
                     matches.append(song_info)
             else:
@@ -7496,10 +7355,10 @@ class Base(mpdclient3.mpd_connection):
                     use_data = self.currentdata
                 for row in use_data:
                     song_info = [row[0]]
-                    for i in range(len(self.columnformat)+1):
+                    for i in range(len(self.columnformat)):
                         song_info.append(make_unbold(row[i+1]))
                     # Search for matches in all columns:
-                    for i in range(len(self.columnformat)+1):
+                    for i in range(len(self.columnformat)):
                         if regexp.match(str(song_info[i+1]).lower()):
                             matches.append(song_info)
                             if subset:
@@ -7524,24 +7383,6 @@ class Base(mpdclient3.mpd_connection):
                 pass
             gobject.idle_add(self.searchfilter_set_matches, matches, filterposition, filterselected, retain_position_and_selection)
             self.prevtodo = todo
-
-    def queueinfo_update_playlist(self, strqueue):
-        model = self.current.get_model()
-        i = 0
-        for row in model:
-            queuestring = ""
-            # Items in model are 1) a subset of those in strqueue, and 2) in
-            # the same order, so we will keep popping the first item from
-            # strqueue until we find the correct item:
-            while int(row[1]) != int(strqueue[0][0]):
-                strqueue.pop(0)
-            # Item must be found, retrieve string and pop it:
-            queuestring = strqueue[0][1]
-            strqueue.pop(0)
-            iter = model.get_iter((i, ))
-            if queuestring != model.get_value(iter, 0):
-                model.set_value(iter, 0, queuestring)
-            i += 1
 
     def searchfilter_revert_model(self, filterposition):
         self.current.set_model(self.currentdata)

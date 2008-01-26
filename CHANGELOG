@@ -1,4 +1,5 @@
 v1.4.1 - January 22, 2008
+	+ Remove queue support (it was removed from mpd, complain to them)
 	+ Add album info back
 	+ Use hand2 instead of hand1 for song info links
 	+ Bug: Traceback can occur after enabling audioscrobbler
