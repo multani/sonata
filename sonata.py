@@ -2947,6 +2947,7 @@ class Base(mpdclient3.mpd_connection):
                 lyrics = self.lyricServer.getSong(artist=urllib.quote(search_artist), song=urllib.quote(search_title))['return']["lyrics"]
                 if lyrics.lower() != "not found":
                     lyrics = filename_artist + " - " + filename_title + "\n\n" + lyrics
+                    lyrics = unescape_html(lyrics)
                     gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
                     # Save lyrics to file:
                     self.create_dir_if_not_existing('~/.lyrics/')
@@ -7729,6 +7730,7 @@ def escape_html(s):
     s = s.replace('&', '&amp;')
     s = s.replace('<', '&lt;')
     s = s.replace('>', '&gt;')
+    s = s.replace('"', '&quot;')
     return s
 
 def unescape_html(s):
@@ -7736,6 +7738,8 @@ def unescape_html(s):
     s = s.replace('amp;', '&')
     s = s.replace('&lt;', '<')
     s = s.replace('&gt;', '>')
+    s = s.replace('&quot;', '"')
+    s = s.replace('&nbsp;', ' ')
     return s
 
 def strip_all_slashes(s):
