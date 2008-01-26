@@ -2364,11 +2364,7 @@ class Base(mpdclient3.mpd_connection):
             return True
 
     def playlists_activated(self, treeview, path, column=0):
-        if self.status:
-            playid = self.status.playlistlength
-        self.add_item(None)
-        if self.play_on_activate:
-            self.play_item(playid)
+        self.add_item(None, self.play_on_activate)
 
     def on_streams_key_press(self, widget, event):
         if event.keyval == gtk.gdk.keyval_from_name('Return'):
@@ -2376,11 +2372,7 @@ class Base(mpdclient3.mpd_connection):
             return True
 
     def on_streams_activated(self, treeview, path, column=0):
-        if self.status:
-            playid = self.status.playlistlength
-        self.add_item(None)
-        if self.play_on_activate:
-            self.play_item(playid)
+        self.add_item(None, self.play_on_activate)
 
     def libraryview_popup(self, button):
         self.librarymenu.popup(None, None, self.libraryview_position_menu, 1, 0)
@@ -2429,11 +2421,7 @@ class Base(mpdclient3.mpd_connection):
         while lsinfo == []:
             if self.conn.do.listallinfo(root):
                 # Info exists if we try to browse to a song
-                if self.status:
-                    playid = self.status.playlistlength
-                self.add_item(self.browser)
-                if self.play_on_activate:
-                    self.play_item(playid)
+                self.add_item(self.browser, self.play_on_activate)
                 return
             elif self.view == self.VIEW_ARTIST:
                 if self.view_artist_level == 1:
@@ -3152,8 +3140,10 @@ class Base(mpdclient3.mpd_connection):
         (items, i) = remove_list_duplicates(items, [], True)
         return items
 
-    def add_item(self, widget):
+    def add_item(self, widget, play_after=False):
         if self.conn:
+            if play_after and self.status:
+                playid = self.status.playlistlength
             if self.current_tab == self.TAB_LIBRARY:
                 items = self.browser_get_selected_items_recursive(True)
                 self.conn.send.command_list_begin()
@@ -3170,6 +3160,8 @@ class Base(mpdclient3.mpd_connection):
                     item = model.get_value(model.get_iter(path), 2)
                     self.stream_parse_and_add(item)
             self.iterate_now()
+            if play_after:
+                self.play_item(playid)
 
     def stream_parse_and_add(self, item):
         # We need to do different things depending on if this is
@@ -3254,9 +3246,10 @@ class Base(mpdclient3.mpd_connection):
         if num_selected == 0:
             return
         self.clear(None)
-        self.add_item(widget)
         if play_after_replace and self.conn:
-            self.pp(None)
+            self.add_item(widget, True)
+        else:
+            self.add_item(widget, False)
         self.iterate_now()
 
     def libraryview_position_menu(self, menu):
@@ -4535,6 +4528,8 @@ class Base(mpdclient3.mpd_connection):
 
     def on_sort_reverse(self, action):
         if self.conn:
+            if len(self.songs) == 0:
+                return
             while gtk.events_pending():
                 gtk.main_iteration()
             top = 0
@@ -4549,6 +4544,8 @@ class Base(mpdclient3.mpd_connection):
 
     def on_sort_random(self, action):
         if self.conn:
+            if len(self.songs) == 0:
+                return
             self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
             while gtk.events_pending():
                 gtk.main_iteration()
