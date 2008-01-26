@@ -2973,12 +2973,15 @@ class Base(mpdclient3.mpd_connection):
         if force:
             # For error messages where there is no appropriate artist or
             # title, we pass force=True:
-            self.lyricsText.set_markup(lyrics)
+            self.lyricsText.set_text(lyrics)
         elif self.status and self.status.state in ['play', 'pause'] and self.songinfo:
             # Verify that we are displaying the correct lyrics:
             try:
                 if strip_all_slashes(self.songinfo.artist) == artist and strip_all_slashes(self.songinfo.title) == title:
-                    self.lyricsText.set_markup(lyrics)
+                    try:
+                        self.lyricsText.set_markup(lyrics)
+                    except:
+                        self.lyricsText.set_text(lyrics)
             except:
                 pass
 
