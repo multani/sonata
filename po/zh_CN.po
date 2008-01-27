@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Sonata 1.3\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-01-26 15:00-0700\n"
-"PO-Revision-Date: 2008-01-15 00:41+0800\n"
+"PO-Revision-Date: 2008-01-28 01:17+0800\n"
 "Last-Translator: Desmond Chang <dochang@gmail.com>\n"
 "Language-Team: Simplified Chinese\n"
 "MIME-Version: 1.0\n"
@@ -438,9 +438,8 @@ msgid "Search Lyricwiki.org for lyrics"
 msgstr "在 Lyricwiki.org 上搜索歌词"
 
 #: sonata.py:1382
-#, fuzzy
 msgid "Album Info"
-msgstr "专辑信息(_A)"
+msgstr "专辑信息"
 
 #: sonata.py:1529 sonata.py:1531
 msgid "Time"
@@ -487,7 +486,6 @@ msgid "Crossfade"
 msgstr "渐变"
 
 #: sonata.py:1553 sonata.py:5498
-#, fuzzy
 msgid "second"
 msgid_plural "seconds"
 msgstr[0] "秒"
@@ -971,9 +969,8 @@ msgid "Info displayed only if all enclosed tags are defined"
 msgstr "仅当结组中的所有标签都有定义时才会显示信息"
 
 #: sonata.py:5744
-#, fuzzy
 msgid "Creates columns in the current playlist"
-msgstr "随机排列当前播放列表"
+msgstr "在当前播放列表建立分栏"
 
 #: sonata.py:5760
 msgid "_MPD"
