@@ -1,6 +1,15 @@
 remove queue screenshot
 
 v1.5
+	code cleanup
+		- separate python files
+			- mpd, gtk, trayicon, main, misc
+		- rename functions
+			- gtk widgets (gtk_label_new, gtk_entry_new, etc)
+			- mpd (mpd_swap, mpd_move, mpd_update)
+		- making tabs
+		- hiding/showing widgets (with set_no_show_all)
+		- combine ListStore definitions (playlists, streams, etc)
 	patch 2230?
 	better playlist support (mpd 0.13+ only):
 		ability to view songs, reorder songs, remove songs, etc

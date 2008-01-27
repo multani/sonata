@@ -328,7 +328,6 @@ class Base(mpdclient3.mpd_connection):
         self.as_username = ""
         self.as_password = ""
         show_prefs = False
-        self.enc = locale.getpreferredencoding()
         self.updating_nameentry = False
         self.merge_id = None
         self.mergepl_id = None
@@ -380,6 +379,12 @@ class Base(mpdclient3.mpd_connection):
         # Eventually we'd like to ues non-blocking sockets in mpdclient3.py
         self.iterate_time_when_connected = 500
         self.iterate_time_when_disconnected_or_stopped = 1000 # Slow down polling when disconnected stopped
+
+        try:
+            self.enc = locale.getpreferredencoding()
+        except:
+            print "Locale cannot be found; please set your system's locale. Aborting..."
+            sys.exit()
 
         self.all_tab_names = [self.TAB_CURRENT, self.TAB_LIBRARY, self.TAB_PLAYLISTS, self.TAB_STREAMS, self.TAB_INFO]
 
@@ -460,8 +465,8 @@ class Base(mpdclient3.mpd_connection):
             ('tab3key', None, 'Tab3 Key', '<Alt>3', None, self.switch_to_tab3),
             ('tab4key', None, 'Tab4 Key', '<Alt>4', None, self.switch_to_tab4),
             ('tab5key', None, 'Tab5 Key', '<Alt>5', None, self.switch_to_tab5),
-            ('expandkey', None, 'Expand Key', '<Alt>Down', None, self.expand),
-            ('collapsekey', None, 'Collapse Key', '<Alt>Up', None, self.collapse),
+            ('expandkey', None, 'Expand Key', '<Alt>Down', None, self.on_expand),
+            ('collapsekey', None, 'Collapse Key', '<Alt>Up', None, self.on_collapse),
             ('ppkey', None, 'Play/Pause Key', '<Ctrl>p', None, self.pp),
             ('stopkey', None, 'Stop Key', '<Ctrl>s', None, self.stop),
             ('prevkey', None, 'Previous Key', '<Ctrl>Left', None, self.prev),
@@ -488,7 +493,7 @@ class Base(mpdclient3.mpd_connection):
             (self.TAB_PLAYLISTS, None, self.TAB_PLAYLISTS, None, None, self.tab_toggle, self.playlists_tab_visible),
             (self.TAB_STREAMS, None, self.TAB_STREAMS, None, None, self.tab_toggle, self.streams_tab_visible),
             (self.TAB_INFO, None, self.TAB_INFO, None, None, self.tab_toggle, self.info_tab_visible),
-                )
+            )
 
         uiDescription = """
             <ui>
@@ -602,11 +607,6 @@ class Base(mpdclient3.mpd_connection):
 
         # Audioscrobbler
         self.scrobbler_init()
-
-        # Remove the old sonata covers dir (cleanup)
-        if os.path.exists(os.path.expanduser('~/.config/sonata/covers/')):
-            removeall(os.path.expanduser('~/.config/sonata/covers/'))
-            os.rmdir(os.path.expanduser('~/.config/sonata/covers/'))
 
         # Images...
         self.sonatacd = self.find_path('sonatacd.png')
@@ -1051,11 +1051,13 @@ class Base(mpdclient3.mpd_connection):
         self.filterpattern.connect('activate', self.searchfilter_on_enter)
         self.filterpattern.connect('key-press-event', self.searchfilter_key_pressed)
         filterclosebutton.connect('clicked', self.searchfilter_toggle)
+
         self.initialize_systrayicon()
 
         # This will ensure that "Not connected" is shown in the systray tooltip
         if not self.conn:
             self.update_cursong()
+
         # Ensure that the systemtray icon is added here. This is really only
         # important if we're starting in hidden (minimized-to-tray) mode:
         if self.window_owner and self.withdrawn:
@@ -1209,6 +1211,7 @@ class Base(mpdclient3.mpd_connection):
             self.linkcolor = self.window.style_get_property("link-color").to_string()
         except:
             self.linkcolor = None
+
         # Song info
         info_song = gtk.Expander()
         info_song.set_property("can-focus", False)
@@ -1232,113 +1235,76 @@ class Base(mpdclient3.mpd_connection):
             self.info_imagebox.set_size_request(152, -1)
         inner_hbox.pack_start(self.info_imagebox, False, False, horiz_spacing)
         gobject.idle_add(self.info_image.set_from_file, self.sonatacd_large)
-        titlehbox = gtk.HBox()
-        self.titlelabel = gtk.Label()
-        self.titlelabel.set_markup("<b>" + _("Title") + ":</b>")
-        self.info_titlelabel = gtk.Label("")
-        titlehbox.pack_start(self.titlelabel, False, False, horiz_spacing)
-        titlehbox.pack_start(self.info_titlelabel, False, False, horiz_spacing)
-        artisthbox = gtk.HBox()
-        artistlabel = gtk.Label()
-        artistlabel.set_markup("<b>" + _("Artist") + ":</b>")
-        artistbox = gtk.EventBox()
-        self.info_artistlabel = gtk.Label("")
-        artistbox.connect("enter-notify-event", self.on_link_enter)
-        artistbox.connect("leave-notify-event", self.on_link_leave)
-        artistbox.connect("button-press-event", self.on_link_click, 'artist')
-        self.tooltips.set_tip(artistbox, _("Launch artist in Wikipedia"))
-        artistbox.add(self.info_artistlabel)
-        artisthbox.pack_start(artistlabel, False, False, horiz_spacing)
-        artisthbox.pack_start(artistbox, False, False, horiz_spacing)
-        albumhbox = gtk.HBox()
-        albumlabel = gtk.Label()
-        albumlabel.set_markup("<b>" + _("Album") + ":</b>")
-        albumbox = gtk.EventBox()
-        self.info_albumlabel = gtk.Label("")
-        albumbox.connect("enter-notify-event", self.on_link_enter)
-        albumbox.connect("leave-notify-event", self.on_link_leave)
-        albumbox.connect("button-press-event", self.on_link_click, 'album')
-        self.tooltips.set_tip(albumbox, _("Launch album in Wikipedia"))
-        albumbox.add(self.info_albumlabel)
-        albumhbox.pack_start(albumlabel, False, False, horiz_spacing)
-        albumhbox.pack_start(albumbox, False, False, horiz_spacing)
-        genrehbox = gtk.HBox()
-        genrelabel = gtk.Label()
-        genrelabel.set_markup("<b>" + _("Genre") + ":</b>")
-        self.info_genrelabel = gtk.Label("")
-        genrehbox.pack_start(genrelabel, False, False, horiz_spacing)
-        genrehbox.pack_start(self.info_genrelabel, False, False, horiz_spacing)
-        datehbox = gtk.HBox()
-        datelabel = gtk.Label()
-        datelabel.set_markup("<b>" + _("Date") + ":</b>")
-        self.info_datelabel = gtk.Label("")
-        datehbox.pack_start(datelabel, False, False, horiz_spacing)
-        datehbox.pack_start(self.info_datelabel, False, False, horiz_spacing)
-        trackhbox = gtk.HBox()
-        tracklabel = gtk.Label()
-        tracklabel.set_markup("<b>" + _("Track") + ":</b>")
-        self.info_tracklabel = gtk.Label("")
-        trackhbox.pack_start(tracklabel, False, False, horiz_spacing)
-        trackhbox.pack_start(self.info_tracklabel, False, False, horiz_spacing)
-        mischbox = gtk.HBox()
-        moreevbox = gtk.EventBox()
-        self.info_morelabel = gtk.Label()
-        self.info_morelabel.set_alignment(0, 0)
-        moreevbox.connect("enter-notify-event", self.on_link_enter)
-        moreevbox.connect("leave-notify-event", self.on_link_leave)
-        moreevbox.connect("button-press-event", self.on_link_click, 'more')
-        self.tooltips.set_tip(moreevbox, _("Toggle extra tags"))
-        moreevbox.add(self.info_morelabel)
-        editevbox = gtk.EventBox()
-        self.info_editlabel = gtk.Label()
-        self.info_editlabel.set_alignment(0, 0)
-        editevbox.connect("enter-notify-event", self.on_link_enter)
-        editevbox.connect("leave-notify-event", self.on_link_leave)
-        editevbox.connect("button-press-event", self.on_link_click, 'edit')
-        self.tooltips.set_tip(editevbox, _("Edit song tags"))
-        editevbox.add(self.info_editlabel)
-        mischbox.pack_start(moreevbox, False, False, horiz_spacing)
-        mischbox.pack_start(editevbox, False, False, horiz_spacing)
-        self.info_filehbox = gtk.HBox()
-        filelabel = gtk.Label()
-        filelabel.set_markup("<b>" + _("File") + ":</b>")
-        self.info_filelabel = gtk.Label("")
-        self.info_filehbox.pack_start(filelabel, False, False, horiz_spacing)
-        self.info_filehbox.pack_start(self.info_filelabel, False, False, horiz_spacing)
-        self.info_bitratehbox = gtk.HBox()
-        bitratelabel = gtk.Label()
-        bitratelabel.set_markup("<b>" + _("Bitrate") + ":</b>")
-        self.info_bitratelabel = gtk.Label("")
-        self.info_bitratehbox.pack_start(bitratelabel, False, False, horiz_spacing)
-        self.info_bitratehbox.pack_start(self.info_bitratelabel, False, False, horiz_spacing)
-        labels_left = [self.titlelabel, artistlabel, albumlabel, datelabel, tracklabel, genrelabel, filelabel, bitratelabel]
-        self.set_label_widths_equal(labels_left)
-        for label in labels_left:
-            label.set_alignment(0, 0)
-        self.labels_right = [self.info_titlelabel, self.info_artistlabel, self.info_albumlabel, self.info_genrelabel, self.info_datelabel, self.info_tracklabel, self.info_filelabel, self.info_bitratelabel]
-        for label in self.labels_right:
-            label.set_alignment(0, 0)
-            label.set_line_wrap(True)
+
+        self.info_tagbox = gtk.VBox()
+
+        labels_left = []
+        self.info_type = {}
+        self.info_labels = []
+        self.info_boxes_in_more = []
+        labels_type = ['title', 'artist', 'album', 'date', 'track', 'genre', 'file', 'bitrate']
+        labels_text = [_("Title"), _("Artist"), _("Album"), _("Date"), _("Track"), _("Genre"), _("File"), _("Bitrate")]
+        labels_link = [False, True, True, False, False, False, False, False]
+        labels_tooltip = ["", _("Launch artist in Wikipedia"), _("Launch album in Wikipedia"), "", "", "", "", ""]
+        labels_in_more = [False, False, False, False, False, False, True, True]
+        for i in range(len(labels_text)):
+            self.info_type[labels_text[i]] = i
+            tmphbox = gtk.HBox()
+            if labels_in_more[i]:
+                self.info_boxes_in_more += [tmphbox]
+            tmplabel = gtk.Label()
+            if i == 0:
+                self.info_left_label = tmplabel
+            tmplabel2 = gtk.Label("")
+            if labels_link[i]:
+                tmpevbox = gtk.EventBox()
+                self.info_apply_link_signals(tmpevbox, labels_type[i], labels_tooltip[i])
+                tmpevbox.add(tmplabel2)
+            tmplabel.set_markup("<b>" + labels_text[i] + ":</b>")
+            tmplabel.set_alignment(0, 0)
+            tmphbox.pack_start(tmplabel, False, False, horiz_spacing)
+            if labels_link[i]:
+                tmphbox.pack_start(tmpevbox, False, False, horiz_spacing)
+            else:
+                tmphbox.pack_start(tmplabel2, False, False, horiz_spacing)
+            self.info_labels += [tmplabel2]
+            labels_left += [tmplabel]
+            tmplabel2.set_alignment(0, 0)
+            tmplabel2.set_line_wrap(True)
             try: # Only recent versions of pygtk/gtk have this
-                label.set_line_wrap_mode(pango.WRAP_WORD_CHAR)
+                tmplabel2.set_line_wrap_mode(pango.WRAP_WORD_CHAR)
             except:
                 pass
-            if label != self.info_artistlabel and label != self.info_albumlabel:
-                label.set_selectable(True)
+            if not labels_link[i]:
+                tmplabel2.set_selectable(True)
             else:
                 # Using set_selectable overrides the hover cursor that sonata
                 # tries to set for the links, and I can't figure out how to
                 # stop that. So we'll disable set_selectable for these two
                 # labels until it's figured out.
-                label.set_selectable(False)
-        hboxes = [titlehbox, artisthbox, albumhbox, genrehbox, datehbox, trackhbox, self.info_filehbox, self.info_bitratehbox]
-        self.info_tagbox = gtk.VBox()
-        for hbox in hboxes:
-            self.info_tagbox.pack_start(hbox, False, False, vert_spacing)
+                tmplabel2.set_selectable(False)
+            self.info_tagbox.pack_start(tmphbox, False, False, vert_spacing)
+        self.set_label_widths_equal(labels_left)
+
+        mischbox = gtk.HBox()
+        moreevbox = gtk.EventBox()
+        self.info_morelabel = gtk.Label()
+        self.info_morelabel.set_alignment(0, 0)
+        self.info_apply_link_signals(moreevbox, 'more', _("Toggle extra tags"))
+        moreevbox.add(self.info_morelabel)
+        editevbox = gtk.EventBox()
+        self.info_editlabel = gtk.Label()
+        self.info_editlabel.set_alignment(0, 0)
+        self.info_apply_link_signals(editevbox, 'edit', _("Edit song tags"))
+        editevbox.add(self.info_editlabel)
+        mischbox.pack_start(moreevbox, False, False, horiz_spacing)
+        mischbox.pack_start(editevbox, False, False, horiz_spacing)
+
         self.info_tagbox.pack_start(mischbox, False, False, vert_spacing)
         inner_hbox.pack_start(self.info_tagbox, False, False, horiz_spacing)
         info_song.add(inner_hbox)
         outter_vbox.pack_start(info_song, False, False, margin)
+
         # Lyrics
         self.info_lyrics = gtk.Expander()
         self.info_lyrics.set_property("can-focus", False)
@@ -1364,10 +1330,7 @@ class Base(mpdclient3.mpd_connection):
         searchevbox = gtk.EventBox()
         self.info_searchlabel = gtk.Label()
         self.info_searchlabel.set_alignment(0, 0)
-        searchevbox.connect("enter-notify-event", self.on_link_enter)
-        searchevbox.connect("leave-notify-event", self.on_link_leave)
-        searchevbox.connect("button-press-event", self.on_link_click, 'search')
-        self.tooltips.set_tip(searchevbox, _("Search Lyricwiki.org for lyrics"))
+        self.info_apply_link_signals(searchevbox, 'search', _("Search Lyricwiki.org for lyrics"))
         searchevbox.add(self.info_searchlabel)
         lyricsbox_bottom.pack_start(searchevbox, False, False, horiz_spacing)
         lyricsbox.pack_start(lyricsbox_bottom, False, False, vert_spacing)
@@ -1421,6 +1384,12 @@ class Base(mpdclient3.mpd_connection):
             self.info_lyrics_expanded = expanded
         elif type == "album":
             self.info_album_expanded = expanded
+
+    def info_apply_link_signals(self, widget, type, tooltip):
+        widget.connect("enter-notify-event", self.on_link_enter)
+        widget.connect("leave-notify-event", self.on_link_leave)
+        widget.connect("button-press-event", self.on_link_click, type)
+        self.tooltips.set_tip(widget, tooltip)
 
     def parse_currentformat(self):
         # Initialize current playlist data and widget
@@ -2808,12 +2777,20 @@ class Base(mpdclient3.mpd_connection):
         if self.current_tab == self.TAB_INFO:
             if self.conn:
                 if self.status and self.status.state in ['play', 'pause']:
+                    bitratelabel = self.info_labels[self.info_type[_("Bitrate")]]
+                    titlelabel = self.info_labels[self.info_type[_("Title")]]
+                    artistlabel = self.info_labels[self.info_type[_("Artist")]]
+                    albumlabel = self.info_labels[self.info_type[_("Album")]]
+                    datelabel = self.info_labels[self.info_type[_("Date")]]
+                    genrelabel = self.info_labels[self.info_type[_("Genre")]]
+                    tracklabel = self.info_labels[self.info_type[_("Track")]]
+                    filelabel = self.info_labels[self.info_type[_("File")]]
                     try:
                         newbitrate = self.status.bitrate + " kbps"
                     except:
                         newbitrate = ''
                     if not self.last_info_bitrate or self.last_info_bitrate != newbitrate:
-                        self.info_bitratelabel.set_text(newbitrate)
+                        bitratelabel.set_text(newbitrate)
                     self.last_info_bitrate = newbitrate
                     if update_all:
                         # Use artist/album Wikipedia links?
@@ -2823,26 +2800,26 @@ class Base(mpdclient3.mpd_connection):
                         album_use_link = False
                         if self.songinfo.has_key('album'):
                             album_use_link = True
-                        self.info_titlelabel.set_text(getattr(self.songinfo, 'title', ''))
+                        titlelabel.set_text(getattr(self.songinfo, 'title', ''))
                         if artist_use_link:
-                            self.info_artistlabel.set_markup(link_markup(escape_html(self.songinfo.artist), False, False, self.linkcolor))
+                            artistlabel.set_markup(link_markup(escape_html(self.songinfo.artist), False, False, self.linkcolor))
                         else:
-                            self.info_artistlabel.set_text(getattr(self.songinfo, 'artist', ''))
+                            artistlabel.set_text(getattr(self.songinfo, 'artist', ''))
                         if album_use_link:
-                            self.info_albumlabel.set_markup(link_markup(escape_html(self.songinfo.album), False, False, self.linkcolor))
+                            albumlabel.set_markup(link_markup(escape_html(self.songinfo.album), False, False, self.linkcolor))
                         else:
-                            self.info_albumlabel.set_text(getattr(self.songinfo, 'album', ''))
-                        self.info_datelabel.set_text(getattr(self.songinfo, 'date', ''))
-                        self.info_genrelabel.set_text(getattr(self.songinfo, 'genre', ''))
+                            albumlabel.set_text(getattr(self.songinfo, 'album', ''))
+                        datelabel.set_text(getattr(self.songinfo, 'date', ''))
+                        genrelabel.set_text(getattr(self.songinfo, 'genre', ''))
                         if self.songinfo.has_key('track'):
-                            self.info_tracklabel.set_text(self.sanitize_mpdtag(getattr(self.songinfo, 'track', '0'), False, 0))
+                            tracklabel.set_text(self.sanitize_mpdtag(getattr(self.songinfo, 'track', '0'), False, 0))
                         else:
-                            self.info_tracklabel.set_text("")
+                            tracklabel.set_text("")
                         if os.path.exists(self.musicdir[self.profile_num] + os.path.dirname(self.songinfo.file)):
-                            self.info_filelabel.set_text(self.musicdir[self.profile_num] + self.songinfo.file)
+                            filelabel.set_text(self.musicdir[self.profile_num] + self.songinfo.file)
                             self.info_editlabel.set_markup(link_markup(_("edit tags"), True, True, self.linkcolor))
                         else:
-                            self.info_filelabel.set_text(self.songinfo.file)
+                            filelabel.set_text(self.songinfo.file)
                             self.info_editlabel.set_text("")
                         if self.songinfo.has_key('album'):
                             # Update album info:
@@ -2892,15 +2869,9 @@ class Base(mpdclient3.mpd_connection):
             if blank_window:
                 newtime = ''
                 newbitrate = ''
+                for label in self.info_labels:
+                    label.set_text("")
                 self.info_editlabel.set_text("")
-                self.info_titlelabel.set_text("")
-                self.info_artistlabel.set_text("")
-                self.info_albumlabel.set_text("")
-                self.info_datelabel.set_text("")
-                self.info_tracklabel.set_text("")
-                self.info_genrelabel.set_text("")
-                self.info_filelabel.set_text("")
-                self.info_bitratelabel.set_text("")
                 if self.show_lyrics:
                     self.info_searchlabel.set_text("")
                     self.info_show_lyrics("", "", "", True)
@@ -4199,22 +4170,22 @@ class Base(mpdclient3.mpd_connection):
 
     def on_notebook_resize(self, widget, event):
         # Resize labels in info tab to prevent horiz scrollbar:
-        labelwidth = self.notebook.allocation.width - self.titlelabel.allocation.width - self.info_imagebox.allocation.width - 60 # 60 accounts for vert scrollbar, box paddings, etc..
+        labelwidth = self.notebook.allocation.width - self.info_left_label.allocation.width - self.info_imagebox.allocation.width - 60 # 60 accounts for vert scrollbar, box paddings, etc..
         if labelwidth > 100:
-            for label in self.labels_right:
+            for label in self.info_labels:
                 label.set_size_request(labelwidth, -1)
         # Resize lyrics/album gtk labels:
         labelwidth = self.notebook.allocation.width - 40 # 60 accounts for vert scrollbar, box paddings, etc..
         self.lyricsText.set_size_request(labelwidth, -1)
         self.albumText.set_size_request(labelwidth, -1)
 
-    def expand(self, action):
+    def on_expand(self, action):
         if not self.expanded:
             self.expander.set_expanded(False)
             self.on_expander_activate(None)
             self.expander.set_expanded(True)
 
-    def collapse(self, action):
+    def on_collapse(self, action):
         if self.expanded:
             self.expander.set_expanded(True)
             self.on_expander_activate(None)
@@ -5367,38 +5338,36 @@ class Base(mpdclient3.mpd_connection):
         controlbox.pack_start(add_profile, False, False, 2)
         namebox = gtk.HBox()
         namelabel = gtk.Label(_("Name") + ":")
-        namelabel.set_alignment(0, 0.5)
         namebox.pack_start(namelabel, False, False, 0)
         nameentry = gtk.Entry()
         namebox.pack_start(nameentry, True, True, 10)
         hostbox = gtk.HBox()
         hostlabel = gtk.Label(_("Host") + ":")
-        hostlabel.set_alignment(0, 0.5)
         hostbox.pack_start(hostlabel, False, False, 0)
         hostentry = gtk.Entry()
         hostbox.pack_start(hostentry, True, True, 10)
         portbox = gtk.HBox()
         portlabel = gtk.Label(_("Port") + ":")
-        portlabel.set_alignment(0, 0.5)
         portbox.pack_start(portlabel, False, False, 0)
         portentry = gtk.Entry()
         portbox.pack_start(portentry, True, True, 10)
         dirbox = gtk.HBox()
         dirlabel = gtk.Label(_("Music dir") + ":")
-        dirlabel.set_alignment(0, 0.5)
         dirbox.pack_start(dirlabel, False, False, 0)
         direntry = gtk.Entry()
         direntry.connect('changed', self.prefs_direntry_changed, profiles)
         dirbox.pack_start(direntry, True, True, 10)
         passwordbox = gtk.HBox()
         passwordlabel = gtk.Label(_("Password") + ":")
-        passwordlabel.set_alignment(0, 0.5)
         passwordbox.pack_start(passwordlabel, False, False, 0)
         passwordentry = gtk.Entry()
         passwordentry.set_visibility(False)
         self.tooltips.set_tip(passwordentry, _("Leave blank if no password is required."))
         passwordbox.pack_start(passwordentry, True, True, 10)
-        self.set_label_widths_equal([namelabel, hostlabel, portlabel, passwordlabel, dirlabel])
+        mpd_labels = [namelabel, hostlabel, portlabel, passwordlabel, dirlabel]
+        for label in mpd_labels:
+            label.set_alignment(0, 0.5)
+        self.set_label_widths_equal(mpd_labels)
         autoconnect = gtk.CheckButton(_("Autoconnect on start"))
         autoconnect.set_active(self.autoconnect)
         # Fill in entries with current profile:
@@ -5411,25 +5380,15 @@ class Base(mpdclient3.mpd_connection):
             if not port: port = ""
             if not password: password = ""
             hostentry.set_text(str(host))
-            hostentry.set_sensitive(False)
             portentry.set_text(str(port))
-            portentry.set_sensitive(False)
             passwordentry.set_text(str(password))
-            passwordentry.set_sensitive(False)
             nameentry.set_text(_("Using MPD_HOST/PORT"))
-            nameentry.set_sensitive(False)
-            profiles.set_sensitive(False)
-            add_profile.set_sensitive(False)
-            remove_profile.set_sensitive(False)
+            for widget in [hostentry, portentry, passwordentry, nameentry, profiles, add_profile, remove_profile]:
+                widget.set_sensitive(False)
         else:
             using_mpd_env_vars = False
-            hostentry.set_sensitive(True)
-            portentry.set_sensitive(True)
-            passwordentry.set_sensitive(True)
-            nameentry.set_sensitive(True)
-            profiles.set_sensitive(True)
-            add_profile.set_sensitive(True)
-            remove_profile.set_sensitive(True)
+            for widget in [hostentry, portentry, passwordentry, nameentry, profiles, add_profile, remove_profile]:
+                widget.set_sensitive(True)
             nameentry.connect('changed', self.prefs_nameentry_changed, profiles, remove_profile)
             hostentry.connect('changed', self.prefs_hostentry_changed, profiles)
             portentry.connect('changed', self.prefs_portentry_changed, profiles)
@@ -5692,40 +5651,38 @@ class Base(mpdclient3.mpd_connection):
         formatlabel.set_alignment(0, 1)
         currentformatbox = gtk.HBox()
         currentlabel = gtk.Label(_("Current playlist:"))
-        currentlabel.set_alignment(0, 0.5)
         currentoptions = gtk.Entry()
         currentoptions.set_text(self.currentformat)
         currentformatbox.pack_start(currentlabel, False, False, 0)
         currentformatbox.pack_start(currentoptions, False, False, 10)
         libraryformatbox = gtk.HBox()
         librarylabel = gtk.Label(_("Library:"))
-        librarylabel.set_alignment(0, 0.5)
         libraryoptions = gtk.Entry()
         libraryoptions.set_text(self.libraryformat)
         libraryformatbox.pack_start(librarylabel, False, False, 0)
         libraryformatbox.pack_start(libraryoptions, False, False, 10)
         titleformatbox = gtk.HBox()
         titlelabel = gtk.Label(_("Window title:"))
-        titlelabel.set_alignment(0, 0.5)
         titleoptions = gtk.Entry()
         titleoptions.set_text(self.titleformat)
         titleformatbox.pack_start(titlelabel, False, False, 0)
         titleformatbox.pack_start(titleoptions, False, False, 10)
         currsongformatbox1 = gtk.HBox()
         currsonglabel1 = gtk.Label(_("Current song line 1:"))
-        currsonglabel1.set_alignment(0, 0.5)
         currsongoptions1 = gtk.Entry()
         currsongoptions1.set_text(self.currsongformat1)
         currsongformatbox1.pack_start(currsonglabel1, False, False, 0)
         currsongformatbox1.pack_start(currsongoptions1, False, False, 10)
         currsongformatbox2 = gtk.HBox()
         currsonglabel2 = gtk.Label(_("Current song line 2:"))
-        currsonglabel2.set_alignment(0, 0.5)
         currsongoptions2 = gtk.Entry()
         currsongoptions2.set_text(self.currsongformat2)
         currsongformatbox2.pack_start(currsonglabel2, False, False, 0)
         currsongformatbox2.pack_start(currsongoptions2, False, False, 10)
-        self.set_label_widths_equal([currentlabel, librarylabel, titlelabel, currsonglabel1, currsonglabel2])
+        formatlabels = [currentlabel, librarylabel, titlelabel, currsonglabel1, currsonglabel2]
+        for label in formatlabels:
+            label.set_alignment(0, 0.5)
+        self.set_label_widths_equal(formatlabels)
         availableheading = gtk.Label()
         availableheading.set_markup('<small>' + _('Available options') + ':</small>')
         availableheading.set_alignment(0, 0)
@@ -5756,21 +5713,15 @@ class Base(mpdclient3.mpd_connection):
         table4.attach(availableheading, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table4.attach(availablevbox, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 45, 0)
         table4.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        nblabel1 = gtk.Label()
-        nblabel1.set_text_with_mnemonic(_("_MPD"))
-        nblabel2 = gtk.Label()
-        nblabel2.set_text_with_mnemonic(_("_Display"))
-        nblabel3 = gtk.Label()
-        nblabel3.set_text_with_mnemonic(_("_Behavior"))
-        nblabel4 = gtk.Label()
-        nblabel4.set_text_with_mnemonic(_("_Format"))
-        nblabel5 = gtk.Label()
-        nblabel5.set_text_with_mnemonic(_("_Extras"))
-        prefsnotebook.append_page(mpd_table, nblabel1)
-        prefsnotebook.append_page(table2, nblabel2)
-        prefsnotebook.append_page(table3, nblabel3)
-        prefsnotebook.append_page(table4, nblabel4)
-        prefsnotebook.append_page(as_frame, nblabel5)
+        table_names = [[_("_MPD"), mpd_table],
+                       [_("_Display"), table2],
+                       [_("_Behavior"), table3],
+                       [_("_Format"), table4],
+                       [_("_Extras"), as_frame]]
+        for table_name in table_names:
+            tmplabel = gtk.Label()
+            tmplabel.set_text_with_mnemonic(table_name[0])
+            prefsnotebook.append_page(table_name[1], tmplabel)
         hbox.pack_start(prefsnotebook, False, False, 10)
         prefswindow.vbox.pack_start(hbox, False, False, 10)
         close_button = prefswindow.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
@@ -5825,10 +5776,8 @@ class Base(mpdclient3.mpd_connection):
         if HAVE_AUDIOSCROBBLER:
             self.use_scrobbler = checkbox.get_active()
             self.scrobbler_init()
-            userlabel.set_sensitive(self.use_scrobbler)
-            passlabel.set_sensitive(self.use_scrobbler)
-            userentry.set_sensitive(self.use_scrobbler)
-            passentry.set_sensitive(self.use_scrobbler)
+            for widget in [userlabel, passlabel, userentry, passentry]:
+                widget.set_sensitive(self.use_scrobbler)
         elif checkbox.get_active():
             show_error_msg(self.window, _("Python 2.5 or python-elementtree not found, audioscrobbler support disabled."), _("Audioscrobbler Verification"), 'pythonElementtreeError')
             checkbox.set_active(False)
@@ -6009,73 +5958,49 @@ class Base(mpdclient3.mpd_connection):
     def prefs_playback_toggled(self, button):
         if button.get_active():
             self.show_playback = True
-            self.prevbutton.set_no_show_all(False)
-            self.ppbutton.set_no_show_all(False)
-            self.stopbutton.set_no_show_all(False)
-            self.nextbutton.set_no_show_all(False)
-            self.prevbutton.show_all()
-            self.ppbutton.show_all()
-            self.stopbutton.show_all()
-            self.nextbutton.show_all()
-            self.volumebutton.set_no_show_all(False)
-            self.volumebutton.show_all()
+            for widget in [self.prevbutton, self.ppbutton, self.stopbutton, self.nextbutton, self.volumebutton]:
+                widget.set_no_show_all(False)
+                widget.show_all()
         else:
             self.show_playback = False
-            self.prevbutton.set_no_show_all(True)
-            self.ppbutton.set_no_show_all(True)
-            self.stopbutton.set_no_show_all(True)
-            self.nextbutton.set_no_show_all(True)
-            self.prevbutton.hide()
-            self.ppbutton.hide()
-            self.stopbutton.hide()
-            self.nextbutton.hide()
-            self.volumebutton.set_no_show_all(True)
-            self.volumebutton.hide()
+            for widget in [self.prevbutton, self.ppbutton, self.stopbutton, self.nextbutton, self.volumebutton]:
+                widget.set_no_show_all(True)
+                widget.hide()
 
     def prefs_progress_toggled(self, button):
         if button.get_active():
             self.show_progress = True
-            self.progressbox.set_no_show_all(False)
-            self.trayprogressbar.set_no_show_all(False)
-            self.progressbox.show_all()
-            self.trayprogressbar.show_all()
+            for widget in [self.progressbox, self.trayprogressbar]:
+                widget.set_no_show_all(False)
+                widget.show_all()
         else:
             self.show_progress = False
-            self.progressbox.set_no_show_all(True)
-            self.trayprogressbar.set_no_show_all(True)
-            self.progressbox.hide()
-            self.trayprogressbar.hide()
+            for widget in [self.progressbox, self.trayprogressbar]:
+                widget.set_no_show_all(True)
+                widget.hide()
 
     def prefs_art_toggled(self, button, art_combo, art_hbox):
-        if button.get_active():
-            art_combo.set_sensitive(True)
-            art_hbox.set_sensitive(True)
+        button_active = button.get_active()
+        art_combo.set_sensitive(button_active)
+        art_hbox.set_sensitive(button_active)
+        if button_active:
             self.traytips.set_size_request(self.notification_width, -1)
             self.set_default_icon_for_art()
-            self.imageeventbox.set_no_show_all(False)
-            self.imageeventbox.show_all()
-            self.info_imagebox.set_no_show_all(False)
-            self.info_imagebox.show_all()
-            self.trayalbumeventbox.set_no_show_all(False)
-            self.trayalbumimage2.set_no_show_all(False)
-            if self.conn and self.status and self.status.state in ['play', 'pause']:
-                self.trayalbumeventbox.show_all()
-                self.trayalbumimage2.show_all()
+            for widget in [self.imageeventbox, self.info_imagebox, self.trayalbumeventbox, self.trayalbumimage2]:
+                widget.set_no_show_all(False)
+                if widget in [self.trayalbumeventbox, self.trayalbumimage2]:
+                    if self.conn and self.status and self.status.state in ['play', 'pause']:
+                        widget.show_all()
+                else:
+                    widget.show_all()
             self.show_covers = True
             self.update_cursong()
             self.update_album_art()
         else:
-            art_combo.set_sensitive(False)
-            art_hbox.set_sensitive(False)
             self.traytips.set_size_request(self.notification_width-100, -1)
-            self.imageeventbox.set_no_show_all(True)
-            self.imageeventbox.hide()
-            self.info_imagebox.set_no_show_all(True)
-            self.info_imagebox.hide()
-            self.trayalbumeventbox.set_no_show_all(True)
-            self.trayalbumeventbox.hide()
-            self.trayalbumimage2.set_no_show_all(True)
-            self.trayalbumimage2.hide()
+            for widget in [self.imageeventbox, self.info_imagebox, self.trayalbumeventbox, self.trayalbumimage2]:
+                widget.set_no_show_all(True)
+                widget.hide()
             self.show_covers = False
             self.update_cursong()
 
@@ -6148,14 +6073,9 @@ class Base(mpdclient3.mpd_connection):
             self.traytips.hide()
 
     def prefs_crossfadecheck_toggled(self, button, combobox, label1, label2):
-        if button.get_active():
-            combobox.set_sensitive(True)
-            label1.set_sensitive(True)
-            label2.set_sensitive(True)
-        else:
-            combobox.set_sensitive(False)
-            label1.set_sensitive(False)
-            label2.set_sensitive(False)
+        button_active = button.get_active()
+        for widget in [combobox, label1, label2]:
+            widget.set_sensitive(button_active)
 
     def prefs_trayicon_toggled(self, button, minimize):
         # Note that we update the sensitivity of the minimize
@@ -6221,19 +6141,16 @@ class Base(mpdclient3.mpd_connection):
                 self.info_morelabel.set_markup(link_markup(_("more"), True, True, self.linkcolor))
                 self.info_song_more = False
             if self.info_song_more:
-                self.info_filehbox.set_no_show_all(False)
-                self.info_bitratehbox.set_no_show_all(False)
-                self.info_filehbox.show_all()
-                self.info_bitratehbox.show_all()
+                for hbox in self.info_boxes_in_more:
+                    hbox.set_no_show_all(False)
+                    hbox.show_all()
             else:
-                self.info_filehbox.hide_all()
-                self.info_bitratehbox.hide_all()
-                self.info_filehbox.set_no_show_all(True)
-                self.info_bitratehbox.set_no_show_all(True)
+                for hbox in self.info_boxes_in_more:
+                    hbox.hide_all()
+                    hbox.set_no_show_all(True)
         elif type == 'edit':
             if self.songinfo:
-                mpdpath = self.songinfo.file
-                self.edit_tags(widget, mpdpath)
+                self.edit_tags(widget)
         elif type == 'search':
             self.on_lyrics_search(None)
 
@@ -6535,7 +6452,7 @@ class Base(mpdclient3.mpd_connection):
             sys.exit()
         return full_filename
 
-    def edit_tags(self, widget, mpdpath=None):
+    def edit_tags(self, widget):
         if not HAVE_TAGPY:
             error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("Taglib and/or tagpy not found, tag editing support disabled."))
             error_dialog.set_title(_("Edit Tags"))
@@ -6557,9 +6474,11 @@ class Base(mpdclient3.mpd_connection):
         files = []
         temp_mpdpaths = []
         if self.current_tab == self.TAB_INFO:
-            # Use current file in songinfo:
-            files.append(self.musicdir[self.profile_num] + mpdpath)
-            temp_mpdpaths.append(mpdpath)
+            if self.status and self.status.state in ['play', 'pause']:
+                # Use current file in songinfo:
+                mpdpath = self.songinfo.file
+                files.append(self.musicdir[self.profile_num] + mpdpath)
+                temp_mpdpaths.append(mpdpath)
         elif self.current_tab == self.TAB_LIBRARY:
             # Populates files array with selected library items:
             items = self.browser_get_selected_items_recursive(False)
@@ -6576,6 +6495,9 @@ class Base(mpdclient3.mpd_connection):
                     item = self.songs[self.filter_row_mapping[path[0]]].file
                 files.append(self.musicdir[self.profile_num] + item)
                 temp_mpdpaths.append(item)
+        if len(files) == 0:
+            self.change_cursor(None)
+            return
         # Initialize tags:
         tags = []
         for filenum in range(len(files)):
@@ -6971,7 +6893,32 @@ class Base(mpdclient3.mpd_connection):
             self.iterate_now()
 
     def editwindow_populate_genre_combo(self, genrecombo):
-        genres = ["", "A Cappella", "Acid", "Acid Jazz", "Acid Punk", "Acoustic", "Alt. Rock", "Alternative", "Ambient", "Anime", "Avantgarde", "Ballad", "Bass", "Beat", "Bebob", "Big Band", "Black Metal", "Bluegrass", "Blues", "Booty Bass", "BritPop", "Cabaret", "Celtic", "Chamber music", "Chanson", "Chorus", "Christian Gangsta Rap", "Christian Rap", "Christian Rock", "Classic Rock", "Classical", "Club", "Club-House", "Comedy", "Contemporary Christian", "Country", "Crossover", "Cult", "Dance", "Dance Hall", "Darkwave", "Death Metal", "Disco", "Dream", "Drum &amp; Bass", "Drum Solo", "Duet", "Easy Listening", "Electronic", "Ethnic", "Euro-House", "Euro-Techno", "Eurodance", "Fast Fusion", "Folk", "Folk-Rock", "Folklore", "Freestyle", "Funk", "Fusion", "Game", "Gangsta", "Goa", "Gospel", "Gothic", "Gothic Rock", "Grunge", "Hard Rock", "Hardcore", "Heavy Metal", "Hip-Hop", "House", "Humour", "Indie", "Industrial", "Instrumental", "Instrumental pop", "Instrumental rock", "JPop", "Jazz", "Jazz+Funk", "Jungle", "Latin", "Lo-Fi", "Meditative", "Merengue", "Metal", "Musical", "National Folk", "Native American", "Negerpunk", "New Age", "New Wave", "Noise", "Oldies", "Opera", "Other", "Polka", "Polsk Punk", "Pop", "Pop-Folk", "Pop/Funk", "Porn Groove", "Power Ballad", "Pranks", "Primus", "Progressive Rock", "Psychedelic", "Psychedelic Rock", "Punk", "Punk Rock", "R&amp;B", "Rap", "Rave", "Reggae", "Retro", "Revival", "Rhythmic soul", "Rock", "Rock &amp; Roll", "Salsa", "Samba", "Satire", "Showtunes", "Ska", "Slow Jam", "Slow Rock", "Sonata", "Soul", "Sound Clip", "Soundtrack", "Southern Rock", "Space", "Speech", "Swing", "Symphonic Rock", "Symphony", "Synthpop", "Tango", "Techno", "Techno-Industrial", "Terror", "Thrash Metal", "Top 40", "Trailer"]
+        genres = ["", "A Cappella", "Acid", "Acid Jazz", "Acid Punk", "Acoustic",
+                  "Alt. Rock", "Alternative", "Ambient", "Anime", "Avantgarde", "Ballad",
+                  "Bass", "Beat", "Bebob", "Big Band", "Black Metal", "Bluegrass",
+                  "Blues", "Booty Bass", "BritPop", "Cabaret", "Celtic", "Chamber music",
+                  "Chanson", "Chorus", "Christian Gangsta Rap", "Christian Rap",
+                  "Christian Rock", "Classic Rock", "Classical", "Club", "Club-House",
+                  "Comedy", "Contemporary Christian", "Country", "Crossover", "Cult",
+                  "Dance", "Dance Hall", "Darkwave", "Death Metal", "Disco", "Dream",
+                  "Drum &amp; Bass", "Drum Solo", "Duet", "Easy Listening", "Electronic",
+                  "Ethnic", "Euro-House", "Euro-Techno", "Eurodance", "Fast Fusion",
+                  "Folk", "Folk-Rock", "Folklore", "Freestyle", "Funk", "Fusion", "Game",
+                  "Gangsta", "Goa", "Gospel", "Gothic", "Gothic Rock", "Grunge",
+                  "Hard Rock", "Hardcore", "Heavy Metal", "Hip-Hop", "House", "Humour",
+                  "Indie", "Industrial", "Instrumental", "Instrumental pop",
+                  "Instrumental rock", "JPop", "Jazz", "Jazz+Funk", "Jungle", "Latin",
+                  "Lo-Fi", "Meditative", "Merengue", "Metal", "Musical", "National Folk",
+                  "Native American", "Negerpunk", "New Age", "New Wave", "Noise",
+                  "Oldies", "Opera", "Other", "Polka", "Polsk Punk", "Pop", "Pop-Folk",
+                  "Pop/Funk", "Porn Groove", "Power Ballad", "Pranks", "Primus",
+                  "Progressive Rock", "Psychedelic", "Psychedelic Rock", "Punk",
+                  "Punk Rock", "R&amp;B", "Rap", "Rave", "Reggae", "Retro", "Revival",
+                  "Rhythmic soul", "Rock", "Rock &amp; Roll", "Salsa", "Samba", "Satire",
+                  "Showtunes", "Ska", "Slow Jam", "Slow Rock", "Sonata", "Soul",
+                  "Sound Clip", "Soundtrack", "Southern Rock", "Space", "Speech",
+                  "Swing", "Symphonic Rock", "Symphony", "Synthpop", "Tango", "Techno",
+                  "Techno-Industrial", "Terror", "Thrash Metal", "Top 40", "Trailer"]
         for genre in genres:
             genrecombo.append_text(genre)
 
@@ -7071,7 +7018,6 @@ class Base(mpdclient3.mpd_connection):
                  [ "Alt-Up", _("Collapse player") ],
                  [ "Ctrl-H", _("Search library") ],
                  [ "Ctrl-Q", _("Quit") ],
-                 [ "Ctrl-T", _("Edit selected song's tags") ],
                  [ "Ctrl-U", _("Update entire library") ],
                  [ "Menu", _("Display popup menu") ],
                  [ "Escape", _("Minimize to system tray (if enabled)") ]]
@@ -7086,6 +7032,7 @@ class Base(mpdclient3.mpd_connection):
                 [[ "Enter/Space", _("Play selected song") ],
                  [ "Delete", _("Remove selected song(s)") ],
                  [ "Ctrl-I", _("Center currently playing song") ],
+                 [ "Ctrl-T", _("Edit selected song's tags") ],
                  [ "Ctrl-Shift-S", _("Save to new playlist") ],
                  [ "Ctrl-Delete", _("Clear list") ],
                  [ "Alt-R", _("Randomize list") ]]
@@ -7094,6 +7041,7 @@ class Base(mpdclient3.mpd_connection):
                  [ "Backspace", _("Go to parent directory") ],
                  [ "Ctrl-D", _("Add selected song(s) or directory(s)") ],
                  [ "Ctrl-R", _("Replace with selected song(s) or directory(s)") ],
+                 [ "Ctrl-T", _("Edit selected song's tags") ],
                  [ "Ctrl-Shift-U", _("Update library for selected path(s)") ]]
         playlistshortcuts = \
                 [[ "Enter/Space", _("Add selected playlist(s)") ],
@@ -7105,6 +7053,8 @@ class Base(mpdclient3.mpd_connection):
                  [ "Delete", _("Remove selected stream(s)") ],
                  [ "Ctrl-D", _("Add selected stream(s)") ],
                  [ "Ctrl-R", _("Replace with selected stream(s)") ]]
+        infoshortcuts = \
+                [[ "Ctrl-T", _("Edit playing song's tags") ]]
         # define the main array- this adds headings to each section of
         # shortcuts that will be displayed
         shortcuts = [[ _("Main Shortcuts"), mainshortcuts ],
@@ -7112,7 +7062,8 @@ class Base(mpdclient3.mpd_connection):
                 [ _("Current Shortcuts"), currentshortcuts ],
                 [ _("Library Shortcuts"), libraryshortcuts ],
                 [ _("Playlist Shortcuts"), playlistshortcuts ],
-                [ _("Stream Shortcuts"), streamshortcuts ]]
+                [ _("Stream Shortcuts"), streamshortcuts ],
+                [ _("Info Shortcuts"), infoshortcuts ]]
         dialog = gtk.Dialog(_("Shortcuts"), self.about_dialog, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE))
         dialog.set_role('shortcuts')
         dialog.set_default_response(gtk.RESPONSE_CLOSE)
