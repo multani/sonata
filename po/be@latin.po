@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: sonata 1.3\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-01-26 15:00-0700\n"
-"PO-Revision-Date: 2007-12-10 02:24+0200\n"
+"PO-Revision-Date: 2008-01-27 01:00+0200\n"
 "Last-Translator: Ihar Hrachyshka <ihar.hrachyshka@gmail.com>\n"
 "Language-Team: Belarusian (Latin script) <translation-team-be-latin@lists."
 "sourceforge.net>\n"
@@ -442,9 +442,8 @@ msgid "Search Lyricwiki.org for lyrics"
 msgstr "Šukaj słovy na Lyricwiki.org"
 
 #: sonata.py:1382
-#, fuzzy
 msgid "Album Info"
-msgstr "_Źviestki ab albomie"
+msgstr "Źviestki ab albomie"
 
 #: sonata.py:1529 sonata.py:1531
 msgid "Time"
@@ -491,12 +490,11 @@ msgid "Crossfade"
 msgstr "Crossfade"
 
 #: sonata.py:1553 sonata.py:5498
-#, fuzzy
 msgid "second"
 msgid_plural "seconds"
 msgstr[0] "sekunda"
-msgstr[1] "sekunda"
-msgstr[2] "sekunda"
+msgstr[1] "sekundy"
+msgstr[2] "sekundaŭ"
 
 #: sonata.py:1557
 msgid ""
@@ -999,9 +997,8 @@ msgid "Info displayed only if all enclosed tags are defined"
 msgstr "Źviestki, jakija pakazvajucca, tolki kali ŭsie tagi akreślenyja"
 
 #: sonata.py:5744
-#, fuzzy
 msgid "Creates columns in the current playlist"
-msgstr "Pieratasuj dziejny śpis"
+msgstr "Stvaraje kalony ŭ dziejnym śpisie"
 
 #: sonata.py:5760
 msgid "_MPD"
