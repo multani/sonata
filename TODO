@@ -15,7 +15,6 @@ v1.5
 		ability to view songs, reorder songs, remove songs, etc
 	allow additional columns for library (like current)
 	genre mode (genre -> artist -> album)
-	make selection, dnd, more like thunar
 	
 Future:
 	lyrics -> ability to save changes

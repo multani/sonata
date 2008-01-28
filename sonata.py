@@ -369,6 +369,7 @@ class Base(mpdclient3.mpd_connection):
         self.scrob_playing_duration = 0
         self.scrob_last_prepared = ""
         self.scrob_time_now = None
+        self.sel_rows = None
         # For increased responsiveness after the initial load, we cache the root artist and
         # album view results and simply refresh on any mpd update
         self.albums_root = None
@@ -1007,6 +1008,9 @@ class Base(mpdclient3.mpd_connection):
         self.current.connect('drag_data_received', self.on_drag_drop)
         self.current.connect('row_activated', self.on_current_click)
         self.current.connect('button_press_event', self.on_current_button_press)
+        self.current.connect('drag-begin', self.on_current_drag_begin)
+        self.current.connect_after('drag-begin', self.after_current_drag_begin)
+        self.current.connect('button_release_event', self.on_current_button_release)
         self.current_selection.connect('changed', self.on_treeview_selection_changed)
         self.current.connect('popup_menu', self.on_popup_menu)
         self.shufflemenu.connect('toggled', self.on_shuffle_clicked)
@@ -1022,12 +1026,12 @@ class Base(mpdclient3.mpd_connection):
         self.browser_selection.connect('changed', self.on_treeview_selection_changed)
         self.browser.connect('popup_menu', self.on_popup_menu)
         self.libraryview.connect('clicked', self.libraryview_popup)
-        self.playlists.connect('button_press_event', self.playlists_button_press)
+        self.playlists.connect('button_press_event', self.on_playlists_button_press)
         self.playlists.connect('row_activated', self.playlists_activated)
         self.playlists_selection.connect('changed', self.on_treeview_selection_changed)
         self.playlists.connect('key-press-event', self.playlists_key_press)
         self.playlists.connect('popup_menu', self.on_popup_menu)
-        self.streams.connect('button_press_event', self.streams_button_press)
+        self.streams.connect('button_press_event', self.on_streams_button_press)
         self.streams.connect('row_activated', self.on_streams_activated)
         self.streams_selection.connect('changed', self.on_treeview_selection_changed)
         self.streams.connect('key-press-event', self.on_streams_key_press)
@@ -3021,17 +3025,68 @@ class Base(mpdclient3.mpd_connection):
                         value = '/'.join(self.wd.split('/')[:-1]) or '/'
                     self.browse(None, value)
 
-    def on_treeview_selection_changed(self, *args):
+    def on_treeview_selection_changed(self, treeselection):
         self.set_menu_contextual_items_visible()
+        if treeselection == self.current.get_selection():
+            # User previously clicked inside group of selected rows, re-select
+            # rows so it doesn't look like anything changed:
+            if self.sel_rows:
+                for row in self.sel_rows:
+                    treeselection.select_path(row)
 
     def on_browser_button_press(self, widget, event):
-        if self.button_press(widget, event): return True
+        if self.button_press(widget, event, False): return True
 
-    def playlists_button_press(self, widget, event):
-        if self.button_press(widget, event): return True
+    def on_current_button_press(self, widget, event):
+        if self.button_press(widget, event, True): return True
 
-    def streams_button_press(self, widget, event):
-        if self.button_press(widget, event): return True
+    def on_playlists_button_press(self, widget, event):
+        if self.button_press(widget, event,	False): return True
+
+    def on_streams_button_press(self, widget, event):
+        if self.button_press(widget, event, False): return True
+
+    def button_press(self, widget, event, widget_is_current):
+        self.volume_hide()
+        self.sel_rows = None
+        if event.button == 1 and widget_is_current:
+            # If the user clicked inside a group of rows that were already selected,
+            # we need to retain the selected rows in case the user wants to DND the
+            # group of rows. If they release the mouse without first moving it,
+            # then we revert to the single selected row. This is similar to the
+            # behavior found in thunar.
+            path, col, x, y = widget.get_path_at_pos(int(event.x), int(event.y))
+            if widget.get_selection().path_is_selected(path):
+                self.sel_rows = widget.get_selection().get_selected_rows()[1]
+        elif event.button == 3:
+            self.set_menu_contextual_items_visible()
+            # Calling the popup in idle_add is important. It allows the menu items
+            # to have been shown/hidden before the menu is popped up. Otherwise, if
+            # the menu pops up too quickly, it can result in automatically clicking
+            # menu items for the user!
+            gobject.idle_add(self.mainmenu.popup, None, None, None, event.button, event.time)
+            # Don't change the selection for a right-click. This
+            # will allow the user to select multiple rows and then
+            # right-click (instead of right-clicking and having
+            # the current selection change to the current row)
+            if widget.get_selection().count_selected_rows() > 1:
+                return True
+
+    def on_current_drag_begin(self, widget, context):
+        self.sel_rows = False
+
+    def after_current_drag_begin(self, widget, context):
+        # Override default image of selected row with sonata icon:
+        context.set_icon_stock('sonata', 0, 0)
+
+    def on_current_button_release(self, widget, event):
+        if self.sel_rows:
+            self.sel_rows = False
+            # User released mouse, select single row:
+            selection = widget.get_selection()
+            selection.unselect_all()
+            path, col, x, y = widget.get_path_at_pos(int(event.x), int(event.y))
+            selection.select_path(path)
 
     def play_item(self, playid):
         if self.conn:
@@ -4463,6 +4518,9 @@ class Base(mpdclient3.mpd_connection):
             text = model.get_value(iter, 1)
             drag_sources.append([index, iter, id, text])
 
+        # Keep track of the moved iters so we can select them afterwards
+        moved_iters = []
+
         # We will manipulate self.songs and model to prevent the entire playlist
         # from refreshing
         offset = 0
@@ -4484,7 +4542,7 @@ class Base(mpdclient3.mpd_connection):
                         self.songs.pop(index)
                         self.conn.send.moveid(id, dest-1)
                     model.insert(dest, model[index])
-                    treeview.get_selection().select_path(dest)
+                    moved_iters += [model.get_iter((dest,))]
                     model.remove(iter)
                 else:
                     self.songs.insert(dest+1, self.songs[index])
@@ -4495,7 +4553,7 @@ class Base(mpdclient3.mpd_connection):
                         self.songs.pop(index)
                         self.conn.send.moveid(id, dest)
                     model.insert(dest+1, model[index])
-                    treeview.get_selection().select_path(dest+1)
+                    moved_iters += [model.get_iter((dest+1,))]
                     model.remove(iter)
             else:
                 dest = len(self.songs) - 1
@@ -4503,7 +4561,7 @@ class Base(mpdclient3.mpd_connection):
                 self.songs.insert(dest+1, self.songs[index])
                 self.songs.pop(index)
                 model.insert(dest+1, model[index])
-                treeview.get_selection().select_path(dest+1)
+                moved_iters += [model.get_iter((dest+1,))]
                 model.remove(iter)
             # now fixup
             for source in drag_sources:
@@ -4522,24 +4580,12 @@ class Base(mpdclient3.mpd_connection):
             self.hide_all_header_indicators(self.current, False)
         self.iterate_now()
 
-    def on_current_button_press(self, widget, event):
-        if self.button_press(widget, event): return True
+        gobject.idle_add(self.drag_retain_selection, treeview.get_selection(), moved_iters)
 
-    def button_press(self, widget, event):
-        self.volume_hide()
-        if event.button == 3:
-            self.set_menu_contextual_items_visible()
-            # Calling the popup in idle_add is important. It allows the menu items
-            # to have been shown/hidden before the menu is popped up. Otherwise, if
-            # the menu pops up too quickly, it can result in automatically clicking
-            # menu items for the user!
-            gobject.idle_add(self.mainmenu.popup, None, None, None, event.button, event.time)
-            # Don't change the selection for a right-click. This
-            # will allow the user to select multiple rows and then
-            # right-click (instead of right-clicking and having
-            # the current selection change to the current row)
-            if widget.get_selection().count_selected_rows() > 1:
-                return True
+    def drag_retain_selection(self, treeselection, moved_iters):
+        treeselection.unselect_all()
+        for iter in moved_iters:
+            treeselection.select_iter(iter)
 
     def on_popup_menu(self, widget):
         self.set_menu_contextual_items_visible()
