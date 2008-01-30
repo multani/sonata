@@ -5,7 +5,7 @@ v1.5
 		- separate python files
 			- mpd, gtk, trayicon, main, misc
 		- rename functions
-			- gtk widgets (gtk_label_new, gtk_entry_new, etc)
+			- gtk widgets (gtk_label_new, gtk_entry_new, gtk_win_net, etc)
 			- mpd (mpd_swap, mpd_move, mpd_update)
 		- making tabs
 		- hiding/showing widgets (with set_no_show_all)
