@@ -3067,9 +3067,12 @@ class Base(mpdclient3.mpd_connection):
             # group of rows. If they release the mouse without first moving it,
             # then we revert to the single selected row. This is similar to the
             # behavior found in thunar.
-            path, col, x, y = widget.get_path_at_pos(int(event.x), int(event.y))
-            if widget.get_selection().path_is_selected(path):
-                self.sel_rows = widget.get_selection().get_selected_rows()[1]
+            try:
+                path, col, x, y = widget.get_path_at_pos(int(event.x), int(event.y))
+                if widget.get_selection().path_is_selected(path):
+                    self.sel_rows = widget.get_selection().get_selected_rows()[1]
+            except:
+                pass
         elif event.button == 3:
             self.set_menu_contextual_items_visible()
             # Calling the popup in idle_add is important. It allows the menu items
