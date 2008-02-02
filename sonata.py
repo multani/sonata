@@ -629,7 +629,6 @@ class Base(mpdclient3.mpd_connection):
                 self.window.set_keep_above(True)
             if self.sticky:
                 self.window.stick()
-        self.set_rgba_window(self.window)
         self.tooltips = gtk.Tooltips()
         self.UIManager = gtk.UIManager()
         actionGroup = gtk.ActionGroup('Actions')
@@ -1175,14 +1174,6 @@ class Base(mpdclient3.mpd_connection):
             gobject.timeout_add(250, self.iterate_status_icon)
 
         gc.disable()
-
-    def set_rgba_window(self, window):
-        """ Set support for transparent themeing """
-        screen = self.window.get_screen()
-        colormap = screen.get_rgba_colormap()
-        if colormap == None:
-            colormap = screen.get_rgb_colormap()
-        window.set_colormap(colormap)
 
     def print_version(self):
         print _("Version: Sonata"), __version__
@@ -2176,7 +2167,6 @@ class Base(mpdclient3.mpd_connection):
             edit_mode = False
         # Prompt user for playlist name:
         dialog = gtk.Dialog(None, self.window, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
-        self.set_rgba_window(dialog)
         if edit_mode:
             dialog.set_title(_("Edit Stream"))
         else:
@@ -2263,7 +2253,6 @@ class Base(mpdclient3.mpd_connection):
         if self.conn:
             # Prompt user for playlist name:
             dialog = gtk.Dialog(title, self.window, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT))
-            self.set_rgba_window(dialog)
             dialog.set_role(role)
             hbox = gtk.HBox()
             hbox.pack_start(gtk.Label(_('Playlist name') + ':'), False, False, 5)
@@ -4346,7 +4335,6 @@ class Base(mpdclient3.mpd_connection):
         artist = self.songinfo.artist
         title = self.songinfo.title
         dialog = gtk.Dialog('Lyrics Search', self.window, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_FIND, gtk.RESPONSE_ACCEPT))
-        self.set_rgba_window(dialog)
         dialog.action_area.get_children()[0].set_label(_("_Search"))
         dialog.action_area.get_children()[0].set_image(gtk.image_new_from_stock(gtk.STOCK_FIND, gtk.ICON_SIZE_MENU))
         dialog.set_role('lyricsSearch')
@@ -4904,7 +4892,6 @@ class Base(mpdclient3.mpd_connection):
 
     def on_choose_image(self, widget):
         self.choose_dialog = gtk.Dialog(_("Choose Cover Art"), self.window, gtk.DIALOG_MODAL, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
-        self.set_rgba_window(self.choose_dialog)
         self.choose_dialog.set_role('chooseCoverArt')
         choosebutton = self.choose_dialog.add_button(_("Choose"), gtk.RESPONSE_ACCEPT)
         chooseimage = gtk.Image()
@@ -5378,7 +5365,6 @@ class Base(mpdclient3.mpd_connection):
 
     def prefs(self, widget):
         prefswindow = gtk.Dialog(_("Preferences"), self.window, flags=gtk.DIALOG_DESTROY_WITH_PARENT)
-        self.set_rgba_window(prefswindow)
         prefswindow.set_role('preferences')
         prefswindow.set_resizable(False)
         prefswindow.set_has_separator(False)
@@ -6079,7 +6065,6 @@ class Base(mpdclient3.mpd_connection):
     def get_art_location_custom(self, combobox):
         # Prompt user for playlist name:
         dialog = gtk.Dialog(_("Custom Artwork"), self.window, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
-        self.set_rgba_window(dialog)
         dialog.set_role('customArtwork')
         hbox = gtk.HBox()
         hbox.pack_start(gtk.Label(_('Artwork filename') + ':'), False, False, 5)
@@ -6520,7 +6505,6 @@ class Base(mpdclient3.mpd_connection):
     def edit_tags(self, widget):
         if not HAVE_TAGPY:
             error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("Taglib and/or tagpy not found, tag editing support disabled."))
-            self.set_rgba_window(error_dialog)
             error_dialog.set_title(_("Edit Tags"))
             error_dialog.set_role('editTagsError')
             error_dialog.connect('response', self.choose_image_dialog_response)
@@ -6528,7 +6512,6 @@ class Base(mpdclient3.mpd_connection):
             return
         if not os.path.isdir(self.musicdir[self.profile_num]):
             error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("The path") + " " + self.musicdir[self.profile_num] + " " + _("does not exist. Please specify a valid music directory in preferences."))
-            self.set_rgba_window(error_dialog)
             error_dialog.set_title(_("Edit Tags"))
             error_dialog.set_role('editTagsError')
             error_dialog.connect('response', self.choose_image_dialog_response)
@@ -6573,7 +6556,6 @@ class Base(mpdclient3.mpd_connection):
         if not os.path.exists(tags[0]['fullpath']):
             self.change_cursor(None)
             error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("File ") + "\"" + tags[0]['fullpath'] + "\"" + _(" not found. Please specify a valid music directory in preferences."))
-            self.set_rgba_window(error_dialog)
             error_dialog.set_title(_("Edit Tags"))
             error_dialog.set_role('editTagsError')
             error_dialog.connect('response', self.choose_image_dialog_response)
@@ -6582,14 +6564,12 @@ class Base(mpdclient3.mpd_connection):
         if self.edit_next_tag(tags) == False:
             self.change_cursor(None)
             error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("No music files with editable tags found."))
-            self.set_rgba_window(error_dialog)
             error_dialog.set_title(_("Edit Tags"))
             error_dialog.set_role('editTagsError')
             error_dialog.connect('response', self.choose_image_dialog_response)
             error_dialog.show()
             return
         editwindow = gtk.Dialog("", self.window, gtk.DIALOG_MODAL)
-        self.set_rgba_window(editwindow)
         editwindow.set_role('editTags')
         editwindow.set_size_request(375, -1)
         editwindow.set_resizable(False)
@@ -6938,7 +6918,6 @@ class Base(mpdclient3.mpd_connection):
             save_success = filetag.save()
             if not (save_success and self.conn and self.status):
                 error_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, _("Unable to save tag to music file."))
-                self.set_rgba_window(error_dialog)
                 error_dialog.set_title(_("Edit Tags"))
                 error_dialog.set_role('editTagsError')
                 error_dialog.connect('response', self.choose_image_dialog_response)
@@ -7032,7 +7011,6 @@ class Base(mpdclient3.mpd_connection):
             self.about_dialog.set_modal(True)
         except:
             pass
-        self.set_rgba_window(self.about_dialog)
         self.about_dialog.set_name('Sonata')
         self.about_dialog.set_role('about')
         self.about_dialog.set_version(__version__)
@@ -7137,7 +7115,6 @@ class Base(mpdclient3.mpd_connection):
                 [ _("Stream Shortcuts"), streamshortcuts ],
                 [ _("Info Shortcuts"), infoshortcuts ]]
         dialog = gtk.Dialog(_("Shortcuts"), self.about_dialog, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE))
-        self.set_rgba_window(dialog)
         dialog.set_role('shortcuts')
         dialog.set_default_response(gtk.RESPONSE_CLOSE)
         dialog.set_size_request(-1, 320)

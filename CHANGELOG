@@ -2,7 +2,6 @@ v1.4.1 - February 2, 2008
 	+ Remove queue support (it was removed from mpd-svn, complain to them)
 	+ Improved re-ordering of playlist songs (including multiple selected songs)
 	+ Add album info into info tab
-	+ Support for alpha transparency if the gtk theme supports it (Jon)
 	+ Use hand2 instead of hand1 for song info links
 	+ Bug: Traceback can occur after enabling audioscrobbler
 	+ Bug: Text background color on tabs (ecik)
