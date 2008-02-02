@@ -5,6 +5,7 @@ v1.4.1 - February 2, 2008
 	+ Use hand2 instead of hand1 for song info links
 	+ Bug: Traceback can occur after enabling audioscrobbler
 	+ Bug: Text background color on tabs (ecik)
+	+ Bug: Visible background of eventboxes for info tab links, etc.
 	+ Bug: Can't click (more) link in non-English locales
 	+ Bug: Crash when using libegg with system tray icon disabled
 	+ Bug: Disable tag editing link in info tab for streams/remote files
