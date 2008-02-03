@@ -5482,6 +5482,7 @@ class Base(mpdclient3.mpd_connection):
         mpd_table.attach(gtk.Label(), 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         mpd_table.attach(autoconnect, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         mpd_table.attach(gtk.Label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        mpd_table.attach(gtk.Label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         # Extras tab
         if not HAVE_AUDIOSCROBBLER:
             self.use_scrobbler = False
@@ -5708,6 +5709,7 @@ class Base(mpdclient3.mpd_connection):
         table3.attach(infofilebox, 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table3.attach(activate, 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table3.attach(gtk.Label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table3.attach(gtk.Label(), 1, 3, 15, 16, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         # Format tab
         table4 = gtk.Table(9, 2, False)
         table4.set_col_spacings(3)
@@ -5754,7 +5756,7 @@ class Base(mpdclient3.mpd_connection):
         availablevbox = gtk.VBox()
         availableformatbox = gtk.HBox()
         availableformatting = gtk.Label()
-        availableformatting.set_markup('<small><span font_family="Monospace">%A</span> - ' + _('Artist name') + '\n<span font_family="Monospace">%B</span> - ' + _('Album name') + '\n<span font_family="Monospace">%T</span> - ' + _('Track name') + '\n<span font_family="Monospace">%N</span> - ' + _('Track number') + '\n<span font_family="Monospace">%Y</span> - ' + _('Year') + '</small>')
+        availableformatting.set_markup('<small><span font_family="Monospace">%A</span> - ' + _('Artist name') + '\n<span font_family="Monospace">%B</span> - ' + _('Album name') + '\n<span font_family="Monospace">%T</span> - ' + _('Track name') + '\n<span font_family="Monospace">%N</span> - ' + _('Track number') + '\n<span font_family="Monospace">%D</span> - ' + _('Disc Number') + '\n<span font_family="Monospace">%Y</span> - ' + _('Year') + '</small>')
         availableformatting.set_alignment(0, 0)
         availableformatting2 = gtk.Label()
         availableformatting2.set_markup('<small><span font_family="Monospace">%G</span> - ' + _('Genre') + '\n<span font_family="Monospace">%F</span> - ' + _('File name') + '\n<span font_family="Monospace">%S</span> - ' + _('Stream name') + '\n<span font_family="Monospace">%L</span> - ' + _('Song length') + '\n<span font_family="Monospace">%E</span> - ' + _('Elapsed time (title only)') + '</small>')
