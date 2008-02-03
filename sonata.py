@@ -2682,9 +2682,12 @@ class Base(mpdclient3.mpd_connection):
             text[i] = text[i].replace("%F", _("File"))
             text[i] = text[i].replace("%S", _("Stream"))
             text[i] = text[i].replace("%L", _("Len"))
-            text[i] = text[i].replace("%D", _("Disc"))
+            text[i] = text[i].replace("%D", _("#"))
             if text[i].count("{") == text[i].count("}"):
                 text[i] = text[i].replace("{","").replace("}","")
+            # If the user wants the format of, e.g., "#%N", we'll
+            # ensure the # doesn't show up twice in a row.
+            text[i] = text[i].replace("##", "#")
         return text
 
     def parse_formatting_for_substring(self, subformat, item, wintitle):
