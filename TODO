@@ -11,8 +11,6 @@ v1.5
 		- hiding/showing widgets (with set_no_show_all)
 		- combine ListStore definitions (playlists, streams, etc)
 		- local/remote artwork
-	translations
-		- window.set_title(_("Edit Tags" + ...))
 	patch 2230?
 	better playlist support (mpd 0.13+ only):
 		ability to view songs, reorder songs, remove songs, etc

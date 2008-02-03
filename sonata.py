@@ -6820,7 +6820,7 @@ class Base(mpdclient3.mpd_connection):
         entries[7].set_text(tags[self.tagnum]['mpdpath'].split('/')[-1])
         entries[0].select_region(0, len(entries[0].get_text()))
         entries[0].grab_focus()
-        window.set_title(_("Edit Tags" + " - " + str(self.tagnum+1) + " " + _("of") + " " + str(len(tags))))
+        window.set_title(_("Edit Tags") + " - " + str(self.tagnum+1) + " " + _("of") + " " + str(len(tags)))
         self.updating_edit_entries = False
         # Update text colors as appropriate:
         for i in range(len(entries)-1):

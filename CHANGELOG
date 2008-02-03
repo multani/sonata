@@ -1,3 +1,6 @@
+v1.5 - Pending
+	+ Add %D for disc tag in display formatting options
+
 v1.4.1 - February 2, 2008
 	+ Remove queue support (it was removed from mpd-svn, complain to them)
 	+ Improved re-ordering of playlist songs (including multiple selected songs)
