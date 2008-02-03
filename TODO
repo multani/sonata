@@ -10,6 +10,7 @@ v1.5
 		- making tabs
 		- hiding/showing widgets (with set_no_show_all)
 		- combine ListStore definitions (playlists, streams, etc)
+		- local/remote artwork
 	translations
 		- window.set_title(_("Edit Tags" + ...))
 	patch 2230?

@@ -2682,6 +2682,7 @@ class Base(mpdclient3.mpd_connection):
             text[i] = text[i].replace("%F", _("File"))
             text[i] = text[i].replace("%S", _("Stream"))
             text[i] = text[i].replace("%L", _("Len"))
+            text[i] = text[i].replace("%D", _("Disc"))
             if text[i].count("{") == text[i].count("}"):
                 text[i] = text[i].replace("{","").replace("}","")
         return text
@@ -2715,6 +2716,12 @@ class Base(mpdclient3.mpd_connection):
                 text = text.replace("%N", self.sanitize_mpdtag(item.track, False, 2))
             except:
                 if not has_brackets: text = text.replace("%N", "0")
+                else: return ""
+        if "%D" in text:
+            try:
+                text = text.replace("%D", self.sanitize_mpdtag(item.disc, False, 0))
+            except:
+                if not has_brackets: text = text.replace("%D", "0")
                 else: return ""
         if "%S" in text:
             try:
