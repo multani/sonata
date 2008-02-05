@@ -909,7 +909,6 @@ class Base(mpdclient3.mpd_connection):
         outtertipbox = gtk.VBox()
         tipbox = gtk.HBox()
         self.trayalbumeventbox = gtk.EventBox()
-        self.trayalbumeventbox.set_visible_window(False)
         self.trayalbumeventbox.set_size_request(59, 90)
         self.trayalbumimage1 = gtk.Image()
         self.trayalbumimage1.set_size_request(51, 77)
