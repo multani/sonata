@@ -676,7 +676,6 @@ class Base(mpdclient3.mpd_connection):
         self.progresslabel.set_size_request(-1, 6)
         self.progressbox.pack_start(self.progresslabel)
         self.progresseventbox = gtk.EventBox()
-        self.progresseventbox.set_visible_window(False)
         self.progressbar = gtk.ProgressBar()
         self.progressbar.set_orientation(gtk.PROGRESS_LEFT_TO_RIGHT)
         self.progressbar.set_fraction(0)
