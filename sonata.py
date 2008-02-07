@@ -2067,17 +2067,11 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'info_album_expanded', self.info_album_expanded)
         conf.set('player', 'info_song_more', self.info_song_more)
         conf.set('player', 'info_art_enlarged', self.info_art_enlarged)
+        self.update_column_widths()
         tmp = ""
-        for i in range(len(self.columns) - 1):
-            tmp += str(self.columns[i].get_width()) + ","
-        if self.expanderwindow.get_hscrollbar().get_property('visible'):
-            tmp += str(self.columns[len(self.columns) - 1].get_width())
-        else:
-            # The last column may be larger than specified, since it expands to fill
-            # the treeview, so lets get the minimum of the current width and the
-            # fixed width. This will prevent a horizontal scrollbar from unnecessarily
-            # showing sometimes.
-            tmp += str(min(self.columns[len(self.columns) - 1].get_fixed_width(), self.columns[len(self.columns) - 1].get_width()))
+        for i in range(len(self.columns)-1):
+            tmp += str(self.columnwidths[i]) + ","
+        tmp += str(self.columnwidths[len(self.columns)-1])
         conf.set('player', 'columnwidths', tmp)
         conf.set('player', 'show_header', self.show_header)
         conf.set('player', 'browser', self.url_browser)
@@ -5051,6 +5045,20 @@ class Base(mpdclient3.mpd_connection):
         while self.downloading_image:
             gtk.main_iteration()
 
+    def update_column_widths(self):
+        if not self.withdrawn:
+            self.columnwidths = []
+            for i in range(len(self.columns) - 1):
+                self.columnwidths.append(self.columns[i].get_width())
+            if self.expanderwindow.get_hscrollbar().get_property('visible'):
+                self.columnwidths.append(self.columns[len(self.columns) - 1].get_width())
+            else:
+                # The last column may be larger than specified, since it expands to fill
+                # the treeview, so lets get the minimum of the current width and the
+                # fixed width. This will prevent a horizontal scrollbar from unnecessarily
+                # showing sometimes.
+                self.columnwidths.append(min(self.columns[len(self.columns) - 1].get_fixed_width(), self.columns[len(self.columns) - 1].get_width()))
+
     def trayaction_menu(self, status_icon, button, activate_time):
         self.traymenu.popup(None, None, None, button, activate_time)
 
@@ -5137,6 +5145,10 @@ class Base(mpdclient3.mpd_connection):
 
     def withdraw_app(self):
         if HAVE_EGG or HAVE_STATUS_ICON:
+            # Save the playlist column widths before withdrawing the app.
+            # Otherwise we will not be able to correctly save the column
+            # widths if the user quits sonata while it is withdrawn.
+            self.update_column_widths()
             self.window.hide()
             self.withdrawn = True
             self.UIManager.get_widget('/traymenu/showmenu').set_active(False)

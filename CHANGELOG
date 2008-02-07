@@ -3,9 +3,10 @@ v1.4.2 - Pending
 	+ Bug: Fix seeking in progress bar
 	+ Bug: Fix blank album info when there is an ampersand
 	+ Bug: Missing color in notification window
-	+ Bug: Notebook arrow clicks are ignored (because of gtk bug)
+	+ Bug: Notebook arrow clicks are ignored due to gtk bug
 	+ Bug: Potential ordering bug when sorting via column heading click
 	+ Bug: Make desktop file compliant
+	+ Bug: Column widths can collapse when exiting while minimized to the tray
 
 v1.4.1 - February 2, 2008
 	+ Remove queue support (it was removed from mpd-svn, complain to them)
