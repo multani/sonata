@@ -715,7 +715,6 @@ class Base(mpdclient3.mpd_connection):
         mainvbox.pack_start(tophbox, False, False, 5)
         self.notebook = gtk.Notebook()
         self.notebook.set_tab_pos(gtk.POS_TOP)
-        self.notebook.set_property('can-focus', False)
         self.notebook.set_scrollable(True)
         # Current tab
         self.expanderwindow = gtk.ScrolledWindow()

@@ -1,8 +1,10 @@
-v1.5 - Pending
+v1.4.2 - Pending
 	+ Add %D for disc tag in display formatting options
 	+ Bug: Fix seeking in progress bar
 	+ Bug: Fix blank album info when there is an ampersand
-	+ Bug: Fix missing color in notification window
+	+ Bug: Missing color in notification window
+	+ Bug: Notebook arrow clicks are ignored (because of gtk bug)
+	+ Bug: Make desktop file compliant
 
 v1.4.1 - February 2, 2008
 	+ Remove queue support (it was removed from mpd-svn, complain to them)
