@@ -4,6 +4,7 @@ v1.4.2 - Pending
 	+ Bug: Fix blank album info when there is an ampersand
 	+ Bug: Missing color in notification window
 	+ Bug: Notebook arrow clicks are ignored (because of gtk bug)
+	+ Bug: Potential ordering bug when sorting via column heading click
 	+ Bug: Make desktop file compliant
 
 v1.4.1 - February 2, 2008

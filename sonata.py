@@ -4480,7 +4480,7 @@ class Base(mpdclient3.mpd_connection):
         # Returns a tuple with whether the first tag of the format
         # includes tag_letter and the position of the tag in the string:
         formats = format.split('|')
-        format = formats[colnum-2]
+        format = formats[colnum-1]
         for pos in range(len(format)-1):
             if format[pos] == '%':
                 if format[pos+1] == tag_letter:
