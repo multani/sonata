@@ -893,6 +893,8 @@ class Base(mpdclient3.mpd_connection):
         self.tooltips.set_tip(self.expander, self.cursonglabel1.get_text())
         if not self.conn:
             self.progressbar.set_text(_('Not Connected'))
+        elif not self.status:
+            self.progressbar.set_text(_('No Read Permission'))
         self.tooltips.set_tip(self.libraryview, _("Library browsing view"))
         if gtk.pygtk_version >= (2, 10, 0):
             for child in self.notebook.get_children():
@@ -3375,6 +3377,7 @@ class Base(mpdclient3.mpd_connection):
                 elif HAVE_EGG and self.eggtrayheight:
                     self.eggtrayfile = self.find_path('sonata_play.png')
                     self.trayimage.set_from_pixbuf(self.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
+
             self.update_album_art()
             if self.status.state in ['play', 'pause']:
                 self.keep_song_centered_in_list()
@@ -3607,8 +3610,10 @@ class Base(mpdclient3.mpd_connection):
                     newtime = at_time + " / " + time
                 except:
                     newtime = at_time
-            else:
+            elif self.status:
                 newtime = ' '
+            else:
+                newtime = _('No Read Permission')
         else:
             newtime = _('Not Connected')
         if not self.last_progress_text or self.last_progress_text != newtime:
@@ -3716,7 +3721,9 @@ class Base(mpdclient3.mpd_connection):
                 self.cursonglabel2.set_markup('<small>' + _('Click to expand') + '</small>')
             self.tooltips.set_tip(self.expander, self.cursonglabel1.get_text())
             if not self.conn:
-                self.traycursonglabel1.set_label(_('Not connected'))
+                self.traycursonglabel1.set_label(_('Not Connected'))
+            elif not self.status:
+                self.traycursonglabel1.set_label(_('No Read Permission'))
             else:
                 self.traycursonglabel1.set_label(_('Stopped'))
             self.trayprogressbar.hide()
@@ -7205,6 +7212,8 @@ class Base(mpdclient3.mpd_connection):
                 self.trayicon.add(self.trayeventbox)
                 if self.show_trayicon:
                     self.trayicon.show_all()
+                    self.eggtrayfile = self.find_path('sonata.png')
+                    self.trayimage.set_from_pixbuf(self.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
                 else:
                     self.trayicon.hide_all()
             except:

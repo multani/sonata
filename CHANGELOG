@@ -1,5 +1,6 @@
 v1.4.2 - Pending
 	+ Add %D for disc tag in display formatting options
+	+ Better handling if no read permission (e.g. no/bad mpd password supplied)
 	+ Bug: Fix seeking in progress bar
 	+ Bug: Fix blank album info when there is an ampersand
 	+ Bug: Missing color in notification window
