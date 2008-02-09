@@ -2,7 +2,7 @@
 # $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/sonata.py $
 # $Id: sonata.py 141 2006-09-11 04:51:07Z stonecrest $
 
-__version__ = "1.4.1"
+__version__ = "1.4.2"
 
 __license__ = """
 Sonata, an elegant GTK+ client for the Music Player Daemon
@@ -847,9 +847,9 @@ class Base(mpdclient3.mpd_connection):
             streams_tab.set_no_show_all(True)
             streams_tab.hide_all()
         # Info tab
-        info = gtk.ScrolledWindow()
-        info.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        info.set_shadow_type(gtk.SHADOW_IN)
+        self.info = gtk.ScrolledWindow()
+        self.info.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.info.set_shadow_type(gtk.SHADOW_IN)
         infoevbox = gtk.EventBox()
         infoevbox.set_visible_window(False)
         infohbox = gtk.HBox()
@@ -858,8 +858,8 @@ class Base(mpdclient3.mpd_connection):
         infoevbox.add(infohbox)
         infoevbox.show_all()
         infoevbox.connect("button_press_event", self.on_tab_click)
-        self.info_widgets_initialize(info)
-        self.notebook.append_page(info, infoevbox)
+        self.info_widgets_initialize(self.info)
+        self.notebook.append_page(self.info, infoevbox)
         mainvbox.pack_start(self.notebook, True, True, 5)
         info_tab = self.notebook.get_children()[4]
         if not self.info_tab_visible:
@@ -2790,109 +2790,108 @@ class Base(mpdclient3.mpd_connection):
         # only the case on song and status changes. Otherwise we only
         # want to update the minimum number of widgets so the user can
         # do things like select label text.
-        if self.current_tab == self.TAB_INFO:
-            if self.conn:
-                if self.status and self.status.state in ['play', 'pause']:
-                    bitratelabel = self.info_labels[self.info_type[_("Bitrate")]]
-                    titlelabel = self.info_labels[self.info_type[_("Title")]]
-                    artistlabel = self.info_labels[self.info_type[_("Artist")]]
-                    albumlabel = self.info_labels[self.info_type[_("Album")]]
-                    datelabel = self.info_labels[self.info_type[_("Date")]]
-                    genrelabel = self.info_labels[self.info_type[_("Genre")]]
-                    tracklabel = self.info_labels[self.info_type[_("Track")]]
-                    filelabel = self.info_labels[self.info_type[_("File")]]
-                    try:
-                        newbitrate = self.status.bitrate + " kbps"
-                    except:
-                        newbitrate = ''
-                    if not self.last_info_bitrate or self.last_info_bitrate != newbitrate:
-                        bitratelabel.set_text(newbitrate)
-                    self.last_info_bitrate = newbitrate
-                    if update_all:
-                        # Use artist/album Wikipedia links?
-                        artist_use_link = False
-                        if self.songinfo.has_key('artist'):
-                            artist_use_link = True
-                        album_use_link = False
-                        if self.songinfo.has_key('album'):
-                            album_use_link = True
-                        titlelabel.set_text(getattr(self.songinfo, 'title', ''))
-                        if artist_use_link:
-                            artistlabel.set_markup(link_markup(escape_html(self.songinfo.artist), False, False, self.linkcolor))
-                        else:
-                            artistlabel.set_text(getattr(self.songinfo, 'artist', ''))
-                        if album_use_link:
-                            albumlabel.set_markup(link_markup(escape_html(self.songinfo.album), False, False, self.linkcolor))
-                        else:
-                            albumlabel.set_text(getattr(self.songinfo, 'album', ''))
-                        datelabel.set_text(getattr(self.songinfo, 'date', ''))
-                        genrelabel.set_text(getattr(self.songinfo, 'genre', ''))
-                        if self.songinfo.has_key('track'):
-                            tracklabel.set_text(self.sanitize_mpdtag(getattr(self.songinfo, 'track', '0'), False, 0))
-                        else:
-                            tracklabel.set_text("")
-                        if os.path.exists(self.musicdir[self.profile_num] + os.path.dirname(self.songinfo.file)):
-                            filelabel.set_text(self.musicdir[self.profile_num] + self.songinfo.file)
-                            self.info_editlabel.set_markup(link_markup(_("edit tags"), True, True, self.linkcolor))
-                        else:
-                            filelabel.set_text(self.songinfo.file)
-                            self.info_editlabel.set_text("")
-                        if self.songinfo.has_key('album'):
-                            # Update album info:
-                            year = []
-                            albumtime = 0
-                            trackinfo = ""
-                            albuminfo = self.songinfo.album + "\n"
-                            tracks = self.browse_search_album(self.songinfo.album)
-                            for track in tracks:
-                                if track.has_key('title'):
-                                    trackinfo = trackinfo + self.sanitize_mpdtag(getattr(track, 'track', '0'), False, 2) + '. ' + track.title + '\n'
-                                else:
-                                    trackinfo = trackinfo + self.sanitize_mpdtag(getattr(track, 'track', '0'), False, 2) + '. ' + track.file.split('/')[-1] + '\n'
-                                if track.has_key('date'):
-                                    year.append(track.date)
-                                try:
-                                    albumtime = albumtime + int(track.time)
-                                except:
-                                    pass
-                            (year, i) = remove_list_duplicates(year, [], False)
-                            artist = self.current_artist_for_album_name[1]
-                            artist_use_link = False
-                            if artist != _("Various Artists"):
-                                artist_use_link = True
-                            albuminfo = albuminfo + artist + "\n"
-                            if len(year) == 1:
-                                albuminfo = albuminfo + year[0] + "\n"
-                            albuminfo = albuminfo + convert_time(albumtime) + "\n"
-                            albuminfo = albuminfo + "\n" + trackinfo
-                            self.albumText.set_markup(albuminfo)
-                        else:
-                            self.albumText.set_text(_("Album name not set."))
-                        # Update lyrics:
-                        if self.show_lyrics:
-                            if self.songinfo.has_key('artist') and self.songinfo.has_key('title'):
-                                lyricThread = threading.Thread(target=self.info_get_lyrics, args=(self.songinfo.artist, self.songinfo.title, self.songinfo.artist, self.songinfo.title))
-                                lyricThread.setDaemon(True)
-                                lyricThread.start()
-                            elif not HAVE_WSDL:
-                                self.info_searchlabel.set_text("")
-                                self.info_show_lyrics(_("ZSI not found, fetching lyrics support disabled."), "", "", True)
-                            else:
-                                self.info_searchlabel.set_text("")
-                                self.info_show_lyrics(_("Artist or song title not set."), "", "", True)
-                else:
-                    blank_window = True
-            if blank_window:
-                newtime = ''
-                newbitrate = ''
-                for label in self.info_labels:
-                    label.set_text("")
-                self.info_editlabel.set_text("")
-                if self.show_lyrics:
-                    self.info_searchlabel.set_text("")
-                    self.info_show_lyrics("", "", "", True)
-                self.albumText.set_text("")
+        if self.conn:
+            if self.status and self.status.state in ['play', 'pause']:
+                bitratelabel = self.info_labels[self.info_type[_("Bitrate")]]
+                titlelabel = self.info_labels[self.info_type[_("Title")]]
+                artistlabel = self.info_labels[self.info_type[_("Artist")]]
+                albumlabel = self.info_labels[self.info_type[_("Album")]]
+                datelabel = self.info_labels[self.info_type[_("Date")]]
+                genrelabel = self.info_labels[self.info_type[_("Genre")]]
+                tracklabel = self.info_labels[self.info_type[_("Track")]]
+                filelabel = self.info_labels[self.info_type[_("File")]]
+                try:
+                    newbitrate = self.status.bitrate + " kbps"
+                except:
+                    newbitrate = ''
+                if not self.last_info_bitrate or self.last_info_bitrate != newbitrate:
+                    bitratelabel.set_text(newbitrate)
                 self.last_info_bitrate = newbitrate
+                if update_all:
+                    # Use artist/album Wikipedia links?
+                    artist_use_link = False
+                    if self.songinfo.has_key('artist'):
+                        artist_use_link = True
+                    album_use_link = False
+                    if self.songinfo.has_key('album'):
+                        album_use_link = True
+                    titlelabel.set_text(getattr(self.songinfo, 'title', ''))
+                    if artist_use_link:
+                        artistlabel.set_markup(link_markup(escape_html(self.songinfo.artist), False, False, self.linkcolor))
+                    else:
+                        artistlabel.set_text(getattr(self.songinfo, 'artist', ''))
+                    if album_use_link:
+                        albumlabel.set_markup(link_markup(escape_html(self.songinfo.album), False, False, self.linkcolor))
+                    else:
+                        albumlabel.set_text(getattr(self.songinfo, 'album', ''))
+                    datelabel.set_text(getattr(self.songinfo, 'date', ''))
+                    genrelabel.set_text(getattr(self.songinfo, 'genre', ''))
+                    if self.songinfo.has_key('track'):
+                        tracklabel.set_text(self.sanitize_mpdtag(getattr(self.songinfo, 'track', '0'), False, 0))
+                    else:
+                        tracklabel.set_text("")
+                    if os.path.exists(self.musicdir[self.profile_num] + os.path.dirname(self.songinfo.file)):
+                        filelabel.set_text(self.musicdir[self.profile_num] + self.songinfo.file)
+                        self.info_editlabel.set_markup(link_markup(_("edit tags"), True, True, self.linkcolor))
+                    else:
+                        filelabel.set_text(self.songinfo.file)
+                        self.info_editlabel.set_text("")
+                    if self.songinfo.has_key('album'):
+                        # Update album info:
+                        year = []
+                        albumtime = 0
+                        trackinfo = ""
+                        albuminfo = self.songinfo.album + "\n"
+                        tracks = self.browse_search_album(self.songinfo.album)
+                        for track in tracks:
+                            if track.has_key('title'):
+                                trackinfo = trackinfo + self.sanitize_mpdtag(getattr(track, 'track', '0'), False, 2) + '. ' + track.title + '\n'
+                            else:
+                                trackinfo = trackinfo + self.sanitize_mpdtag(getattr(track, 'track', '0'), False, 2) + '. ' + track.file.split('/')[-1] + '\n'
+                            if track.has_key('date'):
+                                year.append(track.date)
+                            try:
+                                albumtime = albumtime + int(track.time)
+                            except:
+                                pass
+                        (year, i) = remove_list_duplicates(year, [], False)
+                        artist = self.current_artist_for_album_name[1]
+                        artist_use_link = False
+                        if artist != _("Various Artists"):
+                            artist_use_link = True
+                        albuminfo = albuminfo + artist + "\n"
+                        if len(year) == 1:
+                            albuminfo = albuminfo + year[0] + "\n"
+                        albuminfo = albuminfo + convert_time(albumtime) + "\n"
+                        albuminfo = albuminfo + "\n" + trackinfo
+                        self.albumText.set_markup(escape_html(albuminfo))
+                    else:
+                        self.albumText.set_text(_("Album name not set."))
+                    # Update lyrics:
+                    if self.show_lyrics:
+                        if self.songinfo.has_key('artist') and self.songinfo.has_key('title'):
+                            lyricThread = threading.Thread(target=self.info_get_lyrics, args=(self.songinfo.artist, self.songinfo.title, self.songinfo.artist, self.songinfo.title))
+                            lyricThread.setDaemon(True)
+                            lyricThread.start()
+                        elif not HAVE_WSDL:
+                            self.info_searchlabel.set_text("")
+                            self.info_show_lyrics(_("ZSI not found, fetching lyrics support disabled."), "", "", True)
+                        else:
+                            self.info_searchlabel.set_text("")
+                            self.info_show_lyrics(_("Artist or song title not set."), "", "", True)
+            else:
+                blank_window = True
+        if blank_window:
+            newtime = ''
+            newbitrate = ''
+            for label in self.info_labels:
+                label.set_text("")
+            self.info_editlabel.set_text("")
+            if self.show_lyrics:
+                self.info_searchlabel.set_text("")
+                self.info_show_lyrics("", "", "", True)
+            self.albumText.set_text("")
+            self.last_info_bitrate = newbitrate
 
     def info_check_for_local_lyrics(self, artist, title):
         if os.path.exists(self.target_lyrics_filename(artist, title, self.LYRICS_LOCATION_HOME)):
@@ -6287,7 +6286,7 @@ class Base(mpdclient3.mpd_connection):
         elif self.current_tab == self.TAB_STREAMS:
             gobject.idle_add(self.give_widget_focus, self.streams)
         elif self.current_tab == self.TAB_INFO:
-            gobject.idle_add(self.info_update, True)
+            gobject.idle_add(self.give_widget_focus, self.info)
         gobject.idle_add(self.set_menu_contextual_items_visible)
 
     def on_searchtext_click(self, widget, event):
