@@ -2531,7 +2531,7 @@ class Base(mpdclient3.mpd_connection):
                         years.append(getattr(item, 'date', '9999').split('-')[0].zfill(4))
                     except:
                         songs.append(item)
-                    dirs.append(self.musicdir[self.profile_num] + os.path.dirname(item.file))
+                    dirs.append(os.path.dirname(item.file))
                 (albums, years, dirs) = remove_list_duplicates(albums, years, dirs, False)
                 for itemnum in range(len(albums)):
                     tmp, coverfile = self.get_local_image(dirs[itemnum], self.lib_artist, albums[itemnum])
@@ -4019,10 +4019,8 @@ class Base(mpdclient3.mpd_connection):
         if type is not None and filename:
             if type == self.ART_LOCATION_MISC:
                 self.misc_img_in_dir = filename
-                filename = self.musicdir[self.profile_num] + songdir + "/" + filename
             elif type == self.ART_LOCATION_SINGLE:
                 self.single_img_in_dir = filename
-                filename = self.musicdir[self.profile_num] + songdir + "/" + filename
             gobject.idle_add(self.set_image_for_cover, filename)
             return True
         return False
@@ -4080,15 +4078,16 @@ class Base(mpdclient3.mpd_connection):
                             single_img = file
                         else:
                             return False
-            return single_img
+            return self.musicdir[self.profile_num] + songdir + "/" + single_img
         else:
             return False
 
     def get_misc_img_in_path(self, songdir):
         if os.path.exists(self.musicdir[self.profile_num] + songdir):
             for f in self.ART_LOCATIONS_MISC:
+                print self.musicdir[self.profile_num] + songdir + "/" + f
                 if os.path.exists(self.musicdir[self.profile_num] + songdir + "/" + f):
-                    return f
+                    return self.musicdir[self.profile_num] + songdir + "/" + f
         return False
 
     def set_image_for_cover(self, filename, info_img_only=False):
@@ -4134,13 +4133,11 @@ class Base(mpdclient3.mpd_connection):
                 return True
             if filename == self.target_image_filename(self.ART_LOCATION_CUSTOM):
                 return True
-            if self.misc_img_in_dir and self.songinfo:
-                songdir = os.path.dirname(self.songinfo.file)
-                if filename == self.musicdir[self.profile_num] + songdir + "/" + self.misc_img_in_dir:
+            if self.misc_img_in_dir:
+                if filename == self.misc_img_in_dir:
                     return True
-            if self.single_img_in_dir and self.songinfo:
-                songdir = os.path.dirname(self.songinfo.file)
-                if filename == self.musicdir[self.profile_num] + songdir + "/" + self.single_img_in_dir:
+            if self.single_img_in_dir:
+                if filename == self.single_img_in_dir:
                     return True
         # If we got this far, no match:
         return False
