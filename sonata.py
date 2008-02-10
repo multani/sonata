@@ -4012,7 +4012,7 @@ class Base(mpdclient3.mpd_connection):
         self.misc_img_in_dir = None
         self.single_img_in_dir = None
         type, filename = self.get_local_image()
-        if type and filename:
+        if type is not None and filename:
             if type == self.ART_LOCATION_MISC:
                 self.misc_img_in_dir = filename
                 filename = self.musicdir[self.profile_num] + songdir + "/" + filename
