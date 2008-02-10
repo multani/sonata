@@ -4031,7 +4031,7 @@ class Base(mpdclient3.mpd_connection):
         # Returns a tuple (location_type, filename) or (None, None).
         # Only pass a songpath, artist, and album if we don't want
         # to use info from the currently playing song.
-        if not songpath:
+        if songpath is None:
             songpath = os.path.dirname(self.songinfo.file)
         testfile = self.target_image_filename(self.ART_LOCATION_HOMECOVERS, songpath, artist, album)
         if os.path.exists(testfile):
@@ -4845,7 +4845,7 @@ class Base(mpdclient3.mpd_connection):
                 artist = self.current_artist_for_album_name[1]
             album = album.replace("/", "")
             artist = artist.replace("/", "")
-            if not songpath:
+            if songpath is None:
                 songpath = os.path.dirname(self.songinfo.file)
             # Return target filename:
             if force_location is not None:
