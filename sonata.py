@@ -3983,8 +3983,8 @@ class Base(mpdclient3.mpd_connection):
         if not self.show_covers:
             return
         if self.conn and self.status and self.status.state in ['play', 'pause']:
-            artist = getattr(self.songinfo, 'artist', "").replace("/", "")
-            album = getattr(self.songinfo, 'album', "").replace("/", "")
+            artist = getattr(self.songinfo, 'artist', "")
+            album = getattr(self.songinfo, 'album', "")
             filename = self.target_image_filename()
             if filename == self.lastalbumart:
                 # No need to update..
@@ -4837,9 +4837,11 @@ class Base(mpdclient3.mpd_connection):
         if self.conn:
             # If no info passed, you info from currently playing song:
             if not album:
-                album = getattr(self.songinfo, 'album', "").replace("/", "")
+                album = getattr(self.songinfo, 'album', "")
             if not artist:
-                artist = self.current_artist_for_album_name[1].replace("/", "")
+                artist = self.current_artist_for_album_name[1]
+            album = album.replace("/", "")
+            artist = artist.replace("/", "")
             if not songpath:
                 songpath = os.path.dirname(self.songinfo.file)
             # Return target filename:
@@ -5078,9 +5080,9 @@ class Base(mpdclient3.mpd_connection):
         self.chooseimage_visible = True
         self.remotefilelist = []
         self.remote_dest_filename = self.target_image_filename()
-        album = getattr(self.songinfo, 'album', "").replace("/", "")
-        artist = self.current_artist_for_album_name[1].replace("/", "")
-        imagewidget.connect('item-activated', self.replace_cover, artist, album)
+        album = getattr(self.songinfo, 'album', "")
+        artist = self.current_artist_for_album_name[1]
+        imagewidget.connect('item-activated', self.replace_cover, artist.replace("/", ""), album.replace("/", ""))
         self.choose_dialog.connect('response', self.choose_image_response, imagewidget, artist, album)
         self.remote_artistentry.set_text(artist)
         self.remote_albumentry.set_text(album)

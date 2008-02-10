@@ -3,6 +3,7 @@ v1.5 - Pending
 	+ Display covers for albums in artist/genre views
 	+ Retain selection in lists after removing items
 	+ Hidden config option to expand notebook tabs (tabs_expanded)
+	+ Bug: Fix artwork for artists/albums with "/" in them (e.g. AC/DC)
 
 v1.4.2 - February 9, 2008
 	+ Add %D for disc tag in display formatting options
