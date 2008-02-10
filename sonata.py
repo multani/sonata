@@ -4011,6 +4011,7 @@ class Base(mpdclient3.mpd_connection):
         f.close()
 
     def check_for_local_images(self):
+        songdir = os.path.dirname(self.songinfo.file)
         self.set_default_icon_for_art()
         self.misc_img_in_dir = None
         self.single_img_in_dir = None
