@@ -25,6 +25,7 @@ v1.5
 	better playlist support (mpd 0.13+ only):
 		ability to view songs, reorder songs, remove songs, etc
 	allow additional columns for library (like current)
+	show artists/genres that are untagged?
 	
 Future:
 	lyrics -> ability to save changes

@@ -376,6 +376,7 @@ class Base(mpdclient3.mpd_connection):
         self.scrob_last_prepared = ""
         self.scrob_time_now = None
         self.sel_rows = None
+        self.img_clicked = False
         # If the connection to MPD times out, this will cause the interface to freeze while
         # the socket.connect() calls are repeatedly executed. Therefore, if we were not
         # able to make a connection, slow down the iteration check to once every 15 seconds.
@@ -909,6 +910,7 @@ class Base(mpdclient3.mpd_connection):
         self.notebook.reorder_child(playlists_tab, self.playlists_tab_pos)
         self.notebook.reorder_child(streams_tab, self.streams_tab_pos)
         self.notebook.reorder_child(info_tab, self.info_tab_pos)
+        self.last_tab = self.notebook_get_tab_text(self.notebook, 0)
 
         # Systray:
         outtertipbox = gtk.VBox()
@@ -4764,8 +4766,13 @@ class Base(mpdclient3.mpd_connection):
             # Force a resize of the info labels, if needed:
             gobject.idle_add(self.on_notebook_resize, self.notebook, None)
         elif event.button == 1:
-            if self.current_tab != self.TAB_INFO:
-                self.switch_to_tab_name(self.TAB_INFO)
+            if not self.expanded:
+                if self.current_tab != self.TAB_INFO:
+                    self.img_clicked = True
+                    self.switch_to_tab_name(self.TAB_INFO)
+                    self.img_clicked = False
+                else:
+                    self.switch_to_tab_name(self.last_tab)
         elif event.button == 3:
             if self.conn and self.status and self.status.state in ['play', 'pause']:
                 self.UIManager.get_widget('/imagemenu/chooseimage_menu/').hide()
@@ -6425,6 +6432,8 @@ class Base(mpdclient3.mpd_connection):
         elif self.current_tab == self.TAB_INFO:
             gobject.idle_add(self.give_widget_focus, self.info)
         gobject.idle_add(self.set_menu_contextual_items_visible)
+        if not self.img_clicked:
+            self.last_tab = self.current_tab
 
     def on_searchtext_click(self, widget, event):
         if event.button == 1:
