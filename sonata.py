@@ -2594,9 +2594,10 @@ class Base(mpdclient3.mpd_connection):
         list.sort(key=lambda x: int(self.sanitize_mpdtag(getattr(x, 'disc', '0'), False, 2) + self.sanitize_mpdtag(getattr(x, 'track', '0'), False, 2)))
         return list
 
-    def return_artists(self):
+    def return_artists(self, use_genre_if_genre_view=True):
         # Returns all artists in alphabetical order
-        if self.lib_view == self.VIEW_GENRE:
+        use_genre = (use_genre_if_genre_view and self.lib_view == self.VIEW_GENRE)
+        if use_genre:
             list = []
             artists = []
             for item in self.conn.do.search('genre', self.lib_genre):
@@ -2615,52 +2616,55 @@ class Base(mpdclient3.mpd_connection):
             list.sort(locale.strcoll)
             return list
 
-    def return_album_items(self, album):
+    def return_album_items(self, album, use_genre_if_genre_view=True):
         # Return songs of the specified album. Sorts by disc and track number
         # If we are in genre view, make sure items match the genre too.
         list = []
-        if self.lib_view == self.VIEW_GENRE:
+        use_genre = (use_genre_if_genre_view and self.lib_view == self.VIEW_GENRE)
+        if use_genre:
             items = self.conn.do.search('album', album, 'genre', self.lib_genre)
         else:
             items = self.conn.do.search('album', album)
         for item in items:
             # Make sure it's an exact match:
             if album.lower() == item.album.lower():
-                if self.lib_view != self.VIEW_GENRE or (self.lib_view == self.VIEW_GENRE and self.lib_genre.lower() == item.genre.lower()):
+                if not use_genre or (use_genre and self.lib_genre.lower() == item.genre.lower()):
                     list.append(item)
         list.sort(key=lambda x: int(self.sanitize_mpdtag(getattr(x, 'disc', '0'), False, 2) + self.sanitize_mpdtag(getattr(x, 'track', '0'), False, 2)))
         return list
 
-    def return_artist_items(self, artist):
+    def return_artist_items(self, artist, use_genre_if_genre_view=True):
         # Return songs of the specified artist. Sorts by year
         # If we are in genre view, make sure items match the genre too.
         list = []
-        if self.lib_view == self.VIEW_GENRE:
+        use_genre = (use_genre_if_genre_view and self.lib_view == self.VIEW_GENRE)
+        if use_genre:
             items = self.conn.do.search('artist', artist, 'genre', self.lib_genre)
         else:
             items = self.conn.do.search('artist', artist)
         for item in items:
             # Make sure it's an exact match:
             if artist.lower() == item.artist.lower():
-                if self.lib_view != self.VIEW_GENRE or (self.lib_view == self.VIEW_GENRE and self.lib_genre.lower() == item.genre.lower()):
+                if not use_genre or (use_genre and self.lib_genre.lower() == item.genre.lower()):
                     list.append(item)
         list.sort(key=lambda x: getattr(x, 'date', '0').split('-')[0].zfill(4))
         return list
 
-    def return_album_items_with_artist_and_year(self, artist, album, year):
+    def return_album_items_with_artist_and_year(self, artist, album, year, use_genre_if_genre_view=True):
         # Return songs of specified album, artist, and year. Sorts by disc and
         # track num.
         # If year is None, skips that requirement
         # If we are in genre view, make sure items match the genre too.
         list = []
-        if self.lib_view == self.VIEW_GENRE:
+        use_genre = (use_genre_if_genre_view and self.lib_view == self.VIEW_GENRE)
+        if use_genre:
             items = self.conn.do.search('album', album, 'artist', artist, 'genre', self.lib_genre)
         else:
             items = self.conn.do.search('album', album, 'artist', artist)
         for item in items:
             # Make sure it's an exact match:
             if artist.lower() == item.artist.lower() and album.lower() == item.album.lower():
-                if self.lib_view != self.VIEW_GENRE or (self.lib_view == self.VIEW_GENRE and self.lib_genre.lower() == item.genre.lower()):
+                if not use_genre or (use_genre and self.lib_genre.lower() == item.genre.lower()):
                     if year is None:
                         list.append(item)
                     else:
@@ -2931,18 +2935,19 @@ class Base(mpdclient3.mpd_connection):
                         albumtime = 0
                         trackinfo = ""
                         albuminfo = self.songinfo.album + "\n"
-                        tracks = self.return_album_items(self.songinfo.album)
+                        tracks = self.return_album_items(self.songinfo.album, False)
                         for track in tracks:
-                            if track.has_key('title'):
-                                trackinfo = trackinfo + self.sanitize_mpdtag(getattr(track, 'track', '0'), False, 2) + '. ' + track.title + '\n'
-                            else:
-                                trackinfo = trackinfo + self.sanitize_mpdtag(getattr(track, 'track', '0'), False, 2) + '. ' + track.file.split('/')[-1] + '\n'
-                            if track.has_key('date'):
-                                year.append(track.date)
-                            try:
-                                albumtime = albumtime + int(track.time)
-                            except:
-                                pass
+                            if os.path.dirname(self.songinfo.file) == os.path.dirname(track.file):
+                                if track.has_key('title'):
+                                    trackinfo = trackinfo + self.sanitize_mpdtag(getattr(track, 'track', '0'), False, 2) + '. ' + track.title + '\n'
+                                else:
+                                    trackinfo = trackinfo + self.sanitize_mpdtag(getattr(track, 'track', '0'), False, 2) + '. ' + track.file.split('/')[-1] + '\n'
+                                if track.has_key('date'):
+                                    year.append(track.date)
+                                try:
+                                    albumtime = albumtime + int(track.time)
+                                except:
+                                    pass
                         (year, tmp, tmp2) = remove_list_duplicates(year, case=False)
                         artist = self.current_artist_for_album_name[1]
                         artist_use_link = False
@@ -4877,7 +4882,7 @@ class Base(mpdclient3.mpd_connection):
         if self.current_artist_for_album_name[0] == self.songinfo:
             # Re-use existing info:
             return self.current_artist_for_album_name[1]
-        songs = self.return_album_items(self.songinfo.album)
+        songs = self.return_album_items(self.songinfo.album, False)
         artists = []
         return_artist = ""
         for song in songs:
