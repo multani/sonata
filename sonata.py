@@ -3169,9 +3169,10 @@ class Base(mpdclient3.mpd_connection):
         if self.button_press(widget, event, False): return True
 
     def button_press(self, widget, event, widget_is_current):
+        ctrl_press = (event.state & gtk.gdk.CONTROL_MASK)
         self.volume_hide()
         self.sel_rows = None
-        if event.button == 1 and widget_is_current:
+        if event.button == 1 and widget_is_current and not ctrl_press:
             # If the user clicked inside a group of rows that were already selected,
             # we need to retain the selected rows in case the user wants to DND the
             # group of rows. If they release the mouse without first moving it,
