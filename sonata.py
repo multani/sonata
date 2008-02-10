@@ -2545,7 +2545,10 @@ class Base(mpdclient3.mpd_connection):
                     else:
                         bd += [('d' + years[itemnum] + lower_no_the(albums[itemnum]), [coverfile, years[itemnum] + albums[itemnum], escape_html(years[itemnum] + ' - ' + albums[itemnum])])]
                 for song in songs:
-                    bd += [('f' + lower_no_the(song.title), [self.sonatapb, song.file, self.parse_formatting(self.libraryformat, song, True)])]
+                    try:
+                        bd += [('f' + lower_no_the(song.title), [self.sonatapb, song.file, self.parse_formatting(self.libraryformat, song, True)])]
+                    except:
+                        bd += [('f' + song.file.lower(), [self.sonatapb, song.file, self.parse_formatting(self.libraryformat, song, True)])]
                 bd.sort(key=first_of_2tuple)
             else: # Songs in albums
                 bd += [('0', [self.harddiskpb, '/', '/'])]
