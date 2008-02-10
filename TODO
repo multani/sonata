@@ -17,6 +17,9 @@ v1.5
 	library menu items: "play after" -> "add", "replace"
 		- add shortcuts
 		- remove enqueue option?
+	retain selection after editing songs
+	toggle visible tab by clicking on the image cover
+	ability to toggle selection on playlist with ctrl
 	patch 2230?
 	better playlist support (mpd 0.13+ only):
 		ability to view songs, reorder songs, remove songs, etc

@@ -291,6 +291,7 @@ class Base(mpdclient3.mpd_connection):
         self.ignore_toggle_signal = False
         self.initial_run = True
         self.show_header = True
+        self.tabs_expanded = False
         self.currentformat = "%A - %T"
         self.libraryformat = "%A - %T"
         self.titleformat = "[Sonata] %A - %T"
@@ -900,6 +901,8 @@ class Base(mpdclient3.mpd_connection):
         if gtk.pygtk_version >= (2, 10, 0):
             for child in self.notebook.get_children():
                 self.notebook.set_tab_reorderable(child, True)
+                if self.tabs_expanded:
+                    self.notebook.set_tab_label_packing(child, True, True, gtk.PACK_START)
         # Update tab positions:
         self.notebook.reorder_child(current_tab, self.current_tab_pos)
         self.notebook.reorder_child(library_tab, self.library_tab_pos)
@@ -1941,6 +1944,8 @@ class Base(mpdclient3.mpd_connection):
                 self.columnwidths[col] = int(self.columnwidths[col])
         if conf.has_option('player', 'show_header'):
             self.show_header = conf.getboolean('player', 'show_header')
+        if conf.has_option('player', 'tabs_expanded'):
+            self.tabs_expanded = conf.getboolean('player', 'tabs_expanded')
         if conf.has_option('player', 'browser'):
             self.url_browser = conf.get('player', 'browser')
         if conf.has_option('player', 'info_art_enlarged'):
@@ -2085,6 +2090,7 @@ class Base(mpdclient3.mpd_connection):
         tmp += str(self.columnwidths[len(self.columns)-1])
         conf.set('player', 'columnwidths', tmp)
         conf.set('player', 'show_header', self.show_header)
+        conf.set('player', 'tabs_expanded', self.tabs_expanded)
         conf.set('player', 'browser', self.url_browser)
         conf.add_section('notebook')
         # Save tab positions:
