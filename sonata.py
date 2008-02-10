@@ -4075,17 +4075,16 @@ class Base(mpdclient3.mpd_connection):
                 for i in gtk.gdk.pixbuf_get_formats():
                     if os.path.splitext(file)[1].replace(".","").lower() in i['extensions']:
                         if single_img == None:
-                            single_img = file
+                            single_img = self.musicdir[self.profile_num] + songdir + "/" + file
                         else:
                             return False
-            return self.musicdir[self.profile_num] + songdir + "/" + single_img
+            return single_img
         else:
             return False
 
     def get_misc_img_in_path(self, songdir):
         if os.path.exists(self.musicdir[self.profile_num] + songdir):
             for f in self.ART_LOCATIONS_MISC:
-                print self.musicdir[self.profile_num] + songdir + "/" + f
                 if os.path.exists(self.musicdir[self.profile_num] + songdir + "/" + f):
                     return self.musicdir[self.profile_num] + songdir + "/" + f
         return False
