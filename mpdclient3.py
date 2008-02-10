@@ -165,6 +165,8 @@ commands = {
     # <string type> <string what>
     ("search", 2): ('%s "%s" "%s"', MANY, '', plitem_delim),
     ("search", 4): ('%s "%s" "%s" "%s" "%s"', MANY, '', plitem_delim),
+    ("search", 6): ('%s "%s" "%s" "%s" "%s" "%s" "%s"', MANY, '', plitem_delim),
+    ("search", 8): ('%s "%s" "%s" "%s" "%s" "%s" "%s" "%s" "%s"', MANY, '', plitem_delim),
 
     # <metadata arg1>
     ("list", 1): ('%s "%s"', MANY, '', litem_delim),

@@ -11,11 +11,16 @@ v1.5
 		- hiding/showing widgets (with set_no_show_all)
 		- combine ListStore definitions (playlists, streams, etc)
 		- local/remote artwork
+		- remove_list_duplicates
+	album covers in library:
+		- refresh correctly on changes
+	library menu items: "play after" -> "add", "replace"
+		- add shortcuts
+		- remove enqueue option?
 	patch 2230?
 	better playlist support (mpd 0.13+ only):
 		ability to view songs, reorder songs, remove songs, etc
 	allow additional columns for library (like current)
-	genre mode (genre -> artist -> album)
 	
 Future:
 	lyrics -> ability to save changes

@@ -182,7 +182,7 @@ class Base(mpdclient3.mpd_connection):
         self.ART_LOCAL_REMOTE = 1
         self.VIEW_FILESYSTEM = 0
         self.VIEW_ARTIST = 1
-        self.VIEW_ALBUM = 2
+        self.VIEW_GENRE = 2
         self.LYRIC_TIMEOUT = 10
         self.NOTIFICATION_WIDTH_MAX = 500
         self.NOTIFICATION_WIDTH_MIN = 350
@@ -192,10 +192,13 @@ class Base(mpdclient3.mpd_connection):
         self.ART_LOCATION_FOLDER = 3			# file_dir/folder.jpg
         self.ART_LOCATION_CUSTOM = 4			# file_dir/[custom]
         self.ART_LOCATION_NONE = 5				# Use default Sonata icons
+        self.ART_LOCATION_SINGLE = 6
+        self.ART_LOCATION_MISC = 7
         self.ART_LOCATION_NONE_FLAG = "USE_DEFAULT"
         self.ART_LOCATIONS_MISC = ['front.jpg', '.folder.jpg', '.folder.png', 'AlbumArt.jpg', 'AlbumArtSmall.jpg']
         self.LYRICS_LOCATION_HOME = 0			# ~/.lyrics/[artist]-[song].txt
         self.LYRICS_LOCATION_PATH = 1			# file_dir/[artist]-[song].txt
+        self.LIB_COVER_SIZE = 16
 
         self.trying_connection = False
         toggle_arg = False
@@ -311,11 +314,13 @@ class Base(mpdclient3.mpd_connection):
         self.use_infofile = False
         self.infofile_path = '/tmp/xmms-info'
         self.play_on_activate = False
-        self.view = self.VIEW_FILESYSTEM
-        self.view_artist_artist = ''
-        self.view_artist_album = ''
-        self.view_artist_level = 1
-        self.view_artist_level_prev = 0
+        self.lib_view = self.VIEW_FILESYSTEM
+        # Level 0 is genre, 1 is artists, 2 is albums, 3 is songs
+        self.lib_level = 1
+        self.lib_level_prev = -1
+        self.lib_genre = ''
+        self.lib_artist = ''
+        self.lib_album = ''
         self.songs = None
         self.tagpy_is_91 = None
         self.art_location = self.ART_LOCATION_HOMECOVERS
@@ -370,10 +375,6 @@ class Base(mpdclient3.mpd_connection):
         self.scrob_last_prepared = ""
         self.scrob_time_now = None
         self.sel_rows = None
-        # For increased responsiveness after the initial load, we cache the root artist and
-        # album view results and simply refresh on any mpd update
-        self.albums_root = None
-        self.artists_root = None
         # If the connection to MPD times out, this will cause the interface to freeze while
         # the socket.connect() calls are repeatedly executed. Therefore, if we were not
         # able to make a connection, slow down the iteration check to once every 15 seconds.
@@ -407,7 +408,7 @@ class Base(mpdclient3.mpd_connection):
                 print _("Not a valid profile number. Profile number must be between 1 and"), str(len(self.profile_names)) + "."
                 pass
 
-        # Add some icons:
+        # Add some icons, assign pixbufs:
         self.iconfactory = gtk.IconFactory()
         self.new_icon('sonata', file='sonata.png')
         self.new_icon('artist', file='sonata-artist.png')
@@ -431,7 +432,7 @@ class Base(mpdclient3.mpd_connection):
             ('profilesmenu', None, _('_Connection')),
             ('filesystemview', gtk.STOCK_HARDDISK, _('Filesystem'), None, None, self.on_libraryview_chosen),
             ('artistview', 'artist', _('Artist'), None, None, self.on_libraryview_chosen),
-            ('albumview', 'album', _('Album'), None, None, self.on_libraryview_chosen),
+            ('genreview', gtk.STOCK_ORIENTATION_PORTRAIT, _('Genre'), None, None, self.on_libraryview_chosen),
             ('chooseimage_menu', gtk.STOCK_CONVERT, _('Use _Remote Image...'), None, None, self.on_choose_image),
             ('localimage_menu', gtk.STOCK_OPEN, _('Use _Local Image...'), None, None, self.on_choose_image_local),
             ('resetimage_menu', gtk.STOCK_CLEAR, _('Reset to Default'), None, None, self.on_reset_image),
@@ -553,7 +554,7 @@ class Base(mpdclient3.mpd_connection):
               <popup name="librarymenu">
                 <menuitem action="filesystemview"/>
                 <menuitem action="artistview"/>
-                <menuitem action="albumview"/>
+                <menuitem action="genreview"/>
               </popup>
               <popup name="hidden">
                 <menuitem action="quitkey"/>
@@ -1123,7 +1124,7 @@ class Base(mpdclient3.mpd_connection):
         self.browserselectedpath = {}
         self.searchcombo.set_active(self.last_search_num)
         self.prevstatus = None
-        self.browserdata = gtk.ListStore(str, str, str)
+        self.browserdata = gtk.ListStore(gtk.gdk.Pixbuf, str, str)
         self.browser.set_model(self.browserdata)
         self.browser.set_search_column(2)
         self.browsercell = gtk.CellRendererText()
@@ -1132,12 +1133,18 @@ class Base(mpdclient3.mpd_connection):
         self.browsercolumn = gtk.TreeViewColumn()
         self.browsercolumn.pack_start(self.browserimg, False)
         self.browsercolumn.pack_start(self.browsercell, True)
-        self.browsercolumn.set_attributes(self.browserimg, stock_id=0)
+        self.browsercolumn.set_attributes(self.browserimg, pixbuf=0)
         self.browsercolumn.set_attributes(self.browsercell, markup=2)
-        self.browsercolumn.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+        self.browsercolumn.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
         self.browser.append_column(self.browsercolumn)
         self.browser_selection.set_mode(gtk.SELECTION_MULTIPLE)
-        self.browser.set_fixed_height_mode(True)
+        # Assign some pixbufs for use in self.browser
+        self.openpb = self.browser.render_icon(gtk.STOCK_OPEN, gtk.ICON_SIZE_MENU)
+        self.harddiskpb = self.browser.render_icon(gtk.STOCK_HARDDISK, gtk.ICON_SIZE_MENU)
+        self.albumpb = gtk.gdk.pixbuf_new_from_file_at_size(self.find_path('sonata-album.png'), self.LIB_COVER_SIZE, self.LIB_COVER_SIZE)
+        self.genrepb = self.browser.render_icon('gtk-orientation-portrait', gtk.ICON_SIZE_MENU)
+        self.artistpb = self.browser.render_icon('artist', gtk.ICON_SIZE_MENU)
+        self.sonatapb = self.browser.render_icon('sonata', gtk.ICON_SIZE_MENU)
 
         if self.window_owner:
             icon = self.window.render_icon('sonata', gtk.ICON_SIZE_DIALOG)
@@ -1911,7 +1918,7 @@ class Base(mpdclient3.mpd_connection):
         if conf.has_option('player', 'trayicon'):
             self.show_trayicon = conf.getboolean('player', 'trayicon')
         if conf.has_option('player', 'view'):
-            self.view = conf.getint('player', 'view')
+            self.lib_view = conf.getint('player', 'view')
         if conf.has_option('player', 'search_num'):
             self.last_search_num = conf.getint('player', 'search_num')
         if conf.has_option('player', 'art_location'):
@@ -1963,11 +1970,13 @@ class Base(mpdclient3.mpd_connection):
             if conf.has_option('library', 'root'):
                 self.wd = conf.get('library', 'root')
             if conf.has_option('library', 'root_artist_level'):
-                self.view_artist_level = conf.getint('library', 'root_artist_level')
+                self.lib_level = conf.getint('library', 'root_artist_level')
             if conf.has_option('library', 'root_artist_artist'):
-                self.view_artist_artist = conf.get('library', 'root_artist_artist')
+                self.lib_artist = conf.get('library', 'root_artist_artist')
             if conf.has_option('library', 'root_artist_album'):
-                self.view_artist_album = conf.get('library', 'root_artist_album')
+                self.lib_album = conf.get('library', 'root_artist_album')
+            if conf.has_option('library', 'root_genre'):
+                self.lib_genre = conf.get('library', 'root_genre')
         if conf.has_section('currformat'):
             if conf.has_option('currformat', 'current'):
                 self.currentformat = conf.get('currformat', 'current')
@@ -2059,7 +2068,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'infofile_path', self.infofile_path)
         conf.set('player', 'play_on_activate', self.play_on_activate)
         conf.set('player', 'trayicon', self.show_trayicon)
-        conf.set('player', 'view', self.view)
+        conf.set('player', 'view', self.lib_view)
         conf.set('player', 'search_num', self.last_search_num)
         conf.set('player', 'art_location', self.art_location)
         conf.set('player', 'art_location_custom_filename', self.art_location_custom_filename)
@@ -2096,9 +2105,10 @@ class Base(mpdclient3.mpd_connection):
         conf.set('notebook', 'info_tab_pos', self.info_tab_pos)
         conf.add_section('library')
         conf.set('library', 'root', self.wd)
-        conf.set('library', 'root_artist_level', self.view_artist_level)
-        conf.set('library', 'root_artist_artist', self.view_artist_artist)
-        conf.set('library', 'root_artist_album', self.view_artist_album)
+        conf.set('library', 'root_artist_level', self.lib_level)
+        conf.set('library', 'root_artist_artist', self.lib_artist)
+        conf.set('library', 'root_artist_album', self.lib_album)
+        conf.set('library', 'root_genre', self.lib_genre)
         # Old formats, before some letter changes. We'll keep this in for compatibility with
         # older versions of Sonata for the time being.
         conf.add_section('format')
@@ -2335,18 +2345,21 @@ class Base(mpdclient3.mpd_connection):
     def on_libraryview_chosen(self, action):
         if self.searchbutton.get_property('visible'):
             self.on_search_end(None)
-        prev_view = self.view
+        prev_view = self.lib_view
         if action.get_name() == 'filesystemview':
-            self.view = self.VIEW_FILESYSTEM
+            self.lib_view = self.VIEW_FILESYSTEM
         elif action.get_name() == 'artistview':
-            self.view = self.VIEW_ARTIST
-        elif action.get_name() == 'albumview':
-            self.view = self.VIEW_ALBUM
+            self.lib_view = self.VIEW_ARTIST
+        elif action.get_name() == 'genreview':
+            self.lib_view = self.VIEW_GENRE
         self.browser.grab_focus()
-        if self.view != prev_view:
+        if self.lib_view != prev_view:
             self.libraryview_assign_image()
-            if self.view == self.VIEW_ARTIST:
-                self.view_artist_level = 1
+            # Go to highest level for artist/genre views:
+            if self.lib_view == self.VIEW_ARTIST:
+                self.lib_level = 1
+            elif self.lib_view == self.VIEW_GENRE:
+                self.lib_level = 0
             self.browserposition = {}
             self.browserselectedpath = {}
             try:
@@ -2358,12 +2371,12 @@ class Base(mpdclient3.mpd_connection):
             gobject.idle_add(self.browser.scroll_to_point, 0, 0)
 
     def libraryview_assign_image(self):
-        if self.view == self.VIEW_FILESYSTEM:
+        if self.lib_view == self.VIEW_FILESYSTEM:
             self.libraryview.set_image(gtk.image_new_from_stock(gtk.STOCK_HARDDISK, gtk.ICON_SIZE_MENU))
-        elif self.view == self.VIEW_ARTIST:
+        elif self.lib_view == self.VIEW_ARTIST:
             self.libraryview.set_image(gtk.image_new_from_stock('artist', gtk.ICON_SIZE_MENU))
-        elif self.view == self.VIEW_ALBUM:
-            self.libraryview.set_image(gtk.image_new_from_stock('album', gtk.ICON_SIZE_MENU))
+        elif self.lib_view == self.VIEW_GENRE:
+            self.libraryview.set_image(gtk.image_new_from_stock('gtk-orientation-portrait', gtk.ICON_SIZE_MENU))
 
     def browse(self, widget=None, root='/'):
         # Populates the library list with entries starting at root
@@ -2371,41 +2384,44 @@ class Base(mpdclient3.mpd_connection):
             return
 
         # Handle special cases (i.e. if we are browsing to a song or
-        # if the path has disappeared)
+        # if the path has disappeared). Typically we will keep on
+        # traversing up the hierarchy until we find items that
+        # exist.
         lsinfo = self.conn.do.lsinfo(root)
         while lsinfo == []:
             if self.conn.do.listallinfo(root):
                 # Info exists if we try to browse to a song
                 self.add_item(self.browser, self.play_on_activate)
                 return
-            elif self.view == self.VIEW_ARTIST:
-                if self.view_artist_level == 1:
-                    break
-                elif self.view_artist_level == 2:
-                    if len(self.browse_search_artist(root)) == 0:
-                        # Back up and try the parent
-                        self.view_artist_level = self.view_artist_level - 1
-                    else:
-                        break
-                elif self.view_artist_level == 3:
-                    (album, year) = self.browse_parse_albumview_path(root)
-                    if len(self.browse_search_album_with_artist_and_year(self.view_artist_artist, album, year)) == 0:
-                        # Back up and try the parent
-                        self.view_artist_level = self.view_artist_level - 1
-                        root = self.view_artist_artist
-                    else:
-                        break
-                else:
-                    break
-            elif self.view == self.VIEW_FILESYSTEM:
+            elif self.lib_view == self.VIEW_FILESYSTEM:
                 if root == '/':
                     # Nothing in the library at all
                     return
                 else:
                     # Back up and try the parent
                     root = '/'.join(root.split('/')[:-1]) or '/'
+            elif self.lib_view == self.VIEW_ARTIST or self.lib_view == self.VIEW_GENRE:
+                if self.lib_level == 0:
+                    break
+                elif self.lib_level == 1:
+                    if self.lib_view == self.VIEW_ARTIST:
+                        break
+                    elif self.lib_view == self.VIEW_GENRE:
+                        if len(self.return_genres()) == 0:
+                            # Back up and try the parent:
+                            self.lib_level -= 1
+                        else:
+                            break
+                elif self.lib_level == 2:
+                    if len(self.return_artist_items(root)) == 0:
+                        # Back up and try the parent
+                        self.lib_level -= 1
+                    else:
+                        break
+                else:
+                    break
             else:
-                if len(self.browse_search_album(root)) == 0:
+                if len(self.return_album_items(root)) == 0:
                     root = "/"
                     break
                 else:
@@ -2415,7 +2431,7 @@ class Base(mpdclient3.mpd_connection):
         prev_selection = []
         prev_selection_root = False
         prev_selection_parent = False
-        if (self.view != self.VIEW_ARTIST and root == self.wd) or (self.view == self.VIEW_ARTIST and self.view_artist_level == self.view_artist_level_prev):
+        if (self.lib_view == self.VIEW_FILESYSTEM and root == self.wd) or (self.lib_view != self.VIEW_FILESYSTEM and self.lib_level == self.lib_level_prev):
             # This will happen when the database is updated. So, lets save
             # the current selection in order to try to re-select it after
             # the update is over.
@@ -2433,7 +2449,7 @@ class Base(mpdclient3.mpd_connection):
             path_updated = False
 
         # The logic below is more consistent with, e.g., thunar
-        if (self.view != self.VIEW_ARTIST and len(root) > len(self.wd)) or (self.view == self.VIEW_ARTIST and self.view_artist_level > self.view_artist_level_prev):
+        if (self.lib_view == self.VIEW_FILESYSTEM and len(root) > len(self.wd)) or (self.lib_view != self.VIEW_FILESYSTEM and self.lib_level > self.lib_level_prev):
             # Save position and row for where we just were if we've
             # navigated into a sub-directory:
             self.browserposition[self.wd] = self.browser.get_visible_rect()[1]
@@ -2442,7 +2458,7 @@ class Base(mpdclient3.mpd_connection):
                 value_for_selection = self.browserdata.get_value(self.browserdata.get_iter(rows[0]), 2)
                 if value_for_selection != ".." and value_for_selection != "/":
                     self.browserselectedpath[self.wd] = rows[0]
-        elif (self.view != self.VIEW_ARTIST and root != self.wd) or (self.view == self.VIEW_ARTIST and self.view_artist_level != self.view_artist_level_prev):
+        elif (self.lib_view == self.VIEW_FILESYSTEM and root != self.wd) or (self.lib_view != self.VIEW_FILESYSTEM and self.lib_level != self.lib_level_prev):
             # If we've navigated to a parent directory, don't save
             # anything so that the user will enter that subdirectory
             # again at the top position with nothing selected
@@ -2463,81 +2479,76 @@ class Base(mpdclient3.mpd_connection):
         self.browserdata.clear()
 
         bd = []  # will be put into browserdata later
-        if self.view == self.VIEW_FILESYSTEM:
+        if self.lib_view == self.VIEW_FILESYSTEM:
             if self.wd != '/':
-                bd += [('0', [gtk.STOCK_HARDDISK, '/', '/'])]
-                bd += [('1', [gtk.STOCK_OPEN, '..', '..'])]
+                bd += [('0', [self.harddiskpb, '/', '/'])]
+                bd += [('1', [self.openpb, '..', '..'])]
             for item in lsinfo:
                 if item.type == 'directory':
                     name = item.directory.split('/')[-1]
-                    bd += [('d' + name.lower(), [gtk.STOCK_OPEN, item.directory, escape_html(name)])]
+                    bd += [('d' + name.lower(), [self.openpb, item.directory, escape_html(name)])]
                 elif item.type == 'file':
-                    bd += [('f' + item.file.lower(), ['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])]
+                    bd += [('f' + item.file.lower(), [self.sonatapb, item.file, self.parse_formatting(self.libraryformat, item, True)])]
             bd.sort(key=first_of_2tuple)
-        elif self.view == self.VIEW_ARTIST:
-            if self.view_artist_level == 1:
-                self.view_artist_artist = ''
-                self.view_artist_album = ''
+        elif self.lib_view == self.VIEW_ARTIST or self.lib_view == self.VIEW_GENRE:
+            if self.lib_level == 0: # Genres
+                self.lib_genre = ''
+                self.lib_artist = ''
+                self.lib_album = ''
                 root = '/'
-                if self.artists_root is None:
-                    self.artists_root = []
-                    for item in self.conn.do.list('artist'):
-                        self.artists_root.append(item.artist)
-                    (self.artists_root, i) = remove_list_duplicates(self.artists_root, [], False)
-                    self.artists_root.sort(locale.strcoll)
-                for artist in self.artists_root:
-                    bd += [(lower_no_the(artist), ['artist', artist, escape_html(artist)])]
+                for genre in self.return_genres():
+                    bd += [(lower_no_the(genre), [self.genrepb, genre, escape_html(genre)])]
                 bd.sort(key=first_of_2tuple)
-            elif self.view_artist_level == 2:
-                bd += [('0', [gtk.STOCK_HARDDISK, '/', '/'])]
-                bd += [('1', [gtk.STOCK_OPEN, '..', '..'])]
+            elif self.lib_level == 1: # Artists
+                if self.lib_view == self.VIEW_GENRE:
+                    bd += [('0', [self.harddiskpb, '/', '/'])]
+                    bd += [('1', [self.openpb, '..', '..'])]
+                self.lib_artist = ''
+                self.lib_album = ''
+                self.lib_genre = self.wd
+                root = '/'
+                for artist in self.return_artists():
+                    bd += [(lower_no_the(artist), [self.artistpb, artist, escape_html(artist)])]
+                bd.sort(key=first_of_2tuple)
+            elif self.lib_level == 2: # Albums (and songs not in albums)
+                bd += [('0', [self.harddiskpb, '/', '/'])]
+                bd += [('1', [self.openpb, '..', '..'])]
                 if self.wd != "..":
-                    self.view_artist_artist = self.wd
+                    self.lib_artist = self.wd
                 albums = []
                 songs = []
                 years = []
-                for item in self.browse_search_artist(self.view_artist_artist):
+                dirs = []
+                for item in self.return_artist_items(self.lib_artist):
                     try:
                         albums.append(item.album)
                         years.append(getattr(item, 'date', '9999').split('-')[0].zfill(4))
                     except:
                         songs.append(item)
-                (albums, years) = remove_list_duplicates(albums, years, False)
+                    dirs.append(self.musicdir[self.profile_num] + os.path.dirname(item.file))
+                (albums, years, dirs) = remove_list_duplicates(albums, years, dirs, False)
                 for itemnum in range(len(albums)):
-                    if years[itemnum] == '9999':
-                        bd += [('d' + years[itemnum] + lower_no_the(albums[itemnum]), ['album', years[itemnum] + albums[itemnum], escape_html(albums[itemnum])])]
+                    tmp, coverfile = self.get_local_image(dirs[itemnum], self.lib_artist, albums[itemnum])
+                    if coverfile:
+                        coverfile = gtk.gdk.pixbuf_new_from_file_at_size(coverfile, self.LIB_COVER_SIZE, self.LIB_COVER_SIZE)
                     else:
-                        bd += [('d' + years[itemnum] + lower_no_the(albums[itemnum]), ['album', years[itemnum] + albums[itemnum], escape_html(years[itemnum] + ' - ' + albums[itemnum])])]
+                        # Revert to standard album cover:
+                        coverfile = self.albumpb
+                    if years[itemnum] == '9999':
+                        bd += [('d' + years[itemnum] + lower_no_the(albums[itemnum]), [coverfile, years[itemnum] + albums[itemnum], escape_html(albums[itemnum])])]
+                    else:
+                        bd += [('d' + years[itemnum] + lower_no_the(albums[itemnum]), [coverfile, years[itemnum] + albums[itemnum], escape_html(years[itemnum] + ' - ' + albums[itemnum])])]
                 for song in songs:
-                    bd += [('f' + lower_no_the(song.title), ['sonata', song.file, self.parse_formatting(self.libraryformat, song, True)])]
+                    bd += [('f' + lower_no_the(song.title), [self.sonatapb, song.file, self.parse_formatting(self.libraryformat, song, True)])]
                 bd.sort(key=first_of_2tuple)
-            else:
-                bd += [('0', [gtk.STOCK_HARDDISK, '/', '/'])]
-                bd += [('1', [gtk.STOCK_OPEN, '..', '..'])]
-                (self.view_artist_album, year) = self.browse_parse_albumview_path(root)
-                for item in self.browse_search_album_with_artist_and_year(self.view_artist_artist, self.view_artist_album, year):
+            else: # Songs in albums
+                bd += [('0', [self.harddiskpb, '/', '/'])]
+                bd += [('1', [self.openpb, '..', '..'])]
+                (self.lib_album, year) = self.albumview_parse_path(root)
+                for item in self.return_album_items_with_artist_and_year(self.lib_artist, self.lib_album, year):
                     num = self.sanitize_mpdtag(getattr(item, 'disc', '1'), False, 2) + self.sanitize_mpdtag(getattr(item, 'track', '1'), False, 2)
-                    bd += [('f' + num, ['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])]
-                # List already sorted in self.browse_parse_albumview_path...
-        elif self.view == self.VIEW_ALBUM:
-            items = []
-            if self.wd == '/':
-                if self.albums_root is None:
-                    self.albums_root = []
-                    for item in self.conn.do.list('album'):
-                        self.albums_root.append(item.album)
-                    (self.albums_root, i) = remove_list_duplicates(self.albums_root, [], False)
-                    self.albums_root.sort(locale.strcoll)
-                for item in self.albums_root:
-                    bd += [('d' + lower_no_the(item), ['album', item, escape_html(item)])]
-                bd.sort(key=first_of_2tuple)
-            else:
-                bd += [('0', [gtk.STOCK_HARDDISK, '/', '/'])]
-                bd += [('1', [gtk.STOCK_OPEN, '..', '..'])]
-                for item in self.browse_search_album(root):
-                    num = self.sanitize_mpdtag(getattr(item, 'disc', '1'), False, 2) + self.sanitize_mpdtag(getattr(item, 'track', '1'), False, 2)
-                    bd += [('f' + num, ['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])]
-                # List already sorted in self.browse_parse_albumview_path...
+                    bd += [('f' + num, [self.sonatapb, item.file, self.parse_formatting(self.libraryformat, item, True)])]
+                # List already sorted in self.albumview_parse_path...
 
         for sort, list in bd:
             self.browserdata.append(list)
@@ -2548,57 +2559,120 @@ class Base(mpdclient3.mpd_connection):
         self.browser.realize()
         gobject.idle_add(self.browser_set_view, not path_updated)
         if len(prev_selection) > 0 or prev_selection_root or prev_selection_parent:
-            self.browser_retain_preupdate_selection(prev_selection, prev_selection_root, prev_selection_parent)
+            # Retain pre-update selection:
+            self.browser_retain_selection(prev_selection, prev_selection_root, prev_selection_parent)
 
-        self.view_artist_level_prev = self.view_artist_level
+        self.lib_level_prev = self.lib_level
 
-    def browse_search_album(self, album):
-        # Return songs of the specified album. Sorts by disc and track number
+    def return_genres(self):
+        # Returns all genres in alphabetical order
         list = []
-        for item in self.conn.do.search('album', album):
-            if item.has_key('album'):
-                # Make sure it's an exact match:
-                if album.lower() == item.album.lower():
+        for item in self.conn.do.list('genre'):
+            list.append(item.genre)
+        (list, tmp, tmp2) = remove_list_duplicates(list, case=False)
+        list.sort(locale.strcoll)
+        return list
+
+    def return_genre_items(self, search_genre=None):
+        # Returns all songs of the specified genre. Sorts by disc and
+        # track number.
+        if search_genre:
+            genre = search_genre
+        else:
+            genre = self.lib_genre
+        list = []
+        for item in self.conn.do.search('genre', genre):
+            # Make sure it's an exact match:
+            if genre.lower() == item.genre.lower():
+                list.append(item)
+        list.sort(key=lambda x: int(self.sanitize_mpdtag(getattr(x, 'disc', '0'), False, 2) + self.sanitize_mpdtag(getattr(x, 'track', '0'), False, 2)))
+        return list
+
+    def return_artists(self):
+        # Returns all artists in alphabetical order
+        if self.lib_view == self.VIEW_GENRE:
+            list = []
+            artists = []
+            for item in self.conn.do.search('genre', self.lib_genre):
+                if item.has_key('artist'):
+                    # Make sure it's an exact match:
+                    if self.lib_genre.lower() == item.genre.lower() and not item.artist.lower() in artists:
+                        list.append(item.artist)
+                        artists.append(item.artist.lower())
+            list.sort(locale.strcoll)
+            return list
+        else:
+            list = []
+            for item in self.conn.do.list('artist'):
+                list.append(item.artist)
+            (list, tmp, tmp2) = remove_list_duplicates(list, case=False)
+            list.sort(locale.strcoll)
+            return list
+
+    def return_album_items(self, album):
+        # Return songs of the specified album. Sorts by disc and track number
+        # If we are in genre view, make sure items match the genre too.
+        list = []
+        if self.lib_view == self.VIEW_GENRE:
+            items = self.conn.do.search('album', album, 'genre', self.lib_genre)
+        else:
+            items = self.conn.do.search('album', album)
+        for item in items:
+            # Make sure it's an exact match:
+            if album.lower() == item.album.lower():
+                if self.lib_view != self.VIEW_GENRE or (self.lib_view == self.VIEW_GENRE and self.lib_genre.lower() == item.genre.lower()):
                     list.append(item)
         list.sort(key=lambda x: int(self.sanitize_mpdtag(getattr(x, 'disc', '0'), False, 2) + self.sanitize_mpdtag(getattr(x, 'track', '0'), False, 2)))
         return list
 
-    def browse_search_artist(self, artist):
+    def return_artist_items(self, artist):
         # Return songs of the specified artist. Sorts by year
+        # If we are in genre view, make sure items match the genre too.
         list = []
-        for item in self.conn.do.search('artist', artist):
+        if self.lib_view == self.VIEW_GENRE:
+            items = self.conn.do.search('artist', artist, 'genre', self.lib_genre)
+        else:
+            items = self.conn.do.search('artist', artist)
+        for item in items:
             # Make sure it's an exact match:
             if artist.lower() == item.artist.lower():
-                list.append(item)
+                if self.lib_view != self.VIEW_GENRE or (self.lib_view == self.VIEW_GENRE and self.lib_genre.lower() == item.genre.lower()):
+                    list.append(item)
         list.sort(key=lambda x: getattr(x, 'date', '0').split('-')[0].zfill(4))
         return list
 
-    def browse_search_album_with_artist_and_year(self, artist, album, year):
+    def return_album_items_with_artist_and_year(self, artist, album, year):
         # Return songs of specified album, artist, and year. Sorts by disc and
         # track num.
         # If year is None, skips that requirement
+        # If we are in genre view, make sure items match the genre too.
         list = []
-        for item in self.conn.do.search('album', album, 'artist', artist):
+        if self.lib_view == self.VIEW_GENRE:
+            items = self.conn.do.search('album', album, 'artist', artist, 'genre', self.lib_genre)
+        else:
+            items = self.conn.do.search('album', album, 'artist', artist)
+        for item in items:
             # Make sure it's an exact match:
             if artist.lower() == item.artist.lower() and album.lower() == item.album.lower():
-                if year is None:
-                    list.append(item)
-                else:
-                    # Make sure it also matches the year:
-                    if year != '9999' and item.has_key('date'):
-                        # Only show songs whose years match the year var:
-                        try:
-                            if int(item.date.split('-')[0]) == int(year):
-                                list.append(item)
-                        except:
-                            pass
-                    elif not item.has_key('date'):
-                        # Only show songs that have no year specified:
+                if self.lib_view != self.VIEW_GENRE or (self.lib_view == self.VIEW_GENRE and self.lib_genre.lower() == item.genre.lower()):
+                    if year is None:
                         list.append(item)
+                    else:
+                        # Make sure it also matches the year:
+                        if year != '9999' and item.has_key('date'):
+                            # Only show songs whose years match the year var:
+                            try:
+                                if int(item.date.split('-')[0]) == int(year):
+                                    list.append(item)
+                            except:
+                                pass
+                        elif not item.has_key('date'):
+                            # Only show songs that have no year specified:
+                            list.append(item)
         list.sort(key=lambda x: int(self.sanitize_mpdtag(getattr(x, 'disc', '0'), False, 2) + self.sanitize_mpdtag(getattr(x, 'track', '0'), False, 2)))
         return list
 
-    def browser_retain_preupdate_selection(self, prev_selection, prev_selection_root, prev_selection_parent):
+    def browser_retain_selection(self, prev_selection, prev_selection_root, prev_selection_parent):
         # Unselect everything:
         if len(self.browserdata) > 0:
             self.browser_selection.unselect_range((0,), (len(self.browserdata)-1,))
@@ -2626,11 +2700,20 @@ class Base(mpdclient3.mpd_connection):
 
         # Select and focus previously selected item if it's not ".." or "/"
         if select_items:
-            if self.view == self.VIEW_ARTIST:
-                if self.view_artist_level == 1:
+            if self.lib_view == self.VIEW_ARTIST:
+                if self.lib_level == 1:
                     item = "/"
-                elif self.view_artist_level == 2:
-                    item = self.view_artist_artist
+                elif self.lib_level == 2:
+                    item = self.lib_artist
+                else:
+                    return
+            elif self.lib_view == self.VIEW_GENRE:
+                if self.lib_level == 0:
+                    item = "/"
+                elif self.lib_level == 1:
+                    item = self.lib_genre
+                elif self.lib_level == 2:
+                    item = self.lib_artist
                 else:
                     return
             else:
@@ -2643,7 +2726,7 @@ class Base(mpdclient3.mpd_connection):
                 except:
                     pass
 
-    def browse_parse_albumview_path(self, path):
+    def albumview_parse_path(self, path):
         # The first four chars are used to store the year. Returns
         # a tuple.
         year = path[:4]
@@ -2842,7 +2925,7 @@ class Base(mpdclient3.mpd_connection):
                         albumtime = 0
                         trackinfo = ""
                         albuminfo = self.songinfo.album + "\n"
-                        tracks = self.browse_search_album(self.songinfo.album)
+                        tracks = self.return_album_items(self.songinfo.album)
                         for track in tracks:
                             if track.has_key('title'):
                                 trackinfo = trackinfo + self.sanitize_mpdtag(getattr(track, 'track', '0'), False, 2) + '. ' + track.title + '\n'
@@ -2854,7 +2937,7 @@ class Base(mpdclient3.mpd_connection):
                                 albumtime = albumtime + int(track.time)
                             except:
                                 pass
-                        (year, i) = remove_list_duplicates(year, [], False)
+                        (year, tmp, tmp2) = remove_list_duplicates(year, case=False)
                         artist = self.current_artist_for_album_name[1]
                         artist_use_link = False
                         if artist != _("Various Artists"):
@@ -3014,24 +3097,36 @@ class Base(mpdclient3.mpd_connection):
         if value == "..":
             self.browse_parent_dir(None)
         else:
-            if self.view == self.VIEW_ARTIST:
+            if self.lib_view == self.VIEW_ARTIST or self.lib_view == self.VIEW_GENRE:
                 if value == "/":
-                    self.view_artist_level = 1
-                elif icon != 'sonata':
-                    self.view_artist_level = self.view_artist_level + 1
+                    if self.lib_view == self.VIEW_ARTIST:
+                        self.lib_level = 1
+                    elif self.lib_view == self.VIEW_GENRE:
+                        self.lib_level = 0
+                elif icon != self.sonatapb:
+                    self.lib_level = self.lib_level + 1
             self.browse(None, value)
 
     def browse_parent_dir(self, action):
         if self.current_tab == self.TAB_LIBRARY:
             if not self.searchbutton.get_property('visible'):
                 if self.browser.is_focus():
-                    if self.view == self.VIEW_ARTIST:
-                        if self.view_artist_level > 1:
-                            self.view_artist_level = self.view_artist_level - 1
-                        if self.view_artist_level == 1:
+                    if self.lib_view == self.VIEW_ARTIST:
+                        if self.lib_level > 1:
+                            self.lib_level -= 1
+                        if self.lib_level == 1:
                             value = "/"
                         else:
-                            value = self.view_artist_artist
+                            value = self.lib_artist
+                    elif self.lib_view == self.VIEW_GENRE:
+                        if self.lib_level > 0:
+                            self.lib_level -= 1
+                        if self.lib_level == 0:
+                            value = "/"
+                        elif self.lib_level == 1:
+                            value = self.lib_genre
+                        elif self.lib_level == 2:
+                            value = self.lib_artist
                     else:
                         value = '/'.join(self.wd.split('/')[:-1]) or '/'
                     self.browse(None, value)
@@ -3106,14 +3201,14 @@ class Base(mpdclient3.mpd_connection):
         if self.conn:
             self.conn.do.play(int(playid))
 
-    def browser_get_selected_items_recursive(self, return_root):
+    def browser_get_recursive_selection(self, return_root):
         # If return_root=True, return main directories whenever possible
         # instead of individual songs in order to reduce the number of
         # mpd calls we need to make. We won't want this behavior in some
         # instances, like when we want all end files for editing tags
         items = []
         model, selected = self.browser_selection.get_selected_rows()
-        if self.view == self.VIEW_FILESYSTEM or self.search_mode_enabled():
+        if self.lib_view == self.VIEW_FILESYSTEM or self.search_mode_enabled():
             if return_root and not self.search_mode_enabled() and ((self.wd == "/" and len(selected) == len(model)) or (self.wd != "/" and len(selected) >= len(model)-2)):
                 # Everything selected, this is faster..
                 items.append(self.wd)
@@ -3122,7 +3217,7 @@ class Base(mpdclient3.mpd_connection):
                     while gtk.events_pending():
                         gtk.main_iteration()
                     if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
-                        if model.get_value(model.get_iter(path), 0) == gtk.STOCK_OPEN:
+                        if model.get_value(model.get_iter(path), 0) == self.openpb:
                             if return_root and not self.search_mode_enabled():
                                 items.append(model.get_value(model.get_iter(path), 1))
                             else:
@@ -3131,33 +3226,32 @@ class Base(mpdclient3.mpd_connection):
                                         items.append(item.file)
                         else:
                             items.append(model.get_value(model.get_iter(path), 1))
-        elif self.view == self.VIEW_ARTIST:
+        elif self.lib_view == self.VIEW_ARTIST or (self.VIEW_GENRE and self.lib_level > 0):
+            # lib_level > 0 in genre view is equivalent to one of the
+            # artist view levels:
             for path in selected:
                 while gtk.events_pending():
                     gtk.main_iteration()
                 if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
-                    if self.view_artist_level == 1:
-                        for item in self.browse_search_artist(model.get_value(model.get_iter(path), 1)):
+                    if self.lib_level == 1:
+                        for item in self.return_artist_items(model.get_value(model.get_iter(path), 1)):
                             items.append(item.file)
                     else:
-                        if model.get_value(model.get_iter(path), 0) == 'album':
-                            (album, year) = self.browse_parse_albumview_path(model.get_value(model.get_iter(path), 1))
-                            for item in self.browse_search_album_with_artist_and_year(self.view_artist_artist, album, year):
+                        if model.get_value(model.get_iter(path), 0) != self.sonatapb:
+                            (album, year) = self.albumview_parse_path(model.get_value(model.get_iter(path), 1))
+                            for item in self.return_album_items_with_artist_and_year(self.lib_artist, album, year):
                                 items.append(item.file)
                         else:
                             items.append(model.get_value(model.get_iter(path), 1))
-        elif self.view == self.VIEW_ALBUM:
+        elif self.lib_view == self.VIEW_GENRE:
             for path in selected:
                 while gtk.events_pending():
                     gtk.main_iteration()
-                if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
-                    if self.wd == "/":
-                        for item in self.browse_search_album(model.get_value(model.get_iter(path), 1)):
-                            items.append(item.file)
-                    else:
-                        items.append(model.get_value(model.get_iter(path), 1))
+                genre = model.get_value(model.get_iter(path), 1)
+                for item in self.return_genre_items(genre):
+                    items.append(item.file)
         # Make sure we don't have any EXACT duplicates:
-        (items, i) = remove_list_duplicates(items, [], True)
+        (items, tmp, tmp2) = remove_list_duplicates(items, case=True)
         return items
 
     def add_item(self, widget, play_after=False):
@@ -3165,7 +3259,7 @@ class Base(mpdclient3.mpd_connection):
             if play_after and self.status:
                 playid = self.status.playlistlength
             if self.current_tab == self.TAB_LIBRARY:
-                items = self.browser_get_selected_items_recursive(True)
+                items = self.browser_get_recursive_selection(True)
                 self.conn.send.command_list_begin()
                 for item in items:
                     self.conn.send.add(item)
@@ -3407,10 +3501,6 @@ class Base(mpdclient3.mpd_connection):
                     # We need to make sure that we update the artist in case tags have changed:
                     self.reset_artist_for_album_name()
                     self.get_new_artist_for_album_name()
-                    # Resetting albums_root and artists_root to None will cause
-                    # the two lists to update to the new contents
-                    self.albums_root = None
-                    self.artists_root = None
                     # Now update the library and playlist tabs
                     self.browse(root=self.wd)
                     self.playlists_populate()
@@ -3891,8 +3981,7 @@ class Base(mpdclient3.mpd_connection):
                 # Use default Sonata icons to prevent remote/local artwork searching:
                 self.set_default_icon_for_art()
                 return
-            songdir = os.path.dirname(self.songinfo.file)
-            imgfound = self.check_for_local_images(songdir)
+            imgfound = self.check_for_local_images()
             if not imgfound:
                 if self.covers_pref == self.ART_LOCAL_REMOTE:
                     imgfound = self.check_remote_images(artist, album, filename)
@@ -3907,34 +3996,48 @@ class Base(mpdclient3.mpd_connection):
         f = open(filename, 'w')
         f.close()
 
-    def check_for_local_images(self, songdir):
+    def check_for_local_images(self):
         self.set_default_icon_for_art()
         self.misc_img_in_dir = None
         self.single_img_in_dir = None
-        if os.path.exists(self.target_image_filename(self.ART_LOCATION_HOMECOVERS)):
-            gobject.idle_add(self.set_image_for_cover, self.target_image_filename(self.ART_LOCATION_HOMECOVERS))
-            return True
-        elif os.path.exists(self.target_image_filename(self.ART_LOCATION_COVER)):
-            gobject.idle_add(self.set_image_for_cover, self.target_image_filename(self.ART_LOCATION_COVER))
-            return True
-        elif os.path.exists(self.target_image_filename(self.ART_LOCATION_ALBUM)):
-            gobject.idle_add(self.set_image_for_cover, self.target_image_filename(self.ART_LOCATION_ALBUM))
-            return True
-        elif os.path.exists(self.target_image_filename(self.ART_LOCATION_FOLDER)):
-            gobject.idle_add(self.set_image_for_cover, self.target_image_filename(self.ART_LOCATION_FOLDER))
-            return True
-        elif self.art_location == self.ART_LOCATION_CUSTOM and len(self.art_location_custom_filename) > 0 and os.path.exists(self.target_image_filename(self.ART_LOCATION_CUSTOM)):
-            gobject.idle_add(self.set_image_for_cover, self.target_image_filename(self.ART_LOCATION_CUSTOM))
-            return True
-        elif self.get_misc_img_in_path(songdir):
-            self.misc_img_in_dir = self.get_misc_img_in_path(songdir)
-            gobject.idle_add(self.set_image_for_cover, self.musicdir[self.profile_num] + songdir + "/" + self.misc_img_in_dir)
-            return True
-        elif self.get_single_img_in_path(songdir):
-            self.single_img_in_dir = self.get_single_img_in_path(songdir)
-            gobject.idle_add(self.set_image_for_cover, self.musicdir[self.profile_num] + songdir + "/" + self.single_img_in_dir)
+        type, filename = self.get_local_image()
+        if type and filename:
+            if type == self.ART_LOCATION_MISC:
+                self.misc_img_in_dir = filename
+                filename = self.musicdir[self.profile_num] + songdir + "/" + filename
+            elif type == self.ART_LOCATION_SINGLE:
+                self.single_img_in_dir = filename
+                filename = self.musicdir[self.profile_num] + songdir + "/" + filename
+            gobject.idle_add(self.set_image_for_cover, filename)
             return True
         return False
+
+    def get_local_image(self, songpath=None, artist=None, album=None):
+        # Returns a tuple (location_type, filename) or (None, None).
+        # Only pass a songpath, artist, and album if we don't want
+        # to use info from the currently playing song.
+        if not songpath:
+            songpath = os.path.dirname(self.songinfo.file)
+        testfile = self.target_image_filename(self.ART_LOCATION_HOMECOVERS, songpath, artist, album)
+        if os.path.exists(testfile):
+            return self.ART_LOCATION_HOMECOVERS, testfile
+        testfile = self.target_image_filename(self.ART_LOCATION_COVER, songpath, artist, album)
+        if os.path.exists(testfile):
+            return self.ART_LOCATION_COVER, testfile
+        testfile = self.target_image_filename(self.ART_LOCATION_ALBUM, songpath, artist, album)
+        if os.path.exists(testfile):
+            return self.ART_LOCATION_ALBUM, testfile
+        testfile = self.target_image_filename(self.ART_LOCATION_FOLDER, songpath, artist, album)
+        if os.path.exists(testfile):
+            return self.ART_LOCATION_FOLDER, testfile
+        testfile = self.target_image_filename(self.ART_LOCATION_CUSTOM, songpath, artist, album)
+        if self.art_location == self.ART_LOCATION_CUSTOM and len(self.art_location_custom_filename) > 0 and os.path.exists(testfile):
+            return self.ART_LOCATION_CUSTOM, testfile
+        if self.get_misc_img_in_path(songpath):
+            return self.ART_LOCATION_MISC, self.get_misc_img_in_path(songpath)
+        if self.get_single_img_in_path(songpath):
+            return self.ART_LOCATION_SINGLE, self.get_single_img_in_path(songpath)
+        return None, None
 
     def check_remote_images(self, artist, album, filename):
         self.set_default_icon_for_art()
@@ -4713,28 +4816,34 @@ class Base(mpdclient3.mpd_connection):
             except:
                 return targetfile
 
-    def target_image_filename(self, force_location=None):
+    def target_image_filename(self, force_location=None, songpath=None, artist=None, album=None):
+        # Only pass songpath, artist, and album if we are trying to get the
+        # filename for an album that isn't currently playing
         if self.conn:
+            # If no info passed, you info from currently playing song:
+            if not album:
+                album = getattr(self.songinfo, 'album', "").replace("/", "")
+            if not artist:
+                artist = self.current_artist_for_album_name[1].replace("/", "")
+            if not songpath:
+                songpath = os.path.dirname(self.songinfo.file)
+            # Return target filename:
             if force_location is not None:
                 art_loc = force_location
             else:
                 art_loc = self.art_location
             if art_loc == self.ART_LOCATION_HOMECOVERS:
-                album = getattr(self.songinfo, 'album', "").replace("/", "")
-                artist = self.current_artist_for_album_name[1].replace("/", "")
                 targetfile = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
             elif art_loc == self.ART_LOCATION_COVER:
-                targetfile = self.musicdir[self.profile_num] + os.path.dirname(self.songinfo.file) + "/cover.jpg"
+                targetfile = self.musicdir[self.profile_num] + songpath + "/cover.jpg"
             elif art_loc == self.ART_LOCATION_FOLDER:
-                targetfile = self.musicdir[self.profile_num] + os.path.dirname(self.songinfo.file) + "/folder.jpg"
+                targetfile = self.musicdir[self.profile_num] + songpath + "/folder.jpg"
             elif art_loc == self.ART_LOCATION_ALBUM:
-                targetfile = self.musicdir[self.profile_num] + os.path.dirname(self.songinfo.file) + "/album.jpg"
+                targetfile = self.musicdir[self.profile_num] + songpath + "/album.jpg"
             elif art_loc == self.ART_LOCATION_CUSTOM:
-                targetfile = self.musicdir[self.profile_num] + os.path.dirname(self.songinfo.file) + "/" + self.art_location_custom_filename
+                targetfile = self.musicdir[self.profile_num] + songpath + "/" + self.art_location_custom_filename
             elif art_loc == self.ART_LOCATION_NONE:
                 # flag filename to indicate that we should use the default Sonata icons:
-                album = getattr(self.songinfo, 'album', "").replace("/", "")
-                artist = self.current_artist_for_album_name[1].replace("/", "")
                 targetfile = os.path.expanduser("~/.covers/" + artist + "-" + album + "-" + self.ART_LOCATION_NONE_FLAG + ".jpg")
             try:
                 return targetfile.decode(self.enc).encode('utf8')
@@ -4762,7 +4871,7 @@ class Base(mpdclient3.mpd_connection):
         if self.current_artist_for_album_name[0] == self.songinfo:
             # Re-use existing info:
             return self.current_artist_for_album_name[1]
-        songs = self.browse_search_album(self.songinfo.album)
+        songs = self.return_album_items(self.songinfo.album)
         artists = []
         return_artist = ""
         for song in songs:
@@ -4771,7 +4880,7 @@ class Base(mpdclient3.mpd_connection):
                     artists.append(song.artist)
                     if self.songinfo.file == song.file:
                         return_artist = song.artist
-        (artists, i) = remove_list_duplicates(artists, [], False)
+        (artists, tmp, tmp2) = remove_list_duplicates(artists, case=False)
         if len(artists) > 3:
             return_artist = _("Various Artists")
         self.current_artist_for_album_name = [self.songinfo, return_artist]
@@ -5324,7 +5433,8 @@ class Base(mpdclient3.mpd_connection):
             while gtk.events_pending():
                 gtk.main_iteration()
             if self.current_tab == self.TAB_CURRENT:
-                model, selected = self.current_selection.get_selected_rows()
+                treeviewsel = self.current_selection
+                model, selected = treeviewsel.get_selected_rows()
                 if len(selected) == len(self.currentdata) and not self.filterbox_visible:
                     # Everything is selected, clear:
                     self.conn.do.clear()
@@ -5349,14 +5459,16 @@ class Base(mpdclient3.mpd_connection):
                     if not self.filterbox_visible:
                         self.current.set_model(model)
             elif self.current_tab == self.TAB_PLAYLISTS:
-                model, selected = self.playlists_selection.get_selected_rows()
+                treeviewsel = self.playlists_selection
+                model, selected = treeviewsel.get_selected_rows()
                 if show_error_msg_yesno(self.window, gettext.ngettext("Delete the selected playlist?", "Delete the selected playlists?", int(len(selected))), gettext.ngettext("Delete Playlist", "Delete Playlists", int(len(selected))), 'deletePlaylist') == gtk.RESPONSE_YES:
                     iters = [model.get_iter(path) for path in selected]
                     for iter in iters:
                         self.conn.do.rm(unescape_html(self.playlistsdata.get_value(iter, 1)))
                     self.playlists_populate()
             elif self.current_tab == self.TAB_STREAMS:
-                model, selected = self.streams_selection.get_selected_rows()
+                treeviewsel = self.streams_selection
+                model, selected = treeviewsel.get_selected_rows()
                 if show_error_msg_yesno(self.window, gettext.ngettext("Delete the selected stream?", "Delete the selected streams?", int(len(selected))), gettext.ngettext("Delete Stream", "Delete Streams", int(len(selected))), 'deleteStreams') == gtk.RESPONSE_YES:
                     iters = [model.get_iter(path) for path in selected]
                     for iter in iters:
@@ -5369,6 +5481,18 @@ class Base(mpdclient3.mpd_connection):
                                     stream_removed = True
                     self.streams_populate()
             self.iterate_now()
+            # Attempt to retain selection in the vicinity..
+            try:
+                # Use top row in selection...
+                selrow = 999999
+                for row in selected:
+                    if row[0] < selrow:
+                        selrow = row[0]
+                if selrow >= len(model):
+                    selrow = len(model)-1
+                treeviewsel.select_path(selrow)
+            except:
+                pass
 
     def randomize(self, widget):
         # Ironically enough, the command to turn shuffle on/off is called
@@ -6364,12 +6488,12 @@ class Base(mpdclient3.mpd_connection):
                 if item.type == 'directory':
                     name = item.directory.split('/')[-1]
                     # sorting shouldn't really matter here. Ever seen a search turn up a directory?
-                    bd += [('d' + item.directory.lower(), [gtk.STOCK_OPEN, item.directory, escape_html(name)])]
+                    bd += [('d' + item.directory.lower(), [self.openpb, item.directory, escape_html(name)])]
                 elif item.type == 'file':
                     try:
-                        bd += [('f' + lower_no_the(item.artist) + '\t' + item.title.lower(), ['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])]
+                        bd += [('f' + lower_no_the(item.artist) + '\t' + item.title.lower(), [self.sonatapb, item.file, self.parse_formatting(self.libraryformat, item, True)])]
                     except:
-                        bd += [('f' + item.file.lower(), ['sonata', item.file, self.parse_formatting(self.libraryformat, item, True)])]
+                        bd += [('f' + item.file.lower(), [self.sonatapb, item.file, self.parse_formatting(self.libraryformat, item, True)])]
             bd.sort(key=first_of_2tuple)
             for sort, list in bd:
                 self.browserdata.append(list)
@@ -6566,7 +6690,7 @@ class Base(mpdclient3.mpd_connection):
                 temp_mpdpaths.append(mpdpath)
         elif self.current_tab == self.TAB_LIBRARY:
             # Populates files array with selected library items:
-            items = self.browser_get_selected_items_recursive(False)
+            items = self.browser_get_recursive_selection(False)
             for item in items:
                 files.append(self.musicdir[self.profile_num] + item)
                 temp_mpdpaths.append(item)
@@ -7744,29 +7868,28 @@ def removeall(path):
             f=os.rmdir
             rmgeneric(fullpath, f)
 
-def remove_list_duplicates(inputlist, inputlist2=[], case_sensitive=True):
+def remove_list_duplicates(inputlist, inputlist2=[], inputlist3=[], case=True):
     # If inputlist2 is provided, keep it synced with inputlist.
-    # Note that this is only implemented if case_sensitive=False.
+    # Note that this is only implemented if case=False.
     # Also note that we do this manually instead of using list(set(x))
     # so that the inputlist order is preserved.
-    if len(inputlist2) > 0:
-        sync_lists = True
-    else:
-        sync_lists = False
+    sync2 = (len(inputlist2) > 0)
+    sync3 = (len(inputlist3) > 0)
     outputlist = []
     outputlist2 = []
+    outputlist3 = []
     for i in range(len(inputlist)):
         dup = False
         # Search outputlist from the end, since the inputlist is typically in
         # alphabetical order
         j = len(outputlist)-1
-        if case_sensitive:
+        if case:
             while j >= 0:
                 if inputlist[i] == outputlist[j]:
                     dup = True
                     break
                 j = j - 1
-        elif sync_lists:
+        elif sync2:
             while j >= 0:
                 if inputlist[i].lower() == outputlist[j].lower() and inputlist2[i].lower() == outputlist2[j].lower():
                     dup = True
@@ -7780,9 +7903,11 @@ def remove_list_duplicates(inputlist, inputlist2=[], case_sensitive=True):
                 j = j - 1
         if not dup:
             outputlist.append(inputlist[i])
-            if sync_lists:
+            if sync2:
                 outputlist2.append(inputlist2[i])
-    return (outputlist, outputlist2)
+            if sync3:
+                outputlist3.append(inputlist3[i])
+    return (outputlist, outputlist2, outputlist3)
 
 the_re = re.compile('^the ')
 def lower_no_the(s):
