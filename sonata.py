@@ -2517,6 +2517,8 @@ class Base(mpdclient3.mpd_connection):
                 root = '/'
                 for artist in self.return_artists():
                     bd += [(lower_no_the(artist), [self.artistpb, artist, escape_html(artist)])]
+                if self.lib_view == self.VIEW_ARTIST:
+                    bd += [(_("Untagged").lower(), [self.artistpb, _("Untagged"), _("Untagged")])]
                 bd.sort(key=first_of_2tuple)
             elif self.lib_level == 2: # Albums (and songs not in albums)
                 bd += [('0', [self.harddiskpb, '/', '/'])]
@@ -2611,20 +2613,17 @@ class Base(mpdclient3.mpd_connection):
         untagged_genre = (self.lib_genre == _("Untagged"))
         if use_genre:
             list = []
-            artists = []
             if not untagged_genre:
                 for item in self.conn.do.search('genre', self.lib_genre):
                     if item.has_key('artist'):
                         # Make sure it's an exact match:
-                        if self.lib_genre.lower() == item.genre.lower() and not item.artist.lower() in artists:
+                        if self.lib_genre.lower() == item.genre.lower():
                             list.append(item.artist)
-                            artists.append(item.artist.lower())
             else:
                 for item in self.conn.do.listallinfo('/'):
                     if not item.has_key('genre') and item.has_key('file') and item.has_key('artist'):
-                        if not item.artist.lower() in artists:
-                            list.append(item.artist)
-                            artists.append(item.artist.lower())
+                        list.append(item.artist)
+            (list, tmp, tmp2) = remove_list_duplicates(list, case=False)
             list.sort(locale.strcoll)
             return list
         else:
@@ -2663,19 +2662,26 @@ class Base(mpdclient3.mpd_connection):
         list = []
         use_genre = (use_genre_if_genre_view and self.lib_view == self.VIEW_GENRE)
         untagged_genre = (self.lib_genre == _("Untagged"))
-        if use_genre and not untagged_genre:
+        untagged_artist = (artist == _("Untagged"))
+        if use_genre and not untagged_genre and not untagged_artist:
             items = self.conn.do.search('artist', artist, 'genre', self.lib_genre)
-        else:
+        elif not untagged_artist:
             items = self.conn.do.search('artist', artist)
+        else:
+            items = self.conn.do.listallinfo('/')
         for item in items:
-            # Make sure it's an exact match:
-            if artist.lower() == item.artist.lower():
-                if not untagged_genre:
-                    if not use_genre or (use_genre and self.lib_genre.lower() == item.genre.lower()):
-                        list.append(item)
-                else:
-                    if not item.has_key('genre') and item.has_key('file'):
-                        list.append(item)
+            if untagged_artist:
+                if not item.has_key('artist') and item.has_key('file'):
+                    list.append(item)
+            else:
+                # Make sure it's an exact match:
+                if artist.lower() == item.artist.lower():
+                    if not untagged_genre:
+                        if not use_genre or (use_genre and self.lib_genre.lower() == item.genre.lower()):
+                            list.append(item)
+                    elif not untagged_artist:
+                        if not item.has_key('genre') and item.has_key('file'):
+                            list.append(item)
         list.sort(key=lambda x: getattr(x, 'date', '0').split('-')[0].zfill(4))
         return list
 
@@ -2687,35 +2693,42 @@ class Base(mpdclient3.mpd_connection):
         list = []
         use_genre = (use_genre_if_genre_view and self.lib_view == self.VIEW_GENRE)
         untagged_genre = (self.lib_genre == _("Untagged"))
-        if use_genre and not untagged_genre:
+        untagged_artist = (artist == _("Untagged"))
+        if use_genre and not untagged_genre and not untagged_artist:
             items = self.conn.do.search('album', album, 'artist', artist, 'genre', self.lib_genre)
-        else:
+        elif not untagged_artist:
             items = self.conn.do.search('album', album, 'artist', artist)
+        else:
+            items = self.conn.do.search('album', album)
         for item in items:
-            # Make sure it's an exact match:
-            if artist.lower() == item.artist.lower() and album.lower() == item.album.lower():
-                match = False
-                if not untagged_genre:
-                    if not use_genre or (use_genre and self.lib_genre.lower() == item.genre.lower()):
-                        match = True
-                else:
-                    if not item.has_key('genre') and item.has_key('file'):
-                        match = True
-                if match:
-                    if year is None:
-                        list.append(item)
+            match = False
+            if untagged_artist:
+                if not item.has_key('artist') and item.has_key('file'):
+                    match = True
+            else:
+                # Make sure it's an exact match:
+                if artist.lower() == item.artist.lower() and album.lower() == item.album.lower():
+                    if not untagged_genre:
+                        if not use_genre or (use_genre and self.lib_genre.lower() == item.genre.lower()):
+                            match = True
                     else:
-                        # Make sure it also matches the year:
-                        if year != '9999' and item.has_key('date'):
-                            # Only show songs whose years match the year var:
-                            try:
-                                if int(item.date.split('-')[0]) == int(year):
-                                    list.append(item)
-                            except:
-                                pass
-                        elif not item.has_key('date'):
-                            # Only show songs that have no year specified:
-                            list.append(item)
+                        if not item.has_key('genre') and item.has_key('file'):
+                            match = True
+            if match:
+                if year is None:
+                    list.append(item)
+                else:
+                    # Make sure it also matches the year:
+                    if year != '9999' and item.has_key('date'):
+                        # Only show songs whose years match the year var:
+                        try:
+                            if int(item.date.split('-')[0]) == int(year):
+                                list.append(item)
+                        except:
+                            pass
+                    elif not item.has_key('date'):
+                        # Only show songs that have no year specified:
+                        list.append(item)
         list.sort(key=lambda x: int(self.sanitize_mpdtag(getattr(x, 'disc', '0'), False, 2) + self.sanitize_mpdtag(getattr(x, 'track', '0'), False, 2)))
         return list
 

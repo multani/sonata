@@ -23,6 +23,7 @@ v1.5
 		ability to view songs, reorder songs, remove songs, etc
 	allow additional columns for library (like current)
 	show artists/genres that are untagged?
+		- untagged artists in untagged genres?
 	
 Future:
 	lyrics -> ability to save changes
