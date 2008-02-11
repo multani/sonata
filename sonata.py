@@ -2506,6 +2506,7 @@ class Base(mpdclient3.mpd_connection):
                 root = '/'
                 for genre in self.return_genres():
                     bd += [(lower_no_the(genre), [self.genrepb, genre, escape_html(genre)])]
+                bd += [(_("Untagged").lower(), [self.genrepb, _("Untagged"), _("Untagged")])]
                 bd.sort(key=first_of_2tuple)
             elif self.lib_level == 1: # Artists
                 if self.lib_view == self.VIEW_GENRE:
@@ -2591,26 +2592,40 @@ class Base(mpdclient3.mpd_connection):
             genre = search_genre
         else:
             genre = self.lib_genre
+        untagged_genre = (genre == _("Untagged"))
         list = []
-        for item in self.conn.do.search('genre', genre):
-            # Make sure it's an exact match:
-            if genre.lower() == item.genre.lower():
-                list.append(item)
+        if not untagged_genre:
+            for item in self.conn.do.search('genre', genre):
+                # Make sure it's an exact match:
+                if genre.lower() == item.genre.lower():
+                    list.append(item)
+        else:
+            for item in self.conn.do.listallinfo('/'):
+                if not item.has_key('genre') and item.has_key('file'):
+                    list.append(item)
         list.sort(key=lambda x: int(self.sanitize_mpdtag(getattr(x, 'disc', '0'), False, 2) + self.sanitize_mpdtag(getattr(x, 'track', '0'), False, 2)))
         return list
 
     def return_artists(self, use_genre_if_genre_view=True):
         # Returns all artists in alphabetical order
         use_genre = (use_genre_if_genre_view and self.lib_view == self.VIEW_GENRE)
+        untagged_genre = (self.lib_genre == _("Untagged"))
         if use_genre:
             list = []
             artists = []
-            for item in self.conn.do.search('genre', self.lib_genre):
-                if item.has_key('artist'):
-                    # Make sure it's an exact match:
-                    if self.lib_genre.lower() == item.genre.lower() and not item.artist.lower() in artists:
-                        list.append(item.artist)
-                        artists.append(item.artist.lower())
+            if not untagged_genre:
+                for item in self.conn.do.search('genre', self.lib_genre):
+                    if item.has_key('artist'):
+                        # Make sure it's an exact match:
+                        if self.lib_genre.lower() == item.genre.lower() and not item.artist.lower() in artists:
+                            list.append(item.artist)
+                            artists.append(item.artist.lower())
+            else:
+                for item in self.conn.do.listallinfo('/'):
+                    if not item.has_key('genre') and item.has_key('file') and item.has_key('artist'):
+                        if not item.artist.lower() in artists:
+                            list.append(item.artist)
+                            artists.append(item.artist.lower())
             list.sort(locale.strcoll)
             return list
         else:
@@ -2626,15 +2641,20 @@ class Base(mpdclient3.mpd_connection):
         # If we are in genre view, make sure items match the genre too.
         list = []
         use_genre = (use_genre_if_genre_view and self.lib_view == self.VIEW_GENRE)
-        if use_genre:
+        untagged_genre = (self.lib_genre == _("Untagged"))
+        if use_genre and not untagged_genre:
             items = self.conn.do.search('album', album, 'genre', self.lib_genre)
         else:
             items = self.conn.do.search('album', album)
         for item in items:
             # Make sure it's an exact match:
             if album.lower() == item.album.lower():
-                if not use_genre or (use_genre and self.lib_genre.lower() == item.genre.lower()):
-                    list.append(item)
+                if not untagged_genre:
+                    if not use_genre or (use_genre and self.lib_genre.lower() == item.genre.lower()):
+                        list.append(item)
+                else:
+                    if not item.has_key('genre') and item.has_key('file'):
+                        list.append(item)
         list.sort(key=lambda x: int(self.sanitize_mpdtag(getattr(x, 'disc', '0'), False, 2) + self.sanitize_mpdtag(getattr(x, 'track', '0'), False, 2)))
         return list
 
@@ -2643,15 +2663,20 @@ class Base(mpdclient3.mpd_connection):
         # If we are in genre view, make sure items match the genre too.
         list = []
         use_genre = (use_genre_if_genre_view and self.lib_view == self.VIEW_GENRE)
-        if use_genre:
+        untagged_genre = (self.lib_genre == _("Untagged"))
+        if use_genre and not untagged_genre:
             items = self.conn.do.search('artist', artist, 'genre', self.lib_genre)
         else:
             items = self.conn.do.search('artist', artist)
         for item in items:
             # Make sure it's an exact match:
             if artist.lower() == item.artist.lower():
-                if not use_genre or (use_genre and self.lib_genre.lower() == item.genre.lower()):
-                    list.append(item)
+                if not untagged_genre:
+                    if not use_genre or (use_genre and self.lib_genre.lower() == item.genre.lower()):
+                        list.append(item)
+                else:
+                    if not item.has_key('genre') and item.has_key('file'):
+                        list.append(item)
         list.sort(key=lambda x: getattr(x, 'date', '0').split('-')[0].zfill(4))
         return list
 
@@ -2662,14 +2687,22 @@ class Base(mpdclient3.mpd_connection):
         # If we are in genre view, make sure items match the genre too.
         list = []
         use_genre = (use_genre_if_genre_view and self.lib_view == self.VIEW_GENRE)
-        if use_genre:
+        untagged_genre = (self.lib_genre == _("Untagged"))
+        if use_genre and not untagged_genre:
             items = self.conn.do.search('album', album, 'artist', artist, 'genre', self.lib_genre)
         else:
             items = self.conn.do.search('album', album, 'artist', artist)
         for item in items:
             # Make sure it's an exact match:
             if artist.lower() == item.artist.lower() and album.lower() == item.album.lower():
-                if not use_genre or (use_genre and self.lib_genre.lower() == item.genre.lower()):
+                match = False
+                if not untagged_genre:
+                    if not use_genre or (use_genre and self.lib_genre.lower() == item.genre.lower()):
+                        match = True
+                else:
+                    if not item.has_key('genre') and item.has_key('file'):
+                        match = True
+                if match:
                     if year is None:
                         list.append(item)
                     else:
