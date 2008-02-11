@@ -2361,22 +2361,21 @@ class Base(mpdclient3.mpd_connection):
         elif action.get_name() == 'genreview':
             self.lib_view = self.VIEW_GENRE
         self.browser.grab_focus()
-        if self.lib_view != prev_view:
-            self.libraryview_assign_image()
-            # Go to highest level for artist/genre views:
-            if self.lib_view == self.VIEW_ARTIST:
-                self.lib_level = 1
-            elif self.lib_view == self.VIEW_GENRE:
-                self.lib_level = 0
-            self.browserposition = {}
-            self.browserselectedpath = {}
-            try:
-                self.browse()
-                if len(self.browserdata) > 0:
-                    self.browser_selection.unselect_range((0,), (len(self.browserdata)-1,))
-            except:
-                pass
-            gobject.idle_add(self.browser.scroll_to_point, 0, 0)
+        self.libraryview_assign_image()
+        # Go to highest level for artist/genre views:
+        if self.lib_view == self.VIEW_ARTIST:
+            self.lib_level = 1
+        elif self.lib_view == self.VIEW_GENRE:
+            self.lib_level = 0
+        self.browserposition = {}
+        self.browserselectedpath = {}
+        try:
+            self.browse()
+            if len(self.browserdata) > 0:
+                self.browser_selection.unselect_range((0,), (len(self.browserdata)-1,))
+        except:
+            pass
+        gobject.idle_add(self.browser.scroll_to_point, 0, 0)
 
     def libraryview_assign_image(self):
         if self.lib_view == self.VIEW_FILESYSTEM:
