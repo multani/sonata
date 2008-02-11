@@ -4767,7 +4767,7 @@ class Base(mpdclient3.mpd_connection):
             # Force a resize of the info labels, if needed:
             gobject.idle_add(self.on_notebook_resize, self.notebook, None)
         elif event.button == 1:
-            if not self.expanded:
+            if self.expanded:
                 if self.current_tab != self.TAB_INFO:
                     self.img_clicked = True
                     self.switch_to_tab_name(self.TAB_INFO)
