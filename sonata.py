@@ -5352,9 +5352,14 @@ class Base(mpdclient3.mpd_connection):
         self.on_volumebutton_scroll(widget, event)
 
     def trayaction_size(self, widget, allocation):
-        if not self.eggtrayheight or self.eggtrayheight != widget.allocation.height:
-            self.eggtrayheight = widget.allocation.height
-            if self.eggtrayfile > 5:
+        if widget.allocation.height <= 5:
+            # For vertical panels, height can be 1px, so use width
+            size = widget.allocation.width
+        else:
+            size = widget.allocation.height
+        if (not self.eggtrayheight or self.eggtrayheight != size) and self.eggtrayfile:
+            self.eggtrayheight = size
+            if size > 5:
                 self.trayimage.set_from_pixbuf(self.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
 
     def quit_activate(self, widget):
