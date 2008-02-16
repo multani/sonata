@@ -1,6 +1,6 @@
 # coding=utf-8
-# $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/sonata_main.py $
-# $Id: sonata_main.py 141 2006-09-11 04:51:07Z stonecrest $
+# $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/main.py $
+# $Id: main.py 141 2006-09-11 04:51:07Z stonecrest $
 
 __version__ = "1.4.2"
 
@@ -26,7 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import warnings, sys, os, gobject, ConfigParser, urllib, urllib2, re
 import socket, gc, gettext, locale, shutil, getopt, threading, time
-import ui, misc
+import ui, misc, img
 
 try:
     import gtk, pango, mpdclient3
@@ -653,7 +653,7 @@ class Base(mpdclient3.mpd_connection):
         tophbox = gtk.HBox()
         self.albumimage = ui.image()
         self.imageeventbox = ui.eventbox(add=self.albumimage)
-        self.imageeventbox.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT | gtk.DEST_DEFAULT_DROP, [("text/uri-list", 0, 80)], gtk.gdk.ACTION_DEFAULT)
+        self.imageeventbox.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT | gtk.DEST_DEFAULT_DROP, [("text/uri-list", 0, 80), ("text/plain", 0, 80)], gtk.gdk.ACTION_DEFAULT)
         if not self.show_covers:
             ui.hide(self.imageeventbox)
         tophbox.pack_start(self.imageeventbox, False, False, 5)
@@ -1136,7 +1136,7 @@ class Base(mpdclient3.mpd_connection):
             self.info_imagebox = ui.eventbox(add=self.info_image)
         else:
             self.info_imagebox = ui.eventbox(add=self.info_image, w=152)
-        self.info_imagebox.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT | gtk.DEST_DEFAULT_DROP, [("text/uri-list", 0, 80)], gtk.gdk.ACTION_DEFAULT)
+        self.info_imagebox.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT | gtk.DEST_DEFAULT_DROP, [("text/uri-list", 0, 80), ("text/plain", 0, 80)], gtk.gdk.ACTION_DEFAULT)
         self.info_imagebox.connect('button_press_event', self.on_image_activate)
         self.info_imagebox.connect('drag_motion', self.on_image_motion_cb)
         self.info_imagebox.connect('drag_data_received', self.on_image_drop_cb)
@@ -1982,7 +1982,7 @@ class Base(mpdclient3.mpd_connection):
                 self.statusicon.set_from_file(self.find_path('sonata_disconnect.png'))
             elif HAVE_EGG and self.eggtrayheight:
                 self.eggtrayfile = self.find_path('sonata_disconnect.png')
-                self.trayimage.set_from_pixbuf(self.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
+                self.trayimage.set_from_pixbuf(img.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
             self.info_update(True)
         else:
             for mediabutton in (self.ppbutton, self.stopbutton, self.prevbutton, self.nextbutton, self.volumebutton):
@@ -3322,7 +3322,7 @@ class Base(mpdclient3.mpd_connection):
                     self.statusicon.set_from_file(self.find_path('sonata.png'))
                 elif HAVE_EGG and self.eggtrayheight:
                     self.eggtrayfile = self.find_path('sonata.png')
-                    self.trayimage.set_from_pixbuf(self.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
+                    self.trayimage.set_from_pixbuf(img.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
             elif self.status.state == 'pause':
                 self.ppbutton.set_image(ui.image(stock=gtk.STOCK_MEDIA_PLAY, stocksize=gtk.ICON_SIZE_BUTTON))
                 self.ppbutton.get_child().get_child().get_children()[1].set_text('')
@@ -3332,7 +3332,7 @@ class Base(mpdclient3.mpd_connection):
                     self.statusicon.set_from_file(self.find_path('sonata_pause.png'))
                 elif HAVE_EGG and self.eggtrayheight:
                     self.eggtrayfile = self.find_path('sonata_pause.png')
-                    self.trayimage.set_from_pixbuf(self.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
+                    self.trayimage.set_from_pixbuf(img.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
             elif self.status.state == 'play':
                 self.ppbutton.set_image(ui.image(stock=gtk.STOCK_MEDIA_PAUSE, stocksize=gtk.ICON_SIZE_BUTTON))
                 self.ppbutton.get_child().get_child().get_children()[1].set_text('')
@@ -3346,7 +3346,7 @@ class Base(mpdclient3.mpd_connection):
                     self.statusicon.set_from_file(self.find_path('sonata_play.png'))
                 elif HAVE_EGG and self.eggtrayheight:
                     self.eggtrayfile = self.find_path('sonata_play.png')
-                    self.trayimage.set_from_pixbuf(self.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
+                    self.trayimage.set_from_pixbuf(img.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
 
             self.update_album_art()
             if self.status.state in ['play', 'pause']:
@@ -3957,18 +3957,18 @@ class Base(mpdclient3.mpd_connection):
                 try:
                     pix = gtk.gdk.pixbuf_new_from_file(filename)
                     if not info_img_only:
-                        (pix1, w, h) = self.get_pixbuf_of_size(pix, 75)
-                        pix1 = self.pixbuf_add_border(pix1)
-                        pix1 = self.pixbuf_pad(pix1, 77, 77)
+                        (pix1, w, h) = img.get_pixbuf_of_size(pix, 75)
+                        pix1 = img.pixbuf_add_border(pix1)
+                        pix1 = img.pixbuf_pad(pix1, 77, 77)
                         self.albumimage.set_from_pixbuf(pix1)
                         self.set_tooltip_art(pix1)
                         del pix1
                     if self.info_imagebox.get_size_request()[0] == -1:
                         fullwidth = self.notebook.get_allocation()[2] - 50
-                        (pix2, w, h) = self.get_pixbuf_of_size(pix, fullwidth)
+                        (pix2, w, h) = img.get_pixbuf_of_size(pix, fullwidth)
                     else:
-                        (pix2, w, h) = self.get_pixbuf_of_size(pix, 150)
-                    pix2 = self.pixbuf_add_border(pix2)
+                        (pix2, w, h) = img.get_pixbuf_of_size(pix, 150)
+                    pix2 = img.pixbuf_add_border(pix2)
                     self.info_image.set_from_pixbuf(pix2)
                     del pix2
                     self.lastalbumart = filename
@@ -4062,7 +4062,7 @@ class Base(mpdclient3.mpd_connection):
                                 if os.path.exists(dest_filename_curr):
                                     pix = gtk.gdk.pixbuf_new_from_file(dest_filename_curr)
                                     pix = pix.scale_simple(148, 148, gtk.gdk.INTERP_HYPER)
-                                    pix = self.pixbuf_add_border(pix)
+                                    pix = img.pixbuf_add_border(pix)
                                     if self.stop_art_update:
                                         del pix
                                         self.downloading_image = False
@@ -4657,24 +4657,52 @@ class Base(mpdclient3.mpd_connection):
             uri = selection.data.strip()
             path = urllib.url2pathname(uri)
             paths = path.rsplit('\n')
-            for i, path in enumerate(paths):
-                paths[i] = path.rstrip('\r')
-                # Clean up (remove preceding "file://" or "file:")
-                if paths[i].startswith('file://'):
-                    paths[i] = paths[i][7:]
-                elif paths[i].startswith('file:'):
-                    paths[i] = paths[i][5:]
-                paths[i] = os.path.abspath(paths[i])
-                if ui.valid_image(paths[i]):
-                    dest_filename = self.target_image_filename()
-                    album = getattr(self.songinfo, 'album', "").replace("/", "")
-                    artist = self.current_artist_for_album_name[1].replace("/", "")
-                    self.remove_art_location_none_file(artist, album)
-                    misc.create_dir('~/.covers/')
-                    if dest_filename != paths[i]:
-                        shutil.copyfile(paths[i], dest_filename)
-                    self.lastalbumart = None
-                    self.update_album_art()
+            thread = threading.Thread(target=self.on_image_drop_cb_thread, args=(paths,))
+            thread.setDaemon(True)
+            thread.start()
+
+    def on_image_drop_cb_thread(self, paths):
+        for i, path in enumerate(paths):
+            remove_after_set = False
+            paths[i] = path.rstrip('\r')
+            # Clean up (remove preceding "file://" or "file:")
+            if paths[i].startswith('file://'):
+                paths[i] = paths[i][7:]
+            elif paths[i].startswith('file:'):
+                paths[i] = paths[i][5:]
+            elif re.match('^(https?|ftp)://', paths[i]):
+                try:
+                    # Eliminate query arguments and extract extension & filename
+                    path = urllib.splitquery(paths[i])[0]
+                    extension = os.path.splitext(path)[1][1:]
+                    filename = os.path.split(path)[1]
+                    if img.extension_is_valid(extension):
+                        # Save to temp dir.. we will delete the image afterwards
+                        dest_file = os.path.expanduser('~/.covers/temp/' + filename)
+                        misc.create_dir('~/.covers/temp')
+                        urllib.urlretrieve(paths[i], dest_file)
+                        paths[i] = dest_file
+                        remove_after_set = True
+                    else:
+                        continue
+                except:
+                    # cleanup undone file
+                    if os.path.exists(paths[i]):
+                        os.remove(paths[i])
+                    raise
+            paths[i] = os.path.abspath(paths[i])
+            if img.valid_image(paths[i]):
+                dest_filename = self.target_image_filename()
+                album = getattr(self.songinfo, 'album', "").replace("/", "")
+                artist = self.current_artist_for_album_name[1].replace("/", "")
+                self.remove_art_location_none_file(artist, album)
+                misc.create_dir('~/.covers/')
+                if dest_filename != paths[i]:
+                    shutil.copyfile(paths[i], dest_filename)
+                self.lastalbumart = None
+                self.update_album_art()
+                if remove_after_set:
+                    os.remove(paths[i])
 
     def target_lyrics_filename(self, artist, title, force_location=None):
         if self.conn:
@@ -4766,45 +4794,6 @@ class Base(mpdclient3.mpd_connection):
                 if url != 0:
                 self.show_website(None, None, url)
                 break
-
-    def get_pixbuf_of_size(self, pixbuf, size):
-        # Creates a pixbuf that fits in the specified square of sizexsize
-        # while preserving the aspect ratio
-        # Returns tuple: (scaled_pixbuf, actual_width, actual_height)
-        image_width = pixbuf.get_width()
-        image_height = pixbuf.get_height()
-        if image_width-size > image_height-size:
-            if image_width > size:
-                image_height = int(size/float(image_width)*image_height)
-                image_width = size
-        else:
-            if image_height > size:
-                image_width = int(size/float(image_height)*image_width)
-                image_height = size
-        crop_pixbuf = pixbuf.scale_simple(image_width, image_height, gtk.gdk.INTERP_HYPER)
-        return (crop_pixbuf, image_width, image_height)
-
-    def pixbuf_add_border(self, pix):
-        # Add a gray outline to pix. This will increase the pixbuf size by
-        # 2 pixels lengthwise and heightwise, 1 on each side. Returns pixbuf.
-        width = pix.get_width()
-        height = pix.get_height()
-        newpix = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, width+2, height+2)
-        newpix.fill(0x858585ff)
-        pix.copy_area(0, 0, width, height, newpix, 1, 1)
-        return newpix
-
-    def pixbuf_pad(self, pix, w, h):
-        # Adds transparent canvas so that the pixbuf is of size (w,h). Also
-        # centers the pixbuf in the canvas.
-        width = pix.get_width()
-        height = pix.get_height()
-        transpbox = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, w, h)
-        transpbox.fill(0xffff00)
-        x_pos = int((w - width)/2)
-        y_pos = int((h - height)/2)
-        pix.copy_area(0, 0, width, height, transpbox, x_pos, y_pos)
-        return transpbox
 
     def unblock_window_popup_handler(self):
         self.window.handler_unblock(self.mainwinhandler)
@@ -5151,7 +5140,7 @@ class Base(mpdclient3.mpd_connection):
         if (not self.eggtrayheight or self.eggtrayheight != size) and self.eggtrayfile:
             self.eggtrayheight = size
             if size > 5:
-                self.trayimage.set_from_pixbuf(self.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
+                self.trayimage.set_from_pixbuf(img.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
 
     def quit_activate(self, widget):
         self.window.destroy()
@@ -7071,7 +7060,7 @@ class Base(mpdclient3.mpd_connection):
                 if self.show_trayicon:
                     self.trayicon.show_all()
                     self.eggtrayfile = self.find_path('sonata.png')
-                    self.trayimage.set_from_pixbuf(self.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
+                    self.trayimage.set_from_pixbuf(img.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
                 else:
                     self.trayicon.hide_all()
             except:

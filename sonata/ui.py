@@ -1,6 +1,6 @@
 # coding=utf-8
-# $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/sonata_ui.py $
-# $Id: sonata_ui.py 141 2006-09-11 04:51:07Z stonecrest $
+# $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/ui.py $
+# $Id: ui.py 141 2006-09-11 04:51:07Z stonecrest $
 
 import gtk, misc
 
@@ -179,13 +179,6 @@ def hide(widget):
 
 def focus(widget):
     widget.grab_focus()
-
-def valid_image(file):
-    test = gtk.gdk.pixbuf_get_file_info(file)
-    if test == None:
-        return False
-    else:
-        return True
 
 def set_widths_equal(widgets):
     # Assigns the same width to all passed widgets in the list, where
