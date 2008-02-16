@@ -24,30 +24,31 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sonata
+from sonata import main
 import sys
+
 try:
-	import dbus
-	import dbus.service
-	if getattr(dbus, "version", (0,0,0)) >= (0,41,0):
-		import dbus.glib
-	HAVE_DBUS = True
+    import dbus
+    import dbus.service
+    if getattr(dbus, "version", (0,0,0)) >= (0,41,0):
+        import dbus.glib
+    HAVE_DBUS = True
 except:
-	HAVE_DBUS = False
+    HAVE_DBUS = False
 
 if __name__ == "__main__":
-	if HAVE_DBUS:
-		try:
-			session_bus = dbus.SessionBus()
-			bus_name = dbus.service.BusName('org.MPD', bus=session_bus)
-			app = sonata.BaseDBus(bus_name, '/org/MPD/Sonata')
-		except SystemExit:
-			sys.exit()
-		except:
-			app = sonata.Base()
-	else:
-		app = sonata.Base()
-	try:
-		app.main()
-	except KeyboardInterrupt:
-		pass
+    if HAVE_DBUS:
+        try:
+            session_bus = dbus.SessionBus()
+            bus_name = dbus.service.BusName('org.MPD', bus=session_bus)
+            app = main.BaseDBus(bus_name, '/org/MPD/Sonata')
+        except SystemExit:
+            sys.exit()
+        except:
+            app = main.Base()
+    else:
+        app = main.Base()
+    try:
+        app.main()
+    except KeyboardInterrupt:
+        pass
