@@ -3,7 +3,7 @@
 # $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/setup.py $
 # $Id: setup.py 141 2006-09-11 04:51:07Z stonecrest $
 
-import os
+import os, glob, shutil
 
 from distutils.core import setup, Extension
 
@@ -43,6 +43,9 @@ for lang in ('de', 'pl', 'ru', 'fr', 'zh_CN', 'sv', 'es', 'fi', 'uk', 'it', 'cs'
     print "generating", mofile
     os.system("msgfmt %s -o %s" % (pofile, mofile))
 
+# Copy script "sonata" file to sonata dir:
+shutil.copyfile("sonata.py", "sonata/sonata")
+
 setup(name='Sonata',
         version='1.4.2',
         description='GTK+ client for the Music Player Daemon (MPD).',
@@ -58,16 +61,17 @@ setup(name='Sonata',
             'Programming Language :: Python',
             'Topic :: Multimedia :: Sound :: Players',
             ],
-        py_modules = ['sonata', 'mpdclient3', 'audioscrobbler'],
+        packages=["sonata"],
+        package_dir={"sonata": "sonata/"},
         ext_modules=[Extension(
         "mmkeys", ["mmkeys/mmkeyspy.c", "mmkeys/mmkeys.c", "mmkeys/mmkeysmodule.c"],
         extra_compile_args=capture("pkg-config --cflags gtk+-2.0 pygtk-2.0").split(),
         extra_link_args=capture("pkg-config --libs gtk+-2.0 pygtk-2.0").split()
          ),],
-        scripts = ['sonata'],
+        scripts = ['sonata/sonata'],
         data_files=[('share/sonata', ['README', 'CHANGELOG', 'TODO', 'TRANSLATORS']),
                     ('share/applications', ['sonata.desktop']),
-                    ('share/pixmaps', ['pixmaps/sonata.png', 'pixmaps/sonata_large.png', 'pixmaps/sonatacd.png', 'pixmaps/sonatacd_large.png', 'pixmaps/sonata-artist.png', 'pixmaps/sonata-album.png', 'pixmaps/sonata-stock_volume-mute.png', 'pixmaps/sonata-stock_volume-min.png', 'pixmaps/sonata-stock_volume-med.png', 'pixmaps/sonata-stock_volume-max.png', 'pixmaps/sonata_pause.png', 'pixmaps/sonata_play.png', 'pixmaps/sonata_disconnect.png']),
+                    ('share/pixmaps', glob.glob('sonata/pixmaps/*')),
                     ('share/man/man1', ['sonata.1']),
                     ('share/locale/de/LC_MESSAGES', ['mo/de/sonata.mo']),
                     ('share/locale/pl/LC_MESSAGES', ['mo/pl/sonata.mo']),
@@ -103,5 +107,9 @@ try:
         if os.path.isfile(f):
             if os.path.splitext(os.path.basename(f))[1] == ".pyc":
                 os.remove(f)
+except:
+    pass
+try:
+    os.remove("sonata/sonata")
 except:
     pass
