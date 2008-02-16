@@ -314,7 +314,6 @@ class Base(mpdclient3.mpd_connection):
         self.prev_boldrow = -1
         self.use_infofile = False
         self.infofile_path = '/tmp/xmms-info'
-        self.play_on_activate = False
         self.lib_view = self.VIEW_FILESYSTEM
         # Level 0 is genre, 1 is artists, 2 is albums, 3 is songs
         self.lib_level = 1
@@ -430,7 +429,7 @@ class Base(mpdclient3.mpd_connection):
         # Popup menus:
         actions = (
             ('sortmenu', None, _('_Sort List')),
-            ('playlistmenu', None, _('Sa_ve List to')),
+            ('plmenu', None, _('Sa_ve List to')),
             ('profilesmenu', None, _('_Connection')),
             ('filesystemview', gtk.STOCK_HARDDISK, _('Filesystem'), None, None, self.on_libraryview_chosen),
             ('artistview', 'artist', _('Artist'), None, None, self.on_libraryview_chosen),
@@ -453,9 +452,11 @@ class Base(mpdclient3.mpd_connection):
             ('newmenu', None, _('_New...'), '<Ctrl>n', None, self.on_streams_new),
             ('editmenu', None, _('_Edit...'), None, None, self.on_streams_edit),
             ('renamemenu', None, _('_Rename...'), None, None, self.on_playlist_rename),
-            ('edittagmenu', None, _('_Edit Tags...'), '<Ctrl>t', None, self.on_edit_tags),
+            ('tagmenu', None, _('_Edit Tags...'), '<Ctrl>t', None, self.on_edit_tags),
             ('addmenu', gtk.STOCK_ADD, _('_Add'), '<Ctrl>d', None, self.on_add_item),
             ('replacemenu', gtk.STOCK_REDO, _('_Replace'), '<Ctrl>r', None, self.on_replace_item),
+            ('add2menu', None, _('P_lay After Add'), '<Shift><Ctrl>d', None, self.on_add_item_play),
+            ('replace2menu', None, _('Pla_y After Replace'), '<Shift><Ctrl>r', None, self.on_replace_item_play),
             ('rmmenu', None, _('_Delete...'), None, None, self.on_remove),
             ('sortbyartist', None, _('By Artist'), None, None, self.on_sort_by_artist),
             ('sortbyalbum', None, _('By Album'), None, None, self.on_sort_by_album),
@@ -521,11 +522,13 @@ class Base(mpdclient3.mpd_connection):
               <popup name="mainmenu">
                 <menuitem action="addmenu"/>
                 <menuitem action="replacemenu"/>
+                <menuitem action="add2menu"/>
+                <menuitem action="replace2menu"/>
                 <menuitem action="newmenu"/>
                 <menuitem action="editmenu"/>
                 <menuitem action="removemenu"/>
                 <menuitem action="clearmenu"/>
-                <menuitem action="edittagmenu"/>
+                <menuitem action="tagmenu"/>
                 <menuitem action="renamemenu"/>
                 <menuitem action="rmmenu"/>
                 <menu action="sortmenu">
@@ -538,7 +541,7 @@ class Base(mpdclient3.mpd_connection):
                   <menuitem action="sortrandom"/>
                   <menuitem action="sortreverse"/>
                 </menu>
-                <menu action="playlistmenu">
+                <menu action="plmenu">
                   <menuitem action="savemenu"/>
                   <separator name="FM4"/>
                 </menu>
@@ -1406,7 +1409,7 @@ class Base(mpdclient3.mpd_connection):
         uiDescription = """
             <ui>
               <popup name="mainmenu">
-                  <menu action="playlistmenu">
+                  <menu action="plmenu">
             """
         for i in range(len(playlistinfo)):
             action_name = "Playlist: " + playlistinfo[i].replace("&", "")
@@ -1417,7 +1420,7 @@ class Base(mpdclient3.mpd_connection):
         self.UIManager.get_widget('/hidden').set_property('visible', False)
         # If we're not on the Current tab, prevent additional menu items
         # from displaying:
-        self.set_menu_contextual_items_visible()
+        self.update_menu_visibility()
 
     def populate_profiles_for_menu(self):
         host, port, password = self.mpd_env_vars()
@@ -1745,8 +1748,6 @@ class Base(mpdclient3.mpd_connection):
             self.use_infofile = conf.getboolean('player', 'use_infofile')
         if conf.has_option('player', 'infofile_path'):
             self.infofile_path = conf.get('player', 'infofile_path')
-        if conf.has_option('player', 'play_on_activate'):
-            self.play_on_activate = conf.getboolean('player', 'play_on_activate')
         if conf.has_option('player', 'trayicon'):
             self.show_trayicon = conf.getboolean('player', 'trayicon')
         if conf.has_option('player', 'view'):
@@ -1900,7 +1901,6 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'covers_pref', self.covers_pref)
         conf.set('player', 'use_infofile', self.use_infofile)
         conf.set('player', 'infofile_path', self.infofile_path)
-        conf.set('player', 'play_on_activate', self.play_on_activate)
         conf.set('player', 'trayicon', self.show_trayicon)
         conf.set('player', 'view', self.lib_view)
         conf.set('player', 'search_num', self.last_search_num)
@@ -2158,7 +2158,7 @@ class Base(mpdclient3.mpd_connection):
             return True
 
     def playlists_activated(self, treeview, path, column=0):
-        self.on_add_item(None, self.play_on_activate)
+        self.on_add_item(None)
 
     def on_streams_key_press(self, widget, event):
         if event.keyval == gtk.gdk.keyval_from_name('Return'):
@@ -2166,7 +2166,7 @@ class Base(mpdclient3.mpd_connection):
             return True
 
     def on_streams_activated(self, treeview, path, column=0):
-        self.on_add_item(None, self.play_on_activate)
+        self.on_add_item(None)
 
     def libraryview_popup(self, button):
         self.librarymenu.popup(None, None, self.libraryview_position_menu, 1, 0)
@@ -2219,7 +2219,7 @@ class Base(mpdclient3.mpd_connection):
         while lsinfo == []:
             if self.conn.do.listallinfo(root):
                 # Info exists if we try to browse to a song
-                self.on_add_item(self.browser, self.play_on_activate)
+                self.on_add_item(self.browser)
                 return
             elif self.lib_view == self.VIEW_FILESYSTEM:
                 if root == '/':
@@ -3012,7 +3012,7 @@ class Base(mpdclient3.mpd_connection):
                     self.browse(None, value)
 
     def on_treeview_selection_changed(self, treeselection):
-        self.set_menu_contextual_items_visible()
+        self.update_menu_visibility()
         if treeselection == self.current.get_selection():
             # User previously clicked inside group of selected rows, re-select
             # rows so it doesn't look like anything changed:
@@ -3049,7 +3049,7 @@ class Base(mpdclient3.mpd_connection):
             except:
                 pass
         elif event.button == 3:
-            self.set_menu_contextual_items_visible()
+            self.update_menu_visibility()
             # Calling the popup in idle_add is important. It allows the menu items
             # to have been shown/hidden before the menu is popped up. Otherwise, if
             # the menu pops up too quickly, it can result in automatically clicking
@@ -3130,6 +3130,9 @@ class Base(mpdclient3.mpd_connection):
         # Make sure we don't have any EXACT duplicates:
         (items, tmp, tmp2) = misc.remove_list_duplicates(items, case=True)
         return items
+
+    def on_add_item_play(self, widget):
+        self.on_add_item(widget, True)
 
     def on_add_item(self, widget, play_after=False):
         if self.conn:
@@ -3221,10 +3224,13 @@ class Base(mpdclient3.mpd_connection):
             elif len(line) > 6 and line[0:6] == 'ftp://':
                 self.conn.do.add(line)
 
-    def on_replace_item(self, widget):
+    def on_replace_item_play(self, widget):
+        self.on_replace_item(widget, True)
+
+    def on_replace_item(self, widget, play_after=False):
         play_after_replace = False
         if self.status and self.status.state == 'play':
-            play_after_replace = True
+            play_after = True
         # Only clear if an item is selected:
         if self.current_tab == self.TAB_LIBRARY:
             num_selected = self.browser_selection.count_selected_rows()
@@ -3237,10 +3243,7 @@ class Base(mpdclient3.mpd_connection):
         if num_selected == 0:
             return
         self.on_clear(None)
-        if play_after_replace and self.conn:
-            self.on_add_item(widget, True)
-        else:
-            self.on_add_item(widget, False)
+        self.on_add_item(widget, play_after)
         self.iterate_now()
 
     def libraryview_position_menu(self, menu):
@@ -4592,7 +4595,7 @@ class Base(mpdclient3.mpd_connection):
             treeselection.select_iter(iter)
 
     def on_popup_menu(self, widget):
-        self.set_menu_contextual_items_visible()
+        self.update_menu_visibility()
         gobject.idle_add(self.mainmenu.popup, None, None, self.position_menu, 3, 0)
 
     def on_updatedb(self, widget):
@@ -5361,13 +5364,11 @@ class Base(mpdclient3.mpd_connection):
         # Ironically enough, the command to turn shuffle on/off is called
         # random, and the command to randomize the playlist is called shuffle.
         self.conn.do.shuffle()
-        return
 
     def on_clear(self, widget):
         if self.conn:
             self.conn.do.clear()
             self.iterate_now()
-        return
 
     def on_repeat_clicked(self, widget):
         if self.conn:
@@ -5646,9 +5647,6 @@ class Base(mpdclient3.mpd_connection):
         minimize.set_active(self.minimize_to_systray)
         self.tooltips.set_tip(minimize, _("If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."))
         display_trayicon.connect('toggled', self.prefs_trayicon_toggled, minimize)
-        activate = gtk.CheckButton(_("Play enqueued files on activate"))
-        activate.set_active(self.play_on_activate)
-        self.tooltips.set_tip(activate, _("Automatically play enqueued items when activated via double-click or enter."))
         if HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible():
             minimize.set_sensitive(True)
         elif HAVE_EGG and self.trayicon.get_property('visible') == True:
@@ -5679,7 +5677,7 @@ class Base(mpdclient3.mpd_connection):
         table3.attach(update_start, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table3.attach(exit_stop, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table3.attach(infofilebox, 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(activate, 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table3.attach(ui.label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table3.attach(ui.label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table3.attach(ui.label(), 1, 3, 15, 16, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         # Format tab
@@ -5823,7 +5821,6 @@ class Base(mpdclient3.mpd_connection):
     def prefs_window_response(self, window, response, prefsnotebook, exit_stop, activate, win_ontop, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, hostentry, portentry, passwordentry, using_mpd_env_vars):
         if response == gtk.RESPONSE_CLOSE:
             self.stop_on_exit = exit_stop.get_active()
-            self.play_on_activate = activate.get_active()
             self.ontop = win_ontop.get_active()
             self.covers_pref = display_art_combo.get_active()
             self.sticky = win_sticky.get_active()
@@ -6217,7 +6214,7 @@ class Base(mpdclient3.mpd_connection):
             gobject.idle_add(ui.focus, self.streams)
         elif self.current_tab == self.TAB_INFO:
             gobject.idle_add(ui.focus, self.info)
-        gobject.idle_add(self.set_menu_contextual_items_visible)
+        gobject.idle_add(self.update_menu_visibility)
         if not self.img_clicked:
             self.last_tab = self.current_tab
 
@@ -6236,7 +6233,7 @@ class Base(mpdclient3.mpd_connection):
             if event.get_coords()[1] > self.notebook.get_allocation()[1]:
                 return
         if event.button == 3:
-            self.set_menu_contextual_items_visible(True)
+            self.update_menu_visibility(True)
             gobject.idle_add(self.mainmenu.popup, None, None, None, event.button, event.time)
 
     def on_tab_toggle(self, toggleAction):
@@ -6322,95 +6319,59 @@ class Base(mpdclient3.mpd_connection):
         else:
             return False
 
-    def set_menu_contextual_items_visible(self, show_songinfo_only=False):
+    def update_menu_visibility(self, show_songinfo_only=False):
         if show_songinfo_only or not self.expanded:
-            self.UIManager.get_widget('/mainmenu/addmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/renamemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/removemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/playlistmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/newmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/editmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
+            for menu in ['add', 'replace', 'add2', 'replace2', 'rename', 'rm', 'pl', \
+                        'remove', 'clear', 'update', 'new', 'edit', 'sort', 'tag']:
+                self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
             return
         elif self.current_tab == self.TAB_CURRENT:
             if len(self.currentdata) > 0:
                 if self.current_selection.count_selected_rows() > 0:
-                    self.UIManager.get_widget('/mainmenu/removemenu/').show()
-                    self.UIManager.get_widget('/mainmenu/edittagmenu/').show()
+                    for menu in ['remove', 'tag']:
+                        self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').show()
                 else:
-                    self.UIManager.get_widget('/mainmenu/removemenu/').hide()
-                    self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
+                    for menu in ['remove', 'tag']:
+                        self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
                 if not self.filterbox_visible:
-                    self.UIManager.get_widget('/mainmenu/clearmenu/').show()
-                    self.UIManager.get_widget('/mainmenu/playlistmenu/').show()
-                    self.UIManager.get_widget('/mainmenu/sortmenu/').show()
+                    for menu in ['clear', 'pl', 'sort']:
+                        self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').show()
                 else:
-                    self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
-                    self.UIManager.get_widget('/mainmenu/playlistmenu/').hide()
-                    self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
+                    for menu in ['clear', 'pl', 'sort']:
+                        self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
             else:
-                self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
-                self.UIManager.get_widget('/mainmenu/playlistmenu/').hide()
-                self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
-                self.UIManager.get_widget('/mainmenu/removemenu/').hide()
-                self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/addmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/renamemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/newmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/editmenu/').hide()
+                for menu in ['clear', 'pl', 'sort', 'remove', 'tag']:
+                    self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
+            for menu in ['add', 'replace', 'add2', 'replace2', 'rename', 'rm', \
+                         'update', 'new', 'edit']:
+                self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
         elif self.current_tab == self.TAB_LIBRARY:
             self.UIManager.get_widget('/mainmenu/updatemenu/').show()
             if len(self.browserdata) > 0:
                 if self.browser_selection.count_selected_rows() > 0:
-                    self.UIManager.get_widget('/mainmenu/addmenu/').show()
-                    self.UIManager.get_widget('/mainmenu/replacemenu/').show()
-                    self.UIManager.get_widget('/mainmenu/edittagmenu/').show()
+                    for menu in ['add', 'replace', 'add2', 'replace2', 'tag']:
+                        self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').show()
                 else:
-                    self.UIManager.get_widget('/mainmenu/addmenu/').hide()
-                    self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
-                    self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
+                    for menu in ['add', 'replace', 'add2', 'replace2', 'tag']:
+                        self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
             else:
-                self.UIManager.get_widget('/mainmenu/addmenu/').hide()
-                self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
-                self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/removemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/playlistmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/renamemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/newmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/editmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
+                for menu in ['add', 'replace', 'add2', 'replace2', 'tag']:
+                    self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
+            for menu in ['remove', 'clear', 'pl', 'rename', 'rm', 'new', 'edit', 'sort']:
+                self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
         elif self.current_tab == self.TAB_PLAYLISTS:
             if self.playlists_selection.count_selected_rows() > 0:
-                self.UIManager.get_widget('/mainmenu/addmenu/').show()
-                self.UIManager.get_widget('/mainmenu/replacemenu/').show()
-                self.UIManager.get_widget('/mainmenu/rmmenu/').show()
+                for menu in ['add', 'replace', 'add2', 'replace2', 'rm']:
+                    self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').show()
                 if self.playlists_selection.count_selected_rows() == 1 and self.mpd_major_version() >= 0.13:
                     self.UIManager.get_widget('/mainmenu/renamemenu/').show()
                 else:
                     self.UIManager.get_widget('/mainmenu/renamemenu/').hide()
             else:
-                self.UIManager.get_widget('/mainmenu/addmenu/').hide()
-                self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
-                self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
-                self.UIManager.get_widget('/mainmenu/renamemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/removemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/playlistmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/newmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/editmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
+                for menu in ['add', 'replace', 'add2', 'replace2', 'rm', 'rename']:
+                    self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
+            for menu in ['remove', 'clear', 'pl', 'update', 'new', 'edit', 'sort']:
+                self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
         elif self.current_tab == self.TAB_STREAMS:
             self.UIManager.get_widget('/mainmenu/newmenu/').show()
             if self.streams_selection.count_selected_rows() > 0:
@@ -6418,21 +6379,13 @@ class Base(mpdclient3.mpd_connection):
                     self.UIManager.get_widget('/mainmenu/editmenu/').show()
                 else:
                     self.UIManager.get_widget('/mainmenu/editmenu/').hide()
-                self.UIManager.get_widget('/mainmenu/addmenu/').show()
-                self.UIManager.get_widget('/mainmenu/replacemenu/').show()
-                self.UIManager.get_widget('/mainmenu/rmmenu/').show()
+                for menu in ['add', 'replace', 'add2', 'replace2', 'rm']:
+                    self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').show()
             else:
-                self.UIManager.get_widget('/mainmenu/addmenu/').hide()
-                self.UIManager.get_widget('/mainmenu/editmenu/').hide()
-                self.UIManager.get_widget('/mainmenu/replacemenu/').hide()
-                self.UIManager.get_widget('/mainmenu/rmmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/renamemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/removemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/clearmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/playlistmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
-            self.UIManager.get_widget('/mainmenu/sortmenu/').hide()
-            self.UIManager.get_widget('/mainmenu/edittagmenu/').hide()
+                for menu in ['add', 'replace', 'add2', 'replace2', 'rm']:
+                    self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
+            for menu in ['rename', 'remove', 'clear', 'pl', 'update', 'sort', 'tag']:
+                self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
 
     def mpd_major_version(self):
         try:
@@ -6997,20 +6950,26 @@ class Base(mpdclient3.mpd_connection):
         libraryshortcuts = \
                 [[ "Enter/Space", _("Add selected song(s) or enter directory") ],
                  [ "Backspace", _("Go to parent directory") ],
-                 [ "Ctrl-D", _("Add selected song(s) or directory(s)") ],
-                 [ "Ctrl-R", _("Replace with selected song(s) or directory(s)") ],
+                 [ "Ctrl-D", _("Add selected item(s)") ],
+                 [ "Ctrl-R", _("Replace with selected item(s)") ],
                  [ "Ctrl-T", _("Edit selected song's tags") ],
-                 [ "Ctrl-Shift-U", _("Update library for selected path(s)") ]]
+                 [ "Ctrl-Shift-D", _("Add selected item(s) and play") ],
+                 [ "Ctrl-Shift-R", _("Replace with selected item(s) and play") ],
+                 [ "Ctrl-Shift-U", _("Update library for selected item(s)") ]]
         playlistshortcuts = \
                 [[ "Enter/Space", _("Add selected playlist(s)") ],
                  [ "Delete", _("Remove selected playlist(s)") ],
                  [ "Ctrl-D", _("Add selected playlist(s)") ],
-                 [ "Ctrl-R", _("Replace with selected playlist(s)") ]]
+                 [ "Ctrl-R", _("Replace with selected playlist(s)") ],
+                 [ "Ctrl-Shift-D", _("Add selected playlist(s) and play") ],
+                 [ "Ctrl-Shift-R", _("Replace with selected playlist(s) and play") ]]
         streamshortcuts = \
                 [[ "Enter/Space", _("Add selected stream(s)") ],
                  [ "Delete", _("Remove selected stream(s)") ],
                  [ "Ctrl-D", _("Add selected stream(s)") ],
-                 [ "Ctrl-R", _("Replace with selected stream(s)") ]]
+                 [ "Ctrl-R", _("Replace with selected stream(s)") ],
+                 [ "Ctrl-Shift-D", _("Add selected stream(s) and play") ],
+                 [ "Ctrl-Shift-R", _("Replace with selected stream(s) and play") ]]
         infoshortcuts = \
                 [[ "Ctrl-T", _("Edit playing song's tags") ]]
         # define the main array- this adds headings to each section of
