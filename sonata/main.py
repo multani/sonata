@@ -5345,17 +5345,18 @@ class Base(mpdclient3.mpd_connection):
                     self.streams_populate()
             self.iterate_now()
             # Attempt to retain selection in the vicinity..
-            try:
-                # Use top row in selection...
-                selrow = 999999
-                for row in selected:
-                    if row[0] < selrow:
-                        selrow = row[0]
-                if selrow >= len(model):
-                    selrow = len(model)-1
-                treeviewsel.select_path(selrow)
-            except:
-                pass
+            if len(model) > 0:
+                try:
+                    # Use top row in selection...
+                    selrow = 999999
+                    for row in selected:
+                        if row[0] < selrow:
+                            selrow = row[0]
+                    if selrow >= len(model):
+                        selrow = len(model)-1
+                    treeviewsel.select_path(selrow)
+                except:
+                    pass
 
     def randomize(self, widget):
         # Ironically enough, the command to turn shuffle on/off is called
