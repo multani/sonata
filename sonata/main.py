@@ -2968,10 +2968,8 @@ class Base(mpdclient3.mpd_connection):
         if path is None:
             # Default to last item in selection:
             model, selected = self.browser_selection.get_selected_rows()
-            if len(selected) >=1:
-                path = (len(selected)-1,)
-            elif len(model) > 0:
-                path = (0,)
+            if len(selected) >= 1:
+                path = selected[0]
             else:
                 return
         value = self.browserdata.get_value(self.browserdata.get_iter(path), 1)
