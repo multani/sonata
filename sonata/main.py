@@ -3876,6 +3876,7 @@ class Base(mpdclient3.mpd_connection):
         self.misc_img_in_dir = None
         self.single_img_in_dir = None
         type, filename = self.get_local_image()
+
         if type is not None and filename:
             if type == self.ART_LOCATION_MISC:
                 self.misc_img_in_dir = filename
@@ -3883,14 +3884,25 @@ class Base(mpdclient3.mpd_connection):
                 self.single_img_in_dir = filename
             gobject.idle_add(self.set_image_for_cover, filename)
             return True
+
         return False
 
     def get_local_image(self, songpath=None, artist=None, album=None):
         # Returns a tuple (location_type, filename) or (None, None).
         # Only pass a songpath, artist, and album if we don't want
         # to use info from the currently playing song.
+
         if songpath is None:
             songpath = os.path.dirname(self.songinfo.file)
+
+        # Give precedence to images defined by the user's current
+        # self.art_location (in case they have multiple valid images
+        # that can be used for cover art).
+        testfile = self.target_image_filename(None, songpath, artist, album)
+        if os.path.exists(testfile):
+            return self.art_location, testfile
+
+        # Now try all local possibilities...
         testfile = self.target_image_filename(self.ART_LOCATION_HOMECOVERS, songpath, artist, album)
         if os.path.exists(testfile):
             return self.ART_LOCATION_HOMECOVERS, testfile
