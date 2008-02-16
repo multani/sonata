@@ -322,14 +322,13 @@ class Base(mpdclient3.mpd_connection):
         self.lib_artist = ''
         self.lib_album = ''
         self.songs = None
-        self.tagpy_is_91 = None
         self.art_location = self.ART_LOCATION_HOMECOVERS
         self.art_location_custom_filename = ""
         self.lyrics_location = self.LYRICS_LOCATION_HOME
         self.filterbox_visible = False
         self.edit_style_orig = None
         self.reset_artist_for_album_name()
-        self.use_scrobbler = False
+        self.as_enabled = False
         self.as_username = ""
         self.as_password = ""
         show_prefs = False
@@ -1468,13 +1467,13 @@ class Base(mpdclient3.mpd_connection):
 
     def connect(self, blocking=False, force_connection=False):
         if blocking:
-            self.connect2(blocking, force_connection)
+            self._connect(blocking, force_connection)
         else:
-            thread = threading.Thread(target=self.connect2, args=(blocking, force_connection))
+            thread = threading.Thread(target=self._connect, args=(blocking, force_connection))
             thread.setDaemon(True)
             thread.start()
 
-    def connect2(self, blocking, force_connection):
+    def _connect(self, blocking, force_connection):
         if self.trying_connection:
             return
         self.trying_connection = True
@@ -1574,7 +1573,7 @@ class Base(mpdclient3.mpd_connection):
             self.handle_change_conn()
         if self.status != self.prevstatus:
             self.handle_change_status()
-        if self.use_scrobbler:
+        if self.as_enabled:
             # We update this here because self.handle_change_status() won't be
             # called while the client is paused.
             self.scrob_time_now = time.time()
@@ -1845,7 +1844,7 @@ class Base(mpdclient3.mpd_connection):
                 self.stream_names.append(conf.get('streams', 'names[' + str(i) + ']'))
                 self.stream_uris.append(conf.get('streams', 'uris[' + str(i) + ']'))
         if conf.has_option('audioscrobbler', 'use_audioscrobbler'):
-            self.use_scrobbler = conf.getboolean('audioscrobbler', 'use_audioscrobbler')
+            self.as_enabled = conf.getboolean('audioscrobbler', 'use_audioscrobbler')
         if conf.has_option('audioscrobbler', 'username'):
             self.as_username = conf.get('audioscrobbler', 'username')
         if conf.has_option('audioscrobbler', 'password'):
@@ -1968,7 +1967,7 @@ class Base(mpdclient3.mpd_connection):
             conf.set('streams', 'names[' + str(i) + ']', self.stream_names[i])
             conf.set('streams', 'uris[' + str(i) + ']', self.stream_uris[i])
         conf.add_section('audioscrobbler')
-        conf.set('audioscrobbler', 'use_audioscrobbler', self.use_scrobbler)
+        conf.set('audioscrobbler', 'use_audioscrobbler', self.as_enabled)
         conf.set('audioscrobbler', 'username', self.as_username)
         conf.set('audioscrobbler', 'password', self.as_password)
         conf.write(file(os.path.expanduser('~/.config/sonata/sonatarc'), 'w'))
@@ -3390,7 +3389,7 @@ class Base(mpdclient3.mpd_connection):
                     # Update infow if it's visible:
                     self.info_update(True)
 
-        if self.use_scrobbler:
+        if self.as_enabled:
             if self.status and self.status.state == 'play':
                 if not self.prevstatus or (self.prevstatus and self.prevstatus.state == 'stop'):
                     # Switched from stop to play, prepare current track:
@@ -3456,7 +3455,7 @@ class Base(mpdclient3.mpd_connection):
             self.scrob_last_prepared = ""
             self.scrob_playing_duration = 0
 
-            if self.use_scrobbler and self.songinfo:
+            if self.as_enabled and self.songinfo:
                 # No need to check if the song is 30 seconds or longer,
                 # audioscrobbler.py takes care of that.
                 if self.songinfo.has_key('time'):
@@ -3472,7 +3471,7 @@ class Base(mpdclient3.mpd_connection):
 
     def scrobbler_do_np(self):
         self.scrobbler_init()
-        if self.use_scrobbler and self.scrob_post and self.songinfo:
+        if self.as_enabled and self.scrob_post and self.songinfo:
             if self.songinfo.has_key('artist') and \
                self.songinfo.has_key('title') and \
                self.songinfo.has_key('time'):
@@ -3494,7 +3493,7 @@ class Base(mpdclient3.mpd_connection):
 
     def scrobbler_post(self):
         self.scrobbler_init()
-        if self.use_scrobbler and self.scrob_post and self.prevsonginfo:
+        if self.as_enabled and self.scrob_post and self.prevsonginfo:
             if self.prevsonginfo.has_key('artist') and \
                self.prevsonginfo.has_key('title') and \
                self.prevsonginfo.has_key('time'):
@@ -3830,12 +3829,6 @@ class Base(mpdclient3.mpd_connection):
         self.lastalbumart = None
         self.update_album_art()
 
-    def update_album_art(self):
-        self.stop_art_update = True
-        thread = threading.Thread(target=self.update_album_art2)
-        thread.setDaemon(True)
-        thread.start()
-
     def set_tooltip_art(self, pix):
         pix1 = pix.subpixbuf(0, 0, 51, 77)
         pix2 = pix.subpixbuf(51, 0, 26, 77)
@@ -3844,7 +3837,13 @@ class Base(mpdclient3.mpd_connection):
         del pix1
         del pix2
 
-    def update_album_art2(self):
+    def update_album_art(self):
+        self.stop_art_update = True
+        thread = threading.Thread(target=self._update_album_art)
+        thread.setDaemon(True)
+        thread.start()
+
+    def _update_album_art(self):
         self.stop_art_update = False
         if not self.show_covers:
             return
@@ -4010,11 +4009,9 @@ class Base(mpdclient3.mpd_connection):
                 return True
             if filename == self.target_image_filename(self.ART_LOCATION_CUSTOM):
                 return True
-            if self.misc_img_in_dir:
-                if filename == self.misc_img_in_dir:
+            if self.misc_img_in_dir and filename == self.misc_img_in_dir:
                     return True
-            if self.single_img_in_dir:
-                if filename == self.single_img_in_dir:
+            if self.single_img_in_dir and filename == self.single_img_in_dir:
                     return True
         # If we got this far, no match:
         return False
@@ -4214,7 +4211,7 @@ class Base(mpdclient3.mpd_connection):
                 self.withdraw_app()
                 return True
         self.settings_save()
-        if self.use_scrobbler:
+        if self.as_enabled:
             self.scrobbler_save_cache()
         if self.conn and self.stop_on_exit:
             self.on_stop(None)
@@ -5482,7 +5479,7 @@ class Base(mpdclient3.mpd_connection):
         mpd_table.attach(ui.label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         # Extras tab
         if not HAVE_AUDIOSCROBBLER:
-            self.use_scrobbler = False
+            self.as_enabled = False
         as_label = ui.label(markup='<b>' + _('Extras') + '</b>')
         as_frame = gtk.Frame()
         as_frame.set_label_widget(as_label)
@@ -5491,7 +5488,7 @@ class Base(mpdclient3.mpd_connection):
         as_vbox = gtk.VBox()
         as_vbox.set_border_width(15)
         as_checkbox = gtk.CheckButton(_("Enable Audioscrobbler"))
-        as_checkbox.set_active(self.use_scrobbler)
+        as_checkbox.set_active(self.as_enabled)
         as_vbox.pack_start(as_checkbox, False)
         as_table = gtk.Table(2, 2)
         as_table.set_col_spacings(3)
@@ -5560,8 +5557,8 @@ class Base(mpdclient3.mpd_connection):
         as_table.attach(crossfadebox, 0, 2, 7, 8)
         as_vbox.pack_start(as_table, False)
         as_frame.add(as_vbox)
-        as_checkbox.connect('toggled', self.use_scrobbler_toggled, as_user_entry, as_pass_entry, as_user_label, as_pass_label)
-        if not self.use_scrobbler or not HAVE_AUDIOSCROBBLER:
+        as_checkbox.connect('toggled', self.prefs_as_enabled_toggled, as_user_entry, as_pass_entry, as_user_label, as_pass_label)
+        if not self.as_enabled or not HAVE_AUDIOSCROBBLER:
             as_user_entry.set_sensitive(False)
             as_pass_entry.set_sensitive(False)
             as_user_label.set_sensitive(False)
@@ -5752,7 +5749,7 @@ class Base(mpdclient3.mpd_connection):
         close_button = prefswindow.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
         prefswindow.show_all()
         close_button.grab_focus()
-        prefswindow.connect('response', self.prefs_window_response, prefsnotebook, exit_stop, activate, win_ontop, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, hostentry, portentry, passwordentry, using_mpd_env_vars)
+        prefswindow.connect('response', self.prefs_window_response, prefsnotebook, exit_stop, win_ontop, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, hostentry, portentry, passwordentry, using_mpd_env_vars)
         # Save previous connection properties to determine if we should try to
         # connect to MPD after prefs are closed:
         self.prev_host = self.host[self.profile_num]
@@ -5774,7 +5771,7 @@ class Base(mpdclient3.mpd_connection):
         return (host, port, password)
 
     def scrobbler_init(self):
-        if HAVE_AUDIOSCROBBLER and self.use_scrobbler and len(self.as_username) > 0 and len(self.as_password) > 0:
+        if HAVE_AUDIOSCROBBLER and self.as_enabled and len(self.as_username) > 0 and len(self.as_password) > 0:
             thread = threading.Thread(target=self.scrobbler_init_thread)
             thread.setDaemon(True)
             thread.start()
@@ -5797,12 +5794,12 @@ class Base(mpdclient3.mpd_connection):
         if self.scrob_post:
             self.scrobbler_retrieve_cache()
 
-    def use_scrobbler_toggled(self, checkbox, userentry, passentry, userlabel, passlabel):
+    def prefs_as_enabled_toggled(self, checkbox, userentry, passentry, userlabel, passlabel):
         if HAVE_AUDIOSCROBBLER:
-            self.use_scrobbler = checkbox.get_active()
+            self.as_enabled = checkbox.get_active()
             self.scrobbler_init()
             for widget in [userlabel, passlabel, userentry, passentry]:
-                widget.set_sensitive(self.use_scrobbler)
+                widget.set_sensitive(self.as_enabled)
         elif checkbox.get_active():
             ui.show_error_msg(self.window, _("Python 2.5 or python-elementtree not found, audioscrobbler support disabled."), _("Audioscrobbler Verification"), 'pythonElementtreeError')
             checkbox.set_active(False)
@@ -5821,7 +5818,7 @@ class Base(mpdclient3.mpd_connection):
                 if self.scrob_post.authenticated:
                     self.scrob_post = None
 
-    def prefs_window_response(self, window, response, prefsnotebook, exit_stop, activate, win_ontop, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, hostentry, portentry, passwordentry, using_mpd_env_vars):
+    def prefs_window_response(self, window, response, prefsnotebook, exit_stop, win_ontop, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, hostentry, portentry, passwordentry, using_mpd_env_vars):
         if response == gtk.RESPONSE_CLOSE:
             self.stop_on_exit = exit_stop.get_active()
             self.ontop = win_ontop.get_active()
@@ -5887,7 +5884,7 @@ class Base(mpdclient3.mpd_connection):
                     # Try to connect if mpd connection info has been updated:
                     self.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
                     self.connect()
-            if self.use_scrobbler:
+            if self.as_enabled:
                 gobject.idle_add(self.scrobbler_init)
             self.settings_save()
             self.populate_profiles_for_menu()
@@ -6459,6 +6456,7 @@ class Base(mpdclient3.mpd_connection):
         if len(files) == 0:
             self.change_cursor(None)
             return
+        self.tagpy_is_91 = None
         # Initialize tags:
         tags = []
         for filenum in range(len(files)):
