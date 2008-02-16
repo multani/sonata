@@ -12,14 +12,12 @@ v1.5
 		- create dir
 	album covers in library:
 		- refresh correctly on changes
-	library menu items: "play after" -> "add", "replace"
-		- add shortcuts
-		- remove enqueue option in prefs?
 	audioscrobbler - remove raise calls..
 	patch 2230?
 	better playlist support (mpd 0.13+ only):
 		ability to view songs, reorder songs, remove songs, etc
 	allow additional columns for library (like current)
+	streams - merge 'edit and 'delete' menu item
 	
 Future:
 	lyrics -> ability to save changes
