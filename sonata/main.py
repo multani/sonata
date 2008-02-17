@@ -6419,9 +6419,7 @@ class Base(mpdclient3.mpd_connection):
         if HAVE_SUGAR:
             full_filename = os.path.join(activity.get_bundle_path(), 'share', filename)
         else:
-            if os.path.exists(os.path.join(sys.prefix, 'share', 'pixmaps', filename)):
-                full_filename = os.path.join(sys.prefix, 'share', 'pixmaps', filename)
-            elif os.path.exists(os.path.join(os.path.split(__file__)[0], filename)):
+            if os.path.exists(os.path.join(os.path.split(__file__)[0], filename)):
                 full_filename = os.path.join(os.path.split(__file__)[0], filename)
             elif os.path.exists(os.path.join(os.path.split(__file__)[0], 'pixmaps', filename)):
                 full_filename = os.path.join(os.path.split(__file__)[0], 'pixmaps', filename)
@@ -6429,6 +6427,8 @@ class Base(mpdclient3.mpd_connection):
                 full_filename = os.path.join(os.path.split(__file__)[0], 'share', filename)
             elif os.path.exists(os.path.join(__file__.split('/lib')[0], 'share', 'pixmaps', filename)):
                 full_filename = os.path.join(__file__.split('/lib')[0], 'share', 'pixmaps', filename)
+            elif os.path.exists(os.path.join(sys.prefix, 'share', 'pixmaps', filename)):
+                full_filename = os.path.join(sys.prefix, 'share', 'pixmaps', filename)
         if not full_filename:
             print filename + " cannot be found. Aborting..."
             sys.exit(1)
