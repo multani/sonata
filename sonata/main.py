@@ -7119,6 +7119,7 @@ class Base(mpdclient3.mpd_connection):
                 # this make take some seconds... and we'll escape the search text because
                 # we'll be searching for a match in items that are also escaped.
                 todo = misc.escape_html(todo)
+                todo = re.escape(todo)
                 todo = '.*' + todo.replace(' ', ' .*').lower()
                 regexp = re.compile(todo)
                 rownum = 0
