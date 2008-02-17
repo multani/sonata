@@ -2574,7 +2574,7 @@ class Base(mpdclient3.mpd_connection):
                                 list.append(item)
                         except:
                             pass
-                    elif not item.has_key('date'):
+                    elif year == '9999' and not item.has_key('date'):
                         # Only show songs that have no year specified:
                         list.append(item)
         list.sort(key=lambda x: int(self.sanitize_mpdtag(getattr(x, 'disc', '0'), False, 2) + self.sanitize_mpdtag(getattr(x, 'track', '0'), False, 2)))
