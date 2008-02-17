@@ -2420,7 +2420,7 @@ class Base(mpdclient3.mpd_connection):
             coverfile = gtk.gdk.pixbuf_new_from_file_at_size(coverfile, self.LIB_COVER_SIZE, self.LIB_COVER_SIZE)
             w = coverfile.get_width()
             h = coverfile.get_height()
-            self.artwork_apply_composite_case(coverfile, w, h)
+            coverfile = self.artwork_apply_composite_case(coverfile, w, h)
         else:
             # Revert to standard album cover:
             coverfile = self.albumpb
@@ -3983,7 +3983,7 @@ class Base(mpdclient3.mpd_connection):
                     # Artwork for tooltip, left-top of player:
                     if not info_img_only:
                         (pix1, w, h) = img.get_pixbuf_of_size(pix, 75)
-                        self.artwork_apply_composite_case(pix1, w, h)
+                        pix1 = self.artwork_apply_composite_case(pix1, w, h)
                         pix1 = img.pixbuf_add_border(pix1)
                         pix1 = img.pixbuf_pad(pix1, 77, 77)
                         self.albumimage.set_from_pixbuf(pix1)
@@ -3995,7 +3995,7 @@ class Base(mpdclient3.mpd_connection):
                         (pix2, w, h) = img.get_pixbuf_of_size(pix, fullwidth)
                     else:
                         (pix2, w, h) = img.get_pixbuf_of_size(pix, 150)
-                    self.artwork_apply_composite_case(pix2, w, h)
+                    pix2 = self.artwork_apply_composite_case(pix2, w, h)
                     pix2 = img.pixbuf_add_border(pix2)
                     self.info_image.set_from_pixbuf(pix2)
                     del pix2, pix
@@ -4005,10 +4005,21 @@ class Base(mpdclient3.mpd_connection):
                 self.call_gc_collect = True
 
     def artwork_apply_composite_case(self, pix, w, h):
-        if self.covers_type == self.COVERS_TYPE_STYLIZED:
+        if self.covers_type == self.COVERS_TYPE_STYLIZED and float(w)/h > 0.5:
+            # Rather than merely compositing the case on top of the artwork, we will
+            # scale the artwork so that it isn't covered by the case:
+            spine_ratio = float(60)/600 # From original png
+            spine_width = int(w * spine_ratio)
             case = self.casepb.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
-            case.composite(pix, 0, 0, w, h, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
+            # Scale pix and shift to the right on a transparent pixbuf:
+            pix = pix.scale_simple(w-spine_width, h, gtk.gdk.INTERP_BILINEAR)
+            blank = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, w, h)
+            blank.fill(0x00000000)
+            pix.copy_area(0, 0, pix.get_width(), pix.get_height(), blank, spine_width, 0)
+            # Composite case and scaled pix:
+            case.composite(blank, 0, 0, w, h, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 250)
             del case
+            return blank
         return pix
 
     def artwork_is_for_playing_song(self, filename):
@@ -4094,6 +4105,7 @@ class Base(mpdclient3.mpd_connection):
                                 if os.path.exists(dest_filename_curr):
                                     pix = gtk.gdk.pixbuf_new_from_file(dest_filename_curr)
                                     pix = pix.scale_simple(148, 148, gtk.gdk.INTERP_HYPER)
+                                    pix = self.artwork_apply_composite_case(pix, 148, 148)
                                     pix = img.pixbuf_add_border(pix)
                                     if self.stop_art_update:
                                         del pix
