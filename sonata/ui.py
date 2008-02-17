@@ -151,6 +151,20 @@ def treeview(hint=True, reorder=False, search=True, headers=False):
     tmptv.set_headers_visible(headers)
     return tmptv
 
+def iconview(col=None, space=None, margin=None, itemw=None, selmode=None):
+    tmpiv = gtk.IconView()
+    if col:
+        tmpiv.set_columns(col)
+    if space:
+        tmpiv.set_spacing(space)
+    if margin:
+        tmpiv.set_margin(margin)
+    if itemw:
+        tmpiv.set_item_width(itemw)
+    if selmode:
+        tmpiv.set_selection_mode(selmode)
+    return tmpiv
+
 def show_error_msg(owner, message, title, role, response_cb=None):
     error_dialog = gtk.MessageDialog(owner, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, message)
     error_dialog.set_title(title)
@@ -200,3 +214,7 @@ def icon(factory, icon_name, path):
         sonataset.add_source(iconsource)
     factory.add(icon_name, sonataset)
     factory.add_default()
+
+def change_cursor(type):
+    for i in gtk.gdk.window_get_toplevels():
+        i.set_cursor(type)

@@ -66,7 +66,7 @@ def strip_all_slashes(s):
     s = s.replace("\"", "")
     return s
 
-def rmgeneric(path, __func__):
+def _rmgeneric(path, __func__):
     try:
         __func__(path)
     except OSError, (errno, strerror):
@@ -88,22 +88,6 @@ def link_markup(s, enclose_in_parentheses, small, linkcolor):
         color = "blue" #no theme color, default to blue..
     s = "<span color='" + color + "'>" + s + "</span>"
     return s
-
-def removeall(path):
-    if not os.path.isdir(path):
-        return
-
-    files=os.listdir(path)
-
-    for x in files:
-        fullpath=os.path.join(path, x)
-        if os.path.isfile(fullpath):
-            f=os.remove
-            rmgeneric(fullpath, f)
-        elif os.path.isdir(fullpath):
-            removeall(fullpath)
-            f=os.rmdir
-            rmgeneric(fullpath, f)
 
 def remove_list_duplicates(inputlist, inputlist2=[], inputlist3=[], case=True):
     # If inputlist2 is provided, keep it synced with inputlist.
@@ -157,6 +141,26 @@ def first_of_2tuple(t):
 def create_dir(dir):
     if os.path.exists(os.path.expanduser(dir)) == False:
         os.makedirs(os.path.expanduser(dir))
+
+def remove_file(file):
+    if os.path.exists(file):
+        os.remove(file)
+
+def remove_dir(path):
+    if not os.path.isdir(path):
+        return
+
+    files=os.listdir(path)
+
+    for x in files:
+        fullpath=os.path.join(path, x)
+        if os.path.isfile(fullpath):
+            f=os.remove
+            _rmgeneric(fullpath, f)
+        elif os.path.isdir(fullpath):
+            removeall(fullpath)
+            f=os.rmdir
+            _rmgeneric(fullpath, f)
 
 def browser_load(docslink):
     browser_error = False

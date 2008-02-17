@@ -2,7 +2,7 @@
 # $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/img.py $
 # $Id: img.py 141 2006-09-11 04:51:07Z stonecrest $
 
-import gtk
+import gtk, os
 
 def valid_image(file):
     test = gtk.gdk.pixbuf_get_file_info(file)
@@ -55,3 +55,23 @@ def extension_is_valid(extension):
         if extension.lower() in ext['extensions']:
             return True
     return False
+
+def single_image_in_dir(dir):
+    # Returns None or a filename if there is exactly one image
+    # in the dir.
+    num = 0
+    imgfile = None
+    if not os.path.exists(dir):
+        return None
+    for file in os.listdir(dir):
+        print file
+        ext = os.path.splitext(file)[1][1:]
+        if extension_is_valid(ext):
+            num += 1
+            if num == 1:
+                imgfile = file
+            else:
+                break
+    if num != 1:
+        return None
+    return imgfile
