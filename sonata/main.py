@@ -735,9 +735,7 @@ class Base(mpdclient3.mpd_connection):
         self.library_selection = self.library.get_selection()
         expanderwindow2 = ui.scrollwindow(add=self.library)
         self.searchbox = gtk.HBox()
-        self.searchcombo = gtk.combo_box_new_text()
-        for item in self.search_terms:
-            self.searchcombo.append_text(item)
+        self.searchcombo = ui.combo(list=self.search_terms)
         self.searchtext = ui.entry()
         self.searchbutton = ui.button(text=_('_End Search'), img=ui.image(stock=gtk.STOCK_CLOSE), h=self.searchcombo.size_request()[1])
         self.searchbutton.set_no_show_all(True)
@@ -5418,7 +5416,7 @@ class Base(mpdclient3.mpd_connection):
         # MPD tab
         mpdlabel = ui.label(markup='<b>' + _('MPD Connection') + '</b>', y=1)
         controlbox = gtk.HBox()
-        profiles = gtk.combo_box_new_text()
+        profiles = ui.combo()
         add_profile = ui.button(img=ui.image(stock=gtk.STOCK_ADD))
         remove_profile = ui.button(img=ui.image(stock=gtk.STOCK_REMOVE))
         self.prefs_populate_profile_combo(profiles, self.profile_num, remove_profile)
@@ -5529,19 +5527,14 @@ class Base(mpdclient3.mpd_connection):
         notifhbox = gtk.HBox()
         notif_blank = ui.label(x=1)
         notifhbox.pack_start(notif_blank)
-        notification_options = gtk.combo_box_new_text()
+        list = []
         for i in self.popuptimes:
             if i != _('Entire song'):
-                notification_options.append_text(i + ' ' + gettext.ngettext('second', 'seconds', int(i)))
+                list.append(i + ' ' + gettext.ngettext('second', 'seconds', int(i)))
             else:
-                notification_options.append_text(i)
-        notification_options.set_active(self.popup_option)
-        notification_options.connect('changed', self.prefs_notiftime_changed)
-        notification_locs = gtk.combo_box_new_text()
-        for i in self.popuplocations:
-            notification_locs.append_text(i)
-        notification_locs.set_active(self.traytips.notifications_location)
-        notification_locs.connect('changed', self.prefs_notiflocation_changed)
+                list.append(i)
+        notification_options = ui.combo(list=list, active=self.popup_option, changed_cb=self.prefs_notiftime_changed)
+        notification_locs = ui.combo(list=self.popuplocations, active=self.traytips.notifications_location, changed_cb=self.prefs_notiflocation_changed)
         display_notification.connect('toggled', self.prefs_notif_toggled, notifhbox)
         notifhbox.pack_start(notification_options, False, False, 2)
         notifhbox.pack_start(notification_locs, False, False, 2)
@@ -5596,36 +5589,25 @@ class Base(mpdclient3.mpd_connection):
         display_art_hbox = gtk.HBox()
         display_art = gtk.CheckButton(_("Enable album art"))
         display_art.set_active(self.show_covers)
-        display_stylized_combo = gtk.combo_box_new_text()
-        display_stylized_combo.append_text(_("Standard"))
-        display_stylized_combo.append_text(_("Stylized"))
-        display_stylized_combo.set_active(self.covers_type)
+        display_stylized_combo = ui.combo(list=[_("Standard"), _("Stylized")], active=self.covers_type, changed_cb=self.prefs_stylized_toggled)
         display_stylized_combo.set_sensitive(self.show_covers)
         display_stylized_hbox = gtk.HBox()
         display_stylized_hbox.pack_start(ui.label(text=_("Artwork style:"), x=1))
         display_stylized_hbox.pack_start(display_stylized_combo, False, False, 5)
-        display_art_combo = gtk.combo_box_new_text()
-        display_art_combo.append_text(_("Local only"))
-        display_art_combo.append_text(_("Local, then remote"))
-        display_art_combo.set_active(self.covers_pref)
+        display_art_combo = ui.combo(list=[_("Local only"), _("Local, then remote")], active=self.covers_pref)
         orderart_label = ui.label(text=_("Search order:"), x=1)
         display_art_hbox.pack_start(orderart_label)
         display_art_hbox.pack_start(display_art_combo, False, False, 5)
         display_art_hbox.set_sensitive(self.show_covers)
         display_art_location_hbox = gtk.HBox()
         display_art_location_hbox.pack_start(ui.label(text=_("Save art to:"), x=1))
-        display_art_location = gtk.combo_box_new_text()
+        list = ["~/.covers/"]
+        for item in ["/cover.jpg", "/album.jpg", "/folder.jpg", "/" + _("custom")]:
+            list.append("../" + _("file_path") + item)
+        display_art_location = ui.combo(list=list, active=self.art_location, changed_cb=self.prefs_art_location_changed)
         display_art_location_hbox.pack_start(display_art_location, False, False, 5)
-        display_art_location.append_text("~/.covers/")
-        display_art_location.append_text("../" + _("file_path") + "/cover.jpg")
-        display_art_location.append_text("../" + _("file_path") + "/album.jpg")
-        display_art_location.append_text("../" + _("file_path") + "/folder.jpg")
-        display_art_location.append_text("../" + _("file_path") + "/" + _("custom"))
-        display_art_location.set_active(self.art_location)
         display_art_location_hbox.set_sensitive(self.show_covers)
-        display_art_location.connect('changed', self.prefs_art_location_changed)
         display_art.connect('toggled', self.prefs_art_toggled, display_art_hbox, display_art_location_hbox, display_stylized_hbox)
-        display_stylized_combo.connect('changed', self.prefs_stylized_toggled)
         display_playback = gtk.CheckButton(_("Enable playback/volume buttons"))
         display_playback.set_active(self.show_playback)
         display_playback.connect('toggled', self.prefs_playback_toggled)
@@ -5640,13 +5622,9 @@ class Base(mpdclient3.mpd_connection):
         display_lyrics_location_hbox = gtk.HBox()
         savelyrics_label = ui.label(text=_("Save lyrics to:"), x=1)
         display_lyrics_location_hbox.pack_start(savelyrics_label)
-        display_lyrics_location = gtk.combo_box_new_text()
+        display_lyrics_location = ui.combo(list=["~/.lyrics/", "../" + _("file_path") + "/"], active=self.lyrics_location, changed_cb=self.prefs_lyrics_location_changed)
         display_lyrics_location_hbox.pack_start(display_lyrics_location, False, False, 5)
-        display_lyrics_location.append_text("~/.lyrics/")
-        display_lyrics_location.append_text("../" + _("file_path") + "/")
-        display_lyrics_location.set_active(self.lyrics_location)
         display_lyrics_location_hbox.set_sensitive(self.show_lyrics)
-        display_lyrics_location.connect('changed', self.prefs_lyrics_location_changed)
         display_lyrics.connect('toggled', self.prefs_lyrics_toggled, display_lyrics_location_hbox)
         display_trayicon = gtk.CheckButton(_("Enable system tray icon"))
         display_trayicon.set_active(self.show_trayicon)
@@ -6568,9 +6546,7 @@ class Base(mpdclient3.mpd_connection):
         yearandtrackhbox.pack_start(trackentry, True, True, 2)
         yearandtrackhbox.pack_start(trackbuttonvbox, False, False, 2)
         genrelabel = ui.label(text=_("Genre") + ":", x=1)
-        genrecombo = gtk.combo_box_entry_new_text()
-        genrecombo.set_wrap_width(2)
-        self.tags_win_populate_genres(genrecombo)
+        genrecombo = ui.comboentry(list=self.tags_win_genres(), wrap=2)
         genreentry = genrecombo.get_child()
         genrehbox = gtk.HBox()
         genrebutton = ui.button()
@@ -6853,35 +6829,33 @@ class Base(mpdclient3.mpd_connection):
             self.conn.do.command_list_end()
             self.iterate_now()
 
-    def tags_win_populate_genres(self, genrecombo):
-        genres = ["", "A Cappella", "Acid", "Acid Jazz", "Acid Punk", "Acoustic",
-                  "Alt. Rock", "Alternative", "Ambient", "Anime", "Avantgarde", "Ballad",
-                  "Bass", "Beat", "Bebob", "Big Band", "Black Metal", "Bluegrass",
-                  "Blues", "Booty Bass", "BritPop", "Cabaret", "Celtic", "Chamber music",
-                  "Chanson", "Chorus", "Christian Gangsta Rap", "Christian Rap",
-                  "Christian Rock", "Classic Rock", "Classical", "Club", "Club-House",
-                  "Comedy", "Contemporary Christian", "Country", "Crossover", "Cult",
-                  "Dance", "Dance Hall", "Darkwave", "Death Metal", "Disco", "Dream",
-                  "Drum &amp; Bass", "Drum Solo", "Duet", "Easy Listening", "Electronic",
-                  "Ethnic", "Euro-House", "Euro-Techno", "Eurodance", "Fast Fusion",
-                  "Folk", "Folk-Rock", "Folklore", "Freestyle", "Funk", "Fusion", "Game",
-                  "Gangsta", "Goa", "Gospel", "Gothic", "Gothic Rock", "Grunge",
-                  "Hard Rock", "Hardcore", "Heavy Metal", "Hip-Hop", "House", "Humour",
-                  "Indie", "Industrial", "Instrumental", "Instrumental pop",
-                  "Instrumental rock", "JPop", "Jazz", "Jazz+Funk", "Jungle", "Latin",
-                  "Lo-Fi", "Meditative", "Merengue", "Metal", "Musical", "National Folk",
-                  "Native American", "Negerpunk", "New Age", "New Wave", "Noise",
-                  "Oldies", "Opera", "Other", "Polka", "Polsk Punk", "Pop", "Pop-Folk",
-                  "Pop/Funk", "Porn Groove", "Power Ballad", "Pranks", "Primus",
-                  "Progressive Rock", "Psychedelic", "Psychedelic Rock", "Punk",
-                  "Punk Rock", "R&amp;B", "Rap", "Rave", "Reggae", "Retro", "Revival",
-                  "Rhythmic soul", "Rock", "Rock &amp; Roll", "Salsa", "Samba", "Satire",
-                  "Showtunes", "Ska", "Slow Jam", "Slow Rock", "Sonata", "Soul",
-                  "Sound Clip", "Soundtrack", "Southern Rock", "Space", "Speech",
-                  "Swing", "Symphonic Rock", "Symphony", "Synthpop", "Tango", "Techno",
-                  "Techno-Industrial", "Terror", "Thrash Metal", "Top 40", "Trailer"]
-        for genre in genres:
-            genrecombo.append_text(genre)
+    def tags_win_genres(self):
+        return ["", "A Cappella", "Acid", "Acid Jazz", "Acid Punk", "Acoustic",
+                "Alt. Rock", "Alternative", "Ambient", "Anime", "Avantgarde", "Ballad",
+                "Bass", "Beat", "Bebob", "Big Band", "Black Metal", "Bluegrass",
+                "Blues", "Booty Bass", "BritPop", "Cabaret", "Celtic", "Chamber music",
+                "Chanson", "Chorus", "Christian Gangsta Rap", "Christian Rap",
+                "Christian Rock", "Classic Rock", "Classical", "Club", "Club-House",
+                "Comedy", "Contemporary Christian", "Country", "Crossover", "Cult",
+                "Dance", "Dance Hall", "Darkwave", "Death Metal", "Disco", "Dream",
+                "Drum &amp; Bass", "Drum Solo", "Duet", "Easy Listening", "Electronic",
+                "Ethnic", "Euro-House", "Euro-Techno", "Eurodance", "Fast Fusion",
+                "Folk", "Folk-Rock", "Folklore", "Freestyle", "Funk", "Fusion", "Game",
+                "Gangsta", "Goa", "Gospel", "Gothic", "Gothic Rock", "Grunge",
+                "Hard Rock", "Hardcore", "Heavy Metal", "Hip-Hop", "House", "Humour",
+                "Indie", "Industrial", "Instrumental", "Instrumental pop",
+                "Instrumental rock", "JPop", "Jazz", "Jazz+Funk", "Jungle", "Latin",
+                "Lo-Fi", "Meditative", "Merengue", "Metal", "Musical", "National Folk",
+                "Native American", "Negerpunk", "New Age", "New Wave", "Noise",
+                "Oldies", "Opera", "Other", "Polka", "Polsk Punk", "Pop", "Pop-Folk",
+                "Pop/Funk", "Porn Groove", "Power Ballad", "Pranks", "Primus",
+                "Progressive Rock", "Psychedelic", "Psychedelic Rock", "Punk",
+                "Punk Rock", "R&amp;B", "Rap", "Rave", "Reggae", "Retro", "Revival",
+                "Rhythmic soul", "Rock", "Rock &amp; Roll", "Salsa", "Samba", "Satire",
+                "Showtunes", "Ska", "Slow Jam", "Slow Rock", "Sonata", "Soul",
+                "Sound Clip", "Soundtrack", "Southern Rock", "Space", "Speech",
+                "Swing", "Symphonic Rock", "Symphony", "Synthpop", "Tango", "Techno",
+                "Techno-Industrial", "Terror", "Thrash Metal", "Top 40", "Trailer"]
 
     def tags_win_entry_constraint(self, entry, new_text, new_text_length, position, isyearlabel):
         lst_old_string = list(entry.get_chars(0, -1))

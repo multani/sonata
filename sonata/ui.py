@@ -64,6 +64,26 @@ def button(text=None, stock=None, relief=None, focus=True, \
     tmpbut.set_size_request(w, h)
     return tmpbut
 
+def combo(list=[], active=None, changed_cb=None, wrap=1):
+    tmpcb = gtk.combo_box_new_text()
+    tmpcb = _combo_common(tmpcb, list, active, changed_cb, wrap)
+    return tmpcb
+
+def comboentry(list=[], active=None, changed_cb=None, wrap=1):
+    tmpcbe = gtk.combo_box_entry_new_text()
+    tmpcbe = _combo_common(tmpcbe, list, active, changed_cb, wrap)
+    return tmpcbe
+
+def _combo_common(combo, list, active, changed_cb, wrap):
+    for item in list:
+        combo.append_text(item)
+    if active is not None:
+        combo.set_active(active)
+    if changed_cb:
+        combo.connect('changed', changed_cb)
+    combo.set_wrap_width(wrap)
+    return combo
+
 def togglebutton(text=None, underline=False, relief=False, \
                  focus=True):
     tmptbut = gtk.ToggleButton()
