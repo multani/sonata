@@ -162,11 +162,11 @@ def remove_dir(path):
             f=os.rmdir
             _rmgeneric(fullpath, f)
 
-def browser_load(docslink):
+def browser_load(docslink, browser, window):
     browser_error = False
-    if len(self.url_browser.strip()) > 0:
+    if len(browser.strip()) > 0:
         try:
-            pid = subprocess.Popen([self.url_browser, docslink]).pid
+            pid = subprocess.Popen([browser, docslink]).pid
         except:
             browser_error = True
     else:
@@ -190,4 +190,4 @@ def browser_load(docslink):
                             except:
                                 browser_error = True
     if browser_error:
-        ui.show_error_msg(self.window, _('Unable to launch a suitable browser.'), _('Launch Browser'), 'browserLoadError')
+        ui.show_error_msg(window, _('Unable to launch a suitable browser.'), _('Launch Browser'), 'browserLoadError')

@@ -461,8 +461,8 @@ class Base(mpdclient3.mpd_connection):
             ('tagmenu', None, _('_Edit Tags...'), '<Ctrl>t', None, self.on_tags_edit),
             ('addmenu', gtk.STOCK_ADD, _('_Add'), '<Ctrl>d', None, self.on_add_item),
             ('replacemenu', gtk.STOCK_REDO, _('_Replace'), '<Ctrl>r', None, self.on_replace_item),
-            ('add2menu', None, _('P_lay After Add'), '<Shift><Ctrl>d', None, self.on_add_item_play),
-            ('replace2menu', None, _('Pla_y After Replace'), '<Shift><Ctrl>r', None, self.on_replace_item_play),
+            ('add2menu', None, _('Add'), '<Shift><Ctrl>d', None, self.on_add_item_play),
+            ('replace2menu', None, _('Replace'), '<Shift><Ctrl>r', None, self.on_replace_item_play),
             ('rmmenu', None, _('_Delete...'), None, None, self.on_remove),
             ('sortbyartist', None, _('By Artist'), None, None, self.on_sort_by_artist),
             ('sortbyalbum', None, _('By Album'), None, None, self.on_sort_by_album),
@@ -492,7 +492,7 @@ class Base(mpdclient3.mpd_connection):
             ('connectkey', None, 'Connect Key', '<Alt>c', None, self.on_connectkey_pressed),
             ('disconnectkey', None, 'Disconnect Key', '<Alt>d', None, self.on_disconnectkey_pressed),
             ('centerplaylistkey', None, 'Center Playlist Key', '<Ctrl>i', None, self.current_center_song_in_list),
-            ('searchkey', None, 'Search Key', '<Ctrl>h', None, self.on_search_shortcut),
+            ('searchkey', None, 'Search Key', '<Ctrl>h', None, self.on_library_search_shortcut),
             )
 
         toggle_actions = (
@@ -953,13 +953,13 @@ class Base(mpdclient3.mpd_connection):
         self.streams.connect('row_activated', self.on_streams_activated)
         self.streams.connect('key-press-event', self.on_streams_key_press)
         self.mainwinhandler = self.window.connect('button_press_event', self.on_window_click)
-        self.searchcombo.connect('changed', self.on_search_combo_change)
-        self.searchtext.connect('activate', self.on_search_activate)
-        self.searchbutton.connect('clicked', self.on_search_end)
+        self.searchcombo.connect('changed', self.on_library_search_combo_change)
+        self.searchtext.connect('activate', self.on_library_search_activate)
+        self.searchbutton.connect('clicked', self.on_library_search_end)
         self.notebook.connect('button_press_event', self.on_notebook_click)
         self.notebook.connect('size-allocate', self.on_notebook_resize)
         self.notebook.connect('switch-page', self.on_notebook_page_change)
-        self.searchtext.connect('button_press_event', self.on_search_text_click)
+        self.searchtext.connect('button_press_event', self.on_library_search_text_click)
         self.filter_changed_handler = self.filterpattern.connect('changed', self.searchfilter_feed_loop)
         self.filterpattern.connect('activate', self.searchfilter_on_enter)
         self.filterpattern.connect('key-press-event', self.searchfilter_key_pressed)
@@ -1644,8 +1644,8 @@ class Base(mpdclient3.mpd_connection):
         elif shortcut == 'Escape':
             if self.volumewindow.get_property('visible'):
                 self.volume_hide()
-            elif self.current_tab == self.TAB_LIBRARY and self.searchbutton.get_property('visible'):
-                self.on_search_end(None)
+            elif self.current_tab == self.TAB_LIBRARY and self.library_search_visible():
+                self.on_library_search_end(None)
             elif self.current_tab == self.TAB_CURRENT and self.filterbox_visible:
                 self.searchfilter_toggle(None)
             elif self.minimize_to_systray:
@@ -2191,8 +2191,8 @@ class Base(mpdclient3.mpd_connection):
         self.librarymenu.popup(None, None, self.library_view_position_menu, 1, 0)
 
     def on_libraryview_chosen(self, action):
-        if self.searchbutton.get_property('visible'):
-            self.on_search_end(None)
+        if self.library_search_visible():
+            self.on_library_search_end(None)
         prev_view = self.lib_view
         if action.get_name() == 'filesystemview':
             self.lib_view = self.VIEW_FILESYSTEM
@@ -3013,7 +3013,7 @@ class Base(mpdclient3.mpd_connection):
 
     def library_browse_parent(self, action):
         if self.current_tab == self.TAB_LIBRARY:
-            if not self.searchbutton.get_property('visible'):
+            if not self.library_search_visible():
                 if self.library.is_focus():
                     if self.lib_view == self.VIEW_ARTIST:
                         if self.lib_level > self.LIB_LEVEL_ARTIST:
@@ -3109,8 +3109,8 @@ class Base(mpdclient3.mpd_connection):
         # instances, like when we want all end files for editing tags
         items = []
         model, selected = self.library_selection.get_selected_rows()
-        if self.lib_view == self.VIEW_FILESYSTEM or self.searchfilter_is_visible():
-            if return_root and not self.searchfilter_is_visible() and ((self.wd == "/" and len(selected) == len(model)) or (self.wd != "/" and len(selected) >= len(model)-2)):
+        if self.lib_view == self.VIEW_FILESYSTEM or self.library_search_visible():
+            if return_root and not self.library_search_visible() and ((self.wd == "/" and len(selected) == len(model)) or (self.wd != "/" and len(selected) >= len(model)-2)):
                 # Everything selected, this is faster..
                 items.append(self.wd)
             else:
@@ -3119,7 +3119,7 @@ class Base(mpdclient3.mpd_connection):
                         gtk.main_iteration()
                     if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
                         if model.get_value(model.get_iter(path), 0) == self.openpb:
-                            if return_root and not self.searchfilter_is_visible():
+                            if return_root and not self.library_search_visible():
                                 items.append(model.get_value(model.get_iter(path), 1))
                             else:
                                 for item in self.conn.do.listall(model.get_value(model.get_iter(path), 1)):
@@ -4001,7 +4001,7 @@ class Base(mpdclient3.mpd_connection):
                     self.info_image.set_from_pixbuf(pix2)
                     del pix, pix2
                     # Artwork for albums in the library tab
-                    if not info_img_only:
+                    if not info_img_only and not self.library_search_visible():
                         if self.lib_level == self.LIB_LEVEL_ALBUM:
                             if self.lib_view == self.VIEW_ARTIST or self.lib_view == self.VIEW_ALBUM:
                                 if self.songinfo and self.songinfo.has_key('artist'):
@@ -4680,16 +4680,16 @@ class Base(mpdclient3.mpd_connection):
 
     def on_updatedb(self, widget):
         if self.conn:
-            if self.searchbutton.get_property('visible'):
-                self.on_search_end(None)
+            if self.library_search_visible():
+                self.on_library_search_end(None)
             self.conn.do.update('/')
             self.iterate_now()
 
     def on_updatedb_path(self, action):
         if self.conn:
             if self.current_tab == self.TAB_LIBRARY:
-                if self.searchbutton.get_property('visible'):
-                    self.on_search_end(None)
+                if self.library_search_visible():
+                    self.on_library_search_end(None)
                 model, selected = self.library_selection.get_selected_rows()
                 iters = [model.get_iter(path) for path in selected]
                 if len(iters) > 0:
@@ -6169,9 +6169,9 @@ class Base(mpdclient3.mpd_connection):
 
     def on_link_click(self, widget, event, type):
         if type == 'artist':
-            misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + self.songinfo.artist)
+            misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + self.songinfo.artist, self.url_browser, self.window)
         elif type == 'album':
-            misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + self.songinfo.album)
+            misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + self.songinfo.album, self.url_browser, self.window)
         elif type == 'more':
             previous_is_more = (self.info_morelabel.get_text() == "(" + _("more") + ")")
             if previous_is_more:
@@ -6244,7 +6244,7 @@ class Base(mpdclient3.mpd_connection):
         if not self.img_clicked:
             self.last_tab = self.current_tab
 
-    def on_search_text_click(self, widget, event):
+    def on_library_search_text_click(self, widget, event):
         if event.button == 1:
             self.volume_hide()
 
@@ -6292,22 +6292,22 @@ class Base(mpdclient3.mpd_connection):
         else:
             ui.hide(self.notebook.get_children()[tabnum])
 
-    def on_search_shortcut(self, event):
+    def on_library_search_shortcut(self, event):
         # Ensure library tab is visible
         if not self.notebook_tab_is_visible(self.notebook, self.TAB_LIBRARY):
             return
         if self.current_tab != self.TAB_LIBRARY:
             self.switch_to_tab_name(self.TAB_LIBRARY)
-        if self.searchbutton.get_property('visible'):
-            self.on_search_end(None)
+        if self.library_search_visible():
+            self.on_library_search_end(None)
         gobject.idle_add(self.searchtext.grab_focus)
 
-    def on_search_combo_change(self, combo):
-        if self.searchbutton.get_property('visible'):
-            self.on_search_end(None)
+    def on_library_search_combo_change(self, combo):
+        if self.library_search_visible():
+            self.on_library_search_end(None)
         self.last_search_num = combo.get_active()
 
-    def on_search_activate(self, entry):
+    def on_library_search_activate(self, entry):
         searchby = self.search_terms_mpd[self.last_search_num]
         if self.searchtext.get_text() != "":
             list = self.conn.do.search(searchby, self.searchtext.get_text())
@@ -6316,7 +6316,7 @@ class Base(mpdclient3.mpd_connection):
             for item in list:
                 if item.type == 'directory':
                     name = item.directory.split('/')[-1]
-                    # sorting shouldn't really matter here. Ever seen a search turn up a directory?
+                    # Sorting shouldn't really matter here. Ever seen a search turn up a directory?
                     bd += [('d' + item.directory.lower(), [self.openpb, item.directory, misc.escape_html(name)])]
                 elif item.type == 'file':
                     try:
@@ -6331,19 +6331,16 @@ class Base(mpdclient3.mpd_connection):
             self.library.scroll_to_point(0, 0)
             ui.show(self.searchbutton)
         else:
-            self.on_search_end(None)
+            self.on_library_search_end(None)
 
-    def on_search_end(self, button):
+    def on_library_search_end(self, button):
         ui.hide(self.searchbutton)
         self.searchtext.set_text("")
         self.library_browse(root=self.wd)
         self.library.grab_focus()
 
-    def searchfilter_is_visible(self):
-        if self.searchbutton.get_property('visible'):
-            return True
-        else:
-            return False
+    def library_search_visible(self):
+        return self.searchbutton.get_property('visible')
 
     def update_menu_visibility(self, show_songinfo_only=False):
         if show_songinfo_only or not self.expanded:
@@ -7035,7 +7032,7 @@ class Base(mpdclient3.mpd_connection):
 
 
     def show_website(self, dialog, blah, link):
-        misc.browser_load(link)
+        misc.browser_load(link, self.url_browser, self.window)
 
     def systemtray_initialize(self):
         # Make system tray 'icon' to sit in the system tray
