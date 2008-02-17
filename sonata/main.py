@@ -2211,24 +2211,17 @@ class Base(mpdclient3.mpd_connection):
         elif self.lib_view == self.VIEW_GENRE:
             self.libraryview.set_image(ui.image(stock='gtk-orientation-portrait'))
 
-    def library_browse(self, widget=None, root='/'):
-        # Populates the library list with entries starting at root
-        if not self.conn:
-            return
-
-        # Handle special cases (i.e. if we are browsing to a song or
-        # if the path has disappeared). Typically we will keep on
-        # traversing up the hierarchy until we find items that
-        # exist.
+    def library_browse_verify(self, root):
+        # Handle special cases, such as if the path has disappeared.
+        # Typically we will keep on traversing up the hierarchy until
+        # we find items that exist.
+        #
+        # Returns lsinfo so that we don't have to do another
+        # self.conn.do.lsinfo() call for self.VIEW_FILESYSTEM
         lsinfo = self.conn.do.lsinfo(root)
         while lsinfo == []:
-            if self.conn.do.listallinfo(root):
-                # Info exists if we try to browse to a song
-                self.on_add_item(self.library)
-                return
-            elif self.lib_view == self.VIEW_FILESYSTEM:
+            if self.lib_view == self.VIEW_FILESYSTEM:
                 if root == '/':
-                    # Nothing in the library at all
                     return
                 else:
                     # Back up and try the parent
@@ -2240,13 +2233,19 @@ class Base(mpdclient3.mpd_connection):
                     if self.lib_view == self.VIEW_ARTIST:
                         break
                     elif self.lib_view == self.VIEW_GENRE:
-                        if len(self.return_genres()) == 0:
+                        if root == _("Untagged"):
+                            # It's okay for this to not have items...
+                            break
+                        elif len(self.return_genres()) == 0:
                             # Back up and try the parent:
                             self.lib_level -= 1
                         else:
                             break
                 elif self.lib_level == 2:
-                    if len(self.return_artist_items(root)) == 0:
+                    if root == _("Untagged") or root == _("Various Artists"):
+                        # It's okay for these to not have items...
+                        break
+                    elif len(self.return_artist_items(root)) == 0:
                         # Back up and try the parent
                         self.lib_level -= 1
                     else:
@@ -2254,12 +2253,16 @@ class Base(mpdclient3.mpd_connection):
                 else:
                     break
             else:
-                if len(self.return_album_items(root)) == 0:
-                    root = "/"
-                    break
-                else:
-                    break
+                break
             lsinfo = self.conn.do.lsinfo(root)
+        return lsinfo
+
+    def library_browse(self, widget=None, root='/'):
+        # Populates the library list with entries starting at root
+        if not self.conn:
+            return
+
+        lsinfo = self.library_browse_verify(root)
 
         prev_selection = []
         prev_selection_root = False
@@ -2345,6 +2348,7 @@ class Base(mpdclient3.mpd_connection):
                     bd += [(misc.lower_no_the(artist), [self.artistpb, artist, misc.escape_html(artist)])]
                 if self.lib_view == self.VIEW_ARTIST:
                     bd += [(_("Untagged").lower(), [self.artistpb, _("Untagged"), _("Untagged")])]
+                    #bd += [(_("Various Artists").lower(), [self.artistpb, _("Various Artists"), _("Various Artists")])]
                 bd.sort(key=misc.first_of_2tuple)
             elif self.lib_level == 2: # Albums (and songs not in albums)
                 bd += [('0', [self.harddiskpb, '/', '/'])]
@@ -2363,17 +2367,17 @@ class Base(mpdclient3.mpd_connection):
                         songs.append(item)
                     dirs.append(os.path.dirname(item.file))
                 (albums, years, dirs) = misc.remove_list_duplicates(albums, years, dirs, False)
-                for itemnum in range(len(albums)):
-                    tmp, coverfile = self.artwork_get_local_image(dirs[itemnum], self.lib_artist, albums[itemnum])
+                for i in range(len(albums)):
+                    tmp, coverfile = self.artwork_get_local_image(dirs[i], self.lib_artist, albums[i])
                     if coverfile:
                         coverfile = gtk.gdk.pixbuf_new_from_file_at_size(coverfile, self.LIB_COVER_SIZE, self.LIB_COVER_SIZE)
                     else:
                         # Revert to standard album cover:
                         coverfile = self.albumpb
-                    if years[itemnum] == '9999':
-                        bd += [('d' + years[itemnum] + misc.lower_no_the(albums[itemnum]), [coverfile, years[itemnum] + albums[itemnum], misc.escape_html(albums[itemnum])])]
+                    if years[i] == '9999':
+                        bd += [('d' + years[i] + misc.lower_no_the(albums[i]), [coverfile, years[i] + albums[i], misc.escape_html(albums[i])])]
                     else:
-                        bd += [('d' + years[itemnum] + misc.lower_no_the(albums[itemnum]), [coverfile, years[itemnum] + albums[itemnum], misc.escape_html(years[itemnum] + ' - ' + albums[itemnum])])]
+                        bd += [('d' + years[i] + misc.lower_no_the(albums[i]), [coverfile, years[i] + albums[i], misc.escape_html(years[i] + ' - ' + albums[i])])]
                 for song in songs:
                     try:
                         bd += [('f' + misc.lower_no_the(song.title), [self.sonatapb, song.file, self.parse_formatting(self.libraryformat, song, True)])]
@@ -2489,14 +2493,19 @@ class Base(mpdclient3.mpd_connection):
         use_genre = (use_genre_if_genre_view and self.lib_view == self.VIEW_GENRE)
         untagged_genre = (self.lib_genre == _("Untagged"))
         untagged_artist = (artist == _("Untagged"))
-        if use_genre and not untagged_genre and not untagged_artist:
+        #va_artist = (artist == _("Various Artists"))
+        va_artist = False
+        if use_genre and not untagged_genre and not untagged_artist and not va_artist:
             items = self.conn.do.search('artist', artist, 'genre', self.lib_genre)
-        elif not untagged_artist:
+        elif not untagged_artist and not va_artist:
             items = self.conn.do.search('artist', artist)
         else:
             items = self.conn.do.listallinfo('/')
         for item in items:
-            if untagged_artist:
+            if va_artist:
+                if item.has_key('file') and item.has_key('album'):
+                    list.append(item)
+            elif untagged_artist:
                 if not item.has_key('artist') and item.has_key('file'):
                     list.append(item)
             else:
@@ -2973,7 +2982,10 @@ class Base(mpdclient3.mpd_connection):
                 return
         value = self.librarydata.get_value(self.librarydata.get_iter(path), 1)
         icon = self.librarydata.get_value(self.librarydata.get_iter(path), 0)
-        if value == "..":
+        if icon == self.sonatapb:
+            # Song found, add item
+            self.on_add_item(self.library)
+        elif value == "..":
             self.library_browse_parent(None)
         else:
             if self.lib_view == self.VIEW_ARTIST or self.lib_view == self.VIEW_GENRE:
@@ -3412,7 +3424,7 @@ class Base(mpdclient3.mpd_connection):
 
     def album_get_artist(self):
         if self.songinfo and self.songinfo.has_key('album'):
-            self.album_set_artist()
+            self.album_return_artist_name()
         elif self.songinfo and self.songinfo.has_key('artist'):
             self.current_artist_for_album_name = [self.songinfo, self.songinfo.artist]
         else:
@@ -4749,7 +4761,7 @@ class Base(mpdclient3.mpd_connection):
             except:
                 return targetfile
 
-    def album_set_artist(self):
+    def album_return_artist_name(self):
         # Determine if album_name is a various artists album. We'll use a little
         # bit of hard-coded logic and assume that an album is a VA album if
         # there are more than 3 artists with the same album_name. The reason for
@@ -4757,6 +4769,7 @@ class Base(mpdclient3.mpd_connection):
         # marking albums by different artists that aren't actually VA (e.g.
         # albums with the name "Untitled", "Self-titled", and so on). Either
         # the artist name or "Various Artists" will be returned.
+        #
         # Update: We will also check that the files are in the same path
         # to attempt to prevent Various Artists being set on a very common
         # album name like 'Unplugged'.

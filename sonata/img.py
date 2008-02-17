@@ -64,7 +64,6 @@ def single_image_in_dir(dir):
     if not os.path.exists(dir):
         return None
     for file in os.listdir(dir):
-        print file
         ext = os.path.splitext(file)[1][1:]
         if extension_is_valid(ext):
             num += 1
