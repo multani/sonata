@@ -1045,6 +1045,7 @@ class Base(mpdclient3.mpd_connection):
         self.librarycolumn.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
         self.library.append_column(self.librarycolumn)
         self.library_selection.set_mode(gtk.SELECTION_MULTIPLE)
+
         # Assign some pixbufs for use in self.library
         self.openpb = self.library.render_icon(gtk.STOCK_OPEN, gtk.ICON_SIZE_MENU)
         self.harddiskpb = self.library.render_icon(gtk.STOCK_HARDDISK, gtk.ICON_SIZE_MENU)
@@ -1052,6 +1053,7 @@ class Base(mpdclient3.mpd_connection):
         self.genrepb = self.library.render_icon('gtk-orientation-portrait', gtk.ICON_SIZE_MENU)
         self.artistpb = self.library.render_icon('artist', gtk.ICON_SIZE_MENU)
         self.sonatapb = self.library.render_icon('sonata', gtk.ICON_SIZE_MENU)
+        self.casepb = gtk.gdk.pixbuf_new_from_file(self.find_path('sonata-case.png'))
 
         if self.window_owner:
             icon = self.window.render_icon('sonata', gtk.ICON_SIZE_DIALOG)
@@ -2242,7 +2244,7 @@ class Base(mpdclient3.mpd_connection):
                         else:
                             break
                 elif self.lib_level == 2:
-                    if root == _("Untagged") or root == _("Various Artists"):
+                    if root == _("Untagged"):
                         # It's okay for these to not have items...
                         break
                     elif len(self.return_artist_items(root)) == 0:
@@ -2348,7 +2350,6 @@ class Base(mpdclient3.mpd_connection):
                     bd += [(misc.lower_no_the(artist), [self.artistpb, artist, misc.escape_html(artist)])]
                 if self.lib_view == self.VIEW_ARTIST:
                     bd += [(_("Untagged").lower(), [self.artistpb, _("Untagged"), _("Untagged")])]
-                    #bd += [(_("Various Artists").lower(), [self.artistpb, _("Various Artists"), _("Various Artists")])]
                 bd.sort(key=misc.first_of_2tuple)
             elif self.lib_level == 2: # Albums (and songs not in albums)
                 bd += [('0', [self.harddiskpb, '/', '/'])]
@@ -2368,12 +2369,7 @@ class Base(mpdclient3.mpd_connection):
                     dirs.append(os.path.dirname(item.file))
                 (albums, years, dirs) = misc.remove_list_duplicates(albums, years, dirs, False)
                 for i in range(len(albums)):
-                    tmp, coverfile = self.artwork_get_local_image(dirs[i], self.lib_artist, albums[i])
-                    if coverfile:
-                        coverfile = gtk.gdk.pixbuf_new_from_file_at_size(coverfile, self.LIB_COVER_SIZE, self.LIB_COVER_SIZE)
-                    else:
-                        # Revert to standard album cover:
-                        coverfile = self.albumpb
+                    coverfile = self.library_get_album_cover(dirs[i], self.lib_artist, albums[i])
                     if years[i] == '9999':
                         bd += [('d' + years[i] + misc.lower_no_the(albums[i]), [coverfile, years[i] + albums[i], misc.escape_html(albums[i])])]
                     else:
@@ -2406,6 +2402,18 @@ class Base(mpdclient3.mpd_connection):
             self.library_retain_selection(prev_selection, prev_selection_root, prev_selection_parent)
 
         self.lib_level_prev = self.lib_level
+
+    def library_get_album_cover(self, dir, artist, album):
+        tmp, coverfile = self.artwork_get_local_image(dir, artist, album)
+        if coverfile:
+            coverfile = gtk.gdk.pixbuf_new_from_file_at_size(coverfile, self.LIB_COVER_SIZE, self.LIB_COVER_SIZE)
+            w = coverfile.get_width()
+            h = coverfile.get_height()
+            self.artwork_apply_composite_case(coverfile, w, h)
+        else:
+            # Revert to standard album cover:
+            coverfile = self.albumpb
+        return coverfile
 
     def return_genres(self):
         # Returns all genres in alphabetical order
@@ -2487,25 +2495,18 @@ class Base(mpdclient3.mpd_connection):
         return list
 
     def return_artist_items(self, artist, use_genre_if_genre_view=True):
-        # Return songs of the specified artist. Sorts by year
+        # Return albums/songs of the specified artist. Sorts by year
         # If we are in genre view, make sure items match the genre too.
         list = []
         use_genre = (use_genre_if_genre_view and self.lib_view == self.VIEW_GENRE)
         untagged_genre = (self.lib_genre == _("Untagged"))
         untagged_artist = (artist == _("Untagged"))
-        #va_artist = (artist == _("Various Artists"))
-        va_artist = False
-        if use_genre and not untagged_genre and not untagged_artist and not va_artist:
-            items = self.conn.do.search('artist', artist, 'genre', self.lib_genre)
-        elif not untagged_artist and not va_artist:
+        if not untagged_artist:
             items = self.conn.do.search('artist', artist)
         else:
             items = self.conn.do.listallinfo('/')
         for item in items:
-            if va_artist:
-                if item.has_key('file') and item.has_key('album'):
-                    list.append(item)
-            elif untagged_artist:
+            if untagged_artist:
                 if not item.has_key('artist') and item.has_key('file'):
                     list.append(item)
             else:
@@ -3963,30 +3964,39 @@ class Base(mpdclient3.mpd_connection):
     def artwork_set_image(self, filename, info_img_only=False):
         if self.artwork_is_for_playing_song(filename):
             if os.path.exists(filename):
-                # We use try here because the file might exist, but still
-                # be downloading so it's not complete
+                # We use try here because the file might exist, but might
+                # still be downloading
                 try:
                     pix = gtk.gdk.pixbuf_new_from_file(filename)
+                    # Artwork for tooltip, left-top of player:
                     if not info_img_only:
                         (pix1, w, h) = img.get_pixbuf_of_size(pix, 75)
+                        self.artwork_apply_composite_case(pix1, w, h)
                         pix1 = img.pixbuf_add_border(pix1)
                         pix1 = img.pixbuf_pad(pix1, 77, 77)
                         self.albumimage.set_from_pixbuf(pix1)
                         self.artwork_set_tooltip_art(pix1)
                         del pix1
+                    # Artwork for info tab:
                     if self.info_imagebox.get_size_request()[0] == -1:
                         fullwidth = self.notebook.get_allocation()[2] - 50
                         (pix2, w, h) = img.get_pixbuf_of_size(pix, fullwidth)
                     else:
                         (pix2, w, h) = img.get_pixbuf_of_size(pix, 150)
+                    self.artwork_apply_composite_case(pix2, w, h)
                     pix2 = img.pixbuf_add_border(pix2)
                     self.info_image.set_from_pixbuf(pix2)
-                    del pix2
+                    del pix2, pix
                     self.lastalbumart = filename
-                    del pix
                 except:
                     pass
                 self.call_gc_collect = True
+
+    def artwork_apply_composite_case(self, pix, w, h):
+        case = self.casepb.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
+        case.composite(pix, 0, 0, w, h, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
+        del case
+        return pix
 
     def artwork_is_for_playing_song(self, filename):
         # Since there can be multiple threads that are getting album art,
@@ -4774,14 +4784,14 @@ class Base(mpdclient3.mpd_connection):
         # to attempt to prevent Various Artists being set on a very common
         # album name like 'Unplugged'.
         if self.current_artist_for_album_name[0] == self.songinfo:
-            # Re-use existing info:
-            return self.current_artist_for_album_name[1]
+            return
         songs = self.return_album_items(self.songinfo.album, False)
+        dir = os.path.dirname(self.songinfo.file)
         artists = []
         return_artist = ""
         for song in songs:
             if song.has_key('artist'):
-                if os.path.dirname(self.songinfo.file) == os.path.dirname(song.file):
+                if dir == os.path.dirname(song.file):
                     artists.append(song.artist)
                     if self.songinfo.file == song.file:
                         return_artist = song.artist
@@ -4789,7 +4799,6 @@ class Base(mpdclient3.mpd_connection):
         if len(artists) > 3:
             return_artist = _("Various Artists")
         self.current_artist_for_album_name = [self.songinfo, return_artist]
-        return return_artist
 
     def album_reset_artist(self):
         self.current_artist_for_album_name = [None, ""]

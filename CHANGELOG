@@ -2,6 +2,7 @@ v1.5 - Pending
 	+ Replace artist view for library with genre view
 	+ Display covers for albums in artist/genre views
 	+ Add menu items and shortcuts for playing library items after add/replace
+	+ Stylized album art with cases (Aidan)
 	+ Show untagged artists/genres in their respective library views
 	+ Allow drag-n-drop of cover art from a web browser (Артем)
 	+ Switch back to last tab on second cover art click

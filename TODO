@@ -10,14 +10,13 @@ v1.5
 	album covers in library:
 		- refresh correctly on changes
 	patch 2230?
-	better playlist support (mpd 0.13+ only):
-		ability to view songs, reorder songs, remove songs, etc
 	streams - merge 'edit and 'delete' menu item
 	FR #4008
 	jat's mpd bindings
-	VA/Untagged
+	Untagged
 		- check if no items within...
-		- what if song already has va or 'untagged' tag?
+		- what if song already has 'untagged' tag?
+	image in info tab is initially cut off?
 	
 Future:
 	lyrics -> ability to save changes
@@ -27,3 +26,5 @@ Future:
 	use GtkVolumeButton?
 	allow additional columns for library (like current)?
 	audioscrobbler - remove raise calls..
+	better playlist support (mpd 0.13+ only):
+		ability to view songs, reorder songs, remove songs, etc
