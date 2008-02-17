@@ -155,6 +155,8 @@ commands = {
     ("seek",   2): ("%s %d %d", ZERO, '', []), # <int song> <int time>
     ("seekid", 2): ("%s %d %d", ZERO, '', []), # <int songid> <int time>
 
+    ("addid",  2): ('%s "%s" %d', ZERO, '', []), # <str path> <int id>
+
     ("find",           2): ('%s "%s" "%s"', MANY, '', plitem_delim),
     ("rename",         2): ('%s "%s" "%s"', ZERO, '', []),
     ("playlistadd",    2): ('%s "%s" "%s"', ZERO, '', []), # <str playlist name> <str path>

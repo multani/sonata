@@ -993,8 +993,8 @@ class Base(mpdclient3.mpd_connection):
         # Set up current view
         self.current_initialize_columns()
         self.current_selection.set_mode(gtk.SELECTION_MULTIPLE)
-        self.current.enable_model_drag_source(gtk.gdk.BUTTON1_MASK, [('STRING', 0, 0)], gtk.gdk.ACTION_MOVE)
-        self.current.enable_model_drag_dest([('STRING', 0, 0)], gtk.gdk.ACTION_MOVE)
+        self.current.enable_model_drag_source(gtk.gdk.BUTTON1_MASK, [('STRING', 0, 0), ("text/uri-list", 0, 80)], gtk.gdk.ACTION_MOVE)
+        self.current.enable_model_drag_dest([('STRING', 0, 0), ("text/uri-list", 0, 80)], gtk.gdk.ACTION_MOVE)
 
         # Initialize playlist data and widget
         self.playlistsdata = gtk.ListStore(str, str)
@@ -2829,7 +2829,7 @@ class Base(mpdclient3.mpd_connection):
                                 except:
                                     pass
                         (year, tmp, tmp2) = misc.remove_list_duplicates(year, case=False)
-                        artist = self.current_artist_for_album_name[1]
+                        artist = self.album_current_artist[1]
                         artist_use_link = False
                         if artist != _("Various Artists"):
                             artist_use_link = True
@@ -3427,9 +3427,9 @@ class Base(mpdclient3.mpd_connection):
         if self.songinfo and self.songinfo.has_key('album'):
             self.album_return_artist_name()
         elif self.songinfo and self.songinfo.has_key('artist'):
-            self.current_artist_for_album_name = [self.songinfo, self.songinfo.artist]
+            self.album_current_artist = [self.songinfo, self.songinfo.artist]
         else:
-            self.current_artist_for_album_name = [self.songinfo, ""]
+            self.album_current_artist = [self.songinfo, ""]
 
     def volume_set_image(self, stock_icon):
         image = ui.image(stock=stock_icon, stocksize=VOLUME_ICON_SIZE)
@@ -4515,9 +4515,51 @@ class Base(mpdclient3.mpd_connection):
             self.conn.do.shuffle()
 
     def on_dnd(self, treeview, drag_context, x, y, selection, info, timestamp):
+        drop_info = treeview.get_dest_row_at_pos(x, y)
+
+        if selection.data is not None:
+            # DND from outside sonata:
+            uri = selection.data.strip()
+            path = urllib.url2pathname(uri)
+            paths = path.rsplit('\n')
+            mpdpaths = []
+            # Strip off paranthesis so that we can DND entire music dir
+            # if we wish.
+            musicdir = self.musicdir[self.profile_num][:-1]
+            for i, path in enumerate(paths):
+                paths[i] = path.rstrip('\r')
+                if paths[i].startswith('file://'):
+                    paths[i] = paths[i][7:]
+                elif paths[i].startswith('file:'):
+                    paths[i] = paths[i][5:]
+                if paths[i].startswith(musicdir):
+                    paths[i] = paths[i][len(self.musicdir[self.profile_num]):]
+                    if len(paths[i]) == 0: paths[i] = "/"
+                    listallinfo = self.conn.do.listallinfo(paths[i])
+                    for item in listallinfo:
+                        if item.has_key('file'):
+                            mpdpaths.append(item.file)
+            if len(mpdpaths) > 0:
+                # Items found, add to list at drop position:
+                if drop_info:
+                    destpath, position = drop_info
+                    if position in (gtk.TREE_VIEW_DROP_BEFORE, gtk.TREE_VIEW_DROP_INTO_OR_BEFORE):
+                        id = destpath[0]
+                    else:
+                        id = destpath[0] + 1
+                else:
+                    id = len(self.songs)
+                self.conn.send.command_list_begin()
+                for mpdpath in mpdpaths:
+                    self.conn.send.addid(mpdpath, id)
+                    id += 1
+                self.conn.do.command_list_end()
+            self.iterate_now()
+            return
+
+        # Otherwise, it's a DND just within the current playlist
         model = treeview.get_model()
         foobar, selected = self.current_selection.get_selected_rows()
-        drop_info = treeview.get_dest_row_at_pos(x, y)
 
         # calculate all this now before we start moving stuff
         drag_sources = []
@@ -4711,7 +4753,7 @@ class Base(mpdclient3.mpd_connection):
             if img.valid_image(paths[i]):
                 dest_filename = self.target_image_filename()
                 album = getattr(self.songinfo, 'album', "").replace("/", "")
-                artist = self.current_artist_for_album_name[1].replace("/", "")
+                artist = self.album_current_artist[1].replace("/", "")
                 self.artwork_remove_none_file(artist, album)
                 misc.create_dir('~/.covers/')
                 if dest_filename != paths[i]:
@@ -4743,7 +4785,7 @@ class Base(mpdclient3.mpd_connection):
             if not album:
                 album = getattr(self.songinfo, 'album', "")
             if not artist:
-                artist = self.current_artist_for_album_name[1]
+                artist = self.album_current_artist[1]
             album = album.replace("/", "")
             artist = artist.replace("/", "")
             if songpath is None:
@@ -4777,13 +4819,13 @@ class Base(mpdclient3.mpd_connection):
         # there are more than 3 artists with the same album_name. The reason for
         # not assuming an album with >1 artists is a VA album is to prevent
         # marking albums by different artists that aren't actually VA (e.g.
-        # albums with the name "Untitled", "Self-titled", and so on). Either
-        # the artist name or "Various Artists" will be returned.
+        # albums with the name "Untitled", "Self-titled", and so on). The artist
+        # will be set in the album_current_artist variable.
         #
         # Update: We will also check that the files are in the same path
         # to attempt to prevent Various Artists being set on a very common
         # album name like 'Unplugged'.
-        if self.current_artist_for_album_name[0] == self.songinfo:
+        if self.album_current_artist[0] == self.songinfo:
             return
         songs = self.return_album_items(self.songinfo.album, False)
         dir = os.path.dirname(self.songinfo.file)
@@ -4798,10 +4840,10 @@ class Base(mpdclient3.mpd_connection):
         (artists, tmp, tmp2) = misc.remove_list_duplicates(artists, case=False)
         if len(artists) > 3:
             return_artist = _("Various Artists")
-        self.current_artist_for_album_name = [self.songinfo, return_artist]
+        self.album_current_artist = [self.songinfo, return_artist]
 
     def album_reset_artist(self):
-        self.current_artist_for_album_name = [None, ""]
+        self.album_current_artist = [None, ""]
 
     def on_image_activate_after(self):
         self.window.handler_unblock(self.mainwinhandler)
@@ -4848,7 +4890,7 @@ class Base(mpdclient3.mpd_connection):
         dialog.set_use_preview_label(False)
         dialog.connect("update-preview", self.update_preview, preview)
         album = getattr(self.songinfo, 'album', "").replace("/", "")
-        artist = self.current_artist_for_album_name[1].replace("/", "")
+        artist = self.album_current_artist[1].replace("/", "")
         dialog.connect("response", self.image_local_response, artist, album)
         dialog.set_default_response(gtk.RESPONSE_OK)
         songdir = os.path.dirname(self.songinfo.file)
@@ -4871,7 +4913,8 @@ class Base(mpdclient3.mpd_connection):
         dialog.destroy()
 
     def artwork_remove_none_file(self, artist, album):
-        # If the flag file exists (to tell Sonata to use the default artwork icons), remove the file
+        # If the flag file exists (to tell Sonata to use the default artwork
+        # icons), remove the file
         delfile = os.path.expanduser("~/.covers/" + artist + "-" + album + "-" + self.ART_LOCATION_NONE_FLAG + ".jpg")
         misc.remove_file(delfile)
 
@@ -4908,7 +4951,7 @@ class Base(mpdclient3.mpd_connection):
         self.remotefilelist = []
         self.remote_dest_filename = self.target_image_filename()
         album = getattr(self.songinfo, 'album', "")
-        artist = self.current_artist_for_album_name[1]
+        artist = self.album_current_artist[1]
         imagewidget.connect('item-activated', self.artwork_replace_cover, artist.replace("/", ""), album.replace("/", ""))
         self.choose_dialog.connect('response', self.image_remote_response, imagewidget, artist, album)
         self.remote_artistentry.set_text(artist)
