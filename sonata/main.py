@@ -1799,15 +1799,20 @@ class Base(mpdclient3.mpd_connection):
             if conf.has_option('notebook', 'info_tab_visible'):
                 self.info_tab_visible = conf.getboolean('notebook', 'info_tab_visible')
             if conf.has_option('notebook', 'current_tab_pos'):
-                self.current_tab_pos = conf.getint('notebook', 'current_tab_pos')
+                try: self.current_tab_pos = conf.getint('notebook', 'current_tab_pos')
+                except: pass
             if conf.has_option('notebook', 'library_tab_pos'):
-                self.library_tab_pos = conf.getint('notebook', 'library_tab_pos')
+                try: self.library_tab_pos = conf.getint('notebook', 'library_tab_pos')
+                except: pass
             if conf.has_option('notebook', 'playlists_tab_pos'):
-                self.playlists_tab_pos = conf.getint('notebook', 'playlists_tab_pos')
+                try: self.playlists_tab_pos = conf.getint('notebook', 'playlists_tab_pos')
+                except: pass
             if conf.has_option('notebook', 'streams_tab_pos'):
-                self.streams_tab_pos = conf.getint('notebook', 'streams_tab_pos')
+                try: self.streams_tab_pos = conf.getint('notebook', 'streams_tab_pos')
+                except: pass
             if conf.has_option('notebook', 'info_tab_pos'):
-                self.info_tab_pos = conf.getint('notebook', 'info_tab_pos')
+                try: self.info_tab_pos = conf.getint('notebook', 'info_tab_pos')
+                except: pass
         if conf.has_section('library'):
             if conf.has_option('library', 'root'):
                 self.wd = conf.get('library', 'root')
@@ -4518,6 +4523,8 @@ class Base(mpdclient3.mpd_connection):
         drop_info = treeview.get_dest_row_at_pos(x, y)
 
         if selection.data is not None:
+            if not os.path.isdir(self.musicdir[self.profile_num]):
+                return
             # DND from outside sonata:
             uri = selection.data.strip()
             path = urllib.url2pathname(uri)

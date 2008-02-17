@@ -12,6 +12,7 @@ v1.5 - Pending
 	+ Bug: Fix artwork for artists/albums with "/" in them (e.g. AC/DC)
 	+ Bug: Fix egg trayicon with vertical system tray
 	+ Bug: Weird bug in library-view
+	+ Bug: Prevent failure to load if tab positions are saved as None
 
 v1.4.2 - February 9, 2008
 	+ Add %D for disc tag in display formatting options
