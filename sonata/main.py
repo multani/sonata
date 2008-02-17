@@ -201,6 +201,10 @@ class Base(mpdclient3.mpd_connection):
         self.LIB_COVER_SIZE = 16
         self.COVERS_TYPE_STANDARD = 0
         self.COVERS_TYPE_STYLIZED = 1
+        self.LIB_LEVEL_GENRE = 0
+        self.LIB_LEVEL_ARTIST = 1
+        self.LIB_LEVEL_ALBUM = 2
+        self.LIB_LEVEL_SONG = 3
 
         self.trying_connection = False
         toggle_arg = False
@@ -318,8 +322,7 @@ class Base(mpdclient3.mpd_connection):
         self.use_infofile = False
         self.infofile_path = '/tmp/xmms-info'
         self.lib_view = self.VIEW_FILESYSTEM
-        # Level 0 is genre, 1 is artists, 2 is albums, 3 is songs
-        self.lib_level = 1
+        self.lib_level = self.LIB_LEVEL_ARTIST
         self.lib_level_prev = -1
         self.lib_genre = ''
         self.lib_artist = ''
@@ -2201,9 +2204,9 @@ class Base(mpdclient3.mpd_connection):
         self.library_view_assign_image()
         # Go to highest level for artist/genre views:
         if self.lib_view == self.VIEW_ARTIST:
-            self.lib_level = 1
+            self.lib_level = self.LIB_LEVEL_ARTIST
         elif self.lib_view == self.VIEW_GENRE:
-            self.lib_level = 0
+            self.lib_level = self.LIB_LEVEL_GENRE
         self.libraryposition = {}
         self.libraryselectedpath = {}
         try:
@@ -2238,9 +2241,9 @@ class Base(mpdclient3.mpd_connection):
                     # Back up and try the parent
                     root = '/'.join(root.split('/')[:-1]) or '/'
             elif self.lib_view == self.VIEW_ARTIST or self.lib_view == self.VIEW_GENRE:
-                if self.lib_level == 0:
+                if self.lib_level == self.LIB_LEVEL_GENRE:
                     break
-                elif self.lib_level == 1:
+                elif self.lib_level == self.LIB_LEVEL_ARTIST:
                     if self.lib_view == self.VIEW_ARTIST:
                         break
                     elif self.lib_view == self.VIEW_GENRE:
@@ -2252,7 +2255,7 @@ class Base(mpdclient3.mpd_connection):
                             self.lib_level -= 1
                         else:
                             break
-                elif self.lib_level == 2:
+                elif self.lib_level == self.LIB_LEVEL_ALBUM:
                     if root == _("Untagged"):
                         # It's okay for these to not have items...
                         break
@@ -2338,7 +2341,7 @@ class Base(mpdclient3.mpd_connection):
                     bd += [('f' + item.file.lower(), [self.sonatapb, item.file, self.parse_formatting(self.libraryformat, item, True)])]
             bd.sort(key=misc.first_of_2tuple)
         elif self.lib_view == self.VIEW_ARTIST or self.lib_view == self.VIEW_GENRE:
-            if self.lib_level == 0: # Genres
+            if self.lib_level == self.LIB_LEVEL_GENRE:
                 self.lib_genre = ''
                 self.lib_artist = ''
                 self.lib_album = ''
@@ -2347,7 +2350,7 @@ class Base(mpdclient3.mpd_connection):
                     bd += [(misc.lower_no_the(genre), [self.genrepb, genre, misc.escape_html(genre)])]
                 bd += [(_("Untagged").lower(), [self.genrepb, _("Untagged"), _("Untagged")])]
                 bd.sort(key=misc.first_of_2tuple)
-            elif self.lib_level == 1: # Artists
+            elif self.lib_level == self.LIB_LEVEL_ARTIST:
                 if self.lib_view == self.VIEW_GENRE:
                     bd += [('0', [self.harddiskpb, '/', '/'])]
                     bd += [('1', [self.openpb, '..', '..'])]
@@ -2360,7 +2363,7 @@ class Base(mpdclient3.mpd_connection):
                 if self.lib_view == self.VIEW_ARTIST:
                     bd += [(_("Untagged").lower(), [self.artistpb, _("Untagged"), _("Untagged")])]
                 bd.sort(key=misc.first_of_2tuple)
-            elif self.lib_level == 2: # Albums (and songs not in albums)
+            elif self.lib_level == self.LIB_LEVEL_ALBUM:
                 bd += [('0', [self.harddiskpb, '/', '/'])]
                 bd += [('1', [self.openpb, '..', '..'])]
                 if self.wd != "..":
@@ -2606,18 +2609,18 @@ class Base(mpdclient3.mpd_connection):
         # Select and focus previously selected item if it's not ".." or "/"
         if select_items:
             if self.lib_view == self.VIEW_ARTIST:
-                if self.lib_level == 1:
+                if self.lib_level == self.LIB_LEVEL_ARTIST:
                     item = "/"
-                elif self.lib_level == 2:
+                elif self.lib_level == self.LIB_LEVEL_ALBUM:
                     item = self.lib_artist
                 else:
                     return
             elif self.lib_view == self.VIEW_GENRE:
-                if self.lib_level == 0:
+                if self.lib_level == self.LIB_LEVEL_GENRE:
                     item = "/"
-                elif self.lib_level == 1:
+                elif self.lib_level == self.LIB_LEVEL_ARTIST:
                     item = self.lib_genre
-                elif self.lib_level == 2:
+                elif self.lib_level == self.LIB_LEVEL_ALBUM:
                     item = self.lib_artist
                 else:
                     return
@@ -3001,11 +3004,11 @@ class Base(mpdclient3.mpd_connection):
             if self.lib_view == self.VIEW_ARTIST or self.lib_view == self.VIEW_GENRE:
                 if value == "/":
                     if self.lib_view == self.VIEW_ARTIST:
-                        self.lib_level = 1
+                        self.lib_level = self.LIB_LEVEL_ARTIST
                     elif self.lib_view == self.VIEW_GENRE:
-                        self.lib_level = 0
+                        self.lib_level = self.LIB_LEVEL_GENRE
                 elif icon != self.sonatapb:
-                    self.lib_level = self.lib_level + 1
+                    self.lib_level += 1
             self.library_browse(None, value)
 
     def library_browse_parent(self, action):
@@ -3013,20 +3016,20 @@ class Base(mpdclient3.mpd_connection):
             if not self.searchbutton.get_property('visible'):
                 if self.library.is_focus():
                     if self.lib_view == self.VIEW_ARTIST:
-                        if self.lib_level > 1:
+                        if self.lib_level > self.LIB_LEVEL_ARTIST:
                             self.lib_level -= 1
-                        if self.lib_level == 1:
+                        if self.lib_level == self.LIB_LEVEL_ARTIST:
                             value = "/"
                         else:
                             value = self.lib_artist
                     elif self.lib_view == self.VIEW_GENRE:
-                        if self.lib_level > 0:
+                        if self.lib_level > self.LIB_LEVEL_GENRE:
                             self.lib_level -= 1
-                        if self.lib_level == 0:
+                        if self.lib_level == self.LIB_LEVEL_GENRE:
                             value = "/"
-                        elif self.lib_level == 1:
+                        elif self.lib_level == self.LIB_LEVEL_ARTIST:
                             value = self.lib_genre
-                        elif self.lib_level == 2:
+                        elif self.lib_level == self.LIB_LEVEL_ALBUM:
                             value = self.lib_artist
                     else:
                         value = '/'.join(self.wd.split('/')[:-1]) or '/'
@@ -3124,14 +3127,14 @@ class Base(mpdclient3.mpd_connection):
                                         items.append(item.file)
                         else:
                             items.append(model.get_value(model.get_iter(path), 1))
-        elif self.lib_view == self.VIEW_ARTIST or (self.VIEW_GENRE and self.lib_level > 0):
+        elif self.lib_view == self.VIEW_ARTIST or (self.VIEW_GENRE and self.lib_level > self.LIB_LEVEL_GENRE):
             # lib_level > 0 in genre view is equivalent to one of the
             # artist view levels:
             for path in selected:
                 while gtk.events_pending():
                     gtk.main_iteration()
                 if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
-                    if self.lib_level == 1:
+                    if self.lib_level == self.LIB_LEVEL_ARTIST:
                         for item in self.return_artist_items(model.get_value(model.get_iter(path), 1)):
                             items.append(item.file)
                     else:
@@ -3996,7 +3999,14 @@ class Base(mpdclient3.mpd_connection):
                     pix2 = self.artwork_apply_composite_case(pix2, w, h)
                     pix2 = img.pixbuf_add_border(pix2)
                     self.info_image.set_from_pixbuf(pix2)
-                    del pix2, pix
+                    del pix, pix2
+                    # Artwork for albums in the library tab
+                    if not info_img_only:
+                        if self.lib_level == self.LIB_LEVEL_ALBUM:
+                            if self.lib_view == self.VIEW_ARTIST or self.lib_view == self.VIEW_ALBUM:
+                                if self.songinfo and self.songinfo.has_key('artist'):
+                                    if self.wd == self.songinfo.artist:
+                                        self.library_browse(root=self.wd)
                     self.lastalbumart = filename
                 except:
                     pass

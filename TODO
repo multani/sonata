@@ -7,8 +7,6 @@ v1.5
 		- combine ListStore definitions (playlists, streams, etc)
 		- local/remote artwork
 		- remove_list_duplicates
-	album covers in library:
-		- refresh correctly on changes
 	patch 2230?
 	streams - merge 'edit and 'delete' menu item
 	FR #4008
