@@ -2,7 +2,7 @@ v1.5 - Pending
 	+ Replace artist view for library with genre view
 	+ Display covers for albums in artist/genre views
 	+ Add menu items and shortcuts for playing library items after add/replace
-	+ Stylized album art with cases (Aidan)
+	+ Optional stylized album art with cases (Aidan)
 	+ Show untagged artists/genres in their respective library views
 	+ Allow DND of cover art from a web browser (Артем)
 	+ Allow DND of music from a file manager into playlist (requires mpd 0.14)
