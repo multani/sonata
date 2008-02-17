@@ -3940,8 +3940,9 @@ class Base(mpdclient3.mpd_connection):
             return self.ART_LOCATION_CUSTOM, testfile
         if self.artwork_get_misc_img_in_path(songpath):
             return self.ART_LOCATION_MISC, self.artwork_get_misc_img_in_path(songpath)
-        if img.single_image_in_dir(self.musicdir[self.profile_num] + songpath) is not None:
-            return self.ART_LOCATION_SINGLE, img.single_image_in_dir(self.musicdir[self.profile_num] + songpath)
+        testfile = img.single_image_in_dir(self.musicdir[self.profile_num] + songpath)
+        if testfile is not None:
+            return self.ART_LOCATION_SINGLE, testfile
         return None, None
 
     def artwork_check_for_remote(self, artist, album, filename):

@@ -68,7 +68,7 @@ def single_image_in_dir(dir):
         if extension_is_valid(ext):
             num += 1
             if num == 1:
-                imgfile = file
+                imgfile = dir + "/" + file
             else:
                 break
     if num != 1:
