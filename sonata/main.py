@@ -199,6 +199,8 @@ class Base(mpdclient3.mpd_connection):
         self.LYRICS_LOCATION_HOME = 0			# ~/.lyrics/[artist]-[song].txt
         self.LYRICS_LOCATION_PATH = 1			# file_dir/[artist]-[song].txt
         self.LIB_COVER_SIZE = 16
+        self.COVERS_TYPE_STANDARD = 0
+        self.COVERS_TYPE_STYLIZED = 1
 
         self.trying_connection = False
         toggle_arg = False
@@ -273,6 +275,7 @@ class Base(mpdclient3.mpd_connection):
         self.xfade = 0
         self.xfade_enabled = False
         self.show_covers = True
+        self.covers_type = 1
         self.covers_pref = self.ART_LOCAL_REMOTE
         self.lyricServer = None
         self.show_notification = False
@@ -1710,6 +1713,8 @@ class Base(mpdclient3.mpd_connection):
             self.screen = conf.getint('player', 'screen')
         if conf.has_option('player', 'covers'):
             self.show_covers = conf.getboolean('player', 'covers')
+        if conf.has_option('player', 'covers_type'):
+            self.covers_type = conf.getint('player', 'covers_type')
         if conf.has_option('player', 'stop_on_exit'):
             self.stop_on_exit = conf.getboolean('player', 'stop_on_exit')
         if conf.has_option('player', 'minimize'):
@@ -1895,6 +1900,7 @@ class Base(mpdclient3.mpd_connection):
         conf.set('player', 'withdrawn', self.withdrawn)
         conf.set('player', 'screen', self.screen)
         conf.set('player', 'covers', self.show_covers)
+        conf.set('player', 'covers_type', self.covers_type)
         conf.set('player', 'stop_on_exit', self.stop_on_exit)
         conf.set('player', 'minimize', self.minimize_to_systray)
         conf.set('player', 'initial_run', self.initial_run)
@@ -3999,9 +4005,10 @@ class Base(mpdclient3.mpd_connection):
                 self.call_gc_collect = True
 
     def artwork_apply_composite_case(self, pix, w, h):
-        case = self.casepb.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
-        case.composite(pix, 0, 0, w, h, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
-        del case
+        if self.covers_type == self.COVERS_TYPE_STYLIZED:
+            case = self.casepb.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
+            case.composite(pix, 0, 0, w, h, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 255)
+            del case
         return pix
 
     def artwork_is_for_playing_song(self, filename):
@@ -5577,6 +5584,14 @@ class Base(mpdclient3.mpd_connection):
         display_art_hbox = gtk.HBox()
         display_art = gtk.CheckButton(_("Enable album art"))
         display_art.set_active(self.show_covers)
+        display_stylized_combo = gtk.combo_box_new_text()
+        display_stylized_combo.append_text(_("Standard"))
+        display_stylized_combo.append_text(_("Stylized"))
+        display_stylized_combo.set_active(self.covers_type)
+        display_stylized_combo.set_sensitive(self.show_covers)
+        display_stylized_hbox = gtk.HBox()
+        display_stylized_hbox.pack_start(ui.label(text=_("Artwork style:"), x=1))
+        display_stylized_hbox.pack_start(display_stylized_combo, False, False, 5)
         display_art_combo = gtk.combo_box_new_text()
         display_art_combo.append_text(_("Local only"))
         display_art_combo.append_text(_("Local, then remote"))
@@ -5597,7 +5612,8 @@ class Base(mpdclient3.mpd_connection):
         display_art_location.set_active(self.art_location)
         display_art_location_hbox.set_sensitive(self.show_covers)
         display_art_location.connect('changed', self.prefs_art_location_changed)
-        display_art.connect('toggled', self.prefs_art_toggled, display_art_hbox, display_art_location_hbox)
+        display_art.connect('toggled', self.prefs_art_toggled, display_art_hbox, display_art_location_hbox, display_stylized_hbox)
+        display_stylized_combo.connect('changed', self.prefs_stylized_toggled)
         display_playback = gtk.CheckButton(_("Enable playback/volume buttons"))
         display_playback.set_active(self.show_playback)
         display_playback.connect('toggled', self.prefs_playback_toggled)
@@ -5634,9 +5650,9 @@ class Base(mpdclient3.mpd_connection):
         table2.attach(display_lyrics, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table2.attach(display_lyrics_location_hbox, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table2.attach(display_art, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_art_hbox, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_art_location_hbox, 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(ui.label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 75, 0)
+        table2.attach(display_stylized_hbox, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_art_hbox, 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table2.attach(display_art_location_hbox, 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table2.attach(ui.label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 75, 0)
         # Behavior tab
         table3 = gtk.Table()
@@ -6004,10 +6020,11 @@ class Base(mpdclient3.mpd_connection):
             for widget in [self.progressbox, self.trayprogressbar]:
                 ui.hide(widget)
 
-    def prefs_art_toggled(self, button, art_hbox1, art_hbox2):
+    def prefs_art_toggled(self, button, art_hbox1, art_hbox2, art_stylized):
         button_active = button.get_active()
         art_hbox1.set_sensitive(button_active)
         art_hbox2.set_sensitive(button_active)
+        art_stylized.set_sensitive(button_active)
         if button_active:
             self.traytips.set_size_request(self.notification_width, -1)
             self.artwork_set_default_icon()
@@ -6030,6 +6047,10 @@ class Base(mpdclient3.mpd_connection):
 
         # Force a resize of the info labels, if needed:
         gobject.idle_add(self.on_notebook_resize, self.notebook, None)
+
+    def prefs_stylized_toggled(self, button):
+        self.covers_type = button.get_active()
+        self.artwork_update(True)
 
     def prefs_lyrics_location_changed(self, combobox):
         self.lyrics_location = combobox.get_active()
