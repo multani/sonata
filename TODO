@@ -11,7 +11,6 @@ v1.5
 	streams - merge 'edit and 'delete' menu item
 		- multiple streams selected
 	jat's mpd bindings
-	remove expander in remote artwork
 	
 Future:
 	lyrics -> ability to save changes
