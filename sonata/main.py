@@ -31,8 +31,17 @@ import ui, misc, img, tray
 try:
     import gtk, pango, mpdclient3
 except ImportError, (strerror):
-    print >>sys.stderr, "%s.  Please make sure you have this library installed into a directory in Python's path or in the same directory as Sonata.\n" % strerror
+    print >>sys.stderr, "%s.  Please make sure you have this library installed into a directory in Python's path or in the same directory as Sonata. Aborting...\n" % strerror
     sys.exit(1)
+
+try: # Python 2.5, module bundled:
+    from xml.etree import ElementTree
+except:
+    try: # Python 2.4, separate module:
+        from elementtree.ElementTree import ElementTree
+    except:
+        sys.stderr.write("Sonata requires Python 2.5 or python-elementtree. Aborting... \n")
+        sys.exit(1)
 
 # Prevent deprecation warning for egg:
 warnings.simplefilter('ignore', DeprecationWarning)
@@ -133,7 +142,7 @@ except:
 
 # Test pygtk version
 if gtk.pygtk_version < (2, 6, 0):
-    sys.stderr.write("Sonata requires PyGTK 2.6.0 or newer.\n")
+    sys.stderr.write("Sonata requires PyGTK 2.6.0 or newer. Aborting...\n")
     sys.exit(1)
 
 class Connection(mpdclient3.mpd_connection):
@@ -4052,96 +4061,76 @@ class Base(mpdclient3.mpd_connection):
         # If we got this far, no match:
         return False
 
-    def artwork_download_img_to_file(self, artist, album, dest_filename, all_images=False, populate_imagelist=False):
+    def artwork_download_img_to_file(self, artist, album, dest_filename, all_images=False):
         # Returns False if no images found
-        imgfound = False
         if len(artist) == 0 and len(album) == 0:
             self.downloading_image = False
-            return imgfound
+            return False
+        #try:
+        img_url = ""
+        self.downloading_image = True
+        # Amazon currently doesn't support utf8 and suggests latin1 encoding instead:
         try:
-            img_url = ""
-            self.downloading_image = True
-            # Amazon currently doesn't support utf8 and suggests latin1 encoding instead:
-            try:
-                artist = urllib.quote(artist.encode('latin1'))
-                album = urllib.quote(album.encode('latin1'))
-            except:
-                artist = urllib.quote(artist)
-                album = urllib.quote(album)
-            amazon_key = "12DR2PGAQT303YTEWP02"
-            search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images&Keywords=" + album
+            artist = urllib.quote(artist.encode('latin1'))
+            album = urllib.quote(album.encode('latin1'))
+        except:
+            artist = urllib.quote(artist)
+            album = urllib.quote(album)
+        amazon_key = "12DR2PGAQT303YTEWP02"
+        prefix = "{http://webservices.amazon.com/AWSECommerceService/2005-10-05}"
+        search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images&Keywords=" + album
+        request = urllib2.Request(search_url)
+        opener = urllib2.build_opener()
+        f = opener.open(request).read()
+        xml = ElementTree.fromstring(f)
+        largeimgs = xml.getiterator(prefix + "LargeImage")
+        if len(largeimgs) == 0:
+            # No search results returned, search again with just artist name:
+            search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images"
             request = urllib2.Request(search_url)
             opener = urllib2.build_opener()
             f = opener.open(request).read()
-            curr_pos = 300    # Skip header..
-            # Check if any results were returned; if not, search  again with just the artist name:
-            url_start = f.find("<URL>http://", curr_pos)+len("<URL>")
-            url_end = f.find("</URL>", curr_pos)
-            if url_start > -1 and url_end > -1:
-                img_url = f[url_start:url_end]
-            if len(img_url) == 0:
-                search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images"
-                request = urllib2.Request(search_url)
-                opener = urllib2.build_opener()
-                f = opener.open(request).read()
-                url_start = f.find("<URL>http://", curr_pos)+len("<URL>")
-                url_end = f.find("</URL>", curr_pos)
-                if url_start > -1 and url_end > -1:
-                    img_url = f[url_start:url_end]
-            if all_images:
-                curr_img = 1
-                img_url = " "
-                if len(img_url) == 0:
-                    self.downloading_image = False
-                    return imgfound
-                while len(img_url) > 0 and curr_pos > 0:
-                    img_url = ""
-                    curr_pos = f.find("<LargeImage>", curr_pos+10)
-                    if curr_pos > 0:
-                        url_start = f.find("<URL>http://", curr_pos)+len("<URL>")
-                        url_end = f.find("</URL>", curr_pos)
-                        if url_start > -1 and url_end > -1:
-                            img_url = f[url_start:url_end]
-                        if len(img_url) > 0:
-                            if self.stop_art_update:
-                                self.downloading_image = False
-                                return imgfound
-                            dest_filename_curr = dest_filename.replace("<imagenum>", str(curr_img))
-                            urllib.urlretrieve(img_url, dest_filename_curr)
-                            if populate_imagelist:
-                                # This populates self.imagelist for the remote image window
-                                if os.path.exists(dest_filename_curr):
-                                    pix = gtk.gdk.pixbuf_new_from_file(dest_filename_curr)
-                                    pix = pix.scale_simple(148, 148, gtk.gdk.INTERP_HYPER)
-                                    pix = self.artwork_apply_composite_case(pix, 148, 148)
-                                    pix = img.pixbuf_add_border(pix)
-                                    if self.stop_art_update:
-                                        del pix
-                                        self.downloading_image = False
-                                        return imgfound
-                                    self.imagelist.append([curr_img, pix])
-                                    del pix
-                                    self.remotefilelist.append(dest_filename_curr)
-                                    imgfound = True
-                                    if curr_img == 1:
-                                        self.allow_art_search = True
-                                ui.change_cursor(None)
-                            curr_img += 1
-                            # Skip the next LargeImage:
-                            curr_pos = f.find("<LargeImage>", curr_pos+10)
-            else:
-                curr_pos = f.find("<LargeImage>", curr_pos+10)
-                url_start = f.find("<URL>http://", curr_pos)+len("<URL>")
-                url_end = f.find("</URL>", curr_pos)
-                if url_start > -1 and url_end > -1:
-                    img_url = f[url_start:url_end]
-                if len(img_url) > 0:
-                    urllib.urlretrieve(img_url, dest_filename)
-                    imgfound = True
-        except:
-            pass
-        self.downloading_image = False
-        return imgfound
+            xml = ElementTree.fromstring(f)
+            largeimgs = xml.getiterator(prefix + "LargeImage")
+            if len(largeimgs) == 0:
+                self.downloading_image = False
+                return False
+        imglist = []
+        for largeimg in largeimgs:
+            for url in largeimg.getiterator(prefix + "URL"):
+                if not url.text in imglist:
+                    imglist.append(url.text)
+        if not all_images:
+            urllib.urlretrieve(imglist[0], dest_filename)
+            self.downloading_image = False
+            return True
+        else:
+            try:
+                imgfound = False
+                for i in range(len(imglist)):
+                    dest_filename_curr = dest_filename.replace("<imagenum>", str(i+1))
+                    urllib.urlretrieve(imglist[i], dest_filename_curr)
+                    # This populates self.imagelist for the remote image window
+                    if os.path.exists(dest_filename_curr):
+                        pix = gtk.gdk.pixbuf_new_from_file(dest_filename_curr)
+                        pix = pix.scale_simple(148, 148, gtk.gdk.INTERP_HYPER)
+                        pix = self.artwork_apply_composite_case(pix, 148, 148)
+                        pix = img.pixbuf_add_border(pix)
+                        if self.stop_art_update:
+                            del pix
+                            self.downloading_image = False
+                            return imgfound
+                        self.imagelist.append([i+1, pix])
+                        del pix
+                        imgfound = True
+                        self.remotefilelist.append(dest_filename_curr)
+                        if i == 0:
+                            self.allow_art_search = True
+                    ui.change_cursor(None)
+            except:
+                pass
+            self.downloading_image = False
+            return imgfound
 
     def tooltip_set_window_width(self):
         screen = self.window.get_screen()
@@ -4975,7 +4964,7 @@ class Base(mpdclient3.mpd_connection):
             labels.append(tmplabel)
             tmphbox.pack_start(tmplabel)
             self.tooltips.set_tip(entries[i], _("Press enter to search for these terms."))
-            entries[1].connect('activate', self.image_remote_refresh, imagewidget)
+            entries[i].connect('activate', self.image_remote_refresh, imagewidget)
             tmphbox.pack_start(entries[i], True, True, 5)
             vbox.pack_start(tmphbox)
         ui.set_widths_equal(labels)
@@ -5021,7 +5010,7 @@ class Base(mpdclient3.mpd_connection):
         filename = os.path.expanduser("~/.covers/temp/<imagenum>.jpg")
         misc.remove_dir(os.path.dirname(filename))
         misc.create_dir(os.path.dirname(filename))
-        imgfound = self.artwork_download_img_to_file(artist_search, album_search, filename, True, True)
+        imgfound = self.artwork_download_img_to_file(artist_search, album_search, filename, True)
         ui.change_cursor(None)
         if self.chooseimage_visible:
             if not imgfound:
