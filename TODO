@@ -11,6 +11,7 @@ v1.5
 	streams - merge 'edit and 'delete' menu item
 		- multiple streams selected
 	jat's mpd bindings
+	speed up cli args?
 	
 Future:
 	lyrics -> ability to save changes

@@ -315,6 +315,7 @@ class Base(mpdclient3.mpd_connection):
         self.currsongformat1 = "%T"
         self.currsongformat2 = _("by") + " %A " + _("from") + " %B"
         self.columnwidths = []
+        self.colwidthpercents = []
         self.autoconnect = True
         self.user_connect = False
         self.stream_names = []
@@ -1280,6 +1281,7 @@ class Base(mpdclient3.mpd_connection):
 
     def current_initialize_columns(self):
         # Initialize current playlist data and widget
+        self.resizing_columns = False
         self.columnformat = self.currentformat.split("|")
         self.currentdata = gtk.ListStore(*([int] + [str] * len(self.columnformat)))
         self.current.set_model(self.currentdata)
@@ -1291,6 +1293,7 @@ class Base(mpdclient3.mpd_connection):
         if len(self.columnformat) <> len(self.columnwidths):
             # Number of columns changed, set columns equally spaced:
             self.columnwidths = []
+            self.colwidthpercents = [ 1/float(len(self.columnformat)) ] * len(self.columnformat)
             for i in range(len(self.columnformat)):
                 self.columnwidths.append(int(self.current.allocation.width/len(self.columnformat)))
         for i in range(len(self.columnformat)):
@@ -1796,6 +1799,7 @@ class Base(mpdclient3.mpd_connection):
             self.columnwidths = conf.get('player', 'columnwidths').split(",")
             for col in range(len(self.columnwidths)):
                 self.columnwidths[col] = int(self.columnwidths[col])
+            self.colwidthpercents = [0] * len(self.columnwidths)
         if conf.has_option('player', 'show_header'):
             self.show_header = conf.getboolean('player', 'show_header')
         if conf.has_option('player', 'tabs_expanded'):
@@ -4319,8 +4323,31 @@ class Base(mpdclient3.mpd_connection):
         else: self.w = width
         self.x, self.y = self.window.get_position()
         self.expander_ellipse_workaround()
+        self.header_update_column_widths()
+
+    def current_columns_resize(self):
+        if not self.withdrawn and self.expanded and len(self.columns) > 1:
+            self.resizing_columns = True
+            for i, column in enumerate(self.columns):
+                try:
+                    newsize = int(self.colwidthpercents[i]*self.current.allocation.width)
+                    if newsize == 0:
+                        # self.colwidthpercents has not yet been set, don't resize...
+                        self.resizing_columns = False
+                        return
+                    newsize = max(newsize, 10)
+                except:
+                    newsize = 150
+                if newsize != column.get_fixed_width():
+                    column.set_fixed_width(newsize)
+            gobject.idle_add(self.header_update_column_widths)
 
     def on_notebook_resize(self, widget, event):
+        if not self.resizing_columns:
+            self.current_columns_resize()
+        gobject.idle_add(self.info_resize_elements)
+
+    def info_resize_elements(self):
         # Resize labels in info tab to prevent horiz scrollbar:
         if self.show_covers:
             labelwidth = self.notebook.allocation.width - self.info_left_label.allocation.width - self.info_imagebox.allocation.width - 60 # 60 accounts for vert scrollbar, box paddings, etc..
@@ -5159,17 +5186,23 @@ class Base(mpdclient3.mpd_connection):
 
     def header_update_column_widths(self):
         if not self.withdrawn and self.expanded:
-            self.columnwidths = []
-            for i in range(len(self.columns) - 1):
-                self.columnwidths.append(self.columns[i].get_width())
-            if self.expanderwindow.get_hscrollbar().get_property('visible'):
-                self.columnwidths.append(self.columns[len(self.columns) - 1].get_width())
-            else:
-                # The last column may be larger than specified, since it expands to fill
-                # the treeview, so lets get the minimum of the current width and the
-                # fixed width. This will prevent a horizontal scrollbar from unnecessarily
-                # showing sometimes.
-                self.columnwidths.append(min(self.columns[len(self.columns) - 1].get_fixed_width(), self.columns[len(self.columns) - 1].get_width()))
+            width = self.current.allocation.width
+            if width <= 10 or self.columns[0] <= 10:
+                # Make sure we only set self.colwidthpercents if self.current
+                # has its normal allocated width:
+                return
+            for i, column in enumerate(self.columns):
+                if i == len(self.columns)-1:
+                    # The last column may be larger than specified, since it expands to fill
+                    # the treeview, so lets get the minimum of the current width and the
+                    # fixed width. This will prevent a horizontal scrollbar from unnecessarily
+                    # showing sometimes.
+                    self.columnwidths[i] = 10
+                else:
+                    self.columnwidths[i] = column.get_width()
+                # Save widths as percentages for when the application is resized.
+                self.colwidthpercents[i] = float(self.columnwidths[i])/width
+        self.resizing_columns = False
 
     def systemtray_menu(self, status_icon, button, activate_time):
         self.traymenu.popup(None, None, None, button, activate_time)
