@@ -1140,6 +1140,7 @@ class Base(mpdclient3.mpd_connection):
         margin = 5
         outter_hbox = gtk.HBox()
         outter_vbox = gtk.VBox()
+
         # Realizing self.window will allow us to retrieve the theme's
         # link-color; we can then apply to it various widgets:
         try:
@@ -2811,7 +2812,7 @@ class Base(mpdclient3.mpd_connection):
         else:
             return text
 
-    def info_update(self, update_all, blank_window=False):
+    def info_update(self, update_all, blank_window=False, skip_lyrics=False):
         # update_all = True means that every tag should update. This is
         # only the case on song and status changes. Otherwise we only
         # want to update the minimum number of widgets so the user can
@@ -2898,7 +2899,7 @@ class Base(mpdclient3.mpd_connection):
                     else:
                         self.albumText.set_text(_("Album name not set."))
                     # Update lyrics:
-                    if self.show_lyrics:
+                    if self.show_lyrics and not skip_lyrics:
                         if self.songinfo.has_key('artist') and self.songinfo.has_key('title'):
                             lyricThread = threading.Thread(target=self.info_get_lyrics, args=(self.songinfo.artist, self.songinfo.title, self.songinfo.artist, self.songinfo.title))
                             lyricThread.setDaemon(True)
@@ -5580,6 +5581,7 @@ class Base(mpdclient3.mpd_connection):
         mpd_table.attach(autoconnect, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         mpd_table.attach(ui.label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         mpd_table.attach(ui.label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        mpd_table.attach(ui.label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         # Extras tab
         if not HAVE_AUDIOSCROBBLER:
             self.as_enabled = False
@@ -5653,6 +5655,7 @@ class Base(mpdclient3.mpd_connection):
         as_table.attach(ui.label(), 0, 2, 5, 6)
         as_table.attach(crossfadecheck, 0, 2, 6, 7)
         as_table.attach(crossfadebox, 0, 2, 7, 8)
+        as_table.attach(ui.label(), 0, 2, 8, 9)
         as_vbox.pack_start(as_table, False)
         as_frame.add(as_vbox)
         as_checkbox.connect('toggled', self.prefs_as_enabled_toggled, as_user_entry, as_pass_entry, as_user_label, as_pass_label)
@@ -5772,6 +5775,9 @@ class Base(mpdclient3.mpd_connection):
         table3.attach(ui.label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table3.attach(ui.label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table3.attach(ui.label(), 1, 3, 15, 16, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table3.attach(ui.label(), 1, 3, 16, 17, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table3.attach(ui.label(), 1, 3, 17, 18, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        table3.attach(ui.label(), 1, 3, 18, 19, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         # Format tab
         table4 = gtk.Table(9, 2, False)
         table4.set_col_spacings(3)
@@ -6308,6 +6314,10 @@ class Base(mpdclient3.mpd_connection):
             gobject.idle_add(ui.focus, self.streams)
         elif self.current_tab == self.TAB_INFO:
             gobject.idle_add(ui.focus, self.info)
+            # This prevents the artwork from being cutoff when the
+            # user first clicks on the Info tab. Why this happens
+            # and how this fixes it is beyond me.
+            gobject.idle_add(self.info_update, True, False, True)
         gobject.idle_add(self.update_menu_visibility)
         if not self.img_clicked:
             self.last_tab = self.current_tab

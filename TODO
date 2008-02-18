@@ -6,11 +6,11 @@ v1.5
 		- making tabs
 		- combine ListStore definitions (playlists, streams, etc)
 		- remove_list_duplicates
+		- local/remote/dnd artwork
 	patch 2230?
 	streams - merge 'edit and 'delete' menu item
 		- multiple streams selected
 	jat's mpd bindings
-	image in info tab is initially cut off?
 	remove expander in remote artwork
 	
 Future:
