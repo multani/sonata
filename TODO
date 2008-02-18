@@ -8,11 +8,10 @@ v1.5
 		- remove_list_duplicates
 	patch 2230?
 	streams - merge 'edit and 'delete' menu item
+		- multiple streams selected
 	jat's mpd bindings
-	Untagged
-		- check if no items within...
-		- what if song already has 'untagged' tag?
 	image in info tab is initially cut off?
+	remove expander in remote artwork
 	
 Future:
 	lyrics -> ability to save changes

@@ -3890,9 +3890,15 @@ class Base(mpdclient3.mpd_connection):
                 pass
 
     def on_reset_image(self, action):
-        misc.remove_file(self.target_image_filename(self.ART_LOCATION_HOMECOVERS))
-        self.artwork_create_none_file()
-        self.artwork_update(True)
+        if self.songinfo:
+            if self.songinfo.has_key('name'):
+                # Stream, remove file:
+                misc.remove_file(self.artwork_stream_filename(self.songinfo.name))
+            else:
+                # Normal song:
+                misc.remove_file(self.target_image_filename(self.ART_LOCATION_HOMECOVERS))
+                self.artwork_create_none_file()
+            self.artwork_update(True)
 
     def artwork_set_tooltip_art(self, pix):
         pix1 = pix.subpixbuf(0, 0, 51, 77)
@@ -3914,24 +3920,38 @@ class Base(mpdclient3.mpd_connection):
         self.stop_art_update = False
         if not self.show_covers:
             return
+        if not self.songinfo:
+            return
         if self.conn and self.status and self.status.state in ['play', 'pause']:
-            artist = getattr(self.songinfo, 'artist', "")
-            album = getattr(self.songinfo, 'album', "")
-            filename = self.target_image_filename()
-            if filename == self.lastalbumart:
-                # No need to update..
-                self.stop_art_update = False
-                return
-            self.lastalbumart = None
-            if os.path.exists(self.target_image_filename(self.ART_LOCATION_NONE)):
-                self.artwork_set_default_icon()
-                return
-            imgfound = self.artwork_check_for_local()
-            if not imgfound:
-                if self.covers_pref == self.ART_LOCAL_REMOTE:
-                    imgfound = self.artwork_check_for_remote(artist, album, filename)
+            if self.songinfo.has_key('name'):
+                # Stream
+                streamfile = self.artwork_stream_filename(self.songinfo.name)
+                if os.path.exists(streamfile):
+                    gobject.idle_add(self.artwork_set_image, streamfile)
+                else:
+                    self.artwork_set_default_icon()
+            else:
+                # Normal song:
+                artist = getattr(self.songinfo, 'artist', "")
+                album = getattr(self.songinfo, 'album', "")
+                filename = self.target_image_filename()
+                if filename == self.lastalbumart:
+                    # No need to update..
+                    self.stop_art_update = False
+                    return
+                self.lastalbumart = None
+                if os.path.exists(self.target_image_filename(self.ART_LOCATION_NONE)):
+                    self.artwork_set_default_icon()
+                    return
+                imgfound = self.artwork_check_for_local()
+                if not imgfound:
+                    if self.covers_pref == self.ART_LOCAL_REMOTE:
+                        imgfound = self.artwork_check_for_remote(artist, album, filename)
         else:
             self.artwork_set_default_icon()
+
+    def artwork_stream_filename(self, streamname):
+        return os.path.expanduser('~/.covers/') + streamname.replace("/", "") + ".jpg"
 
     def artwork_create_none_file(self):
         # If this file exists, Sonata will use the "blank" default artwork for the song
@@ -4078,20 +4098,26 @@ class Base(mpdclient3.mpd_connection):
         # Since there can be multiple threads that are getting album art,
         # this will ensure that only the artwork for the currently playing
         # song is displayed
-        if self.conn and self.status and self.status.state in ['play', 'pause']:
-            if filename == self.target_image_filename(self.ART_LOCATION_HOMECOVERS):
-                return True
-            if filename == self.target_image_filename(self.ART_LOCATION_COVER):
-                return True
-            if filename == self.target_image_filename(self.ART_LOCATION_ALBUM):
-                return True
-            if filename == self.target_image_filename(self.ART_LOCATION_FOLDER):
-                return True
-            if filename == self.target_image_filename(self.ART_LOCATION_CUSTOM):
-                return True
-            if self.misc_img_in_dir and filename == self.misc_img_in_dir:
+        if self.conn and self.status and self.status.state in ['play', 'pause'] and self.songinfo:
+            if self.songinfo.has_key('name'):
+                streamfile = self.artwork_stream_filename(self.songinfo.name)
+                if filename == streamfile:
                     return True
-            if self.single_img_in_dir and filename == self.single_img_in_dir:
+            else:
+                # Normal song:
+                if filename == self.target_image_filename(self.ART_LOCATION_HOMECOVERS):
+                    return True
+                if filename == self.target_image_filename(self.ART_LOCATION_COVER):
+                    return True
+                if filename == self.target_image_filename(self.ART_LOCATION_ALBUM):
+                    return True
+                if filename == self.target_image_filename(self.ART_LOCATION_FOLDER):
+                    return True
+                if filename == self.target_image_filename(self.ART_LOCATION_CUSTOM):
+                    return True
+                if self.misc_img_in_dir and filename == self.misc_img_in_dir:
+                    return True
+                if self.single_img_in_dir and filename == self.single_img_in_dir:
                     return True
         # If we got this far, no match:
         return False
@@ -4758,11 +4784,12 @@ class Base(mpdclient3.mpd_connection):
                 self.UIManager.get_widget('/imagemenu/localimage_menu/').show()
                 artist = getattr(self.songinfo, 'artist', None)
                 album = getattr(self.songinfo, 'album', None)
+                stream = getattr(self.songinfo, 'name', None)
                 if os.path.exists(self.target_image_filename(self.ART_LOCATION_NONE)):
                     self.UIManager.get_widget('/imagemenu/resetimage_menu/').set_sensitive(False)
                 else:
                     self.UIManager.get_widget('/imagemenu/resetimage_menu/').set_sensitive(True)
-                if artist or album:
+                if artist or album or stream:
                     self.imagemenu.popup(None, None, None, event.button, event.time)
         gobject.timeout_add(50, self.on_image_activate_after)
         return False
@@ -4810,10 +4837,14 @@ class Base(mpdclient3.mpd_connection):
                     raise
             paths[i] = os.path.abspath(paths[i])
             if img.valid_image(paths[i]):
-                dest_filename = self.target_image_filename()
-                album = getattr(self.songinfo, 'album', "").replace("/", "")
-                artist = self.album_current_artist[1].replace("/", "")
-                self.artwork_remove_none_file(artist, album)
+                stream = getattr(self.songinfo, 'name', None)
+                if stream is not None:
+                    dest_filename = self.artwork_stream_filename(self.songinfo.name)
+                else:
+                    dest_filename = self.target_image_filename()
+                    album = getattr(self.songinfo, 'album', "").replace("/", "")
+                    artist = self.album_current_artist[1].replace("/", "")
+                    self.artwork_remove_none_file(artist, album)
                 misc.create_dir('~/.covers/')
                 if dest_filename != paths[i]:
                     shutil.copyfile(paths[i], dest_filename)
@@ -4948,21 +4979,27 @@ class Base(mpdclient3.mpd_connection):
         dialog.set_preview_widget(preview)
         dialog.set_use_preview_label(False)
         dialog.connect("update-preview", self.update_preview, preview)
+        stream = getattr(self.songinfo, 'name', None)
         album = getattr(self.songinfo, 'album', "").replace("/", "")
         artist = self.album_current_artist[1].replace("/", "")
-        dialog.connect("response", self.image_local_response, artist, album)
+        dialog.connect("response", self.image_local_response, artist, album, stream)
         dialog.set_default_response(gtk.RESPONSE_OK)
         songdir = os.path.dirname(self.songinfo.file)
         currdir = self.musicdir[self.profile_num] + songdir
         if self.art_location != self.ART_LOCATION_HOMECOVERS:
             dialog.set_current_folder(currdir)
-        self.local_dest_filename = self.target_image_filename()
+        if stream is not None:
+            # Allow saving an image file for a stream:
+            self.local_dest_filename = self.artwork_stream_filename(stream)
+        else:
+            self.local_dest_filename = self.target_image_filename()
         dialog.show()
 
-    def image_local_response(self, dialog, response, artist, album):
+    def image_local_response(self, dialog, response, artist, album, stream):
         if response == gtk.RESPONSE_OK:
             filename = dialog.get_filenames()[0]
-            self.artwork_remove_none_file(artist, album)
+            if stream is None:
+                self.artwork_remove_none_file(artist, album)
             # Copy file to covers dir:
             misc.create_dir('~/.covers/')
             if self.local_dest_filename != filename:
@@ -5008,11 +5045,16 @@ class Base(mpdclient3.mpd_connection):
         self.choose_dialog.show_all()
         self.chooseimage_visible = True
         self.remotefilelist = []
-        self.remote_dest_filename = self.target_image_filename()
-        album = getattr(self.songinfo, 'album', "")
+        stream = getattr(self.songinfo, 'name', None)
+        if stream is not None:
+            # Allow saving an image file for a stream:
+            self.remote_dest_filename = self.artwork_stream_filename(stream)
+        else:
+            self.remote_dest_filename = self.target_image_filename()
+        album = getattr(self.songinfo, 'album', '')
         artist = self.album_current_artist[1]
-        imagewidget.connect('item-activated', self.artwork_replace_cover, artist.replace("/", ""), album.replace("/", ""))
-        self.choose_dialog.connect('response', self.image_remote_response, imagewidget, artist, album)
+        imagewidget.connect('item-activated', self.image_remote_replace_cover, artist.replace("/", ""), album.replace("/", ""), stream)
+        self.choose_dialog.connect('response', self.image_remote_response, imagewidget, artist, album, stream)
         self.remote_artistentry.set_text(artist)
         self.remote_albumentry.set_text(album)
         self.allow_art_search = True
@@ -5050,7 +5092,6 @@ class Base(mpdclient3.mpd_connection):
         if self.chooseimage_visible:
             if not imgfound:
                 gobject.idle_add(self.image_remote_no_covers_found, imagewidget)
-                self.allow_art_search = True
         self.call_gc_collect = True
 
     def image_remote_no_tag_found(self, imagewidget):
@@ -5065,15 +5106,17 @@ class Base(mpdclient3.mpd_connection):
         imagewidget.set_pixbuf_column(-1)
         imagewidget.set_model(liststore)
         imagewidget.set_text_column(1)
+        ui.change_cursor(None)
+        self.allow_art_search = True
 
     def dialog_destroy(self, dialog, response_id):
         dialog.destroy()
 
-    def image_remote_response(self, dialog, response_id, imagewidget, artist, album):
+    def image_remote_response(self, dialog, response_id, imagewidget, artist, album, stream):
         self.stop_art_update = True
         if response_id == gtk.RESPONSE_ACCEPT:
             try:
-                self.artwork_replace_cover(imagewidget, imagewidget.get_selected_items()[0], artist, album)
+                self.image_remote_replace_cover(imagewidget, imagewidget.get_selected_items()[0], artist, album, stream)
             except:
                 dialog.destroy()
                 pass
@@ -5082,13 +5125,14 @@ class Base(mpdclient3.mpd_connection):
         ui.change_cursor(None)
         self.chooseimage_visible = False
 
-    def artwork_replace_cover(self, iconview, path, artist, album):
+    def image_remote_replace_cover(self, iconview, path, artist, album, stream):
         self.stop_art_update = True
         image_num = int(path[0])
         if len(self.remotefilelist) > 0:
             filename = self.remotefilelist[image_num]
             if os.path.exists(filename):
-                self.artwork_remove_none_file(artist, album)
+                if stream is None:
+                    self.artwork_remove_none_file(artist, album)
                 misc.create_dir('~/.covers/')
                 shutil.move(filename, self.remote_dest_filename)
                 # And finally, set the image in the interface:
