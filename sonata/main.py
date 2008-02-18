@@ -3922,6 +3922,7 @@ class Base(mpdclient3.mpd_connection):
         if not self.show_covers:
             return
         if not self.songinfo:
+            self.artwork_set_default_icon()
             return
         if self.conn and self.status and self.status.state in ['play', 'pause']:
             if self.songinfo.has_key('name'):
