@@ -5,11 +5,9 @@ v1.5
 		- separate python files
 		- making tabs
 		- combine ListStore definitions (playlists, streams, etc)
-		- local/remote artwork
 		- remove_list_duplicates
 	patch 2230?
 	streams - merge 'edit and 'delete' menu item
-	FR #4008
 	jat's mpd bindings
 	Untagged
 		- check if no items within...

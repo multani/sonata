@@ -214,6 +214,7 @@ class Base(mpdclient3.mpd_connection):
         self.LIB_LEVEL_ARTIST = 1
         self.LIB_LEVEL_ALBUM = 2
         self.LIB_LEVEL_SONG = 3
+        self.NOTAG = _("Untagged")
 
         self.trying_connection = False
         toggle_arg = False
@@ -2256,7 +2257,7 @@ class Base(mpdclient3.mpd_connection):
                     if self.lib_view == self.VIEW_ARTIST:
                         break
                     elif self.lib_view == self.VIEW_GENRE:
-                        if root == _("Untagged"):
+                        if root == self.NOTAG:
                             # It's okay for this to not have items...
                             break
                         elif len(self.return_genres()) == 0:
@@ -2265,7 +2266,7 @@ class Base(mpdclient3.mpd_connection):
                         else:
                             break
                 elif self.lib_level == self.LIB_LEVEL_ALBUM:
-                    if root == _("Untagged"):
+                    if root == self.NOTAG:
                         # It's okay for these to not have items...
                         break
                     elif len(self.return_artist_items(root)) == 0:
@@ -2290,7 +2291,8 @@ class Base(mpdclient3.mpd_connection):
         prev_selection = []
         prev_selection_root = False
         prev_selection_parent = False
-        if (self.lib_view == self.VIEW_FILESYSTEM and root == self.wd) or (self.lib_view != self.VIEW_FILESYSTEM and self.lib_level == self.lib_level_prev):
+        if (self.lib_view == self.VIEW_FILESYSTEM and root == self.wd) \
+        or (self.lib_view != self.VIEW_FILESYSTEM and self.lib_level == self.lib_level_prev):
             # This will happen when the database is updated. So, lets save
             # the current selection in order to try to re-select it after
             # the update is over.
@@ -2308,7 +2310,8 @@ class Base(mpdclient3.mpd_connection):
             path_updated = False
 
         # The logic below is more consistent with, e.g., thunar
-        if (self.lib_view == self.VIEW_FILESYSTEM and len(root) > len(self.wd)) or (self.lib_view != self.VIEW_FILESYSTEM and self.lib_level > self.lib_level_prev):
+        if (self.lib_view == self.VIEW_FILESYSTEM and len(root) > len(self.wd)) \
+        or (self.lib_view != self.VIEW_FILESYSTEM and self.lib_level > self.lib_level_prev):
             # Save position and row for where we just were if we've
             # navigated into a sub-directory:
             self.libraryposition[self.wd] = self.library.get_visible_rect()[1]
@@ -2317,7 +2320,8 @@ class Base(mpdclient3.mpd_connection):
                 value_for_selection = self.librarydata.get_value(self.librarydata.get_iter(rows[0]), 2)
                 if value_for_selection != ".." and value_for_selection != "/":
                     self.libraryselectedpath[self.wd] = rows[0]
-        elif (self.lib_view == self.VIEW_FILESYSTEM and root != self.wd) or (self.lib_view != self.VIEW_FILESYSTEM and self.lib_level != self.lib_level_prev):
+        elif (self.lib_view == self.VIEW_FILESYSTEM and root != self.wd) \
+        or (self.lib_view != self.VIEW_FILESYSTEM and self.lib_level != self.lib_level_prev):
             # If we've navigated to a parent directory, don't save
             # anything so that the user will enter that subdirectory
             # again at the top position with nothing selected
@@ -2354,10 +2358,14 @@ class Base(mpdclient3.mpd_connection):
                 self.lib_genre = ''
                 self.lib_artist = ''
                 self.lib_album = ''
-                root = '/'
+                untagged_tag = False
                 for genre in self.return_genres():
                     bd += [(misc.lower_no_the(genre), [self.genrepb, genre, misc.escape_html(genre)])]
-                bd += [(_("Untagged").lower(), [self.genrepb, _("Untagged"), _("Untagged")])]
+                    if genre.lower() == self.NOTAG.lower():
+                        untagged_tag = True
+                # Add Untagged item if it's not already there:
+                if not untagged_tag:
+                    bd += [(self.NOTAG.lower(), [self.genrepb, self.NOTAG, self.NOTAG])]
                 bd.sort(key=misc.first_of_2tuple)
             elif self.lib_level == self.LIB_LEVEL_ARTIST:
                 if self.lib_view == self.VIEW_GENRE:
@@ -2366,11 +2374,15 @@ class Base(mpdclient3.mpd_connection):
                 self.lib_artist = ''
                 self.lib_album = ''
                 self.lib_genre = self.wd
-                root = '/'
+                untagged_tag = False
                 for artist in self.return_artists():
                     bd += [(misc.lower_no_the(artist), [self.artistpb, artist, misc.escape_html(artist)])]
+                    if artist.lower() == self.NOTAG.lower():
+                        untagged_tag = True
                 if self.lib_view == self.VIEW_ARTIST:
-                    bd += [(_("Untagged").lower(), [self.artistpb, _("Untagged"), _("Untagged")])]
+                    # Add Untagged item if it's not already there:
+                    if not untagged_tag:
+                        bd += [(self.NOTAG.lower(), [self.artistpb, self.NOTAG, self.NOTAG])]
                 bd.sort(key=misc.first_of_2tuple)
             elif self.lib_level == self.LIB_LEVEL_ALBUM:
                 bd += [('0', [self.harddiskpb, '/', '/'])]
@@ -2452,7 +2464,7 @@ class Base(mpdclient3.mpd_connection):
             genre = search_genre
         else:
             genre = self.lib_genre
-        untagged_genre = (genre == _("Untagged"))
+        untagged_genre = (genre == self.NOTAG)
         list = []
         if not untagged_genre:
             for item in self.conn.do.search('genre', genre):
@@ -2461,15 +2473,17 @@ class Base(mpdclient3.mpd_connection):
                     list.append(item)
         else:
             for item in self.conn.do.listallinfo('/'):
-                if not item.has_key('genre') and item.has_key('file'):
-                    list.append(item)
-        list.sort(key=lambda x: int(self.sanitize_mpdtag(getattr(x, 'disc', '0'), False, 2) + self.sanitize_mpdtag(getattr(x, 'track', '0'), False, 2)))
+                if item.has_key('file'):
+                    if not item.has_key('genre'):
+                        list.append(item)
+                    elif item.genre == self.NOTAG:
+                        list.append(item)
         return list
 
     def return_artists(self, use_genre_if_genre_view=True):
         # Returns all artists in alphabetical order
         use_genre = (use_genre_if_genre_view and self.lib_view == self.VIEW_GENRE)
-        untagged_genre = (self.lib_genre == _("Untagged"))
+        untagged_genre = (self.lib_genre == self.NOTAG)
         if use_genre:
             list = []
             if not untagged_genre:
@@ -2480,8 +2494,11 @@ class Base(mpdclient3.mpd_connection):
                             list.append(item.artist)
             else:
                 for item in self.conn.do.listallinfo('/'):
-                    if not item.has_key('genre') and item.has_key('file') and item.has_key('artist'):
-                        list.append(item.artist)
+                    if item.has_key('file') and item.has_key('artist'):
+                        if not item.has_key('genre'):
+                            list.append(item.artist)
+                        elif item.genre == self.NOTAG:
+                            list.append(item.artist)
             (list, tmp, tmp2) = misc.remove_list_duplicates(list, case=False)
             list.sort(locale.strcoll)
             return list
@@ -2498,7 +2515,7 @@ class Base(mpdclient3.mpd_connection):
         # If we are in genre view, make sure items match the genre too.
         list = []
         use_genre = (use_genre_if_genre_view and self.lib_view == self.VIEW_GENRE)
-        untagged_genre = (self.lib_genre == _("Untagged"))
+        untagged_genre = (self.lib_genre == self.NOTAG)
         if use_genre and not untagged_genre:
             items = self.conn.do.search('album', album, 'genre', self.lib_genre)
         else:
@@ -2510,8 +2527,11 @@ class Base(mpdclient3.mpd_connection):
                     if not use_genre or (use_genre and self.lib_genre.lower() == item.genre.lower()):
                         list.append(item)
                 else:
-                    if not item.has_key('genre') and item.has_key('file'):
-                        list.append(item)
+                    if item.has_key('file'):
+                        if not item.has_key('genre'):
+                            list.append(item)
+                        elif item.genre == self.NOTAG:
+                            list.append(item)
         list.sort(key=lambda x: int(self.sanitize_mpdtag(getattr(x, 'disc', '0'), False, 2) + self.sanitize_mpdtag(getattr(x, 'track', '0'), False, 2)))
         return list
 
@@ -2520,16 +2540,19 @@ class Base(mpdclient3.mpd_connection):
         # If we are in genre view, make sure items match the genre too.
         list = []
         use_genre = (use_genre_if_genre_view and self.lib_view == self.VIEW_GENRE)
-        untagged_genre = (self.lib_genre == _("Untagged"))
-        untagged_artist = (artist == _("Untagged"))
+        untagged_genre = (self.lib_genre == self.NOTAG)
+        untagged_artist = (artist == self.NOTAG)
         if not untagged_artist:
             items = self.conn.do.search('artist', artist)
         else:
             items = self.conn.do.listallinfo('/')
         for item in items:
             if untagged_artist:
-                if not item.has_key('artist') and item.has_key('file'):
-                    list.append(item)
+                if item.has_key('file'):
+                    if not item.has_key('artist'):
+                        list.append(item)
+                    elif item.artist == self.NOTAG:
+                        list.append(item)
             else:
                 # Make sure it's an exact match:
                 if artist.lower() == item.artist.lower():
@@ -2537,8 +2560,11 @@ class Base(mpdclient3.mpd_connection):
                         if not use_genre or (use_genre and self.lib_genre.lower() == item.genre.lower()):
                             list.append(item)
                     elif not untagged_artist:
-                        if not item.has_key('genre') and item.has_key('file'):
-                            list.append(item)
+                        if item.has_key('file'):
+                            if not item.has_key('genre'):
+                                list.append(item)
+                            elif item.genre == self.NOTAG:
+                                list.append(item)
         list.sort(key=lambda x: getattr(x, 'date', '0').split('-')[0].zfill(4))
         return list
 
@@ -2549,8 +2575,8 @@ class Base(mpdclient3.mpd_connection):
         # If we are in genre view, make sure items match the genre too.
         list = []
         use_genre = (use_genre_if_genre_view and self.lib_view == self.VIEW_GENRE)
-        untagged_genre = (self.lib_genre == _("Untagged"))
-        untagged_artist = (artist == _("Untagged"))
+        untagged_genre = (self.lib_genre == self.NOTAG)
+        untagged_artist = (artist == self.NOTAG)
         if use_genre and not untagged_genre and not untagged_artist:
             items = self.conn.do.search('album', album, 'artist', artist, 'genre', self.lib_genre)
         elif not untagged_artist:
@@ -2560,8 +2586,11 @@ class Base(mpdclient3.mpd_connection):
         for item in items:
             match = False
             if untagged_artist:
-                if not item.has_key('artist') and item.has_key('file'):
-                    match = True
+                if item.has_key('file'):
+                    if not item.has_key('artist'):
+                        match = True
+                    elif item.artist == self.NOTAG:
+                        match = True
             else:
                 # Make sure it's an exact match:
                 if artist.lower() == item.artist.lower() and album.lower() == item.album.lower():
@@ -2569,8 +2598,11 @@ class Base(mpdclient3.mpd_connection):
                         if not use_genre or (use_genre and self.lib_genre.lower() == item.genre.lower()):
                             match = True
                     else:
-                        if not item.has_key('genre') and item.has_key('file'):
-                            match = True
+                        if item.has_key('file'):
+                            if not item.has_key('genre'):
+                                match = True
+                            elif item.genre == self.NOTAG:
+                                match = True
             if match:
                 if year is None:
                     list.append(item)
@@ -2837,28 +2869,31 @@ class Base(mpdclient3.mpd_connection):
                         trackinfo = ""
                         albuminfo = self.songinfo.album + "\n"
                         tracks = self.return_album_items(self.songinfo.album, False)
-                        for track in tracks:
-                            if os.path.dirname(self.songinfo.file) == os.path.dirname(track.file):
-                                if track.has_key('title'):
-                                    trackinfo = trackinfo + self.sanitize_mpdtag(getattr(track, 'track', '0'), False, 2) + '. ' + track.title + '\n'
-                                else:
-                                    trackinfo = trackinfo + self.sanitize_mpdtag(getattr(track, 'track', '0'), False, 2) + '. ' + track.file.split('/')[-1] + '\n'
-                                if track.has_key('date'):
-                                    year.append(track.date)
-                                try:
-                                    albumtime = albumtime + int(track.time)
-                                except:
-                                    pass
-                        (year, tmp, tmp2) = misc.remove_list_duplicates(year, case=False)
-                        artist = self.album_current_artist[1]
-                        artist_use_link = False
-                        if artist != _("Various Artists"):
-                            artist_use_link = True
-                        albuminfo = albuminfo + artist + "\n"
-                        if len(year) == 1:
-                            albuminfo = albuminfo + year[0] + "\n"
-                        albuminfo = albuminfo + misc.convert_time(albumtime) + "\n"
-                        albuminfo = albuminfo + "\n" + trackinfo
+                        if len(tracks) > 0:
+                            for track in tracks:
+                                if os.path.dirname(self.songinfo.file) == os.path.dirname(track.file):
+                                    if track.has_key('title'):
+                                        trackinfo = trackinfo + self.sanitize_mpdtag(getattr(track, 'track', '0'), False, 2) + '. ' + track.title + '\n'
+                                    else:
+                                        trackinfo = trackinfo + self.sanitize_mpdtag(getattr(track, 'track', '0'), False, 2) + '. ' + track.file.split('/')[-1] + '\n'
+                                    if track.has_key('date'):
+                                        year.append(track.date)
+                                    try:
+                                        albumtime = albumtime + int(track.time)
+                                    except:
+                                        pass
+                            (year, tmp, tmp2) = misc.remove_list_duplicates(year, case=False)
+                            artist = self.album_current_artist[1]
+                            artist_use_link = False
+                            if artist != _("Various Artists"):
+                                artist_use_link = True
+                            albuminfo = albuminfo + artist + "\n"
+                            if len(year) == 1:
+                                albuminfo = albuminfo + year[0] + "\n"
+                            albuminfo = albuminfo + misc.convert_time(albumtime) + "\n"
+                            albuminfo = albuminfo + "\n" + trackinfo
+                        else:
+                            albuminfo = _("Album info not found.")
                         self.albumText.set_markup(misc.escape_html(albuminfo))
                     else:
                         self.albumText.set_text(_("Album name not set."))
