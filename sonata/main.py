@@ -4342,6 +4342,8 @@ class Base(mpdclient3.mpd_connection):
                 if newsize != column.get_fixed_width():
                     column.set_fixed_width(newsize)
             gobject.idle_add(self.header_update_column_widths)
+            if self.current.get_property('visible'):
+                self.current.show_all()
 
     def on_notebook_resize(self, widget, event):
         if not self.resizing_columns:
