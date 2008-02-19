@@ -12,6 +12,7 @@ v1.5
 		- multiple streams selected
 	jat's mpd bindings
 	speed up cli args?
+	column sizing - http://bugzilla.gnome.org/show_bug.cgi?id=517345
 	
 Future:
 	lyrics -> ability to save changes

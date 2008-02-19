@@ -4328,9 +4328,10 @@ class Base(mpdclient3.mpd_connection):
     def current_columns_resize(self):
         if not self.withdrawn and self.expanded and len(self.columns) > 1:
             self.resizing_columns = True
+            width = self.current.allocation.width
             for i, column in enumerate(self.columns):
                 try:
-                    newsize = int(self.colwidthpercents[i]*self.current.allocation.width)
+                    newsize = int(self.colwidthpercents[i]*width)
                     if newsize == 0:
                         # self.colwidthpercents has not yet been set, don't resize...
                         self.resizing_columns = False
@@ -5192,14 +5193,7 @@ class Base(mpdclient3.mpd_connection):
                 # has its normal allocated width:
                 return
             for i, column in enumerate(self.columns):
-                if i == len(self.columns)-1:
-                    # The last column may be larger than specified, since it expands to fill
-                    # the treeview, so lets get the minimum of the current width and the
-                    # fixed width. This will prevent a horizontal scrollbar from unnecessarily
-                    # showing sometimes.
-                    self.columnwidths[i] = 10
-                else:
-                    self.columnwidths[i] = column.get_width()
+                self.columnwidths[i] = column.get_width()
                 # Save widths as percentages for when the application is resized.
                 self.colwidthpercents[i] = float(self.columnwidths[i])/width
         self.resizing_columns = False
