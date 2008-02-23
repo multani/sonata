@@ -392,6 +392,7 @@ class Base(mpdclient3.mpd_connection):
         self.scrob_time_now = None
         self.sel_rows = None
         self.img_clicked = False
+        self.lastnbwidth = 0
         # If the connection to MPD times out, this will cause the interface to freeze while
         # the socket.connect() calls are repeatedly executed. Therefore, if we were not
         # able to make a connection, slow down the iteration check to once every 15 seconds.
@@ -1107,6 +1108,8 @@ class Base(mpdclient3.mpd_connection):
 
         gc.disable()
 
+        gobject.idle_add(self.header_update_column_widths)
+
     def print_version(self):
         print _("Version: Sonata"), __version__
         print _("Website: http://sonata.berlios.de/")
@@ -1300,8 +1303,8 @@ class Base(mpdclient3.mpd_connection):
             column = gtk.TreeViewColumn(colnames[i], cellrenderer, markup=(i+1))
             self.columns += [column]
             column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
-            # If just one column, we want it to expand with the tree, so don't set a fixed_width; if
-            # multiple columns, size accordingly:
+            # If just one column, we want it to expand with the tree, so don't set a
+            # fixed_width; if multiple columns, size accordingly:
             if len(self.columnformat) > 1:
                 column.set_resizable(True)
                 try:
@@ -4327,12 +4330,11 @@ class Base(mpdclient3.mpd_connection):
         else: self.w = width
         self.x, self.y = self.window.get_position()
         self.expander_ellipse_workaround()
-        self.header_update_column_widths()
 
     def current_columns_resize(self):
         if not self.withdrawn and self.expanded and len(self.columns) > 1:
             self.resizing_columns = True
-            width = self.current.allocation.width
+            width = self.current.allocation.width + self.expanderwindow.get_vscrollbar().allocation.width
             for i, column in enumerate(self.columns):
                 try:
                     newsize = int(self.colwidthpercents[i]*width)
@@ -4345,11 +4347,15 @@ class Base(mpdclient3.mpd_connection):
                     newsize = 150
                 if newsize != column.get_fixed_width():
                     column.set_fixed_width(newsize)
-            gobject.idle_add(self.header_update_column_widths)
+            self.resizing_columns = False
 
     def on_notebook_resize(self, widget, event):
-        if not self.resizing_columns:
-            self.current_columns_resize()
+        if not self.resizing_columns :
+            if widget.allocation.width != self.lastnbwidth:
+                self.lastnbwidth = widget.allocation.width
+                self.current_columns_resize()
+            #else:
+            #	gobject.idle_add(self.header_update_column_widths)
         gobject.idle_add(self.info_resize_elements)
 
     def info_resize_elements(self):
@@ -5191,13 +5197,16 @@ class Base(mpdclient3.mpd_connection):
 
     def header_update_column_widths(self):
         if not self.withdrawn and self.expanded:
-            width = self.current.allocation.width
+            width = self.current.allocation.width + self.expanderwindow.get_vscrollbar().allocation.width
             if width <= 10 or self.columns[0] <= 10:
                 # Make sure we only set self.colwidthpercents if self.current
                 # has its normal allocated width:
                 return
             for i, column in enumerate(self.columns):
-                self.columnwidths[i] = column.get_width()
+                if i == len(self.columns)-1:
+                    self.columnwidths[i] = min(column.get_width(), column.get_fixed_width())
+                else:
+                    self.columnwidths[i] = column.get_width()
                 # Save widths as percentages for when the application is resized.
                 self.colwidthpercents[i] = float(self.columnwidths[i])/width
         self.resizing_columns = False

@@ -13,6 +13,7 @@ v1.5
 	jat's mpd bindings
 	speed up cli args?
 	column sizing - http://bugzilla.gnome.org/show_bug.cgi?id=517345
+		- FR 4016
 	
 Future:
 	lyrics -> ability to save changes
