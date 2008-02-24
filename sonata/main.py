@@ -24,40 +24,25 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import warnings, sys, os, gobject, ConfigParser, urllib, urllib2, re
-import socket, gc, gettext, locale, shutil, getopt, threading, time
-import ui, misc, img, tray
+import getopt, sys, mpdclient3, gettext, socket, os, ConfigParser, misc
 
+all_args = ["toggle", "version", "status", "info", "play", "pause",
+            "stop", "next", "prev", "pp", "shuffle", "repeat", "hidden",
+            "visible", "profile="]
+cli_args = ("play", "pause", "stop", "next", "prev", "pp", "info",
+            "status", "repeat", "shuffle")
+
+# Check if we have a cli arg passed.. if so, skip importing all
+# gui-related modules
+skip_gui = False
 try:
-    import gtk, pango, mpdclient3
-except ImportError, (strerror):
-    print >>sys.stderr, "%s.  Please make sure you have this library installed into a directory in Python's path or in the same directory as Sonata. Aborting...\n" % strerror
-    sys.exit(1)
-
-try: # Python 2.5, module bundled:
-    from xml.etree import ElementTree
-except:
-    try: # Python 2.4, separate module:
-        from elementtree.ElementTree import ElementTree
-    except:
-        sys.stderr.write("Sonata requires Python 2.5 or python-elementtree. Aborting... \n")
-        sys.exit(1)
-
-# Prevent deprecation warning for egg:
-warnings.simplefilter('ignore', DeprecationWarning)
-try:
-    import egg.trayicon
-    HAVE_EGG = True
-    HAVE_STATUS_ICON = False
-except ImportError:
-    HAVE_EGG = False
-    if gtk.pygtk_version >= (2, 10, 0):
-        # Revert to pygtk status icon:
-        HAVE_STATUS_ICON = True
-    else:
-        HAVE_STATUS_ICON = False
-# Reset so that we can see any other deprecation warnings
-warnings.simplefilter('default', DeprecationWarning)
+    opts, args = getopt.getopt(sys.argv[1:], "tv", all_args)
+    if args != []:
+        for a in args:
+            if a in cli_args:
+                skip_gui = True
+except getopt.GetoptError:
+    pass
 
 try:
     import dbus, dbus.service
@@ -73,77 +58,112 @@ try:
 except:
     HAVE_DBUS = False
 
-HAVE_GNOME_MMKEYS = False
-if HAVE_DBUS:
+if not skip_gui:
+    import warnings, gobject, urllib, urllib2, re, gc, locale, shutil
+    import threading, time, ui, img, tray
+
     try:
-        # mmkeys for gnome 2.18+
-        bus = dbus.SessionBus()
-        dbusObj = bus.get_object('org.freedesktop.DBus', '/org/freedesktop/DBus')
-        dbusInterface = dbus.Interface(dbusObj, 'org.freedesktop.DBus')
-        if dbusInterface.NameHasOwner('org.gnome.SettingsDaemon'):
-            settingsDaemonObj = bus.get_object('org.gnome.SettingsDaemon', '/org/gnome/SettingsDaemon')
-            settingsDaemonInterface = dbus.Interface(settingsDaemonObj, 'org.gnome.SettingsDaemon')
-            settingsDaemonInterface.GrabMediaPlayerKeys('Sonata', 0)
-            HAVE_GNOME_MMKEYS = True
+        import gtk, pango
+    except ImportError, (strerror):
+        print >>sys.stderr, "%s.  Please make sure you have this library installed into a directory in Python's path or in the same directory as Sonata. Aborting...\n" % strerror
+        sys.exit(1)
+
+    try: # Python 2.5, module bundled:
+        from xml.etree import ElementTree
+    except:
+        try: # Python 2.4, separate module:
+            from elementtree.ElementTree import ElementTree
+        except:
+            sys.stderr.write("Sonata requires Python 2.5 or python-elementtree. Aborting... \n")
+            sys.exit(1)
+
+    # Prevent deprecation warning for egg:
+    warnings.simplefilter('ignore', DeprecationWarning)
+    try:
+        import egg.trayicon
+        HAVE_EGG = True
+        HAVE_STATUS_ICON = False
+    except ImportError:
+        HAVE_EGG = False
+        if gtk.pygtk_version >= (2, 10, 0):
+            # Revert to pygtk status icon:
+            HAVE_STATUS_ICON = True
+        else:
+            HAVE_STATUS_ICON = False
+    # Reset so that we can see any other deprecation warnings
+    warnings.simplefilter('default', DeprecationWarning)
+
+    HAVE_GNOME_MMKEYS = False
+    if HAVE_DBUS:
+        try:
+            # mmkeys for gnome 2.18+
+            bus = dbus.SessionBus()
+            dbusObj = bus.get_object('org.freedesktop.DBus', '/org/freedesktop/DBus')
+            dbusInterface = dbus.Interface(dbusObj, 'org.freedesktop.DBus')
+            if dbusInterface.NameHasOwner('org.gnome.SettingsDaemon'):
+                settingsDaemonObj = bus.get_object('org.gnome.SettingsDaemon', '/org/gnome/SettingsDaemon')
+                settingsDaemonInterface = dbus.Interface(settingsDaemonObj, 'org.gnome.SettingsDaemon')
+                settingsDaemonInterface.GrabMediaPlayerKeys('Sonata', 0)
+                HAVE_GNOME_MMKEYS = True
+                HAVE_MMKEYS = False
+        except:
+            pass
+
+    if not HAVE_GNOME_MMKEYS:
+        try:
+            # if not gnome 2.18+, mmkeys for everyone else
+            import mmkeys
+            HAVE_MMKEYS = True
+        except:
             HAVE_MMKEYS = False
-    except:
-        pass
 
-if not HAVE_GNOME_MMKEYS:
     try:
-        # if not gnome 2.18+, mmkeys for everyone else
-        import mmkeys
-        HAVE_MMKEYS = True
+        import audioscrobbler
+        HAVE_AUDIOSCROBBLER = True
     except:
-        HAVE_MMKEYS = False
+        HAVE_AUDIOSCROBBLER = False
 
-try:
-    import audioscrobbler
-    HAVE_AUDIOSCROBBLER = True
-except:
-    HAVE_AUDIOSCROBBLER = False
-
-try:
-    from sugar.activity import activity
-    HAVE_STATUS_ICON = False
-    HAVE_SUGAR = True
-    VOLUME_ICON_SIZE = 3
-except:
-    HAVE_SUGAR = False
-    VOLUME_ICON_SIZE = 4
-
-try:
-    import tagpy
-    HAVE_TAGPY = True
-except:
-    HAVE_TAGPY = False
-
-if HAVE_TAGPY:
     try:
-        # Set default tag encoding to utf8.. fixes some reported bugs.
-        import tagpy.id3v2 as id3v2
-        id3v2.FrameFactory.instance().setDefaultTextEncoding(tagpy.StringType.UTF8)
+        from sugar.activity import activity
+        HAVE_STATUS_ICON = False
+        HAVE_SUGAR = True
+        VOLUME_ICON_SIZE = 3
     except:
-        pass
+        HAVE_SUGAR = False
+        VOLUME_ICON_SIZE = 4
 
-try:
-    from ZSI import ServiceProxy
-    # Make sure we have the right version..
-    test = ServiceProxy.ServiceProxy
-    HAVE_WSDL = True
-except:
-    HAVE_WSDL = False
+    try:
+        import tagpy
+        HAVE_TAGPY = True
+    except:
+        HAVE_TAGPY = False
 
-try:
-    import gnome, gnome.ui
-    HAVE_GNOME_UI = True
-except:
-    HAVE_GNOME_UI = False
+    if HAVE_TAGPY:
+        try:
+            # Set default tag encoding to utf8.. fixes some reported bugs.
+            import tagpy.id3v2 as id3v2
+            id3v2.FrameFactory.instance().setDefaultTextEncoding(tagpy.StringType.UTF8)
+        except:
+            pass
 
-# Test pygtk version
-if gtk.pygtk_version < (2, 6, 0):
-    sys.stderr.write("Sonata requires PyGTK 2.6.0 or newer. Aborting...\n")
-    sys.exit(1)
+    try:
+        from ZSI import ServiceProxy
+        # Make sure we have the right version..
+        test = ServiceProxy.ServiceProxy
+        HAVE_WSDL = True
+    except:
+        HAVE_WSDL = False
+
+    try:
+        import gnome, gnome.ui
+        HAVE_GNOME_UI = True
+    except:
+        HAVE_GNOME_UI = False
+
+    # Test pygtk version
+    if gtk.pygtk_version < (2, 6, 0):
+        sys.stderr.write("Sonata requires PyGTK 2.6.0 or newer. Aborting...\n")
+        sys.exit(1)
 
 class Connection(mpdclient3.mpd_connection):
     """A connection to the daemon. Will use MPD_HOST/MPD_PORT in preference to the supplied config if available."""
@@ -162,15 +182,11 @@ class Connection(mpdclient3.mpd_connection):
 class Base(mpdclient3.mpd_connection):
     def __init__(self, window=None, sugar=False):
 
-        gtk.gdk.threads_init()
-
         try:
             gettext.install('sonata', os.path.join(__file__.split('/lib')[0], 'share', 'locale'), unicode=1)
         except:
             gettext.install('sonata', '/usr/share/locale', unicode=1)
         gettext.textdomain('sonata')
-
-        self.traytips = tray.TrayIconTips()
 
         # Initialize vars (these can be needed if we have a cli argument, e.g., "sonata play")
         socket.setdefaulttimeout(5)
@@ -224,7 +240,7 @@ class Base(mpdclient3.mpd_connection):
         # Read any passed options/arguments:
         if not sugar:
             try:
-                opts, args = getopt.getopt(sys.argv[1:], "tv", ["toggle", "version", "status", "info", "play", "pause", "stop", "next", "prev", "pp", "shuffle", "repeat", "hidden", "visible", "profile="])
+                opts, args = getopt.getopt(sys.argv[1:], "tv", all_args)
             except getopt.GetoptError:
                 # print help information and exit:
                 self.print_usage()
@@ -252,7 +268,7 @@ class Base(mpdclient3.mpd_connection):
                         sys.exit()
             if args != []:
                 for a in args:
-                    if a in ("play", "pause", "stop", "next", "prev", "pp", "info", "status", "repeat", "shuffle"):
+                    if a in cli_args:
                         self.single_connect_for_passed_arg(a)
                     else:
                         self.print_usage()
@@ -266,6 +282,10 @@ class Base(mpdclient3.mpd_connection):
             print _("PyGTK+ 2.10 or gnome-python-extras not found, system tray support disabled.")
         if not HAVE_AUDIOSCROBBLER:
             print _("Python 2.5 or python-elementtree not found, audioscrobbler support disabled.")
+
+        gtk.gdk.threads_init()
+
+        self.traytips = tray.TrayIconTips()
 
         start_dbus_interface(toggle_arg)
 
@@ -1753,7 +1773,8 @@ class Base(mpdclient3.mpd_connection):
         if conf.has_option('player', 'update_on_start'):
             self.update_on_start = conf.getboolean('player', 'update_on_start')
         if conf.has_option('player', 'notif_location'):
-            self.traytips.notifications_location = conf.getint('player', 'notif_location')
+            if not skip_gui:
+                self.traytips.notifications_location = conf.getint('player', 'notif_location')
         if conf.has_option('player', 'playback'):
             self.show_playback = conf.getboolean('player', 'playback')
         if conf.has_option('player', 'progressbar'):
