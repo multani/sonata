@@ -4100,7 +4100,7 @@ class Base(mpdclient3.mpd_connection):
                     # Artwork for albums in the library tab
                     if not info_img_only and not self.library_search_visible():
                         if self.lib_level == self.LIB_LEVEL_ALBUM:
-                            if self.lib_view == self.VIEW_ARTIST or self.lib_view == self.VIEW_ALBUM:
+                            if self.lib_view == self.VIEW_ARTIST or self.lib_view == self.VIEW_GENRE:
                                 if self.songinfo and self.songinfo.has_key('artist'):
                                     if self.wd == self.songinfo.artist:
                                         self.library_browse(root=self.wd)
@@ -4824,7 +4824,7 @@ class Base(mpdclient3.mpd_connection):
             self.volume_hide()
             # Force a resize of the info labels, if needed:
             gobject.idle_add(self.on_notebook_resize, self.notebook, None)
-        elif event.button == 1:
+        elif event.button == 1 and widget != self.info_imagebox:
             if self.expanded:
                 if self.current_tab != self.TAB_INFO:
                     self.img_clicked = True
