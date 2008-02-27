@@ -10,7 +10,6 @@ v1.5
 	patch 2230?
 	streams - merge 'edit and 'delete' menu item
 		- multiple streams selected
-	jat's mpd bindings
 	column sizing - http://bugzilla.gnome.org/show_bug.cgi?id=517345
 	
 Future:

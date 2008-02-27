@@ -24,7 +24,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import getopt, sys, mpdclient3, gettext, socket, os, ConfigParser, misc
+import getopt, sys, mpd, gettext, socket, os, ConfigParser, misc
+import mpdhelper as mpdh
 
 all_args = ["toggle", "version", "status", "info", "play", "pause",
             "stop", "next", "prev", "pp", "shuffle", "repeat", "hidden",
@@ -165,21 +166,7 @@ if not skip_gui:
         sys.stderr.write("Sonata requires PyGTK 2.6.0 or newer. Aborting...\n")
         sys.exit(1)
 
-class Connection(mpdclient3.mpd_connection):
-    """A connection to the daemon. Will use MPD_HOST/MPD_PORT in preference to the supplied config if available."""
-
-    def __init__(self, Base):
-        """Open a connection using the host/port values from the provided config. If conf is None, an empty object will be returned, suitable for comparing != to any other connection."""
-
-        host, port, password = Base.mpd_env_vars()
-        if not host: host = Base.host[Base.profile_num]
-        if not port: port = Base.port[Base.profile_num]
-        if not password: password = Base.password[Base.profile_num]
-
-        mpdclient3.mpd_connection.__init__(self, host, port, password)
-        mpdclient3.connect(host=host, port=port, password=password)
-
-class Base(mpdclient3.mpd_connection):
+class Base():
     def __init__(self, window=None, sugar=False):
 
         try:
@@ -196,6 +183,8 @@ class Base(mpdclient3.mpd_connection):
         self.host = ['localhost']
         self.port = [6600]
         self.password = ['']
+        self.client = mpd.MPDClient()
+        self.conn = False
 
         # Constants
         self.TAB_CURRENT = _("Current")
@@ -290,6 +279,8 @@ class Base(mpdclient3.mpd_connection):
         start_dbus_interface(toggle_arg)
 
         self.gnome_session_management()
+
+        misc.create_dir('~/.covers/')
 
         # Initialize vars for GUI
         self.current_tab = self.TAB_CURRENT
@@ -415,7 +406,6 @@ class Base(mpdclient3.mpd_connection):
         # If the connection to MPD times out, this will cause the interface to freeze while
         # the socket.connect() calls are repeatedly executed. Therefore, if we were not
         # able to make a connection, slow down the iteration check to once every 15 seconds.
-        # Eventually we'd like to ues non-blocking sockets in mpdclient3.py
         self.iterate_time_when_connected = 500
         self.iterate_time_when_disconnected_or_stopped = 1000 # Slow down polling when disconnected stopped
 
@@ -634,22 +624,11 @@ class Base(mpdclient3.mpd_connection):
         # Try to connect to MPD:
         self.mpd_connect(blocking=True)
         if self.conn:
-            self.status = self.conn.do.status()
+            self.status = mpdh.status(self.client)
             self.iterate_time = self.iterate_time_when_connected
-            try:
-                test = self.status.state
-            except:
-                self.status = None
-            try:
-                self.songinfo = self.conn.do.currentsong()
-            except:
-                self.songinfo = None
-        else:
-            if self.initial_run:
-                show_prefs = True
-            self.iterate_time = self.iterate_time_when_disconnected_or_stopped
-            self.status = None
-            self.songinfo = None
+            self.songinfo = mpdh.currsong(self.client)
+        elif self.initial_run:
+            show_prefs = True
 
         # Audioscrobbler
         self.scrobbler_init()
@@ -1353,89 +1332,75 @@ class Base(mpdclient3.mpd_connection):
     def single_connect_for_passed_arg(self, type):
         self.user_connect = True
         self.settings_load()
-        self.conn = None
         self.mpd_connect(blocking=True, force_connection=True)
         if self.conn:
-            self.status = self.conn.do.status()
-            try:
-                test = self.status.state
-            except:
-                self.status = None
-            try:
-                self.songinfo = self.conn.do.currentsong()
-            except:
-                self.songinfo = None
+            self.status = mpdh.status(self.client)
+            self.songinfo = mpdh.currsong(self.client)
             if type == "play":
-                self.conn.do.play()
+                self.client.play()
             elif type == "pause":
-                self.conn.do.pause(1)
+                self.client.pause(1)
             elif type == "stop":
-                self.conn.do.stop()
+                self.client.stop()
             elif type == "next":
-                self.conn.do.next()
+                self.client.next()
             elif type == "prev":
-                self.conn.do.previous()
+                self.client.previous()
             elif type == "shuffle":
                 if self.status:
-                    if self.status.random == '0':
-                        self.conn.do.random(1)
-                    elif self.status.random == '1':
-                        self.conn.do.random(0)
+                    self.client.random()
             elif type == "repeat":
                 if self.status:
-                    if self.status.repeat == '0':
-                        self.conn.do.repeat(1)
-                    elif self.status.repeat == '1':
-                        self.conn.do.repeat(0)
+                    self.client.repeat()
             elif type == "pp":
-                self.status = self.conn.do.status()
+                self.status = mpdh.status(self.client)
                 if self.status:
-                    if self.status.state in ['play']:
-                        self.conn.do.pause(1)
-                    elif self.status.state in ['pause', 'stop']:
-                        self.conn.do.play()
+                    if self.status['state'] in ['play']:
+                        self.client.pause(1)
+                    elif self.status['state'] in ['pause', 'stop']:
+                        self.client.play()
             elif type == "info":
-                if self.status and self.status.state in ['play', 'pause']:
-                    print _("Title") + ": " + getattr(self.songinfo, 'title', '')
-                    print _("Artist") + ": " + getattr(self.songinfo, 'artist', '')
-                    print _("Album") + ": " + getattr(self.songinfo, 'album', '')
-                    print _("Date") + ": " + getattr(self.songinfo, 'date', '')
-                    print _("Track") + ": " + self.sanitize_mpdtag(getattr(self.songinfo, 'track', '0'), False, 2)
-                    print _("Genre") + ": " + getattr(self.songinfo, 'genre', '')
-                    print _("File") + ": " + os.path.basename(self.songinfo.file)
-                    at, length = [int(c) for c in self.status.time.split(':')]
+                if self.status and self.status['state'] in ['play', 'pause']:
+                    print _("Title") + ": " + self.songinfo.get('title', '')
+                    print _("Artist") + ": " + self.songinfo.get('artist', '')
+                    print _("Album") + ": " + self.songinfo.get('album', '')
+                    print _("Date") + ": " + self.songinfo.get('date', '')
+                    print _("Track") + ": " + self.sanitize_mpdtag(self.songinfo.get('track', '0'), False, 2)
+                    print _("Genre") + ": " + self.songinfo.get('genre', '')
+                    print _("File") + ": " + os.path.basename(self.songinfo['file'])
+                    at, length = [int(c) for c in self.status['time'].split(':')]
                     at_time = misc.convert_time(at)
                     try:
-                        time = misc.convert_time(int(self.songinfo.time))
+                        time = misc.convert_time(int(self.songinfo['time']))
                         print _("Time") + ": " + at_time + " / " + time
                     except:
                         print _("Time") + ": " + at_time
-                    print _("Bitrate") + ": " + getattr(self.status, 'bitrate', '')
+                    print _("Bitrate") + ": " + self.status.get('bitrate', '')
                 else:
                     print _("MPD stopped")
             elif type == "status":
                 if self.status:
                     try:
-                        if self.status.state == 'play':
+                        if self.status['state'] == 'play':
                             print _("State") + ": " + _("Playing")
-                        elif self.status.state == 'pause':
+                        elif self.status['state'] == 'pause':
                             print _("State") + ": " + _("Paused")
-                        elif self.status.state == 'stop':
+                        elif self.status['state'] == 'stop':
                             print _("State") + ": " + _("Stopped")
-                        if self.status.repeat == '0':
+                        if self.status['repeat'] == '0':
                             print _("Repeat") + ": " + _("Off")
                         else:
                             print _("Repeat") + ": " + _("On")
-                        if self.status.random == '0':
+                        if self.status['random'] == '0':
                             print _("Shuffle") + ": " + _("Off")
                         else:
                             print _("Shuffle") + ": " + _("On")
-                        print _("Volume") + ": " + self.status.volume + "/100"
-                        print _('Crossfade') + ": " + self.status.xfade + ' ' + gettext.ngettext('second', 'seconds', int(self.status.xfade))
+                        print _("Volume") + ": " + self.status['volume'] + "/100"
+                        print _('Crossfade') + ": " + self.status['xfade'] + ' ' + gettext.ngettext('second', 'seconds', int(self.status['xfade']))
                     except:
                         pass
         else:
-            print _("Unable to connect to MPD.\nPlease check your Sonata preferences.")
+            print _("Unable to connect to MPD.\nPlease check your Sonata preferences or MPD_HOST/MPD_PORT environment variables.")
 
     def populate_playlists_for_menu(self, playlistinfo):
         if self.mergepl_id:
@@ -1481,10 +1446,7 @@ class Base(mpdclient3.mpd_connection):
             action_name = "Profile: " + self.profile_names[i].replace("&", "")
             actions.append((action_name, None, "[" + str(i+1) + "] " + self.profile_names[i], None, None, i))
         actions.append(('disconnect', None, _('Disconnect'), None, None, len(self.profile_names)))
-        if not self.sonata_loaded and not self.conn:
-            self.actionGroupProfiles.add_radio_actions(actions, len(self.profile_names), self.on_profiles_click)
-        else:
-            self.actionGroupProfiles.add_radio_actions(actions, self.profile_num, self.on_profiles_click)
+        self.actionGroupProfiles.add_radio_actions(actions, self.profile_num, self.on_profiles_click)
         uiDescription = """
             <ui>
               <popup name="mainmenu">
@@ -1520,25 +1482,36 @@ class Base(mpdclient3.mpd_connection):
             return
         self.trying_connection = True
         if self.user_connect or force_connection:
-            try:
-                self.conn = Connection(self)
-                host, port, password = self.mpd_env_vars()
-                if not password:
-                    password = self.password[self.profile_num]
-                if len(password) > 0:
-                    self.conn.do.password(password)
-            except (mpdclient3.socket.error, EOFError):
-                self.conn = None
+            #try:
+            host, port, password = self.mpd_env_vars()
+            if not host: host = self.host[self.profile_num]
+            if not port: port = self.port[self.profile_num]
+            if not password: password = self.password[self.profile_num]
+            self.client.connect(host, port)
+            if len(password) > 0:
+                self.client.password(password)
+            test = mpdh.status(self.client)
+            if test:
+                self.conn = True
+            else:
+                self.conn = False
+            #except:
+            #	self.client = None
         else:
-            self.conn = None
+            self.conn = False
+        if not self.conn:
+            self.status = None
+            self.songinfo = None
+            self.iterate_time = self.iterate_time_when_disconnected_or_stopped
         self.trying_connection = False
 
     def mpd_disconnect(self):
         if self.conn:
             try:
-                self.conn.do.close()
+                self.client.close()
             except:
                 pass
+            self.conn = False
 
     def on_connectkey_pressed(self, event):
         self.user_connect = True
@@ -1577,36 +1550,29 @@ class Base(mpdclient3.mpd_connection):
                 self.mpd_connect()
             if self.conn:
                 self.iterate_time = self.iterate_time_when_connected
-                self.status = self.conn.do.status()
-                try:
-                    test = self.status.state
-                    if self.status.state == 'stop':
-                        self.iterate_time = self.iterate_time_when_disconnected_or_stopped
-                except:
-                    self.status = None
-                self.songinfo = self.conn.do.currentsong()
+                self.status = mpdh.status(self.client)
                 if self.status:
-                    if not self.last_repeat or self.last_repeat != self.status.repeat:
-                        self.repeatmenu.set_active(self.status.repeat == '1')
-                    if not self.last_random or self.last_random != self.status.random:
-                        self.shufflemenu.set_active(self.status.random == '1')
-                    if self.status.xfade == '0':
+                    if self.status['state'] == 'stop':
+                        self.iterate_time = self.iterate_time_when_disconnected_or_stopped
+                self.songinfo = mpdh.currsong(self.client)
+                if self.status:
+                    if not self.last_repeat or self.last_repeat != self.status['repeat']:
+                        self.repeatmenu.set_active(self.status['repeat'] == '1')
+                    if not self.last_random or self.last_random != self.status['random']:
+                        self.shufflemenu.set_active(self.status['random'] == '1')
+                    if self.status['xfade'] == '0':
                         self.xfade_enabled = False
                     else:
                         self.xfade_enabled = True
-                        self.xfade = int(self.status.xfade)
+                        self.xfade = int(self.status['xfade'])
                         if self.xfade > 30: self.xfade = 30
-                    self.last_repeat = self.status.repeat
-                    self.last_random = self.status.random
-            else:
-                self.iterate_time = self.iterate_time_when_disconnected_or_stopped
-                self.status = None
-                self.songinfo = None
-        except (mpdclient3.socket.error, EOFError):
-            self.prevconn = self.conn
+                    self.last_repeat = self.status['repeat']
+                    self.last_random = self.status['random']
+        except:
+            self.prevconn = self.client
             self.prevstatus = self.status
             self.prevsonginfo = self.songinfo
-            self.conn = None
+            self.conn = False
             self.status = None
             self.songinfo = None
 
@@ -2123,24 +2089,24 @@ class Base(mpdclient3.mpd_connection):
         if plname:
             if self.playlist_name_exists(_("Save Playlist"), 'savePlaylistError', plname):
                 return
-            self.conn.do.rm(plname)
-            self.conn.do.save(plname)
+            self.client.rm(plname)
+            self.client.save(plname)
             self.playlists_populate()
             self.iterate_now()
 
     def on_playlist_add_songs(self, action):
         plname = misc.unescape_html(action.get_name().replace("Playlist: ", ""))
-        self.conn.send.command_list_begin()
+        self.client.command_list_ok_begin()
         for song in self.songs:
-            self.conn.send.playlistadd(plname, song.file)
-        self.conn.do.command_list_end()
+            self.client.playlistadd(plname, song['file'])
+        self.client.command_list_end()
 
     def playlist_name_exists(self, title, role, plname, skip_plname=""):
         # If the playlist already exists, and the user does not want to replace it, return True; In
         # all other cases, return False
-        for item in self.conn.do.lsinfo():
-            if item.type == 'playlist':
-                if item.playlist == plname and plname != skip_plname:
+        for item in self.client.lsinfo():
+            if item.has_key('playlist'):
+                if item['playlist'] == plname and plname != skip_plname:
                     if ui.show_error_msg_yesno(self.window, _("A playlist with this name already exists. Would you like to replace it?"), title, role) == gtk.RESPONSE_YES:
                         return False
                     else:
@@ -2169,9 +2135,9 @@ class Base(mpdclient3.mpd_connection):
         if self.conn:
             self.playlistsdata.clear()
             playlistinfo = []
-            for item in self.conn.do.lsinfo():
-                if item.type == 'playlist':
-                    playlistinfo.append(misc.escape_html(item.playlist))
+            for item in self.client.lsinfo():
+                if item.has_key('playlist'):
+                    playlistinfo.append(misc.escape_html(item['playlist']))
             playlistinfo.sort(key=lambda x: x.lower()) # Remove case sensitivity
             for item in playlistinfo:
                 self.playlistsdata.append([gtk.STOCK_JUSTIFY_FILL, item])
@@ -2185,8 +2151,8 @@ class Base(mpdclient3.mpd_connection):
             oldname = misc.unescape_html(model.get_value(model.get_iter(selected[0]), 1))
             if self.playlist_name_exists(_("Rename Playlist"), 'renamePlaylistError', plname, oldname):
                 return
-            self.conn.do.rm(plname)
-            self.conn.do.rename(oldname, plname)
+            self.client.rm(plname)
+            self.client.rename(oldname, plname)
             self.playlists_populate()
             self.iterate_now()
             # Re-select item:
@@ -2269,8 +2235,11 @@ class Base(mpdclient3.mpd_connection):
         # we find items that exist.
         #
         # Returns lsinfo so that we don't have to do another
-        # self.conn.do.lsinfo() call for self.VIEW_FILESYSTEM
-        lsinfo = self.conn.do.lsinfo(root)
+        # self.client.lsinfo() call for self.VIEW_FILESYSTEM
+        try:
+            lsinfo = self.client.lsinfo(root)
+        except:
+            lsinfo = []
         while lsinfo == []:
             if self.lib_view == self.VIEW_FILESYSTEM:
                 if root == '/':
@@ -2306,7 +2275,10 @@ class Base(mpdclient3.mpd_connection):
                     break
             else:
                 break
-            lsinfo = self.conn.do.lsinfo(root)
+            try:
+                lsinfo = self.client.lsinfo(root)
+            except:
+                lsinfo = []
         return lsinfo
 
     def library_browse(self, widget=None, root='/'):
@@ -2375,11 +2347,11 @@ class Base(mpdclient3.mpd_connection):
                 bd += [('0', [self.harddiskpb, '/', '/'])]
                 bd += [('1', [self.openpb, '..', '..'])]
             for item in lsinfo:
-                if item.type == 'directory':
-                    name = item.directory.split('/')[-1]
-                    bd += [('d' + name.lower(), [self.openpb, item.directory, misc.escape_html(name)])]
-                elif item.type == 'file':
-                    bd += [('f' + item.file.lower(), [self.sonatapb, item.file, self.parse_formatting(self.libraryformat, item, True)])]
+                if item.has_key('directory'):
+                    name = item['directory'].split('/')[-1]
+                    bd += [('d' + name.lower(), [self.openpb, item['directory'], misc.escape_html(name)])]
+                elif item.has_key('file'):
+                    bd += [('f' + item['file'].lower(), [self.sonatapb, item['file'], self.parse_formatting(self.libraryformat, item, True)])]
             bd.sort(key=misc.first_of_2tuple)
         elif self.lib_view == self.VIEW_ARTIST or self.lib_view == self.VIEW_GENRE:
             if self.lib_level == self.LIB_LEVEL_GENRE:
@@ -2423,11 +2395,11 @@ class Base(mpdclient3.mpd_connection):
                 dirs = []
                 for item in self.return_artist_items(self.lib_artist):
                     try:
-                        albums.append(item.album)
-                        years.append(getattr(item, 'date', '9999').split('-')[0].zfill(4))
+                        albums.append(item['album'])
+                        years.append(item.get('date', '9999').split('-')[0].zfill(4))
                     except:
                         songs.append(item)
-                    dirs.append(os.path.dirname(item.file))
+                    dirs.append(os.path.dirname(item['file']))
                 (albums, years, dirs) = misc.remove_list_duplicates(albums, years, dirs, False)
                 for i in range(len(albums)):
                     coverfile = self.library_get_album_cover(dirs[i], self.lib_artist, albums[i])
@@ -2437,17 +2409,17 @@ class Base(mpdclient3.mpd_connection):
                         bd += [('d' + years[i] + misc.lower_no_the(albums[i]), [coverfile, years[i] + albums[i], misc.escape_html(years[i] + ' - ' + albums[i])])]
                 for song in songs:
                     try:
-                        bd += [('f' + misc.lower_no_the(song.title), [self.sonatapb, song.file, self.parse_formatting(self.libraryformat, song, True)])]
+                        bd += [('f' + misc.lower_no_the(song['title']), [self.sonatapb, song['file'], self.parse_formatting(self.libraryformat, song, True)])]
                     except:
-                        bd += [('f' + song.file.lower(), [self.sonatapb, song.file, self.parse_formatting(self.libraryformat, song, True)])]
+                        bd += [('f' + song['file'].lower(), [self.sonatapb, song['file'], self.parse_formatting(self.libraryformat, song, True)])]
                 bd.sort(key=misc.first_of_2tuple)
             else: # Songs in albums
                 bd += [('0', [self.harddiskpb, '/', '/'])]
                 bd += [('1', [self.openpb, '..', '..'])]
                 (self.lib_album, year) = self.library_album_and_year_from_path(root)
                 for item in self.return_album_items_with_artist_and_year(self.lib_artist, self.lib_album, year):
-                    num = self.sanitize_mpdtag(getattr(item, 'disc', '1'), False, 2) + self.sanitize_mpdtag(getattr(item, 'track', '1'), False, 2)
-                    bd += [('f' + num, [self.sonatapb, item.file, self.parse_formatting(self.libraryformat, item, True)])]
+                    num = self.sanitize_mpdtag(item.get('disc', '1'), False, 2) + self.sanitize_mpdtag(item.get('track', '1'), False, 2)
+                    bd += [('f' + num, [self.sonatapb, item['file'], self.parse_formatting(self.libraryformat, item, True)])]
                 # List already sorted in return_album_items_with_artist_and_year...
 
         for sort, list in bd:
@@ -2479,8 +2451,8 @@ class Base(mpdclient3.mpd_connection):
     def return_genres(self):
         # Returns all genres in alphabetical order
         list = []
-        for item in self.conn.do.list('genre'):
-            list.append(item.genre)
+        for item in self.client.list('genre'):
+            list.append(item)
         (list, tmp, tmp2) = misc.remove_list_duplicates(list, case=False)
         list.sort(locale.strcoll)
         return list
@@ -2495,16 +2467,16 @@ class Base(mpdclient3.mpd_connection):
         untagged_genre = (genre == self.NOTAG)
         list = []
         if not untagged_genre:
-            for item in self.conn.do.search('genre', genre):
+            for item in self.client.search('genre', genre):
                 # Make sure it's an exact match:
-                if genre.lower() == item.genre.lower():
+                if genre.lower() == item['genre'].lower():
                     list.append(item)
         else:
-            for item in self.conn.do.listallinfo('/'):
+            for item in self.client.listallinfo('/'):
                 if item.has_key('file'):
                     if not item.has_key('genre'):
                         list.append(item)
-                    elif item.genre == self.NOTAG:
+                    elif item['genre'] == self.NOTAG:
                         list.append(item)
         return list
 
@@ -2515,25 +2487,25 @@ class Base(mpdclient3.mpd_connection):
         if use_genre:
             list = []
             if not untagged_genre:
-                for item in self.conn.do.search('genre', self.lib_genre):
+                for item in self.client.search('genre', self.lib_genre):
                     if item.has_key('artist'):
                         # Make sure it's an exact match:
-                        if self.lib_genre.lower() == item.genre.lower():
-                            list.append(item.artist)
+                        if self.lib_genre.lower() == item['genre'].lower():
+                            list.append(item['artist'])
             else:
-                for item in self.conn.do.listallinfo('/'):
+                for item in self.client.listallinfo('/'):
                     if item.has_key('file') and item.has_key('artist'):
                         if not item.has_key('genre'):
-                            list.append(item.artist)
-                        elif item.genre == self.NOTAG:
-                            list.append(item.artist)
+                            list.append(item['artist'])
+                        elif item['genre'] == self.NOTAG:
+                            list.append(item['artist'])
             (list, tmp, tmp2) = misc.remove_list_duplicates(list, case=False)
             list.sort(locale.strcoll)
             return list
         else:
             list = []
-            for item in self.conn.do.list('artist'):
-                list.append(item.artist)
+            for item in self.client.list('artist'):
+                list.append(item)
             (list, tmp, tmp2) = misc.remove_list_duplicates(list, case=False)
             list.sort(locale.strcoll)
             return list
@@ -2545,22 +2517,22 @@ class Base(mpdclient3.mpd_connection):
         use_genre = (use_genre_if_genre_view and self.lib_view == self.VIEW_GENRE)
         untagged_genre = (self.lib_genre == self.NOTAG)
         if use_genre and not untagged_genre:
-            items = self.conn.do.search('album', album, 'genre', self.lib_genre)
+            items = self.client.search('album', album, 'genre', self.lib_genre)
         else:
-            items = self.conn.do.search('album', album)
+            items = self.client.search('album', album)
         for item in items:
             # Make sure it's an exact match:
-            if album.lower() == item.album.lower():
+            if album.lower() == item['album'].lower():
                 if not untagged_genre:
-                    if not use_genre or (use_genre and self.lib_genre.lower() == item.genre.lower()):
+                    if not use_genre or (use_genre and self.lib_genre.lower() == item['genre'].lower()):
                         list.append(item)
                 else:
                     if item.has_key('file'):
                         if not item.has_key('genre'):
                             list.append(item)
-                        elif item.genre == self.NOTAG:
+                        elif item['genre'] == self.NOTAG:
                             list.append(item)
-        list.sort(key=lambda x: int(self.sanitize_mpdtag(getattr(x, 'disc', '0'), False, 2) + self.sanitize_mpdtag(getattr(x, 'track', '0'), False, 2)))
+        list.sort(key=lambda x: int(self.sanitize_mpdtag(x.get('disc', '0'), False, 2) + self.sanitize_mpdtag(x.get('track', '0'), False, 2)))
         return list
 
     def return_artist_items(self, artist, use_genre_if_genre_view=True):
@@ -2571,29 +2543,29 @@ class Base(mpdclient3.mpd_connection):
         untagged_genre = (self.lib_genre == self.NOTAG)
         untagged_artist = (artist == self.NOTAG)
         if not untagged_artist:
-            items = self.conn.do.search('artist', artist)
+            items = self.client.search('artist', artist)
         else:
-            items = self.conn.do.listallinfo('/')
+            items = self.client.listallinfo('/')
         for item in items:
             if untagged_artist:
                 if item.has_key('file'):
                     if not item.has_key('artist'):
                         list.append(item)
-                    elif item.artist == self.NOTAG:
+                    elif item['artist'] == self.NOTAG:
                         list.append(item)
             else:
                 # Make sure it's an exact match:
-                if artist.lower() == item.artist.lower():
+                if artist.lower() == item['artist'].lower():
                     if not untagged_genre:
-                        if not use_genre or (use_genre and self.lib_genre.lower() == item.genre.lower()):
+                        if not use_genre or (use_genre and self.lib_genre.lower() == item['genre'].lower()):
                             list.append(item)
                     elif not untagged_artist:
                         if item.has_key('file'):
                             if not item.has_key('genre'):
                                 list.append(item)
-                            elif item.genre == self.NOTAG:
+                            elif item['genre'] == self.NOTAG:
                                 list.append(item)
-        list.sort(key=lambda x: getattr(x, 'date', '0').split('-')[0].zfill(4))
+        list.sort(key=lambda x: x.get('date', '0').split('-')[0].zfill(4))
         return list
 
     def return_album_items_with_artist_and_year(self, artist, album, year, use_genre_if_genre_view=True):
@@ -2606,30 +2578,30 @@ class Base(mpdclient3.mpd_connection):
         untagged_genre = (self.lib_genre == self.NOTAG)
         untagged_artist = (artist == self.NOTAG)
         if use_genre and not untagged_genre and not untagged_artist:
-            items = self.conn.do.search('album', album, 'artist', artist, 'genre', self.lib_genre)
+            items = self.client.search('album', album, 'artist', artist, 'genre', self.lib_genre)
         elif not untagged_artist:
-            items = self.conn.do.search('album', album, 'artist', artist)
+            items = self.client.search('album', album, 'artist', artist)
         else:
-            items = self.conn.do.search('album', album)
+            items = self.client.search('album', album)
         for item in items:
             match = False
             if untagged_artist:
                 if item.has_key('file'):
                     if not item.has_key('artist'):
                         match = True
-                    elif item.artist == self.NOTAG:
+                    elif item['artist'] == self.NOTAG:
                         match = True
             else:
                 # Make sure it's an exact match:
-                if artist.lower() == item.artist.lower() and album.lower() == item.album.lower():
+                if artist.lower() == item['artist'].lower() and album.lower() == item['album'].lower():
                     if not untagged_genre:
-                        if not use_genre or (use_genre and self.lib_genre.lower() == item.genre.lower()):
+                        if not use_genre or (use_genre and self.lib_genre.lower() == item['genre'].lower()):
                             match = True
                     else:
                         if item.has_key('file'):
                             if not item.has_key('genre'):
                                 match = True
-                            elif item.genre == self.NOTAG:
+                            elif item['genre'] == self.NOTAG:
                                 match = True
             if match:
                 if year is None:
@@ -2639,14 +2611,14 @@ class Base(mpdclient3.mpd_connection):
                     if year != '9999' and item.has_key('date'):
                         # Only show songs whose years match the year var:
                         try:
-                            if int(item.date.split('-')[0]) == int(year):
+                            if int(item['date'].split('-')[0]) == int(year):
                                 list.append(item)
                         except:
                             pass
                     elif year == '9999' and not item.has_key('date'):
                         # Only show songs that have no year specified:
                         list.append(item)
-        list.sort(key=lambda x: int(self.sanitize_mpdtag(getattr(x, 'disc', '0'), False, 2) + self.sanitize_mpdtag(getattr(x, 'track', '0'), False, 2)))
+        list.sort(key=lambda x: int(self.sanitize_mpdtag(x.get('disc', '0'), False, 2) + self.sanitize_mpdtag(x.get('track', '0'), False, 2)))
         return list
 
     def library_retain_selection(self, prev_selection, prev_selection_root, prev_selection_parent):
@@ -2751,66 +2723,66 @@ class Base(mpdclient3.mpd_connection):
             has_brackets = False
         if "%A" in text:
             try:
-                text = text.replace("%A", item.artist)
+                text = text.replace("%A", item['artist'])
             except:
                 if not has_brackets: text = text.replace("%A", _('Unknown'))
                 else: return ""
         if "%B" in text:
             try:
-                text = text.replace("%B", item.album)
+                text = text.replace("%B", item['album'])
             except:
                 if not has_brackets: text = text.replace("%B", _('Unknown'))
                 else: return ""
         if "%T" in text:
             try:
-                text = text.replace("%T", item.title)
+                text = text.replace("%T", item['title'])
             except:
                 if not has_brackets:
-                    if len(item.file.split('/')[-1]) == 0 or item.file[:7] == 'http://' or item.file[:6] == 'ftp://':
+                    if len(item['file'].split('/')[-1]) == 0 or item['file'][:7] == 'http://' or item['file'][:6] == 'ftp://':
                         # Use path and file name:
-                        return misc.escape_html(item.file)
+                        return misc.escape_html(item['file'])
                     else:
                         # Use file name only:
-                        return misc.escape_html(item.file.split('/')[-1])
+                        return misc.escape_html(item['file'].split('/')[-1])
                 else:
                     return ""
         if "%N" in text:
             try:
-                text = text.replace("%N", self.sanitize_mpdtag(item.track, False, 2))
+                text = text.replace("%N", self.sanitize_mpdtag(item['track'], False, 2))
             except:
                 if not has_brackets: text = text.replace("%N", "0")
                 else: return ""
         if "%D" in text:
             try:
-                text = text.replace("%D", self.sanitize_mpdtag(item.disc, False, 0))
+                text = text.replace("%D", self.sanitize_mpdtag(item['disc'], False, 0))
             except:
                 if not has_brackets: text = text.replace("%D", "0")
                 else: return ""
         if "%S" in text:
             try:
-                text = text.replace("%S", item.name)
+                text = text.replace("%S", item['name'])
             except:
                 if not has_brackets: text = text.replace("%S", _('Unknown'))
                 else: return ""
         if "%G" in text:
             try:
-                text = text.replace("%G", item.genre)
+                text = text.replace("%G", item['genre'])
             except:
                 if not has_brackets: text = text.replace("%G", _('Unknown'))
                 else: return ""
         if "%Y" in text:
             try:
-                text = text.replace("%Y", item.date)
+                text = text.replace("%Y", item['date'])
             except:
                 if not has_brackets: text = text.replace("%Y", "?")
                 else: return ""
         if "%F" in text:
-            text = text.replace("%F", item.file)
+            text = text.replace("%F", item['file'])
         if "%P" in text:
-            text = text.replace("%P", item.file.split('/')[-1])
+            text = text.replace("%P", item['file'].split('/')[-1])
         if "%L" in text:
             try:
-                time = misc.convert_time(int(item.time))
+                time = misc.convert_time(int(item['time']))
                 text = text.replace("%L", time)
             except:
                 if not has_brackets: text = text.replace("%L", "?")
@@ -2818,7 +2790,7 @@ class Base(mpdclient3.mpd_connection):
         if wintitle:
             if "%E" in text:
                 try:
-                    at, length = [int(c) for c in self.status.time.split(':')]
+                    at, length = [int(c) for c in self.status['time'].split(':')]
                     at_time = misc.convert_time(at)
                     text = text.replace("%E", at_time)
                 except:
@@ -2845,7 +2817,7 @@ class Base(mpdclient3.mpd_connection):
         # want to update the minimum number of widgets so the user can
         # do things like select label text.
         if self.conn:
-            if self.status and self.status.state in ['play', 'pause']:
+            if self.status and self.status['state'] in ['play', 'pause']:
                 bitratelabel = self.info_labels[self.info_type[_("Bitrate")]]
                 titlelabel = self.info_labels[self.info_type[_("Title")]]
                 artistlabel = self.info_labels[self.info_type[_("Artist")]]
@@ -2855,7 +2827,7 @@ class Base(mpdclient3.mpd_connection):
                 tracklabel = self.info_labels[self.info_type[_("Track")]]
                 filelabel = self.info_labels[self.info_type[_("File")]]
                 try:
-                    newbitrate = self.status.bitrate + " kbps"
+                    newbitrate = self.status['bitrate'] + " kbps"
                 except:
                     newbitrate = ''
                 if not self.last_info_bitrate or self.last_info_bitrate != newbitrate:
@@ -2869,45 +2841,45 @@ class Base(mpdclient3.mpd_connection):
                     album_use_link = False
                     if self.songinfo.has_key('album'):
                         album_use_link = True
-                    titlelabel.set_text(getattr(self.songinfo, 'title', ''))
+                    titlelabel.set_text(self.songinfo.get('title', ''))
                     if artist_use_link:
-                        artistlabel.set_markup(misc.link_markup(misc.escape_html(self.songinfo.artist), False, False, self.linkcolor))
+                        artistlabel.set_markup(misc.link_markup(misc.escape_html(self.songinfo['artist']), False, False, self.linkcolor))
                     else:
-                        artistlabel.set_text(getattr(self.songinfo, 'artist', ''))
+                        artistlabel.set_text(self.songinfo.get('artist', ''))
                     if album_use_link:
-                        albumlabel.set_markup(misc.link_markup(misc.escape_html(self.songinfo.album), False, False, self.linkcolor))
+                        albumlabel.set_markup(misc.link_markup(misc.escape_html(self.songinfo['album']), False, False, self.linkcolor))
                     else:
-                        albumlabel.set_text(getattr(self.songinfo, 'album', ''))
-                    datelabel.set_text(getattr(self.songinfo, 'date', ''))
-                    genrelabel.set_text(getattr(self.songinfo, 'genre', ''))
+                        albumlabel.set_text(self.songinfo.get('album', ''))
+                    datelabel.set_text(self.songinfo.get('date', ''))
+                    genrelabel.set_text(self.songinfo.get('genre', ''))
                     if self.songinfo.has_key('track'):
-                        tracklabel.set_text(self.sanitize_mpdtag(getattr(self.songinfo, 'track', '0'), False, 0))
+                        tracklabel.set_text(self.sanitize_mpdtag(self.songinfo.get('track', '0'), False, 0))
                     else:
                         tracklabel.set_text("")
-                    if os.path.exists(self.musicdir[self.profile_num] + os.path.dirname(self.songinfo.file)):
-                        filelabel.set_text(self.musicdir[self.profile_num] + self.songinfo.file)
+                    if os.path.exists(self.musicdir[self.profile_num] + os.path.dirname(self.songinfo['file'])):
+                        filelabel.set_text(self.musicdir[self.profile_num] + self.songinfo['file'])
                         self.info_editlabel.set_markup(misc.link_markup(_("edit tags"), True, True, self.linkcolor))
                     else:
-                        filelabel.set_text(self.songinfo.file)
+                        filelabel.set_text(self.songinfo['file'])
                         self.info_editlabel.set_text("")
                     if self.songinfo.has_key('album'):
                         # Update album info:
                         year = []
                         albumtime = 0
                         trackinfo = ""
-                        albuminfo = self.songinfo.album + "\n"
-                        tracks = self.return_album_items(self.songinfo.album, False)
+                        albuminfo = self.songinfo['album'] + "\n"
+                        tracks = self.return_album_items(self.songinfo['album'], False)
                         if len(tracks) > 0:
                             for track in tracks:
-                                if os.path.dirname(self.songinfo.file) == os.path.dirname(track.file):
+                                if os.path.dirname(self.songinfo['file']) == os.path.dirname(track['file']):
                                     if track.has_key('title'):
-                                        trackinfo = trackinfo + self.sanitize_mpdtag(getattr(track, 'track', '0'), False, 2) + '. ' + track.title + '\n'
+                                        trackinfo = trackinfo + self.sanitize_mpdtag(track.get('track', '0'), False, 2) + '. ' + track['title'] + '\n'
                                     else:
-                                        trackinfo = trackinfo + self.sanitize_mpdtag(getattr(track, 'track', '0'), False, 2) + '. ' + track.file.split('/')[-1] + '\n'
+                                        trackinfo = trackinfo + self.sanitize_mpdtag(track.get('track', '0'), False, 2) + '. ' + track['file'].split('/')[-1] + '\n'
                                     if track.has_key('date'):
-                                        year.append(track.date)
+                                        year.append(track['date'])
                                     try:
-                                        albumtime = albumtime + int(track.time)
+                                        albumtime = albumtime + int(track['time'])
                                     except:
                                         pass
                             (year, tmp, tmp2) = misc.remove_list_duplicates(year, case=False)
@@ -2928,7 +2900,7 @@ class Base(mpdclient3.mpd_connection):
                     # Update lyrics:
                     if self.show_lyrics and not skip_lyrics:
                         if self.songinfo.has_key('artist') and self.songinfo.has_key('title'):
-                            lyricThread = threading.Thread(target=self.info_get_lyrics, args=(self.songinfo.artist, self.songinfo.title, self.songinfo.artist, self.songinfo.title))
+                            lyricThread = threading.Thread(target=self.info_get_lyrics, args=(self.songinfo['artist'], self.songinfo['title'], self.songinfo['artist'], self.songinfo['title']))
                             lyricThread.setDaemon(True)
                             lyricThread.start()
                         elif not HAVE_WSDL:
@@ -3041,12 +3013,12 @@ class Base(mpdclient3.mpd_connection):
             # For error messages where there is no appropriate artist or
             # title, we pass force=True:
             self.lyricsText.set_text(lyrics)
-        elif self.status and self.status.state in ['play', 'pause'] and self.songinfo:
+        elif self.status and self.status['state'] in ['play', 'pause'] and self.songinfo:
             # Verify that we are displaying the correct lyrics:
             try:
-                if misc.strip_all_slashes(self.songinfo.artist) == artist and misc.strip_all_slashes(self.songinfo.title) == title:
+                if misc.strip_all_slashes(self.songinfo['artist']) == artist and misc.strip_all_slashes(self.songinfo['title']) == title:
                     try:
-                        self.lyricsText.set_markup(lyrics)
+                        self.lyricsText.set_markup(misc.escape_html(lyrics))
                     except:
                         self.lyricsText.set_text(lyrics)
             except:
@@ -3194,9 +3166,9 @@ class Base(mpdclient3.mpd_connection):
                             if return_root and not self.library_search_visible():
                                 items.append(model.get_value(model.get_iter(path), 1))
                             else:
-                                for item in self.conn.do.listall(model.get_value(model.get_iter(path), 1)):
-                                    if item.type == 'file':
-                                        items.append(item.file)
+                                for item in self.client.listall(model.get_value(model.get_iter(path), 1)):
+                                    if item.has_key('file'):
+                                        items.append(item['file'])
                         else:
                             items.append(model.get_value(model.get_iter(path), 1))
         elif self.lib_view == self.VIEW_ARTIST or (self.VIEW_GENRE and self.lib_level > self.LIB_LEVEL_GENRE):
@@ -3208,12 +3180,12 @@ class Base(mpdclient3.mpd_connection):
                 if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
                     if self.lib_level == self.LIB_LEVEL_ARTIST:
                         for item in self.return_artist_items(model.get_value(model.get_iter(path), 1)):
-                            items.append(item.file)
+                            items.append(item['file'])
                     else:
                         if model.get_value(model.get_iter(path), 0) != self.sonatapb:
                             (album, year) = self.library_album_and_year_from_path(model.get_value(model.get_iter(path), 1))
                             for item in self.return_album_items_with_artist_and_year(self.lib_artist, album, year):
-                                items.append(item.file)
+                                items.append(item['file'])
                         else:
                             items.append(model.get_value(model.get_iter(path), 1))
         elif self.lib_view == self.VIEW_GENRE:
@@ -3222,7 +3194,7 @@ class Base(mpdclient3.mpd_connection):
                     gtk.main_iteration()
                 genre = model.get_value(model.get_iter(path), 1)
                 for item in self.return_genre_items(genre):
-                    items.append(item.file)
+                    items.append(item['file'])
         # Make sure we don't have any EXACT duplicates:
         (items, tmp, tmp2) = misc.remove_list_duplicates(items, case=True)
         return items
@@ -3233,17 +3205,17 @@ class Base(mpdclient3.mpd_connection):
     def on_add_item(self, widget, play_after=False):
         if self.conn:
             if play_after and self.status:
-                playid = self.status.playlistlength
+                playid = self.status['playlistlength']
             if self.current_tab == self.TAB_LIBRARY:
                 items = self.library_get_recursive_filenames(True)
-                self.conn.send.command_list_begin()
+                self.client.command_list_ok_begin()
                 for item in items:
-                    self.conn.send.add(item)
-                self.conn.do.command_list_end()
+                    self.client.add(item)
+                self.client.command_list_end()
             elif self.current_tab == self.TAB_PLAYLISTS:
                 model, selected = self.playlists_selection.get_selected_rows()
                 for path in selected:
-                    self.conn.do.load(misc.unescape_html(model.get_value(model.get_iter(path), 1)))
+                    self.client.load(misc.unescape_html(model.get_value(model.get_iter(path), 1)))
             elif self.current_tab == self.TAB_STREAMS:
                 model, selected = self.streams_selection.get_selected_rows()
                 for path in selected:
@@ -3251,7 +3223,7 @@ class Base(mpdclient3.mpd_connection):
                     self.stream_parse_and_add(item)
             self.iterate_now()
             if play_after:
-                self.conn.do.play(int(playid))
+                self.client.play(int(playid))
 
     def stream_parse_and_add(self, item):
         # We need to do different things depending on if this is
@@ -3281,7 +3253,7 @@ class Base(mpdclient3.mpd_connection):
         if f:
             if misc.is_binary(f):
                 # Binary file, just add it:
-                self.conn.do.add(item)
+                self.client.add(item)
             else:
                 if "[playlist]" in f:
                     # pls:
@@ -3294,10 +3266,10 @@ class Base(mpdclient3.mpd_connection):
                     self.stream_parse_m3u(f)
                 else:
                     # Something else..
-                    self.conn.do.add(item)
+                    self.client.add(item)
         else:
             # Hopefully just a regular stream, try to add it:
-            self.conn.do.add(item)
+            self.client.add(item)
 
     def stream_parse_pls(self, f):
         lines = f.split("\n")
@@ -3307,25 +3279,25 @@ class Base(mpdclient3.mpd_connection):
             if delim > 0:
                 line = line[delim:]
                 if len(line) > 7 and line[0:7] == 'http://':
-                    self.conn.do.add(line)
+                    self.client.add(line)
                 elif len(line) > 6 and line[0:6] == 'ftp://':
-                    self.conn.do.add(line)
+                    self.client.add(line)
 
     def stream_parse_m3u(self, f):
         lines = f.split("\n")
         for line in lines:
             line = line.replace('\r','')
             if len(line) > 7 and line[0:7] == 'http://':
-                self.conn.do.add(line)
+                self.client.add(line)
             elif len(line) > 6 and line[0:6] == 'ftp://':
-                self.conn.do.add(line)
+                self.client.add(line)
 
     def on_replace_item_play(self, widget):
         self.on_replace_item(widget, True)
 
     def on_replace_item(self, widget, play_after=False):
         play_after_replace = False
-        if self.status and self.status.state == 'play':
+        if self.status and self.status['state'] == 'play':
             play_after = True
         # Only clear if an item is selected:
         if self.current_tab == self.TAB_LIBRARY:
@@ -3391,11 +3363,11 @@ class Base(mpdclient3.mpd_connection):
             return
 
         # Display current playlist
-        if self.prevstatus == None or self.prevstatus.playlist != self.status.playlist:
+        if self.prevstatus == None or self.prevstatus['playlist'] != self.status['playlist']:
             self.current_update()
 
         # Update progress frequently if we're playing
-        if self.status.state in ['play', 'pause']:
+        if self.status['state'] in ['play', 'pause']:
             self.update_progressbar()
 
         # If elapsed time is shown in the window title, we need to update more often:
@@ -3403,7 +3375,7 @@ class Base(mpdclient3.mpd_connection):
             self.update_wintitle()
 
         # If state changes
-        if self.prevstatus == None or self.prevstatus.state != self.status.state:
+        if self.prevstatus == None or self.prevstatus['state'] != self.status['state']:
 
             self.album_get_artist()
 
@@ -3412,7 +3384,7 @@ class Base(mpdclient3.mpd_connection):
             self.update_cursong()
             self.update_wintitle()
             self.info_update(True)
-            if self.status.state == 'stop':
+            if self.status['state'] == 'stop':
                 self.ppbutton.set_image(ui.image(stock=gtk.STOCK_MEDIA_PLAY, stocksize=gtk.ICON_SIZE_BUTTON))
                 self.ppbutton.get_child().get_child().get_children()[1].set_text('')
                 self.UIManager.get_widget('/traymenu/playmenu').show()
@@ -3422,7 +3394,7 @@ class Base(mpdclient3.mpd_connection):
                 elif HAVE_EGG and self.eggtrayheight:
                     self.eggtrayfile = self.find_path('sonata.png')
                     self.trayimage.set_from_pixbuf(img.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
-            elif self.status.state == 'pause':
+            elif self.status['state'] == 'pause':
                 self.ppbutton.set_image(ui.image(stock=gtk.STOCK_MEDIA_PLAY, stocksize=gtk.ICON_SIZE_BUTTON))
                 self.ppbutton.get_child().get_child().get_children()[1].set_text('')
                 self.UIManager.get_widget('/traymenu/playmenu').show()
@@ -3432,13 +3404,13 @@ class Base(mpdclient3.mpd_connection):
                 elif HAVE_EGG and self.eggtrayheight:
                     self.eggtrayfile = self.find_path('sonata_pause.png')
                     self.trayimage.set_from_pixbuf(img.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
-            elif self.status.state == 'play':
+            elif self.status['state'] == 'play':
                 self.ppbutton.set_image(ui.image(stock=gtk.STOCK_MEDIA_PAUSE, stocksize=gtk.ICON_SIZE_BUTTON))
                 self.ppbutton.get_child().get_child().get_children()[1].set_text('')
                 self.UIManager.get_widget('/traymenu/playmenu').hide()
                 self.UIManager.get_widget('/traymenu/pausemenu').show()
                 if self.prevstatus != None:
-                    if self.prevstatus.state == 'pause':
+                    if self.prevstatus['state'] == 'pause':
                         # Forces the notification to popup if specified
                         self.on_currsong_notify()
                 if HAVE_STATUS_ICON:
@@ -3448,21 +3420,21 @@ class Base(mpdclient3.mpd_connection):
                     self.trayimage.set_from_pixbuf(img.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
 
             self.artwork_update()
-            if self.status.state in ['play', 'pause']:
+            if self.status['state'] in ['play', 'pause']:
                 self.current_center_song_in_list()
 
-        if self.prevstatus is None or self.status.volume != self.prevstatus.volume:
+        if self.prevstatus is None or self.status['volume'] != self.prevstatus['volume']:
             try:
-                self.volumescale.get_adjustment().set_value(int(self.status.volume))
-                if int(self.status.volume) == 0:
+                self.volumescale.get_adjustment().set_value(int(self.status['volume']))
+                if int(self.status['volume']) == 0:
                     self.volume_set_image("stock_volume-mute")
-                elif int(self.status.volume) < 30:
+                elif int(self.status['volume']) < 30:
                     self.volume_set_image("stock_volume-min")
-                elif int(self.status.volume) <= 70:
+                elif int(self.status['volume']) <= 70:
                     self.volume_set_image("stock_volume-med")
                 else:
                     self.volume_set_image("stock_volume-max")
-                self.tooltips.set_tip(self.volumebutton, self.status.volume + "%")
+                self.tooltips.set_tip(self.volumebutton, self.status['volume'] + "%")
             except:
                 pass
 
@@ -3484,13 +3456,13 @@ class Base(mpdclient3.mpd_connection):
                     self.info_update(True)
 
         if self.as_enabled:
-            if self.status and self.status.state == 'play':
-                if not self.prevstatus or (self.prevstatus and self.prevstatus.state == 'stop'):
+            if self.status and self.status['state'] == 'play':
+                if not self.prevstatus or (self.prevstatus and self.prevstatus['state'] == 'stop'):
                     # Switched from stop to play, prepare current track:
                     self.scrobbler_prepare()
-                elif self.prevsonginfo and self.prevsonginfo.has_key('time') and self.scrob_last_prepared != self.songinfo.file:
+                elif self.prevsonginfo and self.prevsonginfo.has_key('time') and self.scrob_last_prepared != self.songinfo['file']:
                     # New song is playing, post previous track if time criteria is met:
-                    if self.scrob_playing_duration > 4 * 60 or self.scrob_playing_duration > int(self.prevsonginfo.time)/2:
+                    if self.scrob_playing_duration > 4 * 60 or self.scrob_playing_duration > int(self.prevsonginfo['time'])/2:
                         if self.scrob_start_time != "":
                             self.scrobbler_post()
                     # Prepare current track:
@@ -3499,9 +3471,9 @@ class Base(mpdclient3.mpd_connection):
                     # Keep track of the total amount of time that the current song
                     # has been playing:
                     self.scrob_playing_duration += time.time() - self.scrob_time_now
-            elif self.status and self.status.state == 'stop':
+            elif self.status and self.status['state'] == 'stop':
                 if self.prevsonginfo and self.prevsonginfo.has_key('time'):
-                    if self.scrob_playing_duration > 4 * 60 or self.scrob_playing_duration > int(self.prevsonginfo.time)/2:
+                    if self.scrob_playing_duration > 4 * 60 or self.scrob_playing_duration > int(self.prevsonginfo['time'])/2:
                         # User stopped the client, post previous track if time
                         # criteria is met:
                         if self.scrob_start_time != "":
@@ -3511,7 +3483,7 @@ class Base(mpdclient3.mpd_connection):
         if self.songinfo and self.songinfo.has_key('album'):
             self.album_return_artist_name()
         elif self.songinfo and self.songinfo.has_key('artist'):
-            self.album_current_artist = [self.songinfo, self.songinfo.artist]
+            self.album_current_artist = [self.songinfo, self.songinfo['artist']]
         else:
             self.album_current_artist = [self.songinfo, ""]
 
@@ -3529,10 +3501,10 @@ class Base(mpdclient3.mpd_connection):
         self.unbold_boldrow(self.prev_boldrow)
 
         if self.status and self.status.has_key('song'):
-            row = int(self.status.song)
+            row = int(self.status['song'])
             self.boldrow(row)
             if self.songinfo:
-                if not self.prevsonginfo or self.songinfo.file != self.prevsonginfo.file:
+                if not self.prevsonginfo or self.songinfo['file'] != self.prevsonginfo['file']:
                     gobject.idle_add(self.current_center_song_in_list)
             self.prev_boldrow = row
 
@@ -3556,7 +3528,7 @@ class Base(mpdclient3.mpd_connection):
                     self.scrobbler_np()
 
                     self.scrob_start_time = str(int(time.time()))
-                    self.scrob_last_prepared = self.songinfo.file
+                    self.scrob_last_prepared = self.songinfo['file']
 
     def scrobbler_np(self):
         thread = threading.Thread(target=self.scrobbler_do_np)
@@ -3655,8 +3627,8 @@ class Base(mpdclient3.mpd_connection):
                 pass
 
     def update_progressbar(self):
-        if self.conn and self.status and self.status.state in ['play', 'pause']:
-            at, length = [float(c) for c in self.status.time.split(':')]
+        if self.conn and self.status and self.status['state'] in ['play', 'pause']:
+            at, length = [float(c) for c in self.status['time'].split(':')]
             try:
                 newfrac = at/length
             except:
@@ -3667,11 +3639,11 @@ class Base(mpdclient3.mpd_connection):
             if newfrac >= 0 and newfrac <= 1:
                 self.progressbar.set_fraction(newfrac)
         if self.conn:
-            if self.status and self.status.state in ['play', 'pause']:
-                at, length = [int(c) for c in self.status.time.split(':')]
+            if self.status and self.status['state'] in ['play', 'pause']:
+                at, length = [int(c) for c in self.status['time'].split(':')]
                 at_time = misc.convert_time(at)
                 try:
-                    time = misc.convert_time(int(self.songinfo.time))
+                    time = misc.convert_time(int(self.songinfo['time']))
                     newtime = at_time + " / " + time
                 except:
                     newtime = at_time
@@ -3712,13 +3684,13 @@ class Base(mpdclient3.mpd_connection):
                             hours = hours[1:]
                         hours_text = gettext.ngettext('hour', 'hours', int(hours))
                     # Show text:
-                    songs_text = gettext.ngettext('song', 'songs', int(self.status.playlistlength))
+                    songs_text = gettext.ngettext('song', 'songs', int(self.status['playlistlength']))
                     if days:
-                        status_text = str(self.status.playlistlength) + ' ' + songs_text + '   ' + days + ' ' + days_text + ', ' + hours + ' ' + hours_text + ', ' + _('and') + ' ' + mins + ' ' + mins_text
+                        status_text = str(self.status['playlistlength']) + ' ' + songs_text + '   ' + days + ' ' + days_text + ', ' + hours + ' ' + hours_text + ', ' + _('and') + ' ' + mins + ' ' + mins_text
                     elif hours:
-                        status_text = str(self.status.playlistlength) + ' ' + songs_text + '   ' + hours + ' ' + hours_text + ' ' + _('and') + ' ' + mins + ' ' + mins_text
+                        status_text = str(self.status['playlistlength']) + ' ' + songs_text + '   ' + hours + ' ' + hours_text + ' ' + _('and') + ' ' + mins + ' ' + mins_text
                     elif mins:
-                        status_text = str(self.status.playlistlength) + ' ' + songs_text + '   ' + mins + ' ' + mins_text
+                        status_text = str(self.status['playlistlength']) + ' ' + songs_text + '   ' + mins + ' ' + mins_text
                     else:
                         status_text = ""
                     if updatingdb:
@@ -3740,7 +3712,7 @@ class Base(mpdclient3.mpd_connection):
             self.cursonglabel1.set_size_request(cursonglabelwidth, -1)
 
     def update_cursong(self):
-        if self.conn and self.status and self.status.state in ['play', 'pause']:
+        if self.conn and self.status and self.status['state'] in ['play', 'pause']:
             # We must show the trayprogressbar and trayalbumeventbox
             # before changing self.cursonglabel (and consequently calling
             # self.on_currsong_notify()) in order to ensure that the notification
@@ -3800,7 +3772,7 @@ class Base(mpdclient3.mpd_connection):
 
     def update_wintitle(self):
         if self.window_owner:
-            if self.conn and self.status and self.status.state in ['play', 'pause']:
+            if self.conn and self.status and self.status['state'] in ['play', 'pause']:
                 newtitle = self.parse_formatting(self.titleformat, self.songinfo, False, True)
             else:
                 newtitle = 'Sonata'
@@ -3814,7 +3786,7 @@ class Base(mpdclient3.mpd_connection):
                 prev_songs = self.songs
             except:
                 prev_songs = None
-            self.songs = self.conn.do.playlistinfo()
+            self.songs = self.client.playlistinfo()
             self.total_time = 0
             if self.sonata_loaded:
                 playlistposition = self.current.get_visible_rect()[1]
@@ -3827,7 +3799,7 @@ class Base(mpdclient3.mpd_connection):
             for i in range(songlen):
                 track = self.songs[i]
                 try:
-                    self.total_time = self.total_time + int(track.time)
+                    self.total_time = self.total_time + int(track['time'])
                 except:
                     pass
                 iter = None
@@ -3839,12 +3811,12 @@ class Base(mpdclient3.mpd_connection):
                     items += [self.parse_formatting(part, track, True)]
                 if i < currlen and iter:
                     # Update attributes only for item:
-                    self.currentdata.set_value(iter, 0, int(track.id))
+                    self.currentdata.set_value(iter, 0, int(track['id']))
                     for index in range(len(items)):
                         self.currentdata.set_value(iter, index + 1, items[index])
                 else:
                     # Add new item:
-                    self.currentdata.append([int(track.id)] + items)
+                    self.currentdata.append([int(track['id'])] + items)
             # Remove excess songs:
             for i in range(currlen-songlen):
                 iter = self.currentdata.get_iter((currlen-1-i,))
@@ -3852,7 +3824,7 @@ class Base(mpdclient3.mpd_connection):
             if not self.filterbox_visible:
                 self.current.set_model(self.currentdata)
             if self.songinfo.has_key('pos'):
-                currsong = int(self.songinfo.pos)
+                currsong = int(self.songinfo['pos'])
                 self.boldrow(currsong)
                 self.prev_boldrow = currsong
             if self.filterbox_visible:
@@ -3909,7 +3881,7 @@ class Base(mpdclient3.mpd_connection):
         if self.expanded and len(self.currentdata)>0:
             self.current.realize()
             try:
-                row = self.songinfo.pos
+                row = self.songinfo['pos']
                 visible_rect = self.current.get_visible_rect()
                 row_rect = self.current.get_background_area(row, self.columns[0])
                 top_coord = (row_rect.y + row_rect.height - int(visible_rect.height/2)) + visible_rect.y
@@ -3921,7 +3893,7 @@ class Base(mpdclient3.mpd_connection):
         if self.songinfo:
             if self.songinfo.has_key('name'):
                 # Stream, remove file:
-                misc.remove_file(self.artwork_stream_filename(self.songinfo.name))
+                misc.remove_file(self.artwork_stream_filename(self.songinfo['name']))
             else:
                 # Normal song:
                 misc.remove_file(self.target_image_filename(self.ART_LOCATION_HOMECOVERS))
@@ -3951,10 +3923,10 @@ class Base(mpdclient3.mpd_connection):
         if not self.songinfo:
             self.artwork_set_default_icon()
             return
-        if self.conn and self.status and self.status.state in ['play', 'pause']:
+        if self.conn and self.status and self.status['state'] in ['play', 'pause']:
             if self.songinfo.has_key('name'):
                 # Stream
-                streamfile = self.artwork_stream_filename(self.songinfo.name)
+                streamfile = self.artwork_stream_filename(self.songinfo['name'])
                 if os.path.exists(streamfile):
                     gobject.idle_add(self.artwork_set_image, streamfile)
                 else:
@@ -3962,8 +3934,8 @@ class Base(mpdclient3.mpd_connection):
                     return
             else:
                 # Normal song:
-                artist = getattr(self.songinfo, 'artist', "")
-                album = getattr(self.songinfo, 'album', "")
+                artist = self.songinfo.get('artist', "")
+                album = self.songinfo.get('album', "")
                 if len(artist) == 0 and len(album) == 0:
                     self.artwork_set_default_icon()
                     return
@@ -3989,13 +3961,12 @@ class Base(mpdclient3.mpd_connection):
     def artwork_create_none_file(self):
         # If this file exists, Sonata will use the "blank" default artwork for the song
         # We will only use this if the user explicitly resets the artwork.
-        misc.create_dir('~/.covers/')
         filename = self.target_image_filename(self.ART_LOCATION_NONE)
         f = open(filename, 'w')
         f.close()
 
     def artwork_check_for_local(self):
-        songdir = os.path.dirname(self.songinfo.file)
+        songdir = os.path.dirname(self.songinfo['file'])
         self.artwork_set_default_icon()
         self.misc_img_in_dir = None
         self.single_img_in_dir = None
@@ -4017,7 +3988,7 @@ class Base(mpdclient3.mpd_connection):
         # to use info from the currently playing song.
 
         if songpath is None:
-            songpath = os.path.dirname(self.songinfo.file)
+            songpath = os.path.dirname(self.songinfo['file'])
 
         # Give precedence to images defined by the user's current
         # self.art_location (in case they have multiple valid images
@@ -4102,7 +4073,7 @@ class Base(mpdclient3.mpd_connection):
                         if self.lib_level == self.LIB_LEVEL_ALBUM:
                             if self.lib_view == self.VIEW_ARTIST or self.lib_view == self.VIEW_GENRE:
                                 if self.songinfo and self.songinfo.has_key('artist'):
-                                    if self.wd == self.songinfo.artist:
+                                    if self.wd == self.songinfo['artist']:
                                         self.library_browse(root=self.wd)
                     self.lastalbumart = filename
                 except:
@@ -4131,9 +4102,9 @@ class Base(mpdclient3.mpd_connection):
         # Since there can be multiple threads that are getting album art,
         # this will ensure that only the artwork for the currently playing
         # song is displayed
-        if self.conn and self.status and self.status.state in ['play', 'pause'] and self.songinfo:
+        if self.conn and self.status and self.status['state'] in ['play', 'pause'] and self.songinfo:
             if self.songinfo.has_key('name'):
-                streamfile = self.artwork_stream_filename(self.songinfo.name)
+                streamfile = self.artwork_stream_filename(self.songinfo['name'])
                 if filename == streamfile:
                     return True
             else:
@@ -4239,7 +4210,7 @@ class Base(mpdclient3.mpd_connection):
 
     def on_currsong_notify(self, *args):
         if self.sonata_loaded:
-            if self.conn and self.status and self.status.state in ['play', 'pause']:
+            if self.conn and self.status and self.status['state'] in ['play', 'pause']:
                 if self.show_covers:
                     self.traytips.set_size_request(self.notification_width, -1)
                 else:
@@ -4251,7 +4222,7 @@ class Base(mpdclient3.mpd_connection):
                     gobject.source_remove(self.traytips.notif_handler)
                 except:
                     pass
-                if self.conn and self.status and self.status.state in ['play', 'pause']:
+                if self.conn and self.status and self.status['state'] in ['play', 'pause']:
                     try:
                         self.traytips.use_notifications_location = True
                         if HAVE_STATUS_ICON:
@@ -4289,26 +4260,26 @@ class Base(mpdclient3.mpd_connection):
             try:
                 info_file = open(self.infofile_path, 'w')
 
-                if self.status.state in ['play']:
+                if self.status['state'] in ['play']:
                     info_file.write('Status: ' + 'Playing' + '\n')
-                elif self.status.state in ['pause']:
+                elif self.status['state'] in ['pause']:
                     info_file.write('Status: ' + 'Paused' + '\n')
-                elif self.status.state in ['stop']:
+                elif self.status['state'] in ['stop']:
                     info_file.write('Status: ' + 'Stopped' + '\n')
                 try:
-                    info_file.write('Title: ' + self.songinfo.artist + ' - ' + self.songinfo.title + '\n')
+                    info_file.write('Title: ' + self.songinfo['artist'] + ' - ' + self.songinfo['title'] + '\n')
                 except:
                     try:
-                        info_file.write('Title: ' + self.songinfo.title + '\n') # No Arist in streams
+                        info_file.write('Title: ' + self.songinfo['title'] + '\n') # No Arist in streams
                     except:
                         info_file.write('Title: No - ID Tag\n')
-                info_file.write('Album: ' + getattr(self.songinfo, 'album', 'No Data') + '\n')
-                info_file.write('Track: ' + getattr(self.songinfo, 'track', '0') + '\n')
-                info_file.write('File: ' + getattr(self.songinfo, 'file', 'No Data') + '\n')
-                info_file.write('Time: ' + getattr(self.songinfo, 'time', '0') + '\n')
-                info_file.write('Volume: ' + self.status.volume + '\n')
-                info_file.write('Repeat: ' + self.status.repeat + '\n')
-                info_file.write('Shuffle: ' + self.status.random + '\n')
+                info_file.write('Album: ' + self.songinfo.get('album', 'No Data') + '\n')
+                info_file.write('Track: ' + self.songinfo.get('track', '0') + '\n')
+                info_file.write('File: ' + self.songinfo.get('file', 'No Data') + '\n')
+                info_file.write('Time: ' + self.songinfo.get('time', '0') + '\n')
+                info_file.write('Volume: ' + self.status['volume'] + '\n')
+                info_file.write('Repeat: ' + self.status['repeat'] + '\n')
+                info_file.write('Shuffle: ' + self.status['random'] + '\n')
                 info_file.close()
             except:
                 pass
@@ -4421,7 +4392,7 @@ class Base(mpdclient3.mpd_connection):
         else:
             self.statusbar.hide()
             self.notebook.hide()
-        if not (self.conn and self.status and self.status.state in ['play', 'pause']):
+        if not (self.conn and self.status and self.status['state'] in ['play', 'pause']):
             if window_about_to_be_expanded:
                 self.cursonglabel2.set_markup('<small>' + _('Click to collapse') + '</small>')
             else:
@@ -4439,7 +4410,7 @@ class Base(mpdclient3.mpd_connection):
                 self.window.resize(self.w, 1)
         if window_about_to_be_expanded:
             self.expanded = True
-            if self.status and self.status.state in ['play','pause']:
+            if self.status and self.status['state'] in ['play','pause']:
                 gobject.idle_add(self.current_center_song_in_list)
             self.window.set_geometry_hints(self.window)
         # Put focus to the notebook:
@@ -4449,18 +4420,18 @@ class Base(mpdclient3.mpd_connection):
     # This callback allows the user to seek to a specific portion of the song
     def on_progressbar_press(self, widget, event):
         if event.button == 1:
-            if self.status and self.status.state in ['play', 'pause']:
-                at, length = [int(c) for c in self.status.time.split(':')]
+            if self.status and self.status['state'] in ['play', 'pause']:
+                at, length = [int(c) for c in self.status['time'].split(':')]
                 try:
                     progressbarsize = self.progressbar.allocation
                     seektime = int((event.x/progressbarsize.width) * length)
-                    self.seek(int(self.status.song), seektime)
+                    self.seek(int(self.status['song']), seektime)
                 except:
                     pass
             return True
 
     def on_progressbar_scroll(self, widget, event):
-        if self.status and self.status.state in ['play', 'pause']:
+        if self.status and self.status['state'] in ['play', 'pause']:
             try:
                 gobject.source_remove(self.seekidle)
             except:
@@ -4469,22 +4440,22 @@ class Base(mpdclient3.mpd_connection):
         return True
 
     def _seek_when_idle(self, direction):
-        at, length = [int(c) for c in self.status.time.split(':')]
+        at, length = [int(c) for c in self.status['time'].split(':')]
         try:
             if direction == gtk.gdk.SCROLL_UP:
-                seektime = int(self.status.time.split(":")[0]) - 5
+                seektime = int(self.status['time'].split(":")[0]) - 5
                 if seektime < 0: seektime = 0
             elif direction == gtk.gdk.SCROLL_DOWN:
-                seektime = int(self.status.time.split(":")[0]) + 5
-                if seektime > self.songinfo.time:
-                    seektime = self.songinfo.time
-            self.seek(int(self.status.song), seektime)
+                seektime = int(self.status['time'].split(":")[0]) + 5
+                if seektime > self.songinfo['time']:
+                    seektime = self.songinfo['time']
+            self.seek(int(self.status['song']), seektime)
         except:
             pass
 
     def on_lyrics_search(self, event):
-        artist = self.songinfo.artist
-        title = self.songinfo.title
+        artist = self.songinfo['artist']
+        title = self.songinfo['title']
         dialog = ui.dialog(title=_('Lyrics Search'), parent=self.window, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_FIND, gtk.RESPONSE_ACCEPT), role='lyricsSearch', default=gtk.RESPONSE_ACCEPT)
         dialog.action_area.get_children()[0].set_label(_("_Search"))
         dialog.action_area.get_children()[0].set_image(ui.image(stock=gtk.STOCK_FIND))
@@ -4574,37 +4545,37 @@ class Base(mpdclient3.mpd_connection):
                 # the end of the list (hence the 'zzzzzzz'):
                 zzz = 'zzzzzzzz'
                 if type == 'artist':
-                    dict["sortby"] =  (misc.lower_no_the(getattr(track,'artist', zzz)),
-                                getattr(track,'album' , zzz).lower(),
-                                self.sanitize_mpdtag(getattr(track,'disc', '0'), True, 0),
-                                self.sanitize_mpdtag(getattr(track,'track', '0'), True, 0))
+                    dict["sortby"] =  (misc.lower_no_the(track.get('artist', zzz)),
+                                track.get('album' , zzz).lower(),
+                                self.sanitize_mpdtag(track.get('disc', '0'), True, 0),
+                                self.sanitize_mpdtag(track.get('track', '0'), True, 0))
                 elif type == 'album':
-                    dict["sortby"] =  (getattr(track,'album', zzz).lower(),
-                                self.sanitize_mpdtag(getattr(track,'disc', '0'), True, 0),
-                                self.sanitize_mpdtag(getattr(track,'track', '0'), True, 0))
+                    dict["sortby"] =  (track.get('album', zzz).lower(),
+                                self.sanitize_mpdtag(track.get('disc', '0'), True, 0),
+                                self.sanitize_mpdtag(track.get('track', '0'), True, 0))
                 elif type == 'file':
-                    dict["sortby"] = getattr(track,'file', zzz).lower().split('/')[-1]
+                    dict["sortby"] = track.get('file', zzz).lower().split('/')[-1]
                 elif type == 'dirfile':
-                    dict["sortby"] = getattr(track,'file', zzz).lower()
+                    dict["sortby"] = track.get('file', zzz).lower()
                 elif type == 'col':
                     # Sort by column:
                     dict["sortby"] = misc.unbold(self.currentdata.get_value(self.currentdata.get_iter((track_num, 0)), col_num).lower())
                     if custom_sort:
                         dict["sortby"] = self.sanitize_songlen_for_sorting(dict["sortby"], custom_pos)
                 else:
-                    dict["sortby"] = getattr(track, type, zzz).lower()
-                dict["id"] = int(track.id)
+                    dict["sortby"] = track.get(type, zzz).lower()
+                dict["id"] = int(track["id"])
                 list.append(dict)
                 track_num = track_num + 1
 
             list.sort(key=lambda x: x["sortby"])
 
             pos = 0
-            self.conn.send.command_list_begin()
+            self.client.command_list_ok_begin()
             for item in list:
-                self.conn.send.moveid(item["id"], pos)
+                self.client.moveid(item["id"], pos)
                 pos += 1
-            self.conn.do.command_list_end()
+            self.client.command_list_end()
             self.iterate_now()
 
     def sort_get_first_format_tag(self, format, colnum, tag_letter):
@@ -4637,12 +4608,12 @@ class Base(mpdclient3.mpd_connection):
                 gtk.main_iteration()
             top = 0
             bot = len(self.songs)-1
-            self.conn.send.command_list_begin()
+            self.client.command_list_ok_begin()
             while top < bot:
-                self.conn.send.swap(top, bot)
+                self.client.swap(top, bot)
                 top = top + 1
                 bot = bot - 1
-            self.conn.do.command_list_end()
+            self.client.command_list_end()
             self.iterate_now()
 
     def mpd_shuffle(self, action):
@@ -4652,7 +4623,7 @@ class Base(mpdclient3.mpd_connection):
             ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
             while gtk.events_pending():
                 gtk.main_iteration()
-            self.conn.do.shuffle()
+            self.client.shuffle()
 
     def on_dnd(self, treeview, drag_context, x, y, selection, info, timestamp):
         drop_info = treeview.get_dest_row_at_pos(x, y)
@@ -4677,10 +4648,10 @@ class Base(mpdclient3.mpd_connection):
                 if paths[i].startswith(musicdir):
                     paths[i] = paths[i][len(self.musicdir[self.profile_num]):]
                     if len(paths[i]) == 0: paths[i] = "/"
-                    listallinfo = self.conn.do.listallinfo(paths[i])
+                    listallinfo = self.client.listallinfo(paths[i])
                     for item in listallinfo:
                         if item.has_key('file'):
-                            mpdpaths.append(item.file)
+                            mpdpaths.append(item['file'])
             if len(mpdpaths) > 0:
                 # Items found, add to list at drop position:
                 if drop_info:
@@ -4691,11 +4662,11 @@ class Base(mpdclient3.mpd_connection):
                         id = destpath[0] + 1
                 else:
                     id = len(self.songs)
-                self.conn.send.command_list_begin()
+                self.client.command_list_ok_begin()
                 for mpdpath in mpdpaths:
-                    self.conn.send.addid(mpdpath, id)
+                    self.client.addid(mpdpath, id)
                     id += 1
-                self.conn.do.command_list_end()
+                self.client.command_list_end()
             self.iterate_now()
             return
 
@@ -4719,7 +4690,7 @@ class Base(mpdclient3.mpd_connection):
         # from refreshing
         offset = 0
         top_row_for_selection = len(model)
-        self.conn.send.command_list_begin()
+        self.client.command_list_ok_begin()
         for source in drag_sources:
             index, iter, id, text = source
             if drop_info:
@@ -4731,10 +4702,10 @@ class Base(mpdclient3.mpd_connection):
                     self.songs.insert(dest, self.songs[index])
                     if dest < index+1:
                         self.songs.pop(index+1)
-                        self.conn.send.moveid(id, dest)
+                        self.client.moveid(id, dest)
                     else:
                         self.songs.pop(index)
-                        self.conn.send.moveid(id, dest-1)
+                        self.client.moveid(id, dest-1)
                     model.insert(dest, model[index])
                     moved_iters += [model.get_iter((dest,))]
                     model.remove(iter)
@@ -4742,16 +4713,16 @@ class Base(mpdclient3.mpd_connection):
                     self.songs.insert(dest+1, self.songs[index])
                     if dest < index:
                         self.songs.pop(index+1)
-                        self.conn.send.moveid(id, dest+1)
+                        self.client.moveid(id, dest+1)
                     else:
                         self.songs.pop(index)
-                        self.conn.send.moveid(id, dest)
+                        self.client.moveid(id, dest)
                     model.insert(dest+1, model[index])
                     moved_iters += [model.get_iter((dest+1,))]
                     model.remove(iter)
             else:
                 dest = len(self.songs) - 1
-                self.conn.send.moveid(id, dest)
+                self.client.moveid(id, dest)
                 self.songs.insert(dest+1, self.songs[index])
                 self.songs.pop(index)
                 model.insert(dest+1, model[index])
@@ -4767,7 +4738,7 @@ class Base(mpdclient3.mpd_connection):
                     # we moved it ahead, so all indexes inbetween decreased by 1
                     if index < source[0] < dest:
                         source[0] -= 1
-        self.conn.do.command_list_end()
+        self.client.command_list_end()
 
         if drag_context.action == gtk.gdk.ACTION_MOVE:
             drag_context.finish(True, True, timestamp)
@@ -4789,7 +4760,7 @@ class Base(mpdclient3.mpd_connection):
         if self.conn:
             if self.library_search_visible():
                 self.on_library_search_end(None)
-            self.conn.do.update('/')
+            self.client.update('/')
             self.iterate_now()
 
     def on_updatedb_path(self, action):
@@ -4801,13 +4772,13 @@ class Base(mpdclient3.mpd_connection):
                 iters = [model.get_iter(path) for path in selected]
                 if len(iters) > 0:
                     # If there are selected rows, update these paths..
-                    self.conn.send.command_list_begin()
+                    self.client.command_list_ok_begin()
                     for iter in iters:
-                        self.conn.send.update(self.librarydata.get_value(iter, 1))
-                    self.conn.do.command_list_end()
+                        self.client.update(self.librarydata.get_value(iter, 1))
+                    self.client.command_list_end()
                 else:
                     # If no selection, update the current path...
-                    self.conn.do.update(self.wd)
+                    self.client.update(self.wd)
                 self.iterate_now()
 
     def on_image_activate(self, widget, event):
@@ -4833,15 +4804,15 @@ class Base(mpdclient3.mpd_connection):
                 else:
                     self.switch_to_tab_name(self.last_tab)
         elif event.button == 3:
-            if self.conn and self.status and self.status.state in ['play', 'pause']:
+            if self.conn and self.status and self.status['state'] in ['play', 'pause']:
                 self.UIManager.get_widget('/imagemenu/chooseimage_menu/').hide()
                 self.UIManager.get_widget('/imagemenu/localimage_menu/').hide()
                 if self.covers_pref != self.ART_LOCAL:
                     self.UIManager.get_widget('/imagemenu/chooseimage_menu/').show()
                 self.UIManager.get_widget('/imagemenu/localimage_menu/').show()
-                artist = getattr(self.songinfo, 'artist', None)
-                album = getattr(self.songinfo, 'album', None)
-                stream = getattr(self.songinfo, 'name', None)
+                artist = self.songinfo.get('artist', None)
+                album = self.songinfo.get('album', None)
+                stream = self.songinfo.get('name', None)
                 if os.path.exists(self.target_image_filename(self.ART_LOCATION_NONE)):
                     self.UIManager.get_widget('/imagemenu/resetimage_menu/').set_sensitive(False)
                 else:
@@ -4856,7 +4827,7 @@ class Base(mpdclient3.mpd_connection):
         return True
 
     def on_image_drop_cb(self, widget, context, x, y, selection, info, time):
-        if self.conn and self.status and self.status.state in ['play', 'pause']:
+        if self.conn and self.status and self.status['state'] in ['play', 'pause']:
             uri = selection.data.strip()
             path = urllib.url2pathname(uri)
             paths = path.rsplit('\n')
@@ -4894,15 +4865,14 @@ class Base(mpdclient3.mpd_connection):
                     raise
             paths[i] = os.path.abspath(paths[i])
             if img.valid_image(paths[i]):
-                stream = getattr(self.songinfo, 'name', None)
+                stream = self.songinfo.get('name', None)
                 if stream is not None:
-                    dest_filename = self.artwork_stream_filename(self.songinfo.name)
+                    dest_filename = self.artwork_stream_filename(self.songinfo['name'])
                 else:
                     dest_filename = self.target_image_filename()
-                    album = getattr(self.songinfo, 'album', "").replace("/", "")
+                    album = self.songinfo.get('album', "").replace("/", "")
                     artist = self.album_current_artist[1].replace("/", "")
                     self.artwork_remove_none_file(artist, album)
-                misc.create_dir('~/.covers/')
                 if dest_filename != paths[i]:
                     shutil.copyfile(paths[i], dest_filename)
                 self.artwork_update(True)
@@ -4918,7 +4888,7 @@ class Base(mpdclient3.mpd_connection):
             if lyrics_loc == self.LYRICS_LOCATION_HOME:
                 targetfile = os.path.expanduser("~/.lyrics/" + artist + "-" + title + ".txt")
             elif lyrics_loc == self.LYRICS_LOCATION_PATH:
-                targetfile = self.musicdir[self.profile_num] + os.path.dirname(self.songinfo.file) + "/" + artist + "-" + title + ".txt"
+                targetfile = self.musicdir[self.profile_num] + os.path.dirname(self.songinfo['file']) + "/" + artist + "-" + title + ".txt"
             try:
                 return targetfile.decode(self.enc).encode('utf8')
             except:
@@ -4930,13 +4900,13 @@ class Base(mpdclient3.mpd_connection):
         if self.conn:
             # If no info passed, you info from currently playing song:
             if not album:
-                album = getattr(self.songinfo, 'album', "")
+                album = self.songinfo.get('album', "")
             if not artist:
                 artist = self.album_current_artist[1]
             album = album.replace("/", "")
             artist = artist.replace("/", "")
             if songpath is None:
-                songpath = os.path.dirname(self.songinfo.file)
+                songpath = os.path.dirname(self.songinfo['file'])
             # Return target filename:
             if force_location is not None:
                 art_loc = force_location
@@ -4974,16 +4944,16 @@ class Base(mpdclient3.mpd_connection):
         # album name like 'Unplugged'.
         if self.album_current_artist[0] == self.songinfo:
             return
-        songs = self.return_album_items(self.songinfo.album, False)
-        dir = os.path.dirname(self.songinfo.file)
+        songs = self.return_album_items(self.songinfo['album'], False)
+        dir = os.path.dirname(self.songinfo['file'])
         artists = []
         return_artist = ""
         for song in songs:
             if song.has_key('artist'):
-                if dir == os.path.dirname(song.file):
-                    artists.append(song.artist)
-                    if self.songinfo.file == song.file:
-                        return_artist = song.artist
+                if dir == os.path.dirname(song['file']):
+                    artists.append(song['artist'])
+                    if self.songinfo['file'] == song['file']:
+                        return_artist = song['artist']
         (artists, tmp, tmp2) = misc.remove_list_duplicates(artists, case=False)
         if len(artists) > 3:
             return_artist = _("Various Artists")
@@ -5036,12 +5006,12 @@ class Base(mpdclient3.mpd_connection):
         dialog.set_preview_widget(preview)
         dialog.set_use_preview_label(False)
         dialog.connect("update-preview", self.update_preview, preview)
-        stream = getattr(self.songinfo, 'name', None)
-        album = getattr(self.songinfo, 'album', "").replace("/", "")
+        stream = self.songinfo.get('name', None)
+        album = self.songinfo.get('album', "").replace("/", "")
         artist = self.album_current_artist[1].replace("/", "")
         dialog.connect("response", self.image_local_response, artist, album, stream)
         dialog.set_default_response(gtk.RESPONSE_OK)
-        songdir = os.path.dirname(self.songinfo.file)
+        songdir = os.path.dirname(self.songinfo['file'])
         currdir = self.musicdir[self.profile_num] + songdir
         if self.art_location != self.ART_LOCATION_HOMECOVERS:
             dialog.set_current_folder(currdir)
@@ -5058,7 +5028,6 @@ class Base(mpdclient3.mpd_connection):
             if stream is None:
                 self.artwork_remove_none_file(artist, album)
             # Copy file to covers dir:
-            misc.create_dir('~/.covers/')
             if self.local_dest_filename != filename:
                 shutil.copyfile(filename, self.local_dest_filename)
             # And finally, set the image in the interface:
@@ -5112,13 +5081,13 @@ class Base(mpdclient3.mpd_connection):
         self.choose_dialog.show_all()
         self.chooseimage_visible = True
         self.remotefilelist = []
-        stream = getattr(self.songinfo, 'name', None)
+        stream = self.songinfo.get('name', None)
         if stream is not None:
             # Allow saving an image file for a stream:
             self.remote_dest_filename = self.artwork_stream_filename(stream)
         else:
             self.remote_dest_filename = self.target_image_filename()
-        album = getattr(self.songinfo, 'album', '')
+        album = self.songinfo.get('album', '')
         artist = self.album_current_artist[1]
         imagewidget.connect('item-activated', self.image_remote_replace_cover, artist.replace("/", ""), album.replace("/", ""), stream)
         self.choose_dialog.connect('response', self.image_remote_response, imagewidget, artist, album, stream)
@@ -5201,7 +5170,6 @@ class Base(mpdclient3.mpd_connection):
             if os.path.exists(filename):
                 if stream is None:
                     self.artwork_remove_none_file(artist, album)
-                misc.create_dir('~/.covers/')
                 shutil.move(filename, self.remote_dest_filename)
                 # And finally, set the image in the interface:
                 self.artwork_update(True)
@@ -5219,6 +5187,7 @@ class Base(mpdclient3.mpd_connection):
                 # Make sure we only set self.colwidthpercents if self.current
                 # has its normal allocated width:
                 return
+            notebookwidth = self.notebook.allocation.width
             treewidth = 0
             for i, column in enumerate(self.columns):
                 colwidth = column.get_width()
@@ -5229,7 +5198,7 @@ class Base(mpdclient3.mpd_connection):
                     self.columnwidths[i] = colwidth
                 # Save widths as percentages for when the application is resized.
                 self.colwidthpercents[i] = float(self.columnwidths[i])/windowwidth
-            if treewidth > windowwidth:
+            if treewidth > notebookwidth:
                 self.expanderwindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
             else:
                 self.expanderwindow.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
@@ -5363,7 +5332,7 @@ class Base(mpdclient3.mpd_connection):
             self.searchfilter_toggle(None)
         try:
             iter = model.get_iter(path)
-            self.conn.do.playid(self.current_get_songid(iter, model))
+            self.client.playid(self.current_get_songid(iter, model))
         except:
             pass
         self.iterate_now()
@@ -5442,7 +5411,7 @@ class Base(mpdclient3.mpd_connection):
 
     def on_volumescale_change(self, obj, value, data):
         new_volume = int(obj.get_adjustment().get_value())
-        self.conn.do.setvol(new_volume)
+        self.client.setvol(new_volume)
         self.iterate_now()
         return
 
@@ -5453,28 +5422,28 @@ class Base(mpdclient3.mpd_connection):
 
     def mpd_pp(self, widget):
         if self.conn and self.status:
-            if self.status.state in ('stop', 'pause'):
-                self.conn.do.play()
-            elif self.status.state == 'play':
-                self.conn.do.pause(1)
+            if self.status['state'] in ('stop', 'pause'):
+                self.client.play()
+            elif self.status['state'] == 'play':
+                self.client.pause(1)
             self.iterate_now()
         return
 
     def mpd_stop(self, widget, key=None):
         if self.conn:
-            self.conn.do.stop()
+            self.client.stop()
             self.iterate_now()
         return
 
     def mpd_prev(self, widget, key=None):
         if self.conn:
-            self.conn.do.previous()
+            self.client.previous()
             self.iterate_now()
         return
 
     def mpd_next(self, widget, key=None):
         if self.conn:
-            self.conn.do.next()
+            self.client.next()
             self.iterate_now()
         return
 
@@ -5487,25 +5456,25 @@ class Base(mpdclient3.mpd_connection):
                 model, selected = treeviewsel.get_selected_rows()
                 if len(selected) == len(self.currentdata) and not self.filterbox_visible:
                     # Everything is selected, clear:
-                    self.conn.do.clear()
+                    self.client.clear()
                 elif len(selected) > 0:
                     selected.reverse()
                     if not self.filterbox_visible:
                         # If we remove an item from the filtered results, this
                         # causes a visual refresh in the interface.
                         self.current.set_model(None)
-                    self.conn.send.command_list_begin()
+                    self.client.command_list_ok_begin()
                     for path in selected:
                         if not self.filterbox_visible:
                             rownum = path[0]
                         else:
                             rownum = self.filter_row_mapping[path[0]]
                         iter = self.currentdata.get_iter((rownum, 0))
-                        self.conn.send.deleteid(self.current_get_songid(iter, self.currentdata))
+                        self.client.deleteid(self.current_get_songid(iter, self.currentdata))
                         # Prevents the entire playlist from refreshing:
                         self.songs.pop(rownum)
                         self.currentdata.remove(iter)
-                    self.conn.do.command_list_end()
+                    self.client.command_list_end()
                     if not self.filterbox_visible:
                         self.current.set_model(model)
             elif self.current_tab == self.TAB_PLAYLISTS:
@@ -5514,7 +5483,7 @@ class Base(mpdclient3.mpd_connection):
                 if ui.show_error_msg_yesno(self.window, gettext.ngettext("Delete the selected playlist?", "Delete the selected playlists?", int(len(selected))), gettext.ngettext("Delete Playlist", "Delete Playlists", int(len(selected))), 'deletePlaylist') == gtk.RESPONSE_YES:
                     iters = [model.get_iter(path) for path in selected]
                     for iter in iters:
-                        self.conn.do.rm(misc.unescape_html(self.playlistsdata.get_value(iter, 1)))
+                        self.client.rm(misc.unescape_html(self.playlistsdata.get_value(iter, 1)))
                     self.playlists_populate()
             elif self.current_tab == self.TAB_STREAMS:
                 treeviewsel = self.streams_selection
@@ -5547,22 +5516,22 @@ class Base(mpdclient3.mpd_connection):
 
     def mpd_clear(self, widget):
         if self.conn:
-            self.conn.do.clear()
+            self.client.clear()
             self.iterate_now()
 
     def on_repeat_clicked(self, widget):
         if self.conn:
             if widget.get_active():
-                self.conn.do.repeat(1)
+                self.client.repeat(1)
             else:
-                self.conn.do.repeat(0)
+                self.client.repeat(0)
 
     def on_shuffle_clicked(self, widget):
         if self.conn:
             if widget.get_active():
-                self.conn.do.random(1)
+                self.client.random(1)
             else:
-                self.conn.do.random(0)
+                self.client.random(0)
 
     def on_prefs(self, widget):
         prefswindow = ui.dialog(title=_("Preferences"), parent=self.window, flags=gtk.DIALOG_DESTROY_WITH_PARENT, role='preferences', resizable=False, separator=False)
@@ -6045,11 +6014,11 @@ class Base(mpdclient3.mpd_connection):
             if crossfadecheck.get_active():
                 self.xfade_enabled = True
                 if self.conn:
-                    self.conn.do.crossfade(self.xfade)
+                    self.client.crossfade(self.xfade)
             else:
                 self.xfade_enabled = False
                 if self.conn:
-                    self.conn.do.crossfade(0)
+                    self.client.crossfade(0)
             if self.infofile_path != infopath_options.get_text():
                 self.infofile_path = os.path.expanduser(infopath_options.get_text())
                 if self.use_infofile: self.update_infofile()
@@ -6181,7 +6150,7 @@ class Base(mpdclient3.mpd_connection):
             for widget in [self.imageeventbox, self.info_imagebox, self.trayalbumeventbox, self.trayalbumimage2]:
                 widget.set_no_show_all(False)
                 if widget in [self.trayalbumeventbox, self.trayalbumimage2]:
-                    if self.conn and self.status and self.status.state in ['play', 'pause']:
+                    if self.conn and self.status and self.status['state'] in ['play', 'pause']:
                         widget.show_all()
                 else:
                     widget.show_all()
@@ -6306,7 +6275,7 @@ class Base(mpdclient3.mpd_connection):
             self.use_infofile = False
 
     def seek(self, song, seektime):
-        self.conn.do.seek(song, seektime)
+        self.client.seek(song, seektime)
         self.iterate_now()
         return
 
@@ -6319,9 +6288,9 @@ class Base(mpdclient3.mpd_connection):
 
     def on_link_click(self, widget, event, type):
         if type == 'artist':
-            misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + self.songinfo.artist, self.url_browser, self.window)
+            misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + self.songinfo['artist'], self.url_browser, self.window)
         elif type == 'album':
-            misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + self.songinfo.album, self.url_browser, self.window)
+            misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + self.songinfo['album'], self.url_browser, self.window)
         elif type == 'more':
             previous_is_more = (self.info_morelabel.get_text() == "(" + _("more") + ")")
             if previous_is_more:
@@ -6464,19 +6433,19 @@ class Base(mpdclient3.mpd_connection):
     def on_library_search_activate(self, entry):
         searchby = self.search_terms_mpd[self.last_search_num]
         if self.searchtext.get_text() != "":
-            list = self.conn.do.search(searchby, self.searchtext.get_text())
+            list = self.client.search(searchby, self.searchtext.get_text())
             self.librarydata.clear()
             bd = []
             for item in list:
-                if item.type == 'directory':
-                    name = item.directory.split('/')[-1]
+                if item.has_key('directory'):
+                    name = item['directory'].split('/')[-1]
                     # Sorting shouldn't really matter here. Ever seen a search turn up a directory?
-                    bd += [('d' + item.directory.lower(), [self.openpb, item.directory, misc.escape_html(name)])]
-                elif item.type == 'file':
+                    bd += [('d' + item['directory'].lower(), [self.openpb, item['directory'], misc.escape_html(name)])]
+                elif item.has_key('file'):
                     try:
-                        bd += [('f' + misc.lower_no_the(item.artist) + '\t' + item.title.lower(), [self.sonatapb, item.file, self.parse_formatting(self.libraryformat, item, True)])]
+                        bd += [('f' + misc.lower_no_the(item['artist']) + '\t' + item['title'].lower(), [self.sonatapb, item['file'], self.parse_formatting(self.libraryformat, item, True)])]
                     except:
-                        bd += [('f' + item.file.lower(), [self.sonatapb, item.file, self.parse_formatting(self.libraryformat, item, True)])]
+                        bd += [('f' + item['file'].lower(), [self.sonatapb, item['file'], self.parse_formatting(self.libraryformat, item, True)])]
             bd.sort(key=misc.first_of_2tuple)
             for sort, list in bd:
                 self.librarydata.append(list)
@@ -6567,7 +6536,7 @@ class Base(mpdclient3.mpd_connection):
     def mpd_major_version(self):
         try:
             if self.conn:
-                version = getattr(self.conn, "mpd_version", 0.0)
+                version = getattr(self.client, "mpd_version", 0.0)
                 parts = version.split(".")
                 return float(parts[0] + "." + parts[1])
             else:
@@ -6609,9 +6578,9 @@ class Base(mpdclient3.mpd_connection):
         files = []
         temp_mpdpaths = []
         if self.current_tab == self.TAB_INFO:
-            if self.status and self.status.state in ['play', 'pause']:
+            if self.status and self.status['state'] in ['play', 'pause']:
                 # Use current file in songinfo:
-                mpdpath = self.songinfo.file
+                mpdpath = self.songinfo['file']
                 files.append(self.musicdir[self.profile_num] + mpdpath)
                 temp_mpdpaths.append(mpdpath)
         elif self.current_tab == self.TAB_LIBRARY:
@@ -6625,9 +6594,9 @@ class Base(mpdclient3.mpd_connection):
             model, selected = self.current_selection.get_selected_rows()
             for path in selected:
                 if not self.filterbox_visible:
-                    item = self.songs[path[0]].file
+                    item = self.songs[path[0]]['file']
                 else:
-                    item = self.songs[self.filter_row_mapping[path[0]]].file
+                    item = self.songs[self.filter_row_mapping[path[0]]]['file']
                 files.append(self.musicdir[self.profile_num] + item)
                 temp_mpdpaths.append(item)
         if len(files) == 0:
@@ -6984,10 +6953,10 @@ class Base(mpdclient3.mpd_connection):
 
     def tags_mpd_update(self, tags):
         if tags:
-            self.conn.send.command_list_begin()
+            self.client.command_list_ok_begin()
             for i in range(self.tagnum):
-                self.conn.send.update(tags[i]['mpdpath'])
-            self.conn.do.command_list_end()
+                self.client.update(tags[i]['mpdpath'])
+            self.client.command_list_end()
             self.iterate_now()
 
     def tags_win_genres(self):
@@ -7152,12 +7121,12 @@ class Base(mpdclient3.mpd_connection):
         self.about_dialog.set_comments(commentlabel)
         if self.conn:
             # Include MPD stats:
-            stats = self.conn.do.stats()
-            statslabel = stats.songs + ' ' + gettext.ngettext('song', 'songs', int(stats.songs)) + '.\n'
-            statslabel = statslabel + stats.albums + ' ' + gettext.ngettext('album', 'albums', int(stats.albums)) + '.\n'
-            statslabel = statslabel + stats.artists + ' ' + gettext.ngettext('artist', 'artists', int(stats.artists)) + '.\n'
+            stats = self.client.stats()
+            statslabel = stats['songs'] + ' ' + gettext.ngettext('song', 'songs', int(stats['songs'])) + '.\n'
+            statslabel = statslabel + stats['albums'] + ' ' + gettext.ngettext('album', 'albums', int(stats['albums'])) + '.\n'
+            statslabel = statslabel + stats['artists'] + ' ' + gettext.ngettext('artist', 'artists', int(stats['artists'])) + '.\n'
             try:
-                hours_of_playtime = misc.convert_time(float(stats.db_playtime)).split(':')[-3]
+                hours_of_playtime = misc.convert_time(float(stats['db_playtime'])).split(':')[-3]
             except:
                 hours_of_playtime = '0'
             if int(hours_of_playtime) >= 24:
@@ -7268,7 +7237,7 @@ class Base(mpdclient3.mpd_connection):
             song_id = self.current_get_songid(model.get_iter_first(), model)
         if song_id:
             self.searchfilter_toggle(None)
-            self.conn.do.playid(song_id)
+            self.client.playid(song_id)
             self.current_center_song_in_list()
 
     def current_get_songid(self, iter, model):

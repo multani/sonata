@@ -4,6 +4,7 @@ v1.5 - Pending
 	+ Add menu items and shortcuts for playing library items after add/replace
 	+ Allow setting artwork for streams
 	+ Optional stylized album art with cases (Aidan)
+	+ New, faster python mpd interface (jat)
 	+ Show untagged artists/genres in their respective library views
 	+ Allow DND of cover art from a web browser (Артем)
 	+ Allow DND of music from a file manager into playlist (requires mpd 0.14)
