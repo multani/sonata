@@ -1,5 +1,5 @@
 v1.5 - Pending
-	+ Replace artist view for library with genre view
+	+ Replace album view with genre view for library
 	+ Display covers for albums in artist/genre views
 	+ Add menu items and shortcuts for playing library items after add/replace
 	+ Allow setting artwork for streams
@@ -13,6 +13,7 @@ v1.5 - Pending
 	+ Switch back to last tab on second cover art click
 	+ Retain selection in lists after removing items
 	+ Hidden config option to expand notebook tabs (tabs_expanded)
+	+ Add Estonian translation (Mihkel)
 	+ Bug: Fix artwork for artists/albums with "/" in them (e.g. AC/DC)
 	+ Bug: Fix egg trayicon with vertical system tray
 	+ Bug: Weird bug in library-view
