@@ -7,10 +7,11 @@ v1.5
 		- combine ListStore definitions (playlists, streams, etc)
 		- remove_list_duplicates
 		- local/remote/dnd artwork
-	patch 2230?
+	patch 2230
 	streams - merge 'edit and 'delete' menu item
 		- multiple streams selected
 	column sizing - http://bugzilla.gnome.org/show_bug.cgi?id=517345
+	remove mpd.py and depend on python-mpd
 	
 Future:
 	lyrics -> ability to save changes

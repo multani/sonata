@@ -166,7 +166,7 @@ if not skip_gui:
         sys.stderr.write("Sonata requires PyGTK 2.6.0 or newer. Aborting...\n")
         sys.exit(1)
 
-class Base():
+class Base:
     def __init__(self, window=None, sugar=False):
 
         try:
@@ -1361,17 +1361,17 @@ class Base():
                         self.client.play()
             elif type == "info":
                 if self.status and self.status['state'] in ['play', 'pause']:
-                    print _("Title") + ": " + self.songinfo.get('title', '')
-                    print _("Artist") + ": " + self.songinfo.get('artist', '')
-                    print _("Album") + ": " + self.songinfo.get('album', '')
-                    print _("Date") + ": " + self.songinfo.get('date', '')
-                    print _("Track") + ": " + self.sanitize_mpdtag(self.songinfo.get('track', '0'), False, 2)
-                    print _("Genre") + ": " + self.songinfo.get('genre', '')
-                    print _("File") + ": " + os.path.basename(self.songinfo['file'])
+                    print _("Title") + ": " + mpdh.get(self.songinfo, 'title')
+                    print _("Artist") + ": " + mpdh.get(self.songinfo, 'artist')
+                    print _("Album") + ": " + mpdh.get(self.songinfo, 'album')
+                    print _("Date") + ": " + mpdh.get(self.songinfo, 'date')
+                    print _("Track") + ": " + mpdh.getnum(self.songinfo, 'track', '0', False, 2)
+                    print _("Genre") + ": " + mpdh.get(self.songinfo, 'genre')
+                    print _("File") + ": " + os.path.basename(mpdh.get(self.songinfo, 'file'))
                     at, length = [int(c) for c in self.status['time'].split(':')]
                     at_time = misc.convert_time(at)
                     try:
-                        time = misc.convert_time(int(self.songinfo['time']))
+                        time = misc.convert_time(int(mpdh.get(self.songinfo, 'time')))
                         print _("Time") + ": " + at_time + " / " + time
                     except:
                         print _("Time") + ": " + at_time
@@ -1482,21 +1482,21 @@ class Base():
             return
         self.trying_connection = True
         if self.user_connect or force_connection:
-            #try:
-            host, port, password = self.mpd_env_vars()
-            if not host: host = self.host[self.profile_num]
-            if not port: port = self.port[self.profile_num]
-            if not password: password = self.password[self.profile_num]
-            self.client.connect(host, port)
-            if len(password) > 0:
-                self.client.password(password)
-            test = mpdh.status(self.client)
-            if test:
-                self.conn = True
-            else:
-                self.conn = False
-            #except:
-            #	self.client = None
+            try:
+                host, port, password = self.mpd_env_vars()
+                if not host: host = self.host[self.profile_num]
+                if not port: port = self.port[self.profile_num]
+                if not password: password = self.password[self.profile_num]
+                self.client.connect(host, port)
+                if len(password) > 0:
+                    self.client.password(password)
+                test = mpdh.status(self.client)
+                if test:
+                    self.conn = True
+                else:
+                    self.conn = False
+            except:
+                self.client = None
         else:
             self.conn = False
         if not self.conn:
@@ -1683,8 +1683,7 @@ class Base():
         if os.path.isfile(os.path.expanduser('~/.config/sonata/sonatarc')):
             conf.read(os.path.expanduser('~/.config/sonata/sonatarc'))
         else:
-            print "~/.config/sonata/sonatarc", _("not found. Exiting...")
-            sys.exit(1)
+            return
         # Compatibility with previous versions of Sonata:
         # --------------------------------------------------------------------
         if conf.has_option('connection', 'host'):
@@ -2098,7 +2097,7 @@ class Base():
         plname = misc.unescape_html(action.get_name().replace("Playlist: ", ""))
         self.client.command_list_ok_begin()
         for song in self.songs:
-            self.client.playlistadd(plname, song['file'])
+            self.client.playlistadd(plname, mpdh.get(song, 'file'))
         self.client.command_list_end()
 
     def playlist_name_exists(self, title, role, plname, skip_plname=""):
@@ -2106,7 +2105,7 @@ class Base():
         # all other cases, return False
         for item in self.client.lsinfo():
             if item.has_key('playlist'):
-                if item['playlist'] == plname and plname != skip_plname:
+                if mpdh.get(item, 'playlist') == plname and plname != skip_plname:
                     if ui.show_error_msg_yesno(self.window, _("A playlist with this name already exists. Would you like to replace it?"), title, role) == gtk.RESPONSE_YES:
                         return False
                     else:
@@ -2137,7 +2136,7 @@ class Base():
             playlistinfo = []
             for item in self.client.lsinfo():
                 if item.has_key('playlist'):
-                    playlistinfo.append(misc.escape_html(item['playlist']))
+                    playlistinfo.append(misc.escape_html(mpdh.get(item, 'playlist')))
             playlistinfo.sort(key=lambda x: x.lower()) # Remove case sensitivity
             for item in playlistinfo:
                 self.playlistsdata.append([gtk.STOCK_JUSTIFY_FILL, item])
@@ -2348,10 +2347,10 @@ class Base():
                 bd += [('1', [self.openpb, '..', '..'])]
             for item in lsinfo:
                 if item.has_key('directory'):
-                    name = item['directory'].split('/')[-1]
-                    bd += [('d' + name.lower(), [self.openpb, item['directory'], misc.escape_html(name)])]
+                    name = mpdh.get(item, 'directory').split('/')[-1]
+                    bd += [('d' + name.lower(), [self.openpb, mpdh.get(item, 'directory'), misc.escape_html(name)])]
                 elif item.has_key('file'):
-                    bd += [('f' + item['file'].lower(), [self.sonatapb, item['file'], self.parse_formatting(self.libraryformat, item, True)])]
+                    bd += [('f' + mpdh.get(item, 'file').lower(), [self.sonatapb, mpdh.get(item, 'file'), self.parse_formatting(self.libraryformat, item, True)])]
             bd.sort(key=misc.first_of_2tuple)
         elif self.lib_view == self.VIEW_ARTIST or self.lib_view == self.VIEW_GENRE:
             if self.lib_level == self.LIB_LEVEL_GENRE:
@@ -2395,11 +2394,11 @@ class Base():
                 dirs = []
                 for item in self.return_artist_items(self.lib_artist):
                     try:
-                        albums.append(item['album'])
-                        years.append(item.get('date', '9999').split('-')[0].zfill(4))
+                        albums.append(mpdh.get(item, 'album'))
+                        years.append(mpdh.get(item, 'date', '9999').split('-')[0].zfill(4))
                     except:
                         songs.append(item)
-                    dirs.append(os.path.dirname(item['file']))
+                    dirs.append(os.path.dirname(mpdh.get(item, 'file')))
                 (albums, years, dirs) = misc.remove_list_duplicates(albums, years, dirs, False)
                 for i in range(len(albums)):
                     coverfile = self.library_get_album_cover(dirs[i], self.lib_artist, albums[i])
@@ -2409,17 +2408,17 @@ class Base():
                         bd += [('d' + years[i] + misc.lower_no_the(albums[i]), [coverfile, years[i] + albums[i], misc.escape_html(years[i] + ' - ' + albums[i])])]
                 for song in songs:
                     try:
-                        bd += [('f' + misc.lower_no_the(song['title']), [self.sonatapb, song['file'], self.parse_formatting(self.libraryformat, song, True)])]
+                        bd += [('f' + misc.lower_no_the(mpdh.get(song, 'title')), [self.sonatapb, mpdh.get(song, 'file'), self.parse_formatting(self.libraryformat, song, True)])]
                     except:
-                        bd += [('f' + song['file'].lower(), [self.sonatapb, song['file'], self.parse_formatting(self.libraryformat, song, True)])]
+                        bd += [('f' + mpdh.get(song, 'file').lower(), [self.sonatapb, mpdh.get(song, 'file'), self.parse_formatting(self.libraryformat, song, True)])]
                 bd.sort(key=misc.first_of_2tuple)
             else: # Songs in albums
                 bd += [('0', [self.harddiskpb, '/', '/'])]
                 bd += [('1', [self.openpb, '..', '..'])]
                 (self.lib_album, year) = self.library_album_and_year_from_path(root)
                 for item in self.return_album_items_with_artist_and_year(self.lib_artist, self.lib_album, year):
-                    num = self.sanitize_mpdtag(item.get('disc', '1'), False, 2) + self.sanitize_mpdtag(item.get('track', '1'), False, 2)
-                    bd += [('f' + num, [self.sonatapb, item['file'], self.parse_formatting(self.libraryformat, item, True)])]
+                    num = mpdh.getnum(item, 'disc', '1', False, 2) + mpdh.getnum(item, 'track', '1', False, 2)
+                    bd += [('f' + num, [self.sonatapb, mpdh.get(item, 'file'), self.parse_formatting(self.libraryformat, item, True)])]
                 # List already sorted in return_album_items_with_artist_and_year...
 
         for sort, list in bd:
@@ -2469,14 +2468,14 @@ class Base():
         if not untagged_genre:
             for item in self.client.search('genre', genre):
                 # Make sure it's an exact match:
-                if genre.lower() == item['genre'].lower():
+                if genre.lower() == mpdh.get(item, 'genre').lower():
                     list.append(item)
         else:
             for item in self.client.listallinfo('/'):
                 if item.has_key('file'):
                     if not item.has_key('genre'):
                         list.append(item)
-                    elif item['genre'] == self.NOTAG:
+                    elif mpdh.get(item, 'genre') == self.NOTAG:
                         list.append(item)
         return list
 
@@ -2490,15 +2489,15 @@ class Base():
                 for item in self.client.search('genre', self.lib_genre):
                     if item.has_key('artist'):
                         # Make sure it's an exact match:
-                        if self.lib_genre.lower() == item['genre'].lower():
-                            list.append(item['artist'])
+                        if self.lib_genre.lower() == mpdh.get(item, 'genre').lower():
+                            list.append(mpdh.get(item, 'artist'))
             else:
                 for item in self.client.listallinfo('/'):
                     if item.has_key('file') and item.has_key('artist'):
                         if not item.has_key('genre'):
-                            list.append(item['artist'])
-                        elif item['genre'] == self.NOTAG:
-                            list.append(item['artist'])
+                            list.append(mpdh.get(item, 'artist'))
+                        elif mpdh.get(item, 'genre') == self.NOTAG:
+                            list.append(mpdh.get(item, 'artist'))
             (list, tmp, tmp2) = misc.remove_list_duplicates(list, case=False)
             list.sort(locale.strcoll)
             return list
@@ -2522,17 +2521,17 @@ class Base():
             items = self.client.search('album', album)
         for item in items:
             # Make sure it's an exact match:
-            if album.lower() == item['album'].lower():
+            if album.lower() == mpdh.get(item, 'album').lower():
                 if not untagged_genre:
-                    if not use_genre or (use_genre and self.lib_genre.lower() == item['genre'].lower()):
+                    if not use_genre or (use_genre and self.lib_genre.lower() == mpdh.get(item, 'genre').lower()):
                         list.append(item)
                 else:
                     if item.has_key('file'):
                         if not item.has_key('genre'):
                             list.append(item)
-                        elif item['genre'] == self.NOTAG:
+                        elif mpdh.get(item, 'genre') == self.NOTAG:
                             list.append(item)
-        list.sort(key=lambda x: int(self.sanitize_mpdtag(x.get('disc', '0'), False, 2) + self.sanitize_mpdtag(x.get('track', '0'), False, 2)))
+        list.sort(key=lambda x: int(mpdh.getnum(x, 'disc', '0', False, 2) + mpdh.getnum(x, 'track', '0', False, 2)))
         return list
 
     def return_artist_items(self, artist, use_genre_if_genre_view=True):
@@ -2551,21 +2550,21 @@ class Base():
                 if item.has_key('file'):
                     if not item.has_key('artist'):
                         list.append(item)
-                    elif item['artist'] == self.NOTAG:
+                    elif mpdh.get(item, 'artist') == self.NOTAG:
                         list.append(item)
             else:
                 # Make sure it's an exact match:
-                if artist.lower() == item['artist'].lower():
+                if artist.lower() == mpdh.get(item, 'artist').lower():
                     if not untagged_genre:
-                        if not use_genre or (use_genre and self.lib_genre.lower() == item['genre'].lower()):
+                        if not use_genre or (use_genre and self.lib_genre.lower() == mpdh.get(item, 'genre').lower()):
                             list.append(item)
                     elif not untagged_artist:
                         if item.has_key('file'):
                             if not item.has_key('genre'):
                                 list.append(item)
-                            elif item['genre'] == self.NOTAG:
+                            elif mpdh.get(item, 'genre') == self.NOTAG:
                                 list.append(item)
-        list.sort(key=lambda x: x.get('date', '0').split('-')[0].zfill(4))
+        list.sort(key=lambda x: mpdh.get(x, 'date', '0').split('-')[0].zfill(4))
         return list
 
     def return_album_items_with_artist_and_year(self, artist, album, year, use_genre_if_genre_view=True):
@@ -2589,19 +2588,19 @@ class Base():
                 if item.has_key('file'):
                     if not item.has_key('artist'):
                         match = True
-                    elif item['artist'] == self.NOTAG:
+                    elif mpdh.get(item, 'artist') == self.NOTAG:
                         match = True
             else:
                 # Make sure it's an exact match:
-                if artist.lower() == item['artist'].lower() and album.lower() == item['album'].lower():
+                if artist.lower() == mpdh.get(item, 'artist').lower() and album.lower() == mpdh.get(item, 'album').lower():
                     if not untagged_genre:
-                        if not use_genre or (use_genre and self.lib_genre.lower() == item['genre'].lower()):
+                        if not use_genre or (use_genre and self.lib_genre.lower() == mpdh.get(item, 'genre').lower()):
                             match = True
                     else:
                         if item.has_key('file'):
                             if not item.has_key('genre'):
                                 match = True
-                            elif item['genre'] == self.NOTAG:
+                            elif mpdh.get(item, 'genre') == self.NOTAG:
                                 match = True
             if match:
                 if year is None:
@@ -2611,14 +2610,14 @@ class Base():
                     if year != '9999' and item.has_key('date'):
                         # Only show songs whose years match the year var:
                         try:
-                            if int(item['date'].split('-')[0]) == int(year):
+                            if int(mpdh.get(item, 'date').split('-')[0]) == int(year):
                                 list.append(item)
                         except:
                             pass
                     elif year == '9999' and not item.has_key('date'):
                         # Only show songs that have no year specified:
                         list.append(item)
-        list.sort(key=lambda x: int(self.sanitize_mpdtag(x.get('disc', '0'), False, 2) + self.sanitize_mpdtag(x.get('track', '0'), False, 2)))
+        list.sort(key=lambda x: int(mpdh.getnum(x, 'disc', '0', False, 2) + mpdh.getnum(x, 'track', '0', False, 2)))
         return list
 
     def library_retain_selection(self, prev_selection, prev_selection_root, prev_selection_parent):
@@ -2721,22 +2720,26 @@ class Base():
             has_brackets = True
         else:
             has_brackets = False
+        flag = "89syufd8sdhf9hsdf"
         if "%A" in text:
-            try:
-                text = text.replace("%A", item['artist'])
-            except:
+            artist = mpdh.get(item, 'artist', flag)
+            if artist != flag:
+                text = text.replace("%A", artist)
+            else:
                 if not has_brackets: text = text.replace("%A", _('Unknown'))
                 else: return ""
         if "%B" in text:
-            try:
-                text = text.replace("%B", item['album'])
-            except:
+            album = mpdh.get(item, 'album', flag)
+            if album != flag:
+                text = text.replace("%B", album)
+            else:
                 if not has_brackets: text = text.replace("%B", _('Unknown'))
                 else: return ""
         if "%T" in text:
-            try:
-                text = text.replace("%T", item['title'])
-            except:
+            title = mpdh.get(item, 'title', flag)
+            if title != flag:
+                text = text.replace("%T", title)
+            else:
                 if not has_brackets:
                     if len(item['file'].split('/')[-1]) == 0 or item['file'][:7] == 'http://' or item['file'][:6] == 'ftp://':
                         # Use path and file name:
@@ -2747,44 +2750,50 @@ class Base():
                 else:
                     return ""
         if "%N" in text:
-            try:
-                text = text.replace("%N", self.sanitize_mpdtag(item['track'], False, 2))
-            except:
+            track = mpdh.getnum(item, 'track', flag, False, 2)
+            if track != flag:
+                text = text.replace("%N", track)
+            else:
                 if not has_brackets: text = text.replace("%N", "0")
                 else: return ""
         if "%D" in text:
-            try:
-                text = text.replace("%D", self.sanitize_mpdtag(item['disc'], False, 0))
-            except:
+            disc = mpdh.getnum(item, 'disc', flag, False, 0)
+            if disc != flag:
+                text = text.replace("%D", disc)
+            else:
                 if not has_brackets: text = text.replace("%D", "0")
                 else: return ""
         if "%S" in text:
-            try:
-                text = text.replace("%S", item['name'])
-            except:
+            name = mpdh.get(item, 'name', flag)
+            if name != flag:
+                text = text.replace("%S", name)
+            else:
                 if not has_brackets: text = text.replace("%S", _('Unknown'))
                 else: return ""
         if "%G" in text:
-            try:
-                text = text.replace("%G", item['genre'])
-            except:
+            genre = mpdh.get(item, 'genre', flag)
+            if genre != flag:
+                text = text.replace("%G", genre)
+            else:
                 if not has_brackets: text = text.replace("%G", _('Unknown'))
                 else: return ""
         if "%Y" in text:
-            try:
+            date = mpdh.get(item, 'date', flag)
+            if date != flag:
                 text = text.replace("%Y", item['date'])
-            except:
+            else:
                 if not has_brackets: text = text.replace("%Y", "?")
                 else: return ""
         if "%F" in text:
-            text = text.replace("%F", item['file'])
+            text = text.replace("%F", mpdh.get(item, 'file'))
         if "%P" in text:
-            text = text.replace("%P", item['file'].split('/')[-1])
+            text = text.replace("%P", mpdh.get(item, 'file').split('/')[-1])
         if "%L" in text:
-            try:
-                time = misc.convert_time(int(item['time']))
+            time = mpdh.get(item, 'time', flag)
+            if time != flag:
+                time = misc.convert_time(int(time))
                 text = text.replace("%L", time)
-            except:
+            else:
                 if not has_brackets: text = text.replace("%L", "?")
                 else: return ""
         if wintitle:
@@ -2841,45 +2850,45 @@ class Base():
                     album_use_link = False
                     if self.songinfo.has_key('album'):
                         album_use_link = True
-                    titlelabel.set_text(self.songinfo.get('title', ''))
+                    titlelabel.set_text(mpdh.get(self.songinfo, 'title'))
                     if artist_use_link:
-                        artistlabel.set_markup(misc.link_markup(misc.escape_html(self.songinfo['artist']), False, False, self.linkcolor))
+                        artistlabel.set_markup(misc.link_markup(misc.escape_html(mpdh.get(self.songinfo, 'artist')), False, False, self.linkcolor))
                     else:
-                        artistlabel.set_text(self.songinfo.get('artist', ''))
+                        artistlabel.set_text(mpdh.get(self.songinfo, 'artist'))
                     if album_use_link:
-                        albumlabel.set_markup(misc.link_markup(misc.escape_html(self.songinfo['album']), False, False, self.linkcolor))
+                        albumlabel.set_markup(misc.link_markup(misc.escape_html(mpdh.get(self.songinfo, 'album')), False, False, self.linkcolor))
                     else:
-                        albumlabel.set_text(self.songinfo.get('album', ''))
-                    datelabel.set_text(self.songinfo.get('date', ''))
-                    genrelabel.set_text(self.songinfo.get('genre', ''))
+                        albumlabel.set_text(mpdh.get(self.songinfo, 'album'))
+                    datelabel.set_text(mpdh.get(self.songinfo, 'date'))
+                    genrelabel.set_text(mpdh.get(self.songinfo, 'genre'))
                     if self.songinfo.has_key('track'):
-                        tracklabel.set_text(self.sanitize_mpdtag(self.songinfo.get('track', '0'), False, 0))
+                        tracklabel.set_text(mpdh.getnum(self.songinfo, 'track', '0', False, 0))
                     else:
                         tracklabel.set_text("")
-                    if os.path.exists(self.musicdir[self.profile_num] + os.path.dirname(self.songinfo['file'])):
-                        filelabel.set_text(self.musicdir[self.profile_num] + self.songinfo['file'])
+                    if os.path.exists(self.musicdir[self.profile_num] + os.path.dirname(mpdh.get(self.songinfo, 'file'))):
+                        filelabel.set_text(self.musicdir[self.profile_num] + mpdh.get(self.songinfo, 'file'))
                         self.info_editlabel.set_markup(misc.link_markup(_("edit tags"), True, True, self.linkcolor))
                     else:
-                        filelabel.set_text(self.songinfo['file'])
+                        filelabel.set_text(mpdh.get(self.songinfo, 'file'))
                         self.info_editlabel.set_text("")
                     if self.songinfo.has_key('album'):
                         # Update album info:
                         year = []
                         albumtime = 0
                         trackinfo = ""
-                        albuminfo = self.songinfo['album'] + "\n"
-                        tracks = self.return_album_items(self.songinfo['album'], False)
+                        albuminfo = mpdh.get(self.songinfo, 'album') + "\n"
+                        tracks = self.return_album_items(mpdh.get(self.songinfo, 'album'), False)
                         if len(tracks) > 0:
                             for track in tracks:
-                                if os.path.dirname(self.songinfo['file']) == os.path.dirname(track['file']):
+                                if os.path.dirname(mpdh.get(self.songinfo, 'file')) == os.path.dirname(mpdh.get(track, 'file')):
                                     if track.has_key('title'):
-                                        trackinfo = trackinfo + self.sanitize_mpdtag(track.get('track', '0'), False, 2) + '. ' + track['title'] + '\n'
+                                        trackinfo = trackinfo + mpdh.getnum(track, 'track', '0', False, 2) + '. ' + mpdh.get(track, 'title') + '\n'
                                     else:
-                                        trackinfo = trackinfo + self.sanitize_mpdtag(track.get('track', '0'), False, 2) + '. ' + track['file'].split('/')[-1] + '\n'
+                                        trackinfo = trackinfo + mpdh.getnum(track, 'track', '0', False, 2) + '. ' + mpdh.get(track, 'file').split('/')[-1] + '\n'
                                     if track.has_key('date'):
-                                        year.append(track['date'])
+                                        year.append(mpdh.get(track, 'date'))
                                     try:
-                                        albumtime = albumtime + int(track['time'])
+                                        albumtime = albumtime + int(mpdh.get(track, 'time'))
                                     except:
                                         pass
                             (year, tmp, tmp2) = misc.remove_list_duplicates(year, case=False)
@@ -2900,7 +2909,7 @@ class Base():
                     # Update lyrics:
                     if self.show_lyrics and not skip_lyrics:
                         if self.songinfo.has_key('artist') and self.songinfo.has_key('title'):
-                            lyricThread = threading.Thread(target=self.info_get_lyrics, args=(self.songinfo['artist'], self.songinfo['title'], self.songinfo['artist'], self.songinfo['title']))
+                            lyricThread = threading.Thread(target=self.info_get_lyrics, args=(mpdh.get(self.songinfo, 'artist'), mpdh.get(self.songinfo, 'title'), mpdh.get(self.songinfo, 'artist'), mpdh.get(self.songinfo, 'title')))
                             lyricThread.setDaemon(True)
                             lyricThread.start()
                         elif not HAVE_WSDL:
@@ -3016,7 +3025,7 @@ class Base():
         elif self.status and self.status['state'] in ['play', 'pause'] and self.songinfo:
             # Verify that we are displaying the correct lyrics:
             try:
-                if misc.strip_all_slashes(self.songinfo['artist']) == artist and misc.strip_all_slashes(self.songinfo['title']) == title:
+                if misc.strip_all_slashes(mpdh.get(self.songinfo, 'artist')) == artist and misc.strip_all_slashes(mpdh.get(self.songinfo, 'title')) == title:
                     try:
                         self.lyricsText.set_markup(misc.escape_html(lyrics))
                     except:
@@ -3168,7 +3177,7 @@ class Base():
                             else:
                                 for item in self.client.listall(model.get_value(model.get_iter(path), 1)):
                                     if item.has_key('file'):
-                                        items.append(item['file'])
+                                        items.append(mpdh.get(item, 'file'))
                         else:
                             items.append(model.get_value(model.get_iter(path), 1))
         elif self.lib_view == self.VIEW_ARTIST or (self.VIEW_GENRE and self.lib_level > self.LIB_LEVEL_GENRE):
@@ -3180,12 +3189,12 @@ class Base():
                 if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
                     if self.lib_level == self.LIB_LEVEL_ARTIST:
                         for item in self.return_artist_items(model.get_value(model.get_iter(path), 1)):
-                            items.append(item['file'])
+                            items.append(mpdh.get(item, 'file'))
                     else:
                         if model.get_value(model.get_iter(path), 0) != self.sonatapb:
                             (album, year) = self.library_album_and_year_from_path(model.get_value(model.get_iter(path), 1))
                             for item in self.return_album_items_with_artist_and_year(self.lib_artist, album, year):
-                                items.append(item['file'])
+                                items.append(mpdh.get(item, 'file'))
                         else:
                             items.append(model.get_value(model.get_iter(path), 1))
         elif self.lib_view == self.VIEW_GENRE:
@@ -3194,7 +3203,7 @@ class Base():
                     gtk.main_iteration()
                 genre = model.get_value(model.get_iter(path), 1)
                 for item in self.return_genre_items(genre):
-                    items.append(item['file'])
+                    items.append(mpdh.get(item, 'file'))
         # Make sure we don't have any EXACT duplicates:
         (items, tmp, tmp2) = misc.remove_list_duplicates(items, case=True)
         return items
@@ -3460,9 +3469,9 @@ class Base():
                 if not self.prevstatus or (self.prevstatus and self.prevstatus['state'] == 'stop'):
                     # Switched from stop to play, prepare current track:
                     self.scrobbler_prepare()
-                elif self.prevsonginfo and self.prevsonginfo.has_key('time') and self.scrob_last_prepared != self.songinfo['file']:
+                elif self.prevsonginfo and self.prevsonginfo.has_key('time') and self.scrob_last_prepared != mpdh.get(self.songinfo, 'file'):
                     # New song is playing, post previous track if time criteria is met:
-                    if self.scrob_playing_duration > 4 * 60 or self.scrob_playing_duration > int(self.prevsonginfo['time'])/2:
+                    if self.scrob_playing_duration > 4 * 60 or self.scrob_playing_duration > int(mpdh.get(self.prevsonginfo, 'time'))/2:
                         if self.scrob_start_time != "":
                             self.scrobbler_post()
                     # Prepare current track:
@@ -3473,7 +3482,7 @@ class Base():
                     self.scrob_playing_duration += time.time() - self.scrob_time_now
             elif self.status and self.status['state'] == 'stop':
                 if self.prevsonginfo and self.prevsonginfo.has_key('time'):
-                    if self.scrob_playing_duration > 4 * 60 or self.scrob_playing_duration > int(self.prevsonginfo['time'])/2:
+                    if self.scrob_playing_duration > 4 * 60 or self.scrob_playing_duration > int(mpdh.get(self.prevsonginfo, 'time'))/2:
                         # User stopped the client, post previous track if time
                         # criteria is met:
                         if self.scrob_start_time != "":
@@ -3483,7 +3492,7 @@ class Base():
         if self.songinfo and self.songinfo.has_key('album'):
             self.album_return_artist_name()
         elif self.songinfo and self.songinfo.has_key('artist'):
-            self.album_current_artist = [self.songinfo, self.songinfo['artist']]
+            self.album_current_artist = [self.songinfo, mpdh.get(self.songinfo, 'artist')]
         else:
             self.album_current_artist = [self.songinfo, ""]
 
@@ -3504,7 +3513,7 @@ class Base():
             row = int(self.status['song'])
             self.boldrow(row)
             if self.songinfo:
-                if not self.prevsonginfo or self.songinfo['file'] != self.prevsonginfo['file']:
+                if not self.prevsonginfo or mpdh.get(self.songinfo, 'file') != mpdh.get(self.prevsonginfo, 'file'):
                     gobject.idle_add(self.current_center_song_in_list)
             self.prev_boldrow = row
 
@@ -3528,7 +3537,7 @@ class Base():
                     self.scrobbler_np()
 
                     self.scrob_start_time = str(int(time.time()))
-                    self.scrob_last_prepared = self.songinfo['file']
+                    self.scrob_last_prepared = mpdh.get(self.songinfo, 'file')
 
     def scrobbler_np(self):
         thread = threading.Thread(target=self.scrobbler_do_np)
@@ -3544,14 +3553,14 @@ class Base():
                 if not self.songinfo.has_key('album'):
                     album = u''
                 else:
-                    album = self.songinfo['album']
+                    album = mpdh.get(self.songinfo, 'album')
                 if not self.songinfo.has_key('track'):
                     tracknumber = u''
                 else:
-                    tracknumber = self.songinfo['track']
-                self.scrob_post.nowplaying(self.songinfo['artist'],
-                                            self.songinfo['title'],
-                                            self.songinfo['time'],
+                    tracknumber = mpdh.get(self.songinfo, 'track')
+                self.scrob_post.nowplaying(mpdh.get(self.songinfo, 'artist'),
+                                            mpdh.get(self.songinfo, 'title'),
+                                            mpdh.get(self.songinfo, 'time'),
                                             tracknumber,
                                             album,
                                             self.scrob_start_time)
@@ -3566,14 +3575,14 @@ class Base():
                 if not self.prevsonginfo.has_key('album'):
                     album = u''
                 else:
-                    album = self.prevsonginfo['album']
+                    album = mpdh.get(self.prevsonginfo, 'album')
                 if not self.prevsonginfo.has_key('track'):
                     tracknumber = u''
                 else:
-                    tracknumber = self.prevsonginfo['track']
-                self.scrob_post.addtrack(self.prevsonginfo['artist'],
-                                                self.prevsonginfo['title'],
-                                                self.prevsonginfo['time'],
+                    tracknumber = mpdh.get(self.prevsonginfo, 'track')
+                self.scrob_post.addtrack(mpdh.get(self.prevsonginfo, 'artist'),
+                                                mpdh.get(self.prevsonginfo, 'title'),
+                                                mpdh.get(self.prevsonginfo, 'time'),
                                                 self.scrob_start_time,
                                                 tracknumber,
                                                 album)
@@ -3643,7 +3652,7 @@ class Base():
                 at, length = [int(c) for c in self.status['time'].split(':')]
                 at_time = misc.convert_time(at)
                 try:
-                    time = misc.convert_time(int(self.songinfo['time']))
+                    time = misc.convert_time(int(mpdh.get(self.songinfo, 'time')))
                     newtime = at_time + " / " + time
                 except:
                     newtime = at_time
@@ -3799,7 +3808,7 @@ class Base():
             for i in range(songlen):
                 track = self.songs[i]
                 try:
-                    self.total_time = self.total_time + int(track['time'])
+                    self.total_time = self.total_time + int(mpdh.get(track, 'time'))
                 except:
                     pass
                 iter = None
@@ -3811,12 +3820,12 @@ class Base():
                     items += [self.parse_formatting(part, track, True)]
                 if i < currlen and iter:
                     # Update attributes only for item:
-                    self.currentdata.set_value(iter, 0, int(track['id']))
+                    self.currentdata.set_value(iter, 0, int(mpdh.get(track, 'id')))
                     for index in range(len(items)):
                         self.currentdata.set_value(iter, index + 1, items[index])
                 else:
                     # Add new item:
-                    self.currentdata.append([int(track['id'])] + items)
+                    self.currentdata.append([int(mpdh.get(track, 'id'))] + items)
             # Remove excess songs:
             for i in range(currlen-songlen):
                 iter = self.currentdata.get_iter((currlen-1-i,))
@@ -3824,7 +3833,7 @@ class Base():
             if not self.filterbox_visible:
                 self.current.set_model(self.currentdata)
             if self.songinfo.has_key('pos'):
-                currsong = int(self.songinfo['pos'])
+                currsong = int(mpdh.get(self.songinfo, 'pos'))
                 self.boldrow(currsong)
                 self.prev_boldrow = currsong
             if self.filterbox_visible:
@@ -3881,7 +3890,8 @@ class Base():
         if self.expanded and len(self.currentdata)>0:
             self.current.realize()
             try:
-                row = self.songinfo['pos']
+                row = mpdh.get(self.songinfo, 'pos', None)
+                if row is None: return
                 visible_rect = self.current.get_visible_rect()
                 row_rect = self.current.get_background_area(row, self.columns[0])
                 top_coord = (row_rect.y + row_rect.height - int(visible_rect.height/2)) + visible_rect.y
@@ -3893,7 +3903,7 @@ class Base():
         if self.songinfo:
             if self.songinfo.has_key('name'):
                 # Stream, remove file:
-                misc.remove_file(self.artwork_stream_filename(self.songinfo['name']))
+                misc.remove_file(self.artwork_stream_filename(mpdh.get(self.songinfo, 'name')))
             else:
                 # Normal song:
                 misc.remove_file(self.target_image_filename(self.ART_LOCATION_HOMECOVERS))
@@ -3926,7 +3936,7 @@ class Base():
         if self.conn and self.status and self.status['state'] in ['play', 'pause']:
             if self.songinfo.has_key('name'):
                 # Stream
-                streamfile = self.artwork_stream_filename(self.songinfo['name'])
+                streamfile = self.artwork_stream_filename(mpdh.get(self.songinfo, 'name'))
                 if os.path.exists(streamfile):
                     gobject.idle_add(self.artwork_set_image, streamfile)
                 else:
@@ -3934,8 +3944,8 @@ class Base():
                     return
             else:
                 # Normal song:
-                artist = self.songinfo.get('artist', "")
-                album = self.songinfo.get('album', "")
+                artist = mpdh.get(self.songinfo, 'artist', "")
+                album = mpdh.get(self.songinfo, 'album', "")
                 if len(artist) == 0 and len(album) == 0:
                     self.artwork_set_default_icon()
                     return
@@ -3966,7 +3976,7 @@ class Base():
         f.close()
 
     def artwork_check_for_local(self):
-        songdir = os.path.dirname(self.songinfo['file'])
+        songdir = os.path.dirname(mpdh.get(self.songinfo, 'file'))
         self.artwork_set_default_icon()
         self.misc_img_in_dir = None
         self.single_img_in_dir = None
@@ -3988,7 +3998,7 @@ class Base():
         # to use info from the currently playing song.
 
         if songpath is None:
-            songpath = os.path.dirname(self.songinfo['file'])
+            songpath = os.path.dirname(mpdh.get(self.songinfo, 'file'))
 
         # Give precedence to images defined by the user's current
         # self.art_location (in case they have multiple valid images
@@ -4073,7 +4083,7 @@ class Base():
                         if self.lib_level == self.LIB_LEVEL_ALBUM:
                             if self.lib_view == self.VIEW_ARTIST or self.lib_view == self.VIEW_GENRE:
                                 if self.songinfo and self.songinfo.has_key('artist'):
-                                    if self.wd == self.songinfo['artist']:
+                                    if self.wd == mpdh.get(self.songinfo, 'artist'):
                                         self.library_browse(root=self.wd)
                     self.lastalbumart = filename
                 except:
@@ -4104,7 +4114,7 @@ class Base():
         # song is displayed
         if self.conn and self.status and self.status['state'] in ['play', 'pause'] and self.songinfo:
             if self.songinfo.has_key('name'):
-                streamfile = self.artwork_stream_filename(self.songinfo['name'])
+                streamfile = self.artwork_stream_filename(mpdh.get(self.songinfo, 'name'))
                 if filename == streamfile:
                     return True
             else:
@@ -4267,16 +4277,16 @@ class Base():
                 elif self.status['state'] in ['stop']:
                     info_file.write('Status: ' + 'Stopped' + '\n')
                 try:
-                    info_file.write('Title: ' + self.songinfo['artist'] + ' - ' + self.songinfo['title'] + '\n')
+                    info_file.write('Title: ' + mpdh.get(self.songinfo, 'artist') + ' - ' + mpdh.get(self.songinfo, 'title') + '\n')
                 except:
                     try:
-                        info_file.write('Title: ' + self.songinfo['title'] + '\n') # No Arist in streams
+                        info_file.write('Title: ' + mpdh.get(self.songinfo, 'title') + '\n') # No Arist in streams
                     except:
                         info_file.write('Title: No - ID Tag\n')
-                info_file.write('Album: ' + self.songinfo.get('album', 'No Data') + '\n')
-                info_file.write('Track: ' + self.songinfo.get('track', '0') + '\n')
-                info_file.write('File: ' + self.songinfo.get('file', 'No Data') + '\n')
-                info_file.write('Time: ' + self.songinfo.get('time', '0') + '\n')
+                info_file.write('Album: ' + mpdh.get(self.songinfo, 'album', 'No Data') + '\n')
+                info_file.write('Track: ' + mpdh.get(self.songinfo, 'track', '0') + '\n')
+                info_file.write('File: ' + mpdh.get(self.songinfo, 'file', 'No Data') + '\n')
+                info_file.write('Time: ' + mpdh.get(self.songinfo, 'time', '0') + '\n')
                 info_file.write('Volume: ' + self.status['volume'] + '\n')
                 info_file.write('Repeat: ' + self.status['repeat'] + '\n')
                 info_file.write('Shuffle: ' + self.status['random'] + '\n')
@@ -4447,15 +4457,15 @@ class Base():
                 if seektime < 0: seektime = 0
             elif direction == gtk.gdk.SCROLL_DOWN:
                 seektime = int(self.status['time'].split(":")[0]) + 5
-                if seektime > self.songinfo['time']:
-                    seektime = self.songinfo['time']
+                if seektime > mpdh.get(self.songinfo, 'time'):
+                    seektime = mpdh.get(self.songinfo, 'time')
             self.seek(int(self.status['song']), seektime)
         except:
             pass
 
     def on_lyrics_search(self, event):
-        artist = self.songinfo['artist']
-        title = self.songinfo['title']
+        artist = mpdh.get(self.songinfo, 'artist')
+        title = mpdh.get(self.songinfo, 'title')
         dialog = ui.dialog(title=_('Lyrics Search'), parent=self.window, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_FIND, gtk.RESPONSE_ACCEPT), role='lyricsSearch', default=gtk.RESPONSE_ACCEPT)
         dialog.action_area.get_children()[0].set_label(_("_Search"))
         dialog.action_area.get_children()[0].set_image(ui.image(stock=gtk.STOCK_FIND))
@@ -4545,25 +4555,25 @@ class Base():
                 # the end of the list (hence the 'zzzzzzz'):
                 zzz = 'zzzzzzzz'
                 if type == 'artist':
-                    dict["sortby"] =  (misc.lower_no_the(track.get('artist', zzz)),
-                                track.get('album' , zzz).lower(),
-                                self.sanitize_mpdtag(track.get('disc', '0'), True, 0),
-                                self.sanitize_mpdtag(track.get('track', '0'), True, 0))
+                    dict["sortby"] =  (misc.lower_no_the(mpdh.get(track, 'artist', zzz)),
+                                mpdh.get(track, 'album', zzz).lower(),
+                                mpdh.getnum(track, 'disc', '0', True, 0),
+                                mpdh.getnum(track, 'track', '0', True, 0))
                 elif type == 'album':
-                    dict["sortby"] =  (track.get('album', zzz).lower(),
-                                self.sanitize_mpdtag(track.get('disc', '0'), True, 0),
-                                self.sanitize_mpdtag(track.get('track', '0'), True, 0))
+                    dict["sortby"] =  (mpdh.get(track, 'album', zzz).lower(),
+                                mpdh.getnum(track, 'disc', '0', True, 0),
+                                mpdh.getnum(track, 'track', '0', True, 0))
                 elif type == 'file':
-                    dict["sortby"] = track.get('file', zzz).lower().split('/')[-1]
+                    dict["sortby"] = mpdh.get(track, 'file', zzz).lower().split('/')[-1]
                 elif type == 'dirfile':
-                    dict["sortby"] = track.get('file', zzz).lower()
+                    dict["sortby"] = mpdh.get(track, 'file', zzz).lower()
                 elif type == 'col':
                     # Sort by column:
                     dict["sortby"] = misc.unbold(self.currentdata.get_value(self.currentdata.get_iter((track_num, 0)), col_num).lower())
                     if custom_sort:
                         dict["sortby"] = self.sanitize_songlen_for_sorting(dict["sortby"], custom_pos)
                 else:
-                    dict["sortby"] = track.get(type, zzz).lower()
+                    dict["sortby"] = mpdh.get(track, type, zzz).lower()
                 dict["id"] = int(track["id"])
                 list.append(dict)
                 track_num = track_num + 1
@@ -4651,7 +4661,7 @@ class Base():
                     listallinfo = self.client.listallinfo(paths[i])
                     for item in listallinfo:
                         if item.has_key('file'):
-                            mpdpaths.append(item['file'])
+                            mpdpaths.append(mpdh.get(item, 'file'))
             if len(mpdpaths) > 0:
                 # Items found, add to list at drop position:
                 if drop_info:
@@ -4810,9 +4820,9 @@ class Base():
                 if self.covers_pref != self.ART_LOCAL:
                     self.UIManager.get_widget('/imagemenu/chooseimage_menu/').show()
                 self.UIManager.get_widget('/imagemenu/localimage_menu/').show()
-                artist = self.songinfo.get('artist', None)
-                album = self.songinfo.get('album', None)
-                stream = self.songinfo.get('name', None)
+                artist = mpdh.get(self.songinfo, 'artist', None)
+                album = mpdh.get(self.songinfo, 'album', None)
+                stream = mpdh.get(self.songinfo, 'name', None)
                 if os.path.exists(self.target_image_filename(self.ART_LOCATION_NONE)):
                     self.UIManager.get_widget('/imagemenu/resetimage_menu/').set_sensitive(False)
                 else:
@@ -4865,12 +4875,12 @@ class Base():
                     raise
             paths[i] = os.path.abspath(paths[i])
             if img.valid_image(paths[i]):
-                stream = self.songinfo.get('name', None)
+                stream = mpdh.get(self.songinfo, 'name', None)
                 if stream is not None:
-                    dest_filename = self.artwork_stream_filename(self.songinfo['name'])
+                    dest_filename = self.artwork_stream_filename(mpdh.get(self.songinfo, 'name'))
                 else:
                     dest_filename = self.target_image_filename()
-                    album = self.songinfo.get('album', "").replace("/", "")
+                    album = mpdh.get(self.songinfo, 'album', "").replace("/", "")
                     artist = self.album_current_artist[1].replace("/", "")
                     self.artwork_remove_none_file(artist, album)
                 if dest_filename != paths[i]:
@@ -4888,7 +4898,7 @@ class Base():
             if lyrics_loc == self.LYRICS_LOCATION_HOME:
                 targetfile = os.path.expanduser("~/.lyrics/" + artist + "-" + title + ".txt")
             elif lyrics_loc == self.LYRICS_LOCATION_PATH:
-                targetfile = self.musicdir[self.profile_num] + os.path.dirname(self.songinfo['file']) + "/" + artist + "-" + title + ".txt"
+                targetfile = self.musicdir[self.profile_num] + os.path.dirname(mpdh.get(self.songinfo, 'file')) + "/" + artist + "-" + title + ".txt"
             try:
                 return targetfile.decode(self.enc).encode('utf8')
             except:
@@ -4900,13 +4910,13 @@ class Base():
         if self.conn:
             # If no info passed, you info from currently playing song:
             if not album:
-                album = self.songinfo.get('album', "")
+                album = mpdh.get(self.songinfo, 'album', "")
             if not artist:
                 artist = self.album_current_artist[1]
             album = album.replace("/", "")
             artist = artist.replace("/", "")
             if songpath is None:
-                songpath = os.path.dirname(self.songinfo['file'])
+                songpath = os.path.dirname(mpdh.get(self.songinfo, 'file'))
             # Return target filename:
             if force_location is not None:
                 art_loc = force_location
@@ -4944,16 +4954,16 @@ class Base():
         # album name like 'Unplugged'.
         if self.album_current_artist[0] == self.songinfo:
             return
-        songs = self.return_album_items(self.songinfo['album'], False)
-        dir = os.path.dirname(self.songinfo['file'])
+        songs = self.return_album_items(mpdh.get(self.songinfo, 'album'), False)
+        dir = os.path.dirname(mpdh.get(self.songinfo, 'file'))
         artists = []
         return_artist = ""
         for song in songs:
             if song.has_key('artist'):
-                if dir == os.path.dirname(song['file']):
-                    artists.append(song['artist'])
-                    if self.songinfo['file'] == song['file']:
-                        return_artist = song['artist']
+                if dir == os.path.dirname(mpdh.get(song, 'file')):
+                    artists.append(mpdh.get(song, 'artist'))
+                    if mpdh.get(self.songinfo, 'file') == mpdh.get(song, 'file'):
+                        return_artist = mpdh.get(song, 'artist')
         (artists, tmp, tmp2) = misc.remove_list_duplicates(artists, case=False)
         if len(artists) > 3:
             return_artist = _("Various Artists")
@@ -5006,12 +5016,12 @@ class Base():
         dialog.set_preview_widget(preview)
         dialog.set_use_preview_label(False)
         dialog.connect("update-preview", self.update_preview, preview)
-        stream = self.songinfo.get('name', None)
-        album = self.songinfo.get('album', "").replace("/", "")
+        stream = mpdh.get(self.songinfo, 'name', None)
+        album = mpdh.get(self.songinfo, 'album', "").replace("/", "")
         artist = self.album_current_artist[1].replace("/", "")
         dialog.connect("response", self.image_local_response, artist, album, stream)
         dialog.set_default_response(gtk.RESPONSE_OK)
-        songdir = os.path.dirname(self.songinfo['file'])
+        songdir = os.path.dirname(mpdh.get(self.songinfo, 'file'))
         currdir = self.musicdir[self.profile_num] + songdir
         if self.art_location != self.ART_LOCATION_HOMECOVERS:
             dialog.set_current_folder(currdir)
@@ -5081,13 +5091,13 @@ class Base():
         self.choose_dialog.show_all()
         self.chooseimage_visible = True
         self.remotefilelist = []
-        stream = self.songinfo.get('name', None)
+        stream = mpdh.get(self.songinfo, 'name', None)
         if stream is not None:
             # Allow saving an image file for a stream:
             self.remote_dest_filename = self.artwork_stream_filename(stream)
         else:
             self.remote_dest_filename = self.target_image_filename()
-        album = self.songinfo.get('album', '')
+        album = mpdh.get(self.songinfo, 'album', '')
         artist = self.album_current_artist[1]
         imagewidget.connect('item-activated', self.image_remote_replace_cover, artist.replace("/", ""), album.replace("/", ""), stream)
         self.choose_dialog.connect('response', self.image_remote_response, imagewidget, artist, album, stream)
@@ -6288,9 +6298,9 @@ class Base():
 
     def on_link_click(self, widget, event, type):
         if type == 'artist':
-            misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + self.songinfo['artist'], self.url_browser, self.window)
+            misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + mpdh.get(self.songinfo, 'artist'), self.url_browser, self.window)
         elif type == 'album':
-            misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + self.songinfo['album'], self.url_browser, self.window)
+            misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + mpdh.get(self.songinfo, 'album'), self.url_browser, self.window)
         elif type == 'more':
             previous_is_more = (self.info_morelabel.get_text() == "(" + _("more") + ")")
             if previous_is_more:
@@ -6438,14 +6448,14 @@ class Base():
             bd = []
             for item in list:
                 if item.has_key('directory'):
-                    name = item['directory'].split('/')[-1]
+                    name = mpdh.get(item, 'directory').split('/')[-1]
                     # Sorting shouldn't really matter here. Ever seen a search turn up a directory?
-                    bd += [('d' + item['directory'].lower(), [self.openpb, item['directory'], misc.escape_html(name)])]
+                    bd += [('d' + mpdh.get(item, 'directory').lower(), [self.openpb, mpdh.get(item, 'directory'), misc.escape_html(name)])]
                 elif item.has_key('file'):
                     try:
-                        bd += [('f' + misc.lower_no_the(item['artist']) + '\t' + item['title'].lower(), [self.sonatapb, item['file'], self.parse_formatting(self.libraryformat, item, True)])]
+                        bd += [('f' + misc.lower_no_the(mpdh.get(item, 'artist')) + '\t' + mpdh.get(item, 'title').lower(), [self.sonatapb, mpdh.get(item, 'file'), self.parse_formatting(self.libraryformat, item, True)])]
                     except:
-                        bd += [('f' + item['file'].lower(), [self.sonatapb, item['file'], self.parse_formatting(self.libraryformat, item, True)])]
+                        bd += [('f' + mpdh.get(item, 'file').lower(), [self.sonatapb, mpdh.get(item, 'file'), self.parse_formatting(self.libraryformat, item, True)])]
             bd.sort(key=misc.first_of_2tuple)
             for sort, list in bd:
                 self.librarydata.append(list)
@@ -6580,7 +6590,7 @@ class Base():
         if self.current_tab == self.TAB_INFO:
             if self.status and self.status['state'] in ['play', 'pause']:
                 # Use current file in songinfo:
-                mpdpath = self.songinfo['file']
+                mpdpath = mpdh.get(self.songinfo, 'file')
                 files.append(self.musicdir[self.profile_num] + mpdpath)
                 temp_mpdpaths.append(mpdpath)
         elif self.current_tab == self.TAB_LIBRARY:
@@ -6594,9 +6604,9 @@ class Base():
             model, selected = self.current_selection.get_selected_rows()
             for path in selected:
                 if not self.filterbox_visible:
-                    item = self.songs[path[0]]['file']
+                    item = mpdh.get(self.songs[path[0]], 'file')
                 else:
-                    item = self.songs[self.filter_row_mapping[path[0]]]['file']
+                    item = mpdh.get(self.songs[self.filter_row_mapping[path[0]]], 'file')
                 files.append(self.musicdir[self.profile_num] + item)
                 temp_mpdpaths.append(item)
         if len(files) == 0:
@@ -7183,24 +7193,6 @@ class Base():
                     self.trayicon.hide_all()
             except:
                 pass
-
-    def sanitize_mpdtag(self, mpdtag, return_int=False, str_padding=0):
-        # Takes the mpd tag and tries to convert it to simply the
-        # track/disc number. Known forms for the mpd tag can be
-        # "4", "4/10", and "4,10".
-        try:
-            ret = int(mpdtag.split('/')[0])
-        except:
-            try:
-                ret = int(mpdtag.split(',')[0])
-            except:
-                ret = 0
-        # Don't allow negative numbers:
-        if ret < 0:
-            ret = 0
-        if not return_int:
-            ret = str(ret).zfill(str_padding)
-        return ret
 
     def searchfilter_toggle(self, widget, initial_text=""):
         if self.filterbox_visible:
