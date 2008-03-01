@@ -2088,7 +2088,10 @@ class Base:
         if plname:
             if self.playlist_name_exists(_("Save Playlist"), 'savePlaylistError', plname):
                 return
-            self.client.rm(plname)
+            try:
+                self.client.rm(plname)
+            except:
+                pass
             self.client.save(plname)
             self.playlists_populate()
             self.iterate_now()
@@ -2150,7 +2153,10 @@ class Base:
             oldname = misc.unescape_html(model.get_value(model.get_iter(selected[0]), 1))
             if self.playlist_name_exists(_("Rename Playlist"), 'renamePlaylistError', plname, oldname):
                 return
-            self.client.rm(plname)
+            try:
+                self.client.rm(plname)
+            except:
+                pass
             self.client.rename(oldname, plname)
             self.playlists_populate()
             self.iterate_now()
