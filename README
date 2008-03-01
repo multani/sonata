@@ -15,6 +15,10 @@ REQUIREMENTS:
 	(Building) GCC
 	(Building) python-dev (on some distros)
 
+RUNNING:
+	Sonata can be run from source without installation. Simply
+	run 'python sonata.py' as your user.
+
 INSTALLATION:
 	Just run 'python setup.py install' as root.
 
