@@ -1,4 +1,18 @@
-#! /usr/bin/env python
+# Python MPD client library
+# Copyright (C) 2008  J. Alexander Treuman <jat@spatialrift.net>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import socket
 
@@ -211,7 +225,7 @@ class MPDClient(object):
     def _getitem(self):
         items = list(self._readitems())
         if len(items) != 1:
-            raise ProtocolError, "Expected 1 item, got %i" % len(items)
+            return
         return items[0][1]
 
     def _getlist(self):
