@@ -4250,9 +4250,9 @@ class Base:
                 if self.conn and self.status and self.status['state'] in ['play', 'pause']:
                     try:
                         self.traytips.use_notifications_location = True
-                        if HAVE_STATUS_ICON:
+                        if HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible():
                             self.traytips._real_display(self.statusicon)
-                        elif HAVE_EGG:
+                        elif HAVE_EGG and self.trayicon.get_property('visible') == True:
                             self.traytips._real_display(self.trayeventbox)
                         else:
                             self.traytips._real_display(None)

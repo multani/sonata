@@ -27,19 +27,20 @@ class TrayIconTips(gtk.Window):
         self.notifications_location = 0
 
     def _calculate_pos(self, widget):
-        try:
-            x, y = widget.window.get_origin()
-            if widget.flags() & gtk.NO_WINDOW:
-                x += widget.allocation.x
-                y += widget.allocation.y
-            width = widget.allocation.width
-            height = widget.allocation.height
-        except:
-            icon_screen, icon_rect, icon_orient = widget.get_geometry()
-            x = icon_rect[0]
-            y = icon_rect[1]
-            width = icon_rect[2]
-            height = icon_rect[3]
+        if widget is not None:
+            try:
+                x, y = widget.window.get_origin()
+                if widget.flags() & gtk.NO_WINDOW:
+                    x += widget.allocation.x
+                    y += widget.allocation.y
+                width = widget.allocation.width
+                height = widget.allocation.height
+            except:
+                icon_screen, icon_rect, icon_orient = widget.get_geometry()
+                x = icon_rect[0]
+                y = icon_rect[1]
+                width = icon_rect[2]
+                height = icon_rect[3]
         w, h = self.size_request()
 
         screen = self.get_screen()
