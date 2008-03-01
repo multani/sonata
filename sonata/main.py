@@ -29,15 +29,16 @@ import mpdhelper as mpdh
 
 all_args = ["toggle", "version", "status", "info", "play", "pause",
             "stop", "next", "prev", "pp", "shuffle", "repeat", "hidden",
-            "visible", "profile="]
+            "visible", "profile=", "popup"]
 cli_args = ("play", "pause", "stop", "next", "prev", "pp", "info",
-            "status", "repeat", "shuffle")
+            "status", "repeat", "shuffle", "popup")
+short_args = "tpv"
 
 # Check if we have a cli arg passed.. if so, skip importing all
 # gui-related modules
 skip_gui = False
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "tv", all_args)
+    opts, args = getopt.getopt(sys.argv[1:], short_args, all_args)
     if args != []:
         for a in args:
             if a in cli_args:
@@ -223,13 +224,14 @@ class Base:
 
         self.trying_connection = False
         toggle_arg = False
+        popup_arg = False
         start_hidden = False
         start_visible = False
         arg_profile = False
         # Read any passed options/arguments:
         if not sugar:
             try:
-                opts, args = getopt.getopt(sys.argv[1:], "tv", all_args)
+                opts, args = getopt.getopt(sys.argv[1:], short_args, all_args)
             except getopt.GetoptError:
                 # print help information and exit:
                 self.print_usage()
@@ -241,6 +243,12 @@ class Base:
                         toggle_arg = True
                         if not HAVE_DBUS:
                             print _("The toggle argument requires D-Bus. Aborting.")
+                            self.print_usage()
+                            sys.exit()
+                    if o in ("-p", "--popup"):
+                        popup_arg = True
+                        if not HAVE_DBUS:
+                            print _("The popup argument requires D-Bus. Aborting.")
                             self.print_usage()
                             sys.exit()
                     elif o in ("-v", "--version"):
@@ -276,7 +284,7 @@ class Base:
 
         self.traytips = tray.TrayIconTips()
 
-        start_dbus_interface(toggle_arg)
+        start_dbus_interface(toggle_arg, popup_arg)
 
         self.gnome_session_management()
 
@@ -1119,9 +1127,10 @@ class Base:
         print ""
         print _("Options") + ":"
         print "  -h, --help           " + _("Show this help and exit")
-        print "  -v, --version        " + _("Show version information and exit")
+        print "  -p, --popup          " + _("Popup song notification (requires DBus)")
         print "  -t, --toggle         " + _("Toggles whether the app is minimized")
         print "                       " + _("to tray or visible (requires D-Bus)")
+        print "  -v, --version        " + _("Show version information and exit")
         print "  --hidden             " + _("Start app hidden (requires systray)")
         print "  --visible            " + _("Start app visible (requires systray)")
         print "  --profile=[NUM]      " + _("Start with profile [NUM]")
@@ -4224,7 +4233,7 @@ class Base:
         elif self.notification_width < self.NOTIFICATION_WIDTH_MIN:
             self.notification_width = self.NOTIFICATION_WIDTH_MIN
 
-    def on_currsong_notify(self, *args):
+    def on_currsong_notify(self, foo=None, force_popup=False):
         if self.sonata_loaded:
             if self.conn and self.status and self.status['state'] in ['play', 'pause']:
                 if self.show_covers:
@@ -4233,7 +4242,7 @@ class Base:
                     self.traytips.set_size_request(self.notification_width-100, -1)
             else:
                 self.traytips.set_size_request(-1, -1)
-            if self.show_notification:
+            if self.show_notification or force_popup:
                 try:
                     gobject.source_remove(self.traytips.notif_handler)
                 except:
@@ -4248,7 +4257,12 @@ class Base:
                         else:
                             self.traytips._real_display(None)
                         if self.popup_option != len(self.popuptimes)-1:
-                            timeout = int(self.popuptimes[self.popup_option])*1000
+                            if force_popup and not self.show_notification:
+                                # Used -p argument and notification is disabled in
+                                # player; default to 3 seconds
+                                timeout = 3000
+                            else:
+                                timeout = int(self.popuptimes[self.popup_option])*1000
                             self.traytips.notif_handler = gobject.timeout_add(timeout, self.traytips.hide)
                         else:
                             # -1 indicates that the timeout should be forever.
@@ -7401,7 +7415,7 @@ if __name__ == "__main__":
     base.main()
     gtk.gdk.threads_leave()
 
-def start_dbus_interface(toggle=False):
+def start_dbus_interface(toggle=False, popup=False):
     if HAVE_DBUS:
         try:
             bus = dbus.SessionBus()
@@ -7415,6 +7429,8 @@ def start_dbus_interface(toggle=False):
                 obj = bus.get_object('org.MPD', '/org/MPD/Sonata')
                 if toggle:
                     obj.toggle(dbus_interface='org.MPD.SonataInterface')
+                elif popup:
+                    obj.popup(dbus_interface='org.MPD.SonataInterface')
                 else:
                     print _("An instance of Sonata is already running.")
                     obj.show(dbus_interface='org.MPD.SonataInterface')
@@ -7454,3 +7470,7 @@ if HAVE_DBUS:
                 self.withdraw_app()
             else:
                 self.withdraw_app_undo()
+
+        @dbus.service.method('org.MPD.SonataInterface')
+        def popup(self):
+            self.on_currsong_notify(force_popup=True)
