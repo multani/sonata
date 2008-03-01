@@ -4233,7 +4233,7 @@ class Base:
         elif self.notification_width < self.NOTIFICATION_WIDTH_MIN:
             self.notification_width = self.NOTIFICATION_WIDTH_MIN
 
-    def on_currsong_notify(self, foo=None, force_popup=False):
+    def on_currsong_notify(self, foo=None, bar=None, force_popup=False):
         if self.sonata_loaded:
             if self.conn and self.status and self.status['state'] in ['play', 'pause']:
                 if self.show_covers:
