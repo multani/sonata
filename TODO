@@ -23,3 +23,6 @@ Future:
 	audioscrobbler - remove raise calls..
 	better playlist support (mpd 0.13+ only):
 		ability to view songs, reorder songs, remove songs, etc
+	lazy loading of the treeview
+		http://log.emmanuelebassi.net/documentation/lazy-loading/
+		http://blogs.gnome.org/jamesh/2006/03/31/re-lazy-loading/

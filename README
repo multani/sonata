@@ -20,7 +20,7 @@ RUNNING:
 	run 'python sonata.py' as your user.
 
 INSTALLATION:
-	Just run 'python setup.py install' as root.
+	Run 'python setup.py install' as root.
 
 FEATURES:
 	+ Expanded and collapsed views
