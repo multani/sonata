@@ -24,8 +24,15 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import getopt, sys, mpd, gettext, socket, os, ConfigParser, misc
+import getopt, sys, mpd, gettext, os, ConfigParser, misc
 import mpdhelper as mpdh
+from socket import getdefaulttimeout as socketgettimeout
+from socket import setdefaulttimeout as socketsettimeout
+
+tagpy = None
+ElementTree = None
+ServiceProxy = None
+audioscrobbler = None
 
 all_args = ["toggle", "version", "status", "info", "play", "pause",
             "stop", "next", "prev", "pp", "shuffle", "repeat", "hidden",
@@ -62,22 +69,7 @@ except:
 
 if not skip_gui:
     import warnings, gobject, urllib, urllib2, re, gc, locale, shutil
-    import threading, time, ui, img, tray
-
-    try:
-        import gtk, pango
-    except ImportError, (strerror):
-        print >>sys.stderr, "%s.  Please make sure you have this library installed into a directory in Python's path or in the same directory as Sonata. Aborting...\n" % strerror
-        sys.exit(1)
-
-    try: # Python 2.5, module bundled:
-        from xml.etree import ElementTree
-    except:
-        try: # Python 2.4, separate module:
-            from elementtree.ElementTree import ElementTree
-        except:
-            sys.stderr.write("Sonata requires Python 2.5 or python-elementtree. Aborting... \n")
-            sys.exit(1)
+    import gtk, pango, threading, time, ui, img, tray
 
     # Prevent deprecation warning for egg:
     warnings.simplefilter('ignore', DeprecationWarning)
@@ -120,12 +112,6 @@ if not skip_gui:
             HAVE_MMKEYS = False
 
     try:
-        import audioscrobbler
-        HAVE_AUDIOSCROBBLER = True
-    except:
-        HAVE_AUDIOSCROBBLER = False
-
-    try:
         from sugar.activity import activity
         HAVE_STATUS_ICON = False
         HAVE_SUGAR = True
@@ -133,34 +119,6 @@ if not skip_gui:
     except:
         HAVE_SUGAR = False
         VOLUME_ICON_SIZE = 4
-
-    try:
-        import tagpy
-        HAVE_TAGPY = True
-    except:
-        HAVE_TAGPY = False
-
-    if HAVE_TAGPY:
-        try:
-            # Set default tag encoding to utf8.. fixes some reported bugs.
-            import tagpy.id3v2 as id3v2
-            id3v2.FrameFactory.instance().setDefaultTextEncoding(tagpy.StringType.UTF8)
-        except:
-            pass
-
-    try:
-        from ZSI import ServiceProxy
-        # Make sure we have the right version..
-        test = ServiceProxy.ServiceProxy
-        HAVE_WSDL = True
-    except:
-        HAVE_WSDL = False
-
-    try:
-        import gnome, gnome.ui
-        HAVE_GNOME_UI = True
-    except:
-        HAVE_GNOME_UI = False
 
     # Test pygtk version
     if gtk.pygtk_version < (2, 6, 0):
@@ -177,7 +135,7 @@ class Base:
         gettext.textdomain('sonata')
 
         # Initialize vars (these can be needed if we have a cli argument, e.g., "sonata play")
-        socket.setdefaulttimeout(5)
+        socketsettimeout(5)
         self.profile_num = 0
         self.profile_names = [_('Default Profile')]
         self.musicdir = [self.sanitize_musicdir("~/music")]
@@ -271,14 +229,8 @@ class Base:
                         self.print_usage()
                     sys.exit()
 
-        if not HAVE_TAGPY:
-            print _("Taglib and/or tagpy not found, tag editing support disabled.")
-        if not HAVE_WSDL:
-            print _("ZSI not found, fetching lyrics support disabled.")
         if not HAVE_EGG and not HAVE_STATUS_ICON:
             print _("PyGTK+ 2.10 or gnome-python-extras not found, system tray support disabled.")
-        if not HAVE_AUDIOSCROBBLER:
-            print _("Python 2.5 or python-elementtree not found, audioscrobbler support disabled.")
 
         gtk.gdk.threads_init()
 
@@ -639,6 +591,7 @@ class Base:
             show_prefs = True
 
         # Audioscrobbler
+        self.scrobbler_import()
         self.scrobbler_init()
 
         # Images...
@@ -1324,19 +1277,23 @@ class Base:
         self.current.set_headers_clickable(not self.filterbox_visible)
 
     def gnome_session_management(self):
-        if HAVE_GNOME_UI:
+        try:
+            import gnome, gnome.ui
             # Code thanks to quodlibet:
             gnome.init("sonata", __version__)
             client = gnome.ui.master_client()
             client.set_restart_style(gnome.ui.RESTART_IF_RUNNING)
             command = os.path.normpath(os.path.join(os.getcwd(), sys.argv[0]))
-            try: client.set_restart_command([command] + sys.argv[1:])
+            try:
+                client.set_restart_command([command] + sys.argv[1:])
             except TypeError:
                 # Fedora systems have a broken gnome-python wrapper for this function.
                 # http://www.sacredchao.net/quodlibet/ticket/591
                 # http://trac.gajim.org/ticket/929
                 client.set_restart_command(len(sys.argv), [command] + sys.argv[1:])
             client.connect('die', gtk.main_quit)
+        except:
+            pass
 
     def single_connect_for_passed_arg(self, type):
         self.user_connect = True
@@ -2880,7 +2837,8 @@ class Base:
                         tracklabel.set_text(mpdh.getnum(self.songinfo, 'track', '0', False, 0))
                     else:
                         tracklabel.set_text("")
-                    if os.path.exists(self.musicdir[self.profile_num] + os.path.dirname(mpdh.get(self.songinfo, 'file'))):
+                    path = gobject.filename_from_utf8(self.musicdir[self.profile_num] + os.path.dirname(mpdh.get(self.songinfo, 'file')))
+                    if os.path.exists(path):
                         filelabel.set_text(self.musicdir[self.profile_num] + mpdh.get(self.songinfo, 'file'))
                         self.info_editlabel.set_markup(misc.link_markup(_("edit tags"), True, True, self.linkcolor))
                     else:
@@ -2923,13 +2881,21 @@ class Base:
                         self.albumText.set_text(_("Album name not set."))
                     # Update lyrics:
                     if self.show_lyrics and not skip_lyrics:
-                        if self.songinfo.has_key('artist') and self.songinfo.has_key('title'):
+                        global ServiceProxy
+                        if ServiceProxy is None:
+                            try:
+                                from ZSI import ServiceProxy
+                                # Make sure we have the right version..
+                                test = ServiceProxy.ServiceProxy
+                            except:
+                                ServiceProxy = None
+                        if ServiceProxy is None:
+                            self.info_searchlabel.set_text("")
+                            self.info_show_lyrics(_("ZSI not found, fetching lyrics support disabled."), "", "", True)
+                        elif self.songinfo.has_key('artist') and self.songinfo.has_key('title'):
                             lyricThread = threading.Thread(target=self.info_get_lyrics, args=(mpdh.get(self.songinfo, 'artist'), mpdh.get(self.songinfo, 'title'), mpdh.get(self.songinfo, 'artist'), mpdh.get(self.songinfo, 'title')))
                             lyricThread.setDaemon(True)
                             lyricThread.start()
-                        elif not HAVE_WSDL:
-                            self.info_searchlabel.set_text("")
-                            self.info_show_lyrics(_("ZSI not found, fetching lyrics support disabled."), "", "", True)
                         else:
                             self.info_searchlabel.set_text("")
                             self.info_show_lyrics(_("Artist or song title not set."), "", "", True)
@@ -2983,10 +2949,6 @@ class Base:
             gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
             gobject.idle_add(self.info_searchlabel.set_markup, search_str)
         else:
-            if not HAVE_WSDL:
-                gobject.idle_add(self.info_show_lyrics, _("ZSI not found, fetching lyrics support disabled."), "", "", True)
-                gobject.idle_add(self.info_searchlabel.set_text, "")
-                return
             # Use default filename:
             filename = self.target_lyrics_filename(filename_artist, filename_title)
             # Fetch lyrics from lyricwiki.org
@@ -2995,19 +2957,19 @@ class Base:
                 wsdlFile = "http://lyricwiki.org/server.php?wsdl"
                 try:
                     self.lyricServer = True
-                    timeout = socket.getdefaulttimeout()
-                    socket.setdefaulttimeout(self.LYRIC_TIMEOUT)
+                    timeout = socketgettimeout()
+                    socketsettimeout(self.LYRIC_TIMEOUT)
                     self.lyricServer = ServiceProxy.ServiceProxy(wsdlFile)
                 except:
-                    socket.setdefaulttimeout(timeout)
+                    socketsettimeout(timeout)
                     lyrics = _("Couldn't connect to LyricWiki")
                     gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
                     self.lyricServer = None
                     gobject.idle_add(self.info_searchlabel.set_markup, search_str)
                     return
             try:
-                timeout = socket.getdefaulttimeout()
-                socket.setdefaulttimeout(self.LYRIC_TIMEOUT)
+                timeout = socketgettimeout()
+                socketsettimeout(self.LYRIC_TIMEOUT)
                 lyrics = self.lyricServer.getSong(artist=urllib.quote(search_artist), song=urllib.quote(search_title))['return']["lyrics"]
                 if lyrics.lower() != "not found":
                     lyrics = filename_artist + " - " + filename_title + "\n\n" + lyrics
@@ -3030,7 +2992,7 @@ class Base:
                 lyrics = _("Fetching lyrics failed")
                 gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
             gobject.idle_add(self.info_searchlabel.set_markup, search_str)
-            socket.setdefaulttimeout(timeout)
+            socketsettimeout(timeout)
 
     def info_show_lyrics(self, lyrics, artist, title, force=False):
         if force:
@@ -3540,7 +3502,7 @@ class Base:
         self.info_update(True)
 
     def scrobbler_prepare(self):
-        if HAVE_AUDIOSCROBBLER:
+        if audioscrobbler is not None:
             self.scrob_start_time = ""
             self.scrob_last_prepared = ""
             self.scrob_playing_duration = 0
@@ -4061,13 +4023,16 @@ class Base:
         self.lastalbumart = None
 
     def artwork_get_misc_img_in_path(self, songdir):
-        if os.path.exists(self.musicdir[self.profile_num] + songdir):
+        path = gobject.filename_from_utf8(self.musicdir[self.profile_num] + songdir)
+        if os.path.exists(path):
             for f in self.ART_LOCATIONS_MISC:
-                if os.path.exists(self.musicdir[self.profile_num] + songdir + "/" + f):
-                    return self.musicdir[self.profile_num] + songdir + "/" + f
+                filename = gobject.filename_from_utf8(path + "/" + f)
+                if os.path.exists(filename):
+                    return filename
         return False
 
     def artwork_set_image(self, filename, info_img_only=False):
+        filename = gobject.filename_from_utf8(filename)
         if self.artwork_is_for_playing_song(filename):
             if os.path.exists(filename):
                 # We use try here because the file might exist, but might
@@ -4152,6 +4117,16 @@ class Base:
         return False
 
     def artwork_download_img_to_file(self, artist, album, dest_filename, all_images=False):
+        global ElementTree
+        if ElementTree is None:
+            try: # Python 2.5, module bundled:
+                from xml.etree import ElementTree
+            except:
+                try: # Python 2.4, separate module:
+                    from elementtree.ElementTree import ElementTree
+                except:
+                    sys.stderr.write("Sonata requires Python 2.5 or python-elementtree. Aborting... \n")
+                    sys.exit(1)
         # Returns False if no images found
         if len(artist) == 0 and len(album) == 0:
             self.downloading_image = False
@@ -4919,10 +4894,7 @@ class Base:
                 targetfile = os.path.expanduser("~/.lyrics/" + artist + "-" + title + ".txt")
             elif lyrics_loc == self.LYRICS_LOCATION_PATH:
                 targetfile = self.musicdir[self.profile_num] + os.path.dirname(mpdh.get(self.songinfo, 'file')) + "/" + artist + "-" + title + ".txt"
-            try:
-                return targetfile.decode(self.enc).encode('utf8')
-            except:
-                return targetfile
+            return gobject.filename_from_utf8(targetfile)
 
     def target_image_filename(self, force_location=None, songpath=None, artist=None, album=None):
         # Only pass songpath, artist, and album if we are trying to get the
@@ -4955,10 +4927,7 @@ class Base:
             elif art_loc == self.ART_LOCATION_NONE:
                 # flag filename to indicate that we should use the default Sonata icons:
                 targetfile = os.path.expanduser("~/.covers/" + artist + "-" + album + "-" + self.ART_LOCATION_NONE_FLAG + ".jpg")
-            try:
-                return targetfile.decode(self.enc).encode('utf8')
-            except:
-                return targetfile
+            return gobject.filename_from_utf8(targetfile)
 
     def album_return_artist_name(self):
         # Determine if album_name is a various artists album. We'll use a little
@@ -5042,7 +5011,7 @@ class Base:
         dialog.connect("response", self.image_local_response, artist, album, stream)
         dialog.set_default_response(gtk.RESPONSE_OK)
         songdir = os.path.dirname(mpdh.get(self.songinfo, 'file'))
-        currdir = self.musicdir[self.profile_num] + songdir
+        currdir = gobject.filename_from_utf8(self.musicdir[self.profile_num] + songdir)
         if self.art_location != self.ART_LOCATION_HOMECOVERS:
             dialog.set_current_folder(currdir)
         if stream is not None:
@@ -5658,7 +5627,7 @@ class Base:
         mpd_table.attach(ui.label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         mpd_table.attach(ui.label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         # Extras tab
-        if not HAVE_AUDIOSCROBBLER:
+        if not audioscrobbler is not None:
             self.as_enabled = False
         as_label = ui.label(markup='<b>' + _('Extras') + '</b>')
         as_frame = gtk.Frame()
@@ -5734,7 +5703,7 @@ class Base:
         as_vbox.pack_start(as_table, False)
         as_frame.add(as_vbox)
         as_checkbox.connect('toggled', self.prefs_as_enabled_toggled, as_user_entry, as_pass_entry, as_user_label, as_pass_label)
-        if not self.as_enabled or not HAVE_AUDIOSCROBBLER:
+        if not self.as_enabled or audioscrobbler is None:
             as_user_entry.set_sensitive(False)
             as_pass_entry.set_sensitive(False)
             as_user_label.set_sensitive(False)
@@ -5746,10 +5715,10 @@ class Base:
         display_art = gtk.CheckButton(_("Enable album art"))
         display_art.set_active(self.show_covers)
         display_stylized_combo = ui.combo(list=[_("Standard"), _("Stylized")], active=self.covers_type, changed_cb=self.prefs_stylized_toggled)
-        display_stylized_combo.set_sensitive(self.show_covers)
         display_stylized_hbox = gtk.HBox()
         display_stylized_hbox.pack_start(ui.label(text=_("Artwork style:"), x=1))
         display_stylized_hbox.pack_start(display_stylized_combo, False, False, 5)
+        display_stylized_hbox.set_sensitive(self.show_covers)
         display_art_combo = ui.combo(list=[_("Local only"), _("Local, then remote")], active=self.covers_pref)
         orderart_label = ui.label(text=_("Search order:"), x=1)
         display_art_hbox.pack_start(orderart_label)
@@ -5944,7 +5913,7 @@ class Base:
         return (host, port, password)
 
     def scrobbler_init(self):
-        if HAVE_AUDIOSCROBBLER and self.as_enabled and len(self.as_username) > 0 and len(self.as_password) > 0:
+        if audioscrobbler is not None and self.as_enabled and len(self.as_username) > 0 and len(self.as_password) > 0:
             thread = threading.Thread(target=self.scrobbler_init_thread)
             thread.setDaemon(True)
             thread.start()
@@ -5968,24 +5937,36 @@ class Base:
             self.scrobbler_retrieve_cache()
 
     def prefs_as_enabled_toggled(self, checkbox, userentry, passentry, userlabel, passlabel):
-        if HAVE_AUDIOSCROBBLER:
+        if checkbox.get_active():
+            self.scrobbler_import(True)
+        if audioscrobbler is not None:
             self.as_enabled = checkbox.get_active()
             self.scrobbler_init()
             for widget in [userlabel, passlabel, userentry, passentry]:
                 widget.set_sensitive(self.as_enabled)
         elif checkbox.get_active():
-            ui.show_error_msg(self.window, _("Python 2.5 or python-elementtree not found, audioscrobbler support disabled."), _("Audioscrobbler Verification"), 'pythonElementtreeError')
             checkbox.set_active(False)
 
+    def scrobbler_import(self, show_error=False):
+        # We need to try to import audioscrobbler either when the app starts (if
+        # as_enabled=True) or if the user enables it in prefs.
+        global audioscrobbler
+        if audioscrobbler is None:
+            try:
+                import audioscrobbler
+            except:
+                if show_error:
+                    ui.show_error_msg(self.window, _("Python 2.5 or python-elementtree not found, audioscrobbler support disabled."), _("Audioscrobbler Verification"), 'pythonElementtreeError')
+
     def prefs_as_username_changed(self, entry):
-        if HAVE_AUDIOSCROBBLER:
+        if audioscrobbler is not None:
             self.as_username = entry.get_text()
             if self.scrob_post:
                 if self.scrob_post.authenticated:
                     self.scrob_post = None
 
     def prefs_as_password_changed(self, entry):
-        if HAVE_AUDIOSCROBBLER:
+        if audioscrobbler is not None:
             self.as_password = entry.get_text()
             if self.scrob_post:
                 if self.scrob_post.authenticated:
@@ -6595,7 +6576,20 @@ class Base:
         return full_filename
 
     def on_tags_edit(self, widget):
-        if not HAVE_TAGPY:
+        # Try loading module
+        global tagpy
+        if tagpy is None:
+            try:
+                import tagpy
+                try:
+                    # Set default tag encoding to utf8.. fixes some reported bugs.
+                    import tagpy.id3v2 as id3v2
+                    id3v2.FrameFactory.instance().setDefaultTextEncoding(tagpy.StringType.UTF8)
+                except:
+                    pass
+            except:
+                pass
+        if tagpy is None:
             ui.show_error_msg(self.window, _("Taglib and/or tagpy not found, tag editing support disabled."), _("Edit Tags"), 'editTagsError', self.dialog_destroy)
             return
         if not os.path.isdir(self.musicdir[self.profile_num]):
@@ -6610,8 +6604,9 @@ class Base:
         if self.current_tab == self.TAB_INFO:
             if self.status and self.status['state'] in ['play', 'pause']:
                 # Use current file in songinfo:
-                mpdpath = mpdh.get(self.songinfo, 'file')
-                files.append(self.musicdir[self.profile_num] + mpdpath)
+                mpdpath = gobject.filename_from_utf8(mpdh.get(self.songinfo, 'file'))
+                fullpath = gobject.filename_from_utf8(self.musicdir[self.profile_num] + mpdpath)
+                files.append(fullpath)
                 temp_mpdpaths.append(mpdpath)
         elif self.current_tab == self.TAB_LIBRARY:
             # Populates files array with selected library items:
@@ -6853,7 +6848,8 @@ class Base:
             entries[4].set_text('')
         entries[5].set_text(self.tags_get_tag(tags[self.tagnum], 'genre'))
         entries[6].set_text(self.tags_get_tag(tags[self.tagnum], 'comment'))
-        entries[7].set_text(tags[self.tagnum]['mpdpath'].split('/')[-1])
+        filename = gobject.filename_display_name(tags[self.tagnum]['mpdpath'].split('/')[-1])
+        entries[7].set_text(filename)
         entries[0].select_region(0, len(entries[0].get_text()))
         entries[0].grab_focus()
         window.set_title(_("Edit Tags") + " - " + str(self.tagnum+1) + " " + _("of") + " " + str(len(tags)))
