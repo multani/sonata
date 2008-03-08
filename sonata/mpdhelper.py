@@ -2,7 +2,7 @@
 # $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/mpdhelper.py $
 # $Id: mpdhelper.py 141 2006-09-11 04:51:07Z stonecrest $
 
-import string
+import string, locale
 
 def status(client):
     try:
@@ -53,3 +53,9 @@ def sanitize(tag, return_int, str_padding):
     if not return_int:
         ret = str(ret).zfill(str_padding)
     return ret
+
+def conout(s):
+    # A kind of 'print' which does not throw exceptions if the string
+    # to print cannot be converted to console encoding; instead it
+    # does a "readable" conversion
+    print s.encode(locale.getpreferredencoding(), "replace")

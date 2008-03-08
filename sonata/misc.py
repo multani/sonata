@@ -2,7 +2,7 @@
 # $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/misc.py $
 # $Id: misc.py 141 2006-09-11 04:51:07Z stonecrest $
 
-import os, subprocess, re, ui
+import os, subprocess, re, ui, gobject
 
 def convert_time(raw):
     # Converts raw time to 'hh:mm:ss' with leading zeros as appropriate
@@ -191,3 +191,9 @@ def browser_load(docslink, browser, window):
                                 browser_error = True
     if browser_error:
         ui.show_error_msg(window, _('Unable to launch a suitable browser.'), _('Launch Browser'), 'browserLoadError')
+
+def file_from_utf8(filename):
+    try:
+        return gobject.filename_from_utf8(filename)
+    except:
+        return ""

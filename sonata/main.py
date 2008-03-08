@@ -1327,13 +1327,13 @@ class Base:
                         self.client.play()
             elif type == "info":
                 if self.status and self.status['state'] in ['play', 'pause']:
-                    print _("Title") + ": " + mpdh.get(self.songinfo, 'title')
-                    print _("Artist") + ": " + mpdh.get(self.songinfo, 'artist')
-                    print _("Album") + ": " + mpdh.get(self.songinfo, 'album')
-                    print _("Date") + ": " + mpdh.get(self.songinfo, 'date')
-                    print _("Track") + ": " + mpdh.getnum(self.songinfo, 'track', '0', False, 2)
-                    print _("Genre") + ": " + mpdh.get(self.songinfo, 'genre')
-                    print _("File") + ": " + os.path.basename(mpdh.get(self.songinfo, 'file'))
+                    mpdh.conout (_("Title") + ": " + mpdh.get(self.songinfo, 'title'))
+                    mpdh.conout (_("Artist") + ": " + mpdh.get(self.songinfo, 'artist'))
+                    mpdh.conout (_("Album") + ": " + mpdh.get(self.songinfo, 'album'))
+                    mpdh.conout (_("Date") + ": " + mpdh.get(self.songinfo, 'date'))
+                    mpdh.conout (_("Track") + ": " + mpdh.getnum(self.songinfo, 'track', '0', False, 2))
+                    mpdh.conout (_("Genre") + ": " + mpdh.get(self.songinfo, 'genre'))
+                    mpdh.conout (_("File") + ": " + os.path.basename(mpdh.get(self.songinfo, 'file')))
                     at, length = [int(c) for c in self.status['time'].split(':')]
                     at_time = misc.convert_time(at)
                     try:
@@ -2837,7 +2837,7 @@ class Base:
                         tracklabel.set_text(mpdh.getnum(self.songinfo, 'track', '0', False, 0))
                     else:
                         tracklabel.set_text("")
-                    path = gobject.filename_from_utf8(self.musicdir[self.profile_num] + os.path.dirname(mpdh.get(self.songinfo, 'file')))
+                    path = misc.file_from_utf8(self.musicdir[self.profile_num] + os.path.dirname(mpdh.get(self.songinfo, 'file')))
                     if os.path.exists(path):
                         filelabel.set_text(self.musicdir[self.profile_num] + mpdh.get(self.songinfo, 'file'))
                         self.info_editlabel.set_markup(misc.link_markup(_("edit tags"), True, True, self.linkcolor))
@@ -4023,16 +4023,16 @@ class Base:
         self.lastalbumart = None
 
     def artwork_get_misc_img_in_path(self, songdir):
-        path = gobject.filename_from_utf8(self.musicdir[self.profile_num] + songdir)
+        path = misc.file_from_utf8(self.musicdir[self.profile_num] + songdir)
         if os.path.exists(path):
             for f in self.ART_LOCATIONS_MISC:
-                filename = gobject.filename_from_utf8(path + "/" + f)
+                filename = path + "/" + f
                 if os.path.exists(filename):
                     return filename
         return False
 
     def artwork_set_image(self, filename, info_img_only=False):
-        filename = gobject.filename_from_utf8(filename)
+        # Note: filename arrives here is in FILESYSTEM_CHARSET, not UTF-8!
         if self.artwork_is_for_playing_song(filename):
             if os.path.exists(filename):
                 # We use try here because the file might exist, but might
@@ -4634,7 +4634,7 @@ class Base:
         drop_info = treeview.get_dest_row_at_pos(x, y)
 
         if selection.data is not None:
-            if not os.path.isdir(self.musicdir[self.profile_num]):
+            if not os.path.isdir(misc.file_from_utf8(self.musicdir[self.profile_num])):
                 return
             # DND from outside sonata:
             uri = selection.data.strip()
@@ -4894,7 +4894,7 @@ class Base:
                 targetfile = os.path.expanduser("~/.lyrics/" + artist + "-" + title + ".txt")
             elif lyrics_loc == self.LYRICS_LOCATION_PATH:
                 targetfile = self.musicdir[self.profile_num] + os.path.dirname(mpdh.get(self.songinfo, 'file')) + "/" + artist + "-" + title + ".txt"
-            return gobject.filename_from_utf8(targetfile)
+            return misc.file_from_utf8(targetfile)
 
     def target_image_filename(self, force_location=None, songpath=None, artist=None, album=None):
         # Only pass songpath, artist, and album if we are trying to get the
@@ -4927,7 +4927,7 @@ class Base:
             elif art_loc == self.ART_LOCATION_NONE:
                 # flag filename to indicate that we should use the default Sonata icons:
                 targetfile = os.path.expanduser("~/.covers/" + artist + "-" + album + "-" + self.ART_LOCATION_NONE_FLAG + ".jpg")
-            return gobject.filename_from_utf8(targetfile)
+            return misc.file_from_utf8(targetfile)
 
     def album_return_artist_name(self):
         # Determine if album_name is a various artists album. We'll use a little
@@ -5011,7 +5011,7 @@ class Base:
         dialog.connect("response", self.image_local_response, artist, album, stream)
         dialog.set_default_response(gtk.RESPONSE_OK)
         songdir = os.path.dirname(mpdh.get(self.songinfo, 'file'))
-        currdir = gobject.filename_from_utf8(self.musicdir[self.profile_num] + songdir)
+        currdir = misc.file_from_utf8(self.musicdir[self.profile_num] + songdir)
         if self.art_location != self.ART_LOCATION_HOMECOVERS:
             dialog.set_current_folder(currdir)
         if stream is not None:
@@ -5983,14 +5983,14 @@ class Base:
             self.covers_pref = display_art_combo.get_active()
             self.sticky = win_sticky.get_active()
             if self.show_lyrics and self.lyrics_location != self.LYRICS_LOCATION_HOME:
-                if not os.path.isdir(self.musicdir[self.profile_num]):
+                if not os.path.isdir(misc.file_from_utf8(self.musicdir[self.profile_num])):
                     ui.show_error_msg(self.window, _("To save lyrics to the music file's directory, you must specify a valid music directory."), _("Music Dir Verification"), 'musicdirVerificationError')
                     # Set music_dir entry focused:
                     prefsnotebook.set_current_page(0)
                     direntry.grab_focus()
                     return
             if self.show_covers and self.art_location != self.ART_LOCATION_HOMECOVERS:
-                if not os.path.isdir(self.musicdir[self.profile_num]):
+                if not os.path.isdir(misc.file_from_utf8(self.musicdir[self.profile_num])):
                     ui.show_error_msg(self.window, _("To save artwork to the music file's directory, you must specify a valid music directory."), _("Music Dir Verification"), 'musicdirVerificationError')
                     # Set music_dir entry focused:
                     prefsnotebook.set_current_page(0)
@@ -6596,7 +6596,7 @@ class Base:
         if tagpy is None:
             ui.show_error_msg(self.window, _("Taglib and/or tagpy not found, tag editing support disabled."), _("Edit Tags"), 'editTagsError', self.dialog_destroy)
             return
-        if not os.path.isdir(self.musicdir[self.profile_num]):
+        if not os.path.isdir(misc.file_from_utf8(self.musicdir[self.profile_num])):
             ui.show_error_msg(self.window, _("The path") + " " + self.musicdir[self.profile_num] + " " + _("does not exist. Please specify a valid music directory in preferences."), _("Edit Tags"), 'editTagsError', self.dialog_destroy)
             return
         ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
@@ -6608,8 +6608,8 @@ class Base:
         if self.current_tab == self.TAB_INFO:
             if self.status and self.status['state'] in ['play', 'pause']:
                 # Use current file in songinfo:
-                mpdpath = gobject.filename_from_utf8(mpdh.get(self.songinfo, 'file'))
-                fullpath = gobject.filename_from_utf8(self.musicdir[self.profile_num] + mpdpath)
+                mpdpath = mpdh.get(self.songinfo, 'file')
+                fullpath = self.musicdir[self.profile_num] + mpdpath
                 files.append(fullpath)
                 temp_mpdpaths.append(mpdpath)
         elif self.current_tab == self.TAB_LIBRARY:
@@ -6635,7 +6635,12 @@ class Base:
         # Initialize tags:
         tags = []
         for filenum in range(len(files)):
-            tags.append({'title':'', 'artist':'', 'album':'', 'year':'', 'track':'', 'genre':'', 'comment':'', 'title-changed':False, 'artist-changed':False, 'album-changed':False, 'year-changed':False, 'track-changed':False, 'genre-changed':False, 'comment-changed':False, 'fullpath':files[filenum], 'mpdpath':temp_mpdpaths[filenum]})
+            tags.append({'title':'', 'artist':'', 'album':'', 'year':'',
+                     'track':'', 'genre':'', 'comment':'', 'title-changed':False,
+                     'artist-changed':False, 'album-changed':False, 'year-changed':False,
+                     'track-changed':False, 'genre-changed':False, 'comment-changed':False,
+                     'fullpath':misc.file_from_utf8(files[filenum]),
+                     'mpdpath':temp_mpdpaths[filenum]})
         self.tagnum = -1
         if not os.path.exists(tags[0]['fullpath']):
             ui.change_cursor(None)
