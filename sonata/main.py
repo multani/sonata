@@ -4361,7 +4361,7 @@ class Base:
             for label in self.info_labels:
                 label.set_size_request(labelwidth, -1)
         # Resize lyrics/album gtk labels:
-        labelwidth = self.notebook.allocation.width - 40 # 60 accounts for vert scrollbar, box paddings, etc..
+        labelwidth = self.notebook.allocation.width - 45 # 45 accounts for vert scrollbar, box paddings, etc..
         self.lyricsText.set_size_request(labelwidth, -1)
         self.albumText.set_size_request(labelwidth, -1)
 
