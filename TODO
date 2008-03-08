@@ -7,7 +7,6 @@ v1.5
 		- combine ListStore definitions (playlists, streams, etc)
 		- remove_list_duplicates
 		- local/remote/dnd artwork
-	patch 2230
 	streams - merge 'edit and 'delete' menu item
 		- multiple streams selected
 	column sizing - http://bugzilla.gnome.org/show_bug.cgi?id=517345

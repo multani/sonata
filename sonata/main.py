@@ -5031,6 +5031,8 @@ class Base:
                 shutil.copyfile(filename, self.local_dest_filename)
             # And finally, set the image in the interface:
             self.artwork_update(True)
+            # Force a resize of the info labels, if needed:
+            gobject.idle_add(self.on_notebook_resize, self.notebook, None)
         dialog.destroy()
 
     def artwork_remove_none_file(self, artist, album):
@@ -5153,6 +5155,8 @@ class Base:
         if response_id == gtk.RESPONSE_ACCEPT:
             try:
                 self.image_remote_replace_cover(imagewidget, imagewidget.get_selected_items()[0], artist, album, stream)
+                # Force a resize of the info labels, if needed:
+                gobject.idle_add(self.on_notebook_resize, self.notebook, None)
             except:
                 dialog.destroy()
                 pass
