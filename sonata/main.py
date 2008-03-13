@@ -134,6 +134,13 @@ class Base:
             gettext.install('sonata', '/usr/share/locale', unicode=1)
         gettext.textdomain('sonata')
 
+        # This is needed so that python-mpd correctly returns lowercase
+        # keys for, e.g., playlistinfo() with a turkish locale
+        try:
+            locale.setlocale(locale.LC_CTYPE, "C")
+        except ImportError:
+            pass
+
         # Initialize vars (these can be needed if we have a cli argument, e.g., "sonata play")
         socketsettimeout(5)
         self.profile_num = 0

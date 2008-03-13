@@ -20,6 +20,7 @@ v1.5 - Pending
 	+ Bug: Weird bug in library-view
 	+ Bug: Prevent failure to load if tab positions are saved as None
 	+ Bug: Fix non-ascii characters in files for non-utf8 filesystems (zap)
+	+ Bug: Prevent crash with certain locales like turkish (jat)
 
 v1.4.2 - February 9, 2008
 	+ Add %D for disc tag in display formatting options
