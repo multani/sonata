@@ -138,7 +138,7 @@ class Base:
         # keys for, e.g., playlistinfo() with a turkish locale
         try:
             locale.setlocale(locale.LC_CTYPE, "C")
-        except ImportError:
+        except:
             pass
 
         # Initialize vars (these can be needed if we have a cli argument, e.g., "sonata play")
@@ -4150,21 +4150,20 @@ class Base:
             album = urllib.quote(album)
         amazon_key = "12DR2PGAQT303YTEWP02"
         prefix = "{http://webservices.amazon.com/AWSECommerceService/2005-10-05}"
-        search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images&Keywords=" + album
-        request = urllib2.Request(search_url)
-        opener = urllib2.build_opener()
-        f = opener.open(request).read()
-        xml = ElementTree.fromstring(f)
-        largeimgs = xml.getiterator(prefix + "LargeImage")
-        if len(largeimgs) == 0:
-            # No search results returned, search again with just artist name:
-            search_url = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images"
-            request = urllib2.Request(search_url)
+        urls = []
+        # Try searching urls from most specific (artist, title) to least (artist only)
+        urls.append("http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images&Title=" + album)
+        urls.append("http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images&Keywords=" + album)
+        urls.append("http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images")
+        for i, url in enumerate(urls):
+            request = urllib2.Request(url)
             opener = urllib2.build_opener()
             f = opener.open(request).read()
             xml = ElementTree.fromstring(f)
             largeimgs = xml.getiterator(prefix + "LargeImage")
-            if len(largeimgs) == 0:
+            if len(largeimgs) > 0:
+                break
+            elif i == len(urls)-1:
                 self.downloading_image = False
                 return False
         imglist = []
