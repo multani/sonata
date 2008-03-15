@@ -6513,7 +6513,10 @@ class Base:
                          'update', 'new', 'edit']:
                 self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
         elif self.current_tab == self.TAB_LIBRARY:
-            self.UIManager.get_widget('/mainmenu/updatemenu/').show()
+            if self.conn:
+                self.UIManager.get_widget('/mainmenu/updatemenu/').show()
+            else:
+                self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
             if len(self.librarydata) > 0:
                 if self.library_selection.count_selected_rows() > 0:
                     for menu in ['add', 'replace', 'playafter', 'tag']:
