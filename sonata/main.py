@@ -4771,7 +4771,7 @@ class Base:
         if self.conn:
             if self.library_search_visible():
                 self.on_library_search_end(None)
-            self.client.update('/')
+            self.mpd_update('/')
             self.iterate_now()
 
     def on_updatedb_path(self, action):
@@ -4785,11 +4785,11 @@ class Base:
                     # If there are selected rows, update these paths..
                     self.client.command_list_ok_begin()
                     for iter in iters:
-                        self.client.update(self.librarydata.get_value(iter, 1))
+                        self.mpd_update(self.librarydata.get_value(iter, 1))
                     self.client.command_list_end()
                 else:
                     # If no selection, update the current path...
-                    self.client.update(self.wd)
+                    self.mpd_update(self.wd)
                 self.iterate_now()
 
     def on_image_activate(self, widget, event):
@@ -5455,6 +5455,14 @@ class Base:
             self.client.next()
             self.iterate_now()
         return
+
+    def mpd_update(self, path='/'):
+        if self.conn:
+            # Can't update mpd while an update is occurring:
+            try:
+                self.client.update(path)
+            except:
+                pass
 
     def on_remove(self, widget):
         if self.conn:
