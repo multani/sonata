@@ -1,10 +1,9 @@
 #!/bin/sh
-xgettext ../sonata/main.py
 for i in *.po
   do
   if [ "$i" = "messages.po" ]
     then
     continue
   fi
-  msgmerge -U $i messages.po
+  intltool-update "${i%*.po}"
 done

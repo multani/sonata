@@ -1,4 +1,8 @@
 ./setup.py
 ./sonata.py
-./audioscrobbler.py
-./mpdclient3.py
+./sonata/audioscrobbler.py
+./sonata/mpdhelper.py
+./sonata/main.py
+./sonata/tray.py
+./sonata/misc.py
+./sonata/ui.py
