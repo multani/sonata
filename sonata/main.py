@@ -24,7 +24,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import getopt, sys, mpd, gettext, os, ConfigParser, misc
+import getopt, sys, gettext, os, ConfigParser, misc
 import mpdhelper as mpdh
 from socket import getdefaulttimeout as socketgettimeout
 from socket import setdefaulttimeout as socketsettimeout
@@ -52,6 +52,12 @@ try:
                 skip_gui = True
 except getopt.GetoptError:
     pass
+
+try:
+    import mpd
+except:
+    sys.stderr.write("Sonata requires python-mpd. Aborting...\n")
+    sys.exit(1)
 
 try:
     import dbus, dbus.service
@@ -1456,6 +1462,8 @@ class Base:
         self.trying_connection = True
         if self.user_connect or force_connection:
             try:
+                if self.conn:
+                    self.client.disconnect()
                 host, port, password = self.mpd_env_vars()
                 if not host: host = self.host[self.profile_num]
                 if not port: port = self.port[self.profile_num]
@@ -1482,6 +1490,7 @@ class Base:
         if self.conn:
             try:
                 self.client.close()
+                self.client.disconnect()
             except:
                 pass
             self.conn = False
