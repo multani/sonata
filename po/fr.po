@@ -4,14 +4,14 @@
 #
 # Floréal M <somewhere@webend.net>, 2006-2007.
 # Cyril Brulebois <cyril.brulebois@enst-bretagne.fr>, 2007.
-# Mike Massonnet <mmassonnet@gmail.com>, 2007.
+# Mike Massonnet <mmassonnet@gmail.com>, 2007-2008.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: Sonata 1.2.2\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-03-22 09:12-0600\n"
-"PO-Revision-Date: 2008-01-27 18:20+0100\n"
+"PO-Revision-Date: 2008-03-24 15:44+0100\n"
 "Last-Translator: Mike Massonnet <mmassonnet@gmail.com>\n"
 "Language-Team: Sonata-translations <sonata-translations@lists.berlios.de>\n"
 "MIME-Version: 1.0\n"
@@ -49,16 +49,15 @@ msgstr "Infos"
 
 #: .././sonata/main.py:194
 msgid "Untagged"
-msgstr ""
+msgstr "Aucune étiquette"
 
 #: .././sonata/main.py:216
 msgid "The toggle argument requires D-Bus. Aborting."
 msgstr "Le paramètre « toggle » nécessite D-Bus. Abandon."
 
 #: .././sonata/main.py:222
-#, fuzzy
 msgid "The popup argument requires D-Bus. Aborting."
-msgstr "Le paramètre « toggle » nécessite D-Bus. Abandon."
+msgstr "Le paramètre « popup » nécessite D-Bus. Abandon."
 
 #: .././sonata/main.py:246
 msgid ""
@@ -158,7 +157,7 @@ msgstr "_Connexion"
 
 #: .././sonata/main.py:433
 msgid "P_lay after"
-msgstr ""
+msgstr "L_ire après"
 
 #: .././sonata/main.py:434
 msgid "Filesystem"
@@ -249,14 +248,12 @@ msgid "_Replace"
 msgstr "_Remplacer"
 
 #: .././sonata/main.py:458
-#, fuzzy
 msgid "Add"
-msgstr "_Ajouter"
+msgstr "Ajouter"
 
 #: .././sonata/main.py:459
-#, fuzzy
 msgid "Replace"
-msgstr "_Remplacer"
+msgstr "Remplacer"
 
 #: .././sonata/main.py:460
 msgid "_Delete..."
@@ -337,7 +334,7 @@ msgstr "Non connecté"
 
 #: .././sonata/main.py:820 .././sonata/main.py:3652 .././sonata/main.py:3763
 msgid "No Read Permission"
-msgstr ""
+msgstr "Aucune permission en lecture"
 
 #: .././sonata/main.py:1086
 msgid "Version: Sonata"
@@ -360,9 +357,8 @@ msgid "Show this help and exit"
 msgstr "Montrer ce message et quitter"
 
 #: .././sonata/main.py:1096
-#, fuzzy
 msgid "Popup song notification (requires DBus)"
-msgstr "Afficher les notification au changement de chanson"
+msgstr "Popup de notification (nécessite D-BUS)"
 
 #: .././sonata/main.py:1097
 msgid "Toggles whether the app is minimized"
@@ -534,14 +530,14 @@ msgstr[0] "seconde"
 msgstr[1] "secondes"
 
 #: .././sonata/main.py:1382
-#, fuzzy
 msgid ""
 "Unable to connect to MPD.\n"
 "Please check your Sonata preferences or MPD_HOST/MPD_PORT environment "
 "variables."
 msgstr ""
 "Impossible de se connecter à MPD.\n"
-"Vérifiez vos paramètres dans les préférences de Sonata."
+"Vérifiez vos paramètres dans les préférences de Sonata ou les variables "
+"d'environnement MPD_HOST/MPD_PORT."
 
 #: .././sonata/main.py:1427
 msgid "Disconnect"
@@ -613,9 +609,8 @@ msgid "Various Artists"
 msgstr "Artistes divers"
 
 #: .././sonata/main.py:2891
-#, fuzzy
 msgid "Album info not found."
-msgstr "Nom de l'album non spécifié."
+msgstr "Informations sur l'album non trouvées."
 
 #: .././sonata/main.py:2894
 msgid "Album name not set."
@@ -684,9 +679,8 @@ msgid "(updating mpd)"
 msgstr "(mise à jour de mpd)"
 
 #: .././sonata/main.py:4476
-#, fuzzy
 msgid "Lyrics Search"
-msgstr "Paroles"
+msgstr "Recherche de paroles"
 
 #: .././sonata/main.py:4477
 msgid "_Search"
@@ -717,14 +711,12 @@ msgid "Choose Cover Art"
 msgstr "Choisir une pochette"
 
 #: .././sonata/main.py:5058
-#, fuzzy
 msgid "C_hoose"
-msgstr "Choisir"
+msgstr "C_hoisir"
 
 #: .././sonata/main.py:5086
-#, fuzzy
 msgid "_Update"
-msgstr "Mettre à jo_ur la bibliothèque"
+msgstr "Mettre à jo_ur"
 
 #: .././sonata/main.py:5091
 msgid "Edit search terms"
@@ -849,16 +841,15 @@ msgstr "Activer les pochettes d'album"
 
 #: .././sonata/main.py:5741
 msgid "Standard"
-msgstr ""
+msgstr "Standard"
 
 #: .././sonata/main.py:5741
 msgid "Stylized"
-msgstr ""
+msgstr "Boîtier"
 
 #: .././sonata/main.py:5743
-#, fuzzy
 msgid "Artwork style:"
-msgstr "Fichier de la pochette"
+msgstr "Style de la pochette :"
 
 #: .././sonata/main.py:5746
 msgid "Local only"
@@ -1023,9 +1014,8 @@ msgid "Track number"
 msgstr "Numéro de piste"
 
 #: .././sonata/main.py:5886
-#, fuzzy
 msgid "Disc Number"
-msgstr "Numéro de piste"
+msgstr "Numéro du disque"
 
 #: .././sonata/main.py:5887
 msgid "File name"
@@ -1291,29 +1281,24 @@ msgid "Go to parent directory"
 msgstr "Aller au répertoire parent"
 
 #: .././sonata/main.py:7111
-#, fuzzy
 msgid "Add selected item(s)"
-msgstr "Ajouter le(s) flux sélectionné(s)"
+msgstr "Ajouter le(s) élément(s) sélectionné(s)"
 
 #: .././sonata/main.py:7112
-#, fuzzy
 msgid "Replace with selected item(s)"
-msgstr "Remplacer par le(s) flux sélectionné(s)"
+msgstr "Remplacer par le(s) élément(s) sélectionné(s)"
 
 #: .././sonata/main.py:7114
-#, fuzzy
 msgid "Add selected item(s) and play"
-msgstr "Ajouter le(s) flux sélectionné(s)"
+msgstr "Ajouter le(s) élément(s) sélectionné(s) et lire"
 
 #: .././sonata/main.py:7115
-#, fuzzy
 msgid "Replace with selected item(s) and play"
-msgstr "Remplacer par le(s) flux sélectionné(s)"
+msgstr "Remplacer par le(s) élément(s) sélectionné(s) et lire"
 
 #: .././sonata/main.py:7116
-#, fuzzy
 msgid "Update library for selected item(s)"
-msgstr "Mettre à jour la bibliothèque pour le(s) chemin(s) sélectionné(s)"
+msgstr "Mettre à jour la bibliothèque pour le(s) élément(s) sélectionné(s)"
 
 #: .././sonata/main.py:7118 .././sonata/main.py:7120
 msgid "Add selected playlist(s)"
@@ -1328,14 +1313,12 @@ msgid "Replace with selected playlist(s)"
 msgstr "Remplacer par la (les) liste(s) de lecture sélectionnée(s)"
 
 #: .././sonata/main.py:7122
-#, fuzzy
 msgid "Add selected playlist(s) and play"
-msgstr "Supprimer la (les) liste(s) de lecture sélectionnée(s)"
+msgstr "Ajouter la (les) liste(s) de lecture sélectionnée(s) et lire"
 
 #: .././sonata/main.py:7123
-#, fuzzy
 msgid "Replace with selected playlist(s) and play"
-msgstr "Remplacer par la (les) liste(s) de lecture sélectionnée(s)"
+msgstr "Remplacer par la (les) liste(s) de lecture sélectionnée(s) et lire"
 
 #: .././sonata/main.py:7125 .././sonata/main.py:7127
 msgid "Add selected stream(s)"
@@ -1350,19 +1333,16 @@ msgid "Replace with selected stream(s)"
 msgstr "Remplacer par le(s) flux sélectionné(s)"
 
 #: .././sonata/main.py:7129
-#, fuzzy
 msgid "Add selected stream(s) and play"
-msgstr "Ajouter le(s) flux sélectionné(s)"
+msgstr "Ajouter le(s) flux sélectionné(s) et lire"
 
 #: .././sonata/main.py:7130
-#, fuzzy
 msgid "Replace with selected stream(s) and play"
-msgstr "Remplacer par le(s) flux sélectionné(s)"
+msgstr "Remplacer par le(s) flux sélectionné(s) et lire"
 
 #: .././sonata/main.py:7132
-#, fuzzy
 msgid "Edit playing song's tags"
-msgstr "Éditer les étiquettes"
+msgstr "Éditer les étiquettes du morceau courant"
 
 #. define the main array- this adds headings to each section of
 #. shortcuts that will be displayed
@@ -1391,9 +1371,8 @@ msgid "Stream Shortcuts"
 msgstr "Raccourcis pour les flux"
 
 #: .././sonata/main.py:7141
-#, fuzzy
 msgid "Info Shortcuts"
-msgstr "Raccourcis principaux"
+msgstr "Raccourcis pour les informations"
 
 #: .././sonata/main.py:7142
 msgid "Shortcuts"
