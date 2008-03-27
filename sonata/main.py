@@ -5347,7 +5347,8 @@ class Base:
     def on_current_click(self, treeview, path, column):
         model = self.current.get_model()
         if self.filterbox_visible:
-            self.searchfilter_toggle(None)
+            self.searchfilter_on_enter(None)
+            return
         try:
             iter = model.get_iter(path)
             self.client.playid(self.current_get_songid(iter, model))
@@ -7250,7 +7251,7 @@ class Base:
             self.filterbox_visible = False
             self.edit_style_orig = self.searchtext.get_style()
             ui.hide(self.filterbox)
-            self.searchfilter_stop_loop(self.filterbox);
+            self.searchfilter_stop_loop(self.filterbox)
             self.filterpattern.set_text("")
         elif self.conn:
             self.playlist_pos_before_filter = self.current.get_visible_rect()[1]
@@ -7281,7 +7282,7 @@ class Base:
         if song_id:
             self.searchfilter_toggle(None)
             self.client.playid(song_id)
-            self.current_center_song_in_list()
+            gobject.idle_add(self.current_center_song_in_list)
 
     def current_get_songid(self, iter, model):
         return int(model.get_value(iter, 0))
@@ -7403,7 +7404,7 @@ class Base:
 
     def searchfilter_revert_model(self, filterposition):
         self.current.set_model(self.currentdata)
-        self.playlist_retain_view(self.current, filterposition)
+        gobject.idle_add(self.playlist_retain_view, self.current, filterposition)
         self.current.thaw_child_notify()
         gobject.idle_add(self.current.grab_focus)
 
