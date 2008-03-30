@@ -470,6 +470,8 @@ class Base:
             ('tab3key', None, 'Tab3 Key', '<Alt>3', None, self.on_switch_to_tab3),
             ('tab4key', None, 'Tab4 Key', '<Alt>4', None, self.on_switch_to_tab4),
             ('tab5key', None, 'Tab5 Key', '<Alt>5', None, self.on_switch_to_tab5),
+            ('nexttab', None, 'Next Tab Key', '<Alt>Right', None, self.switch_to_next_tab),
+            ('prevtab', None, 'Prev Tab Key', '<Alt>Left', None, self.switch_to_prev_tab),
             ('expandkey', None, 'Expand Key', '<Alt>Down', None, self.on_expand),
             ('collapsekey', None, 'Collapse Key', '<Alt>Up', None, self.on_collapse),
             ('ppkey', None, 'Play/Pause Key', '<Ctrl>p', None, self.mpd_pp),
@@ -571,6 +573,10 @@ class Base:
                 <menuitem action="tab3key"/>
                 <menuitem action="tab4key"/>
                 <menuitem action="tab5key"/>
+                <menuitem action="nexttab"/>
+                <menuitem action="prevtab"/>
+                <menuitem action="nexttab"/>
+                <menuitem action="prevtab"/>
                 <menuitem action="expandkey"/>
                 <menuitem action="collapsekey"/>
                 <menuitem action="ppkey"/>
@@ -5378,6 +5384,12 @@ class Base:
 
     def on_switch_to_tab5(self, action):
         self.switch_to_tab_num(4)
+
+    def switch_to_next_tab(self, action):
+        self.notebook.next_page()
+
+    def switch_to_prev_tab(self, action):
+        self.notebook.prev_page()
 
     def on_volume_lower(self, action):
         new_volume = int(self.volumescale.get_adjustment().get_value()) - 5
