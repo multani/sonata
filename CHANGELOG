@@ -22,6 +22,7 @@ v1.5 - Pending
 	+ Bug: Fix non-ascii characters in files for non-utf8 filesystems (zap)
 	+ Bug: Prevent crash with certain locales like turkish (jat)
 	+ Bug: Using filter causes playlist to jump to the top
+	+ Bug: Fix AudioScrobblerQuery (kigurai)
 
 v1.4.2 - February 9, 2008
 	+ Add %D for disc tag in display formatting options

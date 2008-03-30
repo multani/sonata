@@ -277,7 +277,7 @@ try:
     from xml.etree import ElementTree
 except:
     # Python 2.4, separate module:
-    from elementtree.ElementTree import ElementTree
+    from elementtree import ElementTree
 
 # This is lifted in the most part from iPodScrobbler (see docs above)
 # Get the base local encoding
@@ -493,7 +493,7 @@ class AudioScrobblerQuery:
                 code = error.reason.args[0]
                 message = error.reason.args[1]
                 raise AudioScrobblerConnectionError('network', code, message)
-            elemtree = ElementTree(file=response)
+            elemtree = ElementTree.ElementTree(file=response)
             if response.headers.get('pragma', None) != 'no-cache':
                 last_modified = response.headers.get('last-modified', None)
             else:
