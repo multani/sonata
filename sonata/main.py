@@ -96,13 +96,18 @@ if not skip_gui:
     HAVE_GNOME_MMKEYS = False
     if HAVE_DBUS:
         try:
-            # mmkeys for gnome 2.18+
             bus = dbus.SessionBus()
             dbusObj = bus.get_object('org.freedesktop.DBus', '/org/freedesktop/DBus')
             dbusInterface = dbus.Interface(dbusObj, 'org.freedesktop.DBus')
             if dbusInterface.NameHasOwner('org.gnome.SettingsDaemon'):
-                settingsDaemonObj = bus.get_object('org.gnome.SettingsDaemon', '/org/gnome/SettingsDaemon')
-                settingsDaemonInterface = dbus.Interface(settingsDaemonObj, 'org.gnome.SettingsDaemon')
+                try:
+                    # mmkeys for gnome 2.22+
+                    settingsDaemonObj = bus.get_object('org.gnome.SettingsDaemon', '/org/gnome/SettingsDaemon/MediaKeys')
+                    settingsDaemonInterface = dbus.Interface(settingsDaemonObj, 'org.gnome.SettingsDaemon.MediaKeys')
+                except:
+                    # mmkeys for gnome 2.18+
+                    settingsDaemonObj = bus.get_object('org.gnome.SettingsDaemon', '/org/gnome/SettingsDaemon')
+                    settingsDaemonInterface = dbus.Interface(settingsDaemonObj, 'org.gnome.SettingsDaemon')
                 settingsDaemonInterface.GrabMediaPlayerKeys('Sonata', 0)
                 HAVE_GNOME_MMKEYS = True
                 HAVE_MMKEYS = False

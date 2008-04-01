@@ -15,6 +15,7 @@ v1.5 - Pending
 	+ Retain selection in lists after removing items
 	+ Hidden config option to expand notebook tabs (tabs_expanded)
 	+ Add Estonian translation (Mihkel)
+	+ Bug: Fix multimedia keys for gnome 2.22
 	+ Bug: Fix artwork for artists/albums with "/" in them (e.g. AC/DC)
 	+ Bug: Fix egg trayicon with vertical system tray
 	+ Bug: Weird bug in library-view
