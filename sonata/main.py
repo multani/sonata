@@ -1323,7 +1323,7 @@ class Base:
     def single_connect_for_passed_arg(self, type):
         self.user_connect = True
         self.settings_load()
-        self.mpd_connect(blocking=True, force_connection=True)
+        self.mpd_connect(blocking=True, force=True)
         if self.conn:
             self.status = mpdh.status(self.client)
             self.songinfo = mpdh.currsong(self.client)
@@ -1460,22 +1460,24 @@ class Base:
             self.profile_num = current.get_current_value()
             self.on_connectkey_pressed(None)
 
-    def mpd_connect(self, blocking=False, force_connection=False):
+    def mpd_connect(self, blocking=False, force=False):
         if blocking:
-            self._mpd_connect(blocking, force_connection)
+            self._mpd_connect(blocking, force)
         else:
-            thread = threading.Thread(target=self._mpd_connect, args=(blocking, force_connection))
+            thread = threading.Thread(target=self._mpd_connect, args=(blocking, force))
             thread.setDaemon(True)
             thread.start()
 
-    def _mpd_connect(self, blocking, force_connection):
+    def _mpd_connect(self, blocking, force):
         if self.trying_connection:
             return
         self.trying_connection = True
-        if self.user_connect or force_connection:
+        if self.user_connect or force:
             try:
-                if self.conn:
+                try:
                     self.client.disconnect()
+                except:
+                    pass
                 host, port, password = self.mpd_env_vars()
                 if not host: host = self.host[self.profile_num]
                 if not port: port = self.port[self.profile_num]
@@ -1489,7 +1491,8 @@ class Base:
                 else:
                     self.conn = False
             except:
-                self.client = None
+                print sys.exc_info()[1]
+                self.conn = False
         else:
             self.conn = False
         if not self.conn:
@@ -1517,7 +1520,7 @@ class Base:
                 break
         self.skip_on_profiles_click = False
         # Connect:
-        self.mpd_connect()
+        self.mpd_connect(force=True)
         self.iterate_now()
 
     def on_disconnectkey_pressed(self, event):
@@ -6083,7 +6086,7 @@ class Base:
                 if self.prev_host != self.host[self.profile_num] or self.prev_port != self.port[self.profile_num] or self.prev_password != self.password[self.profile_num]:
                     # Try to connect if mpd connection info has been updated:
                     ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
-                    self.mpd_connect()
+                    self.mpd_connect(force=True)
             if self.as_enabled:
                 gobject.idle_add(self.scrobbler_init)
             self.settings_save()
