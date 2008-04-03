@@ -2395,16 +2395,18 @@ class Base:
                 songs = []
                 years = []
                 dirs = []
+                artists = []
                 for item in self.return_artist_items(self.lib_artist):
                     try:
                         albums.append(mpdh.get(item, 'album'))
                         years.append(mpdh.get(item, 'date', '9999').split('-')[0].zfill(4))
+                        artists.append(mpdh.get(item, 'artist'))
                     except:
                         songs.append(item)
                     dirs.append(os.path.dirname(mpdh.get(item, 'file')))
-                (albums, years, dirs) = misc.remove_list_duplicates(albums, years, dirs, False)
+                (albums, years, artists, dirs) = misc.remove_list_duplicates(albums, years, artists, dirs, False)
                 for i in range(len(albums)):
-                    coverfile = self.library_get_album_cover(dirs[i], self.lib_artist, albums[i])
+                    coverfile = self.library_get_album_cover(dirs[i], artists[i], albums[i])
                     if years[i] == '9999':
                         bd += [('d' + years[i] + misc.lower_no_the(albums[i]), [coverfile, years[i] + albums[i], misc.escape_html(albums[i])])]
                     else:
@@ -2455,7 +2457,7 @@ class Base:
         list = []
         for item in self.client.list('genre'):
             list.append(item)
-        (list, tmp, tmp2) = misc.remove_list_duplicates(list, case=False)
+        (list, tmp, tmp2, tmp3) = misc.remove_list_duplicates(list, case=False)
         list.sort(locale.strcoll)
         return list
 
@@ -2501,14 +2503,14 @@ class Base:
                             list.append(mpdh.get(item, 'artist'))
                         elif mpdh.get(item, 'genre') == self.NOTAG:
                             list.append(mpdh.get(item, 'artist'))
-            (list, tmp, tmp2) = misc.remove_list_duplicates(list, case=False)
+            (list, tmp, tmp2, tmp3) = misc.remove_list_duplicates(list, case=False)
             list.sort(locale.strcoll)
             return list
         else:
             list = []
             for item in self.client.list('artist'):
                 list.append(item)
-            (list, tmp, tmp2) = misc.remove_list_duplicates(list, case=False)
+            (list, tmp, tmp2, tmp3) = misc.remove_list_duplicates(list, case=False)
             list.sort(locale.strcoll)
             return list
 
@@ -2895,7 +2897,7 @@ class Base:
                                         albumtime = albumtime + int(mpdh.get(track, 'time'))
                                     except:
                                         pass
-                            (year, tmp, tmp2) = misc.remove_list_duplicates(year, case=False)
+                            (year, tmp, tmp2, tmp3) = misc.remove_list_duplicates(year, case=False)
                             artist = self.album_current_artist[1]
                             artist_use_link = False
                             if artist != _("Various Artists"):
@@ -3213,7 +3215,7 @@ class Base:
                 for item in self.return_genre_items(genre):
                     items.append(mpdh.get(item, 'file'))
         # Make sure we don't have any EXACT duplicates:
-        (items, tmp, tmp2) = misc.remove_list_duplicates(items, case=True)
+        (items, tmp, tmp2, tmp3) = misc.remove_list_duplicates(items, case=True)
         return items
 
     def on_add_item_play(self, widget):
@@ -4983,7 +4985,7 @@ class Base:
                     artists.append(mpdh.get(song, 'artist'))
                     if mpdh.get(self.songinfo, 'file') == mpdh.get(song, 'file'):
                         return_artist = mpdh.get(song, 'artist')
-        (artists, tmp, tmp2) = misc.remove_list_duplicates(artists, case=False)
+        (artists, tmp, tmp2, tmp3) = misc.remove_list_duplicates(artists, case=False)
         if len(artists) > 3:
             return_artist = _("Various Artists")
         self.album_current_artist = [self.songinfo, return_artist]
