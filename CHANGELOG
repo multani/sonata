@@ -14,6 +14,7 @@ v1.5 - Pending
 	+ Switch back to last tab on second cover art click
 	+ Retain selection in lists after removing items
 	+ Hidden config option to expand notebook tabs (tabs_expanded)
+	+ Set ServiceProxy cachedir for lyrics to work around ZSI bug
 	+ Add Estonian translation (Mihkel)
 	+ Bug: Fix multimedia keys for gnome 2.22
 	+ Bug: Fix artwork for artists/albums with "/" in them (e.g. AC/DC)

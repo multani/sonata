@@ -2987,7 +2987,7 @@ class Base:
                     self.lyricServer = True
                     timeout = socketgettimeout()
                     socketsettimeout(self.LYRIC_TIMEOUT)
-                    self.lyricServer = ServiceProxy.ServiceProxy(wsdlFile)
+                    self.lyricServer = ServiceProxy.ServiceProxy(wsdlFile, cachedir=os.path.expanduser("~/.service_proxy_dir"))
                 except:
                     socketsettimeout(timeout)
                     lyrics = _("Couldn't connect to LyricWiki")
