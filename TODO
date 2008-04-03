@@ -1,7 +1,3 @@
-v1.5
-	remove mpd.py and depend on python-mpd
-	website/update screenshots
-
 v1.6
 	document alt-left/alt-right
 	code cleanup
@@ -9,6 +5,10 @@ v1.6
 		- combine ListStore definitions (playlists, streams, etc)
 		- remove_list_duplicates
 		- local/remote/dnd artwork
+	support for multiple genres?
+	dynamic playlist?
+	various artists in library views?
+	stop after this track?
 	
 Future:
 	lyrics -> ability to save changes
