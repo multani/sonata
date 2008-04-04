@@ -3242,7 +3242,12 @@ class Base:
                     self.stream_parse_and_add(item)
             self.iterate_now()
             if play_after:
-                self.client.play(int(playid))
+                if self.status['random'] == '1':
+                    # If we are in random mode, we want to play a random song
+                    # instead:
+                    self.client.play()
+                else:
+                    self.client.play(int(playid))
 
     def stream_parse_and_add(self, item):
         # We need to do different things depending on if this is
