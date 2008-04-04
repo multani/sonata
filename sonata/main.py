@@ -7116,6 +7116,8 @@ class Base:
                  [ "Alt-D", _("Disconnect from MPD") ],
                  [ "Alt-R", _("Randomize current playlist") ],
                  [ "Alt-Down", _("Expand player") ],
+                 [ "Alt-Left", _("Switch to previous tab") ],
+                 [ "Alt-Right", _("Switch to next tab") ],
                  [ "Alt-Up", _("Collapse player") ],
                  [ "Ctrl-H", _("Search library") ],
                  [ "Ctrl-Q", _("Quit") ],

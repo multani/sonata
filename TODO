@@ -1,11 +1,9 @@
 v1.6
-	document alt-left/alt-right
 	code cleanup
 		- making tabs
 		- combine ListStore definitions (playlists, streams, etc)
 		- remove_list_duplicates
 		- local/remote/dnd artwork
-	swap random/shuffle for consistency with mpd (damn pygmy :P)
 	improve artwork files when varying case (e.g. Ani DiFranco)
 	support for multiple genres?
 	dynamic playlist?
