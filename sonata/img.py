@@ -59,7 +59,10 @@ def extension_is_valid(extension):
 def single_image_in_dir(dir):
     # Returns None or a filename if there is exactly one image
     # in the dir.
-    dir = gobject.filename_from_utf8(dir)
+    try:
+        dir = gobject.filename_from_utf8(dir)
+    except:
+        pass
     num = 0
     imgfile = None
     if not os.path.exists(dir):

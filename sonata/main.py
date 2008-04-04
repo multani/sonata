@@ -35,10 +35,10 @@ ServiceProxy = None
 audioscrobbler = None
 
 all_args = ["toggle", "version", "status", "info", "play", "pause",
-            "stop", "next", "prev", "pp", "shuffle", "repeat", "hidden",
+            "stop", "next", "prev", "pp", "random", "repeat", "hidden",
             "visible", "profile=", "popup"]
 cli_args = ("play", "pause", "stop", "next", "prev", "pp", "info",
-            "status", "repeat", "shuffle", "popup")
+            "status", "repeat", "random", "popup")
 short_args = "tpv"
 
 # Check if we have a cli arg passed.. if so, skip importing all
@@ -470,7 +470,7 @@ class Base:
             ('sortbyfile', None, _('By File Name'), None, None, self.on_sort_by_file),
             ('sortbydirfile', None, _('By Dir & File Name'), None, None, self.on_sort_by_dirfile),
             ('sortreverse', None, _('Reverse List'), None, None, self.on_sort_reverse),
-            ('sortrandom', None, _('Random'), '<Alt>r', None, self.mpd_shuffle),
+            ('sortshuffle', None, _('Shuffle'), '<Alt>r', None, self.mpd_shuffle),
             ('tab1key', None, 'Tab1 Key', '<Alt>1', None, self.on_switch_to_tab1),
             ('tab2key', None, 'Tab2 Key', '<Alt>2', None, self.on_switch_to_tab2),
             ('tab3key', None, 'Tab3 Key', '<Alt>3', None, self.on_switch_to_tab3),
@@ -500,7 +500,7 @@ class Base:
         toggle_actions = (
             ('showmenu', None, _('_Show Sonata'), None, None, self.on_withdraw_app_toggle, not self.withdrawn),
             ('repeatmenu', None, _('_Repeat'), None, None, self.on_repeat_clicked, False),
-            ('shufflemenu', None, _('_Shuffle'), None, None, self.on_shuffle_clicked, False),
+            ('randommenu', None, _('Rando_m'), None, None, self.on_random_clicked, False),
             (self.TAB_CURRENT, None, self.TAB_CURRENT, None, None, self.on_tab_toggle, self.current_tab_visible),
             (self.TAB_LIBRARY, None, self.TAB_LIBRARY, None, None, self.on_tab_toggle, self.library_tab_visible),
             (self.TAB_PLAYLISTS, None, self.TAB_PLAYLISTS, None, None, self.on_tab_toggle, self.playlists_tab_visible),
@@ -548,7 +548,7 @@ class Base:
                   <menuitem action="sortbyfile"/>
                   <menuitem action="sortbydirfile"/>
                   <separator name="FM3"/>
-                  <menuitem action="sortrandom"/>
+                  <menuitem action="sortshuffle"/>
                   <menuitem action="sortreverse"/>
                 </menu>
                 <menu action="plmenu">
@@ -558,7 +558,7 @@ class Base:
                 <separator name="FM1"/>
                 <menuitem action="updatemenu"/>
                 <menuitem action="repeatmenu"/>
-                <menuitem action="shufflemenu"/>
+                <menuitem action="randommenu"/>
                 <separator name="FM2"/>
                 <menu action="profilesmenu">
                 </menu>
@@ -649,7 +649,7 @@ class Base:
         self.populate_profiles_for_menu()
         self.window.add_accel_group(self.UIManager.get_accel_group())
         self.mainmenu = self.UIManager.get_widget('/mainmenu')
-        self.shufflemenu = self.UIManager.get_widget('/mainmenu/shufflemenu')
+        self.randommenu = self.UIManager.get_widget('/mainmenu/randommenu')
         self.repeatmenu = self.UIManager.get_widget('/mainmenu/repeatmenu')
         self.imagemenu = self.UIManager.get_widget('/imagemenu')
         self.traymenu = self.UIManager.get_widget('/traymenu')
@@ -931,7 +931,7 @@ class Base:
         self.current.connect('drag-begin', self.on_current_drag_begin)
         self.current.connect_after('drag-begin', self.dnd_after_current_drag_begin)
         self.current.connect('button_release_event', self.on_current_button_release)
-        self.shufflemenu.connect('toggled', self.on_shuffle_clicked)
+        self.randommenu.connect('toggled', self.on_random_clicked)
         self.repeatmenu.connect('toggled', self.on_repeat_clicked)
         self.volumescale.connect('change_value', self.on_volumescale_change)
         self.volumescale.connect('scroll-event', self.on_volumescale_scroll)
@@ -1119,7 +1119,7 @@ class Base:
         print "  prev                 " + _("Play previous song in playlist")
         print "  pp                   " + _("Toggle play/pause; plays if stopped")
         print "  repeat               " + _("Toggle repeat mode")
-        print "  shuffle              " + _("Toggle shuffle mode")
+        print "  random               " + _("Toggle random mode")
         print "  info                 " + _("Display current song info")
         print "  status               " + _("Display MPD status")
 
@@ -1337,7 +1337,7 @@ class Base:
                 self.client.next()
             elif type == "prev":
                 self.client.previous()
-            elif type == "shuffle":
+            elif type == "random":
                 if self.status:
                     self.client.random()
             elif type == "repeat":
@@ -1383,9 +1383,9 @@ class Base:
                         else:
                             print _("Repeat") + ": " + _("On")
                         if self.status['random'] == '0':
-                            print _("Shuffle") + ": " + _("Off")
+                            print _("Random") + ": " + _("Off")
                         else:
-                            print _("Shuffle") + ": " + _("On")
+                            print _("Random") + ": " + _("On")
                         print _("Volume") + ": " + self.status['volume'] + "/100"
                         print _('Crossfade') + ": " + self.status['xfade'] + ' ' + gettext.ngettext('second', 'seconds', int(self.status['xfade']))
                     except:
@@ -1556,7 +1556,7 @@ class Base:
                     if not self.last_repeat or self.last_repeat != self.status['repeat']:
                         self.repeatmenu.set_active(self.status['repeat'] == '1')
                     if not self.last_random or self.last_random != self.status['random']:
-                        self.shufflemenu.set_active(self.status['random'] == '1')
+                        self.randommenu.set_active(self.status['random'] == '1')
                     if self.status['xfade'] == '0':
                         self.xfade_enabled = False
                     else:
@@ -4321,7 +4321,7 @@ class Base:
                 info_file.write('Time: ' + mpdh.get(self.songinfo, 'time', '0') + '\n')
                 info_file.write('Volume: ' + self.status['volume'] + '\n')
                 info_file.write('Repeat: ' + self.status['repeat'] + '\n')
-                info_file.write('Shuffle: ' + self.status['random'] + '\n')
+                info_file.write('Random: ' + self.status['random'] + '\n')
                 info_file.close()
             except:
                 pass
@@ -5581,7 +5581,7 @@ class Base:
             else:
                 self.client.repeat(0)
 
-    def on_shuffle_clicked(self, widget):
+    def on_random_clicked(self, widget):
         if self.conn:
             if widget.get_active():
                 self.client.random(1)
