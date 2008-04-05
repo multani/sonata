@@ -1,5 +1,6 @@
 v1.6 - Pending
 	+ Swap 'shuffle' and 'random' to be consistent with MPD
+	+ Bug: Fix play/pause with multimedia keys (Vinay)
 	+ Bug: Prevent possible traceback from gobject.filename_from_utf8
 	+ Bug: 'play after replace' when in shuffle mode plays 1st song, not random
 

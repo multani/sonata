@@ -3529,7 +3529,7 @@ class Base:
             self.boldrow(row)
             if self.songinfo:
                 if not self.prevsonginfo or mpdh.get(self.songinfo, 'file') != mpdh.get(self.prevsonginfo, 'file'):
-                    gobject.idle_add(self.current_center_song_in_list)
+                    self.current_center_song_in_list()
             self.prev_boldrow = row
 
         self.album_get_artist()
@@ -5467,7 +5467,7 @@ class Base:
         if self.volumewindow.get_property('visible'):
             self.volumewindow.hide()
 
-    def mpd_pp(self, widget):
+    def mpd_pp(self, widget, key=None):
         if self.conn and self.status:
             if self.status['state'] in ('stop', 'pause'):
                 self.client.play()
