@@ -2403,11 +2403,11 @@ class Base:
                 dirs = []
                 artists = []
                 for item in self.return_artist_items(self.lib_artist):
-                    try:
+                    if item.has_key('album'):
                         albums.append(mpdh.get(item, 'album'))
                         years.append(mpdh.get(item, 'date', '9999').split('-')[0].zfill(4))
                         artists.append(mpdh.get(item, 'artist'))
-                    except:
+                    else:
                         songs.append(item)
                     dirs.append(os.path.dirname(mpdh.get(item, 'file')))
                 (albums, years, artists, dirs) = misc.remove_list_duplicates(albums, years, artists, dirs, False)

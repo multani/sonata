@@ -1,4 +1,4 @@
-v1.6 - Pending
+v1.5.1 - Pending
 	+ Swap 'shuffle' and 'random' to be consistent with MPD
 	+ Add Catalan translation (Franc)
 	+ Add Arabic translation (Ahmad)
@@ -6,6 +6,7 @@ v1.6 - Pending
 	+ Bug: Prevent possible traceback from gobject.filename_from_utf8
 	+ Bug: 'play after replace' when in shuffle mode plays 1st song, not random
 	+ Bug: Fix random & repeat commands from console
+	+ Bug: Songs not tagged with the album name don't show off
 
 v1.5 - April 3, 2008
 	+ Replace album view with genre view for library
