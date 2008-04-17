@@ -1339,10 +1339,16 @@ class Base:
                 self.client.previous()
             elif type == "random":
                 if self.status:
-                    self.client.random()
+                    if self.status['random'] == '0':
+                        self.client.random(1)
+                    else:
+                        self.client.random(0)
             elif type == "repeat":
                 if self.status:
-                    self.client.repeat()
+                    if self.status['repeat'] == '0':
+                        self.client.repeat(1)
+                    else:
+                        self.client.repeat(0)
             elif type == "pp":
                 self.status = mpdh.status(self.client)
                 if self.status:
