@@ -1428,9 +1428,11 @@ class Base:
         # from displaying:
         self.update_menu_visibility()
 
+    def profile_menu_name(self, profile_num):
+        return _("Profile") + ": " + self.profile_names[profile_num].replace("&", "")
+
     def populate_profiles_for_menu(self):
         host, port, password = self.mpd_env_vars()
-        if host or port: return
         if self.merge_id:
             self.UIManager.remove_ui(self.merge_id)
         if self.actionGroupProfiles:
@@ -1439,20 +1441,34 @@ class Base:
         self.actionGroupProfiles = gtk.ActionGroup('MPDProfiles')
         self.UIManager.ensure_update()
         actions = []
-        for i in range(len(self.profile_names)):
-            action_name = "Profile: " + self.profile_names[i].replace("&", "")
-            actions.append((action_name, None, "[" + str(i+1) + "] " + self.profile_names[i], None, None, i))
-        actions.append(('disconnect', None, _('Disconnect'), None, None, len(self.profile_names)))
-        self.actionGroupProfiles.add_radio_actions(actions, self.profile_num, self.on_profiles_click)
+        if host or port:
+            action_name = _("Profile") + ": " + _("MPD_HOST/PORT")
+            actions.append((action_name, None, _("MPD_HOST/PORT").replace("_", "__"), None, None, 0))
+            actions.append(('disconnect', None, _('Disconnect'), None, None, 1))
+            active_radio = 0
+        else:
+            for i in range(len(self.profile_names)):
+                action_name = self.profile_menu_name(i)
+                actions.append((action_name, None, "[" + str(i+1) + "] " + self.profile_names[i].replace("_", "__"), None, None, i))
+            actions.append(('disconnect', None, _('Disconnect'), None, None, len(self.profile_names)))
+            active_radio = self.profile_num
+        if not self.conn:
+            active_radio = len(self.profile_names)
+        self.actionGroupProfiles.add_radio_actions(actions, active_radio, self.on_profiles_click)
         uiDescription = """
             <ui>
               <popup name="mainmenu">
                   <menu action="profilesmenu">
             """
         uiDescription = uiDescription + """<menuitem action=\"""" + 'disconnect' + """\" position="top"/>"""
-        for i in range(len(self.profile_names)):
-            action_name = "Profile: " + self.profile_names[len(self.profile_names)-i-1].replace("&", "")
-            uiDescription = uiDescription + """<menuitem action=\"""" + action_name + """\" position="top"/>"""
+        if host or port:
+            for i in range(len(self.profile_names)):
+                action_name = _("Profile") + ": " + _("MPD_HOST/PORT")
+                uiDescription = uiDescription + """<menuitem action=\"""" + action_name + """\" position="top"/>"""
+        else:
+            for i in range(len(self.profile_names)):
+                action_name = self.profile_menu_name(len(self.profile_names)-i-1)
+                uiDescription = uiDescription + """<menuitem action=\"""" + action_name + """\" position="top"/>"""
         uiDescription = uiDescription + """</menu></popup></ui>"""
         self.merge_id = self.UIManager.add_ui_from_string(uiDescription)
         self.UIManager.insert_action_group(self.actionGroupProfiles, 0)
@@ -1461,8 +1477,9 @@ class Base:
     def on_profiles_click(self, radioaction, current):
         if self.skip_on_profiles_click:
             return
-        self.on_disconnectkey_pressed(None)
-        if current.get_current_value() < len(self.profile_names):
+        if current.get_name() == 'disconnect':
+            self.on_disconnectkey_pressed(None)
+        else:
             self.profile_num = current.get_current_value()
             self.on_connectkey_pressed(None)
 
@@ -1520,10 +1537,14 @@ class Base:
         self.user_connect = True
         # Update selected radio button in menu:
         self.skip_on_profiles_click = True
-        for gtkAction in self.actionGroupProfiles.list_actions():
-            if gtkAction.get_name() == self.profile_names[self.profile_num]:
-                gtkAction.activate()
-                break
+        host, port, password = self.mpd_env_vars()
+        if host or port:
+            self.actionGroupProfiles.list_actions()[0].activate()
+        else:
+            for gtkAction in self.actionGroupProfiles.list_actions():
+                if gtkAction.get_name() == self.profile_menu_name(self.profile_num):
+                    gtkAction.activate()
+                    break
         self.skip_on_profiles_click = False
         # Connect:
         self.mpd_connect(force=True)
