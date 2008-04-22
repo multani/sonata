@@ -382,6 +382,7 @@ class Base:
         self.scrob_time_now = None
         self.sel_rows = None
         self.img_clicked = False
+        self.existing_playlist_option = 0
         # If the connection to MPD times out, this will cause the interface to freeze while
         # the socket.connect() calls are repeatedly executed. Therefore, if we were not
         # able to make a connection, slow down the iteration check to once every 15 seconds.
@@ -1410,7 +1411,7 @@ class Base:
         actions = []
         for i in range(len(playlistinfo)):
             action_name = "Playlist: " + playlistinfo[i].replace("&", "")
-            actions.append((action_name, None, misc.unescape_html(playlistinfo[i]), None, None, self.on_playlist_add_songs))
+            actions.append((action_name, None, misc.unescape_html(playlistinfo[i]), None, None, self.on_playlist_menu_click))
         self.actionGroupPlaylists.add_actions(actions)
         uiDescription = """
             <ui>
@@ -1820,6 +1821,8 @@ class Base:
             self.url_browser = conf.get('player', 'browser')
         if conf.has_option('player', 'info_art_enlarged'):
             self.info_art_enlarged = conf.getboolean('player', 'info_art_enlarged')
+        if conf.has_option('player', 'existing_playlist'):
+            self.existing_playlist_option = conf.getint('player', 'existing_playlist')
         if conf.has_section('notebook'):
             if conf.has_option('notebook', 'current_tab_visible'):
                 self.current_tab_visible = conf.getboolean('notebook', 'current_tab_visible')
@@ -1958,6 +1961,7 @@ class Base:
         conf.set('player', 'info_album_expanded', self.info_album_expanded)
         conf.set('player', 'info_song_more', self.info_song_more)
         conf.set('player', 'info_art_enlarged', self.info_art_enlarged)
+        conf.set('player', 'existing_playlist', self.existing_playlist_option)
         self.header_save_column_widths()
         tmp = ""
         for i in range(len(self.columns)-1):
@@ -2090,7 +2094,7 @@ class Base:
                     if not edit_mode or (edit_mode and i <> stream_num):
                         if item == name:
                             dialog.destroy()
-                            if ui.show_error_msg_yesno(self.window, _("A stream with this name already exists. Would you like to replace it?"), _("New Stream"), 'newStreamError') == gtk.RESPONSE_YES:
+                            if ui.show_msg(self.window, _("A stream with this name already exists. Would you like to replace it?"), _("New Stream"), 'newStreamError', gtk.BUTTONS_YES_NO) == gtk.RESPONSE_YES:
                                 # Pop existing stream:
                                 self.stream_names.pop(i)
                                 self.stream_uris.pop(i)
@@ -2112,20 +2116,33 @@ class Base:
         if plname:
             if self.playlist_name_exists(_("Save Playlist"), 'savePlaylistError', plname):
                 return
-            try:
-                self.client.rm(plname)
-            except:
-                pass
-            self.client.save(plname)
-            self.playlists_populate()
-            self.iterate_now()
+            self.playlist_create(plname)
 
-    def on_playlist_add_songs(self, action):
+    def playlist_create(self, playlistname, oldname=None):
+        try:
+            self.client.rm(playlistname)
+        except:
+            pass
+        if oldname is not None:
+            self.client.rename(oldname, playlistname)
+        else:
+            self.client.save(playlistname)
+        self.playlists_populate()
+        self.iterate_now()
+
+    def on_playlist_menu_click(self, action):
         plname = misc.unescape_html(action.get_name().replace("Playlist: ", ""))
-        self.client.command_list_ok_begin()
-        for song in self.songs:
-            self.client.playlistadd(plname, mpdh.get(song, 'file'))
-        self.client.command_list_end()
+        response = ui.show_msg(self.window, _("Would you like to replace the existing playlist or append these songs?"), ("Existing Playlist"), "existingPlaylist", (_("Replace playlist"), 1, _("Append songs"), 2), default=self.existing_playlist_option)
+        if response == 1: # Overwrite
+            self.existing_playlist_option = response
+            self.playlist_create(plname)
+        elif response == 2: # Append songs:
+            self.existing_playlist_option = response
+            self.client.command_list_ok_begin()
+            for song in self.songs:
+                self.client.playlistadd(plname, mpdh.get(song, 'file'))
+            self.client.command_list_end()
+        return
 
     def playlist_name_exists(self, title, role, plname, skip_plname=""):
         # If the playlist already exists, and the user does not want to replace it, return True; In
@@ -2133,7 +2150,7 @@ class Base:
         for item in self.client.lsinfo():
             if item.has_key('playlist'):
                 if mpdh.get(item, 'playlist') == plname and plname != skip_plname:
-                    if ui.show_error_msg_yesno(self.window, _("A playlist with this name already exists. Would you like to replace it?"), title, role) == gtk.RESPONSE_YES:
+                    if ui.show_msg(self.window, _("A playlist with this name already exists. Would you like to replace it?"), title, role, gtk.BUTTONS_YES_NO) == gtk.RESPONSE_YES:
                         return False
                     else:
                         return True
@@ -2177,13 +2194,7 @@ class Base:
             oldname = misc.unescape_html(model.get_value(model.get_iter(selected[0]), 1))
             if self.playlist_name_exists(_("Rename Playlist"), 'renamePlaylistError', plname, oldname):
                 return
-            try:
-                self.client.rm(plname)
-            except:
-                pass
-            self.client.rename(oldname, plname)
-            self.playlists_populate()
-            self.iterate_now()
+            self.playlist_create(plname, oldname)
             # Re-select item:
             row = 0
             for pl in self.playlistsdata:
@@ -5562,7 +5573,7 @@ class Base:
             elif self.current_tab == self.TAB_PLAYLISTS:
                 treeviewsel = self.playlists_selection
                 model, selected = treeviewsel.get_selected_rows()
-                if ui.show_error_msg_yesno(self.window, gettext.ngettext("Delete the selected playlist?", "Delete the selected playlists?", int(len(selected))), gettext.ngettext("Delete Playlist", "Delete Playlists", int(len(selected))), 'deletePlaylist') == gtk.RESPONSE_YES:
+                if ui.show_msg(self.window, gettext.ngettext("Delete the selected playlist?", "Delete the selected playlists?", int(len(selected))), gettext.ngettext("Delete Playlist", "Delete Playlists", int(len(selected))), 'deletePlaylist', gtk.BUTTONS_YES_NO) == gtk.RESPONSE_YES:
                     iters = [model.get_iter(path) for path in selected]
                     for iter in iters:
                         self.client.rm(misc.unescape_html(self.playlistsdata.get_value(iter, 1)))
@@ -5570,7 +5581,7 @@ class Base:
             elif self.current_tab == self.TAB_STREAMS:
                 treeviewsel = self.streams_selection
                 model, selected = treeviewsel.get_selected_rows()
-                if ui.show_error_msg_yesno(self.window, gettext.ngettext("Delete the selected stream?", "Delete the selected streams?", int(len(selected))), gettext.ngettext("Delete Stream", "Delete Streams", int(len(selected))), 'deleteStreams') == gtk.RESPONSE_YES:
+                if ui.show_msg(self.window, gettext.ngettext("Delete the selected stream?", "Delete the selected streams?", int(len(selected))), gettext.ngettext("Delete Stream", "Delete Streams", int(len(selected))), 'deleteStreams', gtk.BUTTONS_YES_NO) == gtk.RESPONSE_YES:
                     iters = [model.get_iter(path) for path in selected]
                     for iter in iters:
                         stream_removed = False
@@ -6039,7 +6050,7 @@ class Base:
                 import audioscrobbler
             except:
                 if show_error:
-                    ui.show_error_msg(self.window, _("Python 2.5 or python-elementtree not found, audioscrobbler support disabled."), _("Audioscrobbler Verification"), 'pythonElementtreeError')
+                    ui.show_msg(self.window, _("Python 2.5 or python-elementtree not found, audioscrobbler support disabled."), _("Audioscrobbler Verification"), 'pythonElementtreeError', gtk.BUTTONS_CLOSE)
 
     def prefs_as_username_changed(self, entry):
         if audioscrobbler is not None:
@@ -6063,14 +6074,14 @@ class Base:
             self.sticky = win_sticky.get_active()
             if self.show_lyrics and self.lyrics_location != self.LYRICS_LOCATION_HOME:
                 if not os.path.isdir(misc.file_from_utf8(self.musicdir[self.profile_num])):
-                    ui.show_error_msg(self.window, _("To save lyrics to the music file's directory, you must specify a valid music directory."), _("Music Dir Verification"), 'musicdirVerificationError')
+                    ui.show_msg(self.window, _("To save lyrics to the music file's directory, you must specify a valid music directory."), _("Music Dir Verification"), 'musicdirVerificationError', gtk.BUTTONS_CLOSE)
                     # Set music_dir entry focused:
                     prefsnotebook.set_current_page(0)
                     direntry.grab_focus()
                     return
             if self.show_covers and self.art_location != self.ART_LOCATION_HOMECOVERS:
                 if not os.path.isdir(misc.file_from_utf8(self.musicdir[self.profile_num])):
-                    ui.show_error_msg(self.window, _("To save artwork to the music file's directory, you must specify a valid music directory."), _("Music Dir Verification"), 'musicdirVerificationError')
+                    ui.show_msg(self.window, _("To save artwork to the music file's directory, you must specify a valid music directory."), _("Music Dir Verification"), 'musicdirVerificationError', gtk.BUTTONS_CLOSE)
                     # Set music_dir entry focused:
                     prefsnotebook.set_current_page(0)
                     direntry.grab_focus()
@@ -6676,10 +6687,10 @@ class Base:
             except:
                 pass
         if tagpy is None:
-            ui.show_error_msg(self.window, _("Taglib and/or tagpy not found, tag editing support disabled."), _("Edit Tags"), 'editTagsError', self.dialog_destroy)
+            ui.show_msg(self.window, _("Taglib and/or tagpy not found, tag editing support disabled."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, self.dialog_destroy)
             return
         if not os.path.isdir(misc.file_from_utf8(self.musicdir[self.profile_num])):
-            ui.show_error_msg(self.window, _("The path") + " " + self.musicdir[self.profile_num] + " " + _("does not exist. Please specify a valid music directory in preferences."), _("Edit Tags"), 'editTagsError', self.dialog_destroy)
+            ui.show_msg(self.window, _("The path") + " " + self.musicdir[self.profile_num] + " " + _("does not exist. Please specify a valid music directory in preferences."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, self.dialog_destroy)
             return
         ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
         self.edit_style_orig = self.searchtext.get_style()
@@ -6726,11 +6737,11 @@ class Base:
         self.tagnum = -1
         if not os.path.exists(tags[0]['fullpath']):
             ui.change_cursor(None)
-            ui.show_error_msg(self.window, _("File ") + "\"" + tags[0]['fullpath'] + "\"" + _(" not found. Please specify a valid music directory in preferences."), _("Edit Tags"), 'editTagsError', self.dialog_destroy)
+            ui.show_msg(self.window, _("File ") + "\"" + tags[0]['fullpath'] + "\"" + _(" not found. Please specify a valid music directory in preferences."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, self.dialog_destroy)
             return
         if self.tags_next_tag(tags) == False:
             ui.change_cursor(None)
-            ui.show_error_msg(self.window, _("No music files with editable tags found."), _("Edit Tags"), 'editTagsError', self.dialog_destroy)
+            ui.show_msg(self.window, _("No music files with editable tags found."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, self.dialog_destroy)
             return
         editwindow = ui.dialog(parent=self.window, flags=gtk.DIALOG_MODAL, role='editTags', resizable=False, separator=False)
         editwindow.set_size_request(375, -1)
@@ -7055,7 +7066,7 @@ class Base:
             self.tags_set_tag(filetag.tag(), 'comment', entries[6].get_text())
             save_success = filetag.save()
             if not (save_success and self.conn and self.status):
-                ui.show_error_msg(self.window, _("Unable to save tag to music file."), _("Edit Tags"), 'editTagsError', self.dialog_destroy)
+                ui.show_msg(self.window, _("Unable to save tag to music file."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, self.dialog_destroy)
             if self.tags_next_tag(tags):
                 # Next file:
                 self.tags_win_update(window, tags, entries, entries_names)

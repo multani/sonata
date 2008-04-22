@@ -1,5 +1,6 @@
 v1.5.1 - Pending
 	+ Swap 'shuffle' and 'random' to be consistent with MPD
+	+ "Save list to">"foo" can now either replace playlist or append songs
 	+ Add Catalan translation (Franc)
 	+ Add Arabic translation (Ahmad)
 	+ Bug: Fix play/pause with multimedia keys (Vinay)

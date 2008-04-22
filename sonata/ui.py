@@ -104,18 +104,6 @@ def image(stock=None, stocksize=gtk.ICON_SIZE_MENU, w=-1, h=-1, \
     tmpimg.set_alignment(x, y)
     return tmpimg
 
-def msg_dialog(parent=None, flags=0, type=gtk.MESSAGE_INFO, \
-               buttons=gtk.BUTTONS_NONE, msg=None, title=None, \
-               role=None, show=True):
-    tmpwin = gtk.MessageDialog(None, flags, type, buttons, msg)
-    if title:
-        tmpwin.set_title(title)
-    if role:
-        tmpwin.set_role(role)
-    if show:
-        tmpwin.show()
-    return tmpwin
-
 def progressbar(orient=None, frac=None, step=None, ellipsize=None):
     tmpprog = gtk.ProgressBar()
     if orient:
@@ -143,7 +131,7 @@ def scrollwindow(policy_x=gtk.POLICY_AUTOMATIC, policy_y=gtk.POLICY_AUTOMATIC, \
 def dialog(title=None, parent=None, flags=0, buttons=None, default=None, \
            separator=True, resizable=True, w=-1, h=-1, role=None):
     tmpdialog = gtk.Dialog(title, parent, flags, buttons)
-    if default:
+    if default is not None:
         tmpdialog.set_default_response(default)
     tmpdialog.set_has_separator(separator)
     tmpdialog.set_resizable(resizable)
@@ -185,22 +173,29 @@ def iconview(col=None, space=None, margin=None, itemw=None, selmode=None):
         tmpiv.set_selection_mode(selmode)
     return tmpiv
 
-def show_error_msg(owner, message, title, role, response_cb=None):
-    error_dialog = gtk.MessageDialog(owner, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_CLOSE, message)
-    error_dialog.set_title(title)
-    error_dialog.set_role(role)
+def show_msg(owner, message, title, role, buttons, default=None, response_cb=None):
+    try:
+        tmp = buttons[0]
+        is_button_list = True
+    except:
+        is_button_list = False
+    if not is_button_list:
+        dialog = gtk.MessageDialog(owner, gtk.DIALOG_MODAL|gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_WARNING, buttons, message)
+    else:
+        dialog = gtk.MessageDialog(owner, gtk.DIALOG_MODAL|gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_WARNING, message_format=message)
+        i = 0
+        while i < len(buttons):
+            dialog.add_button(buttons[i], buttons[i+1])
+            i += 2
+    dialog.set_title(title)
+    dialog.set_role(role)
+    if default is not None:
+        dialog.set_default_response(default)
     if response_cb:
-        error_dialog.connect("response", response_cb)
-    error_dialog.run()
-    error_dialog.destroy()
-
-def show_error_msg_yesno(owner, message, title, role):
-    error_dialog = gtk.MessageDialog(owner, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_YES_NO, message)
-    error_dialog.set_title(title)
-    error_dialog.set_role(role)
-    response = error_dialog.run()
+        dialog.connect("response", response_cb)
+    response = dialog.run()
     value = response
-    error_dialog.destroy()
+    dialog.destroy()
     return value
 
 def show(widget):
