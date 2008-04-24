@@ -59,19 +59,19 @@ except:
     sys.stderr.write("Sonata requires python-mpd. Aborting...\n")
     sys.exit(1)
 
-try:
-    import dbus, dbus.service
-    if getattr(dbus, "version", (0,0,0)) >= (0,41,0):
-        import dbus.glib
-    if getattr(dbus, "version", (0,0,0)) >= (0,80,0):
-        import _dbus_bindings as dbus_bindings
-        NEW_DBUS = True
-    else:
-        import dbus.dbus_bindings as dbus_bindings
-        NEW_DBUS = False
-    HAVE_DBUS = True
-except:
-    HAVE_DBUS = False
+#try:
+import dbus, dbus.service
+if getattr(dbus, "version", (0,0,0)) >= (0,41,0):
+    import dbus.glib
+if getattr(dbus, "version", (0,0,0)) >= (0,80,0):
+    import _dbus_bindings as dbus_bindings
+    NEW_DBUS = True
+else:
+    import dbus.dbus_bindings as dbus_bindings
+    NEW_DBUS = False
+HAVE_DBUS = True
+#except:
+#	HAVE_DBUS = False
 
 if not skip_gui:
     import warnings, gobject, urllib, urllib2, re, gc, locale, shutil
@@ -222,7 +222,7 @@ class Base:
                             print _("The toggle argument requires D-Bus. Aborting.")
                             self.print_usage()
                             sys.exit()
-                    if o in ("-p", "--popup"):
+                    elif o in ("-p", "--popup"):
                         popup_arg = True
                         if not HAVE_DBUS:
                             print _("The popup argument requires D-Bus. Aborting.")

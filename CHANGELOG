@@ -9,6 +9,7 @@ v1.5.1 - Pending
 	+ Bug: Fix random & repeat commands from console
 	+ Bug: Songs not tagged with the album name don't show off
 	+ Bug: Can not disconnect when MPD_HOST and MPD_PORT are set
+	+ Bug: Toggle argument doesn't work
 
 v1.5 - April 3, 2008
 	+ Replace album view with genre view for library
