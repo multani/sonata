@@ -6,10 +6,9 @@ v1.5.1 - Pending
 	+ Bug: Fix play/pause with multimedia keys (Vinay)
 	+ Bug: Prevent possible traceback from gobject.filename_from_utf8
 	+ Bug: 'play after replace' when in shuffle mode plays 1st song, not random
-	+ Bug: Fix random & repeat commands from console
-	+ Bug: Songs not tagged with the album name don't show off
-	+ Bug: Can not disconnect when MPD_HOST and MPD_PORT are set
-	+ Bug: Toggle argument doesn't work
+	+ Bug: Fix random, repeat, and toggle commands from console
+	+ Bug: Songs not tagged with the album name don't show up
+	+ Bug: Cannot disconnect when MPD_HOST and MPD_PORT are set
 	+ Bug: Fix %D and %N formats within brackets
 
 v1.5 - April 3, 2008
