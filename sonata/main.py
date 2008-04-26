@@ -2793,15 +2793,17 @@ class Base:
                 else:
                     return ""
         if "%N" in text:
-            track = mpdh.getnum(item, 'track', flag, False, 2)
+            track = mpdh.get(item, 'track', flag)
             if track != flag:
+                track = mpdh.getnum(item, 'track', flag, False, 2)
                 text = text.replace("%N", track)
             else:
-                if not has_brackets: text = text.replace("%N", "0")
+                if not has_brackets: text = text.replace("%N", "00")
                 else: return ""
         if "%D" in text:
-            disc = mpdh.getnum(item, 'disc', flag, False, 0)
+            disc = mpdh.get(item, 'disc', flag)
             if disc != flag:
+                disc = mpdh.getnum(item, 'disc', flag, False, 0)
                 text = text.replace("%D", disc)
             else:
                 if not has_brackets: text = text.replace("%D", "0")
