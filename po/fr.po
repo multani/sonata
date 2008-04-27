@@ -11,7 +11,7 @@ msgstr ""
 "Project-Id-Version: Sonata 1.2.2\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-04-26 08:40-0600\n"
-"PO-Revision-Date: 2008-03-24 15:44+0100\n"
+"PO-Revision-Date: 2008-04-27 11:04+0200\n"
 "Last-Translator: Mike Massonnet <mmassonnet@gmail.com>\n"
 "Language-Team: Sonata-translations <sonata-translations@lists.berlios.de>\n"
 "MIME-Version: 1.0\n"
@@ -296,9 +296,8 @@ msgid "_Repeat"
 msgstr "_Répéter"
 
 #: .././sonata/main.py:504
-#, fuzzy
 msgid "Rando_m"
-msgstr "Aléatoire"
+msgstr "_Aléatoire"
 
 #: .././sonata/main.py:695 .././sonata/main.py:862 .././sonata/main.py:863
 msgid "Playlist"
@@ -416,9 +415,8 @@ msgid "Toggle repeat mode"
 msgstr "Alterner le mode répétition"
 
 #: .././sonata/main.py:1123
-#, fuzzy
 msgid "Toggle random mode"
-msgstr "Alterner le mode répétition"
+msgstr "Alterner le mode aléatoire"
 
 #: .././sonata/main.py:1124
 msgid "Display current song info"
@@ -542,14 +540,12 @@ msgstr ""
 "d'environnement MPD_HOST/MPD_PORT."
 
 #: .././sonata/main.py:1433 .././sonata/main.py:1446 .././sonata/main.py:1467
-#, fuzzy
 msgid "Profile"
-msgstr "Nouveau Profil"
+msgstr "Profile"
 
 #: .././sonata/main.py:1446 .././sonata/main.py:1447 .././sonata/main.py:1467
-#, fuzzy
 msgid "MPD_HOST/PORT"
-msgstr "Utilisation de MPD_HOST/PORT"
+msgstr "MPD_HOST/PORT"
 
 #: .././sonata/main.py:1448 .././sonata/main.py:1454
 msgid "Disconnect"
@@ -582,15 +578,15 @@ msgstr "Sauvegarder la liste"
 #: .././sonata/main.py:2135
 msgid "Would you like to replace the existing playlist or append these songs?"
 msgstr ""
+"Voulez-vous remplacer la liste de lecture existante ou ajouter ces chansons ?"
 
 #: .././sonata/main.py:2135
-#, fuzzy
 msgid "Replace playlist"
-msgstr "Renommer la liste de lecture"
+msgstr "Remplacer la liste de lecture"
 
 #: .././sonata/main.py:2135
 msgid "Append songs"
-msgstr ""
+msgstr "Ajouter les chansons"
 
 #: .././sonata/main.py:2153
 msgid "A playlist with this name already exists. Would you like to replace it?"
@@ -1222,14 +1218,12 @@ msgid "Expand player"
 msgstr "Étendre le client"
 
 #: .././sonata/main.py:7159
-#, fuzzy
 msgid "Switch to previous tab"
-msgstr "Passer aux listes de lecture"
+msgstr "Passer à l'onglet précédent"
 
 #: .././sonata/main.py:7160
-#, fuzzy
 msgid "Switch to next tab"
-msgstr "Passer aux onglets [1-5]"
+msgstr "Passer à l'onglet suivant"
 
 #: .././sonata/main.py:7161
 msgid "Collapse player"

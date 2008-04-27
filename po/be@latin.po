@@ -289,9 +289,8 @@ msgid "_Repeat"
 msgstr "_Paŭtaraj"
 
 #: .././sonata/main.py:504
-#, fuzzy
 msgid "Rando_m"
-msgstr "Vypadkova"
+msgstr "_Vypadkova"
 
 #: .././sonata/main.py:695 .././sonata/main.py:862 .././sonata/main.py:863
 msgid "Playlist"
@@ -407,9 +406,8 @@ msgid "Toggle repeat mode"
 msgstr "Źmiani režym paŭtoru"
 
 #: .././sonata/main.py:1123
-#, fuzzy
 msgid "Toggle random mode"
-msgstr "Źmiani režym paŭtoru"
+msgstr "Źmiani režym vypadkovaści"
 
 #: .././sonata/main.py:1124
 msgid "Display current song info"
@@ -533,14 +531,12 @@ msgstr ""
 "Pravier nałady Sonaty ci źmiennyja asiarodździa MPD_HOST/MPD_PORT."
 
 #: .././sonata/main.py:1433 .././sonata/main.py:1446 .././sonata/main.py:1467
-#, fuzzy
 msgid "Profile"
-msgstr "Novy profil"
+msgstr "Profil"
 
 #: .././sonata/main.py:1446 .././sonata/main.py:1447 .././sonata/main.py:1467
-#, fuzzy
 msgid "MPD_HOST/PORT"
-msgstr "Užyta MPD_HOST/PORT"
+msgstr "MPD_HOST/PORT"
 
 #: .././sonata/main.py:1448 .././sonata/main.py:1454
 msgid "Disconnect"
@@ -572,16 +568,15 @@ msgstr "Zapišy śpis"
 
 #: .././sonata/main.py:2135
 msgid "Would you like to replace the existing playlist or append these songs?"
-msgstr ""
+msgstr "Što ty chočaš zrabić: zamianić dziejny śpis albo dadać da jaho hetyja pieśni?"
 
 #: .././sonata/main.py:2135
-#, fuzzy
 msgid "Replace playlist"
-msgstr "Źmiani nazvu śpisu"
+msgstr "Zamiani dziejny śpis"
 
 #: .././sonata/main.py:2135
 msgid "Append songs"
-msgstr ""
+msgstr "Dadaj pieśni"
 
 #: .././sonata/main.py:2153
 msgid "A playlist with this name already exists. Would you like to replace it?"
@@ -1215,14 +1210,12 @@ msgid "Expand player"
 msgstr "Razharni player"
 
 #: .././sonata/main.py:7159
-#, fuzzy
 msgid "Switch to previous tab"
-msgstr "Pieraklučysia na śpisy"
+msgstr "Na papiaredniuju kartku"
 
 #: .././sonata/main.py:7160
-#, fuzzy
 msgid "Switch to next tab"
-msgstr "Pieraklučysia na 1-5. kartku"
+msgstr "Na nastupnuju kartku"
 
 #: .././sonata/main.py:7161
 msgid "Collapse player"

@@ -1,10 +1,12 @@
+v1.5.1
+	improve artwork files when varying case (e.g. Ani DiFranco)
+
 v1.6
 	code cleanup
 		- making tabs
 		- combine ListStore definitions (playlists, streams, etc)
 		- remove_list_duplicates
 		- local/remote/dnd artwork
-	improve artwork files when varying case (e.g. Ani DiFranco)
 	support for multiple genres?
 	dynamic playlist?
 	various artists in library views?

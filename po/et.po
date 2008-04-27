@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: Sonata 1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-04-26 08:40-0600\n"
-"PO-Revision-Date: 2008-03-23 13:57+0200\n"
+"PO-Revision-Date: 2008-04-27 10:19+0300\n"
 "Last-Translator: mihkel <turakas@gmail.com>\n"
 "Language-Team: Estonian <et@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -287,9 +287,8 @@ msgid "_Repeat"
 msgstr "_Korda"
 
 #: .././sonata/main.py:504
-#, fuzzy
 msgid "Rando_m"
-msgstr "Juhuslik"
+msgstr "Juhusli_k"
 
 #: .././sonata/main.py:695 .././sonata/main.py:862 .././sonata/main.py:863
 msgid "Playlist"
@@ -405,9 +404,8 @@ msgid "Toggle repeat mode"
 msgstr "Lülita kordusrežiim"
 
 #: .././sonata/main.py:1123
-#, fuzzy
 msgid "Toggle random mode"
-msgstr "Lülita kordusrežiim"
+msgstr "Lülita juhuslik režiim"
 
 #: .././sonata/main.py:1124
 msgid "Display current song info"
@@ -530,14 +528,12 @@ msgstr ""
 "Kontrolli Sonata seadeid või MPD_HOST/MPD_PORT keskonnamuutujaid."
 
 #: .././sonata/main.py:1433 .././sonata/main.py:1446 .././sonata/main.py:1467
-#, fuzzy
 msgid "Profile"
-msgstr "Uus profiil"
+msgstr "Profiil"
 
 #: .././sonata/main.py:1446 .././sonata/main.py:1447 .././sonata/main.py:1467
-#, fuzzy
 msgid "MPD_HOST/PORT"
-msgstr "Kasutan MPD_HOST/PORT"
+msgstr "MPD_HOST/PORT"
 
 #: .././sonata/main.py:1448 .././sonata/main.py:1454
 msgid "Disconnect"
@@ -569,16 +565,15 @@ msgstr "Salvesta esitusloend"
 
 #: .././sonata/main.py:2135
 msgid "Would you like to replace the existing playlist or append these songs?"
-msgstr ""
+msgstr "Kas soovid asendada olemasolevat esitusloendit või lisada need lood?"
 
 #: .././sonata/main.py:2135
-#, fuzzy
 msgid "Replace playlist"
-msgstr "Nimeta esitusloend ümber"
+msgstr "Asenda esitusloend"
 
 #: .././sonata/main.py:2135
 msgid "Append songs"
-msgstr ""
+msgstr "Lisa lood"
 
 #: .././sonata/main.py:2153
 msgid "A playlist with this name already exists. Would you like to replace it?"
@@ -1201,14 +1196,12 @@ msgid "Expand player"
 msgstr "Laineda mängija akent"
 
 #: .././sonata/main.py:7159
-#, fuzzy
 msgid "Switch to previous tab"
-msgstr "Vaheta kaarte [1-5]"
+msgstr "Mine eelmisele kaardile"
 
 #: .././sonata/main.py:7160
-#, fuzzy
 msgid "Switch to next tab"
-msgstr "Vaheta kaarte [1-5]"
+msgstr "Mine järgmisele kaardile"
 
 #: .././sonata/main.py:7161
 msgid "Collapse player"

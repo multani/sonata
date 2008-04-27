@@ -8,14 +8,13 @@ msgstr ""
 "Project-Id-Version: sonata\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-04-26 08:40-0600\n"
-"PO-Revision-Date: 2008-04-13 20:46+0200\n"
+"PO-Revision-Date: 2008-04-27 00:05+0200\n"
 "Last-Translator: Ahmad Farghal <ahmad.farghal@gmail.com>\n"
 "Language-Team: Arabic <ar@arabic.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=4; plural=n==1 ? 0 : n==2 ? 1 : n>=3 && n<=10 ? 2 : "
-"3\n"
+"Plural-Forms: nplurals=4; plural=n==1 ? 0 : n==2 ? 1 : n>=3 && n<=10 ? 2 : 3\n"
 
 #: .././sonata/main.py:159
 msgid "Default Profile"
@@ -55,13 +54,11 @@ msgid "The popup argument requires D-Bus. Aborting."
 msgstr "خيار الانبثاق يتطلب D-Bus. تم الإجهاض."
 
 #: .././sonata/main.py:252
-msgid ""
-"PyGTK+ 2.10 or gnome-python-extras not found, system tray support disabled."
-msgstr ""
-"غير قادر على إيجاد PyGTK+ 2.10 أو gnome-python-extras. تم تعطيل دعم مساحة "
-"تبليغ النظام."
+msgid "PyGTK+ 2.10 or gnome-python-extras not found, system tray support disabled."
+msgstr "غير قادر على إيجاد PyGTK+ 2.10 أو gnome-python-extras. تم تعطيل دعم مساحة تبليغ النظام."
 
-#: .././sonata/main.py:294 .././sonata/main.py:5752
+#: .././sonata/main.py:294
+#: .././sonata/main.py:5752
 msgid "Entire song"
 msgstr "طول مدة الأغنية"
 
@@ -97,26 +94,42 @@ msgstr "أداء"
 msgid "from"
 msgstr "من"
 
-#: .././sonata/main.py:314 .././sonata/main.py:442 .././sonata/main.py:1165
-#: .././sonata/main.py:1363 .././sonata/main.py:2743 .././sonata/main.py:2877
+#: .././sonata/main.py:314
+#: .././sonata/main.py:442
+#: .././sonata/main.py:1165
+#: .././sonata/main.py:1363
+#: .././sonata/main.py:2743
+#: .././sonata/main.py:2877
 #: .././sonata/main.py:6768
 msgid "Artist"
 msgstr "الفنان"
 
-#: .././sonata/main.py:314 .././sonata/main.py:1165 .././sonata/main.py:1362
-#: .././sonata/main.py:2876 .././sonata/main.py:6759
+#: .././sonata/main.py:314
+#: .././sonata/main.py:1165
+#: .././sonata/main.py:1362
+#: .././sonata/main.py:2876
+#: .././sonata/main.py:6759
 msgid "Title"
 msgstr "الاسم"
 
-#: .././sonata/main.py:314 .././sonata/main.py:1165 .././sonata/main.py:1364
-#: .././sonata/main.py:2744 .././sonata/main.py:2878 .././sonata/main.py:5136
+#: .././sonata/main.py:314
+#: .././sonata/main.py:1165
+#: .././sonata/main.py:1364
+#: .././sonata/main.py:2744
+#: .././sonata/main.py:2878
+#: .././sonata/main.py:5136
 #: .././sonata/main.py:6777
 msgid "Album"
 msgstr "الألبوم"
 
-#: .././sonata/main.py:314 .././sonata/main.py:443 .././sonata/main.py:1165
-#: .././sonata/main.py:1367 .././sonata/main.py:2748 .././sonata/main.py:2880
-#: .././sonata/main.py:5959 .././sonata/main.py:6807
+#: .././sonata/main.py:314
+#: .././sonata/main.py:443
+#: .././sonata/main.py:1165
+#: .././sonata/main.py:1367
+#: .././sonata/main.py:2748
+#: .././sonata/main.py:2880
+#: .././sonata/main.py:5959
+#: .././sonata/main.py:6807
 msgid "Genre"
 msgstr "النوع"
 
@@ -132,7 +145,8 @@ msgstr "الكل"
 msgid "Starting Sonata with profile"
 msgstr "بدء سوناتا بالضبط"
 
-#: .././sonata/main.py:413 .././sonata/main.py:415
+#: .././sonata/main.py:413
+#: .././sonata/main.py:415
 msgid "Not a valid profile number. Profile number must be between 1 and"
 msgstr "ليس رقم ضبط صالح. يجب أن يكون رقم الضبط بين 1 و"
 
@@ -289,11 +303,12 @@ msgid "_Repeat"
 msgstr "_كرّر"
 
 #: .././sonata/main.py:504
-#, fuzzy
 msgid "Rando_m"
-msgstr "عشوائيًا"
+msgstr "عشوا_ئي"
 
-#: .././sonata/main.py:695 .././sonata/main.py:862 .././sonata/main.py:863
+#: .././sonata/main.py:695
+#: .././sonata/main.py:862
+#: .././sonata/main.py:863
 msgid "Playlist"
 msgstr "قائمة تشغيل"
 
@@ -305,28 +320,40 @@ msgstr "رشّح"
 msgid "_End Search"
 msgstr "أ_نهِ البحث"
 
-#: .././sonata/main.py:744 .././sonata/main.py:834
+#: .././sonata/main.py:744
+#: .././sonata/main.py:834
 msgid "Library browsing view"
 msgstr "مشهد تصفح المكتبة"
 
-#: .././sonata/main.py:820 .././sonata/main.py:825 .././sonata/main.py:1387
-#: .././sonata/main.py:3819 .././sonata/main.py:3830
+#: .././sonata/main.py:820
+#: .././sonata/main.py:825
+#: .././sonata/main.py:1387
+#: .././sonata/main.py:3819
+#: .././sonata/main.py:3830
 msgid "Stopped"
 msgstr "متوقف"
 
-#: .././sonata/main.py:821 .././sonata/main.py:3823 .././sonata/main.py:4481
+#: .././sonata/main.py:821
+#: .././sonata/main.py:3823
+#: .././sonata/main.py:4481
 msgid "Click to expand"
 msgstr "أنقر للتوسعة"
 
-#: .././sonata/main.py:826 .././sonata/main.py:3821 .././sonata/main.py:4479
+#: .././sonata/main.py:826
+#: .././sonata/main.py:3821
+#: .././sonata/main.py:4479
 msgid "Click to collapse"
 msgstr "أنقر للطي"
 
-#: .././sonata/main.py:831 .././sonata/main.py:3719 .././sonata/main.py:3826
+#: .././sonata/main.py:831
+#: .././sonata/main.py:3719
+#: .././sonata/main.py:3826
 msgid "Not Connected"
 msgstr "غير متّصل"
 
-#: .././sonata/main.py:833 .././sonata/main.py:3717 .././sonata/main.py:3828
+#: .././sonata/main.py:833
+#: .././sonata/main.py:3717
+#: .././sonata/main.py:3828
 msgid "No Read Permission"
 msgstr "غير مصرّح بالقراءة"
 
@@ -407,9 +434,8 @@ msgid "Toggle repeat mode"
 msgstr "مكّن أو عطّل وضع التكرار"
 
 #: .././sonata/main.py:1123
-#, fuzzy
 msgid "Toggle random mode"
-msgstr "مكّن أو عطّل وضع التكرار"
+msgstr "مكّن أو عطّل الوضع العشوائي"
 
 #: .././sonata/main.py:1124
 msgid "Display current song info"
@@ -424,21 +450,30 @@ msgstr "يظهر حالة MPD"
 msgid "Song Info"
 msgstr "معلومات عن الأغنية"
 
-#: .././sonata/main.py:1165 .././sonata/main.py:1365 .././sonata/main.py:2879
+#: .././sonata/main.py:1165
+#: .././sonata/main.py:1365
+#: .././sonata/main.py:2879
 msgid "Date"
 msgstr "السنة"
 
-#: .././sonata/main.py:1165 .././sonata/main.py:1366 .././sonata/main.py:2745
-#: .././sonata/main.py:2881 .././sonata/main.py:6790
+#: .././sonata/main.py:1165
+#: .././sonata/main.py:1366
+#: .././sonata/main.py:2745
+#: .././sonata/main.py:2881
+#: .././sonata/main.py:6790
 msgid "Track"
 msgstr "المقطوعة"
 
-#: .././sonata/main.py:1165 .././sonata/main.py:1368 .././sonata/main.py:2749
+#: .././sonata/main.py:1165
+#: .././sonata/main.py:1368
+#: .././sonata/main.py:2749
 #: .././sonata/main.py:2882
 msgid "File"
 msgstr "الملف"
 
-#: .././sonata/main.py:1165 .././sonata/main.py:1376 .././sonata/main.py:2875
+#: .././sonata/main.py:1165
+#: .././sonata/main.py:1376
+#: .././sonata/main.py:2875
 msgid "Bitrate"
 msgstr "معدّل البتّات"
 
@@ -472,7 +507,8 @@ msgstr "ابحث في Lyricwiki.org عن الكلمات"
 msgid "Album Info"
 msgstr "معلومات عن الألبوم"
 
-#: .././sonata/main.py:1373 .././sonata/main.py:1375
+#: .././sonata/main.py:1373
+#: .././sonata/main.py:1375
 msgid "Time"
 msgstr "الوقت"
 
@@ -480,7 +516,9 @@ msgstr "الوقت"
 msgid "MPD stopped"
 msgstr "MPD متوقف"
 
-#: .././sonata/main.py:1383 .././sonata/main.py:1385 .././sonata/main.py:1387
+#: .././sonata/main.py:1383
+#: .././sonata/main.py:1385
+#: .././sonata/main.py:1387
 msgid "State"
 msgstr "الحالة"
 
@@ -492,19 +530,23 @@ msgstr "يشغل"
 msgid "Paused"
 msgstr "متوقف مؤقتا"
 
-#: .././sonata/main.py:1389 .././sonata/main.py:1391
+#: .././sonata/main.py:1389
+#: .././sonata/main.py:1391
 msgid "Repeat"
 msgstr "التكرار"
 
-#: .././sonata/main.py:1389 .././sonata/main.py:1393
+#: .././sonata/main.py:1389
+#: .././sonata/main.py:1393
 msgid "Off"
 msgstr "مُمَكّن"
 
-#: .././sonata/main.py:1391 .././sonata/main.py:1395
+#: .././sonata/main.py:1391
+#: .././sonata/main.py:1395
 msgid "On"
 msgstr "مُعَطّل"
 
-#: .././sonata/main.py:1393 .././sonata/main.py:1395
+#: .././sonata/main.py:1393
+#: .././sonata/main.py:1395
 msgid "Random"
 msgstr "عشوائيًا"
 
@@ -516,7 +558,8 @@ msgstr "شدّة الصوت"
 msgid "Crossfade"
 msgstr "الإبهات المتداخل"
 
-#: .././sonata/main.py:1397 .././sonata/main.py:5753
+#: .././sonata/main.py:1397
+#: .././sonata/main.py:5753
 msgid "second"
 msgid_plural "seconds"
 msgstr[0] "ثانية واحدة"
@@ -527,23 +570,25 @@ msgstr[3] "ثانية"
 #: .././sonata/main.py:1401
 msgid ""
 "Unable to connect to MPD.\n"
-"Please check your Sonata preferences or MPD_HOST/MPD_PORT environment "
-"variables."
+"Please check your Sonata preferences or MPD_HOST/MPD_PORT environment variables."
 msgstr ""
 "غير قادر على الاتصال بـMPD.\n"
 "رجاءً تأكد من تفضيلات سوناتا أو متغيري النظام MPD_HOST و MPD_PORT."
 
-#: .././sonata/main.py:1433 .././sonata/main.py:1446 .././sonata/main.py:1467
-#, fuzzy
+#: .././sonata/main.py:1433
+#: .././sonata/main.py:1446
+#: .././sonata/main.py:1467
 msgid "Profile"
-msgstr "ضبط جديد"
+msgstr "الضبط"
 
-#: .././sonata/main.py:1446 .././sonata/main.py:1447 .././sonata/main.py:1467
-#, fuzzy
+#: .././sonata/main.py:1446
+#: .././sonata/main.py:1447
+#: .././sonata/main.py:1467
 msgid "MPD_HOST/PORT"
-msgstr "باستخدام MPD_HOST/PORT"
+msgstr "مضيف MPD / كلمة السّر"
 
-#: .././sonata/main.py:1448 .././sonata/main.py:1454
+#: .././sonata/main.py:1448
+#: .././sonata/main.py:1454
 msgid "Disconnect"
 msgstr "افصل"
 
@@ -551,11 +596,13 @@ msgstr "افصل"
 msgid "Edit Stream"
 msgstr "حرّر الدفق"
 
-#: .././sonata/main.py:2066 .././sonata/main.py:2097
+#: .././sonata/main.py:2066
+#: .././sonata/main.py:2097
 msgid "New Stream"
 msgstr "دفق جديد"
 
-#: .././sonata/main.py:2068 .././sonata/main.py:5959
+#: .././sonata/main.py:2068
+#: .././sonata/main.py:5959
 msgid "Stream name"
 msgstr "اسم الدفق"
 
@@ -567,22 +614,22 @@ msgstr "عنوان الدفق"
 msgid "A stream with this name already exists. Would you like to replace it?"
 msgstr "يوجد دفق بهذا الاسم مسبقا. هل ترغب في استبداله؟"
 
-#: .././sonata/main.py:2115 .././sonata/main.py:2117
+#: .././sonata/main.py:2115
+#: .././sonata/main.py:2117
 msgid "Save Playlist"
 msgstr "احفظ قائمة التشغيل"
 
 #: .././sonata/main.py:2135
 msgid "Would you like to replace the existing playlist or append these songs?"
-msgstr ""
+msgstr "هل ترغب في استبدال قائمة التشغيل الموجودة أم إلحاق هذه الأغاني بها؟"
 
 #: .././sonata/main.py:2135
-#, fuzzy
 msgid "Replace playlist"
-msgstr "غيّر اسم قائمة التشغيل"
+msgstr "استبدل قائمة التشغيل"
 
 #: .././sonata/main.py:2135
 msgid "Append songs"
-msgstr ""
+msgstr "ألحق الأغاني"
 
 #: .././sonata/main.py:2153
 msgid "A playlist with this name already exists. Would you like to replace it?"
@@ -592,15 +639,19 @@ msgstr "توجد قائمة تشغيل بهذا الاسم مسبقا. هل تر
 msgid "Playlist name"
 msgstr "اسم قائمة التشغيل"
 
-#: .././sonata/main.py:2191 .././sonata/main.py:2195
+#: .././sonata/main.py:2191
+#: .././sonata/main.py:2195
 msgid "Rename Playlist"
 msgstr "غيّر اسم قائمة التشغيل"
 
-#: .././sonata/main.py:2746 .././sonata/main.py:2752
+#: .././sonata/main.py:2746
+#: .././sonata/main.py:2752
 msgid "#"
 msgstr "الرقم"
 
-#: .././sonata/main.py:2747 .././sonata/main.py:5958 .././sonata/main.py:6786
+#: .././sonata/main.py:2747
+#: .././sonata/main.py:5958
+#: .././sonata/main.py:6786
 msgid "Year"
 msgstr "السنة"
 
@@ -612,7 +663,9 @@ msgstr "دفق"
 msgid "Len"
 msgstr "Len"
 
-#: .././sonata/main.py:2772 .././sonata/main.py:2779 .././sonata/main.py:2816
+#: .././sonata/main.py:2772
+#: .././sonata/main.py:2779
+#: .././sonata/main.py:2816
 #: .././sonata/main.py:2823
 msgid "Unknown"
 msgstr "مجهول"
@@ -621,7 +674,8 @@ msgstr "مجهول"
 msgid "edit tags"
 msgstr "حرّر الوسوم"
 
-#: .././sonata/main.py:2943 .././sonata/main.py:5035
+#: .././sonata/main.py:2943
+#: .././sonata/main.py:5035
 msgid "Various Artists"
 msgstr "فنانون متعددون"
 
@@ -645,7 +699,8 @@ msgstr "لم يتم تعيين اسم الفنان أو الأغنية."
 msgid "search"
 msgstr "ابحث"
 
-#: .././sonata/main.py:3009 .././sonata/main.py:3062
+#: .././sonata/main.py:3009
+#: .././sonata/main.py:3062
 msgid "Lyrics not found"
 msgstr "الكلمات غير موجودة"
 
@@ -687,7 +742,8 @@ msgstr[2] "ساعات"
 msgstr[3] "ساعة"
 
 #. Show text:
-#: .././sonata/main.py:3751 .././sonata/main.py:7257
+#: .././sonata/main.py:3751
+#: .././sonata/main.py:7257
 msgid "song"
 msgid_plural "songs"
 msgstr[0] "أغنية واحدة"
@@ -695,7 +751,8 @@ msgstr[1] "أغنيتان"
 msgstr[2] "أغاني"
 msgstr[3] "أغنية"
 
-#: .././sonata/main.py:3753 .././sonata/main.py:3755
+#: .././sonata/main.py:3753
+#: .././sonata/main.py:3755
 msgid "and"
 msgstr "و"
 
@@ -787,7 +844,8 @@ msgstr[1] "احذف الدفقين"
 msgstr[2] "احذف الدفوق"
 msgstr[3] "احذف الدفوق"
 
-#: .././sonata/main.py:5632 .././sonata/main.py:7153
+#: .././sonata/main.py:5632
+#: .././sonata/main.py:7153
 msgid "Preferences"
 msgstr "تفضيلات"
 
@@ -904,7 +962,8 @@ msgstr "احفظ الغلاف في:"
 msgid "custom"
 msgstr "مخصص"
 
-#: .././sonata/main.py:5827 .././sonata/main.py:5846
+#: .././sonata/main.py:5827
+#: .././sonata/main.py:5846
 msgid "file_path"
 msgstr "مسار_ملفات"
 
@@ -949,53 +1008,33 @@ msgid "Update MPD library on start"
 msgstr "حدّث مكتبة MPD عند البدء"
 
 #: .././sonata/main.py:5877
-msgid ""
-"If enabled, Sonata will automatically update your MPD library when it starts "
-"up."
-msgstr ""
-"إذا تم تمكين هذا الخيار، فسيقوم سوناتا بتحديث مكتبة MPD عند بدء تشغيله."
+msgid "If enabled, Sonata will automatically update your MPD library when it starts up."
+msgstr "إذا تم تمكين هذا الخيار، فسيقوم سوناتا بتحديث مكتبة MPD عند بدء تشغيله."
 
 #: .././sonata/main.py:5878
 msgid "Stop playback on exit"
 msgstr "أوقف التشغيل عند الخروج"
 
 #: .././sonata/main.py:5880
-msgid ""
-"MPD allows playback even when the client is not open. If enabled, Sonata "
-"will behave like a more conventional music player and, instead, stop "
-"playback upon exit."
-msgstr ""
-"يستطيع MPD تشغيل الموسيقى حتى لو لم يكن هناك عميل متصل به. إذا تم تمكين هذا "
-"الخيار، فسيسلك سوناتا مسلك مشغلات الموسيقى التقليدية بأن يقوم بإيقاف تشغيل "
-"الأغاني عن الخروج."
+msgid "MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit."
+msgstr "يستطيع MPD تشغيل الموسيقى حتى لو لم يكن هناك عميل متصل به. إذا تم تمكين هذا الخيار، فسيسلك سوناتا مسلك مشغلات الموسيقى التقليدية بأن يقوم بإيقاف تشغيل الأغاني عن الخروج."
 
 #: .././sonata/main.py:5881
 msgid "Minimize to system tray on close/escape"
 msgstr "قلّص لمساحة تبليغ النظام عند الإغلاق"
 
 #: .././sonata/main.py:5883
-msgid ""
-"If enabled, closing Sonata will minimize it to the system tray. Note that "
-"it's currently impossible to detect if there actually is a system tray, so "
-"only check this if you have one."
-msgstr ""
-"إذا تم تمكين هذا الخيار، فسيقوم سوناتا بتقليص نفسه إلى مساحة تبليغ النظام "
-"عند إغلاقه. لاحظ أنه من المستحيل حاليا التعرف على ما إن كان نظامك به مساحة "
-"تبليغ أم لا، قلا تمكّن هذا الخيار إلا إذا كان نظامك فيه مساحة تبليغ."
+msgid "If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."
+msgstr "إذا تم تمكين هذا الخيار، فسيقوم سوناتا بتقليص نفسه إلى مساحة تبليغ النظام عند إغلاقه. لاحظ أنه من المستحيل حاليا التعرف على ما إن كان نظامك به مساحة تبليغ أم لا، قلا تمكّن هذا الخيار إلا إذا كان نظامك فيه مساحة تبليغ."
 
 #: .././sonata/main.py:5892
 msgid "Write status file:"
 msgstr "أكتب ملف الحالة:"
 
-#: .././sonata/main.py:5894 .././sonata/main.py:5896
-msgid ""
-"If enabled, Sonata will create a xmms-infopipe like file containing "
-"information about the current song. Many applications support the xmms-info "
-"file (Instant Messengers, IRC Clients...)"
-msgstr ""
-"إذا تم تمكين هذا الخيار، فسينشئ سوناتا ملفّا مشابه لـxmms-infopipe يحتوي على "
-"معلومات عن الأغنية الحالية. تدعم الثير من التطبيقات ملف xmms-infopipe (مثل "
-"عملاء IRC وبرامج المراسلة الفورية...)"
+#: .././sonata/main.py:5894
+#: .././sonata/main.py:5896
+msgid "If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)"
+msgstr "إذا تم تمكين هذا الخيار، فسينشئ سوناتا ملفّا مشابه لـxmms-infopipe يحتوي على معلومات عن الأغنية الحالية. تدعم الثير من التطبيقات ملف xmms-infopipe (مثل عملاء IRC وبرامج المراسلة الفورية...)"
 
 #: .././sonata/main.py:5902
 msgid "Miscellaneous"
@@ -1090,34 +1129,25 @@ msgid "_Extras"
 msgstr "خيارات إ_ضافية"
 
 #: .././sonata/main.py:6055
-msgid ""
-"Python 2.5 or python-elementtree not found, audioscrobbler support disabled."
-msgstr ""
-"Python 2.5 أو python-elementtree غير موجودان، سيتم تعطيل دعم أوديوسكروبلر."
+msgid "Python 2.5 or python-elementtree not found, audioscrobbler support disabled."
+msgstr "Python 2.5 أو python-elementtree غير موجودان، سيتم تعطيل دعم أوديوسكروبلر."
 
 #: .././sonata/main.py:6055
 msgid "Audioscrobbler Verification"
 msgstr "التحقق من أوديوسكروبلر"
 
 #: .././sonata/main.py:6079
-msgid ""
-"To save lyrics to the music file's directory, you must specify a valid music "
-"directory."
-msgstr ""
-"يجب أن تحدد دليل موسيقى صالح حتى تتمكن من حفظ الكلمات للدليل الموجود فيه ملف "
-"الموسيقى."
+msgid "To save lyrics to the music file's directory, you must specify a valid music directory."
+msgstr "يجب أن تحدد دليل موسيقى صالح حتى تتمكن من حفظ الكلمات للدليل الموجود فيه ملف الموسيقى."
 
-#: .././sonata/main.py:6079 .././sonata/main.py:6086
+#: .././sonata/main.py:6079
+#: .././sonata/main.py:6086
 msgid "Music Dir Verification"
 msgstr "التحقق من دليل الموسيقى"
 
 #: .././sonata/main.py:6086
-msgid ""
-"To save artwork to the music file's directory, you must specify a valid "
-"music directory."
-msgstr ""
-"يجب أن تحدد دليل موسيقى صالح حتى تتمكن من حفظ غلاف الألبوم للدليل الموجود "
-"فيه ملف الموسيقى."
+msgid "To save artwork to the music file's directory, you must specify a valid music directory."
+msgstr "يجب أن تحدد دليل موسيقى صالح حتى تتمكن من حفظ غلاف الألبوم للدليل الموجود فيه ملف الموسيقى."
 
 #: .././sonata/main.py:6179
 msgid "New Profile"
@@ -1132,7 +1162,8 @@ msgstr "غلاف ألبوم مخصّص"
 msgid "Artwork filename"
 msgstr "اسم ملف الغلاف"
 
-#: .././sonata/main.py:6402 .././sonata/main.py:6407
+#: .././sonata/main.py:6402
+#: .././sonata/main.py:6407
 msgid "more"
 msgstr "المزيد"
 
@@ -1144,8 +1175,12 @@ msgstr "أخفِ"
 msgid "Taglib and/or tagpy not found, tag editing support disabled."
 msgstr "Taglib و/أو tagpy غير موجودان، سيتم تعطيل دعم تحرير الوسوم."
 
-#: .././sonata/main.py:6692 .././sonata/main.py:6695 .././sonata/main.py:6742
-#: .././sonata/main.py:6746 .././sonata/main.py:6959 .././sonata/main.py:7071
+#: .././sonata/main.py:6692
+#: .././sonata/main.py:6695
+#: .././sonata/main.py:6742
+#: .././sonata/main.py:6746
+#: .././sonata/main.py:6959
+#: .././sonata/main.py:7071
 msgid "Edit Tags"
 msgstr "حرّر الوسوم"
 
@@ -1221,14 +1256,12 @@ msgid "Expand player"
 msgstr "وسّع المشغّل"
 
 #: .././sonata/main.py:7159
-#, fuzzy
 msgid "Switch to previous tab"
-msgstr "انتقل للسان من 1 لـ5"
+msgstr "ارجع للسان السابق"
 
 #: .././sonata/main.py:7160
-#, fuzzy
 msgid "Switch to next tab"
-msgstr "انتقل للسان من 1 لـ5"
+msgstr "انتقل للسان التالي"
 
 #: .././sonata/main.py:7161
 msgid "Collapse player"
@@ -1290,7 +1323,8 @@ msgstr "أزِل الأغاني المنتقاة"
 msgid "Center currently playing song"
 msgstr "ركّز على الأغنية التي يتم تشغيلها"
 
-#: .././sonata/main.py:7178 .././sonata/main.py:7187
+#: .././sonata/main.py:7178
+#: .././sonata/main.py:7187
 msgid "Edit selected song's tags"
 msgstr "حرّر وسوم الاغنية المنتقاة"
 
@@ -1334,7 +1368,8 @@ msgstr "استبدِل بالعناصر المنتقاة وشغّلها"
 msgid "Update library for selected item(s)"
 msgstr "حدّث المكتبة بالنسبة للعناصر المنتقاة"
 
-#: .././sonata/main.py:7192 .././sonata/main.py:7194
+#: .././sonata/main.py:7192
+#: .././sonata/main.py:7194
 msgid "Add selected playlist(s)"
 msgstr "أضِف قوائم التشغيل المنتقاة"
 
@@ -1354,7 +1389,8 @@ msgstr "أضِف قوائم التشغيل المنتقاة وشغّلها"
 msgid "Replace with selected playlist(s) and play"
 msgstr "استبدِل بقوائم التشغيل المنتقاة وشغلها"
 
-#: .././sonata/main.py:7199 .././sonata/main.py:7201
+#: .././sonata/main.py:7199
+#: .././sonata/main.py:7201
 msgid "Add selected stream(s)"
 msgstr "أضِف الدفوق المنتقاة"
 
@@ -1458,24 +1494,19 @@ msgid "An instance of Sonata is already running."
 msgstr "سوناتا يعمل مسبقا"
 
 #: .././sonata/main.py:7543
-msgid ""
-"Sonata failed to connect to the D-BUS session bus: Unable to determine the "
-"address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for "
-"help)"
-msgstr ""
-"فشل سوناتا في الاتصال بناقل جلسة D-Bus: غير قادر على تحديد عنوان ناقل "
-"الرسائل (للمساعدة، جرّب 'man dbus-launch' و 'man dbus-daemon')"
+msgid "Sonata failed to connect to the D-BUS session bus: Unable to determine the address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for help)"
+msgstr "فشل سوناتا في الاتصال بناقل جلسة D-Bus: غير قادر على تحديد عنوان ناقل الرسائل (للمساعدة، جرّب 'man dbus-launch' و 'man dbus-daemon')"
 
 #: .././sonata/misc.py:197
 msgid "Unable to launch a suitable browser."
-msgstr ""
+msgstr "غير قادر على إطلاق متصفح مناسب."
 
 #: .././sonata/misc.py:197
 msgid "Launch Browser"
-msgstr ""
+msgstr "أطلق المتصفح"
 
 #~ msgid "_Shuffle"
 #~ msgstr "ا_خلِط"
-
 #~ msgid "Toggle shuffle mode"
 #~ msgstr "مكّن أو عطّل وضع الخلط"
+
