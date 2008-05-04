@@ -1,6 +1,3 @@
-v1.5.1
-	improve artwork files when varying case (e.g. Ani DiFranco)
-
 v1.6
 	code cleanup
 		- making tabs
@@ -11,6 +8,7 @@ v1.6
 	dynamic playlist?
 	various artists in library views?
 	stop after this track?
+	improve artwork files when varying case (e.g. Ani DiFranco)
 	
 Future:
 	lyrics -> ability to save changes
