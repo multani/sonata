@@ -2132,7 +2132,7 @@ class Base:
 
     def on_playlist_menu_click(self, action):
         plname = misc.unescape_html(action.get_name().replace("Playlist: ", ""))
-        response = ui.show_msg(self.window, _("Would you like to replace the existing playlist or append these songs?"), ("Existing Playlist"), "existingPlaylist", (_("Replace playlist"), 1, _("Append songs"), 2), default=self.existing_playlist_option)
+        response = ui.show_msg(self.window, _("Would you like to replace the existing playlist or append these songs?"), _("Existing Playlist"), "existingPlaylist", (_("Replace playlist"), 1, _("Append songs"), 2), default=self.existing_playlist_option)
         if response == 1: # Overwrite
             self.existing_playlist_option = response
             self.playlist_create(plname)
