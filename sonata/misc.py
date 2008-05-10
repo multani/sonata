@@ -200,4 +200,4 @@ def file_from_utf8(filename):
     try:
         return gobject.filename_from_utf8(filename)
     except:
-        return ""
+        return filename
