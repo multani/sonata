@@ -845,7 +845,7 @@ class Base:
         self.notebook.reorder_child(info_tab, self.info_tab_pos)
         self.last_tab = self.notebook_get_tab_text(self.notebook, 0)
 
-        # Systray:
+        # Song notification window:
         outtertipbox = gtk.VBox()
         tipbox = gtk.HBox()
         self.trayalbumimage1 = ui.image(w=51, h=77, x=1)
@@ -3966,8 +3966,16 @@ class Base:
             self.artwork_update(True)
 
     def artwork_set_tooltip_art(self, pix):
-        pix1 = pix.subpixbuf(0, 0, 51, 77)
-        pix2 = pix.subpixbuf(51, 0, 26, 77)
+        # Check if RTL language:
+        lang_rtl = (self.window.get_pango_context().get_base_dir() == pango.DIRECTION_RTL)
+
+        # Set artwork
+        if not lang_rtl:
+            pix1 = pix.subpixbuf(0, 0, 51, 77)
+            pix2 = pix.subpixbuf(51, 0, 26, 77)
+        else:
+            pix1 = pix.subpixbuf(26, 0, 51, 77)
+            pix2 = pix.subpixbuf(0, 0, 26, 77)
         self.trayalbumimage1.set_from_pixbuf(pix1)
         self.trayalbumimage2.set_from_pixbuf(pix2)
         del pix1

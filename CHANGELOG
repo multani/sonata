@@ -1,3 +1,6 @@
+v1.6 - Pending
+	+ Bug: Fix artwork display in song notification window for RTL languages
+
 v1.5.1 - May 3, 2008
 	+ Swap 'shuffle' and 'random' to be consistent with MPD
 	+ "Save list to">"foo" can now either replace playlist or append songs
