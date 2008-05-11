@@ -4979,6 +4979,7 @@ class Base:
                 targetfile = os.path.expanduser("~/.lyrics/" + artist + "-" + title + ".txt")
             elif lyrics_loc == self.LYRICS_LOCATION_PATH:
                 targetfile = self.musicdir[self.profile_num] + os.path.dirname(mpdh.get(self.songinfo, 'file')) + "/" + artist + "-" + title + ".txt"
+            targetfile = misc.file_exists_insensitive(targetfile)
             return misc.file_from_utf8(targetfile)
 
     def target_image_filename(self, force_location=None, songpath=None, artist=None, album=None):
@@ -5012,6 +5013,7 @@ class Base:
             elif art_loc == self.ART_LOCATION_NONE:
                 # flag filename to indicate that we should use the default Sonata icons:
                 targetfile = os.path.expanduser("~/.covers/" + artist + "-" + album + "-" + self.ART_LOCATION_NONE_FLAG + ".jpg")
+            targetfile = misc.file_exists_insensitive(targetfile)
             return misc.file_from_utf8(targetfile)
 
     def album_return_artist_name(self):
@@ -5124,6 +5126,7 @@ class Base:
         # If the flag file exists (to tell Sonata to use the default artwork
         # icons), remove the file
         delfile = os.path.expanduser("~/.covers/" + artist + "-" + album + "-" + self.ART_LOCATION_NONE_FLAG + ".jpg")
+        delfile = misc.file_exists_insensitive(delfile)
         misc.remove_file(delfile)
 
     def image_remote(self, widget):

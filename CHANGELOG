@@ -1,4 +1,5 @@
 v1.5.2 - Pending
+	+ Improved artwork/lyrics caching through case-insenstive searching
 	+ Bug: Fix artwork for files with unicode characters
 	+ Bug: Fix crash if mpd library is empty
 	+ Bug: Fix artwork display in song notification window for RTL languages

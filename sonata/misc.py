@@ -166,6 +166,25 @@ def remove_dir(path):
             f=os.rmdir
             _rmgeneric(fullpath, f)
 
+def file_exists_insensitive(filename):
+    # Returns an updated filename that exists on the
+    # user's filesystem; checks all possible combinations
+    # of case.
+    if os.path.exists(filename):
+        return filename
+
+    regexp = re.compile(filename, re.IGNORECASE)
+
+    path = os.path.dirname(filename)
+    files = os.listdir(path)
+
+    for x in files:
+        fullpath = os.path.join(path, x)
+        if regexp.match(fullpath):
+            return fullpath
+
+    return filename
+
 def browser_load(docslink, browser, window):
     browser_error = False
     if len(browser.strip()) > 0:
