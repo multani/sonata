@@ -2283,7 +2283,7 @@ class Base:
         while lsinfo == []:
             if self.lib_view == self.VIEW_FILESYSTEM:
                 if root == '/':
-                    return
+                    break
                 else:
                     # Back up and try the parent
                     root = '/'.join(root.split('/')[:-1]) or '/'

@@ -1,5 +1,6 @@
 v1.5.2 - Pending
 	+ Bug: Fix artwork for files with unicode characters
+	+ Bug: Fix crash if mpd library is empty
 	+ Bug: Fix artwork display in song notification window for RTL languages
 
 v1.5.1 - May 3, 2008
