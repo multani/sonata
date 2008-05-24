@@ -1,8 +1,10 @@
 v1.5.2 - Pending
 	+ Improved artwork/lyrics caching through case-insenstive searching
+	+ Add Turkish translation (Fatih)
 	+ Bug: Fix artwork for files with unicode characters
 	+ Bug: Fix crash if mpd library is empty
 	+ Bug: Fix artwork display in song notification window for RTL languages
+	+ Bug: Fix regression where dbus became required
 
 v1.5.1 - May 3, 2008
 	+ Swap 'shuffle' and 'random' to be consistent with MPD

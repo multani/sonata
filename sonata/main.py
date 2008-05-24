@@ -59,19 +59,19 @@ except:
     sys.stderr.write("Sonata requires python-mpd. Aborting...\n")
     sys.exit(1)
 
-#try:
-import dbus, dbus.service
-if getattr(dbus, "version", (0,0,0)) >= (0,41,0):
-    import dbus.glib
-if getattr(dbus, "version", (0,0,0)) >= (0,80,0):
-    import _dbus_bindings as dbus_bindings
-    NEW_DBUS = True
-else:
-    import dbus.dbus_bindings as dbus_bindings
-    NEW_DBUS = False
-HAVE_DBUS = True
-#except:
-#	HAVE_DBUS = False
+try:
+    import dbus, dbus.service
+    if getattr(dbus, "version", (0,0,0)) >= (0,41,0):
+        import dbus.glib
+    if getattr(dbus, "version", (0,0,0)) >= (0,80,0):
+        import _dbus_bindings as dbus_bindings
+        NEW_DBUS = True
+    else:
+        import dbus.dbus_bindings as dbus_bindings
+        NEW_DBUS = False
+    HAVE_DBUS = True
+except:
+    HAVE_DBUS = False
 
 if not skip_gui:
     import warnings, gobject, urllib, urllib2, re, gc, locale, shutil
@@ -7281,7 +7281,7 @@ class Base:
         self.about_dialog.set_license(__license__)
         self.about_dialog.set_authors(['Scott Horowitz <stonecrest@gmail.com>'])
         self.about_dialog.set_artists(['Adrian Chromenko <adrian@rest0re.org>\nhttp://rest0re.org/oss.php'])
-        self.about_dialog.set_translator_credits('ar - Ahmad Farghal <ahmad.farghal@gmail.com>\nbe@latin - Ihar Hrachyshka <ihar.hrachyshka@gmail.com>\nca - Franc Rodriguez <franc.rodriguez@tecob.com>\ncs - Jakub Adler <jakubadler@gmail.com>\nda - Martin Dybdal <dybber@dybber.dk>\nde - Paul Johnson <thrillerator@googlemail.com>\nes - Xoan Sampaiño <xoansampainho@gmail.com>\net - Mihkel <turakas@gmail.com>\nfi - Ilkka Tuohelafr <hile@hack.fi>\nfr - Floreal M <florealm@gmail.com>\nit - Gianni Vialetto <forgottencrow@gmail.com>\nnl - Olivier Keun <litemotiv@gmail.com>\npl - Tomasz Dominikowski <dominikowski@gmail.com>\npt_BR - Alex Tercete Matos <alextercete@gmail.com>\nru - Ivan <bkb.box@bk.ru>\nsv - Daniel Nylander <po@danielnylander.se>\nuk - Господарисько Тарас <dogmaton@gmail.com>\nzh_CN - Desmond Chang <dochang@gmail.com>\n')
+        self.about_dialog.set_translator_credits('ar - Ahmad Farghal <ahmad.farghal@gmail.com>\nbe@latin - Ihar Hrachyshka <ihar.hrachyshka@gmail.com>\nca - Franc Rodriguez <franc.rodriguez@tecob.com>\ncs - Jakub Adler <jakubadler@gmail.com>\nda - Martin Dybdal <dybber@dybber.dk>\nde - Paul Johnson <thrillerator@googlemail.com>\nes - Xoan Sampaiño <xoansampainho@gmail.com>\net - Mihkel <turakas@gmail.com>\nfi - Ilkka Tuohelafr <hile@hack.fi>\nfr - Floreal M <florealm@gmail.com>\nit - Gianni Vialetto <forgottencrow@gmail.com>\nnl - Olivier Keun <litemotiv@gmail.com>\npl - Tomasz Dominikowski <dominikowski@gmail.com>\npt_BR - Alex Tercete Matos <alextercete@gmail.com>\nru - Ivan <bkb.box@bk.ru>\nsv - Daniel Nylander <po@danielnylander.se>\ntr - Fatih Altınok <photonia@gmail.com>\nuk - Господарисько Тарас <dogmaton@gmail.com>\nzh_CN - Desmond Chang <dochang@gmail.com>\n')
         gtk.about_dialog_set_url_hook(self.show_website, "http://sonata.berlios.de/")
         self.about_dialog.set_website_label("http://sonata.berlios.de/")
         large_icon = gtk.gdk.pixbuf_new_from_file(self.find_path('sonata_large.png'))
