@@ -1,0 +1,1428 @@
+# Turkish translaitons for sonata package.
+# Copyright (C) 2008 THE sonata'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the sonata package.
+#
+# Gökmen Görgen <gkmngrgn@gmail.com>, 2008.
+# Fatih Altınok	<photonia@gmail.com>, 2008.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Sonata 1.5.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-03-21 19:38-0600\n"
+"PO-Revision-Date: 2008-05-17 21:04+0200\n"
+"Last-Translator: Gökmen Görgen <gkmngrgn@gmail.com>\nFatih Altınok <photonia@gmail.com>\n"
+"Language-Team: Sonata-translations <sonata-translations@list.berlios.de>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: ../sonata/main.py:153
+msgid "Default Profile"
+msgstr "Öntanımlı Profil"
+
+#: ../sonata/main.py:162
+msgid "Current"
+msgstr "Çalınan"
+
+#: ../sonata/main.py:163
+msgid "Library"
+msgstr "Kütüphane"
+
+#: ../sonata/main.py:164
+msgid "Playlists"
+msgstr "Çalma Listeleri"
+
+#: ../sonata/main.py:165
+msgid "Streams"
+msgstr "Yayınlar"
+
+#: ../sonata/main.py:166
+msgid "Info"
+msgstr "Bilgi"
+
+#: ../sonata/main.py:194
+msgid "Untagged"
+msgstr "Etiketlenmemiş"
+
+#: ../sonata/main.py:216
+msgid "The toggle argument requires D-Bus. Aborting."
+msgstr "Geçiş argümanı için D-Bus gerekli, durduruluyor."
+
+#: ../sonata/main.py:222
+msgid "The popup argument requires D-Bus. Aborting."
+msgstr "Bilgilendirme penceresi için D-Bus gerekli, durduruluyor."
+
+#: ../sonata/main.py:246
+msgid "PyGTK+ 2.10 or gnome-python-extras not found, system tray support disabled."
+msgstr "PyGTK+ 2.10 ya da gnome-python-extras bulunamadı, sistem çekmecesi desteği şu an uygun değil."
+
+#: ../sonata/main.py:288
+#: ../sonata/main.py:5680
+msgid "Entire song"
+msgstr "Tüm şarkı"
+
+#: ../sonata/main.py:289
+msgid "System tray"
+msgstr "Sistem çekmecesi"
+
+#: ../sonata/main.py:289
+msgid "Top Left"
+msgstr "Sol Üst"
+
+#: ../sonata/main.py:289
+msgid "Top Right"
+msgstr "Sağ Üst"
+
+#: ../sonata/main.py:289
+msgid "Bottom Left"
+msgstr "Sol Alt"
+
+#: ../sonata/main.py:289
+msgid "Bottom Right"
+msgstr "Sağ Alt"
+
+#: ../sonata/main.py:289
+msgid "Screen Center"
+msgstr "Ekran Merkezi"
+
+#: ../sonata/main.py:300
+msgid "by"
+msgstr ""
+
+#: ../sonata/main.py:300
+msgid "from"
+msgstr "-"
+
+#: ../sonata/main.py:308
+#: ../sonata/main.py:435
+#: ../sonata/main.py:1152
+#: ../sonata/main.py:1344
+#: ../sonata/main.py:2685
+#: ../sonata/main.py:2817
+#: ../sonata/main.py:6696
+msgid "Artist"
+msgstr "Sanatçı"
+
+#: ../sonata/main.py:308
+#: ../sonata/main.py:1152
+#: ../sonata/main.py:1343
+#: ../sonata/main.py:2816
+#: ../sonata/main.py:6687
+msgid "Title"
+msgstr "Şarkı"
+
+#: ../sonata/main.py:308
+#: ../sonata/main.py:1152
+#: ../sonata/main.py:1345
+#: ../sonata/main.py:2686
+#: ../sonata/main.py:2818
+#: ../sonata/main.py:5071
+#: ../sonata/main.py:6705
+msgid "Album"
+msgstr "Albüm"
+
+#: ../sonata/main.py:308
+#: ../sonata/main.py:436
+#: ../sonata/main.py:1152
+#: ../sonata/main.py:1348
+#: ../sonata/main.py:2690
+#: ../sonata/main.py:2820
+#: ../sonata/main.py:5887
+#: ../sonata/main.py:6735
+msgid "Genre"
+msgstr "Tür"
+
+#: ../sonata/main.py:308
+msgid "Filename"
+msgstr "Dosya adı"
+
+#: ../sonata/main.py:308
+msgid "Everything"
+msgstr "Hepsi"
+
+#: ../sonata/main.py:404
+msgid "Starting Sonata with profile"
+msgstr "Sonata, şu profil ile başlıyor:"
+
+#: ../sonata/main.py:406
+#: ../sonata/main.py:408
+msgid "Not a valid profile number. Profile number must be between 1 and"
+msgstr "Geçerli bir profil numarası değil. Profil numarası aralığı, 1 - "
+
+#: ../sonata/main.py:430
+msgid "_Sort List"
+msgstr "Lis_teyi Sırala"
+
+#: ../sonata/main.py:431
+msgid "Sa_ve List to"
+msgstr "Listeyi K_aydet"
+
+#: ../sonata/main.py:432
+msgid "_Connection"
+msgstr "_Bağlantı"
+
+#: ../sonata/main.py:433
+msgid "P_lay after"
+msgstr "Ardından ça_l"
+
+#: ../sonata/main.py:434
+msgid "Filesystem"
+msgstr "Dosya sistemi"
+
+#: ../sonata/main.py:437
+msgid "Use _Remote Image..."
+msgstr "_Harici Resim Kullan"
+
+#: ../sonata/main.py:438
+msgid "Use _Local Image..."
+msgstr "Y_erel Resim Kullan"
+
+#: ../sonata/main.py:439
+msgid "Reset to Default"
+msgstr "Öntanımlı Ayarlara Dön"
+
+#: ../sonata/main.py:440
+msgid "_Play"
+msgstr "Ça_l"
+
+#: ../sonata/main.py:441
+msgid "_Pause"
+msgstr "Du_raklat"
+
+#: ../sonata/main.py:442
+msgid "_Stop"
+msgstr "_Durdur"
+
+#: ../sonata/main.py:443
+msgid "_Previous"
+msgstr "_Geri"
+
+#: ../sonata/main.py:444
+msgid "_Next"
+msgstr "İle_ri"
+
+#: ../sonata/main.py:445
+msgid "_Quit"
+msgstr "_Kapat"
+
+#: ../sonata/main.py:446
+msgid "_Remove"
+msgstr "_Sil"
+
+#: ../sonata/main.py:447
+msgid "_Clear"
+msgstr "_Temizle"
+
+#: ../sonata/main.py:448
+msgid "_New Playlist..."
+msgstr "_Yeni Çalma Listesi..."
+
+#: ../sonata/main.py:449
+msgid "_Update Library"
+msgstr "Kütüphaneyi _Güncelle"
+
+#: ../sonata/main.py:450
+msgid "_Preferences..."
+msgstr "T_ercihler..."
+
+#: ../sonata/main.py:451
+msgid "_About..."
+msgstr "_Hakkında..."
+
+#: ../sonata/main.py:452
+msgid "_New..."
+msgstr "_Yeni..."
+
+#: ../sonata/main.py:453
+msgid "_Edit..."
+msgstr "_Düzenle..."
+
+#: ../sonata/main.py:454
+msgid "_Rename..."
+msgstr "_Yeniden Adlandır..."
+
+#: ../sonata/main.py:455
+msgid "_Edit Tags..."
+msgstr "_Etiketleri Düzenle"
+
+#: ../sonata/main.py:456
+msgid "_Add"
+msgstr "E_kle"
+
+#: ../sonata/main.py:457
+msgid "_Replace"
+msgstr "Değişti_r"
+
+#: ../sonata/main.py:458
+msgid "Add"
+msgstr "Ekle"
+
+#: ../sonata/main.py:459
+msgid "Replace"
+msgstr "Değiştir"
+
+#: ../sonata/main.py:460
+msgid "_Delete..."
+msgstr "_Sil..."
+
+#: ../sonata/main.py:461
+msgid "By Artist"
+msgstr "Sanatçıya göre"
+
+#: ../sonata/main.py:462
+msgid "By Album"
+msgstr "Albüme göre"
+
+#: ../sonata/main.py:463
+msgid "By Song Title"
+msgstr "Şarkı İsmine göre"
+
+#: ../sonata/main.py:464
+msgid "By File Name"
+msgstr "Dosya İsmine göre"
+
+#: ../sonata/main.py:465
+msgid "By Dir & File Name"
+msgstr "Dizin ve Dosya İsmine göre"
+
+#: ../sonata/main.py:466
+msgid "Reverse List"
+msgstr "Listeyi Ters Çevir"
+
+#: ../sonata/main.py:467
+msgid "Random"
+msgstr "Rastgele"
+
+#: ../sonata/main.py:493
+msgid "_Show Sonata"
+msgstr "_Sonata'yı Göster"
+
+#: ../sonata/main.py:494
+msgid "_Repeat"
+msgstr "_Tekrarla"
+
+#: ../sonata/main.py:495
+msgid "_Shuffle"
+msgstr "_Karıştır"
+
+#: ../sonata/main.py:682
+#: ../sonata/main.py:849
+#: ../sonata/main.py:850
+msgid "Playlist"
+msgstr "Çalma Listesi"
+
+#: ../sonata/main.py:701
+msgid "Filter"
+msgstr "Süzgeç"
+
+#: ../sonata/main.py:727
+msgid "_End Search"
+msgstr "_Aramayı Bitir"
+
+#: ../sonata/main.py:731
+#: ../sonata/main.py:821
+msgid "Library browsing view"
+msgstr "Kütüphane arama görünümü"
+
+#: ../sonata/main.py:807
+#: ../sonata/main.py:812
+#: ../sonata/main.py:1368
+#: ../sonata/main.py:3754
+#: ../sonata/main.py:3765
+msgid "Stopped"
+msgstr "Durduruldu"
+
+#: ../sonata/main.py:808
+#: ../sonata/main.py:3758
+#: ../sonata/main.py:4416
+msgid "Click to expand"
+msgstr "Genişletmek için tıklayın"
+
+#: ../sonata/main.py:813
+#: ../sonata/main.py:3756
+#: ../sonata/main.py:4414
+msgid "Click to collapse"
+msgstr "Daraltmak için tıklayın"
+
+#: ../sonata/main.py:818
+#: ../sonata/main.py:3654
+#: ../sonata/main.py:3761
+msgid "Not Connected"
+msgstr "Bağlı Değil"
+
+#: ../sonata/main.py:820
+#: ../sonata/main.py:3652
+#: ../sonata/main.py:3763
+msgid "No Read Permission"
+msgstr "Okuma İzni Yok"
+
+#: ../sonata/main.py:1086
+msgid "Version: Sonata"
+msgstr "Sürüm: Sonata"
+
+#: ../sonata/main.py:1087
+msgid "Website: http://sonata.berlios.de/"
+msgstr "İnternet Sitesi: http://sonata.berlios.de/"
+
+#: ../sonata/main.py:1092
+msgid "Usage: sonata [OPTION]"
+msgstr "Kullanım: sonata [OPTION]"
+
+#: ../sonata/main.py:1094
+msgid "Options"
+msgstr "Seçenekler"
+
+#: ../sonata/main.py:1095
+msgid "Show this help and exit"
+msgstr "Bu yardımı göster ve çık"
+
+#: ../sonata/main.py:1096
+msgid "Popup song notification (requires DBus)"
+msgstr "Bilgilendirme penceresi (DBus gerekli)"
+
+#: ../sonata/main.py:1097
+msgid "Toggles whether the app is minimized"
+msgstr "Uygulamanın sistem çekmecesine gizlenmesi"
+
+#: ../sonata/main.py:1098
+msgid "to tray or visible (requires D-Bus)"
+msgstr "veya görünmesi arasında geçiş yapar (D-Bus gerekli)"
+
+#: ../sonata/main.py:1099
+msgid "Show version information and exit"
+msgstr "Sürüm bilgisini göster ve çık"
+
+#: ../sonata/main.py:1100
+msgid "Start app hidden (requires systray)"
+msgstr "Uygulamayı gizli başlat (sistem çekmecesi gerekli)"
+
+#: ../sonata/main.py:1101
+msgid "Start app visible (requires systray)"
+msgstr "Uygulamayı görünür başlat (sistem çekmecesi gerekli)"
+
+#: ../sonata/main.py:1102
+msgid "Start with profile [NUM]"
+msgstr "Profil [NUM] ile başlat"
+
+#: ../sonata/main.py:1103
+msgid "Play song in playlist"
+msgstr "Çalma listesinden şarkı çal"
+
+#: ../sonata/main.py:1104
+msgid "Pause currently playing song"
+msgstr "Çalmakta olan şarkıyı duraklat"
+
+#: ../sonata/main.py:1105
+msgid "Stop currently playing song"
+msgstr "Çalmakta olan şarkıyı durdur"
+
+#: ../sonata/main.py:1106
+msgid "Play next song in playlist"
+msgstr "Çalma listesinde sonraki şarkıyı çal"
+
+#: ../sonata/main.py:1107
+msgid "Play previous song in playlist"
+msgstr "Çalma listesinde önceki şarkıyı çal"
+
+#: ../sonata/main.py:1108
+msgid "Toggle play/pause; plays if stopped"
+msgstr "Çal/duraklat; şarkı durmuşsa başlatır"
+
+#: ../sonata/main.py:1109
+msgid "Toggle repeat mode"
+msgstr "Tekrarlama durumunu değiştir"
+
+#: ../sonata/main.py:1110
+msgid "Toggle shuffle mode"
+msgstr "Karıştırma durumunu değiştir"
+
+#: ../sonata/main.py:1111
+msgid "Display current song info"
+msgstr "Çalmakta olan şarkı bilgisini göster"
+
+#: ../sonata/main.py:1112
+msgid "Display MPD status"
+msgstr "MPD durumunu göster"
+
+#: ../sonata/main.py:1130
+msgid "Song Info"
+msgstr "Şarkı Bilgisi"
+
+#: ../sonata/main.py:1152
+#: ../sonata/main.py:1346
+#: ../sonata/main.py:2819
+msgid "Date"
+msgstr "Tarih"
+
+#: ../sonata/main.py:1152
+#: ../sonata/main.py:1347
+#: ../sonata/main.py:2687
+#: ../sonata/main.py:2821
+#: ../sonata/main.py:6718
+msgid "Track"
+msgstr "Parça"
+
+#: ../sonata/main.py:1152
+#: ../sonata/main.py:1349
+#: ../sonata/main.py:2691
+#: ../sonata/main.py:2822
+msgid "File"
+msgstr "Dosya"
+
+#: ../sonata/main.py:1152
+#: ../sonata/main.py:1357
+#: ../sonata/main.py:2815
+msgid "Bitrate"
+msgstr "Bitrate"
+
+#: ../sonata/main.py:1154
+msgid "Launch artist in Wikipedia"
+msgstr "Sanatçıyı Wikipedia'da arat"
+
+#: ../sonata/main.py:1154
+msgid "Launch album in Wikipedia"
+msgstr "Albümü Wikipedia'da arat"
+
+#: ../sonata/main.py:1188
+msgid "Toggle extra tags"
+msgstr "Diğer etiketler"
+
+#: ../sonata/main.py:1191
+msgid "Edit song tags"
+msgstr "Şarkı etiketlerini düzenle"
+
+#: ../sonata/main.py:1201
+msgid "Lyrics"
+msgstr "Şarkı sözleri"
+
+#: ../sonata/main.py:1211
+msgid "Search Lyricwiki.org for lyrics"
+msgstr "Lyricwiki.org'tan şarkı sözü ara"
+
+#: ../sonata/main.py:1218
+msgid "Album Info"
+msgstr "Albüm Bilgisi"
+
+#: ../sonata/main.py:1354
+#: ../sonata/main.py:1356
+msgid "Time"
+msgstr "Zaman"
+
+#: ../sonata/main.py:1359
+msgid "MPD stopped"
+msgstr "MPD durduruldu"
+
+#: ../sonata/main.py:1364
+#: ../sonata/main.py:1366
+#: ../sonata/main.py:1368
+msgid "State"
+msgstr "Durum"
+
+#: ../sonata/main.py:1364
+msgid "Playing"
+msgstr "Çalıyor"
+
+#: ../sonata/main.py:1366
+msgid "Paused"
+msgstr "Duraklatıldı"
+
+#: ../sonata/main.py:1370
+#: ../sonata/main.py:1372
+msgid "Repeat"
+msgstr "Yinele"
+
+#: ../sonata/main.py:1370
+#: ../sonata/main.py:1374
+msgid "Off"
+msgstr "Kapalı"
+
+#: ../sonata/main.py:1372
+#: ../sonata/main.py:1376
+msgid "On"
+msgstr "Açık"
+
+#: ../sonata/main.py:1374
+#: ../sonata/main.py:1376
+msgid "Shuffle"
+msgstr "Karıştır"
+
+#: ../sonata/main.py:1377
+msgid "Volume"
+msgstr "Ses seviyesi"
+
+#: ../sonata/main.py:1378
+msgid "Crossfade"
+msgstr "Crossfade"
+
+#: ../sonata/main.py:1378
+#: ../sonata/main.py:5681
+msgid "second"
+msgid_plural "seconds"
+msgstr[0] ""
+msgstr[1] "saniye"
+
+#: ../sonata/main.py:1382
+msgid ""
+"Unable to connect to MPD.\n"
+"Please check your Sonata preferences or MPD_HOST/MPD_PORT environment variables."
+msgstr ""
+"MPD'ye bağlanılamıyor.\n"
+"Lütfen Sonata tercihlerinizi veya MPD_HOST/ MPD_PORT çevre değişkenlerinizi kontrol edin."
+
+#: ../sonata/main.py:1427
+msgid "Disconnect"
+msgstr "Bağlantıyı kes"
+
+#: ../sonata/main.py:2015
+msgid "Edit Stream"
+msgstr "Yayını Düzenle"
+
+#: ../sonata/main.py:2017
+#: ../sonata/main.py:2048
+msgid "New Stream"
+msgstr "Yeni Yayın"
+
+#: ../sonata/main.py:2019
+#: ../sonata/main.py:5887
+msgid "Stream name"
+msgstr "Yayın ismi"
+
+#: ../sonata/main.py:2026
+msgid "Stream URL"
+msgstr "Yayın URL'si"
+
+#: ../sonata/main.py:2048
+msgid "A stream with this name already exists. Would you like to replace it?"
+msgstr "Bu isimde bir yayın zaten var. Başka bir isim dener misiniz?"
+
+#: ../sonata/main.py:2066
+#: ../sonata/main.py:2068
+msgid "Save Playlist"
+msgstr "Çalma Listesini Kaydet"
+
+#: ../sonata/main.py:2091
+msgid "A playlist with this name already exists. Would you like to replace it?"
+msgstr "Bu isimde çalma listesi zaten var. Başka isim dener misiniz?"
+
+#: ../sonata/main.py:2103
+msgid "Playlist name"
+msgstr "Çalma listesi ismi"
+
+#: ../sonata/main.py:2129
+#: ../sonata/main.py:2133
+msgid "Rename Playlist"
+msgstr "Çalma Listesini Yeniden Adlandır"
+
+#: ../sonata/main.py:2688
+#: ../sonata/main.py:2694
+msgid "#"
+msgstr "#"
+
+#: ../sonata/main.py:2689
+#: ../sonata/main.py:5886
+#: ../sonata/main.py:6714
+msgid "Year"
+msgstr "Yıl"
+
+#: ../sonata/main.py:2692
+msgid "Stream"
+msgstr "Yayın"
+
+#: ../sonata/main.py:2693
+msgid "Len"
+msgstr "Uzunluk"
+
+#: ../sonata/main.py:2714
+#: ../sonata/main.py:2721
+#: ../sonata/main.py:2756
+#: ../sonata/main.py:2763
+msgid "Unknown"
+msgstr "Bilinmeyen"
+
+#: ../sonata/main.py:2856
+msgid "edit tags"
+msgstr "etiketleri düzenle"
+
+#: ../sonata/main.py:2883
+#: ../sonata/main.py:4970
+msgid "Various Artists"
+msgstr "Çeşitli Sanatçılar"
+
+#: ../sonata/main.py:2891
+msgid "Album info not found."
+msgstr "Albüm bilgisi bulunamadı"
+
+#: ../sonata/main.py:2894
+msgid "Album name not set."
+msgstr "Albüm ismi belirtilmemiş."
+
+#: ../sonata/main.py:2907
+msgid "ZSI not found, fetching lyrics support disabled."
+msgstr "ZSI bulunamadı, şarkı sözü indirme desteği devre dışı."
+
+#: ../sonata/main.py:2914
+msgid "Artist or song title not set."
+msgstr "Sanatçı ya da şarkı ismi belirtilmemiş."
+
+#: ../sonata/main.py:2940
+msgid "search"
+msgstr "ara"
+
+#: ../sonata/main.py:2949
+#: ../sonata/main.py:3002
+msgid "Lyrics not found"
+msgstr "Şarkı sözü bulunamadı"
+
+#: ../sonata/main.py:2968
+msgid "Fetching lyrics..."
+msgstr "Şarkı sözleri getiriliyor..."
+
+#: ../sonata/main.py:2978
+msgid "Couldn't connect to LyricWiki"
+msgstr "LyricWiki'ye bağlanılamadı"
+
+#: ../sonata/main.py:3005
+msgid "Fetching lyrics failed"
+msgstr "Şarkı sözleri getirilemedi"
+
+#: ../sonata/main.py:3676
+msgid "day"
+msgid_plural "days"
+msgstr[0] ""
+msgstr[1] "gün"
+
+#: ../sonata/main.py:3680
+msgid "minute"
+msgid_plural "minutes"
+msgstr[0] ""
+msgstr[1] "dakika"
+
+#: ../sonata/main.py:3684
+msgid "hour"
+msgid_plural "hours"
+msgstr[0] ""
+msgstr[1] "saat"
+
+#: ../sonata/main.py:3686
+#: ../sonata/main.py:7183
+msgid "song"
+msgid_plural "songs"
+msgstr[0] ""
+msgstr[1] "şarkı"
+
+#: ../sonata/main.py:3688
+#: ../sonata/main.py:3690
+msgid "and"
+msgstr "ve"
+
+#: ../sonata/main.py:3696
+msgid "(updating mpd)"
+msgstr "(mpd güncelleniyor)"
+
+#: ../sonata/main.py:4476
+msgid "Lyrics Search"
+msgstr "Şarkı Sözü Ara"
+
+#: ../sonata/main.py:4477
+msgid "_Search"
+msgstr "_Ara"
+
+#: ../sonata/main.py:4480
+msgid "Artist Name"
+msgstr "Sanatçı İsmi"
+
+#: ../sonata/main.py:4485
+msgid "Song Title"
+msgstr "Şarkı İsmi"
+
+#: ../sonata/main.py:5007
+msgid "Open Image"
+msgstr "Resmi Aç"
+
+#: ../sonata/main.py:5009
+msgid "Images"
+msgstr "Resimler"
+
+#: ../sonata/main.py:5013
+msgid "All files"
+msgstr "Tüm Dosyalar"
+
+#: ../sonata/main.py:5057
+msgid "Choose Cover Art"
+msgstr "Kapak Resmi Seç"
+
+#: ../sonata/main.py:5058
+msgid "C_hoose"
+msgstr "S_eç"
+
+#: ../sonata/main.py:5086
+msgid "_Update"
+msgstr "_Güncelle"
+
+#: ../sonata/main.py:5091
+msgid "Edit search terms"
+msgstr "Arama terimlerini düzenle"
+
+#: ../sonata/main.py:5148
+msgid "No artist or album name found."
+msgstr "Sanatçı veya albüm ismi bulunamadı."
+
+#: ../sonata/main.py:5151
+msgid "No cover art found."
+msgstr "Albüm kapağı bulunamadı."
+
+#: ../sonata/main.py:5506
+msgid "Delete the selected playlist?"
+msgid_plural "Delete the selected playlists?"
+msgstr[0] ""
+msgstr[1] "Seçili çalma listeleri silinsin mi?"
+
+#: ../sonata/main.py:5506
+msgid "Delete Playlist"
+msgid_plural "Delete Playlists"
+msgstr[0] ""
+msgstr[1] "Çalma listelerini sil"
+
+#: ../sonata/main.py:5514
+msgid "Delete the selected stream?"
+msgid_plural "Delete the selected streams?"
+msgstr[0] ""
+msgstr[1] "Seçili yayınlar silinsin mi?"
+
+#: ../sonata/main.py:5514
+msgid "Delete Stream"
+msgid_plural "Delete Streams"
+msgstr[0] ""
+msgstr[1] "Yayınları Sil"
+
+#: ../sonata/main.py:5560
+#: ../sonata/main.py:7081
+msgid "Preferences"
+msgstr "Tercihler"
+
+#: ../sonata/main.py:5564
+msgid "MPD Connection"
+msgstr "MPD Bağlantısı"
+
+#: ../sonata/main.py:5574
+msgid "Name"
+msgstr "İsim"
+
+#: ../sonata/main.py:5579
+msgid "Host"
+msgstr "Sunucu"
+
+#: ../sonata/main.py:5584
+msgid "Port"
+msgstr "Port"
+
+#: ../sonata/main.py:5589
+msgid "Music dir"
+msgstr "Müzik dizini"
+
+#: ../sonata/main.py:5595
+msgid "Password"
+msgstr "Parola"
+
+#: ../sonata/main.py:5598
+msgid "Leave blank if no password is required."
+msgstr "Şifre gerekmiyorsa boş bırakın."
+
+#: ../sonata/main.py:5602
+msgid "Autoconnect on start"
+msgstr "Başlangıçta otomatik bağlan"
+
+#: ../sonata/main.py:5616
+msgid "Using MPD_HOST/PORT"
+msgstr "MPD_HOST/PORT kullanılıyor"
+
+#: ../sonata/main.py:5656
+msgid "Extras"
+msgstr "Ekler"
+
+#: ../sonata/main.py:5663
+msgid "Enable Audioscrobbler"
+msgstr "Audioscrobbler etkinleştir"
+
+#: ../sonata/main.py:5668
+msgid "Username:"
+msgstr "Kullanıcı Adı:"
+
+#: ../sonata/main.py:5669
+msgid "Password:"
+msgstr "Şifre:"
+
+#: ../sonata/main.py:5672
+msgid "Notification"
+msgstr "Bilgilendirme"
+
+#: ../sonata/main.py:5673
+msgid "Popup notification on song changes"
+msgstr "Şarkı değişikliklerinde bilgilendirme göster"
+
+#: ../sonata/main.py:5691
+msgid "Enable Crossfade"
+msgstr "Crossfade aktif"
+
+#: ../sonata/main.py:5699
+msgid "Fade length"
+msgstr "Fade uzunluğu"
+
+#: ../sonata/main.py:5700
+msgid "sec"
+msgstr "saniye"
+
+#: ../sonata/main.py:5737
+msgid "Display"
+msgstr "Göster"
+
+#: ../sonata/main.py:5739
+msgid "Enable album art"
+msgstr "Albüm resmi seçili"
+
+#: ../sonata/main.py:5741
+msgid "Standard"
+msgstr "Temel"
+
+#: ../sonata/main.py:5741
+msgid "Stylized"
+msgstr "Şekilli"
+
+#: ../sonata/main.py:5743
+msgid "Artwork style:"
+msgstr "Albüm resmi biçimi:"
+
+#: ../sonata/main.py:5746
+msgid "Local only"
+msgstr "Sadece yerel"
+
+#: ../sonata/main.py:5746
+msgid "Local, then remote"
+msgstr "Önce yerel, sonra harici"
+
+#: ../sonata/main.py:5747
+msgid "Search order:"
+msgstr "Arama sırası:"
+
+#: ../sonata/main.py:5752
+msgid "Save art to:"
+msgstr "Albüm kapaklarını buraya kaydet:"
+
+#: ../sonata/main.py:5754
+msgid "custom"
+msgstr "özel"
+
+#: ../sonata/main.py:5755
+#: ../sonata/main.py:5774
+msgid "file_path"
+msgstr "dosya_yolu"
+
+#: ../sonata/main.py:5760
+msgid "Enable playback/volume buttons"
+msgstr "Tekrar çalma/ses butonları"
+
+#: ../sonata/main.py:5763
+msgid "Enable progressbar"
+msgstr "İlerleme çubuğu"
+
+#: ../sonata/main.py:5766
+msgid "Enable statusbar"
+msgstr "Durum çubuğu"
+
+#: ../sonata/main.py:5769
+msgid "Enable lyrics"
+msgstr "Şarkı sözleri"
+
+#: ../sonata/main.py:5772
+msgid "Save lyrics to:"
+msgstr "Şarkı sözlerini buraya kaydet:"
+
+#: ../sonata/main.py:5778
+msgid "Enable system tray icon"
+msgstr "Sistem çekmecesi"
+
+#: ../sonata/main.py:5798
+msgid "Window Behavior"
+msgstr "Pencere Davranışı"
+
+#: ../sonata/main.py:5799
+msgid "Show window on all workspaces"
+msgstr "Pencereyi tüm çalışma alanlarında göster"
+
+#: ../sonata/main.py:5801
+msgid "Keep window above other windows"
+msgstr "Pencereyi diğer pencerelerin üstünde tut"
+
+#: ../sonata/main.py:5803
+msgid "Update MPD library on start"
+msgstr "Başlangıçta MPD kütüphanesini güncelle"
+
+#: ../sonata/main.py:5805
+msgid "If enabled, Sonata will automatically update your MPD library when it starts up."
+msgstr "Eğer seçiliyse, Sonata otomatik olarak MPD kütüphanenizi başlangıçta güncelleyecektir."
+
+#: ../sonata/main.py:5806
+msgid "Stop playback on exit"
+msgstr "Çıkışta şarkıyı durdur"
+
+#: ../sonata/main.py:5808
+msgid "MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit."
+msgstr "MPD, istemci kapalı olduğu halde çalmaya devam eder. Eğer seçiliyse, Sonata genel müzik çalıcılar gibi davranacak ve uygulama kapatıldığında tekrar çalma da duracak."
+
+#: ../sonata/main.py:5809
+msgid "Minimize to system tray on close/escape"
+msgstr "Pencere kapatıldığında sistem çekmecesine yerleş"
+
+#: ../sonata/main.py:5811
+msgid "If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."
+msgstr "Eğer seçiliyse, Sonata kapanırken sistem çekmecesine yerleşecek. Panelde sistem çekmecenizin olduğundan emin olun, aksi halde Sonata penceresini geri açamayabilirsiniz."
+
+#: ../sonata/main.py:5820
+msgid "Write status file:"
+msgstr "Durumu dosyaya yaz:"
+
+#: ../sonata/main.py:5822
+#: ../sonata/main.py:5824
+msgid "If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)"
+msgstr "Eğer seçiliyse, Sonata xmms-infopipe tarzı şarkı hakkında bilgi içeren bir dosya oluşturacak. Birçok uygulama (Anlık-İleti araçları, IRC istemciler...) xmms-info dosyalarını destekler."
+
+#: ../sonata/main.py:5830
+msgid "Miscellaneous"
+msgstr "Çeşitli"
+
+#: ../sonata/main.py:5852
+msgid "Song Formatting"
+msgstr "Şarkı Biçimi"
+
+#: ../sonata/main.py:5854
+msgid "Current playlist:"
+msgstr "Çalınanlar listesi:"
+
+#: ../sonata/main.py:5859
+msgid "Library:"
+msgstr "Kütüphane:"
+
+#: ../sonata/main.py:5864
+msgid "Window title:"
+msgstr "Pencere başlığı:"
+
+#: ../sonata/main.py:5870
+msgid "Current song line 1:"
+msgstr "Çalınan şarkı satır 1:"
+
+#: ../sonata/main.py:5875
+msgid "Current song line 2:"
+msgstr "Çalınan şarkı satır 2:"
+
+#: ../sonata/main.py:5883
+msgid "Available options"
+msgstr "Kullanılabilir seçenekler"
+
+#: ../sonata/main.py:5886
+msgid "Artist name"
+msgstr "Sanatçı ismi"
+
+#: ../sonata/main.py:5886
+msgid "Album name"
+msgstr "Albüm ismi"
+
+#: ../sonata/main.py:5886
+msgid "Track name"
+msgstr "Şarkı ismi"
+
+#: ../sonata/main.py:5886
+msgid "Track number"
+msgstr "Şarkı numarası"
+
+#: ../sonata/main.py:5886
+msgid "Disc Number"
+msgstr "Disk Numarası"
+
+#: ../sonata/main.py:5887
+msgid "File name"
+msgstr "Dosya ismi"
+
+#: ../sonata/main.py:5887
+msgid "Song length"
+msgstr "Şarkı uzunluğu"
+
+#: ../sonata/main.py:5887
+msgid "Elapsed time (title only)"
+msgstr "Geçen süre (sadece başlık)"
+
+#: ../sonata/main.py:5891
+msgid "Info displayed only if all enclosed tags are defined"
+msgstr "Yalnız etiketler tanımlanmışsa bilgi gösterilecek"
+
+#: ../sonata/main.py:5891
+msgid "Creates columns in the current playlist"
+msgstr "Çalınanlar listesinde sütunlar oluşturur"
+
+#: ../sonata/main.py:5905
+msgid "_MPD"
+msgstr "_MPD"
+
+#: ../sonata/main.py:5906
+msgid "_Display"
+msgstr "_Göster"
+
+#: ../sonata/main.py:5907
+msgid "_Behavior"
+msgstr "_Davranış"
+
+#: ../sonata/main.py:5908
+msgid "_Format"
+msgstr "_Biçim"
+
+#: ../sonata/main.py:5909
+msgid "_Extras"
+msgstr "_Ekler"
+
+#: ../sonata/main.py:5983
+msgid "Python 2.5 or python-elementtree not found, audioscrobbler support disabled."
+msgstr "Python 2.5 ya da python-elementtree bulunamadı, audioscrobbler desteği devre dışı."
+
+#: ../sonata/main.py:5983
+msgid "Audioscrobbler Verification"
+msgstr "Audioscrobbler Doğrulaması"
+
+#: ../sonata/main.py:6007
+msgid "To save lyrics to the music file's directory, you must specify a valid music directory."
+msgstr "Şarkı sözlerini müzik dosyasının dizinine kaydetmek için, geçerli müzik dizini belirtmeniz gerekmektedir."
+
+#: ../sonata/main.py:6007
+#: ../sonata/main.py:6014
+msgid "Music Dir Verification"
+msgstr "Müzik Dizini Doğrulaması"
+
+#: ../sonata/main.py:6014
+msgid "To save artwork to the music file's directory, you must specify a valid music directory."
+msgstr "Albüm resimlerini müzik dosyasının dizinine kaydetmek için, geçerli müzik dizini belirtmeniz gerekmektedir."
+
+#: ../sonata/main.py:6107
+msgid "New Profile"
+msgstr "Yeni Profil"
+
+#: ../sonata/main.py:6215
+msgid "Custom Artwork"
+msgstr "Özel Resim"
+
+#: ../sonata/main.py:6217
+msgid "Artwork filename"
+msgstr "Resim ismi"
+
+#: ../sonata/main.py:6330
+#: ../sonata/main.py:6335
+msgid "more"
+msgstr "daha fazla"
+
+#: ../sonata/main.py:6332
+msgid "hide"
+msgstr "gizle"
+
+#: ../sonata/main.py:6620
+msgid "Taglib and/or tagpy not found, tag editing support disabled."
+msgstr "Taglib ve/veya tagpy bulunamadı, etiket düzenleme desteği kaldırıldı."
+
+#: ../sonata/main.py:6620
+#: ../sonata/main.py:6623
+#: ../sonata/main.py:6670
+#: ../sonata/main.py:6674
+#: ../sonata/main.py:6887
+#: ../sonata/main.py:6999
+msgid "Edit Tags"
+msgstr "Etiketleri Düzenle"
+
+#: ../sonata/main.py:6623
+msgid "The path"
+msgstr "Yol"
+
+#: ../sonata/main.py:6623
+msgid "does not exist. Please specify a valid music directory in preferences."
+msgstr "mevcut değil. Lütfen tercihlerde geçerli müzik dizini belirtin."
+
+#: ../sonata/main.py:6670
+msgid "File "
+msgstr "Dosya"
+
+#: ../sonata/main.py:6670
+msgid " not found. Please specify a valid music directory in preferences."
+msgstr " bulunamadı. Lütfen tercihlerde geçerli müzik dizini belirtin."
+
+#: ../sonata/main.py:6674
+msgid "No music files with editable tags found."
+msgstr "Düzenlenebilir etikete sahip hiç müzik dosyası bulunamadı."
+
+#: ../sonata/main.py:6745
+msgid "Comment"
+msgstr "Yorum"
+
+#: ../sonata/main.py:6763
+msgid "Save _All"
+msgstr "_Hepsini Kaydet"
+
+#: ../sonata/main.py:6809
+msgid "Increment each selected music file, starting at track 1 for this file."
+msgstr "Seçilen dosyaların numarasını bu dosya 1 olacak şekilde birer birer artır."
+
+#: ../sonata/main.py:6811
+msgid "Apply to all selected music files."
+msgstr "Tüm müzik dosyaları için uygula"
+
+#: ../sonata/main.py:6887
+msgid "of"
+msgstr ""
+
+#: ../sonata/main.py:6999
+msgid "Unable to save tag to music file."
+msgstr "Etiket müzik dosyasına kaydedilemiyor."
+
+#: ../sonata/main.py:7080
+msgid "About Sonata"
+msgstr "Sonata Hakkında"
+
+#: ../sonata/main.py:7082
+msgid "Switch to [1st-5th] tab"
+msgstr "[1-5]'inci sekmeye geç"
+
+#: ../sonata/main.py:7083
+msgid "Connect to MPD"
+msgstr "MPD'ye bağlan"
+
+#: ../sonata/main.py:7084
+msgid "Disconnect from MPD"
+msgstr "MPD bağlantısını kes"
+
+#: ../sonata/main.py:7085
+msgid "Randomize current playlist"
+msgstr "Çalma listesini karıştır"
+
+#: ../sonata/main.py:7086
+msgid "Expand player"
+msgstr "Çalıcıyı genişlet"
+
+#: ../sonata/main.py:7087
+msgid "Collapse player"
+msgstr "Çalıcıyı daralt"
+
+#: ../sonata/main.py:7088
+msgid "Search library"
+msgstr "Kitaplıkta ara"
+
+#: ../sonata/main.py:7089
+msgid "Quit"
+msgstr "Kapat"
+
+#: ../sonata/main.py:7090
+msgid "Update entire library"
+msgstr "Tüm kütüphaneyi güncelle"
+
+#: ../sonata/main.py:7091
+msgid "Display popup menu"
+msgstr "Bilgilendirme penceresini göster"
+
+#: ../sonata/main.py:7092
+msgid "Minimize to system tray (if enabled)"
+msgstr "Sistem çekmecesine yerleş (eğer etkinse)"
+
+#: ../sonata/main.py:7094
+msgid "Previous track"
+msgstr "Önceki şarkı"
+
+#: ../sonata/main.py:7095
+msgid "Next track"
+msgstr "Sonraki şarkı"
+
+#: ../sonata/main.py:7096
+msgid "Play/Pause"
+msgstr "Çal/Duraklat"
+
+#: ../sonata/main.py:7097
+msgid "Stop"
+msgstr "Durdur"
+
+#: ../sonata/main.py:7098
+msgid "Lower the volume"
+msgstr "Sesi azalt"
+
+#: ../sonata/main.py:7099
+msgid "Raise the volume"
+msgstr "Sesi yükselt"
+
+#: ../sonata/main.py:7101
+msgid "Play selected song"
+msgstr "Seçili şarkıyı çal"
+
+#: ../sonata/main.py:7102
+msgid "Remove selected song(s)"
+msgstr "Seçili şarkı(lar)ı sil"
+
+#: ../sonata/main.py:7103
+msgid "Center currently playing song"
+msgstr "Çalınan şarkıyı ortaya getir"
+
+#: ../sonata/main.py:7104
+#: ../sonata/main.py:7113
+msgid "Edit selected song's tags"
+msgstr "Seçili şarkının etiketlerini düzenle"
+
+#: ../sonata/main.py:7105
+msgid "Save to new playlist"
+msgstr "Yeni çalma listesine kaydet"
+
+#: ../sonata/main.py:7106
+msgid "Clear list"
+msgstr "Listeyi temizle"
+
+#: ../sonata/main.py:7107
+msgid "Randomize list"
+msgstr "Listeyi karıştır"
+
+#: ../sonata/main.py:7109
+msgid "Add selected song(s) or enter directory"
+msgstr "Seçili şarkı(lar)ı ekle veya dizin gir"
+
+#: ../sonata/main.py:7110
+msgid "Go to parent directory"
+msgstr "Üst dizine git"
+
+#: ../sonata/main.py:7111
+msgid "Add selected item(s)"
+msgstr "Seçili olan(lar)ı ekle"
+
+#: ../sonata/main.py:7112
+msgid "Replace with selected item(s)"
+msgstr "Seçili olan(lar)la değiştir"
+
+#: ../sonata/main.py:7114
+msgid "Add selected item(s) and play"
+msgstr "Seçili olan(lar)ı ekle ve çal"
+
+#: ../sonata/main.py:7115
+msgid "Replace with selected item(s) and play"
+msgstr "Seçili olan(lar)la değiştir ve çal"
+
+#: ../sonata/main.py:7116
+msgid "Update library for selected item(s)"
+msgstr "Kütüphaneyi seçili olan(lar) için güncelle"
+
+#: ../sonata/main.py:7118
+#: ../sonata/main.py:7120
+msgid "Add selected playlist(s)"
+msgstr "Seçili çalma listesini/listelerini ekle"
+
+#: ../sonata/main.py:7119
+msgid "Remove selected playlist(s)"
+msgstr "Seçili çalma listesini/listelerini sil"
+
+#: ../sonata/main.py:7121
+msgid "Replace with selected playlist(s)"
+msgstr "Seçili şarkı listesi/listeleri ile değiştir"
+
+#: ../sonata/main.py:7122
+msgid "Add selected playlist(s) and play"
+msgstr "Seçili şarkı listesi/listelerini ekle ve çal"
+
+#: ../sonata/main.py:7123
+msgid "Replace with selected playlist(s) and play"
+msgstr "Seçili şarkı listesi/listeleri ile değiştir ve çal"
+
+#: ../sonata/main.py:7125
+#: ../sonata/main.py:7127
+msgid "Add selected stream(s)"
+msgstr "Seçili yayın(lar)ı ekle"
+
+#: ../sonata/main.py:7126
+msgid "Remove selected stream(s)"
+msgstr "Seçili yayın(lar)ı sil"
+
+#: ../sonata/main.py:7128
+msgid "Replace with selected stream(s)"
+msgstr "Seçili yayın(lar) ile değiştir"
+
+#: ../sonata/main.py:7129
+msgid "Add selected stream(s) and play"
+msgstr "Seçili yayın(lar)ı ekle ve çal"
+
+#: ../sonata/main.py:7130
+msgid "Replace with selected stream(s) and play"
+msgstr "Seçili yayın(lar) ile değiştir ve çal"
+
+#: ../sonata/main.py:7132
+msgid "Edit playing song's tags"
+msgstr "Çalan şarkının etiketlerini düzenle"
+
+#: ../sonata/main.py:7135
+msgid "Main Shortcuts"
+msgstr "Ana Kısayollar"
+
+#: ../sonata/main.py:7136
+msgid "Playback Shortcuts"
+msgstr "Çalma Kısayolları"
+
+#: ../sonata/main.py:7137
+msgid "Current Shortcuts"
+msgstr "Geçerli Kısayollar"
+
+#: ../sonata/main.py:7138
+msgid "Library Shortcuts"
+msgstr "Kütüphane Kısayolları"
+
+#: ../sonata/main.py:7139
+msgid "Playlist Shortcuts"
+msgstr "Çalma Listesi Kısayolları"
+
+#: ../sonata/main.py:7140
+msgid "Stream Shortcuts"
+msgstr "Yayın Kısayolları"
+
+#: ../sonata/main.py:7141
+msgid "Info Shortcuts"
+msgstr "Bilgi Kısayolları"
+
+#: ../sonata/main.py:7142
+msgid "Shortcuts"
+msgstr "Kısayollar"
+
+#: ../sonata/main.py:7178
+msgid "An elegant music client for MPD."
+msgstr "MPD için zarif bir müzik istemcisi."
+
+#: ../sonata/main.py:7184
+msgid "album"
+msgid_plural "albums"
+msgstr[0] ""
+msgstr[1] "albüm"
+
+#: ../sonata/main.py:7185
+msgid "artist"
+msgid_plural "artists"
+msgstr[0] ""
+msgstr[1] "sanatçı"
+
+#: ../sonata/main.py:7192
+msgid "day of bliss"
+msgid_plural "days of bliss"
+msgstr[0] ""
+msgstr[1] "günlük mutluluk"
+
+#: ../sonata/main.py:7194
+msgid "hour of bliss"
+msgid_plural "hours of bliss"
+msgstr[0] ""
+msgstr[1] "saatlik mutluluk"
+
+#: ../sonata/main.py:7205
+msgid "_Shortcuts"
+msgstr "_Kısayollar"
+
+#: ../sonata/main.py:7463
+msgid "An instance of Sonata is already running."
+msgstr "Sonata şu an çalışıyor."
+
+#: ../sonata/main.py:7469
+msgid "Sonata failed to connect to the D-BUS session bus: Unable to determine the address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for help)"
+msgstr "Sonara D-BUS oturumuna bağlanamadı: Adres belirlenemedi (yardım için 'man dbus-launch' ve 'man dbus-daemon'a bakın)"
+
