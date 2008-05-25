@@ -5412,9 +5412,9 @@ class Base:
             size = widget.allocation.width
         else:
             size = widget.allocation.height
-        if (not self.eggtrayheight or self.eggtrayheight != size) and self.eggtrayfile:
+        if not self.eggtrayheight or self.eggtrayheight != size:
             self.eggtrayheight = size
-            if size > 5:
+            if size > 5 and self.eggtrayfile:
                 self.trayimage.set_from_pixbuf(img.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
 
     def on_current_click(self, treeview, path, column):
