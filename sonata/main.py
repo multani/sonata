@@ -123,14 +123,17 @@ if not skip_gui:
         except:
             HAVE_MMKEYS = False
 
-    try:
-        from sugar.activity import activity
-        HAVE_STATUS_ICON = False
-        HAVE_SUGAR = True
-        VOLUME_ICON_SIZE = 3
-    except:
-        HAVE_SUGAR = False
-        VOLUME_ICON_SIZE = 4
+    # Default to no sugar, then test...
+    HAVE_SUGAR = False
+    VOLUME_ICON_SIZE = 4
+    if 'SUGAR_BUNDLE_PATH' in os.environ:
+        try:
+            from sugar.activity import activity
+            HAVE_STATUS_ICON = False
+            HAVE_SUGAR = True
+            VOLUME_ICON_SIZE = 3
+        except:
+            pass
 
     # Test pygtk version
     if gtk.pygtk_version < (2, 6, 0):

@@ -6,6 +6,7 @@ v1.5.2 - Pending
 	+ Bug: Fix regression where dbus-python became required
 	+ Bug: Bold titles lose sync if song changes with visible filterbar
 	+ Bug: Doesn't scrobble when same song is repeated
+	+ Bug: Python conflict when installed with sugar (OLPC)
 	+ Bug: Fix artwork display in song notification window for RTL languages
 	+ Bug: Fix progressbar seeking for RTL languages
 	+ Bug: No play/pause indicator in systray icon if started while mpd is active
