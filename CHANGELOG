@@ -4,9 +4,10 @@ v1.5.2 - Pending
 	+ Bug: Fix artwork for files with unicode characters
 	+ Bug: Fix crash if mpd library is empty
 	+ Bug: Fix regression where dbus-python became required
+	+ Bug: Bold titles lose sync if song changes with visible filterbar
+	+ Bug: Doesn't scrobble when same song is repeated
 	+ Bug: Fix artwork display in song notification window for RTL languages
 	+ Bug: Fix progressbar seeking for RTL languages
-	+ Bug: Bold titles lose sync if song changes with visible filterbar
 	+ Bug: No play/pause indicator in systray icon if started while mpd is active
 
 v1.5.1 - May 3, 2008

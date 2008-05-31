@@ -383,6 +383,7 @@ class Base:
         self.sel_rows = None
         self.img_clicked = False
         self.existing_playlist_option = 0
+        self.elapsed_now = None
         # If the connection to MPD times out, this will cause the interface to freeze while
         # the socket.connect() calls are repeatedly executed. Therefore, if we were not
         # able to make a connection, slow down the iteration check to once every 15 seconds.
@@ -3521,11 +3522,20 @@ class Base:
 
         if self.as_enabled:
             if self.status and self.status['state'] == 'play':
+                elapsed_prev = self.elapsed_now
+                self.elapsed_now, length = [float(c) for c in self.status['time'].split(':')]
                 if not self.prevstatus or (self.prevstatus and self.prevstatus['state'] == 'stop'):
                     # Switched from stop to play, prepare current track:
                     self.scrobbler_prepare()
-                elif self.prevsonginfo and self.prevsonginfo.has_key('time') and self.scrob_last_prepared != mpdh.get(self.songinfo, 'file'):
-                    # New song is playing, post previous track if time criteria is met:
+                elif self.prevsonginfo and self.prevsonginfo.has_key('time') \
+                and (self.scrob_last_prepared != mpdh.get(self.songinfo, 'file') or \
+                (self.scrob_last_prepared == mpdh.get(self.songinfo, 'file') and elapsed_prev \
+                and abs(elapsed_prev-length)<=2 and self.elapsed_now<=2 and length>0)):
+                    # New song is playing, post previous track if time criteria is met.
+                    # In order to account for the situation where the same song is played twice in
+                    # a row, we will check if the previous time was the end of the song and we're
+                    # now at the beginning of the same song.. this technically isn't right in
+                    # the case where a user seeks back to the beginning, but that's an edge case.
                     if self.scrob_playing_duration > 4 * 60 or self.scrob_playing_duration > int(mpdh.get(self.prevsonginfo, 'time'))/2:
                         if self.scrob_start_time != "":
                             self.scrobbler_post()
@@ -3536,6 +3546,7 @@ class Base:
                     # has been playing:
                     self.scrob_playing_duration += time.time() - self.scrob_time_now
             elif self.status and self.status['state'] == 'stop':
+                self.elapsed_now = 0
                 if self.prevsonginfo and self.prevsonginfo.has_key('time'):
                     if self.scrob_playing_duration > 4 * 60 or self.scrob_playing_duration > int(mpdh.get(self.prevsonginfo, 'time'))/2:
                         # User stopped the client, post previous track if time
