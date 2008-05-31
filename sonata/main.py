@@ -3671,8 +3671,6 @@ class Base:
             self.scrob_post.retrievecache(filename)
 
     def boldrow(self, row):
-        if self.filterbox_visible:
-            return
         if row > -1:
             try:
                 for i in range(len(self.currentdata[row]) - 1):
@@ -3681,8 +3679,6 @@ class Base:
                 pass
 
     def unbold_boldrow(self, row):
-        if self.filterbox_visible:
-            return
         if row > -1:
             try:
                 for i in range(len(self.currentdata[row]) - 1):
