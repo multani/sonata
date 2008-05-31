@@ -2,7 +2,7 @@
 # $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/misc.py $
 # $Id: misc.py 141 2006-09-11 04:51:07Z stonecrest $
 
-import os, subprocess, re, ui, gobject
+import os, subprocess, re, ui, gobject, pango
 
 def convert_time(raw):
     # Converts raw time to 'hh:mm:ss' with leading zeros as appropriate
@@ -222,3 +222,8 @@ def file_from_utf8(filename):
         return gobject.filename_from_utf8(filename)
     except:
         return filename
+
+def is_lang_rtl(window):
+    # Check if a RTL (right-to-left) language:
+    rtl = (window.get_pango_context().get_base_dir() == pango.DIRECTION_RTL)
+    return rtl

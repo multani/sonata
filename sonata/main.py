@@ -3966,11 +3966,8 @@ class Base:
             self.artwork_update(True)
 
     def artwork_set_tooltip_art(self, pix):
-        # Check if RTL language:
-        lang_rtl = (self.window.get_pango_context().get_base_dir() == pango.DIRECTION_RTL)
-
         # Set artwork
-        if not lang_rtl:
+        if not misc.is_lang_rtl(self.window):
             pix1 = pix.subpixbuf(0, 0, 51, 77)
             pix2 = pix.subpixbuf(51, 0, 26, 77)
         else:
@@ -4513,8 +4510,11 @@ class Base:
             if self.status and self.status['state'] in ['play', 'pause']:
                 at, length = [int(c) for c in self.status['time'].split(':')]
                 try:
-                    progressbarsize = self.progressbar.allocation
-                    seektime = int((event.x/progressbarsize.width) * length)
+                    pbsize = self.progressbar.allocation
+                    if misc.is_lang_rtl(self.window):
+                        seektime = int(((pbsize.width-event.x)/pbsize.width) * length)
+                    else:
+                        seektime = int((event.x/pbsize.width) * length)
                     self.seek(int(self.status['song']), seektime)
                 except:
                     pass
