@@ -1,4 +1,4 @@
-v1.5.2 - Pending
+v1.5.2 - June 5, 2008
 	+ Improved artwork/lyrics caching through case-insenstive searching
 	+ Add Turkish translation (Gökmen)
 	+ Bug: Fix artwork for files with unicode characters
@@ -9,7 +9,7 @@ v1.5.2 - Pending
 	+ Bug: Python conflict when installed with sugar (OLPC)
 	+ Bug: Fix artwork display in song notification window for RTL languages
 	+ Bug: Fix progressbar seeking for RTL languages
-	+ Bug: No play/pause indicator in systray icon if started while mpd is active
+	+ Bug: No play/pause indicator in egg tray icon if started while mpd is active
 
 v1.5.1 - May 3, 2008
 	+ Swap 'shuffle' and 'random' to be consistent with MPD
