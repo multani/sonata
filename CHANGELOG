@@ -1,3 +1,6 @@
+v1.6
+	+ Bug: Fix non-ascii characters when scrobbling with non-utf8 locale
+
 v1.5.2 - June 5, 2008
 	+ Improved artwork/lyrics caching through case-insenstive searching
 	+ Add Turkish translation (Gökmen)

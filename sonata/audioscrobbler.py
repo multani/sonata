@@ -746,15 +746,15 @@ class AudioScrobblerPost:
         # Otherwise build the track dictionary and add it to the local cache
         else:
             try:
-                track = {'a[%s]': artist_name.decode(enc).encode('utf8'),
-                        't[%s]': song_title.decode(enc).encode('utf8'),
+                track = {'a[%s]': artist_name.encode('utf8'),
+                        't[%s]': song_title.encode('utf8'),
                         'l[%s]': str(sane_length),
                         'i[%s]': date_played,
-                        'b[%s]': album.decode(enc).encode('utf8'),
+                        'b[%s]': album.encode('utf8'),
                         'm[%s]': mbid.encode('utf8'),
                         'r[%s]': u'',
-                        'n[%s]': tracknumber.decode(enc).encode('utf8'),
-                        'o[%s]': source.decode(enc).encode('utf8'),
+                        'n[%s]': tracknumber.encode('utf8'),
+                        'o[%s]': source.encode('utf8'),
                         }
             except:
                 track = {'a[%s]': artist_name,
@@ -781,11 +781,10 @@ class AudioScrobblerPost:
 
         p = {}
         p['s'] = self.auth_details['s']
-
         try:
-            p['a'] = artist_name.decode(enc).encode('utf8')
-            p['t'] = song_title.decode(enc).encode('utf8')
-            p['b'] = album.decode(enc).encode('utf8')
+            p['a'] = artist_name.encode('utf8')
+            p['t'] = song_title.encode('utf8')
+            p['b'] = album.encode('utf8')
             p['l'] = length.encode('utf8')
             p['n'] = tracknumber.encode('utf8')
             p['m'] = mbid.encode('utf8')
