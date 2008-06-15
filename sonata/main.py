@@ -6710,10 +6710,10 @@ class Base:
             except:
                 pass
         if tagpy is None:
-            ui.show_msg(self.window, _("Taglib and/or tagpy not found, tag editing support disabled."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, self.dialog_destroy)
+            ui.show_msg(self.window, _("Taglib and/or tagpy not found, tag editing support disabled."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=self.dialog_destroy)
             return
         if not os.path.isdir(misc.file_from_utf8(self.musicdir[self.profile_num])):
-            ui.show_msg(self.window, _("The path") + " " + self.musicdir[self.profile_num] + " " + _("does not exist. Please specify a valid music directory in preferences."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, self.dialog_destroy)
+            ui.show_msg(self.window, _("The path ") + " " + self.musicdir[self.profile_num] + " " + _("does not exist. Please specify a valid music directory in preferences."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=self.dialog_destroy)
             return
         ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
         self.edit_style_orig = self.searchtext.get_style()
@@ -6760,11 +6760,11 @@ class Base:
         self.tagnum = -1
         if not os.path.exists(tags[0]['fullpath']):
             ui.change_cursor(None)
-            ui.show_msg(self.window, _("File ") + "\"" + tags[0]['fullpath'] + "\"" + _(" not found. Please specify a valid music directory in preferences."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, self.dialog_destroy)
+            ui.show_msg(self.window, _("File ") + "\"" + tags[0]['fullpath'] + "\"" + _(" not found. Please specify a valid music directory in preferences."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=self.dialog_destroy)
             return
         if self.tags_next_tag(tags) == False:
             ui.change_cursor(None)
-            ui.show_msg(self.window, _("No music files with editable tags found."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, self.dialog_destroy)
+            ui.show_msg(self.window, _("No music files with editable tags found."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=self.dialog_destroy)
             return
         editwindow = ui.dialog(parent=self.window, flags=gtk.DIALOG_MODAL, role='editTags', resizable=False, separator=False)
         editwindow.set_size_request(375, -1)
@@ -7089,7 +7089,7 @@ class Base:
             self.tags_set_tag(filetag.tag(), 'comment', entries[6].get_text())
             save_success = filetag.save()
             if not (save_success and self.conn and self.status):
-                ui.show_msg(self.window, _("Unable to save tag to music file."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, self.dialog_destroy)
+                ui.show_msg(self.window, _("Unable to save tag to music file."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=self.dialog_destroy)
             if self.tags_next_tag(tags):
                 # Next file:
                 self.tags_win_update(window, tags, entries, entries_names)
