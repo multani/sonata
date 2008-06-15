@@ -3018,7 +3018,7 @@ class Base:
             f = open(filename, 'r')
             lyrics = f.read()
             f.close()
-            # Strip artist - filename line from file if it exists, since we
+            # Strip artist - title line from file if it exists, since we
             # now have that information visible elsewhere.
             header = filename_artist + " - " + filename_title + "\n\n"
             if lyrics[:len(header)] == header:
@@ -3049,7 +3049,6 @@ class Base:
                 socketsettimeout(self.LYRIC_TIMEOUT)
                 lyrics = self.lyricServer.getSong(artist=urllib.quote(search_artist), song=urllib.quote(search_title))['return']["lyrics"]
                 if lyrics.lower() != "not found":
-                    lyrics = filename_artist + " - " + filename_title + "\n\n" + lyrics
                     lyrics = misc.unescape_html(lyrics)
                     lyrics = misc.wiki_to_html(lyrics)
                     gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
