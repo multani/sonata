@@ -7496,6 +7496,7 @@ class Base:
         self.current.set_model(self.currentdata)
         gobject.idle_add(self.playlist_retain_view, self.current, filterposition)
         self.current.thaw_child_notify()
+        gobject.idle_add(self.current_center_song_in_list)
         gobject.idle_add(self.current.grab_focus)
 
     def searchfilter_set_matches(self, matches, filterposition, filterselected, retain_position_and_selection):
