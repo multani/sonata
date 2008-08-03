@@ -2790,10 +2790,14 @@ class Base:
                 if not has_brackets:
                     if len(item['file'].split('/')[-1]) == 0 or item['file'][:7] == 'http://' or item['file'][:6] == 'ftp://':
                         # Use path and file name:
-                        return misc.escape_html(item['file'])
+                        text = misc.escape_html(item['file'])
                     else:
                         # Use file name only:
-                        return misc.escape_html(item['file'].split('/')[-1])
+                        text = misc.escape_html(item['file'].split('/')[-1])
+                    if wintitle:
+                        return "[Sonata] " + text
+                    else:
+                        return text
                 else:
                     return ""
         if "%N" in text:
@@ -3848,7 +3852,7 @@ class Base:
             if self.conn and self.status and self.status['state'] in ['play', 'pause']:
                 newtitle = self.parse_formatting(self.titleformat, self.songinfo, False, True)
             else:
-                newtitle = 'Sonata'
+                newtitle = '[Sonata]'
             if not self.last_title or self.last_title != newtitle:
                 self.window.set_property('title', newtitle)
                 self.last_title = newtitle
