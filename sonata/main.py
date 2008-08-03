@@ -7290,7 +7290,7 @@ class Base:
         self.about_dialog.set_license(__license__)
         self.about_dialog.set_authors(['Scott Horowitz <stonecrest@gmail.com>'])
         self.about_dialog.set_artists(['Adrian Chromenko <adrian@rest0re.org>\nhttp://rest0re.org/oss.php'])
-        self.about_dialog.set_translator_credits('ar - Ahmad Farghal <ahmad.farghal@gmail.com>\nbe@latin - Ihar Hrachyshka <ihar.hrachyshka@gmail.com>\nca - Franc Rodriguez <franc.rodriguez@tecob.com>\ncs - Jakub Adler <jakubadler@gmail.com>\nda - Martin Dybdal <dybber@dybber.dk>\nde - Paul Johnson <thrillerator@googlemail.com>\nes - Xoan Sampaiño <xoansampainho@gmail.com>\net - Mihkel <turakas@gmail.com>\nfi - Ilkka Tuohelafr <hile@hack.fi>\nfr - Floreal M <florealm@gmail.com>\nit - Gianni Vialetto <forgottencrow@gmail.com>\nnl - Olivier Keun <litemotiv@gmail.com>\npl - Tomasz Dominikowski <dominikowski@gmail.com>\npt_BR - Alex Tercete Matos <alextercete@gmail.com>\nru - Ivan <bkb.box@bk.ru>\nsv - Daniel Nylander <po@danielnylander.se>\ntr - Gökmen Görgen <gkmngrgn@gmail.com>\nuk - Господарисько Тарас <dogmaton@gmail.com>\nzh_CN - Desmond Chang <dochang@gmail.com>\n')
+        self.about_dialog.set_translator_credits('ar - Ahmad Farghal <ahmad.farghal@gmail.com>\nbe@latin - Ihar Hrachyshka <ihar.hrachyshka@gmail.com>\nca - Franc Rodriguez <franc.rodriguez@tecob.com>\ncs - Jakub Adler <jakubadler@gmail.com>\nda - Martin Dybdal <dybber@dybber.dk>\nde - Paul Johnson <thrillerator@googlemail.com>\nel_GR - Lazaros Koromilas <koromilaz@gmail.com>\nes - Xoan Sampaiño <xoansampainho@gmail.com>\net - Mihkel <turakas@gmail.com>\nfi - Ilkka Tuohelafr <hile@hack.fi>\nfr - Floreal M <florealm@gmail.com>\nit - Gianni Vialetto <forgottencrow@gmail.com>\nnl - Olivier Keun <litemotiv@gmail.com>\npl - Tomasz Dominikowski <dominikowski@gmail.com>\npt_BR - Alex Tercete Matos <alextercete@gmail.com>\nru - Ivan <bkb.box@bk.ru>\nsv - Daniel Nylander <po@danielnylander.se>\ntr - Gökmen Görgen <gkmngrgn@gmail.com>\nuk - Господарисько Тарас <dogmaton@gmail.com>\nzh_CN - Desmond Chang <dochang@gmail.com>\n')
         gtk.about_dialog_set_url_hook(self.show_website, "http://sonata.berlios.de/")
         self.about_dialog.set_website_label("http://sonata.berlios.de/")
         large_icon = gtk.gdk.pixbuf_new_from_file(self.find_path('sonata_large.png'))
@@ -7338,11 +7338,11 @@ class Base:
 
     def searchfilter_toggle(self, widget, initial_text=""):
         if self.filterbox_visible:
+            ui.hide(self.filterbox)
             self.filterbox_visible = False
             self.edit_style_orig = self.searchtext.get_style()
-            ui.hide(self.filterbox)
-            self.searchfilter_stop_loop(self.filterbox)
             self.filterpattern.set_text("")
+            self.searchfilter_stop_loop(self.filterbox)
         elif self.conn:
             self.playlist_pos_before_filter = self.current.get_visible_rect()[1]
             self.filterbox_visible = True
@@ -7372,7 +7372,6 @@ class Base:
         if song_id:
             self.searchfilter_toggle(None)
             self.client.playid(song_id)
-            gobject.idle_add(self.current_center_song_in_list)
 
     def current_get_songid(self, iter, model):
         return int(model.get_value(iter, 0))
@@ -7494,7 +7493,7 @@ class Base:
 
     def searchfilter_revert_model(self, filterposition):
         self.current.set_model(self.currentdata)
-        gobject.idle_add(self.playlist_retain_view, self.current, filterposition)
+        self.current_center_song_in_list()
         self.current.thaw_child_notify()
         gobject.idle_add(self.current_center_song_in_list)
         gobject.idle_add(self.current.grab_focus)
