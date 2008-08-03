@@ -2485,10 +2485,16 @@ class Base:
     def library_get_album_cover(self, dir, artist, album):
         tmp, coverfile = self.artwork_get_local_image(dir, artist, album)
         if coverfile:
-            coverfile = gtk.gdk.pixbuf_new_from_file_at_size(coverfile, self.LIB_COVER_SIZE, self.LIB_COVER_SIZE)
-            w = coverfile.get_width()
-            h = coverfile.get_height()
-            coverfile = self.artwork_apply_composite_case(coverfile, w, h)
+            try:
+                coverfile = gtk.gdk.pixbuf_new_from_file_at_size(coverfile, self.LIB_COVER_SIZE, self.LIB_COVER_SIZE)
+                w = coverfile.get_width()
+                h = coverfile.get_height()
+                coverfile = self.artwork_apply_composite_case(coverfile, w, h)
+            except:
+                # Delete bad image:
+                misc.remove_file(coverfile)
+                # Revert to standard album cover:
+                coverfile = self.albumpb
         else:
             # Revert to standard album cover:
             coverfile = self.albumpb
@@ -4163,6 +4169,8 @@ class Base:
                                         self.library_browse(root=self.wd)
                     self.lastalbumart = filename
                 except:
+                    # Bad file, remove...
+                    misc.remove_file(filename)
                     pass
                 self.call_gc_collect = True
 

@@ -148,7 +148,10 @@ def create_dir(dir):
 
 def remove_file(file):
     if os.path.exists(file):
-        os.remove(file)
+        try:
+            os.remove(file)
+        except:
+            pass
 
 def remove_dir(path):
     if not os.path.isdir(path):
