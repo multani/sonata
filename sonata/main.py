@@ -5436,6 +5436,7 @@ class Base:
             self.client.playid(self.current_get_songid(iter, model))
         except:
             pass
+        self.sel_rows = False
         self.iterate_now()
 
     def switch_to_tab_name(self, tab_name):

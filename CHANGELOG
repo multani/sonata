@@ -1,6 +1,7 @@
 v1.6
 	+ Add Greek translation (Lazaros)
 	+ Bug: Fix non-ascii characters when scrobbling with non-utf8 locale
+	+ Bug: Selected item changed on double-click
 
 v1.5.2 - June 5, 2008
 	+ Improved artwork/lyrics caching through case-insenstive searching
