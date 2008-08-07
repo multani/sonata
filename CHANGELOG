@@ -4,6 +4,7 @@ v1.6
 	+ Bug: Selected item changed on double-click
 	+ Bug: Use consistent behavior for titlebar
 	+ Bug: Prevent bad cover image files from causing problems
+	+ Bug: Don't sort library search results
 
 v1.5.2 - June 5, 2008
 	+ Improved artwork/lyrics caching through case-insenstive searching

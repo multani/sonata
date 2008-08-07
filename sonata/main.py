@@ -6575,20 +6575,12 @@ class Base:
         if self.searchtext.get_text() != "":
             list = self.client.search(searchby, self.searchtext.get_text())
             self.librarydata.clear()
-            bd = []
+            newlist = []
             for item in list:
-                if item.has_key('directory'):
-                    name = mpdh.get(item, 'directory').split('/')[-1]
-                    # Sorting shouldn't really matter here. Ever seen a search turn up a directory?
-                    bd += [('d' + mpdh.get(item, 'directory').lower(), [self.openpb, mpdh.get(item, 'directory'), misc.escape_html(name)])]
-                elif item.has_key('file'):
-                    try:
-                        bd += [('f' + misc.lower_no_the(mpdh.get(item, 'artist')) + '\t' + mpdh.get(item, 'title').lower(), [self.sonatapb, mpdh.get(item, 'file'), self.parse_formatting(self.libraryformat, item, True)])]
-                    except:
-                        bd += [('f' + mpdh.get(item, 'file').lower(), [self.sonatapb, mpdh.get(item, 'file'), self.parse_formatting(self.libraryformat, item, True)])]
-            bd.sort(key=misc.first_of_2tuple)
-            for sort, list in bd:
-                self.librarydata.append(list)
+                if item.has_key('file'):
+                    newlist.append([self.sonatapb, mpdh.get(item, 'file'), self.parse_formatting(self.libraryformat, item, True)])
+            for item in newlist:
+                self.librarydata.append(item)
 
             self.library.grab_focus()
             self.library.scroll_to_point(0, 0)
