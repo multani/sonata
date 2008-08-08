@@ -3057,10 +3057,11 @@ class Base:
             try:
                 timeout = socketgettimeout()
                 socketsettimeout(self.LYRIC_TIMEOUT)
-                lyrics = self.lyricServer.getSong(artist=urllib.quote(search_artist), song=urllib.quote(search_title))['return']["lyrics"]
+                lyrics = self.lyricServer.getSong(artist=urllib.quote(misc.capwords(search_artist)), song=urllib.quote(misc.capwords(search_title)))['return']["lyrics"]
                 if lyrics.lower() != "not found":
                     lyrics = misc.unescape_html(lyrics)
                     lyrics = misc.wiki_to_html(lyrics)
+                    lyrics = lyrics.encode("ISO-8859-1")
                     gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
                     # Save lyrics to file:
                     misc.create_dir('~/.lyrics/')

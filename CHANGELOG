@@ -1,4 +1,5 @@
 v1.6
+	+ Unicode lyrics and better searching with LyricWiki (orivej)
 	+ Add Greek translation (Lazaros)
 	+ Bug: Fix non-ascii characters when scrobbling with non-utf8 locale
 	+ Bug: Selected item changed on double-click

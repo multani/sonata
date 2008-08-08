@@ -230,3 +230,12 @@ def is_lang_rtl(window):
     # Check if a RTL (right-to-left) language:
     rtl = (window.get_pango_context().get_base_dir() == pango.DIRECTION_RTL)
     return rtl
+
+def capword(s):
+    for i in range(len(s)):
+        if s[i:i+1].isalnum():
+            return s[:i] + s[i:i+1].upper() + s[i+1:]
+    return s
+
+def capwords(s):
+    return str(' '.join([capword(x) for x in unicode(s).split()]))
