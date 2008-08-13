@@ -1,6 +1,7 @@
 v1.6
 	+ Unicode lyrics and better searching with LyricWiki (orivej)
 	+ Add Greek translation (Lazaros)
+	+ Bug: Fix lost connection when hard drive is spun down
 	+ Bug: Fix non-ascii characters when scrobbling with non-utf8 locale
 	+ Bug: Selected item changed on double-click
 	+ Bug: Use consistent behavior for titlebar

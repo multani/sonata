@@ -1583,8 +1583,7 @@ class Base:
                 if self.status:
                     if self.status['state'] == 'stop':
                         self.iterate_time = self.iterate_time_when_disconnected_or_stopped
-                self.songinfo = mpdh.currsong(self.client)
-                if self.status:
+                    self.songinfo = mpdh.currsong(self.client)
                     if not self.last_repeat or self.last_repeat != self.status['repeat']:
                         self.repeatmenu.set_active(self.status['repeat'] == '1')
                     if not self.last_random or self.last_random != self.status['random']:
@@ -1597,13 +1596,15 @@ class Base:
                         if self.xfade > 30: self.xfade = 30
                     self.last_repeat = self.status['repeat']
                     self.last_random = self.status['random']
+                    return
         except:
-            self.prevconn = self.client
-            self.prevstatus = self.status
-            self.prevsonginfo = self.songinfo
-            self.conn = False
-            self.status = None
-            self.songinfo = None
+            pass
+        self.prevconn = self.client
+        self.prevstatus = self.status
+        self.prevsonginfo = self.songinfo
+        self.conn = False
+        self.status = None
+        self.songinfo = None
 
     def iterate(self):
         self.update_status()
