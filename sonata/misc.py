@@ -176,7 +176,7 @@ def file_exists_insensitive(filename):
     if os.path.exists(filename):
         return filename
 
-    regexp = re.compile(filename, re.IGNORECASE)
+    regexp = re.compile(re.escape(filename), re.IGNORECASE)
 
     path = os.path.dirname(filename)
     if not os.path.exists(path):
