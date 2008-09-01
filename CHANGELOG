@@ -1,5 +1,6 @@
 v1.6
 	+ Unicode lyrics and better searching with LyricWiki (orivej)
+	+ Store audioscrobbler password as md5 hash
 	+ Add Greek translation (Lazaros)
 	+ Bug: Fix lost connection when hard drive is spun down
 	+ Bug: Fix non-ascii characters when scrobbling with non-utf8 locale

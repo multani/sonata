@@ -75,7 +75,7 @@ except:
 
 if not skip_gui:
     import warnings, gobject, urllib, urllib2, re, gc, locale, shutil
-    import gtk, pango, threading, time, ui, img, tray
+    import gtk, pango, threading, time, ui, img, tray, md5
 
     # Prevent deprecation warning for egg:
     warnings.simplefilter('ignore', DeprecationWarning)
@@ -340,7 +340,7 @@ class Base:
         self.album_reset_artist()
         self.as_enabled = False
         self.as_username = ""
-        self.as_password = ""
+        self.as_password_md5 = ""
         show_prefs = False
         self.updating_nameentry = False
         self.merge_id = None
@@ -1898,8 +1898,10 @@ class Base:
             self.as_enabled = conf.getboolean('audioscrobbler', 'use_audioscrobbler')
         if conf.has_option('audioscrobbler', 'username'):
             self.as_username = conf.get('audioscrobbler', 'username')
-        if conf.has_option('audioscrobbler', 'password'):
-            self.as_password = conf.get('audioscrobbler', 'password')
+        if conf.has_option('audioscrobbler', 'password'): # old...
+            self.as_password_md5 = md5.md5(conf.get('audioscrobbler', 'password')).hexdigest()
+        if conf.has_option('audioscrobbler', 'password_md5'):
+            self.as_password_md5 = conf.get('audioscrobbler', 'password_md5')
         if conf.has_option('profiles', 'num_profiles'):
             num_profiles = conf.getint('profiles', 'num_profiles')
             self.profile_names = []
@@ -2022,7 +2024,7 @@ class Base:
         conf.add_section('audioscrobbler')
         conf.set('audioscrobbler', 'use_audioscrobbler', self.as_enabled)
         conf.set('audioscrobbler', 'username', self.as_username)
-        conf.set('audioscrobbler', 'password', self.as_password)
+        conf.set('audioscrobbler', 'password_md5', self.as_password_md5)
         conf.write(file(os.path.expanduser('~/.config/sonata/sonatarc'), 'w'))
 
     def handle_change_conn(self):
@@ -2242,7 +2244,6 @@ class Base:
     def on_libraryview_chosen(self, action):
         if self.library_search_visible():
             self.on_library_search_end(None)
-        prev_view = self.lib_view
         if action.get_name() == 'filesystemview':
             self.lib_view = self.VIEW_FILESYSTEM
         elif action.get_name() == 'artistview':
@@ -5775,7 +5776,10 @@ class Base:
         as_user_label = ui.label(text="          " + _("Username:"))
         as_pass_label = ui.label(text="          " + _("Password:"))
         as_user_entry = ui.entry(text=self.as_username, changed_cb=self.prefs_as_username_changed)
-        as_pass_entry = ui.entry(text=self.as_password, password=True, changed_cb=self.prefs_as_password_changed)
+        if len(self.as_password_md5) > 0:
+            as_pass_entry = ui.entry(text='1234', password=True, changed_cb=self.prefs_as_password_changed)
+        else:
+            as_pass_entry = ui.entry(text='', password=True, changed_cb=self.prefs_as_password_changed)
         displaylabel2 = ui.label(markup='<b>' + _('Notification') + '</b>', y=1)
         display_notification = gtk.CheckButton(_("Popup notification on song changes"))
         display_notification.set_active(self.show_notification)
@@ -6044,7 +6048,7 @@ class Base:
         return (host, port, password)
 
     def scrobbler_init(self):
-        if audioscrobbler is not None and self.as_enabled and len(self.as_username) > 0 and len(self.as_password) > 0:
+        if audioscrobbler is not None and self.as_enabled and len(self.as_username) > 0 and len(self.as_password_md5) > 0:
             thread = threading.Thread(target=self.scrobbler_init_thread)
             thread.setDaemon(True)
             thread.start()
@@ -6053,12 +6057,12 @@ class Base:
         if self.scrob is None:
             self.scrob = audioscrobbler.AudioScrobbler()
         if self.scrob_post is None:
-            self.scrob_post = self.scrob.post(self.as_username, self.as_password, verbose=True)
+            self.scrob_post = self.scrob.post(self.as_username, self.as_password_md5, verbose=True)
         else:
             if self.scrob_post.authenticated:
                 return # We are authenticated
             else:
-                self.scrob_post = self.scrob.post(self.as_username, self.as_password, verbose=True)
+                self.scrob_post = self.scrob.post(self.as_username, self.as_password_md5, verbose=True)
         try:
             self.scrob_post.auth()
         except Exception, e:
@@ -6098,7 +6102,7 @@ class Base:
 
     def prefs_as_password_changed(self, entry):
         if audioscrobbler is not None:
-            self.as_password = entry.get_text()
+            self.as_password_md5 = md5.md5(entry.get_text()).hexdigest()
             if self.scrob_post:
                 if self.scrob_post.authenticated:
                     self.scrob_post = None

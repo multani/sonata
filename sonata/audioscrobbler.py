@@ -414,12 +414,12 @@ class AudioScrobbler:
                                   **kwargs)
         return ret
 
-    def post(self, username, password, verbose=False):
+    def post(self, username, md5_password, verbose=False):
 
         """ Create a new AudioScrobblerPost """
 
         ret = AudioScrobblerPost(username=username.encode('utf8'),
-                                 password=password.encode('utf8'),
+                                 md5_password=md5_password.encode('utf8'),
                                  host=self.audioscrobbler_post_host,
                                  protocol_version=self.audioscrobbler_post_version,
                                  client_name=self.client_name,
@@ -583,7 +583,7 @@ class AudioScrobblerPost:
 
     def __init__(self,
                  username=u'',
-                 password=u'',
+                 md5_password=u'',
                  client_name=client_name,
                  client_version=pyscrobbler_version,
                  protocol_version=audioscrobbler_post_version,
@@ -592,7 +592,7 @@ class AudioScrobblerPost:
 
         # Capture the information passed for future use
         self.params = dict(username=username,
-                           password=password,
+                           md5_password=md5_password,
                            client_name=client_name,
                            client_version=client_version,
                            protocol_version=protocol_version,
@@ -619,8 +619,8 @@ class AudioScrobblerPost:
             return True
 
         timestamp = str(int(time.time()))
-        password = self.params['password']
-        auth_token = md5.md5(md5.md5(password).hexdigest() + timestamp).hexdigest()
+        md5_password = self.params['md5_password']
+        auth_token = md5.md5(md5_password + timestamp).hexdigest()
 
         p = {}
         p['hs'] = 'true'
@@ -652,7 +652,7 @@ class AudioScrobblerPost:
             raise AudioScrobblerHandshakeError('Got nothing back from the server')
 
         username = self.params['username']
-        password = self.params['password']
+        md5_password = self.params['md5_password']
 
         # First we test the best and most likely case
         if response[0].startswith('OK'):
