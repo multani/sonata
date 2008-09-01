@@ -1224,9 +1224,13 @@ class Base:
         lyricsbox.pack_start(lyricsbox_top, True, True, vert_spacing)
         lyricsbox_bottom = gtk.HBox()
         self.info_searchlabel = ui.label(y=0)
+        self.info_editlyricslabel = ui.label(y=0)
         searchevbox = ui.eventbox(add=self.info_searchlabel)
+        editlyricsevbox = ui.eventbox(add=self.info_editlyricslabel)
         self.info_apply_link_signals(searchevbox, 'search', _("Search Lyricwiki.org for lyrics"))
+        self.info_apply_link_signals(editlyricsevbox, 'editlyrics', _("Edit lyrics at Lyricwiki.org"))
         lyricsbox_bottom.pack_start(searchevbox, False, False, horiz_spacing)
+        lyricsbox_bottom.pack_start(editlyricsevbox, False, False, horiz_spacing)
         lyricsbox.pack_start(lyricsbox_bottom, False, False, vert_spacing)
         self.info_lyrics.add(lyricsbox)
         outter_vbox.pack_start(self.info_lyrics, False, False, margin)
@@ -2998,6 +3002,7 @@ class Base:
             self.info_editlabel.set_text("")
             if self.show_lyrics:
                 self.info_searchlabel.set_text("")
+                self.info_editlyricslabel.set_text("")
                 self.info_show_lyrics("", "", "", True)
             self.albumText.set_text("")
             self.last_info_bitrate = newbitrate
@@ -3014,6 +3019,7 @@ class Base:
         filename_title = misc.strip_all_slashes(filename_title)
         filename = self.info_check_for_local_lyrics(filename_artist, filename_title)
         search_str = misc.link_markup(_("search"), True, True, self.linkcolor)
+        edit_str = misc.link_markup(_("edit"), True, True, self.linkcolor)
         if filename:
             # If the lyrics only contain "not found", delete the file and try to
             # fetch new lyrics. If there is a bug in Sonata/SZI/LyricWiki that
@@ -3037,6 +3043,7 @@ class Base:
                 lyrics = lyrics[len(header):]
             gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
             gobject.idle_add(self.info_searchlabel.set_markup, search_str)
+            gobject.idle_add(self.info_editlyricslabel.set_markup, edit_str)
         else:
             # Use default filename:
             filename = self.target_lyrics_filename(filename_artist, filename_title)
@@ -3055,6 +3062,7 @@ class Base:
                     gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
                     self.lyricServer = None
                     gobject.idle_add(self.info_searchlabel.set_markup, search_str)
+                    gobject.idle_add(self.info_editlyricslabel.set_markup, edit_str)
                     return
             try:
                 timeout = socketgettimeout()
@@ -3081,6 +3089,7 @@ class Base:
                 lyrics = _("Fetching lyrics failed")
                 gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
             gobject.idle_add(self.info_searchlabel.set_markup, search_str)
+            gobject.idle_add(self.info_editlyricslabel.set_markup, edit_str)
             socketsettimeout(timeout)
 
     def info_show_lyrics(self, lyrics, artist, title, force=False):
@@ -6434,9 +6443,9 @@ class Base:
 
     def on_link_click(self, widget, event, type):
         if type == 'artist':
-            misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + mpdh.get(self.songinfo, 'artist'), self.url_browser, self.window)
+            misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + urllib.quote(mpdh.get(self.songinfo, 'artist')), self.url_browser, self.window)
         elif type == 'album':
-            misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + mpdh.get(self.songinfo, 'album'), self.url_browser, self.window)
+            misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + urllib.quote(mpdh.get(self.songinfo, 'album')), self.url_browser, self.window)
         elif type == 'more':
             previous_is_more = (self.info_morelabel.get_text() == "(" + _("more") + ")")
             if previous_is_more:
@@ -6456,6 +6465,8 @@ class Base:
                 self.on_tags_edit(widget)
         elif type == 'search':
             self.on_lyrics_search(None)
+        elif type == 'editlyrics':
+            misc.browser_load("http://lyricwiki.org/index.php?title=" + urllib.quote(misc.capwords(mpdh.get(self.songinfo, 'artist'))) + ":" + urllib.quote(misc.capwords(mpdh.get(self.songinfo, 'title'))) + "&action=edit", self.url_browser, self.window)
 
     def on_tab_click(self, widget, event):
         if event.button == 3:
