@@ -1,4 +1,4 @@
-v1.6
+v1.5.3
 	+ Quick link to edit lyrics through LyricWiki
 	+ Unicode lyrics and better searching with LyricWiki (orivej)
 	+ Store audioscrobbler password as md5 hash

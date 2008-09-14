@@ -1,18 +1,16 @@
-bump version in release script..
-amazon errors?
-adding more songs than max playlist size -> sonata not responding
-
 v1.6
-	code cleanup
-		- making tabs
-		- combine ListStore definitions (playlists, streams, etc)
-		- remove_list_duplicates
-		- local/remote/dnd artwork
-	support for multiple genres?
-	dynamic playlist?
-	various artists in library views?
-	stop after this track?
-	plugin support?
+	plugin support
+		- single instance (could remove dbus; faster on startup, less memory)
+		- artwork
+		- lyrics
+		- system tray
+		- audioscrobbler
+		- popup notification
+		- tag editing
+		- "Find more" - "By Artist/Album" (patch 2507)
+		- Add as Next Track (patch 2454)
+		- Dynamic playlist (patch 2419)
+	adding more songs than max playlist size -> sonata not responding
 	
 Future:
 	lyrics -> ability to save changes
