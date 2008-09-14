@@ -1908,20 +1908,21 @@ class Base:
             self.as_password_md5 = conf.get('audioscrobbler', 'password_md5')
         if conf.has_option('profiles', 'num_profiles'):
             num_profiles = conf.getint('profiles', 'num_profiles')
-            self.profile_names = []
-            self.host = []
-            self.port = []
-            self.password = []
-            self.musicdir = []
+            if num_profiles > 0:
+                self.profile_names = []
+                self.host = []
+                self.port = []
+                self.password = []
+                self.musicdir = []
             for i in range(num_profiles):
                 self.profile_names.append(conf.get('profiles', 'names[' + str(i) + ']'))
                 self.host.append(conf.get('profiles', 'hosts[' + str(i) + ']'))
                 self.port.append(conf.getint('profiles', 'ports[' + str(i) + ']'))
                 self.password.append(conf.get('profiles', 'passwords[' + str(i) + ']'))
                 self.musicdir.append(self.sanitize_musicdir(conf.get('profiles', 'musicdirs[' + str(i) + ']')))
-        # Ensure we have a valid profile number:
-        if self.profile_num < 0 or self.profile_num > num_profiles-1:
-            self.profile_num = 0
+            # Ensure we have a valid profile number:
+            if self.profile_num < 0 or self.profile_num > num_profiles-1:
+                self.profile_num = 0
 
     def settings_save(self):
         conf = ConfigParser.ConfigParser()
