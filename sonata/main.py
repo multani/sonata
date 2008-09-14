@@ -1919,6 +1919,9 @@ class Base:
                 self.port.append(conf.getint('profiles', 'ports[' + str(i) + ']'))
                 self.password.append(conf.get('profiles', 'passwords[' + str(i) + ']'))
                 self.musicdir.append(self.sanitize_musicdir(conf.get('profiles', 'musicdirs[' + str(i) + ']')))
+        # Ensure we have a valid profile number:
+        if self.profile_num < 0 or self.profile_num > num_profiles-1:
+            self.profile_num = 0
 
     def settings_save(self):
         conf = ConfigParser.ConfigParser()
