@@ -6599,11 +6599,8 @@ class Base:
         self.last_search_num = combo.get_active()
 
     def on_library_search_end(self, button, move_focus=True):
-        ui.hide(self.searchbutton)
-        self.searchtext.set_text("")
-        self.library_browse(root=self.wd)
-        if move_focus:
-            self.library.grab_focus()
+        if self.library_search_visible():
+            self.libsearchfilter_toggle(move_focus)
 
     def library_search_visible(self):
         return self.searchbutton.get_property('visible')
@@ -7355,8 +7352,8 @@ class Base:
     def current_get_songid(self, iter, model):
         return int(model.get_value(iter, 0))
 
-    def libsearchfilter_toggle(self):
-        if not self.searchbutton.get_property('visible') and self.conn:
+    def libsearchfilter_toggle(self, move_focus):
+        if not self.library_search_visible() and self.conn:
             ui.show(self.searchbutton)
             self.prevtodo = 'foo'
             # extra thread for background search work, synchronized with a condition and its internal mutex
@@ -7365,10 +7362,19 @@ class Base:
             qsearch_thread = threading.Thread(target=self.libsearchfilter_loop)
             qsearch_thread.setDaemon(True)
             qsearch_thread.start()
+        elif self.library_search_visible():
+            ui.hide(self.searchbutton)
+            self.searchtext.handler_block(self.libfilter_changed_handler)
+            self.searchtext.set_text("")
+            self.searchtext.handler_unblock(self.libfilter_changed_handler)
+            self.libsearchfilter_stop_loop()
+            self.library_browse(root=self.wd)
+            if move_focus:
+                self.library.grab_focus()
 
     def libsearchfilter_feed_loop(self, editable):
-        if not self.searchbutton.get_property('visible'):
-            self.libsearchfilter_toggle()
+        if not self.library_search_visible():
+            self.libsearchfilter_toggle(None)
         # Lets only trigger the searchfilter_loop if 200ms pass without a change
         # in gtk.Entry
         try:
@@ -7380,6 +7386,12 @@ class Base:
     def libsearchfilter_start_loop(self, editable):
         self.libfilterbox_cond.acquire()
         self.libfilterbox_cmd_buf = editable.get_text()
+        self.libfilterbox_cond.notifyAll()
+        self.libfilterbox_cond.release()
+
+    def libsearchfilter_stop_loop(self):
+        self.libfilterbox_cond.acquire()
+        self.libfilterbox_cmd_buf='$$$QUIT###'
         self.libfilterbox_cond.notifyAll()
         self.libfilterbox_cond.release()
 
@@ -7399,11 +7411,13 @@ class Base:
             if self.prevtodo != todo:
                 if todo == '$$$QUIT###':
                     gobject.idle_add(self.tags_win_entry_revert_color, self.searchtext)
-                if len(todo) > 1:
-                    gobject.idle_add(self.libsearchfilter_update_treeview, searchby, todo)
-                elif len(todo) == 0:
-                    self.on_library_search_end(None, False)
                     return
+                elif len(todo) > 1:
+                    gobject.idle_add(self.libsearchfilter_update_treeview, searchby, todo)
+                    gobject.idle_add(self.library.set_cursor, '0')
+                elif len(todo) == 0:
+                    gobject.idle_add(self.tags_win_entry_revert_color, self.searchtext)
+                    self.libsearchfilter_toggle(False)
                 else:
                     gobject.idle_add(self.tags_win_entry_revert_color, self.searchtext)
             self.libfilterbox_cond.acquire()
