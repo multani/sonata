@@ -3906,7 +3906,6 @@ class Base:
                 iter = None
                 if i < currlen and prev_songs:
                     iter = self.currentdata.get_iter((i, ))
-                update_item = False
                 items = []
                 for part in self.columnformat:
                     items += [self.parse_formatting(part, track, True)]
@@ -7441,7 +7440,8 @@ class Base:
             if i < currlen:
                 iter = self.librarydata.get_iter((i, ))
                 for index in range(len(item)):
-                    self.librarydata.set_value(iter, index, item[index])
+                    if item[index] != self.librarydata.get_value(iter, index):
+                        self.librarydata.set_value(iter, index, item[index])
             else:
                 self.librarydata.append(item)
         # Remove excess items...
