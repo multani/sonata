@@ -955,12 +955,14 @@ class Base:
         self.streams.connect('key-press-event', self.on_streams_key_press)
         self.mainwinhandler = self.window.connect('button_press_event', self.on_window_click)
         self.searchcombo.connect('changed', self.on_library_search_combo_change)
-        self.searchtext.connect('activate', self.on_library_search_activate)
         self.searchbutton.connect('clicked', self.on_library_search_end)
         self.notebook.connect('button_press_event', self.on_notebook_click)
         self.notebook.connect('size-allocate', self.on_notebook_resize)
         self.notebook.connect('switch-page', self.on_notebook_page_change)
         self.searchtext.connect('button_press_event', self.on_library_search_text_click)
+        self.searchtext.connect('key-press-event', self.libsearchfilter_key_pressed)
+        self.searchtext.connect('activate', self.libsearchfilter_on_enter)
+        self.libfilter_changed_handler = self.searchtext.connect('changed', self.libsearchfilter_feed_loop)
         self.filter_changed_handler = self.filterpattern.connect('changed', self.searchfilter_feed_loop)
         self.filterpattern.connect('activate', self.searchfilter_on_enter)
         self.filterpattern.connect('key-press-event', self.searchfilter_key_pressed)
@@ -4271,10 +4273,14 @@ class Base:
         for i, url in enumerate(urls):
             request = urllib2.Request(url)
             opener = urllib2.build_opener()
-            f = opener.open(request).read()
-            xml = ElementTree.fromstring(f)
-            largeimgs = xml.getiterator(prefix + "LargeImage")
-            if len(largeimgs) > 0:
+            try:
+                f = opener.open(request).read()
+                xml = ElementTree.fromstring(f)
+                largeimgs = xml.getiterator(prefix + "LargeImage")
+            except:
+                largeimgs = None
+                pass
+            if largeimgs and len(largeimgs) > 0:
                 break
             elif i == len(urls)-1:
                 self.downloading_image = False
@@ -5593,6 +5599,7 @@ class Base:
 
     def on_remove(self, widget):
         if self.conn:
+            model = None
             while gtk.events_pending():
                 gtk.main_iteration()
             if self.current_tab == self.TAB_CURRENT:
@@ -5645,7 +5652,7 @@ class Base:
                     self.streams_populate()
             self.iterate_now()
             # Attempt to retain selection in the vicinity..
-            if len(model) > 0:
+            if model and len(model) > 0:
                 try:
                     # Use top row in selection...
                     selrow = 999999
@@ -6591,29 +6598,12 @@ class Base:
             self.on_library_search_end(None)
         self.last_search_num = combo.get_active()
 
-    def on_library_search_activate(self, entry):
-        searchby = self.search_terms_mpd[self.last_search_num]
-        if self.searchtext.get_text() != "":
-            list = self.client.search(searchby, self.searchtext.get_text())
-            self.librarydata.clear()
-            newlist = []
-            for item in list:
-                if item.has_key('file'):
-                    newlist.append([self.sonatapb, mpdh.get(item, 'file'), self.parse_formatting(self.libraryformat, item, True)])
-            for item in newlist:
-                self.librarydata.append(item)
-
-            self.library.grab_focus()
-            self.library.scroll_to_point(0, 0)
-            ui.show(self.searchbutton)
-        else:
-            self.on_library_search_end(None)
-
-    def on_library_search_end(self, button):
+    def on_library_search_end(self, button, move_focus=True):
         ui.hide(self.searchbutton)
         self.searchtext.set_text("")
         self.library_browse(root=self.wd)
-        self.library.grab_focus()
+        if move_focus:
+            self.library.grab_focus()
 
     def library_search_visible(self):
         return self.searchbutton.get_property('visible')
@@ -7362,13 +7352,108 @@ class Base:
             except:
                 pass
 
+    def current_get_songid(self, iter, model):
+        return int(model.get_value(iter, 0))
+
+    def libsearchfilter_toggle(self):
+        if not self.searchbutton.get_property('visible') and self.conn:
+            ui.show(self.searchbutton)
+            self.prevtodo = 'foo'
+            # extra thread for background search work, synchronized with a condition and its internal mutex
+            self.libfilterbox_cond = threading.Condition()
+            self.libfilterbox_cmd_buf = self.searchtext.get_text()
+            qsearch_thread = threading.Thread(target=self.libsearchfilter_loop)
+            qsearch_thread.setDaemon(True)
+            qsearch_thread.start()
+
+    def libsearchfilter_feed_loop(self, editable):
+        if not self.searchbutton.get_property('visible'):
+            self.libsearchfilter_toggle()
+        # Lets only trigger the searchfilter_loop if 200ms pass without a change
+        # in gtk.Entry
+        try:
+            gobject.remove_source(self.libfilterbox_source)
+        except:
+            pass
+        self.libfilterbox_source = gobject.timeout_add(300, self.libsearchfilter_start_loop, editable)
+
+    def libsearchfilter_start_loop(self, editable):
+        self.libfilterbox_cond.acquire()
+        self.libfilterbox_cmd_buf = editable.get_text()
+        self.libfilterbox_cond.notifyAll()
+        self.libfilterbox_cond.release()
+
+    def libsearchfilter_loop(self):
+        while True:
+            # copy the last command or pattern safely
+            self.libfilterbox_cond.acquire()
+            try:
+                while(self.libfilterbox_cmd_buf == '$$$DONE###'):
+                    self.libfilterbox_cond.wait()
+                todo = self.libfilterbox_cmd_buf
+                self.libfilterbox_cond.release()
+            except:
+                todo = self.libfilterbox_cmd_buf
+                pass
+            searchby = self.search_terms_mpd[self.last_search_num]
+            if self.prevtodo != todo:
+                if todo == '$$$QUIT###':
+                    gobject.idle_add(self.tags_win_entry_revert_color, self.searchtext)
+                if len(todo) > 1:
+                    gobject.idle_add(self.libsearchfilter_update_treeview, searchby, todo)
+                elif len(todo) == 0:
+                    self.on_library_search_end(None, False)
+                    return
+                else:
+                    gobject.idle_add(self.tags_win_entry_revert_color, self.searchtext)
+            self.libfilterbox_cond.acquire()
+            self.libfilterbox_cmd_buf='$$$DONE###'
+            try:
+                self.libfilterbox_cond.release()
+            except:
+                pass
+            self.prevtodo = todo
+
+    def libsearchfilter_update_treeview(self, searchby, todo):
+        self.current.freeze_child_notify()
+        list = self.client.search(searchby, todo)
+        currlen = len(self.librarydata)
+        #self.librarydata.clear()
+        newlist = []
+        for item in list:
+            if item.has_key('file'):
+                newlist.append([self.sonatapb, mpdh.get(item, 'file'), self.parse_formatting(self.libraryformat, item, True)])
+        for i, item in enumerate(newlist):
+            if i < currlen:
+                iter = self.librarydata.get_iter((i, ))
+                for index in range(len(item)):
+                    self.librarydata.set_value(iter, index, item[index])
+            else:
+                self.librarydata.append(item)
+        # Remove excess items...
+        newlen = len(newlist)
+        for i in range(currlen-newlen):
+            iter = self.librarydata.get_iter((currlen-1-i,))
+            self.librarydata.remove(iter)
+        self.current.thaw_child_notify()
+        if len(list) == 0:
+            gobject.idle_add(self.tags_win_entry_changed, self.searchtext, True)
+        else:
+            gobject.idle_add(self.tags_win_entry_revert_color, self.searchtext)
+
+    def libsearchfilter_key_pressed(self, widget, event):
+        self.filter_key_pressed(widget, event, self.library)
+
+    def libsearchfilter_on_enter(self, entry):
+        self.on_library_row_activated(None, None)
+
     def searchfilter_toggle(self, widget, initial_text=""):
         if self.filterbox_visible:
             ui.hide(self.filterbox)
             self.filterbox_visible = False
             self.edit_style_orig = self.searchtext.get_style()
             self.filterpattern.set_text("")
-            self.searchfilter_stop_loop(self.filterbox)
+            self.searchfilter_stop_loop()
         elif self.conn:
             self.playlist_pos_before_filter = self.current.get_visible_rect()[1]
             self.filterbox_visible = True
@@ -7383,7 +7468,7 @@ class Base:
             qsearch_thread = threading.Thread(target=self.searchfilter_loop)
             qsearch_thread.setDaemon(True)
             qsearch_thread.start()
-            gobject.idle_add(self.searchfilter_entry_grab_focus, self.filterpattern)
+            gobject.idle_add(self.filter_entry_grab_focus, self.filterpattern)
         self.current.set_headers_clickable(not self.filterbox_visible)
 
     def searchfilter_on_enter(self, entry):
@@ -7398,9 +7483,6 @@ class Base:
         if song_id:
             self.searchfilter_toggle(None)
             self.client.playid(song_id)
-
-    def current_get_songid(self, iter, model):
-        return int(model.get_value(iter, 0))
 
     def searchfilter_feed_loop(self, editable):
         # Lets only trigger the searchfilter_loop if 200ms pass without a change
@@ -7417,7 +7499,7 @@ class Base:
         self.filterbox_cond.notifyAll()
         self.filterbox_cond.release()
 
-    def searchfilter_stop_loop(self, window):
+    def searchfilter_stop_loop(self):
         self.filterbox_cond.acquire()
         self.filterbox_cmd_buf='$$$QUIT###'
         self.filterbox_cond.notifyAll()
@@ -7545,12 +7627,15 @@ class Base:
             self.current.thaw_child_notify()
 
     def searchfilter_key_pressed(self, widget, event):
-        if event.keyval == gtk.gdk.keyval_from_name('Down') or event.keyval == gtk.gdk.keyval_from_name('Up') or event.keyval == gtk.gdk.keyval_from_name('Page_Down') or event.keyval == gtk.gdk.keyval_from_name('Page_Up'):
-            self.current.grab_focus()
-            self.current.emit("key-press-event", event)
-            gobject.idle_add(self.searchfilter_entry_grab_focus, widget)
+        self.filter_key_pressed(widget, event, self.current)
 
-    def searchfilter_entry_grab_focus(self, widget):
+    def filter_key_pressed(self, widget, event, treeview):
+        if event.keyval == gtk.gdk.keyval_from_name('Down') or event.keyval == gtk.gdk.keyval_from_name('Up') or event.keyval == gtk.gdk.keyval_from_name('Page_Down') or event.keyval == gtk.gdk.keyval_from_name('Page_Up'):
+            treeview.grab_focus()
+            treeview.emit("key-press-event", event)
+            gobject.idle_add(self.filter_entry_grab_focus, widget)
+
+    def filter_entry_grab_focus(self, widget):
         widget.grab_focus()
         widget.set_position(-1)
 

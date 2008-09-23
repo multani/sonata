@@ -1,4 +1,6 @@
-	+ Bad profiles prevent sonata from starting
+v1.6
+	+ Real-time searching of library (search as you type)
+	+ Bug: Bad profiles prevent sonata from starting
 
 v1.5.3
 	+ Quick link to edit lyrics through LyricWiki
