@@ -315,7 +315,7 @@ class Base:
         self.stream_uris = []
         self.downloading_image = False
         self.search_terms = [_('Artist'), _('Title'), _('Album'), _('Genre'), _('Filename'), _('Everything')]
-        self.search_terms_mpd = ['artist', 'title', 'album', 'genre', 'filename', 'any']
+        self.search_terms_mpd = ['artist', 'title', 'album', 'genre', 'file', 'any']
         self.last_search_num = 0
         self.sonata_loaded = False
         self.call_gc_collect = False
@@ -954,8 +954,6 @@ class Base:
         self.streams.connect('row_activated', self.on_streams_activated)
         self.streams.connect('key-press-event', self.on_streams_key_press)
         self.mainwinhandler = self.window.connect('button_press_event', self.on_window_click)
-        self.searchcombo.connect('changed', self.on_library_search_combo_change)
-        self.searchbutton.connect('clicked', self.on_library_search_end)
         self.notebook.connect('button_press_event', self.on_notebook_click)
         self.notebook.connect('size-allocate', self.on_notebook_resize)
         self.notebook.connect('switch-page', self.on_notebook_page_change)
@@ -963,6 +961,8 @@ class Base:
         self.searchtext.connect('key-press-event', self.libsearchfilter_key_pressed)
         self.searchtext.connect('activate', self.libsearchfilter_on_enter)
         self.libfilter_changed_handler = self.searchtext.connect('changed', self.libsearchfilter_feed_loop)
+        self.searchcombo.connect('changed', self.on_library_search_combo_change)
+        self.searchbutton.connect('clicked', self.on_library_search_end)
         self.filter_changed_handler = self.filterpattern.connect('changed', self.searchfilter_feed_loop)
         self.filterpattern.connect('activate', self.searchfilter_on_enter)
         self.filterpattern.connect('key-press-event', self.searchfilter_key_pressed)
@@ -6627,9 +6627,9 @@ class Base:
         gobject.idle_add(self.searchtext.grab_focus)
 
     def on_library_search_combo_change(self, combo):
-        if self.library_search_visible():
-            self.on_library_search_end(None)
         self.last_search_num = combo.get_active()
+        self.prevlibtodo = ""
+        self.libsearchfilter_feed_loop(self.searchtext)
 
     def on_library_search_end(self, button, move_focus=True):
         if self.library_search_visible():
@@ -7388,7 +7388,9 @@ class Base:
     def libsearchfilter_toggle(self, move_focus):
         if not self.library_search_visible() and self.conn:
             ui.show(self.searchbutton)
-            self.prevtodo = 'foo'
+            self.prevlibtodo = 'foo'
+            self.prevlibtodo_base = "__"
+            self.prevlibtodo_base_results = []
             # extra thread for background search work, synchronized with a condition and its internal mutex
             self.libfilterbox_cond = threading.Condition()
             self.libfilterbox_cmd_buf = self.searchtext.get_text()
@@ -7441,12 +7443,12 @@ class Base:
                 todo = self.libfilterbox_cmd_buf
                 pass
             searchby = self.search_terms_mpd[self.last_search_num]
-            if self.prevtodo != todo:
+            if self.prevlibtodo != todo:
                 if todo == '$$$QUIT###':
                     gobject.idle_add(self.tags_win_entry_revert_color, self.searchtext)
                     return
                 elif len(todo) > 1:
-                    gobject.idle_add(self.libsearchfilter_update_treeview, searchby, todo)
+                    gobject.idle_add(self.libsearchfilter_do_search, searchby, todo)
                 elif len(todo) == 0:
                     gobject.idle_add(self.tags_win_entry_revert_color, self.searchtext)
                     self.libsearchfilter_toggle(False)
@@ -7458,14 +7460,40 @@ class Base:
                 self.libfilterbox_cond.release()
             except:
                 pass
-            self.prevtodo = todo
+            self.prevlibtodo = todo
 
-    def libsearchfilter_update_treeview(self, searchby, todo):
+    def libsearchfilter_do_search(self, searchby, todo):
+        if not self.prevlibtodo_base in todo:
+            # Do library search based on first two letters:
+            self.prevlibtodo_base = todo[:2]
+            self.prevlibtodo_base_results = self.client.search(searchby, self.prevlibtodo_base)
+            subsearch = False
+        else:
+            subsearch = True
+        # Now, use filtering similar to playlist filtering:
+        # this make take some seconds... and we'll escape the search text because
+        # we'll be searching for a match in items that are also escaped.
+        todo = misc.escape_html(todo)
+        todo = re.escape(todo)
+        todo = '.*' + todo.replace(' ', ' .*').lower()
+        regexp = re.compile(todo)
+        matches = []
+        if searchby != 'any':
+            for row in self.prevlibtodo_base_results:
+                if regexp.match(mpdh.get(row, searchby).lower()):
+                    matches.append(row)
+        else:
+            for row in self.prevlibtodo_base_results:
+                for meta in row:
+                    if regexp.match(mpdh.get(row, meta).lower()):
+                        matches.append(row)
+        if subsearch and len(matches) == len(self.librarydata):
+            # nothing changed..
+            return
         self.library.freeze_child_notify()
-        list = self.client.search(searchby, todo)
         currlen = len(self.librarydata)
         newlist = []
-        for item in list:
+        for item in matches:
             if item.has_key('file'):
                 newlist.append([self.sonatapb, mpdh.get(item, 'file'), self.parse_formatting(self.libraryformat, item, True)])
         for i, item in enumerate(newlist):
@@ -7478,12 +7506,15 @@ class Base:
                 self.librarydata.append(item)
         # Remove excess items...
         newlen = len(newlist)
-        for i in range(currlen-newlen):
-            iter = self.librarydata.get_iter((currlen-1-i,))
-            self.librarydata.remove(iter)
+        if newlen == 0:
+            self.librarydata.clear()
+        else:
+            for i in range(currlen-newlen):
+                iter = self.librarydata.get_iter((currlen-1-i,))
+                self.librarydata.remove(iter)
         self.library.thaw_child_notify()
         gobject.idle_add(self.library.set_cursor,'0')
-        if len(list) == 0:
+        if len(matches) == 0:
             gobject.idle_add(self.tags_win_entry_changed, self.searchtext, True)
         else:
             gobject.idle_add(self.tags_win_entry_revert_color, self.searchtext)
