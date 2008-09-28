@@ -1,4 +1,5 @@
 v1.6
+	+ Use plchanges for faster performance of some actions (e.g. add to playlist)
 	+ Real-time searching of library (search as you type)
 	+ Bug: Bad profiles prevent sonata from starting
 

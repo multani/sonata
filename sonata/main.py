@@ -386,6 +386,7 @@ class Base:
         self.img_clicked = False
         self.existing_playlist_option = 0
         self.elapsed_now = None
+        self.current_update_skip = False
         # If the connection to MPD times out, this will cause the interface to freeze while
         # the socket.connect() calls are repeatedly executed. Therefore, if we were not
         # able to make a connection, slow down the iteration check to once every 15 seconds.
@@ -2153,9 +2154,8 @@ class Base:
             self.playlist_create(plname)
         elif response == 2: # Append songs:
             self.existing_playlist_option = response
-            songs = self.client.playlistinfo()
             self.client.command_list_ok_begin()
-            for song in songs:
+            for song in self.current_songs:
                 self.client.playlistadd(plname, mpdh.get(song, 'file'))
             self.client.command_list_end()
         return
@@ -3882,45 +3882,71 @@ class Base:
 
     def current_update(self):
         if self.conn:
-            if self.prevstatus:
-                prev_songs = True
-            else:
-                prev_songs = False
-            songs = self.client.playlistinfo()
-            self.total_time = 0
+
             if self.sonata_loaded:
                 playlistposition = self.current.get_visible_rect()[1]
+
             self.current.freeze_child_notify()
-            if not self.filterbox_visible:
-                self.current.set_model(None)
-            songlen = int(self.status['playlistlength'])
-            currlen = len(self.currentdata)
-            # Add/update songs in current playlist:
-            for i, track in enumerate(songs):
+
+            if not self.current_update_skip:
+
+                if not self.filterbox_visible:
+                    self.current.set_model(None)
+
+                if self.prevstatus:
+                    changed_songs = self.client.plchanges(self.prevstatus['playlist'])
+                else:
+                    changed_songs = self.client.plchanges(0)
+                    self.current_songs = []
+
+                newlen = int(self.status['playlistlength'])
+                currlen = len(self.currentdata)
+
+                for track in changed_songs:
+                    pos = int(mpdh.get(track, 'pos'))
+
+                    items = []
+                    for part in self.columnformat:
+                        items += [self.parse_formatting(part, track, True)]
+
+                    if pos < currlen:
+                        # Update attributes for item:
+                        iter = self.currentdata.get_iter((pos, ))
+                        id = int(mpdh.get(track, 'id'))
+                        if id != self.currentdata.get_value(iter, 0):
+                            self.currentdata.set_value(iter, 0, id)
+                        for index in range(len(items)):
+                            if items[index] != self.currentdata.get_value(iter, index + 1):
+                                self.currentdata.set_value(iter, index + 1, items[index])
+                        self.current_songs[pos] = track
+                    else:
+                        # Add new item:
+                        self.currentdata.append([int(mpdh.get(track, 'id'))] + items)
+                        self.current_songs.append(track)
+
+                if newlen == 0:
+                    self.currentdata.clear()
+                    self.current_songs = []
+                else:
+                    # Remove excess songs:
+                    for i in range(currlen-newlen):
+                        iter = self.currentdata.get_iter((newlen-1-i,))
+                        self.currentdata.remove(iter)
+                    self.current_songs = self.current_songs[:newlen]
+
+                if not self.filterbox_visible:
+                    self.current.set_model(self.currentdata)
+
+            self.current_update_skip = False
+
+            # Update statusbar time:
+            self.total_time = 0
+            for track in self.current_songs:
                 try:
                     self.total_time = self.total_time + int(mpdh.get(track, 'time'))
                 except:
                     pass
-                iter = None
-                if i < currlen and prev_songs:
-                    iter = self.currentdata.get_iter((i, ))
-                items = []
-                for part in self.columnformat:
-                    items += [self.parse_formatting(part, track, True)]
-                if i < currlen and iter:
-                    # Update attributes only for item:
-                    self.currentdata.set_value(iter, 0, int(mpdh.get(track, 'id')))
-                    for index in range(len(items)):
-                        self.currentdata.set_value(iter, index + 1, items[index])
-                else:
-                    # Add new item:
-                    self.currentdata.append([int(mpdh.get(track, 'id'))] + items)
-            # Remove excess songs:
-            for i in range(currlen-songlen):
-                iter = self.currentdata.get_iter((currlen-1-i,))
-                self.currentdata.remove(iter)
-            if not self.filterbox_visible:
-                self.current.set_model(self.currentdata)
+
             if self.songinfo.has_key('pos'):
                 currsong = int(mpdh.get(self.songinfo, 'pos'))
                 self.boldrow(currsong)
@@ -4669,12 +4695,7 @@ class Base:
             if type == 'col':
                 custom_sort, custom_pos = self.sort_get_first_format_tag(self.currentformat, col_num, 'L')
 
-            if type == 'col':
-                tracks = self.currentdata
-            else:
-                tracks = self.client.playlistinfo()
-
-            for track in tracks:
+            for track in self.current_songs:
                 dict = {}
                 # Those items that don't have the specified tag will be put at
                 # the end of the list (hence the 'zzzzzzz'):
@@ -4699,22 +4720,25 @@ class Base:
                         dict["sortby"] = self.sanitize_songlen_for_sorting(dict["sortby"], custom_pos)
                 else:
                     dict["sortby"] = mpdh.get(track, type, zzz).lower()
-                if type == 'col':
-                    dict["id"] = int(track[0])
-                else:
-                    dict["id"] = int(track["id"])
+                dict["id"] = int(track["id"])
                 list.append(dict)
                 track_num = track_num + 1
 
             list.sort(key=lambda x: x["sortby"])
 
             pos = 0
+            list_changed = False
             self.client.command_list_ok_begin()
             for item in list:
                 self.client.moveid(item["id"], pos)
+                if item["id"] != pos:
+                    list_changed = True
                 pos += 1
             self.client.command_list_end()
             self.iterate_now()
+
+            if not list_changed:
+                self.header_update_column_indicators()
 
     def sort_get_first_format_tag(self, format, colnum, tag_letter):
         # Returns a tuple with whether the first tag of the format
@@ -4824,7 +4848,7 @@ class Base:
         # Keep track of the moved iters so we can select them afterwards
         moved_iters = []
 
-        # We will manipulate the model to prevent the entire playlist
+        # We will manipulate self.current_songs and model to prevent the entire playlist
         # from refreshing
         offset = 0
         top_row_for_selection = len(model)
@@ -4837,17 +4861,23 @@ class Base:
                 if dest < index:
                     offset = offset + 1
                 if position in (gtk.TREE_VIEW_DROP_BEFORE, gtk.TREE_VIEW_DROP_INTO_OR_BEFORE):
+                    self.current_songs.insert(dest, self.current_songs[index])
                     if dest < index+1:
+                        self.current_songs.pop(index+1)
                         self.client.moveid(id, dest)
                     else:
+                        self.current_songs.pop(index)
                         self.client.moveid(id, dest-1)
                     model.insert(dest, model[index])
                     moved_iters += [model.get_iter((dest,))]
                     model.remove(iter)
                 else:
+                    self.current_songs.insert(dest+1, self.current_songs[index])
                     if dest < index:
+                        self.current_songs.pop(index+1)
                         self.client.moveid(id, dest+1)
                     else:
+                        self.current_songs.pop(index)
                         self.client.moveid(id, dest)
                     model.insert(dest+1, model[index])
                     moved_iters += [model.get_iter((dest+1,))]
@@ -4855,6 +4885,8 @@ class Base:
             else:
                 dest = int(self.status['playlistlength']) - 1
                 self.client.moveid(id, dest)
+                self.current_songs.insert(dest+1, self.current_songs[index])
+                self.current_songs.pop(index)
                 model.insert(dest+1, model[index])
                 moved_iters += [model.get_iter((dest+1,))]
                 model.remove(iter)
@@ -4869,6 +4901,9 @@ class Base:
                     if index < source[0] < dest:
                         source[0] -= 1
         self.client.command_list_end()
+
+        # we are manipulating the model manually for speed, so...
+        self.current_update_skip = True
 
         if drag_context.action == gtk.gdk.ACTION_MOVE:
             drag_context.finish(True, True, timestamp)
@@ -5600,6 +5635,8 @@ class Base:
             while gtk.events_pending():
                 gtk.main_iteration()
             if self.current_tab == self.TAB_CURRENT:
+                # we are manipulating the model manually for speed, so...
+                self.current_update_skip = True
                 treeviewsel = self.current_selection
                 model, selected = treeviewsel.get_selected_rows()
                 if len(selected) == len(self.currentdata) and not self.filterbox_visible:
@@ -5620,6 +5657,7 @@ class Base:
                         iter = self.currentdata.get_iter((rownum, 0))
                         self.client.deleteid(self.current_get_songid(iter, self.currentdata))
                         # Prevents the entire playlist from refreshing:
+                        self.current_songs.pop(rownum)
                         self.currentdata.remove(iter)
                     self.client.command_list_end()
                     if not self.filterbox_visible:
@@ -6744,12 +6782,11 @@ class Base:
         elif self.current_tab == self.TAB_CURRENT:
             # Populates files array with selected current playlist items:
             model, selected = self.current_selection.get_selected_rows()
-            songs = self.client.playlistinfo()
             for path in selected:
                 if not self.filterbox_visible:
-                    item = mpdh.get(songs[path[0]], 'file')
+                    item = mpdh.get(self.current_songs[path[0]], 'file')
                 else:
-                    item = mpdh.get(songs[self.filter_row_mapping[path[0]]], 'file')
+                    item = mpdh.get(self.current_songs[self.filter_row_mapping[path[0]]], 'file')
                 files.append(self.musicdir[self.profile_num] + item)
                 temp_mpdpaths.append(item)
         if len(files) == 0:
