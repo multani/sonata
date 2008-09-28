@@ -1,4 +1,7 @@
 v1.6
+	use plchanges, etc
+	prevent vertical resizing when collapsed
+	library type-as-you-go: mpd search once on 2 letters, then apply own regex filtering like playlist
 	plugin support
 		- single instance (could remove dbus; faster on startup, less memory)
 		- artwork

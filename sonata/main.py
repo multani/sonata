@@ -331,7 +331,6 @@ class Base:
         self.lib_genre = ''
         self.lib_artist = ''
         self.lib_album = ''
-        self.songs = None
         self.art_location = self.ART_LOCATION_HOMECOVERS
         self.art_location_custom_filename = ""
         self.lyrics_location = self.LYRICS_LOCATION_HOME
@@ -1783,7 +1782,7 @@ class Base:
         if conf.has_option('player', 'crossfade'):
             crossfade = conf.getint('player', 'crossfade')
             # Backwards compatibility:
-            self.xfade = [1,2,3,5,10,15][crossfade]
+            self.xfade = crossfade
         if conf.has_option('player', 'xfade'):
             self.xfade = conf.getint('player', 'xfade')
         if conf.has_option('player', 'xfade_enabled'):
@@ -2044,7 +2043,6 @@ class Base:
             self.currentdata.clear()
             if self.current.get_model():
                 self.current.get_model().clear()
-            self.songs = None
             if HAVE_STATUS_ICON:
                 self.statusicon.set_from_file(self.find_path('sonata_disconnect.png'))
             elif HAVE_EGG and self.eggtrayheight:
@@ -2155,8 +2153,9 @@ class Base:
             self.playlist_create(plname)
         elif response == 2: # Append songs:
             self.existing_playlist_option = response
+            songs = self.client.playlistinfo()
             self.client.command_list_ok_begin()
-            for song in self.songs:
+            for song in songs:
                 self.client.playlistadd(plname, mpdh.get(song, 'file'))
             self.client.command_list_end()
         return
@@ -3883,22 +3882,21 @@ class Base:
 
     def current_update(self):
         if self.conn:
-            try:
-                prev_songs = self.songs
-            except:
-                prev_songs = None
-            self.songs = self.client.playlistinfo()
+            if self.prevstatus:
+                prev_songs = True
+            else:
+                prev_songs = False
+            songs = self.client.playlistinfo()
             self.total_time = 0
             if self.sonata_loaded:
                 playlistposition = self.current.get_visible_rect()[1]
             self.current.freeze_child_notify()
             if not self.filterbox_visible:
                 self.current.set_model(None)
-            songlen = len(self.songs)
+            songlen = int(self.status['playlistlength'])
             currlen = len(self.currentdata)
             # Add/update songs in current playlist:
-            for i in range(songlen):
-                track = self.songs[i]
+            for i, track in enumerate(songs):
                 try:
                     self.total_time = self.total_time + int(mpdh.get(track, 'time'))
                 except:
@@ -4645,7 +4643,7 @@ class Base:
 
     def sort(self, type, column=None, lower=lambda x: x.lower()):
         if self.conn:
-            if len(self.songs) == 0:
+            if not self.status or self.status['playlistlength'] == '0':
                 return
 
             while gtk.events_pending():
@@ -4671,7 +4669,12 @@ class Base:
             if type == 'col':
                 custom_sort, custom_pos = self.sort_get_first_format_tag(self.currentformat, col_num, 'L')
 
-            for track in self.songs:
+            if type == 'col':
+                tracks = self.currentdata
+            else:
+                tracks = self.client.playlistinfo()
+
+            for track in tracks:
                 dict = {}
                 # Those items that don't have the specified tag will be put at
                 # the end of the list (hence the 'zzzzzzz'):
@@ -4696,7 +4699,10 @@ class Base:
                         dict["sortby"] = self.sanitize_songlen_for_sorting(dict["sortby"], custom_pos)
                 else:
                     dict["sortby"] = mpdh.get(track, type, zzz).lower()
-                dict["id"] = int(track["id"])
+                if type == 'col':
+                    dict["id"] = int(track[0])
+                else:
+                    dict["id"] = int(track["id"])
                 list.append(dict)
                 track_num = track_num + 1
 
@@ -4734,12 +4740,12 @@ class Base:
 
     def on_sort_reverse(self, action):
         if self.conn:
-            if len(self.songs) == 0:
+            if not self.status or self.status['playlistlength'] == '0':
                 return
             while gtk.events_pending():
                 gtk.main_iteration()
             top = 0
-            bot = len(self.songs)-1
+            bot = int(self.status['playlistlength'])-1
             self.client.command_list_ok_begin()
             while top < bot:
                 self.client.swap(top, bot)
@@ -4750,7 +4756,7 @@ class Base:
 
     def mpd_shuffle(self, action):
         if self.conn:
-            if len(self.songs) == 0:
+            if not self.status or self.status['playlistlength'] == '0':
                 return
             ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
             while gtk.events_pending():
@@ -4793,7 +4799,7 @@ class Base:
                     else:
                         id = destpath[0] + 1
                 else:
-                    id = len(self.songs)
+                    id = int(self.status['playlistlength'])
                 self.client.command_list_ok_begin()
                 for mpdpath in mpdpaths:
                     self.client.addid(mpdpath, id)
@@ -4818,7 +4824,7 @@ class Base:
         # Keep track of the moved iters so we can select them afterwards
         moved_iters = []
 
-        # We will manipulate self.songs and model to prevent the entire playlist
+        # We will manipulate the model to prevent the entire playlist
         # from refreshing
         offset = 0
         top_row_for_selection = len(model)
@@ -4831,32 +4837,24 @@ class Base:
                 if dest < index:
                     offset = offset + 1
                 if position in (gtk.TREE_VIEW_DROP_BEFORE, gtk.TREE_VIEW_DROP_INTO_OR_BEFORE):
-                    self.songs.insert(dest, self.songs[index])
                     if dest < index+1:
-                        self.songs.pop(index+1)
                         self.client.moveid(id, dest)
                     else:
-                        self.songs.pop(index)
                         self.client.moveid(id, dest-1)
                     model.insert(dest, model[index])
                     moved_iters += [model.get_iter((dest,))]
                     model.remove(iter)
                 else:
-                    self.songs.insert(dest+1, self.songs[index])
                     if dest < index:
-                        self.songs.pop(index+1)
                         self.client.moveid(id, dest+1)
                     else:
-                        self.songs.pop(index)
                         self.client.moveid(id, dest)
                     model.insert(dest+1, model[index])
                     moved_iters += [model.get_iter((dest+1,))]
                     model.remove(iter)
             else:
-                dest = len(self.songs) - 1
+                dest = int(self.status['playlistlength']) - 1
                 self.client.moveid(id, dest)
-                self.songs.insert(dest+1, self.songs[index])
-                self.songs.pop(index)
                 model.insert(dest+1, model[index])
                 moved_iters += [model.get_iter((dest+1,))]
                 model.remove(iter)
@@ -5622,7 +5620,6 @@ class Base:
                         iter = self.currentdata.get_iter((rownum, 0))
                         self.client.deleteid(self.current_get_songid(iter, self.currentdata))
                         # Prevents the entire playlist from refreshing:
-                        self.songs.pop(rownum)
                         self.currentdata.remove(iter)
                     self.client.command_list_end()
                     if not self.filterbox_visible:
@@ -6153,7 +6150,6 @@ class Base:
                 self.currentformat = currentoptions.get_text()
                 for column in self.current.get_columns():
                     self.current.remove_column(column)
-                self.songs = None
                 self.current_initialize_columns()
                 self.current_update()
             if self.libraryformat != libraryoptions.get_text():
@@ -6748,11 +6744,12 @@ class Base:
         elif self.current_tab == self.TAB_CURRENT:
             # Populates files array with selected current playlist items:
             model, selected = self.current_selection.get_selected_rows()
+            songs = self.client.playlistinfo()
             for path in selected:
                 if not self.filterbox_visible:
-                    item = mpdh.get(self.songs[path[0]], 'file')
+                    item = mpdh.get(songs[path[0]], 'file')
                 else:
-                    item = mpdh.get(self.songs[self.filter_row_mapping[path[0]]], 'file')
+                    item = mpdh.get(songs[self.filter_row_mapping[path[0]]], 'file')
                 files.append(self.musicdir[self.profile_num] + item)
                 temp_mpdpaths.append(item)
         if len(files) == 0:
@@ -7413,7 +7410,6 @@ class Base:
                     return
                 elif len(todo) > 1:
                     gobject.idle_add(self.libsearchfilter_update_treeview, searchby, todo)
-                    gobject.idle_add(self.library.set_cursor, '0')
                 elif len(todo) == 0:
                     gobject.idle_add(self.tags_win_entry_revert_color, self.searchtext)
                     self.libsearchfilter_toggle(False)
@@ -7428,10 +7424,9 @@ class Base:
             self.prevtodo = todo
 
     def libsearchfilter_update_treeview(self, searchby, todo):
-        self.current.freeze_child_notify()
+        self.library.freeze_child_notify()
         list = self.client.search(searchby, todo)
         currlen = len(self.librarydata)
-        #self.librarydata.clear()
         newlist = []
         for item in list:
             if item.has_key('file'):
@@ -7449,7 +7444,8 @@ class Base:
         for i in range(currlen-newlen):
             iter = self.librarydata.get_iter((currlen-1-i,))
             self.librarydata.remove(iter)
-        self.current.thaw_child_notify()
+        self.library.thaw_child_notify()
+        gobject.idle_add(self.library.set_cursor,'0')
         if len(list) == 0:
             gobject.idle_add(self.tags_win_entry_changed, self.searchtext, True)
         else:
