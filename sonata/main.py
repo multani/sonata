@@ -7487,6 +7487,7 @@ class Base:
                 for meta in row:
                     if regexp.match(mpdh.get(row, meta).lower()):
                         matches.append(row)
+                        break
         if subsearch and len(matches) == len(self.librarydata):
             # nothing changed..
             return
