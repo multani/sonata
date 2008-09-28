@@ -7149,10 +7149,13 @@ class Base:
 
     def tags_mpd_update(self, tags):
         if tags:
-            self.client.command_list_ok_begin()
-            for i in range(self.tagnum):
-                self.client.update(tags[i]['mpdpath'])
-            self.client.command_list_end()
+            try:
+                self.client.command_list_ok_begin()
+                for i in range(self.tagnum):
+                    self.client.update(tags[i]['mpdpath'])
+                self.client.command_list_end()
+            except:
+                pass
             self.iterate_now()
 
     def tags_win_genres(self):
