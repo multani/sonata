@@ -4727,18 +4727,14 @@ class Base:
             list.sort(key=lambda x: x["sortby"])
 
             pos = 0
-            list_changed = False
             self.client.command_list_ok_begin()
             for item in list:
                 self.client.moveid(item["id"], pos)
-                if item["id"] != pos:
-                    list_changed = True
                 pos += 1
             self.client.command_list_end()
             self.iterate_now()
 
-            if not list_changed:
-                self.header_update_column_indicators()
+            self.header_update_column_indicators()
 
     def sort_get_first_format_tag(self, format, colnum, tag_letter):
         # Returns a tuple with whether the first tag of the format

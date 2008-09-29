@@ -1,5 +1,6 @@
 v1.6
 	prevent vertical resizing when collapsed (remove or fix this?)
+	queue updates if wanting to do one while another is happening
 	plugin support
 		- single instance (could remove dbus; faster on startup, less memory)
 		- artwork
@@ -11,16 +12,11 @@ v1.6
 		- "Find more" - "By Artist/Album" (patch 2507)
 		- Add as Next Track (patch 2454)
 		- Dynamic playlist (patch 2419)
-	adding more songs than max playlist size -> sonata not responding
 	
 Future:
-	lyrics -> ability to save changes
-	test multiple streams at once..
 	crop songs in current playlist?
 	mpd statistics
 	use GtkVolumeButton?
-	allow additional columns for library (like current)?
-	audioscrobbler - remove raise calls..
 	better playlist support (mpd 0.13+ only):
 		ability to view songs, reorder songs, remove songs, etc
 	lazy loading of the treeview
