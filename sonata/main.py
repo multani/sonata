@@ -1000,8 +1000,11 @@ class Base:
         # Set up current view
         self.current_initialize_columns()
         self.current_selection.set_mode(gtk.SELECTION_MULTIPLE)
-        self.current.enable_model_drag_source(gtk.gdk.BUTTON1_MASK, [('STRING', 0, 0), ("text/uri-list", 0, 80)], gtk.gdk.ACTION_MOVE)
-        self.current.enable_model_drag_dest([('STRING', 0, 0), ("text/uri-list", 0, 80)], gtk.gdk.ACTION_MOVE)
+        target_reorder = ('MY_TREE_MODEL_ROW', gtk.TARGET_SAME_WIDGET, 0)
+        target_file_managers = ('text/uri-list', 0, 0)
+        self.current.enable_model_drag_source(gtk.gdk.BUTTON1_MASK, [target_reorder, target_file_managers], gtk.gdk.ACTION_COPY | gtk.gdk.ACTION_DEFAULT)
+        self.current.enable_model_drag_dest([target_reorder], gtk.gdk.ACTION_MOVE)
+        self.current.connect('drag-data-get', self.dnd_get_data_for_file_managers)
 
         # Initialize playlist data and widget
         self.playlistsdata = gtk.ListStore(str, str)
@@ -1100,6 +1103,33 @@ class Base:
         gc.disable()
 
         gobject.idle_add(self.header_save_column_widths)
+
+    def dnd_get_data_for_file_managers(self, treeview, context, selection, info, timestamp):
+        context.drag_status(gtk.gdk.ACTION_COPY, context.start_time)
+
+        filenames = self.current_get_selected_filenames(True)
+
+        uris = []
+        for file in filenames:
+            uris.append("file://" + file)
+
+        selection.set_uris(uris)
+        return
+
+    def current_get_selected_filenames(self, return_abs_paths):
+        model, selected = self.current_selection.get_selected_rows()
+        filenames = []
+
+        for path in selected:
+            if not self.filterbox_visible:
+                item = mpdh.get(self.current_songs[path[0]], 'file')
+            else:
+                item = mpdh.get(self.current_songs[self.filter_row_mapping[path[0]]], 'file')
+            if return_abs_paths:
+                filenames.append(self.musicdir[self.profile_num] + item)
+            else:
+                filenames.append(item)
+        return filenames
 
     def print_version(self):
         print _("Version: Sonata"), __version__
@@ -6754,7 +6784,7 @@ class Base:
             ui.show_msg(self.window, _("Taglib and/or tagpy not found, tag editing support disabled."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=self.dialog_destroy)
             return
         if not os.path.isdir(misc.file_from_utf8(self.musicdir[self.profile_num])):
-            ui.show_msg(self.window, _("The path ") + " " + self.musicdir[self.profile_num] + " " + _("does not exist. Please specify a valid music directory in preferences."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=self.dialog_destroy)
+            ui.show_msg(self.window, _("The path") + " " + self.musicdir[self.profile_num] + " " + _("does not exist. Please specify a valid music directory in preferences."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=self.dialog_destroy)
             return
         ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
         self.edit_style_orig = self.searchtext.get_style()
@@ -6777,14 +6807,8 @@ class Base:
                 temp_mpdpaths.append(item)
         elif self.current_tab == self.TAB_CURRENT:
             # Populates files array with selected current playlist items:
-            model, selected = self.current_selection.get_selected_rows()
-            for path in selected:
-                if not self.filterbox_visible:
-                    item = mpdh.get(self.current_songs[path[0]], 'file')
-                else:
-                    item = mpdh.get(self.current_songs[self.filter_row_mapping[path[0]]], 'file')
-                files.append(self.musicdir[self.profile_num] + item)
-                temp_mpdpaths.append(item)
+            temp_mpdpaths = self.current_get_selected_filenames(False)
+            files = self.current_get_selected_filenames(True)
         if len(files) == 0:
             ui.change_cursor(None)
             return

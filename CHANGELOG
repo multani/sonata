@@ -1,6 +1,7 @@
 v1.6
-	+ Use plchanges for faster performance of some actions (e.g. add to playlist)
 	+ Real-time searching of library (search as you type)
+	+ DND to copy files from Sonata to a file manager (Kamil)
+	+ Use plchanges for faster performance of some actions (e.g. add to playlist)
 	+ Bug: Bad profiles prevent sonata from starting
 
 v1.5.3
