@@ -1105,6 +1105,12 @@ class Base:
         gobject.idle_add(self.header_save_column_widths)
 
     def dnd_get_data_for_file_managers(self, treeview, context, selection, info, timestamp):
+
+        if not os.path.isdir(self.musicdir[self.profile_num]):
+            # Prevent the DND mouse cursor from looking like we can DND
+            # when we clearly can't.
+            return
+
         context.drag_status(gtk.gdk.ACTION_COPY, context.start_time)
 
         filenames = self.current_get_selected_filenames(True)
