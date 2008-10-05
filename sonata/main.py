@@ -3916,6 +3916,13 @@ class Base:
                 self.window.set_property('title', newtitle)
                 self.last_title = newtitle
 
+    def current_update_format(self):
+        for track in self.current_songs:
+            items = []
+            for part in self.columnformat:
+                items += [self.parse_formatting(part, track, True)]
+            self.currentdata.append([int(mpdh.get(track, 'id'))] + items)
+
     def current_update(self):
         if self.conn:
 
@@ -6221,7 +6228,7 @@ class Base:
                 for column in self.current.get_columns():
                     self.current.remove_column(column)
                 self.current_initialize_columns()
-                self.current_update()
+                self.current_update_format()
             if self.libraryformat != libraryoptions.get_text():
                 self.libraryformat = libraryoptions.get_text()
                 self.library_browse(root=self.wd)
