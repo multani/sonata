@@ -1117,7 +1117,7 @@ class Base:
 
         uris = []
         for file in filenames:
-            uris.append("file://" + file)
+            uris.append("file://" + urllib.quote(file))
 
         selection.set_uris(uris)
         return
