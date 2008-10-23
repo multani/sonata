@@ -1,7 +1,7 @@
 v1.6
+	enabling/disabling outputs
 	prevent vertical resizing when collapsed (remove or fix this?)
-	queue updates if wanting to do one while another is happening
-	set sonata icon as image file if resetting album art instead of using NONE_FLAG stuff
+	set sonata icon as image file if resetting album art instead of using NONE_FLAG stuff?
 	sonata freezes with gail/accessibility enabled during new library searching
 	plugin support
 		- single instance (could remove dbus; faster on startup, less memory)
