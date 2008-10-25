@@ -1,4 +1,7 @@
 v1.6
+	fullscreen artwork:
+		- remove 500x500 hardcode
+		- show currently playing song
 	enabling/disabling outputs
 	prevent vertical resizing when collapsed (remove or fix this?)
 	set sonata icon as image file if resetting album art instead of using NONE_FLAG stuff?
