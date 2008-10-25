@@ -156,6 +156,65 @@ class Base:
         except:
             pass
 
+        # The following attributes were used but not defined here before:
+        self.about_dialog = None
+        self.album_current_artist = None
+        self.albumText = None
+        self.allow_art_search = None
+        self.choose_dialog = None
+        self.chooseimage_visible = None
+        self.columnformat = None
+        self.columns = None
+        self.currentdata = None
+        self.current_songs = None
+        self.filterbox_cmd_buf = None
+        self.filterbox_cond = None
+        self.filterbox_source = None
+        self.imagelist = None
+        self.info_boxes_in_more = None
+        self.info_editlabel = None
+        self.info_editlyricslabel = None
+        self.info_imagebox = None
+        self.info_image = None
+        self.info_labels = None
+        self.info_left_label = None
+        self.info_lyrics = None
+        self.info_morelabel = None
+        self.info_searchlabel = None
+        self.info_tagbox = None
+        self.info_type = None
+        self.iterate_handler = None
+        self.libfilterbox_cmd_buf = None
+        self.libfilterbox_cond = None
+        self.libfilterbox_source = None
+        self.linkcolor = None
+        self.local_dest_filename = None
+        self.lyricsText = None
+        self.notification_width = None
+        self.playlist_pos_before_filter = None
+        self.prev_host = None
+        self.prevlibtodo_base = None
+        self.prevlibtodo_base_results = None
+        self.prevlibtodo = None
+        self.prev_password = None
+        self.prev_port = None
+        self.prevtodo = None
+        self.remote_albumentry = None
+        self.remote_artistentry = None
+        self.remote_dest_filename = None
+        self.remotefilelist = None
+        self.resizing_columns = None
+        self.save_timeout = None
+        self.seekidle = None
+        self.statusicon = None
+        self.stop_art_update = None
+        self.tagnum = None
+        self.tagpy_is_91 = None
+        self.trayeventbox = None
+        self.trayicon = None
+        self.trayimage = None
+        self.updating_edit_entries = None
+
         # Initialize vars (these can be needed if we have a cli argument, e.g., "sonata play")
         socketsettimeout(5)
         self.profile_num = 0
