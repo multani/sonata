@@ -387,6 +387,7 @@ class Base:
         self.existing_playlist_option = 0
         self.elapsed_now = None
         self.current_update_skip = False
+        self.libsearch_last_tooltip = None
         # If the connection to MPD times out, this will cause the interface to freeze while
         # the socket.connect() calls are repeatedly executed. Therefore, if we were not
         # able to make a connection, slow down the iteration check to once every 15 seconds.
@@ -644,7 +645,6 @@ class Base:
                 self.window.set_keep_above(True)
             if self.sticky:
                 self.window.stick()
-        self.tooltips = gtk.Tooltips()
         self.UIManager = gtk.UIManager()
         actionGroup = gtk.ActionGroup('Actions')
         actionGroup.add_actions(actions)
@@ -745,7 +745,7 @@ class Base:
         self.searchbutton.set_no_show_all(True)
         self.searchbutton.hide()
         self.libraryview = ui.button(relief=gtk.RELIEF_NONE)
-        self.tooltips.set_tip(self.libraryview, _("Library browsing view"))
+        self.libraryview.set_tooltip_text(_("Library browsing view"))
         self.library_view_assign_image()
         self.librarymenu.attach_to_widget(self.libraryview, None)
         self.searchbox.pack_start(self.libraryview, False, False, 1)
@@ -830,12 +830,12 @@ class Base:
             self.cursonglabel2.set_markup('<small>' + _('Click to collapse') + '</small>')
             if self.window_owner:
                 self.window.set_default_size(self.w, self.h)
-        self.tooltips.set_tip(self.expander, self.cursonglabel1.get_text())
+        self.expander.set_tooltip_text(self.cursonglabel1.get_text())
         if not self.conn:
             self.progressbar.set_text(_('Not Connected'))
         elif not self.status:
             self.progressbar.set_text(_('No Read Permission'))
-        self.tooltips.set_tip(self.libraryview, _("Library browsing view"))
+        self.libraryview.set_tooltip_text(_("Library browsing view"))
         if gtk.pygtk_version >= (2, 10, 0):
             for child in self.notebook.get_children():
                 self.notebook.set_tab_reorderable(child, True)
@@ -946,6 +946,7 @@ class Base:
         self.library.connect('row_activated', self.on_library_row_activated)
         self.library.connect('button_press_event', self.on_library_button_press)
         self.library.connect('key-press-event', self.on_library_key_press)
+        self.library.connect('query-tooltip', self.on_library_query_tooltip)
         self.libraryview.connect('clicked', self.library_view_popup)
         self.playlists.connect('button_press_event', self.on_playlists_button_press)
         self.playlists.connect('row_activated', self.playlists_activated)
@@ -961,7 +962,7 @@ class Base:
         self.searchtext.connect('key-press-event', self.libsearchfilter_key_pressed)
         self.searchtext.connect('activate', self.libsearchfilter_on_enter)
         self.libfilter_changed_handler = self.searchtext.connect('changed', self.libsearchfilter_feed_loop)
-        self.searchcombo.connect('changed', self.on_library_search_combo_change)
+        searchcombo_changed_handler = self.searchcombo.connect('changed', self.on_library_search_combo_change)
         self.searchbutton.connect('clicked', self.on_library_search_end)
         self.filter_changed_handler = self.filterpattern.connect('changed', self.searchfilter_feed_loop)
         self.filterpattern.connect('activate', self.searchfilter_on_enter)
@@ -1039,7 +1040,9 @@ class Base:
         # Initialize library data and widget
         self.libraryposition = {}
         self.libraryselectedpath = {}
+        self.searchcombo.handler_block(searchcombo_changed_handler)
         self.searchcombo.set_active(self.last_search_num)
+        self.searchcombo.handler_unblock(searchcombo_changed_handler)
         self.prevstatus = None
         self.librarydata = gtk.ListStore(gtk.gdk.Pixbuf, str, str)
         self.library.set_model(self.librarydata)
@@ -1312,7 +1315,7 @@ class Base:
         widget.connect("enter-notify-event", self.on_link_enter)
         widget.connect("leave-notify-event", self.on_link_leave)
         widget.connect("button-press-event", self.on_link_click, type)
-        self.tooltips.set_tip(widget, tooltip)
+        widget.set_tooltip_text(tooltip)
 
     def current_initialize_columns(self):
         # Initialize current playlist data and widget
@@ -1325,7 +1328,7 @@ class Base:
         self.columns = []
         index = 1
         colnames = self.parse_formatting_colnames(self.currentformat)
-        if len(self.columnformat) <> len(self.columnwidths):
+        if len(self.columnformat) != len(self.columnwidths):
             # Number of columns changed, set columns equally spaced:
             self.columnwidths = []
             self.colwidthpercents = [ 1/float(len(self.columnformat)) ] * len(self.columnformat)
@@ -2143,7 +2146,7 @@ class Base:
                 i = 0
                 for item in self.stream_names:
                     # Prevent a name collision in edit_mode..
-                    if not edit_mode or (edit_mode and i <> stream_num):
+                    if not edit_mode or (edit_mode and i != stream_num):
                         if item == name:
                             dialog.destroy()
                             if ui.show_msg(self.window, _("A stream with this name already exists. Would you like to replace it?"), _("New Stream"), 'newStreamError', gtk.BUTTONS_YES_NO) == gtk.RESPONSE_YES:
@@ -3154,6 +3157,38 @@ class Base:
             self.on_library_row_activated(widget, widget.get_cursor()[0])
             return True
 
+    def on_library_query_tooltip(self, widget, x, y, keyboard_mode, tooltip):
+        if keyboard_mode or not self.library_search_visible():
+            widget.set_tooltip_text(None)
+            return False
+
+        bin_x, bin_y = widget.convert_widget_to_bin_window_coords(x, y)
+
+        path, col, x2, y2 = widget.get_path_at_pos(bin_x, bin_y)
+        if not path:
+            widget.set_tooltip_text(None)
+            return False
+
+        iter = self.librarydata.get_iter(path[0])
+        path = misc.escape_html(self.librarydata.get_value(iter, 1))
+        song = self.librarydata.get_value(iter, 2)
+        new_tooltip = "<b>" + _("Song") + ": </b>" + song + "\n<b>" + _("Path") + ": </b>" + path
+
+        if new_tooltip != self.libsearch_last_tooltip:
+            self.libsearch_last_tooltip = new_tooltip
+            self.library.set_property('has-tooltip', False)
+            gobject.idle_add(self.library_search_tooltips_enable, widget, x, y, keyboard_mode, tooltip)
+            return
+
+        gobject.idle_add(widget.set_tooltip_markup, new_tooltip)
+        self.libsearch_last_tooltip = new_tooltip
+
+        return False #api says we should return True, but this doesn't work?
+
+    def library_search_tooltips_enable(self, widget, x, y, keyboard_mode, tooltip):
+        self.library.set_property('has-tooltip', True)
+        self.on_library_query_tooltip(widget, x, y, keyboard_mode, tooltip)
+
     def on_library_row_activated(self, widget, path, column=0):
         if path is None:
             # Default to last item in selection:
@@ -3564,7 +3599,7 @@ class Base:
                     self.volume_set_image("stock_volume-med")
                 else:
                     self.volume_set_image("stock_volume-max")
-                self.tooltips.set_tip(self.volumebutton, self.status['volume'] + "%")
+                self.volumebutton.set_tooltip_text(self.status['volume'] + "%")
             except:
                 pass
 
@@ -3883,7 +3918,7 @@ class Base:
                 self.traycursonglabel1.set_markup(newlabel1)
             if newlabel2 != self.traycursonglabel2.get_label():
                 self.traycursonglabel2.set_markup(newlabel2)
-            self.tooltips.set_tip(self.expander, self.cursonglabel1.get_text() + "\n" + self.cursonglabel2.get_text())
+            self.expander.set_tooltip_text(self.cursonglabel1.get_text() + "\n" + self.cursonglabel2.get_text())
         else:
             for label in (self.cursonglabel1, self.cursonglabel2, self.traycursonglabel1, self.cursonglabel2):
                 label.set_ellipsize(pango.ELLIPSIZE_NONE)
@@ -3893,7 +3928,7 @@ class Base:
                 self.cursonglabel2.set_markup('<small>' + _('Click to collapse') + '</small>')
             else:
                 self.cursonglabel2.set_markup('<small>' + _('Click to expand') + '</small>')
-            self.tooltips.set_tip(self.expander, self.cursonglabel1.get_text())
+            self.expander.set_tooltip_text(self.cursonglabel1.get_text())
             if not self.conn:
                 self.traycursonglabel1.set_label(_('Not Connected'))
             elif not self.status:
@@ -3921,6 +3956,7 @@ class Base:
             items = []
             for part in self.columnformat:
                 items += [self.parse_formatting(part, track, True)]
+
             self.currentdata.append([int(mpdh.get(track, 'id'))] + items)
 
     def current_update(self):
@@ -5433,7 +5469,7 @@ class Base:
                 self.withdraw_app()
             # This prevents the tooltip from popping up again until the user
             # leaves and enters the trayicon again
-            #if self.traytips.notif_handler == None and self.traytips.notif_handler <> -1:
+            #if self.traytips.notif_handler == None and self.traytips.notif_handler != -1:
             #	self.traytips._remove_timer()
             gobject.timeout_add(100, self.tooltip_set_ignore_toggle_signal_false)
 
@@ -5445,7 +5481,7 @@ class Base:
         # handler has a value, because that means that the tooltip is already
         # visible, and we don't want to override that setting simply because
         # the user's cursor is not over the tooltip.
-        if self.traymenu.get_property('visible') and self.traytips.notif_handler <> -1:
+        if self.traymenu.get_property('visible') and self.traytips.notif_handler != -1:
             self.traytips._remove_timer()
         elif not self.traytips.notif_handler:
             pointer_screen, px, py, _ = self.window.get_screen().get_display().get_pointer()
@@ -5549,7 +5585,7 @@ class Base:
 
     def switch_to_tab_num(self, tab_num):
         vis_tabnum = self.notebook_get_visible_tab_num(self.notebook, tab_num)
-        if vis_tabnum <> -1:
+        if vis_tabnum != -1:
             self.notebook.set_current_page(vis_tabnum)
 
     def on_switch_to_tab1(self, action):
@@ -5796,7 +5832,7 @@ class Base:
         passwordlabel = ui.label(text=_("Password") + ":")
         passwordbox.pack_start(passwordlabel, False, False, 0)
         passwordentry = ui.entry(password=True)
-        self.tooltips.set_tip(passwordentry, _("Leave blank if no password is required."))
+        passwordentry.set_tooltip_text(_("Leave blank if no password is required."))
         passwordbox.pack_start(passwordentry, True, True, 10)
         mpd_labels = [namelabel, hostlabel, portlabel, passwordlabel, dirlabel]
         ui.set_widths_equal(mpd_labels)
@@ -6006,13 +6042,13 @@ class Base:
         win_ontop.set_active(self.ontop)
         update_start = gtk.CheckButton(_("Update MPD library on start"))
         update_start.set_active(self.update_on_start)
-        self.tooltips.set_tip(update_start, _("If enabled, Sonata will automatically update your MPD library when it starts up."))
+        update_start.set_tooltip_text(_("If enabled, Sonata will automatically update your MPD library when it starts up."))
         exit_stop = gtk.CheckButton(_("Stop playback on exit"))
         exit_stop.set_active(self.stop_on_exit)
-        self.tooltips.set_tip(exit_stop, _("MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit."))
+        exit_stop.set_tooltip_text(_("MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit."))
         minimize = gtk.CheckButton(_("Minimize to system tray on close/escape"))
         minimize.set_active(self.minimize_to_systray)
-        self.tooltips.set_tip(minimize, _("If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."))
+        minimize.set_tooltip_text(_("If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."))
         display_trayicon.connect('toggled', self.prefs_trayicon_toggled, minimize)
         if HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible():
             minimize.set_sensitive(True)
@@ -6023,9 +6059,9 @@ class Base:
         infofilebox = gtk.HBox()
         infofile_usage = gtk.CheckButton(_("Write status file:"))
         infofile_usage.set_active(self.use_infofile)
-        self.tooltips.set_tip(infofile_usage, _("If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)"))
+        infofile_usage.set_tooltip_text(_("If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)"))
         infopath_options = ui.entry(text=self.infofile_path)
-        self.tooltips.set_tip(infopath_options, _("If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)"))
+        infopath_options.set_tooltip_text(_("If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)"))
         if not self.use_infofile:
             infopath_options.set_sensitive(False)
         infofile_usage.connect('toggled', self.prefs_infofile_toggled, infopath_options)
@@ -6977,9 +7013,9 @@ class Base:
     def tags_win_create_apply_all_button(self, button, vbox, entry, autotrack=False):
         button.set_size_request(12, 12)
         if autotrack:
-            self.tooltips.set_tip(button, _("Increment each selected music file, starting at track 1 for this file."))
+            button.set_tooltip_text(_("Increment each selected music file, starting at track 1 for this file."))
         else:
-            self.tooltips.set_tip(button, _("Apply to all selected music files."))
+            button.set_tooltip_text(_("Apply to all selected music files."))
         padding = int((entry.size_request()[1] - button.size_request()[1])/2)+1
         vbox.pack_start(button, False, False, padding)
 
@@ -7423,6 +7459,7 @@ class Base:
 
     def libsearchfilter_toggle(self, move_focus):
         if not self.library_search_visible() and self.conn:
+            self.library.set_property('has-tooltip', True)
             ui.show(self.searchbutton)
             self.prevlibtodo = 'foo'
             self.prevlibtodo_base = "__"
