@@ -4367,6 +4367,7 @@ class Base:
                     del pix2
                     # Artwork for fullscreen cover mode
                     (pix3, w, h) = img.get_pixbuf_of_size(pix, self.FULLSCREEN_COVER_SIZE)
+                    pix3 = self.artwork_apply_composite_case(pix3, w, h)
                     pix3 = img.pixbuf_pad(pix3, self.FULLSCREEN_COVER_SIZE, self.FULLSCREEN_COVER_SIZE)
                     self.fullscreenalbumimage.set_from_pixbuf(pix3)
                     del pix, pix3
