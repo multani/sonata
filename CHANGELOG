@@ -4,6 +4,7 @@ v1.6
 	+ Show file path in tooltip for library search results
 	+ DND to copy files from Sonata to a file manager (Kamil)
 	+ Use plchanges for faster performance of some actions (e.g. add to playlist)
+	+ Make process name 'sonata' for linux (himdel)
 	+ Bug: Bad profiles prevent sonata from starting
 
 v1.5.3

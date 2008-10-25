@@ -26,6 +26,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from sonata import main
 import sys
+import platform
+
+if platform.system == 'Linux':
+    sys.argv[0] = 'sonata'
 
 try:
     import dbus
