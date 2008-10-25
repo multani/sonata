@@ -3339,7 +3339,7 @@ class Base:
         if self.on_button_press(widget, event, True): return True
 
     def on_playlists_button_press(self, widget, event):
-        if self.on_button_press(widget, event,	False): return True
+        if self.on_button_press(widget, event, False): return True
 
     def on_streams_button_press(self, widget, event):
         if self.on_button_press(widget, event, False): return True
@@ -5583,7 +5583,7 @@ class Base:
             # This prevents the tooltip from popping up again until the user
             # leaves and enters the trayicon again
             #if self.traytips.notif_handler == None and self.traytips.notif_handler != -1:
-            #	self.traytips._remove_timer()
+                #self.traytips._remove_timer()
             gobject.timeout_add(100, self.tooltip_set_ignore_toggle_signal_false)
 
     def tooltip_show_manually(self):
@@ -6496,7 +6496,7 @@ class Base:
         new_model.clear()
         profile_combo.set_model(new_model)
         for i in range(len(self.profile_names)):
-            if len(self.profile_names[i])	> 15:
+            if len(self.profile_names[i]) > 15:
                 profile_combo.append_text("[" + str(i+1) + "] " + self.profile_names[i][:15] + "...")
             else:
                 profile_combo.append_text("[" + str(i+1) + "] " + self.profile_names[i])
