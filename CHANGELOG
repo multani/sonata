@@ -1,5 +1,6 @@
 v1.6
 	+ Real-time searching of library (search as you type)
+	+ Fullscreen artwork covers mode (via right-click on artwork) (mips)
 	+ Show file path in tooltip for library search results
 	+ DND to copy files from Sonata to a file manager (Kamil)
 	+ Use plchanges for faster performance of some actions (e.g. add to playlist)

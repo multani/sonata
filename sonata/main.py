@@ -136,8 +136,8 @@ if not skip_gui:
             pass
 
     # Test pygtk version
-    if gtk.pygtk_version < (2, 6, 0):
-        sys.stderr.write("Sonata requires PyGTK 2.6.0 or newer. Aborting...\n")
+    if gtk.pygtk_version < (2, 12, 0):
+        sys.stderr.write("Sonata requires PyGTK 2.12.0 or newer. Aborting...\n")
         sys.exit(1)
 
 class Base:
@@ -240,6 +240,7 @@ class Base:
         self.LYRIC_TIMEOUT = 10
         self.NOTIFICATION_WIDTH_MAX = 500
         self.NOTIFICATION_WIDTH_MIN = 350
+        self.FULLSCREEN_COVER_SIZE = 500
         self.ART_LOCATION_HOMECOVERS = 0		# ~/.covers/[artist]-[album].jpg
         self.ART_LOCATION_COVER = 1				# file_dir/cover.jpg
         self.ART_LOCATION_ALBUM = 2				# file_dir/album.jpg
@@ -507,7 +508,8 @@ class Base:
             ('genreview', gtk.STOCK_ORIENTATION_PORTRAIT, _('Genre'), None, None, self.on_libraryview_chosen),
             ('chooseimage_menu', gtk.STOCK_CONVERT, _('Use _Remote Image...'), None, None, self.image_remote),
             ('localimage_menu', gtk.STOCK_OPEN, _('Use _Local Image...'), None, None, self.image_local),
-            ('resetimage_menu', gtk.STOCK_CLEAR, _('Reset to Default'), None, None, self.on_reset_image),
+            ('fullscreencoverart_menu', gtk.STOCK_FULLSCREEN, _('_Fullscreen Mode'), 'F11', None, self.fullscreen_cover_art),
+            ('resetimage_menu', gtk.STOCK_CLEAR, _('Reset Image'), None, None, self.on_reset_image),
             ('playmenu', gtk.STOCK_MEDIA_PLAY, _('_Play'), None, None, self.mpd_pp),
             ('pausemenu', gtk.STOCK_MEDIA_PAUSE, _('_Pause'), None, None, self.mpd_pp),
             ('stopmenu', gtk.STOCK_MEDIA_STOP, _('_Stop'), None, None, self.mpd_stop),
@@ -578,6 +580,7 @@ class Base:
               <popup name="imagemenu">
                 <menuitem action="chooseimage_menu"/>
                 <menuitem action="localimage_menu"/>
+                <menuitem action="fullscreencoverart_menu"/>
                 <separator name="FM1"/>
                 <menuitem action="resetimage_menu"/>
               </popup>
@@ -968,6 +971,22 @@ class Base:
         frame.add(volbox)
         ui.show(frame)
 
+        # Fullscreen cover art window
+        self.fullscreencoverart = gtk.Window()
+        self.fullscreencoverart.set_title(_("Cover Art"))
+        self.fullscreencoverart.set_decorated(True)
+        self.fullscreencoverart.fullscreen()
+        self.fullscreencoverart.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("black"))
+        self.fullscreencoverart.add_accel_group(self.UIManager.get_accel_group())
+        fscavbox = gtk.VBox()
+        fscahbox = gtk.HBox()
+        self.fullscreenalbumimage = ui.image(w=self.FULLSCREEN_COVER_SIZE, h=self.FULLSCREEN_COVER_SIZE, x=1)
+        fscahbox.pack_start(self.fullscreenalbumimage, True, False, 0)
+        fscavbox.pack_start(fscahbox, True, False, 0)
+        if not self.show_covers:
+            ui.hide(self.fullscreenalbumimage)
+        self.fullscreencoverart.add(fscavbox)
+
         # Connect to signals
         self.window.add_events(gtk.gdk.BUTTON_PRESS_MASK)
         self.traytips.add_events(gtk.gdk.BUTTON_PRESS_MASK)
@@ -1027,6 +1046,9 @@ class Base:
         self.filterpattern.connect('activate', self.searchfilter_on_enter)
         self.filterpattern.connect('key-press-event', self.searchfilter_key_pressed)
         filterclosebutton.connect('clicked', self.searchfilter_toggle)
+        self.fullscreencoverart.add_events(gtk.gdk.BUTTON_PRESS_MASK | gtk.gdk.BUTTON_PRESS_MASK)
+        self.fullscreencoverart.connect("button-press-event", self.fullscreen_cover_art_close, False)
+        self.fullscreencoverart.connect("key-press-event", self.fullscreen_cover_art_close, True)
         for treeview in [self.current, self.library, self.playlists, self.streams]:
             treeview.connect('popup_menu', self.on_menu_popup)
         for treeviewsel in [self.current_selection, self.library_selection, self.playlists_selection, self.streams_selection]:
@@ -1056,6 +1078,9 @@ class Base:
 
         # Put blank cd to albumimage widget by default
         self.albumimage.set_from_file(self.sonatacd)
+
+        # Default image for the fullscreen cover art mode
+        self.fullscreen_cover_art_set_image(self.sonatacd_large)
 
         # Set up current view
         self.current_initialize_columns()
@@ -4300,6 +4325,7 @@ class Base:
         if self.albumimage.get_property('file') != self.sonatacd:
             gobject.idle_add(self.albumimage.set_from_file, self.sonatacd)
             gobject.idle_add(self.info_image.set_from_file, self.sonatacd_large)
+            gobject.idle_add(self.fullscreen_cover_art_set_image, self.sonatacd_large)
         gobject.idle_add(self.artwork_set_tooltip_art, gtk.gdk.pixbuf_new_from_file(self.sonatacd))
         self.lastalbumart = None
 
@@ -4338,7 +4364,12 @@ class Base:
                     pix2 = self.artwork_apply_composite_case(pix2, w, h)
                     pix2 = img.pixbuf_add_border(pix2)
                     self.info_image.set_from_pixbuf(pix2)
-                    del pix, pix2
+                    del pix2
+                    # Artwork for fullscreen cover mode
+                    (pix3, w, h) = img.get_pixbuf_of_size(pix, self.FULLSCREEN_COVER_SIZE)
+                    pix3 = img.pixbuf_pad(pix3, self.FULLSCREEN_COVER_SIZE, self.FULLSCREEN_COVER_SIZE)
+                    self.fullscreenalbumimage.set_from_pixbuf(pix3)
+                    del pix, pix3
                     # Artwork for albums in the library tab
                     if not info_img_only and not self.library_search_visible():
                         if self.lib_level == self.LIB_LEVEL_ALBUM:
@@ -4495,6 +4526,8 @@ class Base:
             self.notification_width = self.NOTIFICATION_WIDTH_MIN
 
     def on_currsong_notify(self, foo=None, bar=None, force_popup=False):
+        if self.fullscreencoverart.get_property('visible') == True:
+            return
         if self.sonata_loaded:
             if self.conn and self.status and self.status['state'] in ['play', 'pause']:
                 if self.show_covers:
@@ -5479,6 +5512,24 @@ class Base:
         self.choose_dialog.destroy()
         while self.downloading_image:
             gtk.main_iteration()
+
+    def fullscreen_cover_art(self, widget):
+        self.traytips.hide()
+        self.fullscreencoverart.show_all()
+
+    def fullscreen_cover_art_close(self, widget, event, key_press):
+        if key_press:
+            shortcut = gtk.accelerator_name(event.keyval, event.state)
+            shortcut = shortcut.replace("<Mod2>", "")
+            if shortcut != 'Escape':
+
+                return
+        self.fullscreencoverart.hide()
+
+    def fullscreen_cover_art_set_image(self, filename):
+        pix = gtk.gdk.pixbuf_new_from_file(filename)
+        pix = img.pixbuf_pad(pix, self.FULLSCREEN_COVER_SIZE, self.FULLSCREEN_COVER_SIZE)
+        self.fullscreenalbumimage.set_from_pixbuf(pix)
 
     def header_save_column_widths(self):
         if not self.withdrawn and self.expanded:
