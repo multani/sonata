@@ -5514,15 +5514,17 @@ class Base:
             gtk.main_iteration()
 
     def fullscreen_cover_art(self, widget):
-        self.traytips.hide()
-        self.fullscreencoverart.show_all()
+        if self.fullscreencoverart.get_property('visible') == True:
+            self.fullscreencoverart.hide()
+        else:
+            self.traytips.hide()
+            self.fullscreencoverart.show_all()
 
     def fullscreen_cover_art_close(self, widget, event, key_press):
         if key_press:
             shortcut = gtk.accelerator_name(event.keyval, event.state)
             shortcut = shortcut.replace("<Mod2>", "")
             if shortcut != 'Escape':
-
                 return
         self.fullscreencoverart.hide()
 
@@ -7399,6 +7401,7 @@ class Base:
         mainshortcuts = \
                 [[ "F1", _("About Sonata") ],
                  [ "F5", _("Preferences") ],
+                 [ "F11", _("Fullscreen Artwork Mode") ],
                  [ "Alt-[1-5]", _("Switch to [1st-5th] tab") ],
                  [ "Alt-C", _("Connect to MPD") ],
                  [ "Alt-D", _("Disconnect from MPD") ],
