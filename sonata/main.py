@@ -1410,7 +1410,6 @@ class Base:
         cellrenderer = gtk.CellRendererText()
         cellrenderer.set_property("ellipsize", pango.ELLIPSIZE_END)
         self.columns = []
-        index = 1
         colnames = self.parse_formatting_colnames(self.currentformat)
         if len(self.columnformat) != len(self.columnwidths):
             # Number of columns changed, set columns equally spaced:
@@ -1765,7 +1764,7 @@ class Base:
                     # Systemtray gone, unwithdraw app:
                     self.withdraw_app_undo()
             elif HAVE_EGG:
-                if self.trayicon.get_property('visible') == False:
+                if not self.trayicon.get_property('visible'):
                     # Systemtray appears, add icon:
                     self.systemtray_initialize()
 
@@ -1812,7 +1811,7 @@ class Base:
             elif self.minimize_to_systray:
                 if HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible():
                     self.withdraw_app()
-                elif HAVE_EGG and self.trayicon.get_property('visible') == True:
+                elif HAVE_EGG and self.trayicon.get_property('visible'):
                     self.withdraw_app()
             return
         elif shortcut == 'Delete':
@@ -3123,8 +3122,6 @@ class Base:
             else:
                 blank_window = True
         if blank_window:
-            newtime = ''
-            newbitrate = ''
             for label in self.info_labels:
                 label.set_text("")
             self.info_editlabel.set_text("")
@@ -3133,7 +3130,7 @@ class Base:
                 self.info_editlyricslabel.set_text("")
                 self.info_show_lyrics("", "", "", True)
             self.albumText.set_text("")
-            self.last_info_bitrate = newbitrate
+            self.last_info_bitrate = ""
 
     def info_check_for_local_lyrics(self, artist, title):
         if os.path.exists(self.target_lyrics_filename(artist, title, self.LYRICS_LOCATION_HOME)):
@@ -3545,7 +3542,6 @@ class Base:
         self.on_replace_item(widget, True)
 
     def on_replace_item(self, widget, play_after=False):
-        play_after_replace = False
         if self.status and self.status['state'] == 'play':
             play_after = True
         # Only clear if an item is selected:
@@ -3985,7 +3981,6 @@ class Base:
 
             self.expander_ellipse_workaround()
 
-            newlabelfound = False
             if len(self.currsongformat1) > 0:
                 newlabel1 = '<big><b>' + self.parse_formatting(self.currsongformat1, self.songinfo, True) + ' </b></big>'
             else:
@@ -4259,7 +4254,6 @@ class Base:
         f.close()
 
     def artwork_check_for_local(self):
-        songdir = os.path.dirname(mpdh.get(self.songinfo, 'file'))
         self.artwork_set_default_icon()
         self.misc_img_in_dir = None
         self.single_img_in_dir = None
@@ -4446,8 +4440,6 @@ class Base:
         if len(artist) == 0 and len(album) == 0:
             self.downloading_image = False
             return False
-        #try:
-        img_url = ""
         self.downloading_image = True
         # Amazon currently doesn't support utf8 and suggests latin1 encoding instead:
         try:
@@ -4527,7 +4519,7 @@ class Base:
             self.notification_width = self.NOTIFICATION_WIDTH_MIN
 
     def on_currsong_notify(self, foo=None, bar=None, force_popup=False):
-        if self.fullscreencoverart.get_property('visible') == True:
+        if self.fullscreencoverart.get_property('visible'):
             return
         if self.sonata_loaded:
             if self.conn and self.status and self.status['state'] in ['play', 'pause']:
@@ -4547,7 +4539,7 @@ class Base:
                         self.traytips.use_notifications_location = True
                         if HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible():
                             self.traytips._real_display(self.statusicon)
-                        elif HAVE_EGG and self.trayicon.get_property('visible') == True:
+                        elif HAVE_EGG and self.trayicon.get_property('visible'):
                             self.traytips._real_display(self.trayeventbox)
                         else:
                             self.traytips._real_display(None)
@@ -4623,7 +4615,7 @@ class Base:
             if HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible():
                 self.withdraw_app()
                 return True
-            elif HAVE_EGG and self.trayicon.get_property('visible') == True:
+            elif HAVE_EGG and self.trayicon.get_property('visible'):
                 self.withdraw_app()
                 return True
         self.settings_save()
@@ -5019,7 +5011,6 @@ class Base:
         # We will manipulate self.current_songs and model to prevent the entire playlist
         # from refreshing
         offset = 0
-        top_row_for_selection = len(model)
         self.client.command_list_ok_begin()
         for source in drag_sources:
             index, iter, id, text = source
@@ -5515,7 +5506,7 @@ class Base:
             gtk.main_iteration()
 
     def fullscreen_cover_art(self, widget):
-        if self.fullscreencoverart.get_property('visible') == True:
+        if self.fullscreencoverart.get_property('visible'):
             self.fullscreencoverart.hide()
         else:
             self.traytips.hide()
@@ -5656,7 +5647,7 @@ class Base:
         if self.ignore_toggle_signal:
             return
         self.ignore_toggle_signal = True
-        if self.UIManager.get_widget('/traymenu/showmenu').get_active() == True:
+        if self.UIManager.get_widget('/traymenu/showmenu').get_active():
             self.withdraw_app_undo()
         else:
             self.withdraw_app()
@@ -6022,7 +6013,6 @@ class Base:
             as_pass_entry = ui.entry(text='1234', password=True, changed_cb=self.prefs_as_password_changed)
         else:
             as_pass_entry = ui.entry(text='', password=True, changed_cb=self.prefs_as_password_changed)
-        displaylabel2 = ui.label(markup='<b>' + _('Notification') + '</b>', y=1)
         display_notification = gtk.CheckButton(_("Popup notification on song changes"))
         display_notification.set_active(self.show_notification)
         notifhbox = gtk.HBox()
@@ -6165,7 +6155,7 @@ class Base:
         display_trayicon.connect('toggled', self.prefs_trayicon_toggled, minimize)
         if HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible():
             minimize.set_sensitive(True)
-        elif HAVE_EGG and self.trayicon.get_property('visible') == True:
+        elif HAVE_EGG and self.trayicon.get_property('visible'):
             minimize.set_sensitive(True)
         else:
             minimize.set_sensitive(False)
@@ -6634,7 +6624,7 @@ class Base:
                     minimize.set_sensitive(True)
             elif HAVE_EGG:
                 self.trayicon.show_all()
-                if self.trayicon.get_property('visible') == True:
+                if self.trayicon.get_property('visible'):
                     minimize.set_sensitive(True)
         else:
             self.show_trayicon = False
@@ -6667,7 +6657,7 @@ class Base:
         return
 
     def on_link_enter(self, widget, event):
-        if widget.get_children()[0].get_use_markup() == True:
+        if widget.get_children()[0].get_use_markup():
             ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
 
     def on_link_leave(self, widget, event):
@@ -6989,7 +6979,7 @@ class Base:
             ui.change_cursor(None)
             ui.show_msg(self.window, _("File ") + "\"" + tags[0]['fullpath'] + "\"" + _(" not found. Please specify a valid music directory in preferences."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=self.dialog_destroy)
             return
-        if self.tags_next_tag(tags) == False:
+        if not self.tags_next_tag(tags):
             ui.change_cursor(None)
             ui.show_msg(self.window, _("No music files with editable tags found."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=self.dialog_destroy)
             return
@@ -7230,7 +7220,7 @@ class Base:
                 self.tagpy_is_91 = False
             except:
                 self.tagpy_is_91 = True
-        if self.tagpy_is_91 == False:
+        if not self.tagpy_is_91:
             try:
                 return tag[field]().strip()
             except:
@@ -7249,37 +7239,37 @@ class Base:
         except:
             pass
         if field=='artist':
-            if self.tagpy_is_91 == False:
+            if not self.tagpy_is_91:
                 tag.setArtist(value)
             else:
                 tag.artist = value
         elif field=='title':
-            if self.tagpy_is_91 == False:
+            if not self.tagpy_is_91:
                 tag.setTitle(value)
             else:
                 tag.title = value
         elif field=='album':
-            if self.tagpy_is_91 == False:
+            if not self.tagpy_is_91:
                 tag.setAlbum(value)
             else:
                 tag.album = value
         elif field=='year':
-            if self.tagpy_is_91 == False:
+            if not self.tagpy_is_91:
                 tag.setYear(int(value))
             else:
                 tag.year = int(value)
         elif field=='track':
-            if self.tagpy_is_91 == False:
+            if not self.tagpy_is_91:
                 tag.setTrack(int(value))
             else:
                 tag.track = int(value)
         elif field=='genre':
-            if self.tagpy_is_91 == False:
+            if not self.tagpy_is_91:
                 tag.setGenre(value)
             else:
                 tag.genre = value
         elif field=='comment':
-            if self.tagpy_is_91 == False:
+            if not self.tagpy_is_91:
                 tag.setComment(value)
             else:
                 tag.comment = value
@@ -7298,7 +7288,7 @@ class Base:
             self.tags_win_hide(window, None, tags)
         elif response == gtk.RESPONSE_ACCEPT:
             window.action_area.set_sensitive(False)
-            while window.action_area.get_property("sensitive") == True or gtk.events_pending():
+            while window.action_area.get_property("sensitive") or gtk.events_pending():
                 gtk.main_iteration()
             filetag = tagpy.FileRef(tags[self.tagnum]['fullpath'])
             self.tags_set_tag(filetag.tag(), 'title', entries[0].get_text())
@@ -7371,7 +7361,6 @@ class Base:
     def tags_win_entry_constraint(self, entry, new_text, new_text_length, position, isyearlabel):
         lst_old_string = list(entry.get_chars(0, -1))
         _pos = entry.get_position()
-        lst_new_string = lst_old_string.insert(_pos, new_text)
         _string = "".join(lst_old_string)
         if isyearlabel:
             _hid = entry.get_data('handlerid')
@@ -7800,7 +7789,7 @@ class Base:
                 prev_rownums.append(song)
             self.filter_row_mapping = []
             if todo == '$$$QUIT###':
-                gobject.idle_add(self.searchfilter_revert_model, self.playlist_pos_before_filter)
+                gobject.idle_add(self.searchfilter_revert_model)
                 return
             elif len(todo) == 0:
                 for row in self.currentdata:
@@ -7865,7 +7854,7 @@ class Base:
             gobject.idle_add(self.searchfilter_set_matches, matches, filterposition, filterselected, retain_position_and_selection)
             self.prevtodo = todo
 
-    def searchfilter_revert_model(self, filterposition):
+    def searchfilter_revert_model(self):
         self.current.set_model(self.currentdata)
         self.current_center_song_in_list()
         self.current.thaw_child_notify()
