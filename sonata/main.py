@@ -261,6 +261,11 @@ class Base:
         self.LIB_LEVEL_ALBUM = 2
         self.LIB_LEVEL_SONG = 3
         self.NOTAG = _("Untagged")
+        # If the connection to MPD times out, this will cause the interface to freeze while
+        # the socket.connect() calls are repeatedly executed. Therefore, if we were not
+        # able to make a connection, slow down the iteration check to once every 15 seconds.
+        self.iterate_time_when_connected = 500
+        self.iterate_time_when_disconnected_or_stopped = 1000 # Slow down polling when disconnected stopped
 
         self.trying_connection = False
         toggle_arg = False
@@ -448,11 +453,6 @@ class Base:
         self.elapsed_now = None
         self.current_update_skip = False
         self.libsearch_last_tooltip = None
-        # If the connection to MPD times out, this will cause the interface to freeze while
-        # the socket.connect() calls are repeatedly executed. Therefore, if we were not
-        # able to make a connection, slow down the iteration check to once every 15 seconds.
-        self.iterate_time_when_connected = 500
-        self.iterate_time_when_disconnected_or_stopped = 1000 # Slow down polling when disconnected stopped
 
         try:
             self.enc = locale.getpreferredencoding()
