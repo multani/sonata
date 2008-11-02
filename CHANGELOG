@@ -4,6 +4,7 @@ v1.6
 	+ Show file path in tooltip for library search results
 	+ DND to copy files from Sonata to a file manager (Kamil)
 	+ Use plchanges for faster performance of some actions (e.g. add to playlist)
+	+ Only minimize to tray on trayicon click if focused; raise if not focused
 	+ Make process name 'sonata' for linux (himdel)
 	+ Bug: Bad profiles prevent sonata from starting
 	+ Bug: Error for cli arguments when sonata can't connect to MPD (Juan)

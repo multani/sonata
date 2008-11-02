@@ -5566,12 +5566,11 @@ class Base:
                 # For some reason, self.window.window is not defined if mpd is not running
                 # and sonata is started with self.withdrawn = True
                 self.withdraw_app_undo()
-            elif self.window.window.get_state() & gtk.gdk.WINDOW_STATE_WITHDRAWN:
-                # window is hidden
-                self.withdraw_app_undo()
-            elif not (self.window.window.get_state() & gtk.gdk.WINDOW_STATE_WITHDRAWN):
-                # window is showing
+            elif not (self.window.window.get_state() & gtk.gdk.WINDOW_STATE_WITHDRAWN) and self.window.is_active():
+                # Window is not withdrawn and is active (has toplevel focus):
                 self.withdraw_app()
+            else:
+                self.withdraw_app_undo()
             # This prevents the tooltip from popping up again until the user
             # leaves and enters the trayicon again
             #if self.traytips.notif_handler == None and self.traytips.notif_handler != -1:
