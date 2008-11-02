@@ -6,7 +6,7 @@ v1.6
 	+ Use plchanges for faster performance of some actions (e.g. add to playlist)
 	+ Make process name 'sonata' for linux (himdel)
 	+ Bug: Bad profiles prevent sonata from starting
-	+ Bug: Commandline arguments cause error when sonata can't connect to MPD
+	+ Bug: Error for cli arguments when sonata can't connect to MPD (Juan)
 
 v1.5.3
 	+ Quick link to edit lyrics through LyricWiki

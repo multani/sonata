@@ -1431,6 +1431,7 @@ class Base:
                     column.set_fixed_width(150)
             column.connect('clicked', self.on_current_column_click)
             self.current.append_column(column)
+        self.current.set_fixed_height_mode(True)
         self.current.set_headers_visible(len(self.columnformat) > 1 and self.show_header)
         self.current.set_headers_clickable(not self.filterbox_visible)
 
