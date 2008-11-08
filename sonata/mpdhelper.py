@@ -2,7 +2,8 @@
 # $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/mpdhelper.py $
 # $Id: mpdhelper.py 141 2006-09-11 04:51:07Z stonecrest $
 
-import string, locale
+import string, locale, sys
+from time import strftime
 
 def status(client):
     try:
@@ -59,3 +60,16 @@ def conout(s):
     # to print cannot be converted to console encoding; instead it
     # does a "readable" conversion
     print s.encode(locale.getpreferredencoding(), "replace")
+
+def call(mpdclient, *args):
+    # Note: first argument in *args should be the mpd command.
+    # Additional items are the arguments to the command.
+    mpd_cmd = args[0]
+    mpd_args = args[1:]
+    try:
+        retval = getattr(mpdclient, mpd_cmd)(*mpd_args)
+        return retval
+    except:
+        if not mpd_cmd in ['disconnect', 'lsinfo']:
+            print strftime("%Y-%m-%d %H:%M:%S") + "  " + str(sys.exc_info()[1])
+        return None

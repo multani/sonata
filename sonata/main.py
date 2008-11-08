@@ -1459,34 +1459,34 @@ class Base:
             self.status = mpdh.status(self.client)
             self.songinfo = mpdh.currsong(self.client)
             if type == "play":
-                self.client.play()
+                mpdh.call(self.client, 'play')
             elif type == "pause":
-                self.client.pause(1)
+                mpdh.call(self.client, 'pause', 1)
             elif type == "stop":
-                self.client.stop()
+                mpdh.call(self.client, 'stop')
             elif type == "next":
-                self.client.next()
+                mpdh.call(self.client, 'next')
             elif type == "prev":
-                self.client.previous()
+                mpdh.call(self.client, 'previous')
             elif type == "random":
                 if self.status:
                     if self.status['random'] == '0':
-                        self.client.random(1)
+                        mpdh.call(self.client, 'random', 1)
                     else:
-                        self.client.random(0)
+                        mpdh.call(self.client, 'random', 0)
             elif type == "repeat":
                 if self.status:
                     if self.status['repeat'] == '0':
-                        self.client.repeat(1)
+                        mpdh.call(self.client, 'repeat', 1)
                     else:
-                        self.client.repeat(0)
+                        mpdh.call(self.client, 'repeat', 0)
             elif type == "pp":
                 self.status = mpdh.status(self.client)
                 if self.status:
                     if self.status['state'] in ['play']:
-                        self.client.pause(1)
+                        mpdh.call(self.client, 'pause', 1)
                     elif self.status['state'] in ['pause', 'stop']:
-                        self.client.play()
+                        mpdh.call(self.client, 'play')
             elif type == "info":
                 if self.status and self.status['state'] in ['play', 'pause']:
                     mpdh.conout (_("Title") + ": " + mpdh.get(self.songinfo, 'title'))
@@ -1627,25 +1627,18 @@ class Base:
             return
         self.trying_connection = True
         if self.user_connect or force:
-            try:
-                try:
-                    self.client.disconnect()
-                except:
-                    pass
-                host, port, password = self.mpd_env_vars()
-                if not host: host = self.host[self.profile_num]
-                if not port: port = self.port[self.profile_num]
-                if not password: password = self.password[self.profile_num]
-                self.client.connect(host, port)
-                if len(password) > 0:
-                    self.client.password(password)
-                test = mpdh.status(self.client)
-                if test:
-                    self.conn = True
-                else:
-                    self.conn = False
-            except:
-                print sys.exc_info()[1]
+            mpdh.call(self.client, 'disconnect')
+            host, port, password = self.mpd_env_vars()
+            if not host: host = self.host[self.profile_num]
+            if not port: port = self.port[self.profile_num]
+            if not password: password = self.password[self.profile_num]
+            mpdh.call(self.client, 'connect', host, port)
+            if len(password) > 0:
+                mpdh.call(self.client, 'password', password)
+            test = mpdh.status(self.client)
+            if test:
+                self.conn = True
+            else:
                 self.conn = False
         else:
             self.conn = False
@@ -1657,11 +1650,8 @@ class Base:
 
     def mpd_disconnect(self):
         if self.conn:
-            try:
-                self.client.close()
-                self.client.disconnect()
-            except:
-                pass
+            mpdh.call(self.client, 'close')
+            mpdh.call(self.client, 'disconnect')
             self.conn = False
 
     def on_connectkey_pressed(self, event):
@@ -1692,12 +1682,6 @@ class Base:
         self.skip_on_profiles_click = False
         # Disconnect:
         self.mpd_disconnect()
-        # I'm not sure why this doesn't automatically happen, so
-        # we'll do it manually for the time being
-        self.librarydata.clear()
-        self.playlistsdata.clear()
-        if self.filterbox_visible:
-            gobject.idle_add(self.searchfilter_toggle, None)
 
     def update_status(self):
         try:
@@ -2170,6 +2154,12 @@ class Base:
                 self.eggtrayfile = self.find_path('sonata_disconnect.png')
                 self.trayimage.set_from_pixbuf(img.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
             self.info_update(True)
+            if self.filterbox_visible:
+                gobject.idle_add(self.searchfilter_toggle, None)
+            if self.library_search_visible():
+                self.on_library_search_end(None)
+            self.handle_change_song()
+            self.handle_change_status()
         else:
             for mediabutton in (self.ppbutton, self.stopbutton, self.prevbutton, self.nextbutton, self.volumebutton):
                 mediabutton.set_property('sensitive', True)
@@ -2255,14 +2245,11 @@ class Base:
             self.playlist_create(plname)
 
     def playlist_create(self, playlistname, oldname=None):
-        try:
-            self.client.rm(playlistname)
-        except:
-            pass
+        mpdh.call(self.client, 'rm', playlistname)
         if oldname is not None:
-            self.client.rename(oldname, playlistname)
+            mpdh.call(self.client, 'rename', oldname, playlistname)
         else:
-            self.client.save(playlistname)
+            mpdh.call(self.client, 'save', playlistname)
         self.playlists_populate()
         self.iterate_now()
 
@@ -2274,16 +2261,16 @@ class Base:
             self.playlist_create(plname)
         elif response == 2: # Append songs:
             self.existing_playlist_option = response
-            self.client.command_list_ok_begin()
+            mpdh.call(self.client, 'command_list_ok_begin')
             for song in self.current_songs:
-                self.client.playlistadd(plname, mpdh.get(song, 'file'))
-            self.client.command_list_end()
+                mpdh.call(self.client, 'playlistadd', plname, mpdh.get(song, 'file'))
+            mpdh.call(self.client, 'command_list_end')
         return
 
     def playlist_name_exists(self, title, role, plname, skip_plname=""):
         # If the playlist already exists, and the user does not want to replace it, return True; In
         # all other cases, return False
-        for item in self.client.lsinfo():
+        for item in mpdh.call(self.client, 'lsinfo'):
             if item.has_key('playlist'):
                 if mpdh.get(item, 'playlist') == plname and plname != skip_plname:
                     if ui.show_msg(self.window, _("A playlist with this name already exists. Would you like to replace it?"), title, role, gtk.BUTTONS_YES_NO) == gtk.RESPONSE_YES:
@@ -2314,7 +2301,7 @@ class Base:
         if self.conn:
             self.playlistsdata.clear()
             playlistinfo = []
-            for item in self.client.lsinfo():
+            for item in mpdh.call(self.client, 'lsinfo'):
                 if item.has_key('playlist'):
                     playlistinfo.append(misc.escape_html(mpdh.get(item, 'playlist')))
             playlistinfo.sort(key=lambda x: x.lower()) # Remove case sensitivity
@@ -2410,11 +2397,9 @@ class Base:
         # we find items that exist.
         #
         # Returns lsinfo so that we don't have to do another
-        # self.client.lsinfo() call for self.VIEW_FILESYSTEM
-        try:
-            lsinfo = self.client.lsinfo(root)
-        except:
-            lsinfo = []
+        # mpdh.call(self.client, 'lsinfo') call for self.VIEW_FILESYSTEM
+        lsinfo = mpdh.call(self.client, 'lsinfo', root)
+        if lsinfo is None: lsinfo = []
         while lsinfo == []:
             if self.lib_view == self.VIEW_FILESYSTEM:
                 if root == '/':
@@ -2450,10 +2435,8 @@ class Base:
                     break
             else:
                 break
-            try:
-                lsinfo = self.client.lsinfo(root)
-            except:
-                lsinfo = []
+            lsinfo = mpdh.call(self.client, 'lsinfo', root)
+            if lsinfo is None: lsinfo = []
         return lsinfo
 
     def library_browse(self, widget=None, root='/'):
@@ -2634,7 +2617,7 @@ class Base:
     def return_genres(self):
         # Returns all genres in alphabetical order
         list = []
-        for item in self.client.list('genre'):
+        for item in mpdh.call(self.client, 'list', 'genre'):
             list.append(item)
         (list, tmp, tmp2, tmp3) = misc.remove_list_duplicates(list, case=False)
         list.sort(locale.strcoll)
@@ -2650,12 +2633,12 @@ class Base:
         untagged_genre = (genre == self.NOTAG)
         list = []
         if not untagged_genre:
-            for item in self.client.search('genre', genre):
+            for item in mpdh.call(self.client, 'search', 'genre', genre):
                 # Make sure it's an exact match:
                 if genre.lower() == mpdh.get(item, 'genre').lower():
                     list.append(item)
         else:
-            for item in self.client.listallinfo('/'):
+            for item in mpdh.call(self.client, 'listallinfo', '/'):
                 if item.has_key('file'):
                     if not item.has_key('genre'):
                         list.append(item)
@@ -2670,13 +2653,13 @@ class Base:
         if use_genre:
             list = []
             if not untagged_genre:
-                for item in self.client.search('genre', self.lib_genre):
+                for item in mpdh.call(self.client, 'search', 'genre', self.lib_genre):
                     if item.has_key('artist'):
                         # Make sure it's an exact match:
                         if self.lib_genre.lower() == mpdh.get(item, 'genre').lower():
                             list.append(mpdh.get(item, 'artist'))
             else:
-                for item in self.client.listallinfo('/'):
+                for item in mpdh.call(self.client, 'listallinfo', '/'):
                     if item.has_key('file') and item.has_key('artist'):
                         if not item.has_key('genre'):
                             list.append(mpdh.get(item, 'artist'))
@@ -2687,7 +2670,7 @@ class Base:
             return list
         else:
             list = []
-            for item in self.client.list('artist'):
+            for item in mpdh.call(self.client, 'list', 'artist'):
                 list.append(item)
             (list, tmp, tmp2, tmp3) = misc.remove_list_duplicates(list, case=False)
             list.sort(locale.strcoll)
@@ -2700,9 +2683,9 @@ class Base:
         use_genre = (use_genre_if_genre_view and self.lib_view == self.VIEW_GENRE)
         untagged_genre = (self.lib_genre == self.NOTAG)
         if use_genre and not untagged_genre:
-            items = self.client.search('album', album, 'genre', self.lib_genre)
+            items = mpdh.call(self.client, 'search', 'album', album, 'genre', self.lib_genre)
         else:
-            items = self.client.search('album', album)
+            items = mpdh.call(self.client, 'search', 'album', album)
         for item in items:
             # Make sure it's an exact match:
             if album.lower() == mpdh.get(item, 'album').lower():
@@ -2726,9 +2709,9 @@ class Base:
         untagged_genre = (self.lib_genre == self.NOTAG)
         untagged_artist = (artist == self.NOTAG)
         if not untagged_artist:
-            items = self.client.search('artist', artist)
+            items = mpdh.call(self.client, 'search', 'artist', artist)
         else:
-            items = self.client.listallinfo('/')
+            items = mpdh.call(self.client, 'listallinfo', '/')
         for item in items:
             if untagged_artist:
                 if item.has_key('file'):
@@ -2761,11 +2744,11 @@ class Base:
         untagged_genre = (self.lib_genre == self.NOTAG)
         untagged_artist = (artist == self.NOTAG)
         if use_genre and not untagged_genre and not untagged_artist:
-            items = self.client.search('album', album, 'artist', artist, 'genre', self.lib_genre)
+            items = mpdh.call(self.client, 'search', 'album', album, 'artist', artist, 'genre', self.lib_genre)
         elif not untagged_artist:
-            items = self.client.search('album', album, 'artist', artist)
+            items = mpdh.call(self.client, 'search', 'album', album, 'artist', artist)
         else:
-            items = self.client.search('album', album)
+            items = mpdh.call(self.client, 'search', 'album', album)
         for item in items:
             match = False
             if untagged_artist:
@@ -3119,6 +3102,8 @@ class Base:
                             self.info_show_lyrics(_("Artist or song title not set."), "", "", True)
             else:
                 blank_window = True
+        else:
+            blank_window = True
         if blank_window:
             for label in self.info_labels:
                 label.set_text("")
@@ -3405,7 +3390,7 @@ class Base:
                             if return_root and not self.library_search_visible():
                                 items.append(model.get_value(model.get_iter(path), 1))
                             else:
-                                for item in self.client.listall(model.get_value(model.get_iter(path), 1)):
+                                for item in mpdh.call(self.client, 'listall', model.get_value(model.get_iter(path), 1)):
                                     if item.has_key('file'):
                                         items.append(mpdh.get(item, 'file'))
                         else:
@@ -3447,14 +3432,14 @@ class Base:
                 playid = self.status['playlistlength']
             if self.current_tab == self.TAB_LIBRARY:
                 items = self.library_get_recursive_filenames(True)
-                self.client.command_list_ok_begin()
+                mpdh.call(self.client, 'command_list_ok_begin')
                 for item in items:
-                    self.client.add(item)
-                self.client.command_list_end()
+                    mpdh.call(self.client, 'add', item)
+                mpdh.call(self.client, 'command_list_end')
             elif self.current_tab == self.TAB_PLAYLISTS:
                 model, selected = self.playlists_selection.get_selected_rows()
                 for path in selected:
-                    self.client.load(misc.unescape_html(model.get_value(model.get_iter(path), 1)))
+                    mpdh.call(self.client, 'load', misc.unescape_html(model.get_value(model.get_iter(path), 1)))
             elif self.current_tab == self.TAB_STREAMS:
                 model, selected = self.streams_selection.get_selected_rows()
                 for path in selected:
@@ -3465,9 +3450,9 @@ class Base:
                 if self.status['random'] == '1':
                     # If we are in random mode, we want to play a random song
                     # instead:
-                    self.client.play()
+                    mpdh.call(self.client, 'play')
                 else:
-                    self.client.play(int(playid))
+                    mpdh.call(self.client, 'play', int(playid))
 
     def stream_parse_and_add(self, item):
         # We need to do different things depending on if this is
@@ -3497,7 +3482,7 @@ class Base:
         if f:
             if misc.is_binary(f):
                 # Binary file, just add it:
-                self.client.add(item)
+                mpdh.call(self.client, 'add', item)
             else:
                 if "[playlist]" in f:
                     # pls:
@@ -3510,10 +3495,10 @@ class Base:
                     self.stream_parse_m3u(f)
                 else:
                     # Something else..
-                    self.client.add(item)
+                    mpdh.call(self.client, 'add', item)
         else:
             # Hopefully just a regular stream, try to add it:
-            self.client.add(item)
+            mpdh.call(self.client, 'add', item)
 
     def stream_parse_pls(self, f):
         lines = f.split("\n")
@@ -3523,18 +3508,18 @@ class Base:
             if delim > 0:
                 line = line[delim:]
                 if len(line) > 7 and line[0:7] == 'http://':
-                    self.client.add(line)
+                    mpdh.call(self.client, 'add', line)
                 elif len(line) > 6 and line[0:6] == 'ftp://':
-                    self.client.add(line)
+                    mpdh.call(self.client, 'add', line)
 
     def stream_parse_m3u(self, f):
         lines = f.split("\n")
         for line in lines:
             line = line.replace('\r','')
             if len(line) > 7 and line[0:7] == 'http://':
-                self.client.add(line)
+                mpdh.call(self.client, 'add', line)
             elif len(line) > 6 and line[0:6] == 'ftp://':
-                self.client.add(line)
+                mpdh.call(self.client, 'add', line)
 
     def on_replace_item_play(self, widget):
         self.on_replace_item(widget, True)
@@ -3603,6 +3588,10 @@ class Base:
             self.update_wintitle()
             self.artwork_update()
             self.update_statusbar()
+            if not self.conn:
+                self.librarydata.clear()
+                self.playlistsdata.clear()
+                self.streamsdata.clear()
             return
 
         # Display current playlist
@@ -4050,9 +4039,9 @@ class Base:
                     self.current.set_model(None)
 
                 if self.prevstatus:
-                    changed_songs = self.client.plchanges(self.prevstatus['playlist'])
+                    changed_songs = mpdh.call(self.client, 'plchanges', self.prevstatus['playlist'])
                 else:
-                    changed_songs = self.client.plchanges(0)
+                    changed_songs = mpdh.call(self.client, 'plchanges', 0)
                     self.current_songs = []
 
                 newlen = int(self.status['playlistlength'])
@@ -4882,11 +4871,11 @@ class Base:
             list.sort(key=lambda x: x["sortby"])
 
             pos = 0
-            self.client.command_list_ok_begin()
+            mpdh.call(self.client, 'command_list_ok_begin')
             for item in list:
-                self.client.moveid(item["id"], pos)
+                mpdh.call(self.client, 'moveid', item["id"], pos)
                 pos += 1
-            self.client.command_list_end()
+            mpdh.call(self.client, 'command_list_end')
             self.iterate_now()
 
             self.header_update_column_indicators()
@@ -4921,12 +4910,12 @@ class Base:
                 gtk.main_iteration()
             top = 0
             bot = int(self.status['playlistlength'])-1
-            self.client.command_list_ok_begin()
+            mpdh.call(self.client, 'command_list_ok_begin')
             while top < bot:
-                self.client.swap(top, bot)
+                mpdh.call(self.client, 'swap', top, bot)
                 top = top + 1
                 bot = bot - 1
-            self.client.command_list_end()
+            mpdh.call(self.client, 'command_list_end')
             self.iterate_now()
 
     def mpd_shuffle(self, action):
@@ -4936,7 +4925,7 @@ class Base:
             ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
             while gtk.events_pending():
                 gtk.main_iteration()
-            self.client.shuffle()
+            mpdh.call(self.client, 'shuffle')
 
     def on_dnd(self, treeview, drag_context, x, y, selection, info, timestamp):
         drop_info = treeview.get_dest_row_at_pos(x, y)
@@ -4961,7 +4950,7 @@ class Base:
                 if paths[i].startswith(musicdir):
                     paths[i] = paths[i][len(self.musicdir[self.profile_num]):]
                     if len(paths[i]) == 0: paths[i] = "/"
-                    listallinfo = self.client.listallinfo(paths[i])
+                    listallinfo = mpdh.call(self.client, 'listallinfo', paths[i])
                     for item in listallinfo:
                         if item.has_key('file'):
                             mpdpaths.append(mpdh.get(item, 'file'))
@@ -4988,11 +4977,7 @@ class Base:
                 else:
                     id = int(self.status['playlistlength'])
                 for mpdpath in mpdpaths:
-                    try:
-                        self.client.addid(mpdpath, id)
-                        id += 1
-                    except:
-                        pass
+                    mpdh.call(self.client, 'addid', mpdpath, id)
             self.iterate_now()
             return
 
@@ -5015,7 +5000,7 @@ class Base:
         # We will manipulate self.current_songs and model to prevent the entire playlist
         # from refreshing
         offset = 0
-        self.client.command_list_ok_begin()
+        mpdh.call(self.client, 'command_list_ok_begin')
         for source in drag_sources:
             index, iter, id, text = source
             if drop_info:
@@ -5027,10 +5012,10 @@ class Base:
                     self.current_songs.insert(dest, self.current_songs[index])
                     if dest < index+1:
                         self.current_songs.pop(index+1)
-                        self.client.moveid(id, dest)
+                        mpdh.call(self.client, 'moveid', id, dest)
                     else:
                         self.current_songs.pop(index)
-                        self.client.moveid(id, dest-1)
+                        mpdh.call(self.client, 'moveid', id, dest-1)
                     model.insert(dest, model[index])
                     moved_iters += [model.get_iter((dest,))]
                     model.remove(iter)
@@ -5038,16 +5023,16 @@ class Base:
                     self.current_songs.insert(dest+1, self.current_songs[index])
                     if dest < index:
                         self.current_songs.pop(index+1)
-                        self.client.moveid(id, dest+1)
+                        mpdh.call(self.client, 'moveid', id, dest+1)
                     else:
                         self.current_songs.pop(index)
-                        self.client.moveid(id, dest)
+                        mpdh.call(self.client, 'moveid', id, dest)
                     model.insert(dest+1, model[index])
                     moved_iters += [model.get_iter((dest+1,))]
                     model.remove(iter)
             else:
                 dest = int(self.status['playlistlength']) - 1
-                self.client.moveid(id, dest)
+                mpdh.call(self.client, 'moveid', id, dest)
                 self.current_songs.insert(dest+1, self.current_songs[index])
                 self.current_songs.pop(index)
                 model.insert(dest+1, model[index])
@@ -5063,7 +5048,7 @@ class Base:
                     # we moved it ahead, so all indexes inbetween decreased by 1
                     if index < source[0] < dest:
                         source[0] -= 1
-        self.client.command_list_end()
+        mpdh.call(self.client, 'command_list_end')
 
         # we are manipulating the model manually for speed, so...
         self.current_update_skip = True
@@ -5100,10 +5085,10 @@ class Base:
                 iters = [model.get_iter(path) for path in selected]
                 if len(iters) > 0:
                     # If there are selected rows, update these paths..
-                    self.client.command_list_ok_begin()
+                    mpdh.call(self.client, 'command_list_ok_begin')
                     for iter in iters:
                         self.mpd_update(self.librarydata.get_value(iter, 1))
-                    self.client.command_list_end()
+                    mpdh.call(self.client, 'command_list_end')
                 else:
                     # If no selection, update the current path...
                     self.mpd_update(self.wd)
@@ -5681,7 +5666,7 @@ class Base:
             return
         try:
             iter = model.get_iter(path)
-            self.client.playid(self.current_get_songid(iter, model))
+            mpdh.call(self.client, 'playid', self.current_get_songid(iter, model))
         except:
             pass
         self.sel_rows = False
@@ -5767,7 +5752,7 @@ class Base:
 
     def on_volumescale_change(self, obj, value, data):
         new_volume = int(obj.get_adjustment().get_value())
-        self.client.setvol(new_volume)
+        mpdh.call(self.client, 'setvol', new_volume)
         self.iterate_now()
         return
 
@@ -5779,37 +5764,33 @@ class Base:
     def mpd_pp(self, widget, key=None):
         if self.conn and self.status:
             if self.status['state'] in ('stop', 'pause'):
-                self.client.play()
+                mpdh.call(self.client, 'play')
             elif self.status['state'] == 'play':
-                self.client.pause(1)
+                mpdh.call(self.client, 'pause', '1')
             self.iterate_now()
         return
 
     def mpd_stop(self, widget, key=None):
         if self.conn:
-            self.client.stop()
+            mpdh.call(self.client, 'stop')
             self.iterate_now()
         return
 
     def mpd_prev(self, widget, key=None):
         if self.conn:
-            self.client.previous()
+            mpdh.call(self.client, 'previous')
             self.iterate_now()
         return
 
     def mpd_next(self, widget, key=None):
         if self.conn:
-            self.client.next()
+            mpdh.call(self.client, 'next')
             self.iterate_now()
         return
 
     def mpd_update(self, path='/'):
         if self.conn:
-            # Can't update mpd while an update is occurring:
-            try:
-                self.client.update(path)
-            except:
-                pass
+            mpdh.call(self.client, 'update', path)
 
     def on_remove(self, widget):
         if self.conn:
@@ -5823,25 +5804,25 @@ class Base:
                 model, selected = treeviewsel.get_selected_rows()
                 if len(selected) == len(self.currentdata) and not self.filterbox_visible:
                     # Everything is selected, clear:
-                    self.client.clear()
+                    mpdh.call(self.client, 'clear')
                 elif len(selected) > 0:
                     selected.reverse()
                     if not self.filterbox_visible:
                         # If we remove an item from the filtered results, this
                         # causes a visual refresh in the interface.
                         self.current.set_model(None)
-                    self.client.command_list_ok_begin()
+                    mpdh.call(self.client, 'command_list_ok_begin')
                     for path in selected:
                         if not self.filterbox_visible:
                             rownum = path[0]
                         else:
                             rownum = self.filter_row_mapping[path[0]]
                         iter = self.currentdata.get_iter((rownum, 0))
-                        self.client.deleteid(self.current_get_songid(iter, self.currentdata))
+                        mpdh.call(self.client, 'deleteid', self.current_get_songid(iter, self.currentdata))
                         # Prevents the entire playlist from refreshing:
                         self.current_songs.pop(rownum)
                         self.currentdata.remove(iter)
-                    self.client.command_list_end()
+                    mpdh.call(self.client, 'command_list_end')
                     if not self.filterbox_visible:
                         self.current.set_model(model)
             elif self.current_tab == self.TAB_PLAYLISTS:
@@ -5850,7 +5831,7 @@ class Base:
                 if ui.show_msg(self.window, gettext.ngettext("Delete the selected playlist?", "Delete the selected playlists?", int(len(selected))), gettext.ngettext("Delete Playlist", "Delete Playlists", int(len(selected))), 'deletePlaylist', gtk.BUTTONS_YES_NO) == gtk.RESPONSE_YES:
                     iters = [model.get_iter(path) for path in selected]
                     for iter in iters:
-                        self.client.rm(misc.unescape_html(self.playlistsdata.get_value(iter, 1)))
+                        mpdh.call(self.client, 'rm', misc.unescape_html(self.playlistsdata.get_value(iter, 1)))
                     self.playlists_populate()
             elif self.current_tab == self.TAB_STREAMS:
                 treeviewsel = self.streams_selection
@@ -5883,22 +5864,22 @@ class Base:
 
     def mpd_clear(self, widget):
         if self.conn:
-            self.client.clear()
+            mpdh.call(self.client, 'clear')
             self.iterate_now()
 
     def on_repeat_clicked(self, widget):
         if self.conn:
             if widget.get_active():
-                self.client.repeat(1)
+                mpdh.call(self.client, 'repeat', 1)
             else:
-                self.client.repeat(0)
+                mpdh.call(self.client, 'repeat', 0)
 
     def on_random_clicked(self, widget):
         if self.conn:
             if widget.get_active():
-                self.client.random(1)
+                mpdh.call(self.client, 'random', 1)
             else:
-                self.client.random(0)
+                mpdh.call(self.client, 'random', 0)
 
     def on_prefs(self, widget):
         prefswindow = ui.dialog(title=_("Preferences"), parent=self.window, flags=gtk.DIALOG_DESTROY_WITH_PARENT, role='preferences', resizable=False, separator=False)
@@ -6390,11 +6371,11 @@ class Base:
             if crossfadecheck.get_active():
                 self.xfade_enabled = True
                 if self.conn:
-                    self.client.crossfade(self.xfade)
+                    mpdh.call(self.client, 'crossfade', self.xfade)
             else:
                 self.xfade_enabled = False
                 if self.conn:
-                    self.client.crossfade(0)
+                    mpdh.call(self.client, 'crossfade', 0)
             if self.infofile_path != infopath_options.get_text():
                 self.infofile_path = os.path.expanduser(infopath_options.get_text())
                 if self.use_infofile: self.update_infofile()
@@ -6651,7 +6632,7 @@ class Base:
             self.use_infofile = False
 
     def seek(self, song, seektime):
-        self.client.seek(song, seektime)
+        mpdh.call(self.client, 'seek', song, seektime)
         self.iterate_now()
         return
 
@@ -7320,13 +7301,10 @@ class Base:
 
     def tags_mpd_update(self, tags):
         if tags:
-            try:
-                self.client.command_list_ok_begin()
-                for i in range(self.tagnum):
-                    self.client.update(tags[i]['mpdpath'])
-                self.client.command_list_end()
-            except:
-                pass
+            mpdh.call(self.client, 'command_list_ok_begin')
+            for i in range(self.tagnum):
+                mpdh.call(self.client, 'update', tags[i]['mpdpath'])
+            mpdh.call(self.client, 'command_list_end')
             self.iterate_now()
 
     def tags_win_genres(self):
@@ -7493,7 +7471,7 @@ class Base:
         self.about_dialog.set_comments(commentlabel)
         if self.conn:
             # Include MPD stats:
-            stats = self.client.stats()
+            stats = mpdh.call(self.client, 'stats')
             statslabel = stats['songs'] + ' ' + gettext.ngettext('song', 'songs', int(stats['songs'])) + '.\n'
             statslabel = statslabel + stats['albums'] + ' ' + gettext.ngettext('album', 'albums', int(stats['albums'])) + '.\n'
             statslabel = statslabel + stats['artists'] + ' ' + gettext.ngettext('artist', 'artists', int(stats['artists'])) + '.\n'
@@ -7641,7 +7619,7 @@ class Base:
         if not self.prevlibtodo_base in todo:
             # Do library search based on first two letters:
             self.prevlibtodo_base = todo[:2]
-            self.prevlibtodo_base_results = self.client.search(searchby, self.prevlibtodo_base)
+            self.prevlibtodo_base_results = mpdh.call(self.client, 'search', searchby, self.prevlibtodo_base)
             subsearch = False
         else:
             subsearch = True
@@ -7736,7 +7714,7 @@ class Base:
             song_id = self.current_get_songid(model.get_iter_first(), model)
         if song_id:
             self.searchfilter_toggle(None)
-            self.client.playid(song_id)
+            mpdh.call(self.client, 'playid', song_id)
 
     def searchfilter_feed_loop(self, editable):
         # Lets only trigger the searchfilter_loop if 200ms pass without a change
