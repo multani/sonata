@@ -24,7 +24,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import getopt, sys, gettext, os, ConfigParser, misc
+import getopt, sys, gettext, os, ConfigParser, misc, platform
 import mpdhelper as mpdh
 from socket import getdefaulttimeout as socketgettimeout
 from socket import setdefaulttimeout as socketsettimeout
@@ -59,6 +59,11 @@ except:
     sys.stderr.write("Sonata requires python-mpd. Aborting...\n")
     sys.exit(1)
 
+# Test python version
+if platform.python_version_tuple() < (2, 5, 0):
+    sys.stderr.write("Sonata requires Python 2.5 or newer. Aborting...\n")
+    sys.exit(1)
+
 try:
     import dbus, dbus.service
     if getattr(dbus, "version", (0,0,0)) >= (0,41,0):
@@ -75,7 +80,12 @@ except:
 
 if not skip_gui:
     import warnings, gobject, urllib, urllib2, re, gc, locale, shutil
-    import gtk, pango, threading, time, ui, img, tray, md5
+    import gtk, pango, threading, time, ui, img, tray, hashlib
+
+    # Test pygtk version
+    if gtk.pygtk_version < (2, 12, 0):
+        sys.stderr.write("Sonata requires PyGTK 2.12.0 or newer. Aborting...\n")
+        sys.exit(1)
 
     # Prevent deprecation warning for egg:
     warnings.simplefilter('ignore', DeprecationWarning)
@@ -85,11 +95,7 @@ if not skip_gui:
         HAVE_STATUS_ICON = False
     except ImportError:
         HAVE_EGG = False
-        if gtk.pygtk_version >= (2, 10, 0):
-            # Revert to pygtk status icon:
-            HAVE_STATUS_ICON = True
-        else:
-            HAVE_STATUS_ICON = False
+        HAVE_STATUS_ICON = True
     # Reset so that we can see any other deprecation warnings
     warnings.simplefilter('default', DeprecationWarning)
 
@@ -134,11 +140,6 @@ if not skip_gui:
             VOLUME_ICON_SIZE = 3
         except:
             pass
-
-    # Test pygtk version
-    if gtk.pygtk_version < (2, 12, 0):
-        sys.stderr.write("Sonata requires PyGTK 2.12.0 or newer. Aborting...\n")
-        sys.exit(1)
 
 class Base:
     def __init__(self, window=None, sugar=False):
@@ -315,9 +316,6 @@ class Base:
                     else:
                         self.print_usage()
                     sys.exit()
-
-        if not HAVE_EGG and not HAVE_STATUS_ICON:
-            print _("PyGTK+ 2.10 or gnome-python-extras not found, system tray support disabled.")
 
         gtk.gdk.threads_init()
 
@@ -898,11 +896,10 @@ class Base:
         elif not self.status:
             self.progressbar.set_text(_('No Read Permission'))
         self.libraryview.set_tooltip_text(_("Library browsing view"))
-        if gtk.pygtk_version >= (2, 10, 0):
-            for child in self.notebook.get_children():
-                self.notebook.set_tab_reorderable(child, True)
-                if self.tabs_expanded:
-                    self.notebook.set_tab_label_packing(child, True, True, gtk.PACK_START)
+        for child in self.notebook.get_children():
+            self.notebook.set_tab_reorderable(child, True)
+            if self.tabs_expanded:
+                self.notebook.set_tab_label_packing(child, True, True, gtk.PACK_START)
         # Update tab positions:
         self.notebook.reorder_child(current_tab, self.current_tab_pos)
         self.notebook.reorder_child(library_tab, self.library_tab_pos)
@@ -2028,7 +2025,7 @@ class Base:
         if conf.has_option('audioscrobbler', 'username'):
             self.as_username = conf.get('audioscrobbler', 'username')
         if conf.has_option('audioscrobbler', 'password'): # old...
-            self.as_password_md5 = md5.md5(conf.get('audioscrobbler', 'password')).hexdigest()
+            self.as_password_md5 = hashlib.md5(conf.get('audioscrobbler', 'password')).hexdigest()
         if conf.has_option('audioscrobbler', 'password_md5'):
             self.as_password_md5 = conf.get('audioscrobbler', 'password_md5')
         if conf.has_option('profiles', 'num_profiles'):
@@ -4429,14 +4426,7 @@ class Base:
     def artwork_download_img_to_file(self, artist, album, dest_filename, all_images=False):
         global ElementTree
         if ElementTree is None:
-            try: # Python 2.5, module bundled:
-                from xml.etree import ElementTree
-            except:
-                try: # Python 2.4, separate module:
-                    from elementtree.ElementTree import ElementTree
-                except:
-                    sys.stderr.write("Sonata requires Python 2.5 or python-elementtree. Aborting... \n")
-                    sys.exit(1)
+            from xml.etree import ElementTree
         # Returns False if no images found
         if len(artist) == 0 and len(album) == 0:
             self.downloading_image = False
@@ -6319,11 +6309,7 @@ class Base:
         # as_enabled=True) or if the user enables it in prefs.
         global audioscrobbler
         if audioscrobbler is None:
-            try:
-                import audioscrobbler
-            except:
-                if show_error:
-                    ui.show_msg(self.window, _("Python 2.5 or python-elementtree not found, audioscrobbler support disabled."), _("Audioscrobbler Verification"), 'pythonElementtreeError', gtk.BUTTONS_CLOSE)
+            import audioscrobbler
 
     def prefs_as_username_changed(self, entry):
         if audioscrobbler is not None:
@@ -6334,7 +6320,7 @@ class Base:
 
     def prefs_as_password_changed(self, entry):
         if audioscrobbler is not None:
-            self.as_password_md5 = md5.md5(entry.get_text()).hexdigest()
+            self.as_password_md5 = hashlib.md5(entry.get_text()).hexdigest()
             if self.scrob_post:
                 if self.scrob_post.authenticated:
                     self.scrob_post = None

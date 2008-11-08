@@ -270,14 +270,9 @@ __version__ = "$Revision$"[11:-2]
 __docformat__ = "restructuredtext"
 
 
-import datetime, locale, md5, site, sys, time, urllib, urllib2, ConfigParser, os
+import datetime, locale, hashlib, site, sys, time, urllib, urllib2, ConfigParser, os
 
-try:
-    # Python 2.5, module bundled:
-    from xml.etree import ElementTree
-except:
-    # Python 2.4, separate module:
-    from elementtree import ElementTree
+from xml.etree import ElementTree
 
 # This is lifted in the most part from iPodScrobbler (see docs above)
 # Get the base local encoding
@@ -620,7 +615,7 @@ class AudioScrobblerPost:
 
         timestamp = str(int(time.time()))
         md5_password = self.params['md5_password']
-        auth_token = md5.md5(md5_password + timestamp).hexdigest()
+        auth_token = hashlib.md5(md5_password + timestamp).hexdigest()
 
         p = {}
         p['hs'] = 'true'
