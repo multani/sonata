@@ -1,6 +1,10 @@
 v1.6
 	support for new idle command
 	work with mpd's new "allow authenticated local users to add any local file to the playlist"
+		- waiting on python-mpd to implement unix socket paths
+		- dnd from a file manager (implemented and untested because of above)
+		- new library browsing mode to open any file?
+		  remember: no tags and implications for remote mpd users.
 	fullscreen artwork:
 		- remove 500x500 hardcode
 		- show currently playing song

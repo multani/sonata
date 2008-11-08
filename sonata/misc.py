@@ -239,3 +239,13 @@ def capword(s):
 
 def capwords(s):
     return str(' '.join([capword(x) for x in unicode(s).split()]))
+
+def get_files_recursively(dir):
+    filenames = []
+    os.path.walk(dir, _get_files_recursively, filenames)
+    return filenames
+
+def _get_files_recursively(filenames, dir, files):
+    def f1(a,dir=dir): return os.path.join(dir,a)
+    files2 = map(f1, files)
+    filenames.extend(files2)

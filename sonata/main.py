@@ -4965,6 +4965,18 @@ class Base:
                     for item in listallinfo:
                         if item.has_key('file'):
                             mpdpaths.append(mpdh.get(item, 'file'))
+                elif self.mpd_major_version() >= 0.14:
+                    # Add local file, available in mpd 0.14. This currently won't
+                    # work because python-mpd does not support unix socket paths,
+                    # which is needed for authentication for local files. It's also
+                    # therefore untested.
+                    if os.path.isdir(misc.file_from_utf8(paths[i])):
+                        filenames = misc.get_files_recursively(paths[i])
+                    else:
+                        filenames = [paths[i]]
+                    for filename in filenames:
+                        if os.path.exists(misc.file_from_utf8(filename)):
+                            mpdpaths.append("file://" + urllib.quote(filename))
             if len(mpdpaths) > 0:
                 # Items found, add to list at drop position:
                 if drop_info:
@@ -4975,11 +4987,12 @@ class Base:
                         id = destpath[0] + 1
                 else:
                     id = int(self.status['playlistlength'])
-                self.client.command_list_ok_begin()
                 for mpdpath in mpdpaths:
-                    self.client.addid(mpdpath, id)
-                    id += 1
-                self.client.command_list_end()
+                    try:
+                        self.client.addid(mpdpath, id)
+                        id += 1
+                    except:
+                        pass
             self.iterate_now()
             return
 
