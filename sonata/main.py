@@ -1085,7 +1085,7 @@ class Base:
         target_reorder = ('MY_TREE_MODEL_ROW', gtk.TARGET_SAME_WIDGET, 0)
         target_file_managers = ('text/uri-list', 0, 0)
         self.current.enable_model_drag_source(gtk.gdk.BUTTON1_MASK, [target_reorder, target_file_managers], gtk.gdk.ACTION_COPY | gtk.gdk.ACTION_DEFAULT)
-        self.current.enable_model_drag_dest([target_reorder], gtk.gdk.ACTION_MOVE)
+        self.current.enable_model_drag_dest([target_reorder, target_file_managers], gtk.gdk.ACTION_MOVE | gtk.gdk.ACTION_DEFAULT)
         self.current.connect('drag-data-get', self.dnd_get_data_for_file_managers)
 
         # Initialize playlist data and widget

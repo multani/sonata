@@ -1,4 +1,6 @@
 v1.6
+	support for new idle command
+	work with mpd's new "allow authenticated local users to add any local file to the playlist"
 	fullscreen artwork:
 		- remove 500x500 hardcode
 		- show currently playing song
