@@ -5117,11 +5117,14 @@ class Base:
                 else:
                     self.switch_to_tab_name(self.last_tab)
         elif event.button == 3:
+            artist = None
+            album = None
+            stream = None
             if self.conn and self.status and self.status['state'] in ['play', 'pause']:
-                self.UIManager.get_widget('/imagemenu/chooseimage_menu/').hide()
-                self.UIManager.get_widget('/imagemenu/localimage_menu/').hide()
                 if self.covers_pref != self.ART_LOCAL:
                     self.UIManager.get_widget('/imagemenu/chooseimage_menu/').show()
+                else:
+                    self.UIManager.get_widget('/imagemenu/chooseimage_menu/').hide()
                 self.UIManager.get_widget('/imagemenu/localimage_menu/').show()
                 artist = mpdh.get(self.songinfo, 'artist', None)
                 album = mpdh.get(self.songinfo, 'album', None)
@@ -5130,8 +5133,11 @@ class Base:
                     self.UIManager.get_widget('/imagemenu/resetimage_menu/').set_sensitive(False)
                 else:
                     self.UIManager.get_widget('/imagemenu/resetimage_menu/').set_sensitive(True)
-                if artist or album or stream:
-                    self.imagemenu.popup(None, None, None, event.button, event.time)
+            if not (artist or album or stream):
+                self.UIManager.get_widget('/imagemenu/localimage_menu/').hide()
+                self.UIManager.get_widget('/imagemenu/resetimage_menu/').hide()
+                self.UIManager.get_widget('/imagemenu/chooseimage_menu/').hide()
+            self.imagemenu.popup(None, None, None, event.button, event.time)
         gobject.timeout_add(50, self.on_image_activate_after)
         return False
 
