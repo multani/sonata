@@ -7344,6 +7344,7 @@ class Base:
     def tags_win_entry_constraint(self, entry, new_text, new_text_length, position, isyearlabel):
         lst_old_string = list(entry.get_chars(0, -1))
         _pos = entry.get_position()
+        lst_new_string = lst_old_string.insert(_pos, new_text)
         _string = "".join(lst_old_string)
         if isyearlabel:
             _hid = entry.get_data('handlerid')
