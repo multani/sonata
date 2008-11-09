@@ -248,10 +248,8 @@ class Base:
         self.ART_LOCATION_ALBUM = 2				# file_dir/album.jpg
         self.ART_LOCATION_FOLDER = 3			# file_dir/folder.jpg
         self.ART_LOCATION_CUSTOM = 4			# file_dir/[custom]
-        self.ART_LOCATION_NONE = 5				# Use default Sonata icons
         self.ART_LOCATION_SINGLE = 6
         self.ART_LOCATION_MISC = 7
-        self.ART_LOCATION_NONE_FLAG = "USE_DEFAULT"
         self.ART_LOCATIONS_MISC = ['front.jpg', '.folder.jpg', '.folder.png', 'AlbumArt.jpg', 'AlbumArtSmall.jpg']
         self.LYRICS_LOCATION_HOME = 0			# ~/.lyrics/[artist]-[song].txt
         self.LYRICS_LOCATION_PATH = 1			# file_dir/[artist]-[song].txt
@@ -4168,7 +4166,10 @@ class Base:
             else:
                 # Normal song:
                 misc.remove_file(self.target_image_filename(self.ART_LOCATION_HOMECOVERS))
-                self.artwork_create_none_file()
+                # Use blank cover as the artwork
+                dest_filename = self.target_image_filename(self.ART_LOCATION_HOMECOVERS)
+                f = open(dest_filename, 'w')
+                f.close()
             self.artwork_update(True)
 
     def artwork_set_tooltip_art(self, pix):
@@ -4221,9 +4222,6 @@ class Base:
                     self.stop_art_update = False
                     return
                 self.lastalbumart = None
-                if os.path.exists(self.target_image_filename(self.ART_LOCATION_NONE)):
-                    self.artwork_set_default_icon()
-                    return
                 imgfound = self.artwork_check_for_local()
                 if not imgfound:
                     if self.covers_pref == self.ART_LOCAL_REMOTE:
@@ -4233,13 +4231,6 @@ class Base:
 
     def artwork_stream_filename(self, streamname):
         return os.path.expanduser('~/.covers/') + streamname.replace("/", "") + ".jpg"
-
-    def artwork_create_none_file(self):
-        # If this file exists, Sonata will use the "blank" default artwork for the song
-        # We will only use this if the user explicitly resets the artwork.
-        filename = self.target_image_filename(self.ART_LOCATION_NONE)
-        f = open(filename, 'w')
-        f.close()
 
     def artwork_check_for_local(self):
         self.artwork_set_default_icon()
@@ -4362,8 +4353,11 @@ class Base:
                                         self.library_browse(root=self.wd)
                     self.lastalbumart = filename
                 except:
-                    # Bad file, remove...
-                    misc.remove_file(filename)
+                    # If we have a 0-byte file, it should mean that
+                    # sonata reset the image file. Otherwise, it's a
+                    # bad file and should be removed.
+                    if os.stat(filename).st_size != 0:
+                        misc.remove_file(filename)
                     pass
                 self.call_gc_collect = True
 
@@ -5130,10 +5124,6 @@ class Base:
                 artist = mpdh.get(self.songinfo, 'artist', None)
                 album = mpdh.get(self.songinfo, 'album', None)
                 stream = mpdh.get(self.songinfo, 'name', None)
-                if os.path.exists(self.target_image_filename(self.ART_LOCATION_NONE)):
-                    self.UIManager.get_widget('/imagemenu/resetimage_menu/').set_sensitive(False)
-                else:
-                    self.UIManager.get_widget('/imagemenu/resetimage_menu/').set_sensitive(True)
             if not (artist or album or stream):
                 self.UIManager.get_widget('/imagemenu/localimage_menu/').hide()
                 self.UIManager.get_widget('/imagemenu/resetimage_menu/').hide()
@@ -5190,9 +5180,6 @@ class Base:
                     dest_filename = self.artwork_stream_filename(mpdh.get(self.songinfo, 'name'))
                 else:
                     dest_filename = self.target_image_filename()
-                    album = mpdh.get(self.songinfo, 'album', "").replace("/", "")
-                    artist = self.album_current_artist[1].replace("/", "")
-                    self.artwork_remove_none_file(artist, album)
                 if dest_filename != paths[i]:
                     shutil.copyfile(paths[i], dest_filename)
                 self.artwork_update(True)
@@ -5240,9 +5227,6 @@ class Base:
                 targetfile = self.musicdir[self.profile_num] + songpath + "/album.jpg"
             elif art_loc == self.ART_LOCATION_CUSTOM:
                 targetfile = self.musicdir[self.profile_num] + songpath + "/" + self.art_location_custom_filename
-            elif art_loc == self.ART_LOCATION_NONE:
-                # flag filename to indicate that we should use the default Sonata icons:
-                targetfile = os.path.expanduser("~/.covers/" + artist + "-" + album + "-" + self.ART_LOCATION_NONE_FLAG + ".jpg")
             targetfile = misc.file_exists_insensitive(targetfile)
             return misc.file_from_utf8(targetfile)
 
@@ -5341,8 +5325,6 @@ class Base:
     def image_local_response(self, dialog, response, artist, album, stream):
         if response == gtk.RESPONSE_OK:
             filename = dialog.get_filenames()[0]
-            if stream is None:
-                self.artwork_remove_none_file(artist, album)
             # Copy file to covers dir:
             if self.local_dest_filename != filename:
                 shutil.copyfile(filename, self.local_dest_filename)
@@ -5351,13 +5333,6 @@ class Base:
             # Force a resize of the info labels, if needed:
             gobject.idle_add(self.on_notebook_resize, self.notebook, None)
         dialog.destroy()
-
-    def artwork_remove_none_file(self, artist, album):
-        # If the flag file exists (to tell Sonata to use the default artwork
-        # icons), remove the file
-        delfile = os.path.expanduser("~/.covers/" + artist + "-" + album + "-" + self.ART_LOCATION_NONE_FLAG + ".jpg")
-        delfile = misc.file_exists_insensitive(delfile)
-        misc.remove_file(delfile)
 
     def image_remote(self, widget):
         self.choose_dialog = ui.dialog(title=_("Choose Cover Art"), parent=self.window, flags=gtk.DIALOG_MODAL, buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT), role='chooseCoverArt', default=gtk.RESPONSE_ACCEPT, separator=False, resizable=False)
@@ -5489,8 +5464,6 @@ class Base:
         if len(self.remotefilelist) > 0:
             filename = self.remotefilelist[image_num]
             if os.path.exists(filename):
-                if stream is None:
-                    self.artwork_remove_none_file(artist, album)
                 shutil.move(filename, self.remote_dest_filename)
                 # And finally, set the image in the interface:
                 self.artwork_update(True)
