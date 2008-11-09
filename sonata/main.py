@@ -59,8 +59,9 @@ except:
     sys.stderr.write("Sonata requires python-mpd. Aborting...\n")
     sys.exit(1)
 
-# Test python version
-if platform.python_version_tuple() < (2, 5, 0):
+# Test python version (note that python 2.5 returns a list of
+# strings while python 2.6 returns a tuple of ints):
+if tuple(map(int,platform.python_version_tuple())) < (2, 5, 0):
     sys.stderr.write("Sonata requires Python 2.5 or newer. Aborting...\n")
     sys.exit(1)
 
