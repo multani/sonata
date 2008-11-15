@@ -2269,7 +2269,10 @@ class Base:
     def playlist_name_exists(self, title, role, plname, skip_plname=""):
         # If the playlist already exists, and the user does not want to replace it, return True; In
         # all other cases, return False
-        for item in mpdh.call(self.client, 'lsinfo'):
+        playlists = mpdh.call(self.client, 'listplaylists')
+        if playlists is None:
+            playlists = mpdh.call(self.client, 'lsinfo')
+        for item in playlists:
             if item.has_key('playlist'):
                 if mpdh.get(item, 'playlist') == plname and plname != skip_plname:
                     if ui.show_msg(self.window, _("A playlist with this name already exists. Would you like to replace it?"), title, role, gtk.BUTTONS_YES_NO) == gtk.RESPONSE_YES:
@@ -2300,7 +2303,10 @@ class Base:
         if self.conn:
             self.playlistsdata.clear()
             playlistinfo = []
-            for item in mpdh.call(self.client, 'lsinfo'):
+            playlists = mpdh.call(self.client, 'listplaylists')
+            if playlists is None:
+                playlists = mpdh.call(self.client, 'lsinfo')
+            for item in playlists:
                 if item.has_key('playlist'):
                     playlistinfo.append(misc.escape_html(mpdh.get(item, 'playlist')))
             playlistinfo.sort(key=lambda x: x.lower()) # Remove case sensitivity

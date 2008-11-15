@@ -9,7 +9,8 @@ v1.6
 		- remove 500x500 hardcode
 		- show currently playing song
 	enabling/disabling outputs
-	prevent vertical resizing when collapsed (remove or fix this?)
+	prevent vertical resizing when collapsed 
+	column resizing (remove or fix this?)
 	sonata freezes with gail/accessibility enabled during new library searching
 	plugin support
 		- single instance (could remove dbus; faster on startup, less memory)
