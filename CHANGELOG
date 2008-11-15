@@ -5,6 +5,7 @@ v1.6
 	+ DND to copy files from Sonata to a file manager (Kamil)
 	+ Use plchanges for faster performance of some actions (e.g. add to playlist)
 	+ Only minimize to tray on trayicon click if focused; raise if not focused
+	+ Use new 'listplaylists' command for retrieving playlists
 	+ Better error trapping
 	+ Make process name 'sonata' for linux (himdel)
 	+ Bug: Bad profiles prevent sonata from starting

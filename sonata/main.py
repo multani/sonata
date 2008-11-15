@@ -2114,14 +2114,6 @@ class Base:
         conf.set('library', 'root_artist_artist', self.lib_artist)
         conf.set('library', 'root_artist_album', self.lib_album)
         conf.set('library', 'root_genre', self.lib_genre)
-        # Old formats, before some letter changes. We'll keep this in for compatibility with
-        # older versions of Sonata for the time being.
-        conf.add_section('format')
-        conf.set('format', 'current', self.currentformat.replace("%T", "%S").replace("%N", "%T"))
-        conf.set('format', 'library', self.libraryformat.replace("%T", "%S").replace("%N", "%T"))
-        conf.set('format', 'title', self.titleformat.replace("%T", "%S").replace("%N", "%T"))
-        conf.set('format', 'currsong1', self.currsongformat1.replace("%T", "%S").replace("%N", "%T"))
-        conf.set('format', 'currsong2', self.currsongformat2.replace("%T", "%S").replace("%N", "%T"))
         # New format
         conf.add_section('currformat')
         conf.set('currformat', 'current', self.currentformat)
