@@ -370,7 +370,6 @@ class Base:
         self.currsongformat1 = "%T"
         self.currsongformat2 = _("by") + " %A " + _("from") + " %B"
         self.columnwidths = []
-        self.colwidthpercents = []
         self.autoconnect = True
         self.user_connect = False
         self.stream_names = []
@@ -1410,7 +1409,6 @@ class Base:
         if len(self.columnformat) != len(self.columnwidths):
             # Number of columns changed, set columns equally spaced:
             self.columnwidths = []
-            self.colwidthpercents = [ 1/float(len(self.columnformat)) ] * len(self.columnformat)
             for i in range(len(self.columnformat)):
                 self.columnwidths.append(int(self.current.allocation.width/len(self.columnformat)))
         for i in range(len(self.columnformat)):
@@ -1926,7 +1924,6 @@ class Base:
             self.columnwidths = conf.get('player', 'columnwidths').split(",")
             for col in range(len(self.columnwidths)):
                 self.columnwidths[col] = int(self.columnwidths[col])
-            self.colwidthpercents = [0] * len(self.columnwidths)
         if conf.has_option('player', 'show_header'):
             self.show_header = conf.getboolean('player', 'show_header')
         if conf.has_option('player', 'tabs_expanded'):
@@ -4612,27 +4609,8 @@ class Base:
         self.x, self.y = self.window.get_position()
         self.expander_ellipse_workaround()
 
-    def current_columns_resize(self):
-        if not self.withdrawn and self.expanded and len(self.columns) > 1:
-            self.resizing_columns = True
-            width = self.window.allocation.width
-            for i, column in enumerate(self.columns):
-                try:
-                    newsize = int(round(self.colwidthpercents[i]*width))
-                    if newsize == 0:
-                        # self.colwidthpercents has not yet been set, don't resize...
-                        self.resizing_columns = False
-                        return
-                    newsize = max(newsize, 10)
-                except:
-                    newsize = 150
-                if newsize != column.get_fixed_width():
-                    column.set_fixed_width(newsize)
-            self.resizing_columns = False
-
     def on_notebook_resize(self, widget, event):
         if not self.resizing_columns :
-            self.current_columns_resize()
             gobject.idle_add(self.header_save_column_widths)
         gobject.idle_add(self.info_resize_elements)
 
@@ -5496,7 +5474,7 @@ class Base:
         if not self.withdrawn and self.expanded:
             windowwidth = self.window.allocation.width
             if windowwidth <= 10 or self.columns[0] <= 10:
-                # Make sure we only set self.colwidthpercents if self.current
+                # Make sure we only set self.columnwidths if self.current
                 # has its normal allocated width:
                 return
             notebookwidth = self.notebook.allocation.width
@@ -5508,8 +5486,6 @@ class Base:
                     self.columnwidths[i] = min(colwidth, column.get_fixed_width())
                 else:
                     self.columnwidths[i] = colwidth
-                # Save widths as percentages for when the application is resized.
-                self.colwidthpercents[i] = float(self.columnwidths[i])/windowwidth
             if treewidth > notebookwidth:
                 self.expanderwindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
             else:

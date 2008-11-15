@@ -10,7 +10,7 @@ v1.6
 		- show currently playing song
 	enabling/disabling outputs
 	prevent vertical resizing when collapsed 
-	column resizing (remove or fix this?)
+	save to playlist.. default to selected files
 	sonata freezes with gail/accessibility enabled during new library searching
 	plugin support
 		- single instance (could remove dbus; faster on startup, less memory)
