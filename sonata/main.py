@@ -514,7 +514,7 @@ class Base:
             ('quitmenu', gtk.STOCK_QUIT, _('_Quit'), None, None, self.on_delete_event_yes),
             ('removemenu', gtk.STOCK_REMOVE, _('_Remove'), None, None, self.on_remove),
             ('clearmenu', gtk.STOCK_CLEAR, _('_Clear'), '<Ctrl>Delete', None, self.mpd_clear),
-            ('savemenu', None, _('_New Playlist...'), '<Ctrl><Shift>s', None, self.on_playlist_save),
+            ('savemenu', None, _('_New...'), '<Ctrl><Shift>s', None, self.on_playlist_save),
             ('updatemenu', None, _('_Update Library'), None, None, self.on_updatedb),
             ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'), 'F5', None, self.on_prefs),
             ('aboutmenu', None, _('_About...'), 'F1', None, self.on_about),
@@ -1538,7 +1538,7 @@ class Base:
         actions = []
         for i in range(len(playlistinfo)):
             action_name = "Playlist: " + playlistinfo[i].replace("&", "")
-            actions.append((action_name, None, misc.unescape_html(playlistinfo[i]), None, None, self.on_playlist_menu_click))
+            actions.append((action_name, gtk.STOCK_JUSTIFY_CENTER, misc.unescape_html(playlistinfo[i]), None, None, self.on_playlist_menu_click))
         self.actionGroupPlaylists.add_actions(actions)
         uiDescription = """
             <ui>

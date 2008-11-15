@@ -70,6 +70,6 @@ def call(mpdclient, *args):
         retval = getattr(mpdclient, mpd_cmd)(*mpd_args)
         return retval
     except:
-        if not mpd_cmd in ['disconnect', 'lsinfo']:
+        if not mpd_cmd in ['disconnect', 'lsinfo', 'listplaylists']:
             print strftime("%Y-%m-%d %H:%M:%S") + "  " + str(sys.exc_info()[1])
         return None
