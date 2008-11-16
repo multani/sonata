@@ -13,6 +13,7 @@ REQUIREMENTS:
 	(Optional) Gnome-python-extras for enhanced system tray
 	(Optional) taglib and tagpy for editing metadata
 	(Optional) ZSI 2.0 or newer for automatic lyrics fetching
+        (Optional) dbus-python for mmkeys, single instance support
 	(Building) GCC
 	(Building) python-dev (on some distros)
 
