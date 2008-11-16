@@ -1,4 +1,5 @@
 v1.6
+	replace remove_list_duplicates...
 	support for new idle command
 	work with mpd's new "allow authenticated local users to add any local file to the playlist"
 		- waiting on python-mpd to implement unix socket paths
@@ -12,17 +13,6 @@ v1.6
 	prevent vertical resizing when collapsed 
 	save to playlist.. default to selected files? pref?
 	sonata freezes with gail/accessibility enabled during new library searching
-	plugin support
-		- single instance (could remove dbus; faster on startup, less memory)
-		- artwork
-		- lyrics
-		- system tray
-		- audioscrobbler
-		- popup notification
-		- tag editing
-		- "Find more" - "By Artist/Album" (patch 2507)
-		- Add as Next Track (patch 2454)
-		- Dynamic playlist (patch 2419)
 	
 Future:
 	crop songs in current playlist?
@@ -33,3 +23,14 @@ Future:
 	lazy loading of the treeview
 		http://log.emmanuelebassi.net/documentation/lazy-loading/
 		http://blogs.gnome.org/jamesh/2006/03/31/re-lazy-loading/
+	plugin support
+		- single instance, mmkeys (could remove dbus; faster on startup, less memory)
+		- artwork
+		- lyrics
+		- system tray
+		- audioscrobbler
+		- popup notification
+		- tag editing
+		- "Find more" - "By Artist/Album" (patch 2507)
+		- Add as Next Track (patch 2454)
+		- Dynamic playlist (patch 2419)

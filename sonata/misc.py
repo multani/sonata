@@ -240,6 +240,26 @@ def capword(s):
 def capwords(s):
     return str(' '.join([capword(x) for x in unicode(s).split()]))
 
+def sanitize_musicdir(mdir):
+    mdir = os.path.expanduser(mdir)
+    if len(mdir) > 0:
+        if mdir[-1] != "/":
+            mdir = mdir + "/"
+    return mdir
+
+def mpd_env_vars():
+    host = None
+    port = None
+    password = None
+    if os.environ.has_key('MPD_HOST'):
+        if '@' in os.environ['MPD_HOST']:
+            password, host = os.environ['MPD_HOST'].split('@')
+        else:
+            host = os.environ['MPD_HOST']
+    if os.environ.has_key('MPD_PORT'):
+        port = int(os.environ['MPD_PORT'])
+    return (host, port, password)
+
 def get_files_recursively(dir):
     filenames = []
     os.path.walk(dir, _get_files_recursively, filenames)

@@ -24,10 +24,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import getopt, sys, gettext, os, ConfigParser, misc, platform
+import getopt, sys, gettext, os, misc, platform
+
 import mpdhelper as mpdh
 from socket import getdefaulttimeout as socketgettimeout
 from socket import setdefaulttimeout as socketsettimeout
+
+import consts, config, preferences
 
 tagpy = None
 ElementTree = None
@@ -81,7 +84,7 @@ except:
 
 if not skip_gui:
     import warnings, gobject, urllib, urllib2, re, gc, locale, shutil
-    import gtk, pango, threading, time, ui, img, tray, hashlib
+    import gtk, pango, threading, time, ui, img, tray
 
     # Test pygtk version
     if gtk.pygtk_version < (2, 12, 0):
@@ -142,9 +145,10 @@ if not skip_gui:
         except:
             pass
 
-class Base:
+# FIXME Constants, Config and Preferences should not be inherited from
+class Base(object, consts.Constants, preferences.Preferences):
     def __init__(self, window=None, sugar=False):
-
+        consts.Constants.__init__(self)
         try:
             gettext.install('sonata', os.path.join(__file__.split('/lib')[0], 'share', 'locale'), unicode=1)
         except:
@@ -194,12 +198,11 @@ class Base:
         self.lyricsText = None
         self.notification_width = None
         self.playlist_pos_before_filter = None
-        self.prev_host = None
+
         self.prevlibtodo_base = None
         self.prevlibtodo_base_results = None
         self.prevlibtodo = None
-        self.prev_password = None
-        self.prev_port = None
+
         self.prevtodo = None
         self.remote_albumentry = None
         self.remote_artistentry = None
@@ -221,7 +224,7 @@ class Base:
         socketsettimeout(5)
         self.profile_num = 0
         self.profile_names = [_('Default Profile')]
-        self.musicdir = [self.sanitize_musicdir("~/music")]
+        self.musicdir = [misc.sanitize_musicdir("~/music")]
         self.host = ['localhost']
         self.port = [6600]
         self.password = ['']
@@ -234,32 +237,6 @@ class Base:
         self.TAB_PLAYLISTS = _("Playlists")
         self.TAB_STREAMS = _("Streams")
         self.TAB_INFO = _("Info")
-        self.ART_LOCAL = 0
-        self.ART_LOCAL_REMOTE = 1
-        self.VIEW_FILESYSTEM = 0
-        self.VIEW_ARTIST = 1
-        self.VIEW_GENRE = 2
-        self.LYRIC_TIMEOUT = 10
-        self.NOTIFICATION_WIDTH_MAX = 500
-        self.NOTIFICATION_WIDTH_MIN = 350
-        self.FULLSCREEN_COVER_SIZE = 500
-        self.ART_LOCATION_HOMECOVERS = 0		# ~/.covers/[artist]-[album].jpg
-        self.ART_LOCATION_COVER = 1				# file_dir/cover.jpg
-        self.ART_LOCATION_ALBUM = 2				# file_dir/album.jpg
-        self.ART_LOCATION_FOLDER = 3			# file_dir/folder.jpg
-        self.ART_LOCATION_CUSTOM = 4			# file_dir/[custom]
-        self.ART_LOCATION_SINGLE = 6
-        self.ART_LOCATION_MISC = 7
-        self.ART_LOCATIONS_MISC = ['front.jpg', '.folder.jpg', '.folder.png', 'AlbumArt.jpg', 'AlbumArtSmall.jpg']
-        self.LYRICS_LOCATION_HOME = 0			# ~/.lyrics/[artist]-[song].txt
-        self.LYRICS_LOCATION_PATH = 1			# file_dir/[artist]-[song].txt
-        self.LIB_COVER_SIZE = 16
-        self.COVERS_TYPE_STANDARD = 0
-        self.COVERS_TYPE_STYLIZED = 1
-        self.LIB_LEVEL_GENRE = 0
-        self.LIB_LEVEL_ARTIST = 1
-        self.LIB_LEVEL_ALBUM = 2
-        self.LIB_LEVEL_SONG = 3
         self.NOTAG = _("Untagged")
         # If the connection to MPD times out, this will cause the interface to freeze while
         # the socket.connect() calls are repeatedly executed. Therefore, if we were not
@@ -267,12 +244,17 @@ class Base:
         self.iterate_time_when_connected = 500
         self.iterate_time_when_disconnected_or_stopped = 1000 # Slow down polling when disconnected stopped
 
+        # FIXME Don't subclass
+        self.config = self
+        config.Config.__init__(self, _('Default Profile'), _("by") + " %A " + _("from") + " %B")
+
         self.trying_connection = False
         toggle_arg = False
         popup_arg = False
         start_hidden = False
         start_visible = False
         arg_profile = False
+
         # Read any passed options/arguments:
         if not sugar:
             try:
@@ -328,79 +310,36 @@ class Base:
 
         # Initialize vars for GUI
         self.current_tab = self.TAB_CURRENT
-        self.x = 0
-        self.y = 0
-        self.w = 400
-        self.h = 300
-        self.expanded = True
-        self.withdrawn = False
-        self.sticky = False
-        self.ontop = False
-        self.screen = 0
+
         self.prevconn = []
         self.prevstatus = None
         self.prevsonginfo = None
         self.lastalbumart = None
-        self.xfade = 0
-        self.xfade_enabled = False
-        self.show_covers = True
-        self.covers_type = 1
-        self.covers_pref = self.ART_LOCAL_REMOTE
+
         self.lyricServer = None
-        self.show_notification = False
-        self.show_playback = True
-        self.show_progress = True
-        self.show_statusbar = False
-        self.show_trayicon = True
-        self.show_lyrics = True
-        self.stop_on_exit = False
-        self.update_on_start = False
-        self.minimize_to_systray = False
+
         self.popuptimes = ['2', '3', '5', '10', '15', '30', _('Entire song')]
-        self.popuplocations = [_('System tray'), _('Top Left'), _('Top Right'), _('Bottom Left'), _('Bottom Right'), _('Screen Center')]
-        self.popup_option = 2
+
         self.exit_now = False
         self.ignore_toggle_signal = False
-        self.initial_run = True
-        self.show_header = True
-        self.tabs_expanded = False
-        self.currentformat = "%A - %T"
-        self.libraryformat = "%A - %T"
-        self.titleformat = "[Sonata] %A - %T"
-        self.currsongformat1 = "%T"
-        self.currsongformat2 = _("by") + " %A " + _("from") + " %B"
-        self.columnwidths = []
-        self.autoconnect = True
+
         self.user_connect = False
-        self.stream_names = []
-        self.stream_uris = []
+
         self.downloading_image = False
         self.search_terms = [_('Artist'), _('Title'), _('Album'), _('Genre'), _('Filename'), _('Everything')]
         self.search_terms_mpd = ['artist', 'title', 'album', 'genre', 'file', 'any']
-        self.last_search_num = 0
+
         self.sonata_loaded = False
         self.call_gc_collect = False
         self.single_img_in_dir = None
         self.misc_img_in_dir = None
         self.total_time = 0
         self.prev_boldrow = -1
-        self.use_infofile = False
-        self.infofile_path = '/tmp/xmms-info'
-        self.lib_view = self.VIEW_FILESYSTEM
-        self.lib_level = self.LIB_LEVEL_ARTIST
-        self.lib_level_prev = -1
-        self.lib_genre = ''
-        self.lib_artist = ''
-        self.lib_album = ''
-        self.art_location = self.ART_LOCATION_HOMECOVERS
-        self.art_location_custom_filename = ""
-        self.lyrics_location = self.LYRICS_LOCATION_HOME
+
         self.filterbox_visible = False
         self.edit_style_orig = None
         self.album_reset_artist()
-        self.as_enabled = False
-        self.as_username = ""
-        self.as_password_md5 = ""
+
         show_prefs = False
         self.updating_nameentry = False
         self.merge_id = None
@@ -415,26 +354,12 @@ class Base:
         self.last_progress_text = None
         self.last_info_bitrate = None
         self.column_sorted = (None, gtk.SORT_DESCENDING)				# TreeViewColumn, order
-        self.url_browser = ""
-        self.wd = '/'
+
         self.filter_row_mapping = [] # Mapping between filter rows and self.currentdata rows
         self.plpos = None
-        self.info_song_expanded = True
-        self.info_lyrics_expanded = True
-        self.info_album_expanded = True
-        self.info_song_more = False
-        self.current_tab_visible = True
-        self.library_tab_visible = True
-        self.playlists_tab_visible = True
-        self.streams_tab_visible = True
-        self.info_tab_visible = True
-        self.current_tab_pos = 0
-        self.library_tab_pos = 1
-        self.playlists_tab_pos = 2
-        self.streams_tab_pos = 3
-        self.info_tab_pos = 4
+
         self.last_status_text = ""
-        self.info_art_enlarged = False
+
         self.eggtrayfile = None
         self.eggtrayheight = None
         self.scrob = None
@@ -445,7 +370,7 @@ class Base:
         self.scrob_time_now = None
         self.sel_rows = None
         self.img_clicked = False
-        self.existing_playlist_option = 0
+
         self.elapsed_now = None
         self.current_update_skip = False
         self.libsearch_last_tooltip = None
@@ -458,7 +383,11 @@ class Base:
 
         self.all_tab_names = [self.TAB_CURRENT, self.TAB_LIBRARY, self.TAB_PLAYLISTS, self.TAB_STREAMS, self.TAB_INFO]
 
+        # FIXME Don't subclass
+        self.preferences = self
+        preferences.Preferences.__init__(self)
         self.settings_load()
+
         if start_hidden:
             self.withdrawn = True
         if start_visible:
@@ -1560,7 +1489,7 @@ class Base:
         return _("Profile") + ": " + self.profile_names[profile_num].replace("&", "")
 
     def populate_profiles_for_menu(self):
-        host, port, password = self.mpd_env_vars()
+        host, port, password = misc.mpd_env_vars()
         if self.merge_id:
             self.UIManager.remove_ui(self.merge_id)
         if self.actionGroupProfiles:
@@ -1625,7 +1554,7 @@ class Base:
         self.trying_connection = True
         if self.user_connect or force:
             mpdh.call(self.client, 'disconnect')
-            host, port, password = self.mpd_env_vars()
+            host, port, password = misc.mpd_env_vars()
             if not host: host = self.host[self.profile_num]
             if not port: port = self.port[self.profile_num]
             if not password: password = self.password[self.profile_num]
@@ -1655,7 +1584,7 @@ class Base:
         self.user_connect = True
         # Update selected radio button in menu:
         self.skip_on_profiles_click = True
-        host, port, password = self.mpd_env_vars()
+        host, port, password = misc.mpd_env_vars()
         if host or port:
             self.actionGroupProfiles.list_actions()[0].activate()
         else:
@@ -1814,320 +1743,23 @@ class Base:
                         self.searchfilter_toggle(None)
 
     def settings_load(self):
-        # Load config
-        conf = ConfigParser.ConfigParser()
-        misc.create_dir('~/.config/sonata/')
-        if os.path.isfile(os.path.expanduser('~/.config/sonata/sonatarc')):
-            conf.read(os.path.expanduser('~/.config/sonata/sonatarc'))
-        else:
-            return
-        # Compatibility with previous versions of Sonata:
-        # --------------------------------------------------------------------
-        if conf.has_option('connection', 'host'):
-            self.host[0] = conf.get('connection', 'host')
-        if conf.has_option('connection', 'port'):
-            self.port[0] = int(conf.get('connection', 'port'))
-        if conf.has_option('connection', 'password'):
-            self.password[0] = conf.get('connection', 'password')
-        if conf.has_option('connection', 'musicdir'):
-            self.musicdir[0] = self.sanitize_musicdir(conf.get('connection', 'musicdir'))
-        # --------------------------------------------------------------------
-        if conf.has_option('connection', 'auto'):
-            self.autoconnect = conf.getboolean('connection', 'auto')
-        if conf.has_option('connection', 'profile_num'):
-            self.profile_num = conf.getint('connection', 'profile_num')
-        if conf.has_option('player', 'x'):
-            self.x = conf.getint('player', 'x')
-        if conf.has_option('player', 'y'):
-            self.y = conf.getint('player', 'y')
-        if conf.has_option('player', 'w'):
-            self.w = conf.getint('player', 'w')
-        if conf.has_option('player', 'h'):
-            self.h = conf.getint('player', 'h')
-        if conf.has_option('player', 'expanded'):
-            self.expanded = conf.getboolean('player', 'expanded')
-        if conf.has_option('player', 'withdrawn'):
-            self.withdrawn = conf.getboolean('player', 'withdrawn')
-        if conf.has_option('player', 'screen'):
-            self.screen = conf.getint('player', 'screen')
-        if conf.has_option('player', 'covers'):
-            self.show_covers = conf.getboolean('player', 'covers')
-        if conf.has_option('player', 'covers_type'):
-            self.covers_type = conf.getint('player', 'covers_type')
-        if conf.has_option('player', 'stop_on_exit'):
-            self.stop_on_exit = conf.getboolean('player', 'stop_on_exit')
-        if conf.has_option('player', 'minimize'):
-            self.minimize_to_systray = conf.getboolean('player', 'minimize')
-        if conf.has_option('player', 'initial_run'):
-            self.initial_run = conf.getboolean('player', 'initial_run')
-        if conf.has_option('player', 'statusbar'):
-            self.show_statusbar = conf.getboolean('player', 'statusbar')
-        if conf.has_option('player', 'lyrics'):
-            self.show_lyrics = conf.getboolean('player', 'lyrics')
-        if conf.has_option('player', 'sticky'):
-            self.sticky = conf.getboolean('player', 'sticky')
-        if conf.has_option('player', 'ontop'):
-            self.ontop = conf.getboolean('player', 'ontop')
-        if conf.has_option('player', 'notification'):
-            self.show_notification = conf.getboolean('player', 'notification')
-        if conf.has_option('player', 'popup_time'):
-            self.popup_option = conf.getint('player', 'popup_time')
-        if conf.has_option('player', 'update_on_start'):
-            self.update_on_start = conf.getboolean('player', 'update_on_start')
-        if conf.has_option('player', 'notif_location'):
-            if not skip_gui:
-                self.traytips.notifications_location = conf.getint('player', 'notif_location')
-        if conf.has_option('player', 'playback'):
-            self.show_playback = conf.getboolean('player', 'playback')
-        if conf.has_option('player', 'progressbar'):
-            self.show_progress = conf.getboolean('player', 'progressbar')
-        if conf.has_option('player', 'crossfade'):
-            crossfade = conf.getint('player', 'crossfade')
-            # Backwards compatibility:
-            self.xfade = crossfade
-        if conf.has_option('player', 'xfade'):
-            self.xfade = conf.getint('player', 'xfade')
-        if conf.has_option('player', 'xfade_enabled'):
-            self.xfade_enabled = conf.getboolean('player', 'xfade_enabled')
-        if conf.has_option('player', 'covers_pref'):
-            self.covers_pref = conf.getint('player', 'covers_pref')
-            # Specifying remote artwork first is too confusing and probably
-            # rarely used, so we're removing this option and defaulting users
-            # back to the default 'local, then remote' option.
-            if self.covers_pref > self.ART_LOCAL_REMOTE:
-                self.covers_pref = self.ART_LOCAL_REMOTE
-        if conf.has_option('player', 'use_infofile'):
-            self.use_infofile = conf.getboolean('player', 'use_infofile')
-        if conf.has_option('player', 'infofile_path'):
-            self.infofile_path = conf.get('player', 'infofile_path')
-        if conf.has_option('player', 'trayicon'):
-            self.show_trayicon = conf.getboolean('player', 'trayicon')
-        if conf.has_option('player', 'view'):
-            self.lib_view = conf.getint('player', 'view')
-        if conf.has_option('player', 'search_num'):
-            self.last_search_num = conf.getint('player', 'search_num')
-        if conf.has_option('player', 'art_location'):
-            self.art_location = conf.getint('player', 'art_location')
-        if conf.has_option('player', 'art_location_custom_filename'):
-            self.art_location_custom_filename = conf.get('player', 'art_location_custom_filename')
-        if conf.has_option('player', 'lyrics_location'):
-            self.lyrics_location = conf.getint('player', 'lyrics_location')
-        if conf.has_option('player', 'info_song_expanded'):
-            self.info_song_expanded = conf.getboolean('player', 'info_song_expanded')
-        if conf.has_option('player', 'info_lyrics_expanded'):
-            self.info_lyrics_expanded = conf.getboolean('player', 'info_lyrics_expanded')
-        if conf.has_option('player', 'info_album_expanded'):
-            self.info_album_expanded = conf.getboolean('player', 'info_album_expanded')
-        if conf.has_option('player', 'info_song_more'):
-            self.info_song_more = conf.getboolean('player', 'info_song_more')
-        if conf.has_option('player', 'columnwidths'):
-            self.columnwidths = conf.get('player', 'columnwidths').split(",")
-            for col in range(len(self.columnwidths)):
-                self.columnwidths[col] = int(self.columnwidths[col])
-        if conf.has_option('player', 'show_header'):
-            self.show_header = conf.getboolean('player', 'show_header')
-        if conf.has_option('player', 'tabs_expanded'):
-            self.tabs_expanded = conf.getboolean('player', 'tabs_expanded')
-        if conf.has_option('player', 'browser'):
-            self.url_browser = conf.get('player', 'browser')
-        if conf.has_option('player', 'info_art_enlarged'):
-            self.info_art_enlarged = conf.getboolean('player', 'info_art_enlarged')
-        if conf.has_option('player', 'existing_playlist'):
-            self.existing_playlist_option = conf.getint('player', 'existing_playlist')
-        if conf.has_section('notebook'):
-            if conf.has_option('notebook', 'current_tab_visible'):
-                self.current_tab_visible = conf.getboolean('notebook', 'current_tab_visible')
-            if conf.has_option('notebook', 'library_tab_visible'):
-                self.library_tab_visible = conf.getboolean('notebook', 'library_tab_visible')
-            if conf.has_option('notebook', 'playlists_tab_visible'):
-                self.playlists_tab_visible = conf.getboolean('notebook', 'playlists_tab_visible')
-            if conf.has_option('notebook', 'streams_tab_visible'):
-                self.streams_tab_visible = conf.getboolean('notebook', 'streams_tab_visible')
-            if conf.has_option('notebook', 'info_tab_visible'):
-                self.info_tab_visible = conf.getboolean('notebook', 'info_tab_visible')
-            if conf.has_option('notebook', 'current_tab_pos'):
-                try: self.current_tab_pos = conf.getint('notebook', 'current_tab_pos')
-                except: pass
-            if conf.has_option('notebook', 'library_tab_pos'):
-                try: self.library_tab_pos = conf.getint('notebook', 'library_tab_pos')
-                except: pass
-            if conf.has_option('notebook', 'playlists_tab_pos'):
-                try: self.playlists_tab_pos = conf.getint('notebook', 'playlists_tab_pos')
-                except: pass
-            if conf.has_option('notebook', 'streams_tab_pos'):
-                try: self.streams_tab_pos = conf.getint('notebook', 'streams_tab_pos')
-                except: pass
-            if conf.has_option('notebook', 'info_tab_pos'):
-                try: self.info_tab_pos = conf.getint('notebook', 'info_tab_pos')
-                except: pass
-        if conf.has_section('library'):
-            if conf.has_option('library', 'root'):
-                self.wd = conf.get('library', 'root')
-            if conf.has_option('library', 'root_artist_level'):
-                self.lib_level = conf.getint('library', 'root_artist_level')
-            if conf.has_option('library', 'root_artist_artist'):
-                self.lib_artist = conf.get('library', 'root_artist_artist')
-            if conf.has_option('library', 'root_artist_album'):
-                self.lib_album = conf.get('library', 'root_artist_album')
-            if conf.has_option('library', 'root_genre'):
-                self.lib_genre = conf.get('library', 'root_genre')
-        if conf.has_section('currformat'):
-            if conf.has_option('currformat', 'current'):
-                self.currentformat = conf.get('currformat', 'current')
-            if conf.has_option('currformat', 'library'):
-                self.libraryformat = conf.get('currformat', 'library')
-            if conf.has_option('currformat', 'title'):
-                self.titleformat = conf.get('currformat', 'title')
-            if conf.has_option('currformat', 'currsong1'):
-                self.currsongformat1 = conf.get('currformat', 'currsong1')
-            if conf.has_option('currformat', 'currsong2'):
-                self.currsongformat2 = conf.get('currformat', 'currsong2')
-        elif conf.has_section('format'): # old format
-            if conf.has_option('format', 'current'):
-                self.currentformat = conf.get('format', 'current').replace("%T", "%N").replace("%S", "%T")
-            if conf.has_option('format', 'library'):
-                self.libraryformat = conf.get('format', 'library').replace("%T", "%N").replace("%S", "%T")
-            if conf.has_option('format', 'title'):
-                self.titleformat = conf.get('format', 'title').replace("%T", "%N").replace("%S", "%T")
-            if conf.has_option('format', 'currsong1'):
-                self.currsongformat1 = conf.get('format', 'currsong1').replace("%T", "%N").replace("%S", "%T")
-            if conf.has_option('format', 'currsong2'):
-                self.currsongformat2 = conf.get('format', 'currsong2').replace("%T", "%N").replace("%S", "%T")
-        if conf.has_option('streams', 'num_streams'):
-            num_streams = conf.getint('streams', 'num_streams')
-            self.stream_names = []
-            self.stream_uris = []
-            for i in range(num_streams):
-                self.stream_names.append(conf.get('streams', 'names[' + str(i) + ']'))
-                self.stream_uris.append(conf.get('streams', 'uris[' + str(i) + ']'))
-        if conf.has_option('audioscrobbler', 'use_audioscrobbler'):
-            self.as_enabled = conf.getboolean('audioscrobbler', 'use_audioscrobbler')
-        if conf.has_option('audioscrobbler', 'username'):
-            self.as_username = conf.get('audioscrobbler', 'username')
-        if conf.has_option('audioscrobbler', 'password'): # old...
-            self.as_password_md5 = hashlib.md5(conf.get('audioscrobbler', 'password')).hexdigest()
-        if conf.has_option('audioscrobbler', 'password_md5'):
-            self.as_password_md5 = conf.get('audioscrobbler', 'password_md5')
-        if conf.has_option('profiles', 'num_profiles'):
-            num_profiles = conf.getint('profiles', 'num_profiles')
-            if num_profiles > 0:
-                self.profile_names = []
-                self.host = []
-                self.port = []
-                self.password = []
-                self.musicdir = []
-            for i in range(num_profiles):
-                self.profile_names.append(conf.get('profiles', 'names[' + str(i) + ']'))
-                self.host.append(conf.get('profiles', 'hosts[' + str(i) + ']'))
-                self.port.append(conf.getint('profiles', 'ports[' + str(i) + ']'))
-                self.password.append(conf.get('profiles', 'passwords[' + str(i) + ']'))
-                self.musicdir.append(self.sanitize_musicdir(conf.get('profiles', 'musicdirs[' + str(i) + ']')))
-            # Ensure we have a valid profile number:
-            if self.profile_num < 0 or self.profile_num > num_profiles-1:
-                self.profile_num = 0
+        self.config.settings_load_real()
+
+        if not skip_gui and self.config.traytips_notifications_location is not None:
+            self.traytips.notifications_location = self.config.traytips_notifications_location
 
     def settings_save(self):
-        conf = ConfigParser.ConfigParser()
-        conf.add_section('profiles')
-        conf.set('profiles', 'num_profiles', len(self.profile_names))
-        for i in range(len(self.profile_names)):
-            conf.set('profiles', 'names[' + str(i) + ']', self.profile_names[i])
-            conf.set('profiles', 'hosts[' + str(i) + ']', self.host[i])
-            conf.set('profiles', 'ports[' + str(i) + ']', self.port[i])
-            conf.set('profiles', 'passwords[' + str(i) + ']', self.password[i])
-            conf.set('profiles', 'musicdirs[' + str(i) + ']', self.musicdir[i])
-        conf.add_section('connection')
-        conf.set('connection', 'auto', self.autoconnect)
-        conf.set('connection', 'profile_num', self.profile_num)
-        conf.add_section('player')
-        conf.set('player', 'w', self.w)
-        conf.set('player', 'h', self.h)
-        conf.set('player', 'x', self.x)
-        conf.set('player', 'y', self.y)
-        conf.set('player', 'expanded', self.expanded)
-        conf.set('player', 'withdrawn', self.withdrawn)
-        conf.set('player', 'screen', self.screen)
-        conf.set('player', 'covers', self.show_covers)
-        conf.set('player', 'covers_type', self.covers_type)
-        conf.set('player', 'stop_on_exit', self.stop_on_exit)
-        conf.set('player', 'minimize', self.minimize_to_systray)
-        conf.set('player', 'initial_run', self.initial_run)
-        conf.set('player', 'statusbar', self.show_statusbar)
-        conf.set('player', 'lyrics', self.show_lyrics)
-        conf.set('player', 'sticky', self.sticky)
-        conf.set('player', 'ontop', self.ontop)
-        conf.set('player', 'notification', self.show_notification)
-        conf.set('player', 'popup_time', self.popup_option)
-        conf.set('player', 'update_on_start', self.update_on_start)
-        conf.set('player', 'notif_location', self.traytips.notifications_location)
-        conf.set('player', 'playback', self.show_playback)
-        conf.set('player', 'progressbar', self.show_progress)
-        conf.set('player', 'xfade', self.xfade)
-        conf.set('player', 'xfade_enabled', self.xfade_enabled)
-        conf.set('player', 'covers_pref', self.covers_pref)
-        conf.set('player', 'use_infofile', self.use_infofile)
-        conf.set('player', 'infofile_path', self.infofile_path)
-        conf.set('player', 'trayicon', self.show_trayicon)
-        conf.set('player', 'view', self.lib_view)
-        conf.set('player', 'search_num', self.last_search_num)
-        conf.set('player', 'art_location', self.art_location)
-        conf.set('player', 'art_location_custom_filename', self.art_location_custom_filename)
-        conf.set('player', 'lyrics_location', self.lyrics_location)
-        conf.set('player', 'info_song_expanded', self.info_song_expanded)
-        conf.set('player', 'info_lyrics_expanded', self.info_lyrics_expanded)
-        conf.set('player', 'info_album_expanded', self.info_album_expanded)
-        conf.set('player', 'info_song_more', self.info_song_more)
-        conf.set('player', 'info_art_enlarged', self.info_art_enlarged)
-        conf.set('player', 'existing_playlist', self.existing_playlist_option)
         self.header_save_column_widths()
-        tmp = ""
-        for i in range(len(self.columns)-1):
-            tmp += str(self.columnwidths[i]) + ","
-        tmp += str(self.columnwidths[len(self.columns)-1])
-        conf.set('player', 'columnwidths', tmp)
-        conf.set('player', 'show_header', self.show_header)
-        conf.set('player', 'tabs_expanded', self.tabs_expanded)
-        conf.set('player', 'browser', self.url_browser)
-        conf.add_section('notebook')
-        # Save tab positions:
-        conf.set('notebook', 'current_tab_visible', self.current_tab_visible)
-        conf.set('notebook', 'library_tab_visible', self.library_tab_visible)
-        conf.set('notebook', 'playlists_tab_visible', self.playlists_tab_visible)
-        conf.set('notebook', 'streams_tab_visible', self.streams_tab_visible)
-        conf.set('notebook', 'info_tab_visible', self.info_tab_visible)
-        self.current_tab_pos = self.notebook_get_tab_num(self.notebook, self.TAB_CURRENT)
-        self.library_tab_pos = self.notebook_get_tab_num(self.notebook, self.TAB_LIBRARY)
-        self.playlists_tab_pos = self.notebook_get_tab_num(self.notebook, self.TAB_PLAYLISTS)
-        self.streams_tab_pos = self.notebook_get_tab_num(self.notebook, self.TAB_STREAMS)
-        self.info_tab_pos = self.notebook_get_tab_num(self.notebook, self.TAB_INFO)
-        conf.set('notebook', 'current_tab_pos', self.current_tab_pos)
-        conf.set('notebook', 'library_tab_pos', self.library_tab_pos)
-        conf.set('notebook', 'playlists_tab_pos', self.playlists_tab_pos)
-        conf.set('notebook', 'streams_tab_pos', self.streams_tab_pos)
-        conf.set('notebook', 'info_tab_pos', self.info_tab_pos)
-        conf.add_section('library')
-        conf.set('library', 'root', self.wd)
-        conf.set('library', 'root_artist_level', self.lib_level)
-        conf.set('library', 'root_artist_artist', self.lib_artist)
-        conf.set('library', 'root_artist_album', self.lib_album)
-        conf.set('library', 'root_genre', self.lib_genre)
-        # New format
-        conf.add_section('currformat')
-        conf.set('currformat', 'current', self.currentformat)
-        conf.set('currformat', 'library', self.libraryformat)
-        conf.set('currformat', 'title', self.titleformat)
-        conf.set('currformat', 'currsong1', self.currsongformat1)
-        conf.set('currformat', 'currsong2', self.currsongformat2)
-        conf.add_section('streams')
-        conf.set('streams', 'num_streams', len(self.stream_names))
-        for i in range(len(self.stream_names)):
-            conf.set('streams', 'names[' + str(i) + ']', self.stream_names[i])
-            conf.set('streams', 'uris[' + str(i) + ']', self.stream_uris[i])
-        conf.add_section('audioscrobbler')
-        conf.set('audioscrobbler', 'use_audioscrobbler', self.as_enabled)
-        conf.set('audioscrobbler', 'username', self.as_username)
-        conf.set('audioscrobbler', 'password_md5', self.as_password_md5)
-        conf.write(file(os.path.expanduser('~/.config/sonata/sonatarc'), 'w'))
+
+        self.config.current_tab_pos = self.notebook_get_tab_num(self.notebook, self.TAB_CURRENT)
+        self.config.library_tab_pos = self.notebook_get_tab_num(self.notebook, self.TAB_LIBRARY)
+        self.config.playlists_tab_pos = self.notebook_get_tab_num(self.notebook, self.TAB_PLAYLISTS)
+        self.config.streams_tab_pos = self.notebook_get_tab_num(self.notebook, self.TAB_STREAMS)
+        self.config.info_tab_pos = self.notebook_get_tab_num(self.notebook, self.TAB_INFO)
+
+        self.config.traytips_notifications_location = self.traytips.notifications_location
+
+        self.config.settings_save_real()
 
     def handle_change_conn(self):
         if not self.conn:
@@ -4492,6 +4124,7 @@ class Base:
         if self.fullscreencoverart.get_property('visible'):
             return
         if self.sonata_loaded:
+            self.traytips.notifications_location = self.traytips_notifications_location
             if self.conn and self.status and self.status['state'] in ['play', 'pause']:
                 if self.show_covers:
                     self.traytips.set_size_request(self.notification_width, -1)
@@ -5836,386 +5469,12 @@ class Base:
                 mpdh.call(self.client, 'random', 0)
 
     def on_prefs(self, widget):
-        prefswindow = ui.dialog(title=_("Preferences"), parent=self.window, flags=gtk.DIALOG_DESTROY_WITH_PARENT, role='preferences', resizable=False, separator=False)
-        hbox = gtk.HBox()
-        prefsnotebook = gtk.Notebook()
-        # MPD tab
-        mpdlabel = ui.label(markup='<b>' + _('MPD Connection') + '</b>', y=1)
-        controlbox = gtk.HBox()
-        profiles = ui.combo()
-        add_profile = ui.button(img=ui.image(stock=gtk.STOCK_ADD))
-        remove_profile = ui.button(img=ui.image(stock=gtk.STOCK_REMOVE))
-        self.prefs_populate_profile_combo(profiles, self.profile_num, remove_profile)
-        controlbox.pack_start(profiles, False, False, 2)
-        controlbox.pack_start(remove_profile, False, False, 2)
-        controlbox.pack_start(add_profile, False, False, 2)
-        namebox = gtk.HBox()
-        namelabel = ui.label(text=_("Name") + ":")
-        namebox.pack_start(namelabel, False, False, 0)
-        nameentry = ui.entry()
-        namebox.pack_start(nameentry, True, True, 10)
-        hostbox = gtk.HBox()
-        hostlabel = ui.label(text=_("Host") + ":")
-        hostbox.pack_start(hostlabel, False, False, 0)
-        hostentry = ui.entry()
-        hostbox.pack_start(hostentry, True, True, 10)
-        portbox = gtk.HBox()
-        portlabel = ui.label(text=_("Port") + ":")
-        portbox.pack_start(portlabel, False, False, 0)
-        portentry = ui.entry()
-        portbox.pack_start(portentry, True, True, 10)
-        dirbox = gtk.HBox()
-        dirlabel = ui.label(text=_("Music dir") + ":")
-        dirbox.pack_start(dirlabel, False, False, 0)
-        direntry = ui.entry()
-        direntry.connect('changed', self.prefs_direntry_changed, profiles)
-        dirbox.pack_start(direntry, True, True, 10)
-        passwordbox = gtk.HBox()
-        passwordlabel = ui.label(text=_("Password") + ":")
-        passwordbox.pack_start(passwordlabel, False, False, 0)
-        passwordentry = ui.entry(password=True)
-        passwordentry.set_tooltip_text(_("Leave blank if no password is required."))
-        passwordbox.pack_start(passwordentry, True, True, 10)
-        mpd_labels = [namelabel, hostlabel, portlabel, passwordlabel, dirlabel]
-        ui.set_widths_equal(mpd_labels)
-        autoconnect = gtk.CheckButton(_("Autoconnect on start"))
-        autoconnect.set_active(self.autoconnect)
-        # Fill in entries with current profile:
-        self.prefs_profile_chosen(profiles, nameentry, hostentry, portentry, passwordentry, direntry)
-        # Update display if $MPD_HOST or $MPD_PORT is set:
-        host, port, password = self.mpd_env_vars()
-        if host or port:
-            using_mpd_env_vars = True
-            if not host: host = ""
-            if not port: port = ""
-            if not password: password = ""
-            hostentry.set_text(str(host))
-            portentry.set_text(str(port))
-            passwordentry.set_text(str(password))
-            nameentry.set_text(_("Using MPD_HOST/PORT"))
-            for widget in [hostentry, portentry, passwordentry, nameentry, profiles, add_profile, remove_profile]:
-                widget.set_sensitive(False)
-        else:
-            using_mpd_env_vars = False
-            for widget in [hostentry, portentry, passwordentry, nameentry, profiles, add_profile, remove_profile]:
-                widget.set_sensitive(True)
-            nameentry.connect('changed', self.prefs_nameentry_changed, profiles, remove_profile)
-            hostentry.connect('changed', self.prefs_hostentry_changed, profiles)
-            portentry.connect('changed', self.prefs_portentry_changed, profiles)
-            passwordentry.connect('changed', self.prefs_passwordentry_changed, profiles)
-            profiles.connect('changed', self.prefs_profile_chosen, nameentry, hostentry, portentry, passwordentry, direntry)
-            add_profile.connect('clicked', self.prefs_add_profile, nameentry, profiles, remove_profile)
-            remove_profile.connect('clicked', self.prefs_remove_profile, profiles, remove_profile)
-        mpd_frame = gtk.Frame()
-        table = gtk.Table(6, 2, False)
-        table.set_col_spacings(3)
-        table.attach(ui.label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(namebox, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(hostbox, 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(portbox, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(passwordbox, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(dirbox, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(ui.label(), 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        mpd_frame.add(table)
-        mpd_frame.set_label_widget(controlbox)
-        mpd_table = gtk.Table(9, 2, False)
-        mpd_table.set_col_spacings(3)
-        mpd_table.attach(ui.label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        mpd_table.attach(mpdlabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        mpd_table.attach(ui.label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        mpd_table.attach(mpd_frame, 1, 3, 4, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        mpd_table.attach(ui.label(), 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        mpd_table.attach(autoconnect, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        mpd_table.attach(ui.label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        mpd_table.attach(ui.label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        mpd_table.attach(ui.label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        # Extras tab
-        if not audioscrobbler is not None:
-            self.as_enabled = False
-        as_label = ui.label(markup='<b>' + _('Extras') + '</b>')
-        as_frame = gtk.Frame()
-        as_frame.set_label_widget(as_label)
-        as_frame.set_shadow_type(gtk.SHADOW_NONE)
-        as_frame.set_border_width(15)
-        as_vbox = gtk.VBox()
-        as_vbox.set_border_width(15)
-        as_checkbox = gtk.CheckButton(_("Enable Audioscrobbler"))
-        as_checkbox.set_active(self.as_enabled)
-        as_vbox.pack_start(as_checkbox, False)
-        as_table = gtk.Table(2, 2)
-        as_table.set_col_spacings(3)
-        as_user_label = ui.label(text="          " + _("Username:"))
-        as_pass_label = ui.label(text="          " + _("Password:"))
-        as_user_entry = ui.entry(text=self.as_username, changed_cb=self.prefs_as_username_changed)
-        if len(self.as_password_md5) > 0:
-            as_pass_entry = ui.entry(text='1234', password=True, changed_cb=self.prefs_as_password_changed)
-        else:
-            as_pass_entry = ui.entry(text='', password=True, changed_cb=self.prefs_as_password_changed)
-        display_notification = gtk.CheckButton(_("Popup notification on song changes"))
-        display_notification.set_active(self.show_notification)
-        notifhbox = gtk.HBox()
-        notif_blank = ui.label(x=1)
-        notifhbox.pack_start(notif_blank)
-        list = []
-        for i in self.popuptimes:
-            if i != _('Entire song'):
-                list.append(i + ' ' + gettext.ngettext('second', 'seconds', int(i)))
-            else:
-                list.append(i)
-        notification_options = ui.combo(list=list, active=self.popup_option, changed_cb=self.prefs_notiftime_changed)
-        notification_locs = ui.combo(list=self.popuplocations, active=self.traytips.notifications_location, changed_cb=self.prefs_notiflocation_changed)
-        display_notification.connect('toggled', self.prefs_notif_toggled, notifhbox)
-        notifhbox.pack_start(notification_options, False, False, 2)
-        notifhbox.pack_start(notification_locs, False, False, 2)
-        if not self.show_notification:
-            notifhbox.set_sensitive(False)
-        crossfadecheck = gtk.CheckButton(_("Enable Crossfade"))
-        crossfadespin = gtk.SpinButton()
-        crossfadespin.set_digits(0)
-        crossfadespin.set_range(1, 30)
-        crossfadespin.set_value(self.xfade)
-        crossfadespin.set_numeric(True)
-        crossfadespin.set_increments(1,5)
-        crossfadespin.set_size_request(70,-1)
-        crossfadelabel2 = ui.label(text=_("Fade length") + ":", x=1)
-        crossfadelabel3 = ui.label(text=_("sec"))
-        if not self.xfade_enabled:
-            crossfadespin.set_sensitive(False)
-            crossfadelabel2.set_sensitive(False)
-            crossfadelabel3.set_sensitive(False)
-            crossfadecheck.set_active(False)
-        else:
-            crossfadespin.set_sensitive(True)
-            crossfadelabel2.set_sensitive(True)
-            crossfadelabel3.set_sensitive(True)
-            crossfadecheck.set_active(True)
-        crossfadebox = gtk.HBox()
-        crossfadebox.pack_start(crossfadelabel2)
-        crossfadebox.pack_start(crossfadespin, False, False, 5)
-        crossfadebox.pack_start(crossfadelabel3, False, False, 0)
-        crossfadecheck.connect('toggled', self.prefs_crossfadecheck_toggled, crossfadespin, crossfadelabel2, crossfadelabel3)
-        as_table.attach(as_user_label, 0, 1, 0, 1)
-        as_table.attach(as_user_entry, 1, 2, 0, 1)
-        as_table.attach(as_pass_label, 0, 1, 1, 2)
-        as_table.attach(as_pass_entry, 1, 2, 1, 2)
-        as_table.attach(ui.label(), 0, 2, 2, 3)
-        as_table.attach(display_notification, 0, 2, 3, 4)
-        as_table.attach(notifhbox, 0, 2, 4, 5)
-        as_table.attach(ui.label(), 0, 2, 5, 6)
-        as_table.attach(crossfadecheck, 0, 2, 6, 7)
-        as_table.attach(crossfadebox, 0, 2, 7, 8)
-        as_table.attach(ui.label(), 0, 2, 8, 9)
-        as_vbox.pack_start(as_table, False)
-        as_frame.add(as_vbox)
-        as_checkbox.connect('toggled', self.prefs_as_enabled_toggled, as_user_entry, as_pass_entry, as_user_label, as_pass_label)
-        if not self.as_enabled or audioscrobbler is None:
-            as_user_entry.set_sensitive(False)
-            as_pass_entry.set_sensitive(False)
-            as_user_label.set_sensitive(False)
-            as_pass_label.set_sensitive(False)
-        # Display tab
-        table2 = gtk.Table(7, 2, False)
-        displaylabel = ui.label(markup='<b>' + _('Display') + '</b>', y=1)
-        display_art_hbox = gtk.HBox()
-        display_art = gtk.CheckButton(_("Enable album art"))
-        display_art.set_active(self.show_covers)
-        display_stylized_combo = ui.combo(list=[_("Standard"), _("Stylized")], active=self.covers_type, changed_cb=self.prefs_stylized_toggled)
-        display_stylized_hbox = gtk.HBox()
-        display_stylized_hbox.pack_start(ui.label(text=_("Artwork style:"), x=1))
-        display_stylized_hbox.pack_start(display_stylized_combo, False, False, 5)
-        display_stylized_hbox.set_sensitive(self.show_covers)
-        display_art_combo = ui.combo(list=[_("Local only"), _("Local, then remote")], active=self.covers_pref)
-        orderart_label = ui.label(text=_("Search order:"), x=1)
-        display_art_hbox.pack_start(orderart_label)
-        display_art_hbox.pack_start(display_art_combo, False, False, 5)
-        display_art_hbox.set_sensitive(self.show_covers)
-        display_art_location_hbox = gtk.HBox()
-        display_art_location_hbox.pack_start(ui.label(text=_("Save art to:"), x=1))
-        list = ["~/.covers/"]
-        for item in ["/cover.jpg", "/album.jpg", "/folder.jpg", "/" + _("custom")]:
-            list.append("../" + _("file_path") + item)
-        display_art_location = ui.combo(list=list, active=self.art_location, changed_cb=self.prefs_art_location_changed)
-        display_art_location_hbox.pack_start(display_art_location, False, False, 5)
-        display_art_location_hbox.set_sensitive(self.show_covers)
-        display_art.connect('toggled', self.prefs_art_toggled, display_art_hbox, display_art_location_hbox, display_stylized_hbox)
-        display_playback = gtk.CheckButton(_("Enable playback/volume buttons"))
-        display_playback.set_active(self.show_playback)
-        display_playback.connect('toggled', self.prefs_playback_toggled)
-        display_progress = gtk.CheckButton(_("Enable progressbar"))
-        display_progress.set_active(self.show_progress)
-        display_progress.connect('toggled', self.prefs_progress_toggled)
-        display_statusbar = gtk.CheckButton(_("Enable statusbar"))
-        display_statusbar.set_active(self.show_statusbar)
-        display_statusbar.connect('toggled', self.prefs_statusbar_toggled)
-        display_lyrics = gtk.CheckButton(_("Enable lyrics"))
-        display_lyrics.set_active(self.show_lyrics)
-        display_lyrics_location_hbox = gtk.HBox()
-        savelyrics_label = ui.label(text=_("Save lyrics to:"), x=1)
-        display_lyrics_location_hbox.pack_start(savelyrics_label)
-        display_lyrics_location = ui.combo(list=["~/.lyrics/", "../" + _("file_path") + "/"], active=self.lyrics_location, changed_cb=self.prefs_lyrics_location_changed)
-        display_lyrics_location_hbox.pack_start(display_lyrics_location, False, False, 5)
-        display_lyrics_location_hbox.set_sensitive(self.show_lyrics)
-        display_lyrics.connect('toggled', self.prefs_lyrics_toggled, display_lyrics_location_hbox)
-        display_trayicon = gtk.CheckButton(_("Enable system tray icon"))
-        display_trayicon.set_active(self.show_trayicon)
-        if not HAVE_EGG and not HAVE_STATUS_ICON:
-            display_trayicon.set_sensitive(False)
-        table2.attach(ui.label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(displaylabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(ui.label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(display_playback, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_progress, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_statusbar, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_trayicon, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_lyrics, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_lyrics_location_hbox, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_art, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_stylized_hbox, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_art_hbox, 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_art_location_hbox, 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(ui.label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 75, 0)
-        # Behavior tab
-        table3 = gtk.Table()
-        behaviorlabel = ui.label(markup='<b>' + _('Window Behavior') + '</b>', y=1)
-        win_sticky = gtk.CheckButton(_("Show window on all workspaces"))
-        win_sticky.set_active(self.sticky)
-        win_ontop = gtk.CheckButton(_("Keep window above other windows"))
-        win_ontop.set_active(self.ontop)
-        update_start = gtk.CheckButton(_("Update MPD library on start"))
-        update_start.set_active(self.update_on_start)
-        update_start.set_tooltip_text(_("If enabled, Sonata will automatically update your MPD library when it starts up."))
-        exit_stop = gtk.CheckButton(_("Stop playback on exit"))
-        exit_stop.set_active(self.stop_on_exit)
-        exit_stop.set_tooltip_text(_("MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit."))
-        minimize = gtk.CheckButton(_("Minimize to system tray on close/escape"))
-        minimize.set_active(self.minimize_to_systray)
-        minimize.set_tooltip_text(_("If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."))
-        display_trayicon.connect('toggled', self.prefs_trayicon_toggled, minimize)
-        if HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible():
-            minimize.set_sensitive(True)
-        elif HAVE_EGG and self.trayicon.get_property('visible'):
-            minimize.set_sensitive(True)
-        else:
-            minimize.set_sensitive(False)
-        infofilebox = gtk.HBox()
-        infofile_usage = gtk.CheckButton(_("Write status file:"))
-        infofile_usage.set_active(self.use_infofile)
-        infofile_usage.set_tooltip_text(_("If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)"))
-        infopath_options = ui.entry(text=self.infofile_path)
-        infopath_options.set_tooltip_text(_("If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)"))
-        if not self.use_infofile:
-            infopath_options.set_sensitive(False)
-        infofile_usage.connect('toggled', self.prefs_infofile_toggled, infopath_options)
-        infofilebox.pack_start(infofile_usage, False, False, 0)
-        infofilebox.pack_start(infopath_options, True, True, 5)
-        behaviorlabel2 = ui.label(markup='<b>' + _('Miscellaneous') + '</b>', y=1)
-        table3.attach(ui.label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table3.attach(behaviorlabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table3.attach(ui.label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table3.attach(win_sticky, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(win_ontop, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(minimize, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(ui.label(), 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table3.attach(behaviorlabel2, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table3.attach(ui.label(), 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table3.attach(update_start, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(exit_stop, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(infofilebox, 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(ui.label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(ui.label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(ui.label(), 1, 3, 15, 16, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(ui.label(), 1, 3, 16, 17, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(ui.label(), 1, 3, 17, 18, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(ui.label(), 1, 3, 18, 19, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        # Format tab
-        table4 = gtk.Table(9, 2, False)
-        table4.set_col_spacings(3)
-        formatlabel = ui.label(markup='<b>' + _('Song Formatting') + '</b>', y=1)
-        currentformatbox = gtk.HBox()
-        currentlabel = ui.label(text=_("Current playlist:"))
-        currentoptions = ui.entry(text=self.currentformat)
-        currentformatbox.pack_start(currentlabel, False, False, 0)
-        currentformatbox.pack_start(currentoptions, False, False, 10)
-        libraryformatbox = gtk.HBox()
-        librarylabel = ui.label(text=_("Library:"))
-        libraryoptions = ui.entry(text=self.libraryformat)
-        libraryformatbox.pack_start(librarylabel, False, False, 0)
-        libraryformatbox.pack_start(libraryoptions, False, False, 10)
-        titleformatbox = gtk.HBox()
-        titlelabel = ui.label(text=_("Window title:"))
-        titleoptions = ui.entry(text=self.titleformat)
-        titleoptions.set_text(self.titleformat)
-        titleformatbox.pack_start(titlelabel, False, False, 0)
-        titleformatbox.pack_start(titleoptions, False, False, 10)
-        currsongformatbox1 = gtk.HBox()
-        currsonglabel1 = ui.label(text=_("Current song line 1:"))
-        currsongoptions1 = ui.entry(text=self.currsongformat1)
-        currsongformatbox1.pack_start(currsonglabel1, False, False, 0)
-        currsongformatbox1.pack_start(currsongoptions1, False, False, 10)
-        currsongformatbox2 = gtk.HBox()
-        currsonglabel2 = ui.label(text=_("Current song line 2:"))
-        currsongoptions2 = ui.entry(text=self.currsongformat2)
-        currsongformatbox2.pack_start(currsonglabel2, False, False, 0)
-        currsongformatbox2.pack_start(currsongoptions2, False, False, 10)
-        formatlabels = [currentlabel, librarylabel, titlelabel, currsonglabel1, currsonglabel2]
-        for label in formatlabels:
-            label.set_alignment(0, 0.5)
-        ui.set_widths_equal(formatlabels)
-        availableheading = ui.label(markup='<small>' + _('Available options') + ':</small>', y=0)
-        availablevbox = gtk.VBox()
-        availableformatbox = gtk.HBox()
-        availableformatting = ui.label(markup='<small><span font_family="Monospace">%A</span> - ' + _('Artist name') + '\n<span font_family="Monospace">%B</span> - ' + _('Album name') + '\n<span font_family="Monospace">%T</span> - ' + _('Track name') + '\n<span font_family="Monospace">%N</span> - ' + _('Track number') + '\n<span font_family="Monospace">%D</span> - ' + _('Disc Number') + '\n<span font_family="Monospace">%Y</span> - ' + _('Year') + '</small>', y=0)
-        availableformatting2 = ui.label(markup='<small><span font_family="Monospace">%G</span> - ' + _('Genre') + '\n<span font_family="Monospace">%F</span> - ' + _('File name') + '\n<span font_family="Monospace">%S</span> - ' + _('Stream name') + '\n<span font_family="Monospace">%L</span> - ' + _('Song length') + '\n<span font_family="Monospace">%E</span> - ' + _('Elapsed time (title only)') + '</small>', y=0)
-        availableformatbox.pack_start(availableformatting)
-        availableformatbox.pack_start(availableformatting2)
-        availablevbox.pack_start(availableformatbox, False, False, 0)
-        additionalinfo = ui.label(markup='<small>{ } - ' + _('Info displayed only if all enclosed tags are defined') + '\n' + '| - ' + _('Creates columns in the current playlist') + '</small>', y=0)
-        availablevbox.pack_start(additionalinfo, False, False, 4)
-        table4.attach(ui.label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table4.attach(formatlabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table4.attach(ui.label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table4.attach(currentformatbox, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table4.attach(libraryformatbox, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table4.attach(titleformatbox, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table4.attach(currsongformatbox1, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table4.attach(currsongformatbox2, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table4.attach(ui.label(), 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table4.attach(availableheading, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table4.attach(availablevbox, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 45, 0)
-        table4.attach(ui.label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table_names = [[_("_MPD"), mpd_table],
-                       [_("_Display"), table2],
-                       [_("_Behavior"), table3],
-                       [_("_Format"), table4],
-                       [_("_Extras"), as_frame]]
-        for table_name in table_names:
-            tmplabel = ui.label(textmn=table_name[0])
-            prefsnotebook.append_page(table_name[1], tmplabel)
-        hbox.pack_start(prefsnotebook, False, False, 10)
-        prefswindow.vbox.pack_start(hbox, False, False, 10)
-        close_button = prefswindow.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
-        prefswindow.show_all()
-        close_button.grab_focus()
-        prefswindow.connect('response', self.prefs_window_response, prefsnotebook, exit_stop, win_ontop, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, hostentry, portentry, passwordentry, using_mpd_env_vars)
-        # Save previous connection properties to determine if we should try to
-        # connect to MPD after prefs are closed:
-        self.prev_host = self.host[self.profile_num]
-        self.prev_port = self.port[self.profile_num]
-        self.prev_password = self.password[self.profile_num]
-        response = prefswindow.show()
-
-    def mpd_env_vars(self):
-        host = None
-        port = None
-        password = None
-        if os.environ.has_key('MPD_HOST'):
-            if '@' in os.environ['MPD_HOST']:
-                password, host = os.environ['MPD_HOST'].split('@')
-            else:
-                host = os.environ['MPD_HOST']
-        if os.environ.has_key('MPD_PORT'):
-            port = int(os.environ['MPD_PORT'])
-        return (host, port, password)
+        self.config.traytips_notifications_location = self.traytips.notifications_location
+        trayicon_available = HAVE_EGG or HAVE_STATUS_ICON
+        trayicon_in_use = ((HAVE_STATUS_ICON and self.statusicon.is_embedded() and
+                    self.statusicon.get_visible())
+                   or (HAVE_EGG and self.trayicon.get_property('visible')))
+        self.preferences.on_prefs_real(self.window, self.popuptimes, audioscrobbler is not None, self.scrobbler_import, self.scrobbler_init, self.scrobbler_auth_changed, trayicon_available, trayicon_in_use, self.on_connectkey_pressed, self.on_currsong_notify, self.update_infofile, self.prefs_notif_toggled, self.prefs_stylized_toggled, self.prefs_art_toggled, self.prefs_playback_toggled, self.prefs_progress_toggled, self.prefs_statusbar_toggled, self.prefs_lyrics_toggled, self.prefs_trayicon_toggled, self.prefs_window_response)
 
     def scrobbler_init(self):
         if audioscrobbler is not None and self.as_enabled and len(self.as_username) > 0 and len(self.as_password_md5) > 0:
@@ -6241,17 +5500,6 @@ class Base:
         if self.scrob_post:
             self.scrobbler_retrieve_cache()
 
-    def prefs_as_enabled_toggled(self, checkbox, userentry, passentry, userlabel, passlabel):
-        if checkbox.get_active():
-            self.scrobbler_import(True)
-        if audioscrobbler is not None:
-            self.as_enabled = checkbox.get_active()
-            self.scrobbler_init()
-            for widget in [userlabel, passlabel, userentry, passentry]:
-                widget.set_sensitive(self.as_enabled)
-        elif checkbox.get_active():
-            checkbox.set_active(False)
-
     def scrobbler_import(self, show_error=False):
         # We need to try to import audioscrobbler either when the app starts (if
         # as_enabled=True) or if the user enables it in prefs.
@@ -6259,21 +5507,13 @@ class Base:
         if audioscrobbler is None:
             import audioscrobbler
 
-    def prefs_as_username_changed(self, entry):
-        if audioscrobbler is not None:
-            self.as_username = entry.get_text()
-            if self.scrob_post:
-                if self.scrob_post.authenticated:
-                    self.scrob_post = None
+    def scrobbler_auth_changed(self):
+        if self.scrob_post:
+            if self.scrob_post.authenticated:
+                self.scrob_post = None
 
-    def prefs_as_password_changed(self, entry):
-        if audioscrobbler is not None:
-            self.as_password_md5 = hashlib.md5(entry.get_text()).hexdigest()
-            if self.scrob_post:
-                if self.scrob_post.authenticated:
-                    self.scrob_post = None
-
-    def prefs_window_response(self, window, response, prefsnotebook, exit_stop, win_ontop, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, hostentry, portentry, passwordentry, using_mpd_env_vars):
+    # XXX move the prefs handling parts of prefs_* to preferences.py
+    def prefs_window_response(self, window, response, prefsnotebook, exit_stop, win_ontop, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, hostentry, portentry, passwordentry, using_mpd_env_vars, prev_host, prev_port, prev_password):
         if response == gtk.RESPONSE_CLOSE:
             self.stop_on_exit = exit_stop.get_active()
             self.ontop = win_ontop.get_active()
@@ -6334,7 +5574,7 @@ class Base:
                 self.infofile_path = os.path.expanduser(infopath_options.get_text())
                 if self.use_infofile: self.update_infofile()
             if not using_mpd_env_vars:
-                if self.prev_host != self.host[self.profile_num] or self.prev_port != self.port[self.profile_num] or self.prev_password != self.password[self.profile_num]:
+                if prev_host != self.host[self.profile_num] or prev_port != self.port[self.profile_num] or prev_password != self.password[self.profile_num]:
                     # Try to connect if mpd connection info has been updated:
                     ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
                     self.mpd_connect(force=True)
@@ -6344,91 +5584,6 @@ class Base:
             self.populate_profiles_for_menu()
             ui.change_cursor(None)
         window.destroy()
-
-    def prefs_nameentry_changed(self, entry, profile_combo, remove_profiles):
-        if not self.updating_nameentry:
-            prefs_profile_num = profile_combo.get_active()
-            self.profile_names[prefs_profile_num] = entry.get_text()
-            self.prefs_populate_profile_combo(profile_combo, prefs_profile_num, remove_profiles)
-
-    def prefs_hostentry_changed(self, entry, profile_combo):
-        prefs_profile_num = profile_combo.get_active()
-        self.host[prefs_profile_num] = entry.get_text()
-
-    def prefs_portentry_changed(self, entry, profile_combo):
-        prefs_profile_num = profile_combo.get_active()
-        try:
-            self.port[prefs_profile_num] = int(entry.get_text())
-        except:
-            pass
-
-    def prefs_passwordentry_changed(self, entry, profile_combo):
-        prefs_profile_num = profile_combo.get_active()
-        self.password[prefs_profile_num] = entry.get_text()
-
-    def prefs_direntry_changed(self, entry, profile_combo):
-        prefs_profile_num = profile_combo.get_active()
-        self.musicdir[prefs_profile_num] = self.sanitize_musicdir(entry.get_text())
-
-    def sanitize_musicdir(self, mdir):
-        mdir = os.path.expanduser(mdir)
-        if len(mdir) > 0:
-            if mdir[-1] != "/":
-                mdir = mdir + "/"
-        return mdir
-
-    def prefs_add_profile(self, button, nameentry, profile_combo, remove_profiles):
-        self.updating_nameentry = True
-        prefs_profile_num = profile_combo.get_active()
-        self.profile_names.append(_("New Profile"))
-        nameentry.set_text(self.profile_names[len(self.profile_names)-1])
-        self.updating_nameentry = False
-        self.host.append(self.host[prefs_profile_num])
-        self.port.append(self.port[prefs_profile_num])
-        self.password.append(self.password[prefs_profile_num])
-        self.musicdir.append(self.musicdir[prefs_profile_num])
-        self.prefs_populate_profile_combo(profile_combo, len(self.profile_names)-1, remove_profiles)
-
-    def prefs_remove_profile(self, button, profile_combo, remove_profiles):
-        prefs_profile_num = profile_combo.get_active()
-        if prefs_profile_num == self.profile_num:
-            # Profile deleted, revert to first profile:
-            self.profile_num = 0
-            self.on_connectkey_pressed(None)
-        self.profile_names.pop(prefs_profile_num)
-        self.host.pop(prefs_profile_num)
-        self.port.pop(prefs_profile_num)
-        self.password.pop(prefs_profile_num)
-        self.musicdir.pop(prefs_profile_num)
-        if prefs_profile_num > 0:
-            self.prefs_populate_profile_combo(profile_combo, prefs_profile_num-1, remove_profiles)
-        else:
-            self.prefs_populate_profile_combo(profile_combo, 0, remove_profiles)
-
-    def prefs_profile_chosen(self, profile_combo, nameentry, hostentry, portentry, passwordentry, direntry):
-        prefs_profile_num = profile_combo.get_active()
-        self.updating_nameentry = True
-        nameentry.set_text(str(self.profile_names[prefs_profile_num]))
-        self.updating_nameentry = False
-        hostentry.set_text(str(self.host[prefs_profile_num]))
-        portentry.set_text(str(self.port[prefs_profile_num]))
-        passwordentry.set_text(str(self.password[prefs_profile_num]))
-        direntry.set_text(str(self.musicdir[prefs_profile_num]))
-
-    def prefs_populate_profile_combo(self, profile_combo, active_index, remove_profiles):
-        new_model = gtk.ListStore(str)
-        new_model.clear()
-        profile_combo.set_model(new_model)
-        for i in range(len(self.profile_names)):
-            if len(self.profile_names[i]) > 15:
-                profile_combo.append_text("[" + str(i+1) + "] " + self.profile_names[i][:15] + "...")
-            else:
-                profile_combo.append_text("[" + str(i+1) + "] " + self.profile_names[i])
-        profile_combo.set_active(active_index)
-        if len(self.profile_names) == 1:
-            remove_profiles.set_sensitive(False)
-        else:
-            remove_profiles.set_sensitive(True)
 
     def prefs_playback_toggled(self, button):
         if button.get_active():
@@ -6482,29 +5637,6 @@ class Base:
         self.covers_type = button.get_active()
         self.artwork_update(True)
 
-    def prefs_lyrics_location_changed(self, combobox):
-        self.lyrics_location = combobox.get_active()
-
-    def prefs_art_location_changed(self, combobox):
-        if combobox.get_active() == self.ART_LOCATION_CUSTOM:
-            # Prompt user for playlist name:
-            dialog = ui.dialog(title=_("Custom Artwork"), parent=self.window, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_OK, gtk.RESPONSE_ACCEPT), role='customArtwork', default=gtk.RESPONSE_ACCEPT)
-            hbox = gtk.HBox()
-            hbox.pack_start(ui.label(text=_('Artwork filename') + ':'), False, False, 5)
-            entry = ui.entry()
-            entry.set_activates_default(True)
-            hbox.pack_start(entry, True, True, 5)
-            dialog.vbox.pack_start(hbox)
-            dialog.vbox.show_all()
-            response = dialog.run()
-            if response == gtk.RESPONSE_ACCEPT:
-                self.art_location_custom_filename = entry.get_text().replace("/", "")
-            else:
-                # Revert to non-custom item in combobox:
-                combobox.set_active(self.art_location)
-            dialog.destroy()
-        self.art_location = combobox.get_active()
-
     def prefs_lyrics_toggled(self, button, lyrics_hbox):
         if button.get_active():
             lyrics_hbox.set_sensitive(True)
@@ -6542,11 +5674,6 @@ class Base:
                 pass
             self.traytips.hide()
 
-    def prefs_crossfadecheck_toggled(self, button, combobox, label1, label2):
-        button_active = button.get_active()
-        for widget in [combobox, label1, label2]:
-            widget.set_sensitive(button_active)
-
     def prefs_trayicon_toggled(self, button, minimize):
         # Note that we update the sensitivity of the minimize
         # CheckButton to reflect if the trayicon is visible.
@@ -6567,23 +5694,6 @@ class Base:
                 self.statusicon.set_visible(False)
             elif HAVE_EGG:
                 self.trayicon.hide_all()
-
-    def prefs_notiflocation_changed(self, combobox):
-        self.traytips.notifications_location = combobox.get_active()
-        self.on_currsong_notify()
-
-    def prefs_notiftime_changed(self, combobox):
-        self.popup_option = combobox.get_active()
-        self.on_currsong_notify()
-
-    def prefs_infofile_toggled(self, button, infofileformatbox):
-        if button.get_active():
-            infofileformatbox.set_sensitive(True)
-            self.use_infofile = True
-            self.update_infofile()
-        else:
-            infofileformatbox.set_sensitive(False)
-            self.use_infofile = False
 
     def seek(self, song, seektime):
         mpdh.call(self.client, 'seek', song, seektime)
