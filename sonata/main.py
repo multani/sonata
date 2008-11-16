@@ -238,6 +238,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.TAB_STREAMS = _("Streams")
         self.TAB_INFO = _("Info")
         self.NOTAG = _("Untagged")
+
         # If the connection to MPD times out, this will cause the interface to freeze while
         # the socket.connect() calls are repeatedly executed. Therefore, if we were not
         # able to make a connection, slow down the iteration check to once every 15 seconds.
@@ -431,6 +432,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             ('filesystemview', gtk.STOCK_HARDDISK, _('Filesystem'), None, None, self.on_libraryview_chosen),
             ('artistview', 'artist', _('Artist'), None, None, self.on_libraryview_chosen),
             ('genreview', gtk.STOCK_ORIENTATION_PORTRAIT, _('Genre'), None, None, self.on_libraryview_chosen),
+            ('albumview', 'album', _('Album'), None, None, self.on_libraryview_chosen),
             ('chooseimage_menu', gtk.STOCK_CONVERT, _('Use _Remote Image...'), None, None, self.image_remote),
             ('localimage_menu', gtk.STOCK_OPEN, _('Use _Local Image...'), None, None, self.image_local),
             ('fullscreencoverart_menu', gtk.STOCK_FULLSCREEN, _('_Fullscreen Mode'), 'F11', None, self.fullscreen_cover_art),
@@ -1068,11 +1070,11 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.library_selection.set_mode(gtk.SELECTION_MULTIPLE)
 
         # Assign some pixbufs for use in self.library
-        self.openpb = self.library.render_icon(gtk.STOCK_OPEN, gtk.ICON_SIZE_MENU)
-        self.harddiskpb = self.library.render_icon(gtk.STOCK_HARDDISK, gtk.ICON_SIZE_MENU)
+        self.openpb = self.library.render_icon(gtk.STOCK_OPEN, gtk.ICON_SIZE_LARGE_TOOLBAR)
+        self.harddiskpb = self.library.render_icon(gtk.STOCK_HARDDISK, gtk.ICON_SIZE_LARGE_TOOLBAR)
         self.albumpb = gtk.gdk.pixbuf_new_from_file_at_size(self.find_path('sonata-album.png'), self.LIB_COVER_SIZE, self.LIB_COVER_SIZE)
-        self.genrepb = self.library.render_icon('gtk-orientation-portrait', gtk.ICON_SIZE_MENU)
-        self.artistpb = self.library.render_icon('artist', gtk.ICON_SIZE_MENU)
+        self.genrepb = self.library.render_icon('gtk-orientation-portrait', gtk.ICON_SIZE_LARGE_TOOLBAR)
+        self.artistpb = self.library.render_icon('artist', gtk.ICON_SIZE_LARGE_TOOLBAR)
         self.sonatapb = self.library.render_icon('sonata', gtk.ICON_SIZE_MENU)
         self.casepb = gtk.gdk.pixbuf_new_from_file(self.find_path('sonata-case.png'))
 
@@ -1992,6 +1994,8 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.lib_view = self.VIEW_ARTIST
         elif action.get_name() == 'genreview':
             self.lib_view = self.VIEW_GENRE
+        elif action.get_name() == 'albumview':
+            self.lib_view = self.VIEW_ALBUM
         self.library.grab_focus()
         self.library_view_assign_image()
         # Go to highest level for artist/genre views:
@@ -1999,6 +2003,8 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.lib_level = self.LIB_LEVEL_ARTIST
         elif self.lib_view == self.VIEW_GENRE:
             self.lib_level = self.LIB_LEVEL_GENRE
+        elif self.lib_view == self.VIEW_ALBUM:
+            self.lib_level = self.LIB_LEVEL_ALBUM
         self.libraryposition = {}
         self.libraryselectedpath = {}
         try:
@@ -2016,6 +2022,8 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.libraryview.set_image(ui.image(stock='artist'))
         elif self.lib_view == self.VIEW_GENRE:
             self.libraryview.set_image(ui.image(stock='gtk-orientation-portrait'))
+        elif self.lib_view == self.VIEW_ALBUM:
+            self.libraryview.set_image(ui.image(stock='album'))
 
     def library_browse_verify(self, root):
         # Handle special cases, such as if the path has disappeared.
@@ -2137,14 +2145,26 @@ class Base(object, consts.Constants, preferences.Preferences):
                 elif item.has_key('file'):
                     bd += [('f' + mpdh.get(item, 'file').lower(), [self.sonatapb, mpdh.get(item, 'file'), self.parse_formatting(self.libraryformat, item, True)])]
             bd.sort(key=misc.first_of_2tuple)
-        elif self.lib_view == self.VIEW_ARTIST or self.lib_view == self.VIEW_GENRE:
+        elif self.lib_view == self.VIEW_ALBUM and self.lib_level == self.LIB_LEVEL_ALBUM:
+            self.lib_genre = ''
+            self.lib_artist = ''
+            self.lib_album = ''
+            # List all albums
+            albums, artists, dirs = self.return_albums()
+            for i in range(len(albums)):
+                bd += [(misc.lower_no_the(albums[i]), [self.albumpb, albums[i], misc.escape_html(albums[i] + " - " + artists[i])])]
+            bd.sort(key=misc.first_of_2tuple)
+        elif self.lib_view != self.VIEW_FILESYSTEM:
             if self.lib_level == self.LIB_LEVEL_GENRE:
                 self.lib_genre = ''
                 self.lib_artist = ''
                 self.lib_album = ''
                 untagged_tag = False
                 for genre in self.return_genres():
-                    bd += [(misc.lower_no_the(genre), [self.genrepb, genre, misc.escape_html(genre)])]
+                    playtime, num_songs = self.return_count('genre', genre)
+                    display = misc.escape_html(genre)
+                    display += self.add_display_info(num_songs, playtime)
+                    bd += [(misc.lower_no_the(genre), [self.genrepb, genre, display])]
                     if genre.lower() == self.NOTAG.lower():
                         untagged_tag = True
                 # Add Untagged item if it's not already there:
@@ -2160,7 +2180,13 @@ class Base(object, consts.Constants, preferences.Preferences):
                 self.lib_genre = self.wd
                 untagged_tag = False
                 for artist in self.return_artists():
-                    bd += [(misc.lower_no_the(artist), [self.artistpb, artist, misc.escape_html(artist)])]
+                    if self.lib_view == self.VIEW_GENRE:
+                        playtime, num_songs = self.return_count('genre', self.lib_genre, 'artist', artist)
+                    else:
+                        playtime, num_songs = self.return_count('artist', artist)
+                    display = misc.escape_html(artist)
+                    display += self.add_display_info(num_songs, playtime)
+                    bd += [(misc.lower_no_the(artist), [self.artistpb, artist, display])]
                     if artist.lower() == self.NOTAG.lower():
                         untagged_tag = True
                 if self.lib_view == self.VIEW_ARTIST:
@@ -2189,10 +2215,15 @@ class Base(object, consts.Constants, preferences.Preferences):
                 (albums, years, artists, dirs) = misc.remove_list_duplicates(albums, years, artists, dirs, False)
                 for i in range(len(albums)):
                     coverfile = self.library_get_album_cover(dirs[i], artists[i], albums[i])
-                    if years[i] == '9999':
-                        bd += [('d' + years[i] + misc.lower_no_the(albums[i]), [coverfile, years[i] + albums[i], misc.escape_html(albums[i])])]
+                    if self.lib_view == self.VIEW_GENRE:
+                        playtime, num_songs = self.return_count('genre', self.lib_genre, 'artist', artists[i], 'album', albums[i])
                     else:
-                        bd += [('d' + years[i] + misc.lower_no_the(albums[i]), [coverfile, years[i] + albums[i], misc.escape_html(years[i] + ' - ' + albums[i])])]
+                        playtime, num_songs = self.return_count('artist', artists[i], 'album', albums[i])
+                    display = misc.escape_html(albums[i])
+                    if years[i] != '9999':
+                        display += ' (' + years[i] + ")"
+                    display += self.add_display_info(num_songs, playtime)
+                    bd += [('d' + years[i] + misc.lower_no_the(albums[i]), [coverfile, years[i] + albums[i], display])]
                 for song in songs:
                     try:
                         bd += [('f' + misc.lower_no_the(mpdh.get(song, 'title')), [self.sonatapb, mpdh.get(song, 'file'), self.parse_formatting(self.libraryformat, song, True)])]
@@ -2221,6 +2252,9 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.library_retain_selection(prev_selection, prev_selection_root, prev_selection_parent)
 
         self.lib_level_prev = self.lib_level
+
+    def add_display_info(self, num_songs, playtime):
+        return "\n<small><span weight='light'>" + str(num_songs) + " " + _("tracks") + ", " + str(playtime) + " " + _("minutes") + "</span></small>"
 
     def library_get_album_cover(self, dir, artist, album):
         tmp, coverfile = self.artwork_get_local_image(dir, artist, album)
@@ -2271,6 +2305,23 @@ class Base(object, consts.Constants, preferences.Preferences):
                     elif mpdh.get(item, 'genre') == self.NOTAG:
                         list.append(item)
         return list
+
+    def return_albums(self):
+        # Returns a tuple of all albums in alphabetical order along with their
+        # respective artists
+        albums = []
+        artists = []
+        dirs = []
+        for item in mpdh.call(self.client, 'listallinfo', '/'):
+            if item.has_key('file') and item.has_key('album'):
+                albums.append(mpdh.get(item, 'album'))
+                if item.has_key('artist'):
+                    artists.append(mpdh.get(item, 'artist'))
+                else:
+                    artists.append("")
+                dirs.append(os.path.dirname(mpdh.get(item, 'file')))
+        (albums, artists, dirs, tmp3) = misc.remove_list_duplicates(albums, artists, dirs, case=False)
+        return (albums, artists, dirs)
 
     def return_artists(self, use_genre_if_genre_view=True):
         # Returns all artists in alphabetical order
@@ -2326,6 +2377,13 @@ class Base(object, consts.Constants, preferences.Preferences):
                             list.append(item)
         list.sort(key=lambda x: int(mpdh.getnum(x, 'disc', '0', False, 2) + mpdh.getnum(x, 'track', '0', False, 2)))
         return list
+
+    def return_count(self, *args):
+        album_count = mpdh.call(self.client, 'count', *args)
+        playtime = mpdh.get(album_count, 'playtime')
+        playtime = int(playtime)/60
+        songs = int(mpdh.get(album_count, 'songs'))
+        return (playtime, songs)
 
     def return_artist_items(self, artist, use_genre_if_genre_view=True):
         # Return albums/songs of the specified artist. Sorts by year

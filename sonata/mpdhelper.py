@@ -6,10 +6,7 @@ import string, locale, sys
 from time import strftime
 
 def status(client):
-    try:
-        status = client.status()
-    except:
-        return None
+    status = call(client, 'status')
     try:
         test = status['state']
     except:
@@ -17,10 +14,7 @@ def status(client):
     return status
 
 def currsong(client):
-    try:
-        return client.currentsong()
-    except:
-        return None
+    return call(client, 'currentsong')
 
 def get(dict, type, alt=''):
     # Returns either the value in the dict or, currently, the
@@ -61,15 +55,13 @@ def conout(s):
     # does a "readable" conversion
     print s.encode(locale.getpreferredencoding(), "replace")
 
-def call(mpdclient, *args):
-    # Note: first argument in *args should be the mpd command.
-    # Additional items are the arguments to the command.
-    mpd_cmd = args[0]
-    mpd_args = args[1:]
+def call(mpdclient, mpd_cmd, *mpd_args):
+    mpd_args = list(mpd_args)
     try:
         retval = getattr(mpdclient, mpd_cmd)(*mpd_args)
-        return retval
     except:
         if not mpd_cmd in ['disconnect', 'lsinfo', 'listplaylists']:
             print strftime("%Y-%m-%d %H:%M:%S") + "  " + str(sys.exc_info()[1])
         return None
+
+    return retval

@@ -90,7 +90,7 @@ def link_markup(s, enclose_in_parentheses, small, linkcolor):
     return s
 
 def remove_list_duplicates(inputlist, inputlist2=[], inputlist3=[], inputlist4=[], case=True):
-    # If inputlist2 is provided, keep it synced with inputlist.
+    # If inputlist2, etc, is provided, keep them synced with inputlist.
     # Note that this is only implemented if case=False.
     # Also note that we do this manually instead of using list(set(x))
     # so that the inputlist order is preserved.

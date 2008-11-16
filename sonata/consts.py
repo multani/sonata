@@ -6,6 +6,7 @@ class Constants:
         self.VIEW_FILESYSTEM = 0
         self.VIEW_ARTIST = 1
         self.VIEW_GENRE = 2
+        self.VIEW_ALBUM = 3
         self.LYRIC_TIMEOUT = 10
         self.NOTIFICATION_WIDTH_MAX = 500
         self.NOTIFICATION_WIDTH_MIN = 350
@@ -20,7 +21,7 @@ class Constants:
         self.ART_LOCATIONS_MISC = ['front.jpg', '.folder.jpg', '.folder.png', 'AlbumArt.jpg', 'AlbumArtSmall.jpg']
         self.LYRICS_LOCATION_HOME = 0			# ~/.lyrics/[artist]-[song].txt
         self.LYRICS_LOCATION_PATH = 1			# file_dir/[artist]-[song].txt
-        self.LIB_COVER_SIZE = 16
+        self.LIB_COVER_SIZE = 32
         self.COVERS_TYPE_STANDARD = 0
         self.COVERS_TYPE_STYLIZED = 1
         self.LIB_LEVEL_GENRE = 0
