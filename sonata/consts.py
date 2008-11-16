@@ -28,5 +28,6 @@ class Constants:
         self.LIB_LEVEL_ARTIST = 1
         self.LIB_LEVEL_ALBUM = 2
         self.LIB_LEVEL_SONG = 3
+        self.NUM_ARTISTS_FOR_VA = 3
 
 consts = Constants()

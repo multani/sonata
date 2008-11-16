@@ -1,4 +1,5 @@
 v1.6
+	+ Album mode, additional details when browsing library
 	+ Real-time searching of library (search as you type)
 	+ Fullscreen artwork covers mode (via right-click on artwork) (mips)
 	+ Show file path in tooltip for library search results
