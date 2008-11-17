@@ -2347,7 +2347,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         return bd
 
     def add_display_info(self, num_songs, playtime):
-        return "\n<small><span weight='light'>" + str(num_songs) + " " + _("tracks") + ", " + str(playtime) + " " + _("minutes") + "</span></small>"
+        return "\n<small><span weight='light'>" + str(num_songs) + " " + gettext.ngettext('song', 'songs', num_songs) + ", " + str(playtime) + " " + gettext.ngettext('minute', 'minutes', playtime) + "</span></small>"
 
     def library_get_album_cover(self, dir, artist, album):
         tmp, coverfile = self.artwork_get_local_image(dir, artist, album)

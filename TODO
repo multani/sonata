@@ -1,9 +1,10 @@
 v1.6
-	threaded method for artwork for lib modes (can also fetch new covers?)
-	better VA support for album mode; check for album years
-	# albums for various lib modes (in addition to or instead of existing info?)
-	untagged artists/genres in various modes..
-	merge library_browse_albums_songs with library_browse_artist_album_songs
+	lib modes
+		- threaded method for artwork (also fetch new covers?)
+		- album mode: factor years, dirs into logic
+		- # albums for various lib modes (in addition to or instead of existing info?)
+		- untagged artists/genres in various modes..
+		- merge library_browse_albums_songs with library_browse_artist_album_songs
 	replace remove_list_duplicates...
 	support for new idle command (waiting on python-mpd)
 	work with mpd's new "allow authenticated local users to add any local file to the playlist"
