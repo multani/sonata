@@ -1,6 +1,8 @@
 v1.6
 	threaded method for artwork for lib modes
 	better VA support for album mode
+	# albums for various lib modes (in addition to or instead of existing info?)
+	untagged artists/genres in various modes..
 	replace remove_list_duplicates...
 	support for new idle command (waiting on python-mpd)
 	work with mpd's new "allow authenticated local users to add any local file to the playlist"
