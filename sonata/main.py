@@ -2166,7 +2166,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             elif self.lib_level == self.LIB_LEVEL_ARTIST:
                 bd = self.library_browse_artists()
             elif self.lib_level == self.LIB_LEVEL_ALBUM:
-                bd = self.library_browse_artist_albums()
+                bd = self.library_browse_albums()
             else:
                 bd = self.library_browse_artist_album_songs()
         for sort, list in bd:
@@ -2201,29 +2201,6 @@ class Base(object, consts.Constants, preferences.Preferences):
             bd.sort(key=misc.first_of_2tuple)
             if self.wd == '/':
                 self.lib_view_filesystem_cache = bd
-        return bd
-
-    def library_browse_albums(self):
-        # List all albums
-        bd = []
-        self.lib_genre = ''
-        self.lib_artist = ''
-        self.lib_album = ''
-        if self.lib_view_album_cache is not None:
-            # Use cache if possible...
-            bd = self.lib_view_album_cache
-        else:
-            albums, artists, dirs = self.return_albums()
-            for i in range(len(albums)):
-                # NEEDTODO: This is way too slow, lets write something that adds
-                # artwork to an existing treeview on the fly in another thread
-                #coverfile = self.library_get_album_cover(dirs[i], artists[i], albums[i])
-                playtime, num_songs = self.return_count('album', albums[i])
-                display = misc.escape_html(albums[i]) + " <span weight='light'>(" + misc.escape_html(artists[i]) + ")</span>"
-                display += self.add_display_info(num_songs, playtime)
-                bd += [(misc.lower_no_the(albums[i]), [self.albumpb, albums[i], display])]
-            bd.sort(key=misc.first_of_2tuple)
-            self.lib_view_album_cache = bd
         return bd
 
     def library_browse_albums_songs(self):
@@ -2303,10 +2280,11 @@ class Base(object, consts.Constants, preferences.Preferences):
                 self.lib_view_artist_cache = bd
         return bd
 
-    def library_browse_artist_albums(self):
+    def library_browse_albums(self):
         # List albums for artist (within genre if self.VIEW_GENRE)
         bd = []
-        bd += self.library_browse_add_parent_rows()
+        if self.lib_view != self.VIEW_ALBUM:
+            bd += self.library_browse_add_parent_rows()
         if self.wd != "..":
             self.lib_artist = self.wd
         albums = []
@@ -2314,32 +2292,52 @@ class Base(object, consts.Constants, preferences.Preferences):
         years = []
         dirs = []
         artists = []
-        for item in self.return_artist_items(self.lib_artist):
-            if item.has_key('album'):
-                albums.append(mpdh.get(item, 'album'))
-                years.append(mpdh.get(item, 'date', '9999').split('-')[0].zfill(4))
-                artists.append(mpdh.get(item, 'artist'))
-            else:
-                songs.append(item)
-            dirs.append(os.path.dirname(mpdh.get(item, 'file')))
-        (albums, years, artists, dirs) = misc.remove_list_duplicates(albums, years, artists, dirs, False)
+        if self.lib_view == self.VIEW_ALBUM:
+            if self.lib_view_album_cache is not None:
+                return self.lib_view_album_cache
+            albums, artists, dirs, years = self.return_albums()
+        else:
+            for item in self.return_artist_items(self.lib_artist):
+                if item.has_key('album'):
+                    albums.append(mpdh.get(item, 'album'))
+                    years.append(mpdh.get(item, 'date', '9999').split('-')[0].zfill(4))
+                    artists.append(mpdh.get(item, 'artist'))
+                else:
+                    songs.append(item)
+                dirs.append(os.path.dirname(mpdh.get(item, 'file')))
+            (albums, years, artists, dirs) = misc.remove_list_duplicates(albums, years, artists, dirs, False)
         for i in range(len(albums)):
-            coverfile = self.library_get_album_cover(dirs[i], artists[i], albums[i])
+            if self.lib_view == self.VIEW_ALBUM:
+                ## NEEDTODO: This is way too slow, lets write something that adds
+                ## artwork to an existing treeview on the fly in another thread
+                coverfile = self.albumpb
+            else:
+                coverfile = self.library_get_album_cover(dirs[i], artists[i], albums[i])
             if self.lib_view == self.VIEW_GENRE:
                 playtime, num_songs = self.return_count('genre', self.lib_genre, 'artist', artists[i], 'album', albums[i])
             else:
                 playtime, num_songs = self.return_count('artist', artists[i], 'album', albums[i])
             display = misc.escape_html(albums[i])
-            if years[i] != '9999':
-                display += " <span weight='light'>(" + years[i] + ")</span>"
+            if self.lib_view == self.VIEW_ALBUM:
+                if len(artists[i]) > 0:
+                    display += " <span weight='light'>(" + misc.escape_html(artists[i]) + ")</span>"
+            else:
+                if years[i] != '9999':
+                    display += " <span weight='light'>(" + years[i] + ")</span>"
             display += self.add_display_info(num_songs, playtime)
-            bd += [('d' + years[i] + misc.lower_no_the(albums[i]), [coverfile, years[i] + albums[i], display])]
+            if self.lib_view == self.VIEW_ALBUM:
+                # Sort alphabetically:
+                bd += [(misc.lower_no_the(albums[i]), [coverfile, albums[i], display])]
+            else:
+                bd += [('d' + years[i] + misc.lower_no_the(albums[i]), [coverfile, years[i] + albums[i], display])]
         for song in songs:
             try:
                 bd += [('f' + misc.lower_no_the(mpdh.get(song, 'title')), [self.sonatapb, mpdh.get(song, 'file'), self.parse_formatting(self.libraryformat, song, True)])]
             except:
                 bd += [('f' + mpdh.get(song, 'file').lower(), [self.sonatapb, mpdh.get(song, 'file'), self.parse_formatting(self.libraryformat, song, True)])]
         bd.sort(key=misc.first_of_2tuple)
+        if self.lib_view == self.VIEW_ALBUM:
+            self.lib_view_album_cache = bd
         return bd
 
     def library_browse_add_parent_rows(self):
@@ -2402,10 +2400,11 @@ class Base(object, consts.Constants, preferences.Preferences):
 
     def return_albums(self):
         # Returns a tuple of all albums in alphabetical order along with their
-        # respective artists
+        # respective artists, dirs, and years
         albums = []
         artists = []
         dirs = []
+        years = []
         for item in mpdh.call(self.client, 'listallinfo', '/'):
             if item.has_key('file') and item.has_key('album'):
                 album = mpdh.get(item, 'album')
@@ -2416,12 +2415,14 @@ class Base(object, consts.Constants, preferences.Preferences):
                     else:
                         artists.append("")
                     dirs.append(os.path.dirname(mpdh.get(item, 'file')))
-        (albums, artists, dirs, tmp3) = misc.remove_list_duplicates(albums, artists, dirs, case=False)
+                    years.append(mpdh.get(item, 'date', '9999').split('-')[0].zfill(4))
+        (albums, artists, dirs, years) = misc.remove_list_duplicates(albums, artists, dirs, years, case=False)
         # If an album has >= self.NUM_ARTISTS_FOR_VA artists, set just
         # one album with Various Artists. Otherwise show multiple albums
         # since it's certainly possible that multiple artists can have the
         # same album name.
         # NEEDTODO: Improve by using dirs too, similar to self.album_return_artist_name()
+        # NEEDTODO: Use years too
         for i in range(len(albums)-1):
             if i + self.NUM_ARTISTS_FOR_VA > len(albums)-1:
                 break
@@ -2439,9 +2440,10 @@ class Base(object, consts.Constants, preferences.Preferences):
                         albums.pop(i+j)
                         artists.pop(i+j)
                         dirs.pop(i+j)
+                        years.pop(i+j)
                     else:
                         break
-        return (albums, artists, dirs)
+        return (albums, artists, dirs, years)
 
     def return_artists(self, use_genre_if_genre_view=True):
         # Returns all artists in alphabetical order
@@ -3193,59 +3195,35 @@ class Base(object, consts.Constants, preferences.Preferences):
             if return_root and not self.library_search_visible() and ((self.wd == "/" and len(selected) == len(model)) or (self.wd != "/" and len(selected) >= len(model)-2)):
                 # Everything selected, this is faster..
                 items.append(self.wd)
-            else:
-                for path in selected:
-                    while gtk.events_pending():
-                        gtk.main_iteration()
-                    if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
-                        if model.get_value(model.get_iter(path), 0) == self.openpb:
-                            if return_root and not self.library_search_visible():
-                                items.append(model.get_value(model.get_iter(path), 1))
-                            else:
-                                for item in mpdh.call(self.client, 'listall', model.get_value(model.get_iter(path), 1)):
-                                    if item.has_key('file'):
-                                        items.append(mpdh.get(item, 'file'))
-                        else:
-                            items.append(model.get_value(model.get_iter(path), 1))
-        elif self.lib_view == self.VIEW_ALBUM:
-            for path in selected:
-                while gtk.events_pending():
-                    gtk.main_iteration()
-                if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
-                    if self.lib_level == self.LIB_LEVEL_ALBUM:
-                        for item in self.return_album_items(model.get_value(model.get_iter(path), 1)):
-                            items.append(mpdh.get(item, 'file'))
+                # Make sure we don't have any EXACT duplicates:
+                (items, tmp, tmp2, tmp3) = misc.remove_list_duplicates(items, case=True)
+                return items
+        for path in selected:
+            while gtk.events_pending():
+                gtk.main_iteration()
+            if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
+                if model.get_value(model.get_iter(path), 0) == self.openpb:
+                    if return_root and not self.library_search_visible():
+                        items.append(model.get_value(model.get_iter(path), 1))
                     else:
-                        if model.get_value(model.get_iter(path), 0) != self.sonatapb:
-                            (album, year) = self.library_album_year_from_path(model.get_value(model.get_iter(path), 1))
-                            for item in self.return_album_items_with_artist_and_year(self.lib_artist, album, year):
+                        for item in mpdh.call(self.client, 'listall', model.get_value(model.get_iter(path), 1)):
+                            if item.has_key('file'):
                                 items.append(mpdh.get(item, 'file'))
-                        else:
-                            items.append(model.get_value(model.get_iter(path), 1))
-        elif self.lib_view == self.VIEW_ARTIST or (self.VIEW_GENRE and self.lib_level > self.LIB_LEVEL_GENRE):
-            # lib_level > self.LIB_LEVEL_GENRE in genre view is equivalent to one of the
-            # artist view levels:
-            for path in selected:
-                while gtk.events_pending():
-                    gtk.main_iteration()
-                if model.get_value(model.get_iter(path), 2) != "/" and model.get_value(model.get_iter(path), 2) != "..":
-                    if self.lib_level == self.LIB_LEVEL_ARTIST:
-                        for item in self.return_artist_items(model.get_value(model.get_iter(path), 1)):
-                            items.append(mpdh.get(item, 'file'))
-                    else:
-                        if model.get_value(model.get_iter(path), 0) != self.sonatapb:
-                            (album, year) = self.library_album_year_from_path(model.get_value(model.get_iter(path), 1))
-                            for item in self.return_album_items_with_artist_and_year(self.lib_artist, album, year):
-                                items.append(mpdh.get(item, 'file'))
-                        else:
-                            items.append(model.get_value(model.get_iter(path), 1))
-        elif self.lib_view == self.VIEW_GENRE:
-            for path in selected:
-                while gtk.events_pending():
-                    gtk.main_iteration()
-                genre = model.get_value(model.get_iter(path), 1)
-                for item in self.return_genre_items(genre):
-                    items.append(mpdh.get(item, 'file'))
+                elif self.lib_view == self.VIEW_ALBUM and self.lib_level == self.LIB_LEVEL_ALBUM:
+                    for item in self.return_album_items(model.get_value(model.get_iter(path), 1)):
+                        items.append(mpdh.get(item, 'file'))
+                elif (self.lib_view == self.VIEW_ARTIST or self.lib_view == self.VIEW_GENRE) and self.lib_level == self.LIB_LEVEL_ARTIST:
+                    for item in self.return_artist_items(model.get_value(model.get_iter(path), 1)):
+                        items.append(mpdh.get(item, 'file'))
+                elif (self.lib_view == self.VIEW_ARTIST or self.lib_view == self.VIEW_GENRE) and self.lib_level == self.LIB_LEVEL_ALBUM:
+                    (album, year) = self.library_album_year_from_path(model.get_value(model.get_iter(path), 1))
+                    for item in self.return_album_items_with_artist_and_year(self.lib_artist, album, year):
+                        items.append(mpdh.get(item, 'file'))
+                elif self.lib_view == self.VIEW_GENRE and self.lib_level == self.LIB_LEVEL_GENRE:
+                    for item in self.return_genre_items(model.get_value(model.get_iter(path), 1)):
+                        items.append(mpdh.get(item, 'file'))
+                else:
+                    items.append(model.get_value(model.get_iter(path), 1))
         # Make sure we don't have any EXACT duplicates:
         (items, tmp, tmp2, tmp3) = misc.remove_list_duplicates(items, case=True)
         return items
