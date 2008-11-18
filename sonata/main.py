@@ -2315,6 +2315,8 @@ class Base(object, consts.Constants, preferences.Preferences):
                 coverfile = self.library_get_album_cover(dirs[i], artists[i], albums[i])
             if self.lib_view == self.VIEW_GENRE:
                 playtime, num_songs = self.return_count('genre', self.lib_genre, 'artist', artists[i], 'album', albums[i])
+            elif artists[i] == _("Various Artists"):
+                playtime, num_songs = self.return_count('album', albums[i])
             else:
                 playtime, num_songs = self.return_count('artist', artists[i], 'album', albums[i])
             display = misc.escape_html(albums[i])
@@ -3729,12 +3731,15 @@ class Base(object, consts.Constants, preferences.Preferences):
                         hours_text = gettext.ngettext('hour', 'hours', int(hours))
                     # Show text:
                     songs_text = gettext.ngettext('song', 'songs', int(self.status['playlistlength']))
-                    if days:
-                        status_text = str(self.status['playlistlength']) + ' ' + songs_text + '   ' + days + ' ' + days_text + ', ' + hours + ' ' + hours_text + ', ' + _('and') + ' ' + mins + ' ' + mins_text
-                    elif hours:
-                        status_text = str(self.status['playlistlength']) + ' ' + songs_text + '   ' + hours + ' ' + hours_text + ' ' + _('and') + ' ' + mins + ' ' + mins_text
-                    elif mins:
-                        status_text = str(self.status['playlistlength']) + ' ' + songs_text + '   ' + mins + ' ' + mins_text
+                    if int(self.status['playlistlength']) > 0:
+                        if days:
+                            status_text = str(self.status['playlistlength']) + ' ' + songs_text + '   ' + days + ' ' + days_text + ', ' + hours + ' ' + hours_text + ', ' + _('and') + ' ' + mins + ' ' + mins_text
+                        elif hours:
+                            status_text = str(self.status['playlistlength']) + ' ' + songs_text + '   ' + hours + ' ' + hours_text + ' ' + _('and') + ' ' + mins + ' ' + mins_text
+                        elif mins:
+                            status_text = str(self.status['playlistlength']) + ' ' + songs_text + '   ' + mins + ' ' + mins_text
+                        else:
+                            status_text = ""
                     else:
                         status_text = ""
                     if updatingdb:
