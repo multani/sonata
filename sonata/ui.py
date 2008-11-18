@@ -206,6 +206,9 @@ def show_msg(owner, message, title, role, buttons, default=None, response_cb=Non
     dialog.destroy()
     return value
 
+def dialog_destroy(dialog, response_id):
+    dialog.destroy()
+
 def show(widget):
     widget.set_no_show_all(False)
     widget.show_all()
