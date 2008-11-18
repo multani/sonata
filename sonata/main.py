@@ -1748,9 +1748,6 @@ class Base(object, consts.Constants, preferences.Preferences):
     def settings_load(self):
         self.config.settings_load_real()
 
-        if not skip_gui and self.config.traytips_notifications_location is not None:
-            self.traytips.notifications_location = self.config.traytips_notifications_location
-
     def settings_save(self):
         self.header_save_column_widths()
 
@@ -1759,8 +1756,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.config.playlists_tab_pos = self.notebook_get_tab_num(self.notebook, self.TAB_PLAYLISTS)
         self.config.streams_tab_pos = self.notebook_get_tab_num(self.notebook, self.TAB_STREAMS)
         self.config.info_tab_pos = self.notebook_get_tab_num(self.notebook, self.TAB_INFO)
-
-        self.config.traytips_notifications_location = self.traytips.notifications_location
 
         self.config.settings_save_real()
 
@@ -4307,7 +4302,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         if self.fullscreencoverart.get_property('visible'):
             return
         if self.sonata_loaded:
-            self.traytips.notifications_location = self.traytips_notifications_location
             if self.conn and self.status and self.status['state'] in ['play', 'pause']:
                 if self.show_covers:
                     self.traytips.set_size_request(self.notification_width, -1)
@@ -4322,6 +4316,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                     pass
                 if self.conn and self.status and self.status['state'] in ['play', 'pause']:
                     try:
+                        self.traytips.notifications_location = self.traytips_notifications_location
                         self.traytips.use_notifications_location = True
                         if HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible():
                             self.traytips._real_display(self.statusicon)
@@ -5649,7 +5644,6 @@ class Base(object, consts.Constants, preferences.Preferences):
                 mpdh.call(self.client, 'random', 0)
 
     def on_prefs(self, widget):
-        self.config.traytips_notifications_location = self.traytips.notifications_location
         trayicon_available = HAVE_EGG or HAVE_STATUS_ICON
         trayicon_in_use = ((HAVE_STATUS_ICON and self.statusicon.is_embedded() and
                     self.statusicon.get_visible())

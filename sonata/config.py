@@ -101,8 +101,8 @@ class Config:
 
         self.existing_playlist_option = 0
 
-        # this mirrors Main.traytips.notifications_location
-        self.traytips_notifications_location = None
+        self.traytips_notifications_location = 0
+
     def settings_load_real(self):
         # Load config
         conf = ConfigParser.ConfigParser()
