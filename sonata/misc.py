@@ -269,3 +269,10 @@ def _get_files_recursively(filenames, dir, files):
     def f1(a,dir=dir): return os.path.join(dir,a)
     files2 = map(f1, files)
     filenames.extend(files2)
+
+def iunique(iterable):
+    seen = set()
+    for i in iterable:
+        if i not in seen:
+            seen.add(i)
+            yield i

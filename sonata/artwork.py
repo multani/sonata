@@ -1,15 +1,18 @@
 
 import os
 import threading # artwork_update starts a thread _artwork_update
-
 import urllib, urllib2
-
-ElementTree = None # imported when first needed
+from xml.etree import ElementTree
 
 import gtk, gobject
 
 import img, ui, misc, mpdhelper as mpdh
+from misc import iunique
 from consts import consts
+
+AMAZON_KEY = "12DR2PGAQT303YTEWP02"
+AMAZON_NS = "{http://webservices.amazon.com/AWSECommerceService/2005-10-05}"
+AMAZON_URI = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=%s&Operation=ItemSearch&SearchIndex=Music&Artist=%s&ResponseGroup=Images"
 
 class Artwork(object):
     def __init__(self, config, is_lang_rtl, sonatacd, sonatacd_large, sonatacase, library_browse_update, info_imagebox_get_size_request, schedule_gc_collect, target_image_filename, imagelist_append, remotefilelist_append, notebook_get_allocation, allow_art_search, status_is_play_or_pause):
@@ -72,7 +75,7 @@ class Artwork(object):
     def update_songinfo(self, songinfo):
         self.songinfo = songinfo
 
-    def on_reset_image(self, action):
+    def on_reset_image(self, _action):
         if self.songinfo:
             if self.songinfo.has_key('name'):
                 # Stream, remove file:
@@ -82,8 +85,8 @@ class Artwork(object):
                 misc.remove_file(self.target_image_filename(consts.ART_LOCATION_HOMECOVERS))
                 # Use blank cover as the artwork
                 dest_filename = self.target_image_filename(consts.ART_LOCATION_HOMECOVERS)
-                f = open(dest_filename, 'w')
-                f.close()
+                emptyfile = open(dest_filename, 'w')
+                emptyfile.close()
             self.artwork_update(True)
 
     def artwork_set_tooltip_art(self, pix):
@@ -151,12 +154,12 @@ class Artwork(object):
         self.artwork_set_default_icon()
         self.misc_img_in_dir = None
         self.single_img_in_dir = None
-        type, filename = self.artwork_get_local_image()
+        location_type, filename = self.artwork_get_local_image()
 
-        if type is not None and filename:
-            if type == consts.ART_LOCATION_MISC:
+        if location_type is not None and filename:
+            if location_type == consts.ART_LOCATION_MISC:
                 self.misc_img_in_dir = filename
-            elif type == consts.ART_LOCATION_SINGLE:
+            elif location_type == consts.ART_LOCATION_SINGLE:
                 self.single_img_in_dir = filename
             gobject.idle_add(self.artwork_set_image, filename)
             return True
@@ -179,26 +182,26 @@ class Artwork(object):
             return self.config.art_location, testfile
 
         # Now try all local possibilities...
-        testfile = self.target_image_filename(consts.ART_LOCATION_HOMECOVERS, songpath, artist, album)
-        if os.path.exists(testfile):
-            return consts.ART_LOCATION_HOMECOVERS, testfile
-        testfile = self.target_image_filename(consts.ART_LOCATION_COVER, songpath, artist, album)
-        if os.path.exists(testfile):
-            return consts.ART_LOCATION_COVER, testfile
-        testfile = self.target_image_filename(consts.ART_LOCATION_ALBUM, songpath, artist, album)
-        if os.path.exists(testfile):
-            return consts.ART_LOCATION_ALBUM, testfile
-        testfile = self.target_image_filename(consts.ART_LOCATION_FOLDER, songpath, artist, album)
-        if os.path.exists(testfile):
-            return consts.ART_LOCATION_FOLDER, testfile
+        simplelocations = [consts.ART_LOCATION_HOMECOVERS,
+                   consts.ART_LOCATION_COVER,
+                   consts.ART_LOCATION_ALBUM,
+                   consts.ART_LOCATION_FOLDER]
+        for location in simplelocations:
+            testfile = self.target_image_filename(location, songpath, artist, album)
+            if os.path.exists(testfile):
+                return location, testfile
+
         testfile = self.target_image_filename(consts.ART_LOCATION_CUSTOM, songpath, artist, album)
         if self.config.art_location == consts.ART_LOCATION_CUSTOM and len(self.config.art_location_custom_filename) > 0 and os.path.exists(testfile):
             return consts.ART_LOCATION_CUSTOM, testfile
+
         if self.artwork_get_misc_img_in_path(songpath):
             return consts.ART_LOCATION_MISC, self.artwork_get_misc_img_in_path(songpath)
+
         testfile = img.single_image_in_dir(self.config.musicdir[self.config.profile_num] + songpath)
         if testfile is not None:
             return consts.ART_LOCATION_SINGLE, testfile
+
         return None, None
 
     def artwork_check_for_remote(self, artist, album, filename):
@@ -220,8 +223,8 @@ class Artwork(object):
     def artwork_get_misc_img_in_path(self, songdir):
         path = misc.file_from_utf8(self.config.musicdir[self.config.profile_num] + songdir)
         if os.path.exists(path):
-            for f in consts.ART_LOCATIONS_MISC:
-                filename = path + "/" + f
+            for name in consts.ART_LOCATIONS_MISC:
+                filename = path + "/" + name
                 if os.path.exists(filename):
                     return filename
         return False
@@ -269,7 +272,7 @@ class Artwork(object):
                     # bad file and should be removed.
                     if os.stat(filename).st_size != 0:
                         misc.remove_file(filename)
-                    pass
+
                 self.schedule_gc_collect()
 
     def artwork_set_image_last(self, info_img_only=False):
@@ -304,66 +307,51 @@ class Artwork(object):
                     return True
             else:
                 # Normal song:
-                if filename == self.target_image_filename(consts.ART_LOCATION_HOMECOVERS):
-                    return True
-                if filename == self.target_image_filename(consts.ART_LOCATION_COVER):
-                    return True
-                if filename == self.target_image_filename(consts.ART_LOCATION_ALBUM):
-                    return True
-                if filename == self.target_image_filename(consts.ART_LOCATION_FOLDER):
-                    return True
-                if filename == self.target_image_filename(consts.ART_LOCATION_CUSTOM):
-                    return True
-                if self.misc_img_in_dir and filename == self.misc_img_in_dir:
-                    return True
-                if self.single_img_in_dir and filename == self.single_img_in_dir:
+                if (filename in [self.target_image_filename(consts.ART_LOCATION_HOMECOVERS),
+                         self.target_image_filename(consts.ART_LOCATION_COVER),
+                         self.target_image_filename(consts.ART_LOCATION_ALBUM),
+                         self.target_image_filename(consts.ART_LOCATION_FOLDER),
+                         self.target_image_filename(consts.ART_LOCATION_CUSTOM)] or
+                    (self.misc_img_in_dir and filename == self.misc_img_in_dir) or
+                    (self.single_img_in_dir and filename == self.single_img_in_dir)):
                     return True
         # If we got this far, no match:
         return False
 
     def artwork_download_img_to_file(self, artist, album, dest_filename, all_images=False):
-        global ElementTree
-        if ElementTree is None:
-            from xml.etree import ElementTree
         # Returns False if no images found
-        if len(artist) == 0 and len(album) == 0:
+        if not artist and not album:
             self.downloading_image = False
             return False
         self.downloading_image = True
         # Amazon currently doesn't support utf8 and suggests latin1 encoding instead:
-        try:
-            artist = urllib.quote(artist.encode('latin1'))
-            album = urllib.quote(album.encode('latin1'))
-        except:
-            artist = urllib.quote(artist)
-            album = urllib.quote(album)
-        amazon_key = "12DR2PGAQT303YTEWP02"
-        prefix = "{http://webservices.amazon.com/AWSECommerceService/2005-10-05}"
-        urls = []
-        # Try searching urls from most specific (artist, title) to least (artist only)
-        urls.append("http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images&Title=" + album)
-        urls.append("http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images&Keywords=" + album)
-        urls.append("http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images")
-        for i, url in enumerate(urls):
+        artist = urllib.quote(artist.encode('latin1', 'replace'))
+        album = urllib.quote(album.encode('latin1', 'replace'))
+
+        # Try searching urls from most specific (artist, title) to least specific (artist only)
+        urls = [AMAZON_URI % (AMAZON_KEY, artist) + "&Title=" + album,
+            AMAZON_URI % (AMAZON_KEY, artist) + "&Keywords=" + album,
+            AMAZON_URI % (AMAZON_KEY, artist)]
+
+        for url in urls:
             request = urllib2.Request(url)
             opener = urllib2.build_opener()
             try:
-                f = opener.open(request).read()
-                xml = ElementTree.fromstring(f)
-                largeimgs = xml.getiterator(prefix + "LargeImage")
+                body = opener.open(request).read()
+                xml = ElementTree.fromstring(body)
+                largeimgs = xml.getiterator(AMAZON_NS + "LargeImage")
             except:
                 largeimgs = None
-                pass
-            if largeimgs and len(largeimgs) > 0:
+
+            if largeimgs:
                 break
-            elif i == len(urls)-1:
+            elif url == urls[-1]:
                 self.downloading_image = False
                 return False
-        imglist = []
-        for largeimg in largeimgs:
-            for url in largeimg.getiterator(prefix + "URL"):
-                if not url.text in imglist:
-                    imglist.append(url.text)
+
+        imgs = iunique(url.text for img in largeimgs for url in img.getiterator(AMAZON_NS + "URL"))
+        imglist = list(imgs)
+
         if not all_images:
             urllib.urlretrieve(imglist[0], dest_filename)
             self.downloading_image = False

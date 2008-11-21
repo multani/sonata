@@ -3980,11 +3980,8 @@ class Base(object, consts.Constants, preferences.Preferences):
             except:
                 pass
 
-
-# FIXME
-
     def set_allow_art_search(self):
-        allow_art_search = True
+        self.allow_art_search = True
 
     def status_is_play_or_pause(self):
         return self.conn and self.status and self.status['state'] in ['play', 'pause']
