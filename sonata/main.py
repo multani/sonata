@@ -37,7 +37,7 @@ import mpdhelper as mpdh
 from socket import getdefaulttimeout as socketgettimeout
 from socket import setdefaulttimeout as socketsettimeout
 
-import consts, config, preferences, tagedit
+import consts, config, preferences, tagedit, artwork
 
 ElementTree = None
 ServiceProxy = None
@@ -213,7 +213,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.save_timeout = None
         self.seekidle = None
         self.statusicon = None
-        self.stop_art_update = None
         self.trayeventbox = None
         self.trayicon = None
         self.trayimage = None
@@ -315,7 +314,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.prevconn = []
         self.prevstatus = None
         self.prevsonginfo = None
-        self.lastalbumart = None
 
         self.lyricServer = None
 
@@ -326,14 +324,11 @@ class Base(object, consts.Constants, preferences.Preferences):
 
         self.user_connect = False
 
-        self.downloading_image = False
         self.search_terms = [_('Artist'), _('Title'), _('Album'), _('Genre'), _('Filename'), _('Everything')]
         self.search_terms_mpd = ['artist', 'title', 'album', 'genre', 'file', 'any']
 
         self.sonata_loaded = False
         self.call_gc_collect = False
-        self.single_img_in_dir = None
-        self.misc_img_in_dir = None
         self.total_time = 0
         self.prev_boldrow = -1
 
@@ -423,6 +418,35 @@ class Base(object, consts.Constants, preferences.Preferences):
                 # Fallback to Sonata-included icons:
                 ui.icon(self.iconfactory, iconname, self.find_path('sonata-'+iconname+'.png'))
 
+        # Main window
+        if window is None:
+            self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+            self.window_owner = True
+        else:
+            self.window = window
+            self.window_owner = False
+
+        if self.window_owner:
+            self.window.set_title('Sonata')
+            self.window.set_role('mainWindow')
+            self.window.set_resizable(True)
+            if self.ontop:
+                self.window.set_keep_above(True)
+            if self.sticky:
+                self.window.stick()
+
+        self.notebook = gtk.Notebook()
+
+        # Artwork
+        if self.info_art_enlarged:
+            self.info_imagebox = ui.eventbox()
+        else:
+            self.info_imagebox = ui.eventbox(w=152)
+
+        self.sonatacd = self.find_path('sonatacd.png')
+        self.sonatacd_large = self.find_path('sonatacd_large.png')
+        self.artwork = artwork.Artwork(self.config, misc.is_lang_rtl(self.window), self.sonatacd, self.sonatacd_large, self.find_path('sonata-case.png'), self.library_browse_update, self.info_imagebox.get_size_request, self.schedule_gc_collect, self.target_image_filename, self.imagelist_append, self.remotefilelist_append, self.notebook.get_allocation, self.set_allow_art_search, self.status_is_play_or_pause)
+
         # Popup menus:
         actions = (
             ('sortmenu', None, _('_Sort List')),
@@ -436,7 +460,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             ('chooseimage_menu', gtk.STOCK_CONVERT, _('Use _Remote Image...'), None, None, self.image_remote),
             ('localimage_menu', gtk.STOCK_OPEN, _('Use _Local Image...'), None, None, self.image_local),
             ('fullscreencoverart_menu', gtk.STOCK_FULLSCREEN, _('_Fullscreen Mode'), 'F11', None, self.fullscreen_cover_art),
-            ('resetimage_menu', gtk.STOCK_CLEAR, _('Reset Image'), None, None, self.on_reset_image),
+            ('resetimage_menu', gtk.STOCK_CLEAR, _('Reset Image'), None, None, self.artwork.on_reset_image),
             ('playmenu', gtk.STOCK_MEDIA_PLAY, _('_Play'), None, None, self.mpd_pp),
             ('pausemenu', gtk.STOCK_MEDIA_PAUSE, _('_Pause'), None, None, self.mpd_pp),
             ('stopmenu', gtk.STOCK_MEDIA_STOP, _('_Stop'), None, None, self.mpd_stop),
@@ -608,6 +632,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.status = mpdh.status(self.client)
             self.iterate_time = self.iterate_time_when_connected
             self.songinfo = mpdh.currsong(self.client)
+            self.artwork.update_songinfo(self.songinfo)
         elif self.initial_run:
             show_prefs = True
 
@@ -615,26 +640,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.scrobbler_import()
         self.scrobbler_init()
 
-        # Images...
-        self.sonatacd = self.find_path('sonatacd.png')
-        self.sonatacd_large = self.find_path('sonatacd_large.png')
-
         # Main app:
-        if window is None:
-            self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-            self.window_owner = True
-        else:
-            self.window = window
-            self.window_owner = False
-
-        if self.window_owner:
-            self.window.set_title('Sonata')
-            self.window.set_role('mainWindow')
-            self.window.set_resizable(True)
-            if self.ontop:
-                self.window.set_keep_above(True)
-            if self.sticky:
-                self.window.stick()
         self.UIManager = gtk.UIManager()
         actionGroup = gtk.ActionGroup('Actions')
         actionGroup.add_actions(actions)
@@ -653,7 +659,9 @@ class Base(object, consts.Constants, preferences.Preferences):
         mainhbox = gtk.HBox()
         mainvbox = gtk.VBox()
         tophbox = gtk.HBox()
-        self.albumimage = ui.image()
+
+        self.albumimage = self.artwork.get_albumimage()
+
         self.imageeventbox = ui.eventbox(add=self.albumimage)
         self.imageeventbox.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT | gtk.DEST_DEFAULT_DROP, [("text/uri-list", 0, 80), ("text/plain", 0, 80)], gtk.gdk.ACTION_DEFAULT)
         if not self.show_covers:
@@ -696,7 +704,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         topvbox.pack_start(self.expander, False, False, 2)
         tophbox.pack_start(topvbox, True, True, 3)
         mainvbox.pack_start(tophbox, False, False, 5)
-        self.notebook = gtk.Notebook()
         self.notebook.set_tab_pos(gtk.POS_TOP)
         self.notebook.set_scrollable(True)
         # Current tab
@@ -841,12 +848,13 @@ class Base(object, consts.Constants, preferences.Preferences):
         # Song notification window:
         outtertipbox = gtk.VBox()
         tipbox = gtk.HBox()
-        self.trayalbumimage1 = ui.image(w=51, h=77, x=1)
-        self.trayalbumeventbox = ui.eventbox(w=59, h=90, add=self.trayalbumimage1, state=gtk.STATE_SELECTED, visible=True)
+
+        self.trayalbumeventbox, self.trayalbumimage2 = self.artwork.get_trayalbum()
+
         hiddenlbl = ui.label(w=2, h=-1)
         tipbox.pack_start(hiddenlbl, False, False, 0)
         tipbox.pack_start(self.trayalbumeventbox, False, False, 0)
-        self.trayalbumimage2 = ui.image(w=26, h=77)
+
         tipbox.pack_start(self.trayalbumimage2, False, False, 0)
         if not self.show_covers:
             ui.hide(self.trayalbumeventbox)
@@ -907,7 +915,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.fullscreencoverart.add_accel_group(self.UIManager.get_accel_group())
         fscavbox = gtk.VBox()
         fscahbox = gtk.HBox()
-        self.fullscreenalbumimage = ui.image(w=self.FULLSCREEN_COVER_SIZE, h=self.FULLSCREEN_COVER_SIZE, x=1)
+        self.fullscreenalbumimage = self.artwork.get_fullscreenalbumimage()
         fscahbox.pack_start(self.fullscreenalbumimage, True, False, 0)
         fscavbox.pack_start(fscahbox, True, False, 0)
         if not self.show_covers:
@@ -1003,12 +1011,6 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.keys.connect("mm_playpause", self.mpd_pp)
             self.keys.connect("mm_stop", self.mpd_stop)
 
-        # Put blank cd to albumimage widget by default
-        self.albumimage.set_from_file(self.sonatacd)
-
-        # Default image for the fullscreen cover art mode
-        self.fullscreen_cover_art_set_image(self.sonatacd_large)
-
         # Set up current view
         self.current_initialize_columns()
         self.current_selection.set_mode(gtk.SELECTION_MULTIPLE)
@@ -1077,7 +1079,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.genrepb = self.library.render_icon('gtk-orientation-portrait', gtk.ICON_SIZE_LARGE_TOOLBAR)
         self.artistpb = self.library.render_icon('artist', gtk.ICON_SIZE_LARGE_TOOLBAR)
         self.sonatapb = self.library.render_icon('sonata', gtk.ICON_SIZE_MENU)
-        self.casepb = gtk.gdk.pixbuf_new_from_file(self.find_path('sonata-case.png'))
 
         if self.window_owner:
             icon = self.window.render_icon('sonata', gtk.ICON_SIZE_DIALOG)
@@ -1199,11 +1200,11 @@ class Base(object, consts.Constants, preferences.Preferences):
         info_song = ui.expander(markup="<b>" + _("Song Info") + "</b>", expand=self.info_song_expanded, focus=False)
         info_song.connect("activate", self.info_expanded, "song")
         inner_hbox = gtk.HBox()
-        self.info_image = ui.image(y=0)
-        if self.info_art_enlarged:
-            self.info_imagebox = ui.eventbox(add=self.info_image)
-        else:
-            self.info_imagebox = ui.eventbox(add=self.info_image, w=152)
+
+        self.info_image = self.artwork.get_info_image()
+
+        self.info_imagebox.add(self.info_image)
+
         self.info_imagebox.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT | gtk.DEST_DEFAULT_DROP, [("text/uri-list", 0, 80), ("text/plain", 0, 80)], gtk.gdk.ACTION_DEFAULT)
         self.info_imagebox.connect('button_press_event', self.on_image_activate)
         self.info_imagebox.connect('drag_motion', self.on_image_motion_cb)
@@ -1387,6 +1388,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         if self.conn:
             self.status = mpdh.status(self.client)
             self.songinfo = mpdh.currsong(self.client)
+            self.artwork.update_songinfo(self.songinfo)
             if type == "play":
                 mpdh.call(self.client, 'play')
             elif type == "pause":
@@ -1574,6 +1576,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         if not self.conn:
             self.status = None
             self.songinfo = None
+            self.artwork.update_songinfo(self.songinfo)
             self.iterate_time = self.iterate_time_when_disconnected_or_stopped
         self.trying_connection = False
 
@@ -1623,6 +1626,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                     if self.status['state'] == 'stop':
                         self.iterate_time = self.iterate_time_when_disconnected_or_stopped
                     self.songinfo = mpdh.currsong(self.client)
+                    self.artwork.update_songinfo(self.songinfo)
                     if not self.last_repeat or self.last_repeat != self.status['repeat']:
                         self.repeatmenu.set_active(self.status['repeat'] == '1')
                     if not self.last_random or self.last_random != self.status['random']:
@@ -1644,6 +1648,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.conn = False
         self.status = None
         self.songinfo = None
+        self.artwork.update_songinfo(self.songinfo)
 
     def iterate(self):
         self.update_status()
@@ -1682,6 +1687,9 @@ class Base(object, consts.Constants, preferences.Preferences):
         if self.call_gc_collect:
             gc.collect()
             self.call_gc_collect = False
+
+    def schedule_gc_collect(self):
+        self.call_gc_collect = True
 
     def iterate_stop(self):
         try:
@@ -2085,6 +2093,15 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.lib_view_genre_cache = None
         self.lib_view_album_cache = None
 
+    def library_browse_update(self):
+        # Artwork for albums in the library tab
+        if not self.library_search_visible():
+            if self.lib_level == self.LIB_LEVEL_ALBUM:
+                if self.lib_view == self.VIEW_ARTIST or self.lib_view == self.VIEW_GENRE:
+                    if self.songinfo and self.songinfo.has_key('artist'):
+                        if self.wd == mpdh.get(self.songinfo, 'artist'):
+                            self.library_browse(root=self.wd)
+
     def library_browse(self, widget=None, root='/'):
         # Populates the library list with entries starting at root
         if not self.conn:
@@ -2345,13 +2362,13 @@ class Base(object, consts.Constants, preferences.Preferences):
         return "\n<small><span weight='light'>" + str(num_songs) + " " + gettext.ngettext('song', 'songs', num_songs) + ", " + str(playtime) + " " + gettext.ngettext('minute', 'minutes', playtime) + "</span></small>"
 
     def library_get_album_cover(self, dir, artist, album):
-        tmp, coverfile = self.artwork_get_local_image(dir, artist, album)
+        tmp, coverfile = self.artwork.artwork_get_local_image(dir, artist, album)
         if coverfile:
             try:
                 coverfile = gtk.gdk.pixbuf_new_from_file_at_size(coverfile, self.LIB_COVER_SIZE, self.LIB_COVER_SIZE)
                 w = coverfile.get_width()
                 h = coverfile.get_height()
-                coverfile = self.artwork_apply_composite_case(coverfile, w, h)
+                coverfile = self.artwork.artwork_apply_composite_case(coverfile, w, h)
             except:
                 # Delete bad image:
                 misc.remove_file(coverfile)
@@ -3386,7 +3403,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.update_progressbar()
             self.update_cursong()
             self.update_wintitle()
-            self.artwork_update()
+            self.artwork.artwork_update()
             self.update_statusbar()
             if not self.conn:
                 self.librarydata.clear()
@@ -3451,7 +3468,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                     self.eggtrayfile = self.find_path('sonata_play.png')
                     self.trayimage.set_from_pixbuf(img.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
 
-            self.artwork_update()
+            self.artwork.artwork_update()
             if self.status['state'] in ['play', 'pause']:
                 self.current_center_song_in_list()
 
@@ -3555,7 +3572,7 @@ class Base(object, consts.Constants, preferences.Preferences):
 
         self.update_cursong()
         self.update_wintitle()
-        self.artwork_update()
+        self.artwork.artwork_update()
         self.info_update(True)
 
     def scrobbler_prepare(self):
@@ -3963,329 +3980,14 @@ class Base(object, consts.Constants, preferences.Preferences):
             except:
                 pass
 
-    def on_reset_image(self, action):
-        if self.songinfo:
-            if self.songinfo.has_key('name'):
-                # Stream, remove file:
-                misc.remove_file(self.artwork_stream_filename(mpdh.get(self.songinfo, 'name')))
-            else:
-                # Normal song:
-                misc.remove_file(self.target_image_filename(self.ART_LOCATION_HOMECOVERS))
-                # Use blank cover as the artwork
-                dest_filename = self.target_image_filename(self.ART_LOCATION_HOMECOVERS)
-                f = open(dest_filename, 'w')
-                f.close()
-            self.artwork_update(True)
 
-    def artwork_set_tooltip_art(self, pix):
-        # Set artwork
-        if not misc.is_lang_rtl(self.window):
-            pix1 = pix.subpixbuf(0, 0, 51, 77)
-            pix2 = pix.subpixbuf(51, 0, 26, 77)
-        else:
-            pix1 = pix.subpixbuf(26, 0, 51, 77)
-            pix2 = pix.subpixbuf(0, 0, 26, 77)
-        self.trayalbumimage1.set_from_pixbuf(pix1)
-        self.trayalbumimage2.set_from_pixbuf(pix2)
-        del pix1
-        del pix2
+# FIXME
 
-    def artwork_update(self, force=False):
-        if force:
-            self.lastalbumart = None
-        self.stop_art_update = True
-        thread = threading.Thread(target=self._artwork_update)
-        thread.setDaemon(True)
-        thread.start()
+    def set_allow_art_search(self):
+        allow_art_search = True
 
-    def _artwork_update(self):
-        self.stop_art_update = False
-        if not self.show_covers:
-            return
-        if not self.songinfo:
-            self.artwork_set_default_icon()
-            return
-        if self.conn and self.status and self.status['state'] in ['play', 'pause']:
-            if self.songinfo.has_key('name'):
-                # Stream
-                streamfile = self.artwork_stream_filename(mpdh.get(self.songinfo, 'name'))
-                if os.path.exists(streamfile):
-                    gobject.idle_add(self.artwork_set_image, streamfile)
-                else:
-                    self.artwork_set_default_icon()
-                    return
-            else:
-                # Normal song:
-                artist = mpdh.get(self.songinfo, 'artist', "")
-                album = mpdh.get(self.songinfo, 'album', "")
-                if len(artist) == 0 and len(album) == 0:
-                    self.artwork_set_default_icon()
-                    return
-                filename = self.target_image_filename()
-                if filename == self.lastalbumart:
-                    # No need to update..
-                    self.stop_art_update = False
-                    return
-                self.lastalbumart = None
-                imgfound = self.artwork_check_for_local()
-                if not imgfound:
-                    if self.covers_pref == self.ART_LOCAL_REMOTE:
-                        imgfound = self.artwork_check_for_remote(artist, album, filename)
-        else:
-            self.artwork_set_default_icon()
-
-    def artwork_stream_filename(self, streamname):
-        return os.path.expanduser('~/.covers/') + streamname.replace("/", "") + ".jpg"
-
-    def artwork_check_for_local(self):
-        self.artwork_set_default_icon()
-        self.misc_img_in_dir = None
-        self.single_img_in_dir = None
-        type, filename = self.artwork_get_local_image()
-
-        if type is not None and filename:
-            if type == self.ART_LOCATION_MISC:
-                self.misc_img_in_dir = filename
-            elif type == self.ART_LOCATION_SINGLE:
-                self.single_img_in_dir = filename
-            gobject.idle_add(self.artwork_set_image, filename)
-            return True
-
-        return False
-
-    def artwork_get_local_image(self, songpath=None, artist=None, album=None):
-        # Returns a tuple (location_type, filename) or (None, None).
-        # Only pass a songpath, artist, and album if we don't want
-        # to use info from the currently playing song.
-
-        if songpath is None:
-            songpath = os.path.dirname(mpdh.get(self.songinfo, 'file'))
-
-        # Give precedence to images defined by the user's current
-        # self.art_location (in case they have multiple valid images
-        # that can be used for cover art).
-        testfile = self.target_image_filename(None, songpath, artist, album)
-        if os.path.exists(testfile):
-            return self.art_location, testfile
-
-        # Now try all local possibilities...
-        testfile = self.target_image_filename(self.ART_LOCATION_HOMECOVERS, songpath, artist, album)
-        if os.path.exists(testfile):
-            return self.ART_LOCATION_HOMECOVERS, testfile
-        testfile = self.target_image_filename(self.ART_LOCATION_COVER, songpath, artist, album)
-        if os.path.exists(testfile):
-            return self.ART_LOCATION_COVER, testfile
-        testfile = self.target_image_filename(self.ART_LOCATION_ALBUM, songpath, artist, album)
-        if os.path.exists(testfile):
-            return self.ART_LOCATION_ALBUM, testfile
-        testfile = self.target_image_filename(self.ART_LOCATION_FOLDER, songpath, artist, album)
-        if os.path.exists(testfile):
-            return self.ART_LOCATION_FOLDER, testfile
-        testfile = self.target_image_filename(self.ART_LOCATION_CUSTOM, songpath, artist, album)
-        if self.art_location == self.ART_LOCATION_CUSTOM and len(self.art_location_custom_filename) > 0 and os.path.exists(testfile):
-            return self.ART_LOCATION_CUSTOM, testfile
-        if self.artwork_get_misc_img_in_path(songpath):
-            return self.ART_LOCATION_MISC, self.artwork_get_misc_img_in_path(songpath)
-        testfile = img.single_image_in_dir(self.musicdir[self.profile_num] + songpath)
-        if testfile is not None:
-            return self.ART_LOCATION_SINGLE, testfile
-        return None, None
-
-    def artwork_check_for_remote(self, artist, album, filename):
-        self.artwork_set_default_icon()
-        self.artwork_download_img_to_file(artist, album, filename)
-        if os.path.exists(filename):
-            gobject.idle_add(self.artwork_set_image, filename)
-            return True
-        return False
-
-    def artwork_set_default_icon(self):
-        if self.albumimage.get_property('file') != self.sonatacd:
-            gobject.idle_add(self.albumimage.set_from_file, self.sonatacd)
-            gobject.idle_add(self.info_image.set_from_file, self.sonatacd_large)
-            gobject.idle_add(self.fullscreen_cover_art_set_image, self.sonatacd_large)
-        gobject.idle_add(self.artwork_set_tooltip_art, gtk.gdk.pixbuf_new_from_file(self.sonatacd))
-        self.lastalbumart = None
-
-    def artwork_get_misc_img_in_path(self, songdir):
-        path = misc.file_from_utf8(self.musicdir[self.profile_num] + songdir)
-        if os.path.exists(path):
-            for f in self.ART_LOCATIONS_MISC:
-                filename = path + "/" + f
-                if os.path.exists(filename):
-                    return filename
-        return False
-
-    def artwork_set_image(self, filename, info_img_only=False):
-        # Note: filename arrives here is in FILESYSTEM_CHARSET, not UTF-8!
-        if self.artwork_is_for_playing_song(filename):
-            if os.path.exists(filename):
-                # We use try here because the file might exist, but might
-                # still be downloading
-                try:
-                    pix = gtk.gdk.pixbuf_new_from_file(filename)
-                    # Artwork for tooltip, left-top of player:
-                    if not info_img_only:
-                        (pix1, w, h) = img.get_pixbuf_of_size(pix, 75)
-                        pix1 = self.artwork_apply_composite_case(pix1, w, h)
-                        pix1 = img.pixbuf_add_border(pix1)
-                        pix1 = img.pixbuf_pad(pix1, 77, 77)
-                        self.albumimage.set_from_pixbuf(pix1)
-                        self.artwork_set_tooltip_art(pix1)
-                        del pix1
-                    # Artwork for info tab:
-                    if self.info_imagebox.get_size_request()[0] == -1:
-                        fullwidth = self.notebook.get_allocation()[2] - 50
-                        (pix2, w, h) = img.get_pixbuf_of_size(pix, fullwidth)
-                    else:
-                        (pix2, w, h) = img.get_pixbuf_of_size(pix, 150)
-                    pix2 = self.artwork_apply_composite_case(pix2, w, h)
-                    pix2 = img.pixbuf_add_border(pix2)
-                    self.info_image.set_from_pixbuf(pix2)
-                    del pix2
-                    # Artwork for fullscreen cover mode
-                    (pix3, w, h) = img.get_pixbuf_of_size(pix, self.FULLSCREEN_COVER_SIZE)
-                    pix3 = self.artwork_apply_composite_case(pix3, w, h)
-                    pix3 = img.pixbuf_pad(pix3, self.FULLSCREEN_COVER_SIZE, self.FULLSCREEN_COVER_SIZE)
-                    self.fullscreenalbumimage.set_from_pixbuf(pix3)
-                    del pix, pix3
-                    # Artwork for albums in the library tab
-                    if not info_img_only and not self.library_search_visible():
-                        if self.lib_level == self.LIB_LEVEL_ALBUM:
-                            if self.lib_view == self.VIEW_ARTIST or self.lib_view == self.VIEW_GENRE:
-                                if self.songinfo and self.songinfo.has_key('artist'):
-                                    if self.wd == mpdh.get(self.songinfo, 'artist'):
-                                        self.library_browse(root=self.wd)
-                    self.lastalbumart = filename
-                except:
-                    # If we have a 0-byte file, it should mean that
-                    # sonata reset the image file. Otherwise, it's a
-                    # bad file and should be removed.
-                    if os.stat(filename).st_size != 0:
-                        misc.remove_file(filename)
-                    pass
-                self.call_gc_collect = True
-
-    def artwork_apply_composite_case(self, pix, w, h):
-        if self.covers_type == self.COVERS_TYPE_STYLIZED and float(w)/h > 0.5:
-            # Rather than merely compositing the case on top of the artwork, we will
-            # scale the artwork so that it isn't covered by the case:
-            spine_ratio = float(60)/600 # From original png
-            spine_width = int(w * spine_ratio)
-            case = self.casepb.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
-            # Scale pix and shift to the right on a transparent pixbuf:
-            pix = pix.scale_simple(w-spine_width, h, gtk.gdk.INTERP_BILINEAR)
-            blank = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, w, h)
-            blank.fill(0x00000000)
-            pix.copy_area(0, 0, pix.get_width(), pix.get_height(), blank, spine_width, 0)
-            # Composite case and scaled pix:
-            case.composite(blank, 0, 0, w, h, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 250)
-            del case
-            return blank
-        return pix
-
-    def artwork_is_for_playing_song(self, filename):
-        # Since there can be multiple threads that are getting album art,
-        # this will ensure that only the artwork for the currently playing
-        # song is displayed
-        if self.conn and self.status and self.status['state'] in ['play', 'pause'] and self.songinfo:
-            if self.songinfo.has_key('name'):
-                streamfile = self.artwork_stream_filename(mpdh.get(self.songinfo, 'name'))
-                if filename == streamfile:
-                    return True
-            else:
-                # Normal song:
-                if filename == self.target_image_filename(self.ART_LOCATION_HOMECOVERS):
-                    return True
-                if filename == self.target_image_filename(self.ART_LOCATION_COVER):
-                    return True
-                if filename == self.target_image_filename(self.ART_LOCATION_ALBUM):
-                    return True
-                if filename == self.target_image_filename(self.ART_LOCATION_FOLDER):
-                    return True
-                if filename == self.target_image_filename(self.ART_LOCATION_CUSTOM):
-                    return True
-                if self.misc_img_in_dir and filename == self.misc_img_in_dir:
-                    return True
-                if self.single_img_in_dir and filename == self.single_img_in_dir:
-                    return True
-        # If we got this far, no match:
-        return False
-
-    def artwork_download_img_to_file(self, artist, album, dest_filename, all_images=False):
-        global ElementTree
-        if ElementTree is None:
-            from xml.etree import ElementTree
-        # Returns False if no images found
-        if len(artist) == 0 and len(album) == 0:
-            self.downloading_image = False
-            return False
-        self.downloading_image = True
-        # Amazon currently doesn't support utf8 and suggests latin1 encoding instead:
-        try:
-            artist = urllib.quote(artist.encode('latin1'))
-            album = urllib.quote(album.encode('latin1'))
-        except:
-            artist = urllib.quote(artist)
-            album = urllib.quote(album)
-        amazon_key = "12DR2PGAQT303YTEWP02"
-        prefix = "{http://webservices.amazon.com/AWSECommerceService/2005-10-05}"
-        urls = []
-        # Try searching urls from most specific (artist, title) to least (artist only)
-        urls.append("http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images&Title=" + album)
-        urls.append("http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images&Keywords=" + album)
-        urls.append("http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=" + amazon_key + "&Operation=ItemSearch&SearchIndex=Music&Artist=" + artist + "&ResponseGroup=Images")
-        for i, url in enumerate(urls):
-            request = urllib2.Request(url)
-            opener = urllib2.build_opener()
-            try:
-                f = opener.open(request).read()
-                xml = ElementTree.fromstring(f)
-                largeimgs = xml.getiterator(prefix + "LargeImage")
-            except:
-                largeimgs = None
-                pass
-            if largeimgs and len(largeimgs) > 0:
-                break
-            elif i == len(urls)-1:
-                self.downloading_image = False
-                return False
-        imglist = []
-        for largeimg in largeimgs:
-            for url in largeimg.getiterator(prefix + "URL"):
-                if not url.text in imglist:
-                    imglist.append(url.text)
-        if not all_images:
-            urllib.urlretrieve(imglist[0], dest_filename)
-            self.downloading_image = False
-            return True
-        else:
-            try:
-                imgfound = False
-                for i in range(len(imglist)):
-                    dest_filename_curr = dest_filename.replace("<imagenum>", str(i+1))
-                    urllib.urlretrieve(imglist[i], dest_filename_curr)
-                    # This populates self.imagelist for the remote image window
-                    if os.path.exists(dest_filename_curr):
-                        pix = gtk.gdk.pixbuf_new_from_file(dest_filename_curr)
-                        pix = pix.scale_simple(148, 148, gtk.gdk.INTERP_HYPER)
-                        pix = self.artwork_apply_composite_case(pix, 148, 148)
-                        pix = img.pixbuf_add_border(pix)
-                        if self.stop_art_update:
-                            del pix
-                            self.downloading_image = False
-                            return imgfound
-                        self.imagelist.append([i+1, pix])
-                        del pix
-                        imgfound = True
-                        self.remotefilelist.append(dest_filename_curr)
-                        if i == 0:
-                            self.allow_art_search = True
-                    ui.change_cursor(None)
-            except:
-                pass
-            self.downloading_image = False
-            return imgfound
+    def status_is_play_or_pause(self):
+        return self.conn and self.status and self.status['state'] in ['play', 'pause']
 
     def tooltip_set_window_width(self):
         screen = self.window.get_screen()
@@ -4878,14 +4580,14 @@ class Base(object, consts.Constants, preferences.Preferences):
 
     def on_image_activate(self, widget, event):
         self.window.handler_block(self.mainwinhandler)
-        if event.button == 1 and widget == self.info_imagebox and self.lastalbumart:
+        if event.button == 1 and widget == self.info_imagebox and self.artwork.have_last():
             if not self.info_art_enlarged:
                 self.info_imagebox.set_size_request(-1,-1)
-                self.artwork_set_image(self.lastalbumart, True)
+                self.artwork.artwork_set_image_last(True)
                 self.info_art_enlarged = True
             else:
                 self.info_imagebox.set_size_request(152, -1)
-                self.artwork_set_image(self.lastalbumart, True)
+                self.artwork.artwork_set_image_last(True)
                 self.info_art_enlarged = False
             self.volume_hide()
             # Force a resize of the info labels, if needed:
@@ -4964,12 +4666,12 @@ class Base(object, consts.Constants, preferences.Preferences):
             if img.valid_image(paths[i]):
                 stream = mpdh.get(self.songinfo, 'name', None)
                 if stream is not None:
-                    dest_filename = self.artwork_stream_filename(mpdh.get(self.songinfo, 'name'))
+                    dest_filename = self.artwork.artwork_stream_filename(mpdh.get(self.songinfo, 'name'))
                 else:
                     dest_filename = self.target_image_filename()
                 if dest_filename != paths[i]:
                     shutil.copyfile(paths[i], dest_filename)
-                self.artwork_update(True)
+                self.artwork.artwork_update(True)
                 if remove_after_set:
                     misc.remove_file(paths[i])
 
@@ -5104,7 +4806,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             dialog.set_current_folder(currdir)
         if stream is not None:
             # Allow saving an image file for a stream:
-            self.local_dest_filename = self.artwork_stream_filename(stream)
+            self.local_dest_filename = self.artwork.artwork_stream_filename(stream)
         else:
             self.local_dest_filename = self.target_image_filename()
         dialog.show()
@@ -5116,10 +4818,16 @@ class Base(object, consts.Constants, preferences.Preferences):
             if self.local_dest_filename != filename:
                 shutil.copyfile(filename, self.local_dest_filename)
             # And finally, set the image in the interface:
-            self.artwork_update(True)
+            self.artwork.artwork_update(True)
             # Force a resize of the info labels, if needed:
             gobject.idle_add(self.on_notebook_resize, self.notebook, None)
         dialog.destroy()
+
+    def imagelist_append(self, elem):
+        self.imagelist.append(elem)
+
+    def remotefilelist_append(self, elem):
+        self.remotefilelist.append(elem)
 
     def image_remote(self, widget):
         self.choose_dialog = ui.dialog(title=_("Choose Cover Art"), parent=self.window, flags=gtk.DIALOG_MODAL, buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT), role='chooseCoverArt', default=gtk.RESPONSE_ACCEPT, separator=False, resizable=False)
@@ -5165,7 +4873,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         stream = mpdh.get(self.songinfo, 'name', None)
         if stream is not None:
             # Allow saving an image file for a stream:
-            self.remote_dest_filename = self.artwork_stream_filename(stream)
+            self.remote_dest_filename = self.artwork.artwork_stream_filename(stream)
         else:
             self.remote_dest_filename = self.target_image_filename()
         album = mpdh.get(self.songinfo, 'album', '')
@@ -5181,8 +4889,8 @@ class Base(object, consts.Constants, preferences.Preferences):
         if not self.allow_art_search:
             return
         self.allow_art_search = False
-        self.stop_art_update = True
-        while self.downloading_image:
+        self.artwork.stop_art_update = True
+        while self.artwork.downloading_image:
             gtk.main_iteration()
         self.imagelist.clear()
         imagewidget.set_text_column(-1)
@@ -5195,7 +4903,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         thread.start()
 
     def _image_remote_refresh(self, imagewidget, ignore):
-        self.stop_art_update = False
+        self.artwork.stop_art_update = False
         # Retrieve all images from amazon:
         artist_search = self.remote_artistentry.get_text()
         album_search = self.remote_albumentry.get_text()
@@ -5205,7 +4913,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         filename = os.path.expanduser("~/.covers/temp/<imagenum>.jpg")
         misc.remove_dir(os.path.dirname(filename))
         misc.create_dir(os.path.dirname(filename))
-        imgfound = self.artwork_download_img_to_file(artist_search, album_search, filename, True)
+        imgfound = self.artwork.artwork_download_img_to_file(artist_search, album_search, filename, True)
         ui.change_cursor(None)
         if self.chooseimage_visible:
             if not imgfound:
@@ -5228,7 +4936,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.allow_art_search = True
 
     def image_remote_response(self, dialog, response_id, imagewidget, artist, album, stream):
-        self.stop_art_update = True
+        self.artwork.stop_art_update = True
         if response_id == gtk.RESPONSE_ACCEPT:
             try:
                 self.image_remote_replace_cover(imagewidget, imagewidget.get_selected_items()[0], artist, album, stream)
@@ -5243,19 +4951,19 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.chooseimage_visible = False
 
     def image_remote_replace_cover(self, iconview, path, artist, album, stream):
-        self.stop_art_update = True
+        self.artwork.stop_art_update = True
         image_num = int(path[0])
         if len(self.remotefilelist) > 0:
             filename = self.remotefilelist[image_num]
             if os.path.exists(filename):
                 shutil.move(filename, self.remote_dest_filename)
                 # And finally, set the image in the interface:
-                self.artwork_update(True)
+                self.artwork.artwork_update(True)
                 # Clean up..
                 misc.remove_dir(os.path.dirname(filename))
         self.chooseimage_visible = False
         self.choose_dialog.destroy()
-        while self.downloading_image:
+        while self.artwork.downloading_image:
             gtk.main_iteration()
 
     def fullscreen_cover_art(self, widget):
@@ -5272,11 +4980,6 @@ class Base(object, consts.Constants, preferences.Preferences):
             if shortcut != 'Escape':
                 return
         self.fullscreencoverart.hide()
-
-    def fullscreen_cover_art_set_image(self, filename):
-        pix = gtk.gdk.pixbuf_new_from_file(filename)
-        pix = img.pixbuf_pad(pix, self.FULLSCREEN_COVER_SIZE, self.FULLSCREEN_COVER_SIZE)
-        self.fullscreenalbumimage.set_from_pixbuf(pix)
 
     def header_save_column_widths(self):
         if not self.withdrawn and self.expanded:
@@ -5786,7 +5489,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         art_stylized.set_sensitive(button_active)
         if button_active:
             self.traytips.set_size_request(self.notification_width, -1)
-            self.artwork_set_default_icon()
+            self.artwork.artwork_set_default_icon()
             for widget in [self.imageeventbox, self.info_imagebox, self.trayalbumeventbox, self.trayalbumimage2]:
                 widget.set_no_show_all(False)
                 if widget in [self.trayalbumeventbox, self.trayalbumimage2]:
@@ -5796,7 +5499,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                     widget.show_all()
             self.show_covers = True
             self.update_cursong()
-            self.artwork_update()
+            self.artwork.artwork_update()
         else:
             self.traytips.set_size_request(self.notification_width-100, -1)
             for widget in [self.imageeventbox, self.info_imagebox, self.trayalbumeventbox, self.trayalbumimage2]:
@@ -5809,7 +5512,7 @@ class Base(object, consts.Constants, preferences.Preferences):
 
     def prefs_stylized_toggled(self, button):
         self.covers_type = button.get_active()
-        self.artwork_update(True)
+        self.artwork.artwork_update(True)
 
     def prefs_lyrics_toggled(self, button, lyrics_hbox):
         if button.get_active():
