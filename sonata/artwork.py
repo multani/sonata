@@ -389,3 +389,7 @@ class Artwork(object):
         pix = img.pixbuf_pad(pix, consts.FULLSCREEN_COVER_SIZE, consts.FULLSCREEN_COVER_SIZE)
         self.fullscreenalbumimage.set_from_pixbuf(pix)
 
+    def have_last(self):
+        if self.lastalbumart is not None:
+            return True
+        return False
