@@ -216,6 +216,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.trayeventbox = None
         self.trayicon = None
         self.trayimage = None
+        self.artwork = None
 
         self.library_view_caches_reset()
 
@@ -1388,7 +1389,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         if self.conn:
             self.status = mpdh.status(self.client)
             self.songinfo = mpdh.currsong(self.client)
-            self.artwork.update_songinfo(self.songinfo)
             if type == "play":
                 mpdh.call(self.client, 'play')
             elif type == "pause":
@@ -1576,7 +1576,8 @@ class Base(object, consts.Constants, preferences.Preferences):
         if not self.conn:
             self.status = None
             self.songinfo = None
-            self.artwork.update_songinfo(self.songinfo)
+            if self.artwork is not None:
+                self.artwork.update_songinfo(self.songinfo)
             self.iterate_time = self.iterate_time_when_disconnected_or_stopped
         self.trying_connection = False
 
