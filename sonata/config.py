@@ -249,8 +249,8 @@ class Config:
                 try: self.info_tab_pos = conf.getint('notebook', 'info_tab_pos')
                 except: pass
         if conf.has_section('library'):
-            if conf.has_option('library', 'lib_wd'):
-                self.wd = conf.get('library', 'lib_wd')
+            if conf.has_option('library', 'lib_info'):
+                self.wd = consts.LIB_DELIM.join(conf.get('library', 'lib_info').split(","))
             if conf.has_option('library', 'lib_level'):
                 self.lib_level = conf.getint('library', 'lib_level')
             if conf.has_option('library', 'lib_view'):
@@ -375,7 +375,7 @@ class Config:
         conf.set('notebook', 'streams_tab_pos', self.streams_tab_pos)
         conf.set('notebook', 'info_tab_pos', self.info_tab_pos)
         conf.add_section('library')
-        conf.set('library', 'lib_wd', self.wd)
+        conf.set('library', 'lib_info', ",".join(self.wd.split(consts.LIB_DELIM)))
         conf.set('library', 'lib_level', self.lib_level)
         conf.set('library', 'lib_view', self.lib_view)
         # New format

@@ -16,6 +16,7 @@ v1.6
 	prevent vertical resizing when collapsed 
 	save to playlist.. default to selected files? pref?
 	sonata freezes with gail/accessibility enabled during new library searching
+	local only vs local, then remote - checkbox?
 	
 Future:
 	crop songs in current playlist?
