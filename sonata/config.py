@@ -191,8 +191,6 @@ class Config:
             self.infofile_path = conf.get('player', 'infofile_path')
         if conf.has_option('player', 'trayicon'):
             self.show_trayicon = conf.getboolean('player', 'trayicon')
-        if conf.has_option('player', 'view'):
-            self.lib_view = conf.getint('player', 'view')
         if conf.has_option('player', 'search_num'):
             self.last_search_num = conf.getint('player', 'search_num')
         if conf.has_option('player', 'art_location'):
@@ -255,6 +253,8 @@ class Config:
                 self.wd = conf.get('library', 'lib_wd')
             if conf.has_option('library', 'lib_level'):
                 self.lib_level = conf.getint('library', 'lib_level')
+            if conf.has_option('library', 'lib_view'):
+                self.lib_view = conf.getint('library', 'lib_view')
         if conf.has_section('currformat'):
             if conf.has_option('currformat', 'current'):
                 self.currentformat = conf.get('currformat', 'current')
@@ -341,7 +341,6 @@ class Config:
         conf.set('player', 'use_infofile', self.use_infofile)
         conf.set('player', 'infofile_path', self.infofile_path)
         conf.set('player', 'trayicon', self.show_trayicon)
-        conf.set('player', 'view', self.lib_view)
         conf.set('player', 'search_num', self.last_search_num)
         conf.set('player', 'art_location', self.art_location)
         conf.set('player', 'art_location_custom_filename', self.art_location_custom_filename)
@@ -378,6 +377,7 @@ class Config:
         conf.add_section('library')
         conf.set('library', 'lib_wd', self.wd)
         conf.set('library', 'lib_level', self.lib_level)
+        conf.set('library', 'lib_view', self.lib_view)
         # New format
         conf.add_section('currformat')
         conf.set('currformat', 'current', self.currentformat)

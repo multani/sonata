@@ -2427,10 +2427,11 @@ class Base(object, consts.Constants, preferences.Preferences):
         num_songs = 0
         list = []
         items = mpdh.call(self.client, 'search', *args_tuple)
-        for item in items:
-            list.append(item)
-            num_songs += 1
-            playtime += int(mpdh.get(item, 'time', '0'))
+        if items is not None:
+            for item in items:
+                list.append(item)
+                num_songs += 1
+                playtime += int(mpdh.get(item, 'time', '0'))
         return (list, int(playtime), num_songs)
 
     def add_display_info(self, num_songs, playtime):
