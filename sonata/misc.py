@@ -89,18 +89,10 @@ def link_markup(s, enclose_in_parentheses, small, linkcolor):
     s = "<span color='" + color + "'>" + s + "</span>"
     return s
 
-def remove_list_duplicates(inputlist, inputlist2=[], inputlist3=[], inputlist4=[], case=True):
-    # If inputlist2, etc, is provided, keep them synced with inputlist.
-    # Note that this is only implemented if case=False.
-    # Also note that we do this manually instead of using list(set(x))
+def remove_list_duplicates(inputlist, case=True):
+    # Note that we do this manually instead of using list(set(x))
     # so that the inputlist order is preserved.
-    sync2 = (len(inputlist2) > 0)
-    sync3 = (len(inputlist3) > 0)
-    sync4 = (len(inputlist4) > 0)
     outputlist = []
-    outputlist2 = []
-    outputlist3 = []
-    outputlist4 = []
     for i in range(len(inputlist)):
         dup = False
         # Search outputlist from the end, since the inputlist is typically in
@@ -112,12 +104,6 @@ def remove_list_duplicates(inputlist, inputlist2=[], inputlist3=[], inputlist4=[
                     dup = True
                     break
                 j = j - 1
-        elif sync2:
-            while j >= 0:
-                if inputlist[i].lower() == outputlist[j].lower() and inputlist2[i].lower() == outputlist2[j].lower():
-                    dup = True
-                    break
-                j = j - 1
         else:
             while j >= 0:
                 if inputlist[i].lower() == outputlist[j].lower():
@@ -126,13 +112,7 @@ def remove_list_duplicates(inputlist, inputlist2=[], inputlist3=[], inputlist4=[
                 j = j - 1
         if not dup:
             outputlist.append(inputlist[i])
-            if sync2:
-                outputlist2.append(inputlist2[i])
-            if sync3:
-                outputlist3.append(inputlist3[i])
-            if sync4:
-                outputlist4.append(inputlist4[i])
-    return (outputlist, outputlist2, outputlist3, outputlist4)
+    return outputlist
 
 the_re = re.compile('^the ')
 def lower_no_the(s):

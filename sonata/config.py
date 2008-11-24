@@ -255,12 +255,6 @@ class Config:
                 self.wd = conf.get('library', 'root')
             if conf.has_option('library', 'root_artist_level'):
                 self.lib_level = conf.getint('library', 'root_artist_level')
-            if conf.has_option('library', 'root_artist_artist'):
-                self.lib_artist = conf.get('library', 'root_artist_artist')
-            if conf.has_option('library', 'root_artist_album'):
-                self.lib_album = conf.get('library', 'root_artist_album')
-            if conf.has_option('library', 'root_genre'):
-                self.lib_genre = conf.get('library', 'root_genre')
         if conf.has_section('currformat'):
             if conf.has_option('currformat', 'current'):
                 self.currentformat = conf.get('currformat', 'current')
@@ -384,9 +378,6 @@ class Config:
         conf.add_section('library')
         conf.set('library', 'root', self.wd)
         conf.set('library', 'root_artist_level', self.lib_level)
-        conf.set('library', 'root_artist_artist', self.lib_artist)
-        conf.set('library', 'root_artist_album', self.lib_album)
-        conf.set('library', 'root_genre', self.lib_genre)
         # New format
         conf.add_section('currformat')
         conf.set('currformat', 'current', self.currentformat)
