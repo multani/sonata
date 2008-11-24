@@ -64,7 +64,7 @@ class Config:
         self.use_infofile = False
         self.infofile_path = '/tmp/xmms-info'
         self.lib_view = consts.VIEW_FILESYSTEM
-        self.lib_level = consts.LIB_LEVEL_ARTIST
+        self.lib_level = 0
         self.lib_level_prev = -1
         self.lib_genre = ''
         self.lib_artist = ''
@@ -78,7 +78,7 @@ class Config:
         self.as_password_md5 = ""
 
         self.url_browser = ""
-        self.wd = '/'
+        self.wd = None
 
         self.info_song_expanded = True
         self.info_lyrics_expanded = True
@@ -251,10 +251,10 @@ class Config:
                 try: self.info_tab_pos = conf.getint('notebook', 'info_tab_pos')
                 except: pass
         if conf.has_section('library'):
-            if conf.has_option('library', 'root'):
-                self.wd = conf.get('library', 'root')
-            if conf.has_option('library', 'root_artist_level'):
-                self.lib_level = conf.getint('library', 'root_artist_level')
+            if conf.has_option('library', 'lib_wd'):
+                self.wd = conf.get('library', 'lib_wd')
+            if conf.has_option('library', 'lib_level'):
+                self.lib_level = conf.getint('library', 'lib_level')
         if conf.has_section('currformat'):
             if conf.has_option('currformat', 'current'):
                 self.currentformat = conf.get('currformat', 'current')
@@ -376,8 +376,8 @@ class Config:
         conf.set('notebook', 'streams_tab_pos', self.streams_tab_pos)
         conf.set('notebook', 'info_tab_pos', self.info_tab_pos)
         conf.add_section('library')
-        conf.set('library', 'root', self.wd)
-        conf.set('library', 'root_artist_level', self.lib_level)
+        conf.set('library', 'lib_wd', self.wd)
+        conf.set('library', 'lib_level', self.lib_level)
         # New format
         conf.add_section('currformat')
         conf.set('currformat', 'current', self.currentformat)
