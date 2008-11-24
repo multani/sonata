@@ -6101,15 +6101,15 @@ class Base(object, consts.Constants, preferences.Preferences):
             searchby = self.search_terms_mpd[self.last_search_num]
             if self.prevlibtodo != todo:
                 if todo == '$$$QUIT###':
-                    gobject.idle_add(self.tags_win_entry_revert_color, self.searchtext)
+                    gobject.idle_add(self.filtering_entry_revert_color, self.searchtext)
                     return
                 elif len(todo) > 1:
                     gobject.idle_add(self.libsearchfilter_do_search, searchby, todo)
                 elif len(todo) == 0:
-                    gobject.idle_add(self.tags_win_entry_revert_color, self.searchtext)
+                    gobject.idle_add(self.filtering_entry_revert_color, self.searchtext)
                     self.libsearchfilter_toggle(False)
                 else:
-                    gobject.idle_add(self.tags_win_entry_revert_color, self.searchtext)
+                    gobject.idle_add(self.filtering_entry_revert_color, self.searchtext)
             self.libfilterbox_cond.acquire()
             self.libfilterbox_cmd_buf='$$$DONE###'
             try:
@@ -6172,9 +6172,9 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.library.thaw_child_notify()
         gobject.idle_add(self.library.set_cursor,'0')
         if len(matches) == 0:
-            gobject.idle_add(self.tags_win_entry_changed, self.searchtext, True)
+            gobject.idle_add(self.filtering_entry_make_red, self.searchtext)
         else:
-            gobject.idle_add(self.tags_win_entry_revert_color, self.searchtext)
+            gobject.idle_add(self.filtering_entry_revert_color, self.searchtext)
 
     def libsearchfilter_key_pressed(self, widget, event):
         self.filter_key_pressed(widget, event, self.library)
@@ -6356,9 +6356,9 @@ class Base(object, consts.Constants, preferences.Preferences):
             else:
                 self.current.set_cursor('0')
             if len(matches) == 0:
-                gobject.idle_add(self.tags_win_entry_changed, self.filterpattern, True)
+                gobject.idle_add(self.filtering_entry_make_red, self.filterpattern)
             else:
-                gobject.idle_add(self.tags_win_entry_revert_color, self.filterpattern)
+                gobject.idle_add(self.filtering_entry_revert_color, self.filterpattern)
             self.current.thaw_child_notify()
 
     def searchfilter_key_pressed(self, widget, event):
@@ -6373,6 +6373,14 @@ class Base(object, consts.Constants, preferences.Preferences):
     def filter_entry_grab_focus(self, widget):
         widget.grab_focus()
         widget.set_position(-1)
+
+    def filtering_entry_make_red(self, editable):
+        style = editable.get_style().copy()
+        style.text[gtk.STATE_NORMAL] = editable.get_colormap().alloc_color("red")
+        editable.set_style(style)
+
+    def filtering_entry_revert_color(self, editable):
+        editable.set_style(self.edit_style_orig)
 
     def main(self):
         gtk.main()
