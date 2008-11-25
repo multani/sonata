@@ -2041,6 +2041,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.lib_list_genres = None
         self.lib_list_artists = None
         self.lib_list_albums = None
+        self.lib_list_years = None
 
     def library_browse_update(self):
         # Artwork for albums in the library tab
@@ -2195,7 +2196,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             else:
                 items = self.library_return_list_items('artist')
                 pb = self.artistpb
-            untagged_found = False
+            if not (self.NOTAG in items): items.append(self.NOTAG)
             for item in items:
                 if genreview:
                     playtime, num_songs = self.library_return_count(genre=item)
@@ -2208,6 +2209,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                 bd += [(misc.lower_no_the(item), [pb, data, display])]
         elif albumview:
             list = []
+            untagged_found = False
             for item in mpdh.call(self.client, 'listallinfo', '/'):
                 if item.has_key('file') and item.has_key('album'):
                     album = mpdh.get(item, 'album')
@@ -2215,6 +2217,9 @@ class Base(object, consts.Constants, preferences.Preferences):
                     year = mpdh.get(item, 'date', '')
                     data = self.library_set_data(album=album, artist=artist, year=year)
                     list.append(data)
+                    if album == self.NOTAG:
+                        untagged_found = True
+            if not untagged_found: list.append(self.library_set_data(album=self.NOTAG))
             list = misc.remove_list_duplicates(list, case=False)
             list = self.list_identify_VA_albums(list)
             for item in list:
@@ -2292,7 +2297,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                     years = self.library_return_list_items('date', genre=genre, artist=artist, album=album)
                 else:
                     years = self.library_return_list_items('date', artist=artist, album=album)
-                if not '' in years: years.append('') # check for album with no years tag too
+                if not self.NOTAG in years: years.append(self.NOTAG) # check for album with no years tag too
                 for year in years:
                     if genre is not None:
                         playtime, num_songs = self.library_return_count(genre=genre, artist=artist, album=album, year=year)
@@ -2302,7 +2307,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                         data = self.library_set_data(artist=artist, album=album, year=year)
                     if num_songs > 0:
                         display = misc.escape_html(album)
-                        if year and len(year) > 0:
+                        if year and len(year) > 0 and year != self.NOTAG:
                             display += " <span weight='light'>(" + misc.escape_html(year) + ")</span>"
                         display += self.add_display_info(num_songs, int(playtime)/60)
                         bd += [(misc.lower_no_the(album), [self.albumpb, data, display])]
@@ -2337,21 +2342,30 @@ class Base(object, consts.Constants, preferences.Preferences):
         # a case insensitive search, via additional 'list'
         # queries, since using a single 'list' call will be
         # case sensitive.
-        list = []
-        searches = self.library_compose_searchlist(genre, artist, album, year)
+        itemlist = []
+        searches = self.library_compose_list_count_searchlist(genre, artist, album, year)
         if len(searches) > 0:
             for s in searches:
-                for item in mpdh.call(self.client, 'list', type, *s):
+                # If we have untagged tags (''), use search instead
+                # of list because list will not return anything.
+                if '' in s:
+                    list = []
+                    songs, playtime, num_songs = self.library_return_search_items(genre, artist, album, year)
+                    for song in songs:
+                        list.append(mpdh.get(song, type))
+                else:
+                    list = mpdh.call(self.client, 'list', type, *s)
+                for item in list:
                     if len(item) > 0:
-                        list.append(item)
+                        itemlist.append(item)
         else:
             for item in mpdh.call(self.client, 'list', type):
                 if len(item) > 0:
-                    list.append(item)
+                    itemlist.append(item)
         if ignore_case:
-            list = misc.remove_list_duplicates(list, case=False)
-        list.sort(locale.strcoll)
-        return list
+            itemlist = misc.remove_list_duplicates(itemlist, case=False)
+        itemlist.sort(locale.strcoll)
+        return itemlist
 
     def library_return_count(self, genre=None, artist=None, album=None, year=None):
         # Because mpd's 'count' is case sensitive, we have to
@@ -2359,7 +2373,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         # call 'count' for each of them. Using 'list' + 'count'
         # involves much less data to be transferred back and
         # forth than to use 'search' and count manually.
-        searches = self.library_compose_searchlist(genre, artist, album, year)
+        searches = self.library_compose_list_count_searchlist(genre, artist, album, year)
         playtime = 0
         num_songs = 0
         for s in searches:
@@ -2368,70 +2382,77 @@ class Base(object, consts.Constants, preferences.Preferences):
             num_songs += int(mpdh.get(count, 'songs'))
         return (playtime, num_songs)
 
-    def library_compose_searchlist(self, genre=None, artist=None, album=None, year=None):
-        s1 = []
-        if genre is not None:
-            if self.lib_list_genres is None:
-                self.lib_list_genres = self.library_return_list_items('genre', ignore_case=False)
-            for item in self.lib_list_genres:
-                if item.lower() == genre.lower():
-                    s1.append(('genre', item))
-        s2 = []
-        if artist is not None:
-            if self.lib_list_artists is None:
-                self.lib_list_artists = self.library_return_list_items('artist', ignore_case=False)
-            for item in self.lib_list_artists:
-                if item.lower() == artist.lower():
-                    if len(s1) > 0:
-                        for s in s1:
-                            s2.append(s + ('artist', item))
-                    else:
-                        s2.append(('artist', item))
+    def library_compose_list_count_searchlist_single(self, type, typename, cached_list, searchlist):
+        s = []
+        if type is not None:
+            if type == self.NOTAG:
+                itemlist = [type, '']
+            else:
+                itemlist = []
+                if cached_list is None:
+                    cached_list = self.library_return_list_items(typename, ignore_case=False)
+                for item in cached_list:
+                    if item.lower() == type.lower():
+                        itemlist.append(item)
+            for item in itemlist:
+                if len(searchlist) > 0:
+                    for item2 in searchlist:
+                        s.append(item2 + (typename, item))
+                else:
+                    s.append((typename, item))
         else:
-            s2 = s1
-        s3 = []
-        if album is not None:
-            if self.lib_list_albums is None:
-                self.lib_list_albums = self.library_return_list_items('album', ignore_case=False)
-            for item in self.lib_list_albums:
-                if item.lower() == album.lower():
-                    if len(s2) > 0:
-                        for s in s2:
-                            s3.append(s + ('album', item))
-                    else:
-                        s3.append(('album', item))
+            s = searchlist
+        return s, cached_list
+
+    def library_compose_list_count_searchlist(self, genre=None, artist=None, album=None, year=None):
+        s = []
+        s, self.lib_list_genres = self.library_compose_list_count_searchlist_single(genre, 'genre', self.lib_list_genres, s)
+        s, self.lib_list_artists = self.library_compose_list_count_searchlist_single(artist, 'artist', self.lib_list_artists, s)
+        s, self.lib_list_albums = self.library_compose_list_count_searchlist_single(album, 'album', self.lib_list_albums, s)
+        s, self.lib_list_years = self.library_compose_list_count_searchlist_single(year, 'date', self.lib_list_years, s)
+        return s
+
+    def library_compose_search_searchlist_single(self, type, typename, searchlist):
+        s = []
+        skip_type = (typename == 'artist' and type == self.VAstr)
+        if type is not None and not skip_type:
+            if type == self.NOTAG:
+                itemlist = [type, '']
+            else:
+                itemlist = [type]
+            for item in itemlist:
+                if len(searchlist) > 0:
+                    for item2 in searchlist:
+                        s.append(item2 + (typename, item))
+                else:
+                    s.append((typename, item))
         else:
-            s3 = s2
-        s4 = []
-        if year is not None:
-            for s in s3:
-                s4.append(s + ('date', year))
-        else:
-            s4 = s3
-        return s4
+            s = searchlist
+        return s
+
+    def library_compose_search_searchlist(self, genre=None, artist=None, album=None, year=None):
+        s = []
+        s = self.library_compose_search_searchlist_single(genre, 'genre', s)
+        s = self.library_compose_search_searchlist_single(album, 'album', s)
+        s = self.library_compose_search_searchlist_single(artist, 'artist', s)
+        s = self.library_compose_search_searchlist_single(year, 'date', s)
+        return s
 
     def library_return_search_items(self, genre=None, artist=None, album=None, year=None):
         # Returns all mpd items, using mpd's 'search', along with
         # playtime and num_songs
-        args = []
-        if genre is not None:
-            args += ['genre', genre]
-        if album is not None:
-            args += ['album', album]
-        if artist is not None and artist != self.VAstr:
-            args += ['artist', artist]
-        if year is not None:
-            args += ['date', year]
-        args_tuple = tuple(map(str, args))
-        playtime = 0
-        num_songs = 0
-        list = []
-        items = mpdh.call(self.client, 'search', *args_tuple)
-        if items is not None:
-            for item in items:
-                list.append(item)
-                num_songs += 1
-                playtime += int(mpdh.get(item, 'time', '0'))
+        searches = self.library_compose_search_searchlist(genre, artist, album, year)
+        for s in searches:
+            args_tuple = tuple(map(str, s))
+            playtime = 0
+            num_songs = 0
+            list = []
+            items = mpdh.call(self.client, 'search', *args_tuple)
+            if items is not None:
+                for item in items:
+                    list.append(item)
+                    num_songs += 1
+                    playtime += int(mpdh.get(item, 'time', '0'))
         return (list, int(playtime), num_songs)
 
     def add_display_info(self, num_songs, playtime):
