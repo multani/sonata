@@ -116,9 +116,9 @@ def remove_list_duplicates(inputlist, case=True):
 
 the_re = re.compile('^the ')
 def lower_no_the(s):
-    s = unicode(s)
+#	s = unicode(s)
     s = the_re.sub('', s.lower())
-    s = str(s)
+#	s = str(s)
     return s
 
 def first_of_2tuple(t):

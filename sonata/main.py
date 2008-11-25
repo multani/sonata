@@ -2279,7 +2279,9 @@ class Base(object, consts.Constants, preferences.Preferences):
         bd = self.library_populate_add_parent_rows()
         if genre is not None and artist is None and album is None:
             # Artists within a genre
-            for artist in self.library_return_list_items('artist', genre=genre):
+            artists = self.library_return_list_items('artist', genre=genre)
+            if not self.NOTAG in artists: artists.append(self.NOTAG)
+            for artist in artists:
                 playtime, num_songs = self.library_return_count(genre=genre, artist=artist)
                 display = misc.escape_html(artist)
                 display += self.add_display_info(num_songs, int(playtime)/60)
@@ -2292,12 +2294,13 @@ class Base(object, consts.Constants, preferences.Preferences):
                 albums = self.library_return_list_items('album', genre=genre, artist=artist)
             else:
                 albums = self.library_return_list_items('album', artist=artist)
+            if not self.NOTAG in albums: albums.append(self.NOTAG)
             for album in albums:
                 if genre is not None:
                     years = self.library_return_list_items('date', genre=genre, artist=artist, album=album)
                 else:
                     years = self.library_return_list_items('date', artist=artist, album=album)
-                if not self.NOTAG in years: years.append(self.NOTAG) # check for album with no years tag too
+                if not self.NOTAG in years: years.append(self.NOTAG)
                 for year in years:
                     if genre is not None:
                         playtime, num_songs = self.library_return_count(genre=genre, artist=artist, album=album, year=year)
