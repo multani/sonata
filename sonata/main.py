@@ -1748,10 +1748,12 @@ class Base(object, consts.Constants, preferences.Preferences):
                 return
             # We only want to toggle open the filterbar if the key press is actual text! This
             # will ensure that we skip, e.g., F5, Alt, Ctrl, ...
+            # XXX event.string is deprecated
             if len(event.string.strip()) > 0:
                 if not self.filterbox_visible:
                     if event.string != "/":
-                        self.searchfilter_toggle(None, event.string)
+                        text = event.string.decode(locale.getpreferredencoding(), 'replace')
+                        self.searchfilter_toggle(None, text)
                     else:
                         self.searchfilter_toggle(None)
 
@@ -6021,12 +6023,12 @@ class Base(object, consts.Constants, preferences.Preferences):
         matches = []
         if searchby != 'any':
             for row in self.prevlibtodo_base_results:
-                if regexp.match(mpdh.get(row, searchby).lower()):
+                if regexp.match(unicode(mpdh.get(row, searchby)).lower()):
                     matches.append(row)
         else:
             for row in self.prevlibtodo_base_results:
                 for meta in row:
-                    if regexp.match(mpdh.get(row, meta).lower()):
+                    if regexp.match(unicode(mpdh.get(row, meta)).lower()):
                         matches.append(row)
                         break
         if subsearch and len(matches) == len(self.librarydata):
@@ -6194,7 +6196,8 @@ class Base(object, consts.Constants, preferences.Preferences):
                         song_info.append(misc.unbold(row[i+1]))
                     # Search for matches in all columns:
                     for i in range(len(self.columnformat)):
-                        if regexp.match(str(song_info[i+1]).lower()):
+                        mpdh.conout(unicode(song_info[i+1]).lower())
+                        if regexp.match(unicode(song_info[i+1]).lower()):
                             matches.append(song_info)
                             if subset:
                                 self.filter_row_mapping.append(prev_rownums[rownum])
