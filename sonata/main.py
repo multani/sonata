@@ -447,7 +447,7 @@ class Base(object, consts.Constants, preferences.Preferences):
 
         self.sonatacd = self.find_path('sonatacd.png')
         self.sonatacd_large = self.find_path('sonatacd_large.png')
-        self.artwork = artwork.Artwork(self.config, misc.is_lang_rtl(self.window), self.sonatacd, self.sonatacd_large, self.find_path('sonata-case.png'), self.library_browse_update, self.info_imagebox.get_size_request, self.schedule_gc_collect, self.target_image_filename, self.imagelist_append, self.remotefilelist_append, self.notebook.get_allocation, self.set_allow_art_search, self.status_is_play_or_pause)
+        self.artwork = artwork.Artwork(self.config, misc.is_lang_rtl(self.window), self.sonatacd, self.sonatacd_large, self.find_path('sonata-case.png'), self.info_imagebox.get_size_request, self.schedule_gc_collect, self.target_image_filename, self.imagelist_append, self.remotefilelist_append, self.notebook.get_allocation, self.set_allow_art_search, self.status_is_play_or_pause)
 
         # Popup menus:
         actions = (
@@ -2006,16 +2006,9 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.lib_view = self.VIEW_ALBUM
         self.library.grab_focus()
         self.library_view_assign_image()
-        # Go to highest level for artist/genre views:
-        if self.lib_view == self.VIEW_ARTIST:
-            self.lib_level = self.LIB_LEVEL_ARTIST
-        elif self.lib_view == self.VIEW_GENRE:
-            self.lib_level = self.LIB_LEVEL_GENRE
-        elif self.lib_view == self.VIEW_ALBUM:
-            self.lib_level = self.LIB_LEVEL_ALBUM
         self.libraryposition = {}
         self.libraryselectedpath = {}
-        self.library_browse()
+        self.library_browse(self.library_set_data(path="/"))
         try:
             if len(self.librarydata) > 0:
                 self.library_selection.unselect_range((0,), (len(self.librarydata)-1,))
@@ -2044,15 +2037,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.lib_list_artists = None
         self.lib_list_albums = None
         self.lib_list_years = None
-
-    def library_browse_update(self):
-        # Artwork for albums in the library tab
-        if not self.library_search_visible():
-            if self.lib_level == self.LIB_LEVEL_ALBUM:
-                if self.lib_view == self.VIEW_ARTIST or self.lib_view == self.VIEW_GENRE:
-                    if self.songinfo and self.songinfo.has_key('artist'):
-                        if self.wd == mpdh.get(self.songinfo, 'artist'):
-                            self.library_browse(root=self.wd)
 
     def library_browse(self, widget=None, root=None):
         # Populates the library list with entries
@@ -2084,9 +2068,10 @@ class Base(object, consts.Constants, preferences.Preferences):
         else:
             path_updated = False
 
+        new_level = self.library_get_data_level(root)
+        curr_level = self.library_get_data_level(self.wd)
         # The logic below is more consistent with, e.g., thunar.
-        if (self.lib_view == self.VIEW_FILESYSTEM and len(self.library_get_data(root, 'path')) > len(self.library_get_data(self.wd, 'path'))) \
-        or (self.lib_view != self.VIEW_FILESYSTEM and self.lib_level > self.lib_level_prev):
+        if new_level > curr_level:
             # Save position and row for where we just were if we've
             # navigated into a sub-directory:
             self.libraryposition[self.wd] = self.library.get_visible_rect()[1]
@@ -2096,7 +2081,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                 if not data in ("..", "/"):
                     self.libraryselectedpath[self.wd] = rows[0]
         elif (self.lib_view == self.VIEW_FILESYSTEM and root != self.wd) \
-        or (self.lib_view != self.VIEW_FILESYSTEM and self.lib_level != self.lib_level_prev):
+        or (self.lib_view != self.VIEW_FILESYSTEM and new_level != curr_level):
             # If we've navigated to a parent directory, don't save
             # anything so that the user will enter that subdirectory
             # again at the top position with nothing selected
@@ -2117,29 +2102,50 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.librarydata.clear()
 
         # Populate treeview with data:
-        if self.lib_view == self.VIEW_FILESYSTEM:
-            bd = self.library_populate_filesystem_data(self.library_get_data(self.wd, 'path'))
-        elif self.lib_view == self.VIEW_ALBUM:
-            if self.lib_level == self.LIB_LEVEL_SONG:
-                bd = self.library_populate_data(artist=self.library_get_data(self.wd, 'artist'), album=self.library_get_data(self.wd, 'album'), year=self.library_get_data(self.wd, 'year'))
-            else:
-                bd = self.library_populate_toplevel_data(albumview=True)
-        elif self.lib_view == self.VIEW_ARTIST:
-            if self.lib_level == self.LIB_LEVEL_ARTIST:
-                bd = self.library_populate_toplevel_data(artistview=True)
-            elif self.lib_level == self.LIB_LEVEL_ALBUM:
-                bd = self.library_populate_data(artist=self.library_get_data(self.wd, 'artist'))
-            else:
-                bd = self.library_populate_data(artist=self.library_get_data(self.wd, 'artist'), album=self.library_get_data(self.wd, 'album'), year=self.library_get_data(self.wd, 'year'))
-        elif self.lib_view == self.VIEW_GENRE:
-            if self.lib_level == self.LIB_LEVEL_GENRE:
-                bd = self.library_populate_toplevel_data(genreview=True)
-            elif self.lib_level == self.LIB_LEVEL_ARTIST:
-                bd = self.library_populate_data(genre=self.library_get_data(self.wd, 'genre'))
-            elif self.lib_level == self.LIB_LEVEL_ALBUM:
-                bd = self.library_populate_data(genre=self.library_get_data(self.wd, 'genre'), artist=self.library_get_data(self.wd, 'artist'))
-            else:
-                bd = self.library_populate_data(genre=self.library_get_data(self.wd, 'genre'), artist=self.library_get_data(self.wd, 'artist'), album=self.library_get_data(self.wd, 'album'), year=self.library_get_data(self.wd, 'year'))
+        bd = []
+        while len(bd) == 0:
+            if self.lib_view == self.VIEW_FILESYSTEM:
+                bd = self.library_populate_filesystem_data(self.library_get_data(self.wd, 'path'))
+            elif self.lib_view == self.VIEW_ALBUM:
+                album = self.library_get_data(self.wd, 'album')
+                if album is not None:
+                    artist = self.library_get_data(self.wd, 'artist')
+                    year = self.library_get_data(self.wd, 'year')
+                    bd = self.library_populate_data(artist=artist, album=album, year=year)
+                else:
+                    bd = self.library_populate_toplevel_data(albumview=True)
+            elif self.lib_view == self.VIEW_ARTIST:
+                artist = self.library_get_data(self.wd, 'artist')
+                album = self.library_get_data(self.wd, 'album')
+                if artist is not None and album is not None:
+                    year = self.library_get_data(self.wd, 'year')
+                    bd = self.library_populate_data(artist=artist, album=album, year=year)
+                elif artist is not None:
+                    bd = self.library_populate_data(artist=artist)
+                else:
+                    bd = self.library_populate_toplevel_data(artistview=True)
+            elif self.lib_view == self.VIEW_GENRE:
+                genre = self.library_get_data(self.wd, 'genre')
+                artist = self.library_get_data(self.wd, 'artist')
+                album = self.library_get_data(self.wd, 'album')
+                if genre is not None and artist is not None and album is not None:
+                    year = self.library_get_data(self.wd, 'year')
+                    bd = self.library_populate_data(genre=genre, artist=artist, album=album, year=year)
+                elif genre is not None and artist is not None:
+                    bd = self.library_populate_data(genre=genre, artist=artist)
+                elif genre is not None:
+                    bd = self.library_populate_data(genre=genre)
+                else:
+                    bd = self.library_populate_toplevel_data(genreview=True)
+
+            if len(bd) == 0:
+                # Nothing found; go up a level until we reach the top level
+                # or results are found
+                last_wd = self.wd
+                self.wd = self.library_get_parent()
+                if self.wd == last_wd:
+                    break
+
         for sort, list in bd:
             self.librarydata.append(list)
 
@@ -2152,8 +2158,6 @@ class Base(object, consts.Constants, preferences.Preferences):
             # Retain pre-update selection:
             self.library_retain_selection(prev_selection, prev_selection_root, prev_selection_parent)
 
-        self.lib_level_prev = self.lib_level
-
     def library_populate_add_parent_rows(self):
         bd = [('0', [self.harddiskpb, self.library_set_data(path='/'), '/'])]
         bd += [('1', [self.openpb, self.library_set_data(path='..'), '..'])]
@@ -2162,8 +2166,6 @@ class Base(object, consts.Constants, preferences.Preferences):
     def library_populate_filesystem_data(self, path):
         # List all dirs/files at path
         bd = []
-        if path != '/':
-            bd += self.library_populate_add_parent_rows()
         if path == '/' and self.lib_view_filesystem_cache is not None:
             # Use cache if possible...
             bd = self.lib_view_filesystem_cache
@@ -2177,6 +2179,8 @@ class Base(object, consts.Constants, preferences.Preferences):
                     data = self.library_set_data(path=mpdh.get(item, 'file'))
                     bd += [('f' + mpdh.get(item, 'file').lower(), [self.sonatapb, data, self.parse_formatting(self.libraryformat, item, True)])]
             bd.sort(key=misc.first_of_2tuple)
+            if path != '/' and len(bd) > 0:
+                bd = self.library_populate_add_parent_rows() + bd
             if path == '/':
                 self.lib_view_filesystem_cache = bd
         return bd
@@ -2278,18 +2282,18 @@ class Base(object, consts.Constants, preferences.Preferences):
     def library_populate_data(self, genre=None, artist=None, album=None, year=None):
         # Create treeview model info
         bd = []
-        bd = self.library_populate_add_parent_rows()
         if genre is not None and artist is None and album is None:
             # Artists within a genre
             artists = self.library_return_list_items('artist', genre=genre)
-            if not self.NOTAG in artists: artists.append(self.NOTAG)
-            for artist in artists:
-                playtime, num_songs = self.library_return_count(genre=genre, artist=artist)
-                if num_songs > 0:
-                    display = misc.escape_html(artist)
-                    display += self.add_display_info(num_songs, int(playtime)/60)
-                    data = self.library_set_data(genre=genre, artist=artist)
-                    bd += [(misc.lower_no_the(artist), [self.artistpb, data, display])]
+            if len(artists) > 0:
+                if not self.NOTAG in artists: artists.append(self.NOTAG)
+                for artist in artists:
+                    playtime, num_songs = self.library_return_count(genre=genre, artist=artist)
+                    if num_songs > 0:
+                        display = misc.escape_html(artist)
+                        display += self.add_display_info(num_songs, int(playtime)/60)
+                        data = self.library_set_data(genre=genre, artist=artist)
+                        bd += [(misc.lower_no_the(artist), [self.artistpb, data, display])]
         elif artist is not None and album is None:
             # Albums/songs within an artist and possibly genre
             # Albums first:
@@ -2297,28 +2301,29 @@ class Base(object, consts.Constants, preferences.Preferences):
                 albums = self.library_return_list_items('album', genre=genre, artist=artist)
             else:
                 albums = self.library_return_list_items('album', artist=artist)
-            if not self.NOTAG in albums: albums.append(self.NOTAG)
-            for album in albums:
-                if genre is not None:
-                    years = self.library_return_list_items('date', genre=genre, artist=artist, album=album)
-                else:
-                    years = self.library_return_list_items('date', artist=artist, album=album)
-                if not self.NOTAG in years: years.append(self.NOTAG)
-                for year in years:
+            if len(albums) > 0:
+                if not self.NOTAG in albums: albums.append(self.NOTAG)
+                for album in albums:
                     if genre is not None:
-                        playtime, num_songs = self.library_return_count(genre=genre, artist=artist, album=album, year=year)
-                        data = self.library_set_data(genre=genre, artist=artist, album=album, year=year)
+                        years = self.library_return_list_items('date', genre=genre, artist=artist, album=album)
                     else:
-                        playtime, num_songs = self.library_return_count(artist=artist, album=album, year=year)
-                        data = self.library_set_data(artist=artist, album=album, year=year)
-                    if num_songs > 0:
-                        display = misc.escape_html(album)
-                        if year and len(year) > 0 and year != self.NOTAG:
-                            display += " <span weight='light'>(" + misc.escape_html(year) + ")</span>"
-                        display += self.add_display_info(num_songs, int(playtime)/60)
-                        ordered_year = year
-                        if ordered_year == self.NOTAG: ordered_year = '9999'
-                        bd += [(ordered_year + misc.lower_no_the(album), [self.albumpb, data, display])]
+                        years = self.library_return_list_items('date', artist=artist, album=album)
+                    if not self.NOTAG in years: years.append(self.NOTAG)
+                    for year in years:
+                        if genre is not None:
+                            playtime, num_songs = self.library_return_count(genre=genre, artist=artist, album=album, year=year)
+                            data = self.library_set_data(genre=genre, artist=artist, album=album, year=year)
+                        else:
+                            playtime, num_songs = self.library_return_count(artist=artist, album=album, year=year)
+                            data = self.library_set_data(artist=artist, album=album, year=year)
+                        if num_songs > 0:
+                            display = misc.escape_html(album)
+                            if year and len(year) > 0 and year != self.NOTAG:
+                                display += " <span weight='light'>(" + misc.escape_html(year) + ")</span>"
+                            display += self.add_display_info(num_songs, int(playtime)/60)
+                            ordered_year = year
+                            if ordered_year == self.NOTAG: ordered_year = '9999'
+                            bd += [(ordered_year + misc.lower_no_the(album), [self.albumpb, data, display])]
             # Now, songs not in albums:
             if genre is not None:
                 songs, playtime, num_songs = self.library_return_search_items(genre=genre, artist=artist, album='')
@@ -2346,6 +2351,8 @@ class Base(object, consts.Constants, preferences.Preferences):
                     bd += [('f' + disc + track + misc.lower_no_the(mpdh.get(song, 'title')), [self.sonatapb, data, self.parse_formatting(self.libraryformat, song, True)])]
                 except:
                     bd += [('f' + disc + track + mpdh.get(song, 'file').lower(), [self.sonatapb, data, self.parse_formatting(self.libraryformat, song, True)])]
+        if len(bd) > 0:
+            bd = self.library_populate_add_parent_rows() + bd
         bd.sort(locale.strcoll, key=misc.first_of_2tuple)
         return bd
 
@@ -2372,9 +2379,10 @@ class Base(object, consts.Constants, preferences.Preferences):
                     if len(item) > 0:
                         itemlist.append(item)
         else:
-            for item in mpdh.call(self.client, 'list', type):
-                if len(item) > 0:
-                    itemlist.append(item)
+            if genre is None and artist is None and album is None and year is None:
+                for item in mpdh.call(self.client, 'list', type):
+                    if len(item) > 0:
+                        itemlist.append(item)
         if ignore_case:
             itemlist = misc.remove_list_duplicates(itemlist, case=False)
         itemlist.sort(locale.strcoll)
@@ -2407,6 +2415,9 @@ class Base(object, consts.Constants, preferences.Preferences):
                 for item in cached_list:
                     if item.lower() == type.lower():
                         itemlist.append(item)
+            if len(itemlist) == 0:
+                # There should be no results!
+                return None, cached_list
             for item in itemlist:
                 if len(searchlist) > 0:
                     for item2 in searchlist:
@@ -2420,9 +2431,13 @@ class Base(object, consts.Constants, preferences.Preferences):
     def library_compose_list_count_searchlist(self, genre=None, artist=None, album=None, year=None):
         s = []
         s, self.lib_list_genres = self.library_compose_list_count_searchlist_single(genre, 'genre', self.lib_list_genres, s)
+        if s is None: return []
         s, self.lib_list_artists = self.library_compose_list_count_searchlist_single(artist, 'artist', self.lib_list_artists, s)
+        if s is None: return []
         s, self.lib_list_albums = self.library_compose_list_count_searchlist_single(album, 'album', self.lib_list_albums, s)
+        if s is None: return []
         s, self.lib_list_years = self.library_compose_list_count_searchlist_single(year, 'date', self.lib_list_years, s)
+        if s is None: return []
         return s
 
     def library_compose_search_searchlist_single(self, type, typename, searchlist):
@@ -2550,7 +2565,27 @@ class Base(object, consts.Constants, preferences.Preferences):
             ret += d + nd
         return ret
 
-    def library_get_data(self, data, item):
+    def library_get_data_level(self, data):
+        map = {'album':0, 'artist':1, 'genre':2, 'year':3, 'path':4}
+        dl = data.split(self.LIB_DELIM)
+        if self.lib_view == self.VIEW_FILESYSTEM:
+            # Returns the number of directories down:
+            if dl[map['path']] == '/':
+                # Every other path doesn't start with "/", so
+                # start the level numbering at -1
+                return -1
+            else:
+                return dl[map['path']].count("/")
+        else:
+            # Returns the number of items stored in data, excluding
+            # the path:
+            level = 0
+            for i, item in enumerate(dl):
+                if item != self.LIB_NODATA and i != map['path']:
+                    level += 1
+            return level
+
+    def library_get_data(self, data, item, ret_string=False):
         map = {'album':0, 'artist':1, 'genre':2, 'year':3, 'path':4}
         dl = data.split(self.LIB_DELIM)
         ret = dl[map[item]]
@@ -2969,59 +3004,39 @@ class Base(object, consts.Constants, preferences.Preferences):
         elif value == self.library_set_data(path=".."):
             self.library_browse_parent(None)
         else:
-            if self.lib_view != self.VIEW_FILESYSTEM:
-                if value == self.library_set_data(path="/"):
-                    if self.lib_view == self.VIEW_ALBUM:
-                        self.lib_level = self.LIB_LEVEL_ALBUM
-                    elif self.lib_view == self.VIEW_ARTIST:
-                        self.lib_level = self.LIB_LEVEL_ARTIST
-                    elif self.lib_view == self.VIEW_GENRE:
-                        self.lib_level = self.LIB_LEVEL_GENRE
-                elif icon != self.sonatapb:
-                    self.lib_level += 1
             self.library_browse(None, value)
+
+    def library_get_parent(self):
+        if self.lib_view == self.VIEW_ALBUM:
+            value = self.library_set_data(path="/")
+        elif self.lib_view == self.VIEW_ARTIST:
+            album = self.library_get_data(self.wd, 'album')
+            if album is not None:
+                artist = self.library_get_data(self.wd, 'artist')
+                value = self.library_set_data(artist=artist)
+            else:
+                value = self.library_set_data(path="/")
+        elif self.lib_view == self.VIEW_GENRE:
+            album = self.library_get_data(self.wd, 'album')
+            artist = self.library_get_data(self.wd, 'artist')
+            if album is not None:
+                genre = self.library_get_data(self.wd, 'genre')
+                value = self.library_set_data(genre=genre, artist=artist)
+            elif artist is not None:
+                genre = self.library_get_data(self.wd, 'genre')
+                value = self.library_set_data(genre=genre)
+            else:
+                value = self.library_set_data(path="/")
+        else:
+            newvalue = '/'.join(self.library_get_data(self.wd, 'path').split('/')[:-1]) or '/'
+            value = self.library_set_data(path=newvalue)
+        return value
 
     def library_browse_parent(self, action):
         if self.current_tab == self.TAB_LIBRARY:
             if not self.library_search_visible():
                 if self.library.is_focus():
-                    if self.lib_view == self.VIEW_ALBUM:
-                        if self.lib_level > self.LIB_LEVEL_ALBUM:
-                            self.lib_level -= 1
-                            album = self.library_get_data(self.wd, 'album')
-                            album = self.library_set_data(album=album)
-                        if self.lib_level == self.LIB_LEVEL_ALBUM:
-                            value = self.library_set_data(path="/")
-                        else:
-                            album = self.library_get_data(self.wd, 'album')
-                            album = self.library_set_data(album=album)
-                    elif self.lib_view == self.VIEW_ARTIST:
-                        if self.lib_level > self.LIB_LEVEL_ARTIST:
-                            self.lib_level -= 1
-                            artist = self.library_get_data(self.wd, 'artist')
-                            value = self.library_set_data(artist=artist)
-                        if self.lib_level == self.LIB_LEVEL_ARTIST:
-                            value = self.library_set_data(path="/")
-                        else:
-                            artist = self.library_get_data(self.wd, 'artist')
-                            value = self.library_set_data(artist=artist)
-                    elif self.lib_view == self.VIEW_GENRE:
-                        if self.lib_level > self.LIB_LEVEL_GENRE:
-                            self.lib_level -= 1
-                            genre = self.library_get_data(self.wd, 'genre')
-                            value = self.library_set_data(genre=genre)
-                        if self.lib_level == self.LIB_LEVEL_GENRE:
-                            value = self.library_set_data(path="/")
-                        elif self.lib_level == self.LIB_LEVEL_ARTIST:
-                            genre = self.library_get_data(self.wd, 'genre')
-                            value = self.library_set_data(genre=genre)
-                        elif self.lib_level == self.LIB_LEVEL_ALBUM:
-                            artist = self.library_get_data(self.wd, 'artist')
-                            genre = self.library_get_data(self.wd, 'genre')
-                            value = self.library_set_data(genre=genre, artist=artist)
-                    else:
-                        newvalue = '/'.join(self.library_get_data(self.wd, 'path').split('/')[:-1]) or '/'
-                        value = self.library_set_data(path=newvalue)
+                    value = self.library_get_parent()
                     self.library_browse(None, value)
 
     def on_treeview_selection_changed(self, treeselection):

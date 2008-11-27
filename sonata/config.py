@@ -83,11 +83,6 @@ class Config:
         self.use_infofile = False
         self.infofile_path = '/tmp/xmms-info'
         self.lib_view = consts.VIEW_FILESYSTEM
-        self.lib_level = 0
-        self.lib_level_prev = -1
-        self.lib_genre = ''
-        self.lib_artist = ''
-        self.lib_album = ''
         self.art_location = consts.ART_LOCATION_HOMECOVERS
         self.art_location_custom_filename = ""
         self.lyrics_location = consts.LYRICS_LOCATION_HOME
@@ -278,8 +273,6 @@ class Config:
             path = None
             if conf.has_option('library', 'lib_view'):
                 self.lib_view = conf.getint('library', 'lib_view')
-            if conf.has_option('library', 'lib_level'):
-                self.lib_level = conf.getint('library', 'lib_level')
             if conf.has_option('library', 'lib_album'):
                 album = conf.get('library', 'lib_album')
             if conf.has_option('library', 'lib_artist'):
@@ -290,6 +283,11 @@ class Config:
                 year = conf.get('library', 'lib_year')
             if conf.has_option('library', 'lib_path'):
                 path = conf.get('library', 'lib_path')
+            if album == self.LIB_NODATA: album = None
+            if artist == self.LIB_NODATA: artist = None
+            if genre == self.LIB_NODATA: genre = None
+            if year == self.LIB_NODATA: year = None
+            if path == self.LIB_NODATA: path = None
             self.wd = self.library_set_data(album=album, artist=artist, genre=genre, year=year, path=path)
 
         if conf.has_section('currformat'):
@@ -422,13 +420,17 @@ class Config:
         genre = self.library_get_data(self.wd, 'genre')
         year = self.library_get_data(self.wd, 'year')
         path = self.library_get_data(self.wd, 'path')
+        if album is None: album = self.LIB_NODATA
+        if artist is None: artist = self.LIB_NODATA
+        if genre is None: genre = self.LIB_NODATA
+        if year is None: year = self.LIB_NODATA
+        if path is None: path = self.LIB_NODATA
         conf.add_section('library')
         conf.set('library', 'lib_album', album)
         conf.set('library', 'lib_artist', artist)
         conf.set('library', 'lib_genre', genre)
         conf.set('library', 'lib_year', year)
         conf.set('library', 'lib_path', path)
-        conf.set('library', 'lib_level', self.lib_level)
         conf.set('library', 'lib_view', self.lib_view)
 
         # Save formats for current playlist, library, etc:

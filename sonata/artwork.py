@@ -15,7 +15,7 @@ AMAZON_NS = "{http://webservices.amazon.com/AWSECommerceService/2005-10-05}"
 AMAZON_URI = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=%s&Operation=ItemSearch&SearchIndex=Music&Artist=%s&ResponseGroup=Images"
 
 class Artwork(object):
-    def __init__(self, config, is_lang_rtl, sonatacd, sonatacd_large, sonatacase, library_browse_update, info_imagebox_get_size_request, schedule_gc_collect, target_image_filename, imagelist_append, remotefilelist_append, notebook_get_allocation, allow_art_search, status_is_play_or_pause):
+    def __init__(self, config, is_lang_rtl, sonatacd, sonatacd_large, sonatacase, info_imagebox_get_size_request, schedule_gc_collect, target_image_filename, imagelist_append, remotefilelist_append, notebook_get_allocation, allow_art_search, status_is_play_or_pause):
         self.config = config
 
         # constants from main
@@ -25,7 +25,6 @@ class Artwork(object):
         self.casepb = gtk.gdk.pixbuf_new_from_file(sonatacase)
 
         # callbacks to main XXX refactor to clear this list
-        self.library_browse_update = library_browse_update
         self.info_imagebox_get_size_request = info_imagebox_get_size_request
         self.schedule_gc_collect = schedule_gc_collect
         self.target_image_filename = target_image_filename
@@ -262,9 +261,6 @@ class Artwork(object):
                     pix3 = img.pixbuf_pad(pix3, consts.FULLSCREEN_COVER_SIZE, consts.FULLSCREEN_COVER_SIZE)
                     self.fullscreenalbumimage.set_from_pixbuf(pix3)
                     del pix, pix3
-                    # Artwork for albums in the library tab
-                    if not info_img_only:
-                        self.library_browse_update()
                     self.lastalbumart = filename
                 except:
                     # If we have a 0-byte file, it should mean that
