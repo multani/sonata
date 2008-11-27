@@ -7,7 +7,6 @@ from xml.etree import ElementTree
 import gtk, gobject
 
 import img, ui, misc, mpdhelper as mpdh
-from misc import iunique
 from consts import consts
 
 AMAZON_KEY = "12DR2PGAQT303YTEWP02"
@@ -15,14 +14,11 @@ AMAZON_NS = "{http://webservices.amazon.com/AWSECommerceService/2005-10-05}"
 AMAZON_URI = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=%s&Operation=ItemSearch&SearchIndex=Music&Artist=%s&ResponseGroup=Images"
 
 class Artwork(object):
-    def __init__(self, config, is_lang_rtl, sonatacd, sonatacd_large, sonatacase, info_imagebox_get_size_request, schedule_gc_collect, target_image_filename, imagelist_append, remotefilelist_append, notebook_get_allocation, allow_art_search, status_is_play_or_pause):
+    def __init__(self, config, find_path, is_lang_rtl, info_imagebox_get_size_request, schedule_gc_collect, target_image_filename, imagelist_append, remotefilelist_append, notebook_get_allocation, allow_art_search, status_is_play_or_pause):
         self.config = config
 
         # constants from main
         self.is_lang_rtl = is_lang_rtl
-        self.sonatacd = sonatacd
-        self.sonatacd_large = sonatacd_large
-        self.casepb = gtk.gdk.pixbuf_new_from_file(sonatacase)
 
         # callbacks to main XXX refactor to clear this list
         self.info_imagebox_get_size_request = info_imagebox_get_size_request
@@ -34,8 +30,10 @@ class Artwork(object):
         self.allow_art_search = allow_art_search
         self.status_is_play_or_pause = status_is_play_or_pause
 
-        self.stop_art_update = None # flag XXX set from main too
-        self.downloading_image = False # flag XXX tested from main
+        # local pixbufs, image file names
+        self.sonatacd = find_path('sonatacd.png')
+        self.sonatacd_large = find_path('sonatacd_large.png')
+        self.casepb = gtk.gdk.pixbuf_new_from_file(find_path('sonata-case.png'))
 
         # local UI widgets provided to main by getter methods
         self.albumimage = ui.image()
@@ -50,6 +48,7 @@ class Artwork(object):
         self.fullscreen_cover_art_set_image(self.sonatacd_large)
 
         self.info_image = ui.image(y=0)
+        self.info_image.set_from_file(self.sonatacd_large)
 
         # local version of Main.songinfo mirrored by update_songinfo
         self.songinfo = None
@@ -58,6 +57,8 @@ class Artwork(object):
         self.lastalbumart = None
         self.single_img_in_dir = None
         self.misc_img_in_dir = None
+        self.stop_art_update = False
+        self.downloading_image = False
 
     def get_albumimage(self):
         return self.albumimage
@@ -100,6 +101,12 @@ class Artwork(object):
         self.trayalbumimage2.set_from_pixbuf(pix2)
         del pix1
         del pix2
+
+    def artwork_stop_update(self):
+        self.stop_art_update = True
+
+    def artwork_is_downloading_image(self):
+        return self.downloading_image
 
     def artwork_update(self, force=False):
         if force:
@@ -345,7 +352,7 @@ class Artwork(object):
                 self.downloading_image = False
                 return False
 
-        imgs = iunique(url.text for img in largeimgs for url in img.getiterator(AMAZON_NS + "URL"))
+        imgs = misc.iunique(url.text for img in largeimgs for url in img.getiterator(AMAZON_NS + "URL"))
         imglist = list(imgs)
 
         if not all_images:

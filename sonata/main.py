@@ -445,9 +445,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         else:
             self.info_imagebox = ui.eventbox(w=152)
 
-        self.sonatacd = self.find_path('sonatacd.png')
-        self.sonatacd_large = self.find_path('sonatacd_large.png')
-        self.artwork = artwork.Artwork(self.config, misc.is_lang_rtl(self.window), self.sonatacd, self.sonatacd_large, self.find_path('sonata-case.png'), self.info_imagebox.get_size_request, self.schedule_gc_collect, self.target_image_filename, self.imagelist_append, self.remotefilelist_append, self.notebook.get_allocation, self.set_allow_art_search, self.status_is_play_or_pause)
+        self.artwork = artwork.Artwork(self.config, self.find_path, misc.is_lang_rtl(self.window), self.info_imagebox.get_size_request, self.schedule_gc_collect, self.target_image_filename, self.imagelist_append, self.remotefilelist_append, self.notebook.get_allocation, self.set_allow_art_search, self.status_is_play_or_pause)
 
         # Popup menus:
         actions = (
@@ -1212,7 +1210,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.info_imagebox.connect('drag_motion', self.on_image_motion_cb)
         self.info_imagebox.connect('drag_data_received', self.on_image_drop_cb)
         inner_hbox.pack_start(self.info_imagebox, False, False, horiz_spacing)
-        gobject.idle_add(self.info_image.set_from_file, self.sonatacd_large)
 
         self.info_tagbox = gtk.VBox()
 
@@ -4783,8 +4780,8 @@ class Base(object, consts.Constants, preferences.Preferences):
         if not self.allow_art_search:
             return
         self.allow_art_search = False
-        self.artwork.stop_art_update = True
-        while self.artwork.downloading_image:
+        self.artwork.artwork_stop_update()
+        while self.artwork.artwork_is_downloading_image():
             gtk.main_iteration()
         self.imagelist.clear()
         imagewidget.set_text_column(-1)
@@ -4830,7 +4827,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.allow_art_search = True
 
     def image_remote_response(self, dialog, response_id, imagewidget, artist, album, stream):
-        self.artwork.stop_art_update = True
+        self.artwork.artwork_stop_update()
         if response_id == gtk.RESPONSE_ACCEPT:
             try:
                 self.image_remote_replace_cover(imagewidget, imagewidget.get_selected_items()[0], artist, album, stream)
@@ -4845,7 +4842,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.chooseimage_visible = False
 
     def image_remote_replace_cover(self, iconview, path, artist, album, stream):
-        self.artwork.stop_art_update = True
+        self.artwork.artwork_stop_update()
         image_num = int(path[0])
         if len(self.remotefilelist) > 0:
             filename = self.remotefilelist[image_num]
@@ -4857,7 +4854,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                 misc.remove_dir(os.path.dirname(filename))
         self.chooseimage_visible = False
         self.choose_dialog.destroy()
-        while self.artwork.downloading_image:
+        while self.artwork.artwork_is_downloading_image():
             gtk.main_iteration()
 
     def fullscreen_cover_art(self, widget):
