@@ -1,3 +1,13 @@
+"""
+This module contains the configuration variables and implements their
+initialisation, loading, and saving in a file.
+
+Example usage:
+import config
+...
+# XXX We shouldn't have the default values contain localised parts:
+self.config = config.Config(_('Default Profile'), _("by") + " %A " + _("from") + " %B")
+"""
 
 import os, hashlib
 import ConfigParser
@@ -6,6 +16,15 @@ from consts import consts
 import misc
 
 class Config:
+    """This class contains the configuration variables as attributes.
+
+    Each new variable should be initialised to its default value
+    in __init__, loaded from a file in settings_load_real, and
+    saved to a file in settings_save_real.
+
+    XXX This is mostly ConfigParser plus some custom serialization work.
+    XXX Preferences and Base currently inherit from us.
+    """
     def __init__(self, default_profile_name, currsongformat2):
         # the config settings:
         self.profile_num = 0
@@ -104,6 +123,7 @@ class Config:
         self.traytips_notifications_location = 0
 
     def settings_load_real(self):
+        """Load configuration from file"""
         # Load config
         conf = ConfigParser.ConfigParser()
         misc.create_dir('~/.config/sonata/')
@@ -300,6 +320,7 @@ class Config:
                 self.profile_num = 0
 
     def settings_save_real(self):
+        """Save configuration in file"""
         conf = ConfigParser.ConfigParser()
         conf.add_section('profiles')
         conf.set('profiles', 'num_profiles', len(self.profile_names))
