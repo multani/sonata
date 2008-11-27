@@ -2,7 +2,6 @@ v1.6
 	lib modes
 		- threaded method for artwork (also fetch new covers? also detailed info?)
 		- # albums for various lib modes (in addition to or instead of existing info?)
-		- songs with untagged album name show up twice under, e.g., untagged artists
 	support for new idle command (waiting on python-mpd)
 	work with mpd's new "allow authenticated local users to add any local file to the playlist"
 		- waiting on python-mpd to implement unix socket paths

@@ -2275,7 +2275,6 @@ class Base(object, consts.Constants, preferences.Preferences):
                     and self.library_get_data(list[i], 'year') == self.library_get_data(list[i+j], 'year'):
                         list.pop(i+j)
                     else:
-
                         break
         return list
 
@@ -2301,29 +2300,27 @@ class Base(object, consts.Constants, preferences.Preferences):
                 albums = self.library_return_list_items('album', genre=genre, artist=artist)
             else:
                 albums = self.library_return_list_items('album', artist=artist)
-            if len(albums) > 0:
-                if not self.NOTAG in albums: albums.append(self.NOTAG)
-                for album in albums:
+            for album in albums:
+                if genre is not None:
+                    years = self.library_return_list_items('date', genre=genre, artist=artist, album=album)
+                else:
+                    years = self.library_return_list_items('date', artist=artist, album=album)
+                if not self.NOTAG in years: years.append(self.NOTAG)
+                for year in years:
                     if genre is not None:
-                        years = self.library_return_list_items('date', genre=genre, artist=artist, album=album)
+                        playtime, num_songs = self.library_return_count(genre=genre, artist=artist, album=album, year=year)
+                        data = self.library_set_data(genre=genre, artist=artist, album=album, year=year)
                     else:
-                        years = self.library_return_list_items('date', artist=artist, album=album)
-                    if not self.NOTAG in years: years.append(self.NOTAG)
-                    for year in years:
-                        if genre is not None:
-                            playtime, num_songs = self.library_return_count(genre=genre, artist=artist, album=album, year=year)
-                            data = self.library_set_data(genre=genre, artist=artist, album=album, year=year)
-                        else:
-                            playtime, num_songs = self.library_return_count(artist=artist, album=album, year=year)
-                            data = self.library_set_data(artist=artist, album=album, year=year)
-                        if num_songs > 0:
-                            display = misc.escape_html(album)
-                            if year and len(year) > 0 and year != self.NOTAG:
-                                display += " <span weight='light'>(" + misc.escape_html(year) + ")</span>"
-                            display += self.add_display_info(num_songs, int(playtime)/60)
-                            ordered_year = year
-                            if ordered_year == self.NOTAG: ordered_year = '9999'
-                            bd += [(ordered_year + misc.lower_no_the(album), [self.albumpb, data, display])]
+                        playtime, num_songs = self.library_return_count(artist=artist, album=album, year=year)
+                        data = self.library_set_data(artist=artist, album=album, year=year)
+                    if num_songs > 0:
+                        display = misc.escape_html(album)
+                        if year and len(year) > 0 and year != self.NOTAG:
+                            display += " <span weight='light'>(" + misc.escape_html(year) + ")</span>"
+                        display += self.add_display_info(num_songs, int(playtime)/60)
+                        ordered_year = year
+                        if ordered_year == self.NOTAG: ordered_year = '9999'
+                        bd += [(ordered_year + misc.lower_no_the(album), [self.albumpb, data, display])]
             # Now, songs not in albums:
             if genre is not None:
                 songs, playtime, num_songs = self.library_return_search_items(genre=genre, artist=artist, album='')
