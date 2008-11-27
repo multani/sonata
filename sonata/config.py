@@ -97,7 +97,7 @@ class Config:
         self.as_password_md5 = ""
 
         self.url_browser = ""
-        self.wd = None
+        self.wd = self.library_set_data(path="/")
 
         self.info_song_expanded = True
         self.info_lyrics_expanded = True
@@ -242,6 +242,7 @@ class Config:
             self.info_art_enlarged = conf.getboolean('player', 'info_art_enlarged')
         if conf.has_option('player', 'existing_playlist'):
             self.existing_playlist_option = conf.getint('player', 'existing_playlist')
+
         if conf.has_section('notebook'):
             if conf.has_option('notebook', 'current_tab_visible'):
                 self.current_tab_visible = conf.getboolean('notebook', 'current_tab_visible')
@@ -268,13 +269,29 @@ class Config:
             if conf.has_option('notebook', 'info_tab_pos'):
                 try: self.info_tab_pos = conf.getint('notebook', 'info_tab_pos')
                 except: pass
+
         if conf.has_section('library'):
-            if conf.has_option('library', 'lib_info'):
-                self.wd = consts.LIB_DELIM.join(conf.get('library', 'lib_info').split(","))
-            if conf.has_option('library', 'lib_level'):
-                self.lib_level = conf.getint('library', 'lib_level')
+            album = None
+            artist = None
+            genre = None
+            year = None
+            path = None
             if conf.has_option('library', 'lib_view'):
                 self.lib_view = conf.getint('library', 'lib_view')
+            if conf.has_option('library', 'lib_level'):
+                self.lib_level = conf.getint('library', 'lib_level')
+            if conf.has_option('library', 'lib_album'):
+                album = conf.get('library', 'lib_album')
+            if conf.has_option('library', 'lib_artist'):
+                artist = conf.get('library', 'lib_artist')
+            if conf.has_option('library', 'lib_genre'):
+                genre = conf.get('library', 'lib_genre')
+            if conf.has_option('library', 'lib_year'):
+                year = conf.get('library', 'lib_year')
+            if conf.has_option('library', 'lib_path'):
+                path = conf.get('library', 'lib_path')
+            self.wd = self.library_set_data(album=album, artist=artist, genre=genre, year=year, path=path)
+
         if conf.has_section('currformat'):
             if conf.has_option('currformat', 'current'):
                 self.currentformat = conf.get('currformat', 'current')
@@ -286,6 +303,7 @@ class Config:
                 self.currsongformat1 = conf.get('currformat', 'currsong1')
             if conf.has_option('currformat', 'currsong2'):
                 self.currsongformat2 = conf.get('currformat', 'currsong2')
+
         if conf.has_option('streams', 'num_streams'):
             num_streams = conf.getint('streams', 'num_streams')
             self.stream_names = []
@@ -322,6 +340,7 @@ class Config:
     def settings_save_real(self):
         """Save configuration in file"""
         conf = ConfigParser.ConfigParser()
+
         conf.add_section('profiles')
         conf.set('profiles', 'num_profiles', len(self.profile_names))
         for i in range(len(self.profile_names)):
@@ -333,6 +352,7 @@ class Config:
         conf.add_section('connection')
         conf.set('connection', 'auto', self.autoconnect)
         conf.set('connection', 'profile_num', self.profile_num)
+
         conf.add_section('player')
         conf.set('player', 'w', self.w)
         conf.set('player', 'h', self.h)
@@ -382,30 +402,44 @@ class Config:
         conf.set('player', 'show_header', self.show_header)
         conf.set('player', 'tabs_expanded', self.tabs_expanded)
         conf.set('player', 'browser', self.url_browser)
+
+        # Save tab positions and visibility:
         conf.add_section('notebook')
-        # Save tab positions:
         conf.set('notebook', 'current_tab_visible', self.current_tab_visible)
         conf.set('notebook', 'library_tab_visible', self.library_tab_visible)
         conf.set('notebook', 'playlists_tab_visible', self.playlists_tab_visible)
         conf.set('notebook', 'streams_tab_visible', self.streams_tab_visible)
         conf.set('notebook', 'info_tab_visible', self.info_tab_visible)
-
         conf.set('notebook', 'current_tab_pos', self.current_tab_pos)
         conf.set('notebook', 'library_tab_pos', self.library_tab_pos)
         conf.set('notebook', 'playlists_tab_pos', self.playlists_tab_pos)
         conf.set('notebook', 'streams_tab_pos', self.streams_tab_pos)
         conf.set('notebook', 'info_tab_pos', self.info_tab_pos)
+
+        # Save current library browsing state:
+        album = self.library_get_data(self.wd, 'album')
+        artist = self.library_get_data(self.wd, 'artist')
+        genre = self.library_get_data(self.wd, 'genre')
+        year = self.library_get_data(self.wd, 'year')
+        path = self.library_get_data(self.wd, 'path')
         conf.add_section('library')
-        conf.set('library', 'lib_info', ",".join(self.wd.split(consts.LIB_DELIM)))
+        conf.set('library', 'lib_album', album)
+        conf.set('library', 'lib_artist', artist)
+        conf.set('library', 'lib_genre', genre)
+        conf.set('library', 'lib_year', year)
+        conf.set('library', 'lib_path', path)
         conf.set('library', 'lib_level', self.lib_level)
         conf.set('library', 'lib_view', self.lib_view)
-        # New format
+
+        # Save formats for current playlist, library, etc:
         conf.add_section('currformat')
         conf.set('currformat', 'current', self.currentformat)
         conf.set('currformat', 'library', self.libraryformat)
         conf.set('currformat', 'title', self.titleformat)
         conf.set('currformat', 'currsong1', self.currsongformat1)
         conf.set('currformat', 'currsong2', self.currsongformat2)
+
+        # Save streams:
         conf.add_section('streams')
         conf.set('streams', 'num_streams', len(self.stream_names))
         for i in range(len(self.stream_names)):
@@ -415,5 +449,6 @@ class Config:
         conf.set('audioscrobbler', 'use_audioscrobbler', self.as_enabled)
         conf.set('audioscrobbler', 'username', self.as_username)
         conf.set('audioscrobbler', 'password_md5', self.as_password_md5)
+
         conf.write(file(os.path.expanduser('~/.config/sonata/sonatarc'), 'w'))
 

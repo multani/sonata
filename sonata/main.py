@@ -2059,10 +2059,10 @@ class Base(object, consts.Constants, preferences.Preferences):
         if not self.conn:
             return
 
-        if root is None or (self.lib_view == self.VIEW_FILESYSTEM and self.library_get_data(root, 'file') is None):
-            root = self.library_set_data(file="/")
-        if self.wd is None or (self.lib_view == self.VIEW_FILESYSTEM and self.library_get_data(self.wd, 'file') is None):
-            self.wd = self.library_set_data(file="/")
+        if root is None or (self.lib_view == self.VIEW_FILESYSTEM and self.library_get_data(root, 'path') is None):
+            root = self.library_set_data(path="/")
+        if self.wd is None or (self.lib_view == self.VIEW_FILESYSTEM and self.library_get_data(self.wd, 'path') is None):
+            self.wd = self.library_set_data(path="/")
 
         prev_selection = []
         prev_selection_root = False
@@ -2085,7 +2085,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             path_updated = False
 
         # The logic below is more consistent with, e.g., thunar.
-        if (self.lib_view == self.VIEW_FILESYSTEM and len(self.library_get_data(root, 'file')) > len(self.library_get_data(self.wd, 'file'))) \
+        if (self.lib_view == self.VIEW_FILESYSTEM and len(self.library_get_data(root, 'path')) > len(self.library_get_data(self.wd, 'path'))) \
         or (self.lib_view != self.VIEW_FILESYSTEM and self.lib_level > self.lib_level_prev):
             # Save position and row for where we just were if we've
             # navigated into a sub-directory:
@@ -2118,7 +2118,7 @@ class Base(object, consts.Constants, preferences.Preferences):
 
         # Populate treeview with data:
         if self.lib_view == self.VIEW_FILESYSTEM:
-            bd = self.library_populate_filesystem_data(self.library_get_data(self.wd, 'file'))
+            bd = self.library_populate_filesystem_data(self.library_get_data(self.wd, 'path'))
         elif self.lib_view == self.VIEW_ALBUM:
             if self.lib_level == self.LIB_LEVEL_SONG:
                 bd = self.library_populate_data(artist=self.library_get_data(self.wd, 'artist'), album=self.library_get_data(self.wd, 'album'), year=self.library_get_data(self.wd, 'year'))
@@ -2155,8 +2155,8 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.lib_level_prev = self.lib_level
 
     def library_populate_add_parent_rows(self):
-        bd = [('0', [self.harddiskpb, self.library_set_data(file='/'), '/'])]
-        bd += [('1', [self.openpb, self.library_set_data(file='..'), '..'])]
+        bd = [('0', [self.harddiskpb, self.library_set_data(path='/'), '/'])]
+        bd += [('1', [self.openpb, self.library_set_data(path='..'), '..'])]
         return bd
 
     def library_populate_filesystem_data(self, path):
@@ -2171,10 +2171,10 @@ class Base(object, consts.Constants, preferences.Preferences):
             for item in mpdh.call(self.client, 'lsinfo', path):
                 if item.has_key('directory'):
                     name = mpdh.get(item, 'directory').split('/')[-1]
-                    data = self.library_set_data(file=mpdh.get(item, 'directory'))
+                    data = self.library_set_data(path=mpdh.get(item, 'directory'))
                     bd += [('d' + name.lower(), [self.openpb, data, misc.escape_html(name)])]
                 elif item.has_key('file'):
-                    data = self.library_set_data(file=mpdh.get(item, 'file'))
+                    data = self.library_set_data(path=mpdh.get(item, 'file'))
                     bd += [('f' + mpdh.get(item, 'file').lower(), [self.sonatapb, data, self.parse_formatting(self.libraryformat, item, True)])]
             bd.sort(key=misc.first_of_2tuple)
             if path == '/':
@@ -2325,7 +2325,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             else:
                 songs, playtime, num_songs = self.library_return_search_items(artist=artist, album='')
             for song in songs:
-                data = self.library_set_data(file=mpdh.get(song, 'file'))
+                data = self.library_set_data(path=mpdh.get(song, 'file'))
                 track = mpdh.getnum(song, 'track', '99', False, 2)
                 disc = mpdh.getnum(song, 'disc', '99', False, 2)
                 try:
@@ -2339,7 +2339,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             else:
                 songs, playtime, num_songs = self.library_return_search_items(artist=artist, album=album, year=year)
             for song in songs:
-                data = self.library_set_data(file=mpdh.get(song, 'file'))
+                data = self.library_set_data(path=mpdh.get(song, 'file'))
                 track = mpdh.getnum(song, 'track', '99', False, 2)
                 disc = mpdh.getnum(song, 'disc', '99', False, 2)
                 try:
@@ -2525,7 +2525,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                 except:
                     pass
 
-    def library_set_data(self, album=None, artist=None, genre=None, year=None, file=None):
+    def library_set_data(self, album=None, artist=None, genre=None, year=None, path=None):
         d = self.LIB_DELIM
         nd = self.LIB_NODATA
         if album is not None:
@@ -2544,14 +2544,14 @@ class Base(object, consts.Constants, preferences.Preferences):
             ret += d + year
         else:
             ret += d + nd
-        if file is not None:
-            ret += d + file
+        if path is not None:
+            ret += d + path
         else:
             ret += d + nd
         return ret
 
     def library_get_data(self, data, item):
-        map = {'album':0, 'artist':1, 'genre':2, 'year':3, 'file':4}
+        map = {'album':0, 'artist':1, 'genre':2, 'year':3, 'path':4}
         dl = data.split(self.LIB_DELIM)
         ret = dl[map[item]]
         if ret == self.LIB_NODATA:
@@ -2966,11 +2966,11 @@ class Base(object, consts.Constants, preferences.Preferences):
         if icon == self.sonatapb:
             # Song found, add item
             self.on_add_item(self.library)
-        elif value == self.library_set_data(file=".."):
+        elif value == self.library_set_data(path=".."):
             self.library_browse_parent(None)
         else:
             if self.lib_view != self.VIEW_FILESYSTEM:
-                if value == self.library_set_data(file="/"):
+                if value == self.library_set_data(path="/"):
                     if self.lib_view == self.VIEW_ALBUM:
                         self.lib_level = self.LIB_LEVEL_ALBUM
                     elif self.lib_view == self.VIEW_ARTIST:
@@ -2991,7 +2991,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                             album = self.library_get_data(self.wd, 'album')
                             album = self.library_set_data(album=album)
                         if self.lib_level == self.LIB_LEVEL_ALBUM:
-                            value = self.library_set_data(file="/")
+                            value = self.library_set_data(path="/")
                         else:
                             album = self.library_get_data(self.wd, 'album')
                             album = self.library_set_data(album=album)
@@ -3001,7 +3001,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                             artist = self.library_get_data(self.wd, 'artist')
                             value = self.library_set_data(artist=artist)
                         if self.lib_level == self.LIB_LEVEL_ARTIST:
-                            value = self.library_set_data(file="/")
+                            value = self.library_set_data(path="/")
                         else:
                             artist = self.library_get_data(self.wd, 'artist')
                             value = self.library_set_data(artist=artist)
@@ -3011,7 +3011,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                             genre = self.library_get_data(self.wd, 'genre')
                             value = self.library_set_data(genre=genre)
                         if self.lib_level == self.LIB_LEVEL_GENRE:
-                            value = self.library_set_data(file="/")
+                            value = self.library_set_data(path="/")
                         elif self.lib_level == self.LIB_LEVEL_ARTIST:
                             genre = self.library_get_data(self.wd, 'genre')
                             value = self.library_set_data(genre=genre)
@@ -3020,8 +3020,8 @@ class Base(object, consts.Constants, preferences.Preferences):
                             genre = self.library_get_data(self.wd, 'genre')
                             value = self.library_set_data(genre=genre, artist=artist)
                     else:
-                        newvalue = '/'.join(self.library_get_data(self.wd, 'file').split('/')[:-1]) or '/'
-                        value = self.library_set_data(file=newvalue)
+                        newvalue = '/'.join(self.library_get_data(self.wd, 'path').split('/')[:-1]) or '/'
+                        value = self.library_set_data(path=newvalue)
                     self.library_browse(None, value)
 
     def on_treeview_selection_changed(self, treeselection):
@@ -3108,20 +3108,20 @@ class Base(object, consts.Constants, preferences.Preferences):
                 artist = self.library_get_data(data, 'artist')
                 year = self.library_get_data(data, 'year')
                 genre = self.library_get_data(data, 'genre')
-                file = self.library_get_data(data, 'file')
-                if file is not None and album is None and artist is None and year is None and genre is None:
+                path = self.library_get_data(data, 'path')
+                if path is not None and album is None and artist is None and year is None and genre is None:
                     if pb == self.sonatapb:
                         # File
-                        items.append(file)
+                        items.append(path)
                     else:
                         # Directory
                         if not return_root:
                             list = []
-                            self.library_get_path_files_recursive(file, list)
+                            self.library_get_path_files_recursive(path, list)
                             for item in list:
                                 items.append(item)
                         else:
-                            items.append(file)
+                            items.append(path)
                 else:
                     results, playtime, num_songs = self.library_return_search_items(genre=genre, artist=artist, album=album, year=year)
                     for item in results:
@@ -6047,7 +6047,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         newlist = []
         for item in matches:
             if item.has_key('file'):
-                newlist.append([self.sonatapb, self.library_set_data(file=mpdh.get(item, 'file')), self.parse_formatting(self.libraryformat, item, True)])
+                newlist.append([self.sonatapb, self.library_set_data(path=mpdh.get(item, 'file')), self.parse_formatting(self.libraryformat, item, True)])
         for i, item in enumerate(newlist):
             if i < currlen:
                 iter = self.librarydata.get_iter((i, ))
