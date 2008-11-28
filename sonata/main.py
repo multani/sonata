@@ -1791,7 +1791,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             for mediabutton in (self.ppbutton, self.stopbutton, self.prevbutton, self.nextbutton, self.volumebutton):
                 mediabutton.set_property('sensitive', True)
             if self.sonata_loaded:
-                self.library_browse(root='/')
+                self.library_browse(self.library_set_data(path="/"))
             self.playlists_populate()
             self.on_notebook_page_change(self.notebook, 0, self.notebook.get_current_page())
 
