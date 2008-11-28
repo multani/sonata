@@ -2399,13 +2399,15 @@ class Base(object, consts.Constants, preferences.Preferences):
 
     def library_compose_list_count_searchlist_single(self, type, typename, cached_list, searchlist):
         s = []
-        if type is not None:
+        skip_type = (typename == 'artist' and type == self.VAstr)
+        if type is not None and not skip_type:
             if type == self.NOTAG:
                 itemlist = [type, '']
             else:
                 itemlist = []
                 if cached_list is None:
                     cached_list = self.library_return_list_items(typename, ignore_case=False)
+                    cached_list.append('') # This allows us to match untagged items
                 for item in cached_list:
                     if item.lower() == type.lower():
                         itemlist.append(item)
