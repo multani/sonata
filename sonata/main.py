@@ -5753,8 +5753,12 @@ class Base(object, consts.Constants, preferences.Preferences):
             temp_mpdpaths = self.current_get_selected_filenames(False)
             files = self.current_get_selected_filenames(True)
 
-        tageditor = tagedit.TagEditor(self.window, self.tags_mpd_update)
+        tageditor = tagedit.TagEditor(self.window, self.tags_mpd_update, self.tags_set_use_mpdpath)
+        tageditor.set_use_mpdpaths(self.tags_use_mpdpath)
         tageditor.on_tags_edit(files, temp_mpdpaths, self.musicdir[self.profile_num])
+
+    def tags_set_use_mpdpath(self, use_mpdpath):
+        self.tags_use_mpdpath = use_mpdpath
 
     def tags_mpd_update(self, tags, tagnum):
         if tags:

@@ -9,15 +9,14 @@ import ui, misc
 
 
 class TagEditor():
-    def __init__(self, window, tags_mpd_update):
+    def __init__(self, window, tags_mpd_update, tags_set_use_mpdpath):
         self.window = window
         self.tags_mpd_update = tags_mpd_update
+        self.tags_set_use_mpdpath = tags_set_use_mpdpath
 
         self.tagpy_is_91 = None
         self.edit_style_orig = None
-
-        self.tagnum = -1
-        self.updating_edit_entries = False
+        self.filelabel = None
 
     def on_tags_edit(self, files, temp_mpdpaths, music_dir):
         # Try loading module
@@ -47,7 +46,9 @@ class TagEditor():
             ui.change_cursor(None)
             return
 
-        # Initialize tags:
+        # Initialize:
+        self.tagnum = -1
+        self.updating_edit_entries = False
         tags = []
         for filenum in range(len(files)):
             tags.append({'title':'', 'artist':'', 'album':'', 'year':'',
@@ -69,12 +70,20 @@ class TagEditor():
         editwindow.set_size_request(375, -1)
         table = gtk.Table(9, 2, False)
         table.set_row_spacings(2)
-        filelabel = ui.label(select=True, wrap=True)
+        self.filelabel = ui.label(select=True, wrap=True)
         filehbox = gtk.HBox()
         sonataicon = ui.image(stock='sonata', stocksize=gtk.ICON_SIZE_DND, x=1)
-        blanklabel = ui.label(w=15, h=12)
+        expandbutton = ui.button(" ")
+        self.set_expandbutton_state(expandbutton)
+        expandvbox = gtk.VBox()
+        expandvbox.pack_start(ui.label(), True, True)
+        expandvbox.pack_start(expandbutton, False, False)
+        expandvbox.pack_start(ui.label(), True, True)
+        expandbutton.connect('clicked', self.toggle_path)
+        blanklabel = ui.label(w=5, h=12)
         filehbox.pack_start(sonataicon, False, False, 2)
-        filehbox.pack_start(filelabel, True, True, 2)
+        filehbox.pack_start(self.filelabel, True, True, 2)
+        filehbox.pack_start(expandvbox, False, False, 2)
         filehbox.pack_start(blanklabel, False, False, 2)
         titlelabel = ui.label(text=_("Title") + ":", x=1)
         titleentry = ui.entry()
@@ -157,7 +166,7 @@ class TagEditor():
         cancelbutton = editwindow.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT)
         savebutton = editwindow.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT)
         editwindow.connect('delete_event', self.tags_win_hide, tags)
-        entries = [titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, filelabel]
+        entries = [titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, self.filelabel]
         buttons = [titlebutton, artistbutton, albumbutton, yearbutton, trackbutton, genrebutton, commentbutton]
         entries_names = ["title", "artist", "album", "year", "track", "genre", "comment"]
         editwindow.connect('response', self.tags_win_response, tags, entries, entries_names)
@@ -169,7 +178,7 @@ class TagEditor():
             buttons[i].connect('clicked', self.tags_win_apply_all, entries_names[i], tags, entries)
         self.tags_win_update(editwindow, tags, entries, entries_names)
         ui.change_cursor(None)
-        entries[7].set_size_request(editwindow.size_request()[0] - titlelabel.size_request()[0] - 50, -1)
+        entries[7].set_size_request(editwindow.size_request()[0] - titlelabel.size_request()[0] - 70, -1)
         editwindow.show_all()
         # Need to get the entry style after the window has been shown
         self.edit_style_orig = titleentry.get_style()
@@ -274,7 +283,10 @@ class TagEditor():
             entries[4].set_text('')
         entries[5].set_text(self.tags_get_tag(tags[self.tagnum], 'genre'))
         entries[6].set_text(self.tags_get_tag(tags[self.tagnum], 'comment'))
-        filename = gobject.filename_display_name(tags[self.tagnum]['mpdpath'].split('/')[-1])
+        self.curr_mpdpath = gobject.filename_display_name(tags[self.tagnum]['mpdpath'])
+        filename = self.curr_mpdpath
+        if not self.use_mpdpaths:
+            filename = filename.split('/')[-1]
         entries[7].set_text(filename)
         entries[0].select_region(0, len(entries[0].get_text()))
         entries[0].grab_focus()
@@ -402,6 +414,7 @@ class TagEditor():
     def tags_win_hide(self, window, data=None, tags=None):
         gobject.idle_add(self.tags_mpd_update, tags, self.tagnum)
         window.destroy()
+        self.tags_set_use_mpdpath(self.use_mpdpaths)
 
     def tags_win_genres(self):
         return ["", "A Cappella", "Acid", "Acid Jazz", "Acid Punk", "Acoustic",
@@ -451,3 +464,22 @@ class TagEditor():
         gobject.idle_add(lambda t: t.set_position(t.get_position()+1), entry)
         entry.stop_emission("insert-text")
         pass
+
+    def toggle_path(self, button):
+        self.use_mpdpaths = not self.use_mpdpaths
+        if self.use_mpdpaths:
+            self.filelabel.set_text(self.curr_mpdpath)
+        else:
+            self.filelabel.set_text(self.curr_mpdpath.split('/')[-1])
+        self.set_expandbutton_state(button)
+
+    def set_expandbutton_state(self, button):
+        if self.use_mpdpaths:
+            button.get_child().set_markup('<small>&lt;</small>')
+            button.set_tooltip_text(_("Hide file path"))
+        else:
+            button.get_child().set_markup('<small>&gt;</small>')
+            button.set_tooltip_text(_("Show file path"))
+
+    def set_use_mpdpaths(self, use_mpdpaths):
+        self.use_mpdpaths = use_mpdpaths

@@ -1,9 +1,10 @@
 v1.6
-	+ Album mode, additional details in library
+	+ Album mode, additional details in library views
 	+ Real-time searching of library (search as you type)
 	+ Fullscreen artwork covers mode (via right-click on artwork) (mips)
 	+ Show file path in tooltip for library search results
 	+ DND to copy files from Sonata to a file manager (Kamil)
+	+ Ability to show path in tag editing window
 	+ Use plchanges for faster performance of some actions (e.g. add to playlist)
 	+ Only minimize to tray on trayicon click if focused; raise if not focused
 	+ Use new 'listplaylists' command for retrieving playlists
