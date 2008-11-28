@@ -1,4 +1,15 @@
 
+"""
+This module provides a user interface for changing configuration
+variables.
+
+Example usage:
+import preferences
+...
+prefs = preferences.Preferences()
+prefs.on_prefs_real(self.window, ...a huge list of callbacks..., self.prefs_window_response)
+"""
+
 import gettext, os, hashlib
 
 import gtk
@@ -8,11 +19,16 @@ from config import Config
 import ui
 import misc
 
-## FIXME: remove
-#_ = lambda x:x
-
-# FIXME: Don't inherit from Config
 class Preferences(Config):
+    """This class implements a preferences dialog for changing
+    configuration variables.
+
+    Many changes are applied instantly with respective
+    callbacks. Closing the dialog causes a response callback.
+
+    XXX Preferences currently subclasses Config.
+    XXX We don't call Config.__init__, Base does that.
+    """
     def __init__(self):
         try:
             gettext.install('sonata', os.path.join(__file__.split('/lib')[0], 'share', 'locale'), unicode=1)
@@ -22,9 +38,6 @@ class Preferences(Config):
 
         # Constants:
         self.popuplocations = [_('System tray'), _('Top Left'), _('Top Right'), _('Bottom Left'), _('Bottom Right'), _('Screen Center')]
-
-#	XXX	self.window = parent_window
-#		self.window = self.window
 
         # These mirror the audioscrobbler module in Main
         self.as_imported = None
@@ -45,6 +58,7 @@ class Preferences(Config):
         self.prev_port = None
 
     def on_prefs_real(self, parent_window, popuptimes, as_imported, as_import, as_init, as_reauth, trayicon_available, trayicon_in_use, reconnect, renotify, reinfofile, prefs_notif_toggled, prefs_stylized_toggled, prefs_art_toggled, prefs_playback_toggled, prefs_progress_toggled, prefs_statusbar_toggled, prefs_lyrics_toggled, prefs_trayicon_toggled, prefs_window_response):
+        """Display the preferences dialog"""
         self.window = parent_window
         self.as_imported = as_imported
         self.as_import = as_import
