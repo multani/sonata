@@ -37,11 +37,10 @@ import mpdhelper as mpdh
 from socket import getdefaulttimeout as socketgettimeout
 from socket import setdefaulttimeout as socketsettimeout
 
-import consts, config, preferences, tagedit, artwork, about
+import consts, config, preferences, tagedit, artwork, about, scrobbler
 
 ElementTree = None
 ServiceProxy = None
-audioscrobbler = None
 
 all_args = ["toggle", "version", "status", "info", "play", "pause",
             "stop", "next", "prev", "pp", "random", "repeat", "hidden",
@@ -359,16 +358,10 @@ class Base(object, consts.Constants, preferences.Preferences):
 
         self.eggtrayfile = None
         self.eggtrayheight = None
-        self.scrob = None
-        self.scrob_post = None
-        self.scrob_start_time = ""
-        self.scrob_playing_duration = 0
-        self.scrob_last_prepared = ""
-        self.scrob_time_now = None
+
         self.sel_rows = None
         self.img_clicked = False
 
-        self.elapsed_now = None
         self.current_update_skip = False
         self.libsearch_last_tooltip = None
 
@@ -636,8 +629,9 @@ class Base(object, consts.Constants, preferences.Preferences):
             show_prefs = True
 
         # Audioscrobbler
-        self.scrobbler_import()
-        self.scrobbler_init()
+        self.scrobbler = scrobbler.Scrobbler(self.config)
+        self.scrobbler.import_module()
+        self.scrobbler.init()
 
         # Main app:
         self.UIManager = gtk.UIManager()
@@ -1659,7 +1653,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         if self.as_enabled:
             # We update this here because self.handle_change_status() won't be
             # called while the client is paused.
-            self.scrob_time_now = time.time()
+            self.scrobbler.iterate()
         if self.songinfo != self.prevsonginfo:
             self.handle_change_song()
 
@@ -3413,38 +3407,16 @@ class Base(object, consts.Constants, preferences.Preferences):
                     self.info_update(True)
 
         if self.as_enabled:
-            if self.status and self.status['state'] == 'play':
-                elapsed_prev = self.elapsed_now
-                self.elapsed_now, length = [float(c) for c in self.status['time'].split(':')]
-                if not self.prevstatus or (self.prevstatus and self.prevstatus['state'] == 'stop'):
-                    # Switched from stop to play, prepare current track:
-                    self.scrobbler_prepare()
-                elif self.prevsonginfo and self.prevsonginfo.has_key('time') \
-                and (self.scrob_last_prepared != mpdh.get(self.songinfo, 'file') or \
-                (self.scrob_last_prepared == mpdh.get(self.songinfo, 'file') and elapsed_prev \
-                and abs(elapsed_prev-length)<=2 and self.elapsed_now<=2 and length>0)):
-                    # New song is playing, post previous track if time criteria is met.
-                    # In order to account for the situation where the same song is played twice in
-                    # a row, we will check if the previous time was the end of the song and we're
-                    # now at the beginning of the same song.. this technically isn't right in
-                    # the case where a user seeks back to the beginning, but that's an edge case.
-                    if self.scrob_playing_duration > 4 * 60 or self.scrob_playing_duration > int(mpdh.get(self.prevsonginfo, 'time'))/2:
-                        if self.scrob_start_time != "":
-                            self.scrobbler_post()
-                    # Prepare current track:
-                    self.scrobbler_prepare()
-                elif self.scrob_time_now:
-                    # Keep track of the total amount of time that the current song
-                    # has been playing:
-                    self.scrob_playing_duration += time.time() - self.scrob_time_now
-            elif self.status and self.status['state'] == 'stop':
-                self.elapsed_now = 0
-                if self.prevsonginfo and self.prevsonginfo.has_key('time'):
-                    if self.scrob_playing_duration > 4 * 60 or self.scrob_playing_duration > int(mpdh.get(self.prevsonginfo, 'time'))/2:
-                        # User stopped the client, post previous track if time
-                        # criteria is met:
-                        if self.scrob_start_time != "":
-                            self.scrobbler_post()
+            playing = self.status and self.status['state'] == 'play'
+            stopped = self.status and self.status['state'] == 'stop'
+
+            if playing:
+                mpd_time_now = self.status['time']
+                switched_from_stop_to_play = not self.prevstatus or (self.prevstatus and self.prevstatus['state'] == 'stop')
+
+                self.scrobbler.handle_change_status(True, self.prevsonginfo, self.songinfo, switched_from_stop_to_play, mpd_time_now)
+            elif stopped:
+                self.scrobbler.handle_change_status(False, self.prevsonginfo)
 
     def album_get_artist(self):
         if self.songinfo and self.songinfo.has_key('album'):
@@ -3481,97 +3453,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.update_wintitle()
         self.artwork.artwork_update()
         self.info_update(True)
-
-    def scrobbler_prepare(self):
-        if audioscrobbler is not None:
-            self.scrob_start_time = ""
-            self.scrob_last_prepared = ""
-            self.scrob_playing_duration = 0
-
-            if self.as_enabled and self.songinfo:
-                # No need to check if the song is 30 seconds or longer,
-                # audioscrobbler.py takes care of that.
-                if self.songinfo.has_key('time'):
-                    self.scrobbler_np()
-
-                    self.scrob_start_time = str(int(time.time()))
-                    self.scrob_last_prepared = mpdh.get(self.songinfo, 'file')
-
-    def scrobbler_np(self):
-        thread = threading.Thread(target=self.scrobbler_do_np)
-        thread.setDaemon(True)
-        thread.start()
-
-    def scrobbler_do_np(self):
-        self.scrobbler_init()
-        if self.as_enabled and self.scrob_post and self.songinfo:
-            if self.songinfo.has_key('artist') and \
-               self.songinfo.has_key('title') and \
-               self.songinfo.has_key('time'):
-                if not self.songinfo.has_key('album'):
-                    album = u''
-                else:
-                    album = mpdh.get(self.songinfo, 'album')
-                if not self.songinfo.has_key('track'):
-                    tracknumber = u''
-                else:
-                    tracknumber = mpdh.get(self.songinfo, 'track')
-                self.scrob_post.nowplaying(mpdh.get(self.songinfo, 'artist'),
-                                            mpdh.get(self.songinfo, 'title'),
-                                            mpdh.get(self.songinfo, 'time'),
-                                            tracknumber,
-                                            album,
-                                            self.scrob_start_time)
-        time.sleep(10)
-
-    def scrobbler_post(self):
-        self.scrobbler_init()
-        if self.as_enabled and self.scrob_post and self.prevsonginfo:
-            if self.prevsonginfo.has_key('artist') and \
-               self.prevsonginfo.has_key('title') and \
-               self.prevsonginfo.has_key('time'):
-                if not self.prevsonginfo.has_key('album'):
-                    album = u''
-                else:
-                    album = mpdh.get(self.prevsonginfo, 'album')
-                if not self.prevsonginfo.has_key('track'):
-                    tracknumber = u''
-                else:
-                    tracknumber = mpdh.get(self.prevsonginfo, 'track')
-                self.scrob_post.addtrack(mpdh.get(self.prevsonginfo, 'artist'),
-                                                mpdh.get(self.prevsonginfo, 'title'),
-                                                mpdh.get(self.prevsonginfo, 'time'),
-                                                self.scrob_start_time,
-                                                tracknumber,
-                                                album)
-
-                thread = threading.Thread(target=self.scrobbler_do_post)
-                thread.setDaemon(True)
-                thread.start()
-        self.scrob_start_time = ""
-
-    def scrobbler_do_post(self):
-        for i in range(0,3):
-            if not self.scrob_post:
-                return
-            if len(self.scrob_post.cache) == 0:
-                return
-            try:
-                self.scrob_post.post()
-            except audioscrobbler.AudioScrobblerConnectionError, e:
-                print e
-                pass
-            time.sleep(10)
-
-    def scrobbler_save_cache(self):
-        filename = os.path.expanduser('~/.config/sonata/ascache')
-        if self.scrob_post:
-            self.scrob_post.savecache(filename)
-
-    def scrobbler_retrieve_cache(self):
-        filename = os.path.expanduser('~/.config/sonata/ascache')
-        if self.scrob_post:
-            self.scrob_post.retrievecache(filename)
 
     def boldrow(self, row):
         if row > -1:
@@ -4007,7 +3888,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                 return True
         self.settings_save()
         if self.as_enabled:
-            self.scrobbler_save_cache()
+            self.scrobbler.save_cache()
         if self.conn and self.stop_on_exit:
             self.mpd_stop(None)
         sys.exit()
@@ -5243,43 +5124,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         trayicon_in_use = ((HAVE_STATUS_ICON and self.statusicon.is_embedded() and
                     self.statusicon.get_visible())
                    or (HAVE_EGG and self.trayicon.get_property('visible')))
-        self.preferences.on_prefs_real(self.window, self.popuptimes, audioscrobbler is not None, self.scrobbler_import, self.scrobbler_init, self.scrobbler_auth_changed, trayicon_available, trayicon_in_use, self.on_connectkey_pressed, self.on_currsong_notify, self.update_infofile, self.prefs_notif_toggled, self.prefs_stylized_toggled, self.prefs_art_toggled, self.prefs_playback_toggled, self.prefs_progress_toggled, self.prefs_statusbar_toggled, self.prefs_lyrics_toggled, self.prefs_trayicon_toggled, self.prefs_window_response)
-
-    def scrobbler_init(self):
-        if audioscrobbler is not None and self.as_enabled and len(self.as_username) > 0 and len(self.as_password_md5) > 0:
-            thread = threading.Thread(target=self.scrobbler_init_thread)
-            thread.setDaemon(True)
-            thread.start()
-
-    def scrobbler_init_thread(self):
-        if self.scrob is None:
-            self.scrob = audioscrobbler.AudioScrobbler()
-        if self.scrob_post is None:
-            self.scrob_post = self.scrob.post(self.as_username, self.as_password_md5, verbose=True)
-        else:
-            if self.scrob_post.authenticated:
-                return # We are authenticated
-            else:
-                self.scrob_post = self.scrob.post(self.as_username, self.as_password_md5, verbose=True)
-        try:
-            self.scrob_post.auth()
-        except Exception, e:
-            print "Error authenticating audioscrobbler", e
-            self.scrob_post = None
-        if self.scrob_post:
-            self.scrobbler_retrieve_cache()
-
-    def scrobbler_import(self, show_error=False):
-        # We need to try to import audioscrobbler either when the app starts (if
-        # as_enabled=True) or if the user enables it in prefs.
-        global audioscrobbler
-        if audioscrobbler is None:
-            import audioscrobbler
-
-    def scrobbler_auth_changed(self):
-        if self.scrob_post:
-            if self.scrob_post.authenticated:
-                self.scrob_post = None
+        self.preferences.on_prefs_real(self.window, self.popuptimes, self.scrobbler.imported(), self.scrobbler.import_module, self.scrobbler.init, self.scrobbler.auth_changed, trayicon_available, trayicon_in_use, self.on_connectkey_pressed, self.on_currsong_notify, self.update_infofile, self.prefs_notif_toggled, self.prefs_stylized_toggled, self.prefs_art_toggled, self.prefs_playback_toggled, self.prefs_progress_toggled, self.prefs_statusbar_toggled, self.prefs_lyrics_toggled, self.prefs_trayicon_toggled, self.prefs_window_response)
 
     # XXX move the prefs handling parts of prefs_* to preferences.py
     def prefs_window_response(self, window, response, prefsnotebook, exit_stop, win_ontop, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, hostentry, portentry, passwordentry, using_mpd_env_vars, prev_host, prev_port, prev_password):
@@ -5348,7 +5193,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                     ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
                     self.mpd_connect(force=True)
             if self.as_enabled:
-                gobject.idle_add(self.scrobbler_init)
+                gobject.idle_add(self.scrobbler.init)
             self.settings_save()
             self.populate_profiles_for_menu()
             ui.change_cursor(None)
