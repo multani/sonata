@@ -1,4 +1,14 @@
 
+"""
+This module provides a user interface for editing the metadata tags of
+local music files.
+
+Example usage:
+import tagedit
+tageditor = tagedit.TagEditor(self.window, self.tags_mpd_update)
+tageditor.on_tags_edit(files, temp_mpdpaths, self.musicdir[self.profile_num])
+"""
+
 import os
 _ = _ # install the gettext built-in from the main app as a global here, silences pylint
 
@@ -9,6 +19,10 @@ import ui, misc
 
 
 class TagEditor():
+    """This class implements a dialog for editing music metadata tags.
+
+    When the dialog closes, the callback gets the list of updates made.
+    """
     def __init__(self, window, tags_mpd_update, tags_set_use_mpdpath):
         self.window = window
         self.tags_mpd_update = tags_mpd_update
@@ -19,6 +33,7 @@ class TagEditor():
         self.filelabel = None
 
     def on_tags_edit(self, files, temp_mpdpaths, music_dir):
+        """Display the editing dialog"""
         # Try loading module
         global tagpy
         if tagpy is None:

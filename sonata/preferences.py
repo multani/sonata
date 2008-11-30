@@ -30,11 +30,6 @@ class Preferences(Config):
     XXX We don't call Config.__init__, Base does that.
     """
     def __init__(self):
-        try:
-            gettext.install('sonata', os.path.join(__file__.split('/lib')[0], 'share', 'locale'), unicode=1)
-        except:
-            gettext.install('sonata', '/usr/share/locale', unicode=1)
-        gettext.textdomain('sonata')
 
         # Constants:
         self.popuplocations = [_('System tray'), _('Top Left'), _('Top Right'), _('Bottom Left'), _('Bottom Right'), _('Screen Center')]
@@ -188,13 +183,15 @@ class Preferences(Config):
         notifhbox = gtk.HBox()
         notif_blank = ui.label(x=1)
         notifhbox.pack_start(notif_blank)
-        list = []
+
+        time_names = []
         for i in popuptimes:
             if i != _('Entire song'):
-                list.append(i + ' ' + gettext.ngettext('second', 'seconds', int(i)))
+                time_names.append(i + ' ' + gettext.ngettext('second', 'seconds', int(i)))
             else:
-                list.append(i)
-        notification_options = ui.combo(list=list, active=self.popup_option, changed_cb=self.prefs_notiftime_changed)
+                time_names.append(i)
+        notification_options = ui.combo(list=time_names, active=self.popup_option, changed_cb=self.prefs_notiftime_changed)
+
         notification_locs = ui.combo(list=self.popuplocations, active=self.traytips_notifications_location, changed_cb=self.prefs_notiflocation_changed)
         display_notification.connect('toggled', prefs_notif_toggled, notifhbox)
         notifhbox.pack_start(notification_options, False, False, 2)
@@ -263,10 +260,12 @@ class Preferences(Config):
         display_art_hbox.set_sensitive(self.show_covers)
         display_art_location_hbox = gtk.HBox()
         display_art_location_hbox.pack_start(ui.label(text=_("Save art to:"), x=1))
-        list = ["~/.covers/"]
+
+        art_paths = ["~/.covers/"]
         for item in ["/cover.jpg", "/album.jpg", "/folder.jpg", "/" + _("custom")]:
-            list.append("../" + _("file_path") + item)
-        display_art_location = ui.combo(list=list, active=self.art_location, changed_cb=self.prefs_art_location_changed)
+            art_paths.append("../" + _("file_path") + item)
+        display_art_location = ui.combo(list=art_paths, active=self.art_location, changed_cb=self.prefs_art_location_changed)
+
         display_art_location_hbox.pack_start(display_art_location, False, False, 5)
         display_art_location_hbox.set_sensitive(self.show_covers)
         display_art.connect('toggled', prefs_art_toggled, display_art_hbox, display_art_location_hbox, display_stylized_hbox)
@@ -428,7 +427,7 @@ class Preferences(Config):
         self.prev_host = self.host[self.profile_num]
         self.prev_port = self.port[self.profile_num]
         self.prev_password = self.password[self.profile_num]
-        response = prefswindow.show()
+        prefswindow.show()
 
 
     def prefs_as_enabled_toggled(self, checkbox, userentry, passentry, userlabel, passlabel):
@@ -479,7 +478,7 @@ class Preferences(Config):
         prefs_profile_num = profile_combo.get_active()
         self.musicdir[prefs_profile_num] = misc.sanitize_musicdir(entry.get_text())
 
-    def prefs_add_profile(self, button, nameentry, profile_combo, remove_profiles):
+    def prefs_add_profile(self, _button, nameentry, profile_combo, remove_profiles):
         self.updating_nameentry = True
         prefs_profile_num = profile_combo.get_active()
         self.profile_names.append(_("New Profile"))
@@ -491,7 +490,7 @@ class Preferences(Config):
         self.musicdir.append(self.musicdir[prefs_profile_num])
         self.prefs_populate_profile_combo(profile_combo, len(self.profile_names)-1, remove_profiles)
 
-    def prefs_remove_profile(self, button, profile_combo, remove_profiles):
+    def prefs_remove_profile(self, _button, profile_combo, remove_profiles):
         prefs_profile_num = profile_combo.get_active()
         if prefs_profile_num == self.profile_num:
             # Profile deleted, revert to first profile:
