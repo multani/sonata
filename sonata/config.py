@@ -25,7 +25,7 @@ class Config:
     XXX This is mostly ConfigParser plus some custom serialization work.
     XXX Preferences and Base currently inherit from us.
     """
-    def __init__(self, default_profile_name, currsongformat2):
+    def __init__(self, default_profile_name, currsongformat2, library_set_data):
         # the config settings:
         self.profile_num = 0
         self.profile_names = [default_profile_name]
@@ -94,7 +94,7 @@ class Config:
         self.as_password_md5 = ""
 
         self.url_browser = ""
-        self.wd = self.library_set_data(path="/")
+        self.wd = library_set_data(path="/")
 
         self.info_song_expanded = True
         self.info_lyrics_expanded = True
@@ -119,7 +119,7 @@ class Config:
 
         self.traytips_notifications_location = 0
 
-    def settings_load_real(self):
+    def settings_load_real(self, library_set_data):
         """Load configuration from file"""
         # Load config
         conf = ConfigParser.ConfigParser()
@@ -290,7 +290,7 @@ class Config:
             if genre == self.LIB_NODATA: genre = None
             if year == self.LIB_NODATA: year = None
             if path == self.LIB_NODATA: path = None
-            self.wd = self.library_set_data(album=album, artist=artist, genre=genre, year=year, path=path)
+            self.wd = library_set_data(album=album, artist=artist, genre=genre, year=year, path=path)
 
         if conf.has_section('currformat'):
             if conf.has_option('currformat', 'current'):
@@ -341,7 +341,7 @@ class Config:
             if self.profile_num < 0 or self.profile_num > num_profiles-1:
                 self.profile_num = 0
 
-    def settings_save_real(self):
+    def settings_save_real(self, library_get_data):
         """Save configuration in file"""
         conf = ConfigParser.ConfigParser()
 
@@ -421,11 +421,11 @@ class Config:
         conf.set('notebook', 'info_tab_pos', self.info_tab_pos)
 
         # Save current library browsing state:
-        album = self.library_get_data(self.wd, 'album')
-        artist = self.library_get_data(self.wd, 'artist')
-        genre = self.library_get_data(self.wd, 'genre')
-        year = self.library_get_data(self.wd, 'year')
-        path = self.library_get_data(self.wd, 'path')
+        album = library_get_data(self.wd, 'album')
+        artist = library_get_data(self.wd, 'artist')
+        genre = library_get_data(self.wd, 'genre')
+        year = library_get_data(self.wd, 'year')
+        path = library_get_data(self.wd, 'path')
         if album is None: album = self.LIB_NODATA
         if artist is None: artist = self.LIB_NODATA
         if genre is None: genre = self.LIB_NODATA
