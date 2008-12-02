@@ -34,13 +34,11 @@ except:
 gettext.textdomain('sonata')
 
 import mpdhelper as mpdh
-from socket import getdefaulttimeout as socketgettimeout
 from socket import setdefaulttimeout as socketsettimeout
 
-import consts, config, preferences, tagedit, artwork, about, scrobbler
+import consts, config, preferences, tagedit, artwork, about, scrobbler, info
 
 ElementTree = None
-ServiceProxy = None
 
 all_args = ["toggle", "version", "status", "info", "play", "pause",
             "stop", "next", "prev", "pp", "random", "repeat", "hidden",
@@ -164,7 +162,7 @@ class Base(object, consts.Constants, preferences.Preferences):
 
         # The following attributes were used but not defined here before:
         self.album_current_artist = None
-        self.albumText = None
+
         self.allow_art_search = None
         self.choose_dialog = None
         self.chooseimage_visible = None
@@ -176,25 +174,15 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.filterbox_cond = None
         self.filterbox_source = None
         self.imagelist = None
-        self.info_boxes_in_more = None
-        self.info_editlabel = None
-        self.info_editlyricslabel = None
+
         self.info_imagebox = None
-        self.info_image = None
-        self.info_labels = None
-        self.info_left_label = None
-        self.info_lyrics = None
-        self.info_morelabel = None
-        self.info_searchlabel = None
-        self.info_tagbox = None
-        self.info_type = None
+
         self.iterate_handler = None
         self.libfilterbox_cmd_buf = None
         self.libfilterbox_cond = None
         self.libfilterbox_source = None
-        self.linkcolor = None
         self.local_dest_filename = None
-        self.lyricsText = None
+
         self.notification_width = None
         self.playlist_pos_before_filter = None
 
@@ -315,8 +303,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.prevstatus = None
         self.prevsonginfo = None
 
-        self.lyricServer = None
-
         self.popuptimes = ['2', '3', '5', '10', '15', '30', _('Entire song')]
 
         self.exit_now = False
@@ -348,7 +334,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.last_title = None
         self.last_progress_frac = None
         self.last_progress_text = None
-        self.last_info_bitrate = None
+
         self.column_sorted = (None, gtk.SORT_DESCENDING)				# TreeViewColumn, order
 
         self.filter_row_mapping = [] # Mapping between filter rows and self.currentdata rows
@@ -364,12 +350,6 @@ class Base(object, consts.Constants, preferences.Preferences):
 
         self.current_update_skip = False
         self.libsearch_last_tooltip = None
-
-        try:
-            self.enc = locale.getpreferredencoding()
-        except:
-            print "Locale cannot be found; please set your system's locale. Aborting..."
-            sys.exit(1)
 
         self.all_tab_names = [self.TAB_CURRENT, self.TAB_LIBRARY, self.TAB_PLAYLISTS, self.TAB_STREAMS, self.TAB_INFO]
 
@@ -432,12 +412,8 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.notebook = gtk.Notebook()
 
         # Artwork
-        if self.info_art_enlarged:
-            self.info_imagebox = ui.eventbox()
-        else:
-            self.info_imagebox = ui.eventbox(w=152)
 
-        self.artwork = artwork.Artwork(self.config, self.find_path, misc.is_lang_rtl(self.window), self.info_imagebox.get_size_request, self.schedule_gc_collect, self.target_image_filename, self.imagelist_append, self.remotefilelist_append, self.notebook.get_allocation, self.set_allow_art_search, self.status_is_play_or_pause)
+        self.artwork = artwork.Artwork(self.config, self.find_path, misc.is_lang_rtl(self.window), lambda:self.info_imagebox.get_size_request(), self.schedule_gc_collect, self.target_image_filename, self.imagelist_append, self.remotefilelist_append, self.notebook.get_allocation, self.set_allow_art_search, self.status_is_play_or_pause)
 
         # Popup menus:
         actions = (
@@ -784,15 +760,30 @@ class Base(object, consts.Constants, preferences.Preferences):
         if not self.streams_tab_visible:
             ui.hide(streams_tab)
         # Info tab
-        self.info = ui.scrollwindow()
+        self.info_area = ui.scrollwindow()
         infohbox = gtk.HBox()
         infohbox.pack_start(ui.image(stock=gtk.STOCK_JUSTIFY_FILL), False, False, 2)
         infohbox.pack_start(ui.label(text=self.TAB_INFO), False, False, 2)
         infoevbox = ui.eventbox(add=infohbox)
         infoevbox.show_all()
         infoevbox.connect("button_press_event", self.on_tab_click)
-        self.info_widgets_initialize(self.info)
-        self.notebook.append_page(self.info, infoevbox)
+
+        # Realizing self.window will allow us to retrieve the theme's
+        # link-color; we can then apply to it various widgets:
+        try:
+            self.window.realize()
+            linkcolor = self.window.style_get_property("link-color").to_string()
+        except:
+            linkcolor = None
+        self.info = info.Info(self.config, self.artwork.get_info_image(), linkcolor, self.on_link_click, self.library_return_search_items, self.get_playing_song)
+        self.info.widgets_initialize(self.info_area)
+        self.info_imagebox = self.info.get_info_imagebox()
+        self.info_imagebox.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT | gtk.DEST_DEFAULT_DROP, [("text/uri-list", 0, 80), ("text/plain", 0, 80)], gtk.gdk.ACTION_DEFAULT)
+        self.info_imagebox.connect('button_press_event', self.on_image_activate)
+        self.info_imagebox.connect('drag_motion', self.on_image_motion_cb)
+        self.info_imagebox.connect('drag_data_received', self.on_image_drop_cb)
+
+        self.notebook.append_page(self.info_area, infoevbox)
         mainvbox.pack_start(self.notebook, True, True, 5)
         info_tab = self.notebook.get_children()[4]
         if not self.info_tab_visible:
@@ -1112,6 +1103,12 @@ class Base(object, consts.Constants, preferences.Preferences):
 
         gobject.idle_add(self.header_save_column_widths)
 
+    def get_playing_song(self):
+        if self.status and self.status['state'] in ['play', 'pause'] and self.songinfo:
+            return self.songinfo
+        return None
+
+
     def dnd_get_data_for_file_managers(self, treeview, context, selection, info, timestamp):
 
         if not os.path.isdir(self.musicdir[self.profile_num]):
@@ -1173,153 +1170,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         print "  random               " + _("Toggle random mode")
         print "  info                 " + _("Display current song info")
         print "  status               " + _("Display MPD status")
-
-    def info_widgets_initialize(self, info_scrollwindow):
-        vert_spacing = 1
-        horiz_spacing = 2
-        margin = 5
-        outter_hbox = gtk.HBox()
-        outter_vbox = gtk.VBox()
-
-        # Realizing self.window will allow us to retrieve the theme's
-        # link-color; we can then apply to it various widgets:
-        try:
-            self.window.realize()
-            self.linkcolor = self.window.style_get_property("link-color").to_string()
-        except:
-            self.linkcolor = None
-
-        # Song info
-        info_song = ui.expander(markup="<b>" + _("Song Info") + "</b>", expand=self.info_song_expanded, focus=False)
-        info_song.connect("activate", self.info_expanded, "song")
-        inner_hbox = gtk.HBox()
-
-        self.info_image = self.artwork.get_info_image()
-
-        self.info_imagebox.add(self.info_image)
-
-        self.info_imagebox.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT | gtk.DEST_DEFAULT_DROP, [("text/uri-list", 0, 80), ("text/plain", 0, 80)], gtk.gdk.ACTION_DEFAULT)
-        self.info_imagebox.connect('button_press_event', self.on_image_activate)
-        self.info_imagebox.connect('drag_motion', self.on_image_motion_cb)
-        self.info_imagebox.connect('drag_data_received', self.on_image_drop_cb)
-        inner_hbox.pack_start(self.info_imagebox, False, False, horiz_spacing)
-
-        self.info_tagbox = gtk.VBox()
-
-        labels_left = []
-        self.info_type = {}
-        self.info_labels = []
-        self.info_boxes_in_more = []
-        labels_type = ['title', 'artist', 'album', 'date', 'track', 'genre', 'file', 'bitrate']
-        labels_text = [_("Title"), _("Artist"), _("Album"), _("Date"), _("Track"), _("Genre"), _("File"), _("Bitrate")]
-        labels_link = [False, True, True, False, False, False, False, False]
-        labels_tooltip = ["", _("Launch artist in Wikipedia"), _("Launch album in Wikipedia"), "", "", "", "", ""]
-        labels_in_more = [False, False, False, False, False, False, True, True]
-        for i in range(len(labels_text)):
-            self.info_type[labels_text[i]] = i
-            tmphbox = gtk.HBox()
-            if labels_in_more[i]:
-                self.info_boxes_in_more += [tmphbox]
-            tmplabel = ui.label(markup="<b>" + labels_text[i] + ":</b>", y=0)
-            if i == 0:
-                self.info_left_label = tmplabel
-            if not labels_link[i]:
-                tmplabel2 = ui.label(wrap=True, y=0, select=True)
-            else:
-                # Using set_selectable overrides the hover cursor that sonata
-                # tries to set for the links, and I can't figure out how to
-                # stop that. So we'll disable set_selectable for these two
-                # labels until it's figured out.
-                tmplabel2 = ui.label(wrap=True, y=0, select=False)
-            if labels_link[i]:
-                tmpevbox = ui.eventbox(add=tmplabel2)
-                self.info_apply_link_signals(tmpevbox, labels_type[i], labels_tooltip[i])
-            tmphbox.pack_start(tmplabel, False, False, horiz_spacing)
-            if labels_link[i]:
-                tmphbox.pack_start(tmpevbox, False, False, horiz_spacing)
-            else:
-                tmphbox.pack_start(tmplabel2, False, False, horiz_spacing)
-            self.info_labels += [tmplabel2]
-            labels_left += [tmplabel]
-            self.info_tagbox.pack_start(tmphbox, False, False, vert_spacing)
-        ui.set_widths_equal(labels_left)
-
-        mischbox = gtk.HBox()
-        self.info_morelabel = ui.label(y=0)
-        moreevbox = ui.eventbox(add=self.info_morelabel)
-        self.info_apply_link_signals(moreevbox, 'more', _("Toggle extra tags"))
-        self.info_editlabel = ui.label(y=0)
-        editevbox = ui.eventbox(add=self.info_editlabel)
-        self.info_apply_link_signals(editevbox, 'edit', _("Edit song tags"))
-        mischbox.pack_start(moreevbox, False, False, horiz_spacing)
-        mischbox.pack_start(editevbox, False, False, horiz_spacing)
-
-        self.info_tagbox.pack_start(mischbox, False, False, vert_spacing)
-        inner_hbox.pack_start(self.info_tagbox, False, False, horiz_spacing)
-        info_song.add(inner_hbox)
-        outter_vbox.pack_start(info_song, False, False, margin)
-
-        # Lyrics
-        self.info_lyrics = ui.expander(markup="<b>" + _("Lyrics") + "</b>", expand=self.info_lyrics_expanded, focus=False)
-        self.info_lyrics.connect("activate", self.info_expanded, "lyrics")
-        lyricsbox = gtk.VBox()
-        lyricsbox_top = gtk.HBox()
-        self.lyricsText = ui.label(markup=" ", y=0, select=True, wrap=True)
-        lyricsbox_top.pack_start(self.lyricsText, True, True, horiz_spacing)
-        lyricsbox.pack_start(lyricsbox_top, True, True, vert_spacing)
-        lyricsbox_bottom = gtk.HBox()
-        self.info_searchlabel = ui.label(y=0)
-        self.info_editlyricslabel = ui.label(y=0)
-        searchevbox = ui.eventbox(add=self.info_searchlabel)
-        editlyricsevbox = ui.eventbox(add=self.info_editlyricslabel)
-        self.info_apply_link_signals(searchevbox, 'search', _("Search Lyricwiki.org for lyrics"))
-        self.info_apply_link_signals(editlyricsevbox, 'editlyrics', _("Edit lyrics at Lyricwiki.org"))
-        lyricsbox_bottom.pack_start(searchevbox, False, False, horiz_spacing)
-        lyricsbox_bottom.pack_start(editlyricsevbox, False, False, horiz_spacing)
-        lyricsbox.pack_start(lyricsbox_bottom, False, False, vert_spacing)
-        self.info_lyrics.add(lyricsbox)
-        outter_vbox.pack_start(self.info_lyrics, False, False, margin)
-
-        # Album info
-        info_album = ui.expander(markup="<b>" + _("Album Info") + "</b>", expand=self.info_album_expanded, focus=False)
-        info_album.connect("activate", self.info_expanded, "album")
-        albumbox = gtk.VBox()
-        albumbox_top = gtk.HBox()
-        self.albumText = ui.label(markup=" ", y=0, select=True, wrap=True)
-        albumbox_top.pack_start(self.albumText, False, False, horiz_spacing)
-        albumbox.pack_start(albumbox_top, False, False, vert_spacing)
-        info_album.add(albumbox)
-        outter_vbox.pack_start(info_album, False, False, margin)
-
-        # Finish..
-        if not self.show_lyrics:
-            ui.hide(self.info_lyrics)
-        if not self.show_covers:
-            ui.hide(self.info_imagebox)
-        # self.info_song_more will be overridden on on_link_click, so
-        # store it in a temporary var..
-        temp = self.info_song_more
-        self.on_link_click(moreevbox, None, 'more')
-        self.info_song_more = temp
-        if self.info_song_more:
-            self.on_link_click(moreevbox, None, 'more')
-        outter_hbox.pack_start(outter_vbox, False, False, margin)
-        info_scrollwindow.add_with_viewport(outter_hbox)
-
-    def info_expanded(self, expander, type):
-        expanded = not expander.get_expanded()
-        if type == "song":
-            self.info_song_expanded = expanded
-        elif type == "lyrics":
-            self.info_lyrics_expanded = expanded
-        elif type == "album":
-            self.info_album_expanded = expanded
-
-    def info_apply_link_signals(self, widget, type, tooltip):
-        widget.connect("enter-notify-event", self.on_link_enter)
-        widget.connect("leave-notify-event", self.on_link_leave)
-        widget.connect("button-press-event", self.on_link_click, type)
-        widget.set_tooltip_text(tooltip)
 
     def current_initialize_columns(self):
         # Initialize current playlist data and widget
@@ -2729,216 +2579,12 @@ class Base(object, consts.Constants, preferences.Preferences):
             return text
 
     def info_update(self, update_all, blank_window=False, skip_lyrics=False):
-        # update_all = True means that every tag should update. This is
-        # only the case on song and status changes. Otherwise we only
-        # want to update the minimum number of widgets so the user can
-        # do things like select label text.
-        if self.conn:
-            if self.status and self.status['state'] in ['play', 'pause']:
-                bitratelabel = self.info_labels[self.info_type[_("Bitrate")]]
-                titlelabel = self.info_labels[self.info_type[_("Title")]]
-                artistlabel = self.info_labels[self.info_type[_("Artist")]]
-                albumlabel = self.info_labels[self.info_type[_("Album")]]
-                datelabel = self.info_labels[self.info_type[_("Date")]]
-                genrelabel = self.info_labels[self.info_type[_("Genre")]]
-                tracklabel = self.info_labels[self.info_type[_("Track")]]
-                filelabel = self.info_labels[self.info_type[_("File")]]
-                try:
-                    newbitrate = self.status['bitrate'] + " kbps"
-                except:
-                    newbitrate = ''
-                if not self.last_info_bitrate or self.last_info_bitrate != newbitrate:
-                    bitratelabel.set_text(newbitrate)
-                self.last_info_bitrate = newbitrate
-                if update_all:
-                    # Use artist/album Wikipedia links?
-                    artist_use_link = False
-                    if self.songinfo.has_key('artist'):
-                        artist_use_link = True
-                    album_use_link = False
-                    if self.songinfo.has_key('album'):
-                        album_use_link = True
-                    titlelabel.set_text(mpdh.get(self.songinfo, 'title'))
-                    if artist_use_link:
-                        artistlabel.set_markup(misc.link_markup(misc.escape_html(mpdh.get(self.songinfo, 'artist')), False, False, self.linkcolor))
-                    else:
-                        artistlabel.set_text(mpdh.get(self.songinfo, 'artist'))
-                    if album_use_link:
-                        albumlabel.set_markup(misc.link_markup(misc.escape_html(mpdh.get(self.songinfo, 'album')), False, False, self.linkcolor))
-                    else:
-                        albumlabel.set_text(mpdh.get(self.songinfo, 'album'))
-                    datelabel.set_text(mpdh.get(self.songinfo, 'date'))
-                    genrelabel.set_text(mpdh.get(self.songinfo, 'genre'))
-                    if self.songinfo.has_key('track'):
-                        tracklabel.set_text(mpdh.getnum(self.songinfo, 'track', '0', False, 0))
-                    else:
-                        tracklabel.set_text("")
-                    path = misc.file_from_utf8(self.musicdir[self.profile_num] + os.path.dirname(mpdh.get(self.songinfo, 'file')))
-                    if os.path.exists(path):
-                        filelabel.set_text(self.musicdir[self.profile_num] + mpdh.get(self.songinfo, 'file'))
-                        self.info_editlabel.set_markup(misc.link_markup(_("edit tags"), True, True, self.linkcolor))
-                    else:
-                        filelabel.set_text(mpdh.get(self.songinfo, 'file'))
-                        self.info_editlabel.set_text("")
-                    if self.songinfo.has_key('album'):
-                        # Update album info:
-                        trackinfo = ""
-                        album = mpdh.get(self.songinfo, 'album')
-                        artist = mpdh.get(self.songinfo, 'artist', None)
-                        year = mpdh.get(self.songinfo, 'date', None)
-                        albuminfo = album + "\n"
-                        tracks, playtime, num_songs = self.library_return_search_items(album=album, artist=artist, year=year)
-                        if len(tracks) > 0:
-                            for track in tracks:
-                                if track.has_key('title'):
-                                    trackinfo = trackinfo + mpdh.getnum(track, 'track', '0', False, 2) + '. ' + mpdh.get(track, 'title') + '\n'
-                                else:
-                                    trackinfo = trackinfo + mpdh.getnum(track, 'track', '0', False, 2) + '. ' + mpdh.get(track, 'file').split('/')[-1] + '\n'
-                            artist = self.album_current_artist[1]
-                            if artist is not None: albuminfo += artist + "\n"
-                            if year is not None: albuminfo += year + "\n"
-                            albuminfo += misc.convert_time(playtime) + "\n"
-                            albuminfo += "\n" + trackinfo
-                        else:
-                            albuminfo = _("Album info not found.")
-                        self.albumText.set_markup(misc.escape_html(albuminfo))
-                    else:
-                        self.albumText.set_text(_("Album name not set."))
-                    # Update lyrics:
-                    if self.show_lyrics and not skip_lyrics:
-                        global ServiceProxy
-                        if ServiceProxy is None:
-                            try:
-                                from ZSI import ServiceProxy
-                                # Make sure we have the right version..
-                                test = ServiceProxy.ServiceProxy
-                            except:
-                                ServiceProxy = None
-                        if ServiceProxy is None:
-                            self.info_searchlabel.set_text("")
-                            self.info_show_lyrics(_("ZSI not found, fetching lyrics support disabled."), "", "", True)
-                        elif self.songinfo.has_key('artist') and self.songinfo.has_key('title'):
-                            lyricThread = threading.Thread(target=self.info_get_lyrics, args=(mpdh.get(self.songinfo, 'artist'), mpdh.get(self.songinfo, 'title'), mpdh.get(self.songinfo, 'artist'), mpdh.get(self.songinfo, 'title')))
-                            lyricThread.setDaemon(True)
-                            lyricThread.start()
-                        else:
-                            self.info_searchlabel.set_text("")
-                            self.info_show_lyrics(_("Artist or song title not set."), "", "", True)
-            else:
-                blank_window = True
-        else:
-            blank_window = True
-        if blank_window:
-            for label in self.info_labels:
-                label.set_text("")
-            self.info_editlabel.set_text("")
-            if self.show_lyrics:
-                self.info_searchlabel.set_text("")
-                self.info_editlyricslabel.set_text("")
-                self.info_show_lyrics("", "", "", True)
-            self.albumText.set_text("")
-            self.last_info_bitrate = ""
-
-    def info_check_for_local_lyrics(self, artist, title):
-        if os.path.exists(self.target_lyrics_filename(artist, title, self.LYRICS_LOCATION_HOME)):
-            return self.target_lyrics_filename(artist, title, self.LYRICS_LOCATION_HOME)
-        elif os.path.exists(self.target_lyrics_filename(artist, title, self.LYRICS_LOCATION_PATH)):
-            return self.target_lyrics_filename(artist, title, self.LYRICS_LOCATION_PATH)
-        return None
-
-    def info_get_lyrics(self, search_artist, search_title, filename_artist, filename_title):
-        filename_artist = misc.strip_all_slashes(filename_artist)
-        filename_title = misc.strip_all_slashes(filename_title)
-        filename = self.info_check_for_local_lyrics(filename_artist, filename_title)
-        search_str = misc.link_markup(_("search"), True, True, self.linkcolor)
-        edit_str = misc.link_markup(_("edit"), True, True, self.linkcolor)
-        if filename:
-            # If the lyrics only contain "not found", delete the file and try to
-            # fetch new lyrics. If there is a bug in Sonata/SZI/LyricWiki that
-            # prevents lyrics from being found, storing the "not found" will
-            # prevent a future release from correctly fetching the lyrics.
-            f = open(filename, 'r')
-            lyrics = f.read()
-            f.close()
-            if lyrics == _("Lyrics not found"):
-                misc.remove_file(filename)
-                filename = self.info_check_for_local_lyrics(filename_artist, filename_title)
-        if filename:
-            # Re-use lyrics from file:
-            f = open(filename, 'r')
-            lyrics = f.read()
-            f.close()
-            # Strip artist - title line from file if it exists, since we
-            # now have that information visible elsewhere.
-            header = filename_artist + " - " + filename_title + "\n\n"
-            if lyrics[:len(header)] == header:
-                lyrics = lyrics[len(header):]
-            gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
-            gobject.idle_add(self.info_searchlabel.set_markup, search_str)
-            gobject.idle_add(self.info_editlyricslabel.set_markup, edit_str)
-        else:
-            # Use default filename:
-            filename = self.target_lyrics_filename(filename_artist, filename_title)
-            # Fetch lyrics from lyricwiki.org
-            gobject.idle_add(self.info_show_lyrics, _("Fetching lyrics..."), filename_artist, filename_title)
-            if self.lyricServer is None:
-                wsdlFile = "http://lyricwiki.org/server.php?wsdl"
-                try:
-                    self.lyricServer = True
-                    timeout = socketgettimeout()
-                    socketsettimeout(self.LYRIC_TIMEOUT)
-                    self.lyricServer = ServiceProxy.ServiceProxy(wsdlFile, cachedir=os.path.expanduser("~/.service_proxy_dir"))
-                except:
-                    socketsettimeout(timeout)
-                    lyrics = _("Couldn't connect to LyricWiki")
-                    gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
-                    self.lyricServer = None
-                    gobject.idle_add(self.info_searchlabel.set_markup, search_str)
-                    gobject.idle_add(self.info_editlyricslabel.set_markup, edit_str)
-                    return
-            try:
-                timeout = socketgettimeout()
-                socketsettimeout(self.LYRIC_TIMEOUT)
-                lyrics = self.lyricServer.getSong(artist=urllib.quote(misc.capwords(search_artist)), song=urllib.quote(misc.capwords(search_title)))['return']["lyrics"]
-                if lyrics.lower() != "not found":
-                    lyrics = misc.unescape_html(lyrics)
-                    lyrics = misc.wiki_to_html(lyrics)
-                    lyrics = lyrics.encode("ISO-8859-1")
-                    gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
-                    # Save lyrics to file:
-                    misc.create_dir('~/.lyrics/')
-                    f = open(filename, 'w')
-                    lyrics = misc.unescape_html(lyrics)
-                    try:
-                        f.write(lyrics.decode(self.enc).encode('utf8'))
-                    except:
-                        f.write(lyrics)
-                    f.close()
-                else:
-                    lyrics = _("Lyrics not found")
-                    gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
-            except:
-                lyrics = _("Fetching lyrics failed")
-                gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
-            gobject.idle_add(self.info_searchlabel.set_markup, search_str)
-            gobject.idle_add(self.info_editlyricslabel.set_markup, edit_str)
-            socketsettimeout(timeout)
-
-    def info_show_lyrics(self, lyrics, artist, title, force=False):
-        if force:
-            # For error messages where there is no appropriate artist or
-            # title, we pass force=True:
-            self.lyricsText.set_text(lyrics)
-        elif self.status and self.status['state'] in ['play', 'pause'] and self.songinfo:
-            # Verify that we are displaying the correct lyrics:
-            try:
-                if misc.strip_all_slashes(mpdh.get(self.songinfo, 'artist')) == artist and misc.strip_all_slashes(mpdh.get(self.songinfo, 'title')) == title:
-                    try:
-                        self.lyricsText.set_markup(misc.escape_html(lyrics))
-                    except:
-                        self.lyricsText.set_text(lyrics)
-            except:
-                pass
+        playing_or_paused = self.conn and self.status and self.status['state'] in ['play', 'pause']
+        try:
+            newbitrate = self.status['bitrate'] + " kbps"
+        except:
+            newbitrate = ''
+        self.info.info_update(playing_or_paused, newbitrate, self.songinfo, self.album_current_artist, update_all, blank_window, skip_lyrics)
 
     def on_library_key_press(self, widget, event):
         if event.keyval == gtk.gdk.keyval_from_name('Return'):
@@ -3910,21 +3556,7 @@ class Base(object, consts.Constants, preferences.Preferences):
     def on_notebook_resize(self, widget, event):
         if not self.resizing_columns :
             gobject.idle_add(self.header_save_column_widths)
-        gobject.idle_add(self.info_resize_elements)
-
-    def info_resize_elements(self):
-        # Resize labels in info tab to prevent horiz scrollbar:
-        if self.show_covers:
-            labelwidth = self.notebook.allocation.width - self.info_left_label.allocation.width - self.info_imagebox.allocation.width - 60 # 60 accounts for vert scrollbar, box paddings, etc..
-        else:
-            labelwidth = self.notebook.allocation.width - self.info_left_label.allocation.width - 60 # 60 accounts for vert scrollbar, box paddings, etc..
-        if labelwidth > 100:
-            for label in self.info_labels:
-                label.set_size_request(labelwidth, -1)
-        # Resize lyrics/album gtk labels:
-        labelwidth = self.notebook.allocation.width - 45 # 45 accounts for vert scrollbar, box paddings, etc..
-        self.lyricsText.set_size_request(labelwidth, -1)
-        self.albumText.set_size_request(labelwidth, -1)
+        gobject.idle_add(self.info.resize_elements, self.notebook.allocation)
 
     def on_expand(self, action):
         if not self.expanded:
@@ -4050,9 +3682,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             filename = os.path.expanduser('~/.lyrics/' + fname)
             misc.remove_file(filename)
             # Search for new lyrics:
-            lyricThread = threading.Thread(target=self.info_get_lyrics, args=(artist_entry.get_text(), title_entry.get_text(), artist, title))
-            lyricThread.setDaemon(True)
-            lyricThread.start()
+            self.info.get_lyrics_start(artist_entry.get_text(), title_entry.get_text(), artist, title, os.path.dirname(mpdh.get(self.songinfo, 'file')))
         else:
             dialog.destroy()
 
@@ -4459,19 +4089,6 @@ class Base(object, consts.Constants, preferences.Preferences):
                 self.artwork.artwork_update(True)
                 if remove_after_set:
                     misc.remove_file(paths[i])
-
-    def target_lyrics_filename(self, artist, title, force_location=None):
-        if self.conn:
-            if force_location is not None:
-                lyrics_loc = force_location
-            else:
-                lyrics_loc = self.lyrics_location
-            if lyrics_loc == self.LYRICS_LOCATION_HOME:
-                targetfile = os.path.expanduser("~/.lyrics/" + artist + "-" + title + ".txt")
-            elif lyrics_loc == self.LYRICS_LOCATION_PATH:
-                targetfile = self.musicdir[self.profile_num] + os.path.dirname(mpdh.get(self.songinfo, 'file')) + "/" + artist + "-" + title + ".txt"
-            targetfile = misc.file_exists_insensitive(targetfile)
-            return misc.file_from_utf8(targetfile)
 
     def target_image_filename(self, force_location=None, songpath=None, artist=None, album=None):
         # Only pass songpath, artist, and album if we are trying to get the
@@ -5255,12 +4872,12 @@ class Base(object, consts.Constants, preferences.Preferences):
         if button.get_active():
             lyrics_hbox.set_sensitive(True)
             self.show_lyrics = True
-            ui.show(self.info_lyrics)
-            self.info_update(True)
         else:
             lyrics_hbox.set_sensitive(False)
             self.show_lyrics = False
-            ui.hide(self.info_lyrics)
+        self.info.show_lyrics_updated()
+        if self.show_lyrics:
+            self.info_update(True)
 
     def prefs_statusbar_toggled(self, button):
         if button.get_active():
@@ -5314,35 +4931,14 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.iterate_now()
         return
 
-    def on_link_enter(self, widget, event):
-        if widget.get_children()[0].get_use_markup():
-            ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
-
-    def on_link_leave(self, widget, event):
-        ui.change_cursor(None)
-
-    def on_link_click(self, widget, event, type):
+    def on_link_click(self, type):
         if type == 'artist':
             misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + urllib.quote(mpdh.get(self.songinfo, 'artist')), self.url_browser, self.window)
         elif type == 'album':
             misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + urllib.quote(mpdh.get(self.songinfo, 'album')), self.url_browser, self.window)
-        elif type == 'more':
-            previous_is_more = (self.info_morelabel.get_text() == "(" + _("more") + ")")
-            if previous_is_more:
-                self.info_morelabel.set_markup(misc.link_markup(_("hide"), True, True, self.linkcolor))
-                self.info_song_more = True
-            else:
-                self.info_morelabel.set_markup(misc.link_markup(_("more"), True, True, self.linkcolor))
-                self.info_song_more = False
-            if self.info_song_more:
-                for hbox in self.info_boxes_in_more:
-                    ui.show(hbox)
-            else:
-                for hbox in self.info_boxes_in_more:
-                    ui.hide(hbox)
         elif type == 'edit':
             if self.songinfo:
-                self.on_tags_edit(widget)
+                self.on_tags_edit(None)
         elif type == 'search':
             self.on_lyrics_search(None)
         elif type == 'editlyrics':
@@ -5395,7 +4991,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         elif self.current_tab == self.TAB_STREAMS:
             gobject.idle_add(ui.focus, self.streams)
         elif self.current_tab == self.TAB_INFO:
-            gobject.idle_add(ui.focus, self.info)
+            gobject.idle_add(ui.focus, self.info_area)
             # This prevents the artwork from being cutoff when the
             # user first clicks on the Info tab. Why this happens
             # and how this fixes it is beyond me.
