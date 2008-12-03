@@ -3331,7 +3331,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             data = library.library_set_data(album=album, artist=artist, year=year)
             list.append(data)
         list = misc.remove_list_duplicates(list, case=False)
-        list = self.list_identify_VA_albums(list)
+        list = self.library.list_identify_VA_albums(list)
         artist = library.library_get_data(list[0], 'artist')
         self.album_current_artist = [self.songinfo, artist]
 
