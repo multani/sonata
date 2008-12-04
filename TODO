@@ -1,13 +1,9 @@
 v1.6
-	lib modes
-		- threaded method for artwork (also fetch new covers? also detailed info?)
-		- # albums for various lib modes (requires extra mpd calls..)
+	- threaded method for artwork
+		- update lib artwork if current song artwork changes
+		- save across sessions?
+		- possible threading traceback when exiting sonata
 	support for new idle command (waiting on python-mpd)
-	work with mpd's new "allow authenticated local users to add any local file to the playlist"
-		- waiting on python-mpd to implement unix socket paths
-		- dnd from a file manager (implemented and untested because of above)
-		- new library browsing mode to open any file?
-		  remember: no tags and implications for remote mpd users.
 	fullscreen artwork:
 		- remove 500x500 hardcode
 		- show currently playing song
@@ -15,8 +11,19 @@ v1.6
 	prevent vertical resizing when collapsed 
 	save to playlist.. default to selected files? pref?
 	sonata freezes with gail/accessibility enabled during new library searching
-	tag editing - support for composer, disc; ability to show path "[+]"
-	
+	tag editing 
+		- support for composer, disc
+		- save selection afterwards
+		- fix sorting (e.g. disc-track)
+		- deleting comments bug?
+
+v1.6.1
+	work with mpd's new "allow authenticated local users to add any local file to the playlist"
+		- waiting on python-mpd to implement unix socket paths
+		- dnd from a file manager (implemented and untested because of above)
+		- new library browsing mode to open any file?
+		  remember: no tags and implications for remote mpd users.
+
 Future:
 	crop songs in current playlist?
 	mpd statistics

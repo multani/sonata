@@ -7,6 +7,8 @@ from xml.etree import ElementTree
 import gtk, gobject
 
 import img, ui, misc, mpdhelper as mpdh
+from library import library_set_data
+from library import library_get_data
 from consts import consts
 
 AMAZON_KEY = "12DR2PGAQT303YTEWP02"
@@ -34,6 +36,7 @@ class Artwork(object):
         self.sonatacd = find_path('sonatacd.png')
         self.sonatacd_large = find_path('sonatacd_large.png')
         self.casepb = gtk.gdk.pixbuf_new_from_file(find_path('sonata-case.png'))
+        self.albumpb = None
 
         # local UI widgets provided to main by getter methods
         self.albumimage = ui.image()
@@ -59,6 +62,13 @@ class Artwork(object):
         self.misc_img_in_dir = None
         self.stop_art_update = False
         self.downloading_image = False
+        self.lib_art_cond = None
+
+        # local artwork, cache for library
+        self.lib_art_rows_local = []
+        self.lib_art_rows_remote = []
+        self.lib_art_pb_size = 0
+        self.cache = {}
 
     def get_albumimage(self):
         return self.albumimage
@@ -107,6 +117,121 @@ class Artwork(object):
 
     def artwork_is_downloading_image(self):
         return self.downloading_image
+
+    def library_artwork_init(self, pb_size, model):
+
+        self.lib_art_pb_size = pb_size
+
+        self.lib_art_cond = threading.Condition()
+        thread = threading.Thread(target=self._library_artwork_update, args=(model,))
+        thread.setDaemon(True)
+        thread.start()
+
+    def library_artwork_update(self, treeview, model, albumpb):
+        if not self.config.show_covers:
+            return
+
+        vis_range = treeview.get_visible_range()
+        if vis_range is None:
+            return
+        start_row = int(vis_range[0][0])
+        end_row = int(vis_range[1][0])
+
+        self.albumpb = albumpb
+
+        # Update self.lib_art_rows_local with new rows
+        self.lib_art_cond.acquire()
+        self.lib_art_rows_local = []
+        for row in range(start_row,end_row+1):
+            iter = model.get_iter((row,))
+            icon = model.get_value(iter, 0)
+            if icon == self.albumpb:
+                data = model.get_value(iter, 1)
+                self.lib_art_rows_local.append((iter, data, icon))
+        self.lib_art_cond.notifyAll()
+        self.lib_art_cond.release()
+
+    def _library_artwork_update(self, model):
+        # XXX Save cache across app sessions?
+        while True:
+            remote_art = False
+
+            # Wait for items..
+            self.lib_art_cond.acquire()
+            while(len(self.lib_art_rows_local) == 0 and len(self.lib_art_rows_remote) == 0):
+                self.lib_art_cond.wait()
+            self.lib_art_cond.release()
+
+            # Try first element, giving precedence to local queue:
+            if len(self.lib_art_rows_local) > 0:
+                iter, data, icon = self.lib_art_rows_local[0]
+                remote_art = False
+            elif len(self.lib_art_rows_remote) > 0:
+                iter, data, icon = self.lib_art_rows_remote[0]
+                remote_art = True
+            else:
+                iter = None
+
+            if iter is not None and model.iter_is_valid(iter):
+
+                artist, album, path = library_get_data(data, 'artist', 'album', 'path')
+                cache_key = library_set_data(artist=artist, album=album, path=path)
+
+                # Try to replace default icons with cover art:
+                pb = self.get_library_artwork_cached_pb(cache_key, None)
+
+                # No cached pixbuf, try local/remote search:
+                if pb is None:
+                    if not remote_art:
+                        pb = self.library_get_album_cover(path, artist, album, self.lib_art_pb_size)
+                    else:
+                        filename = self.target_image_filename(None, path, artist, album)
+                        self.artwork_download_img_to_file(artist, album, filename)
+                        pb = self.library_get_album_cover(path, artist, album, self.lib_art_pb_size)
+
+                # Set pixbuf icon in model; add to cache
+                if pb is not None:
+                    self.cache[cache_key] = pb
+                    gobject.idle_add(self.library_set_cover, model, iter, pb)
+
+                # Remote processed item from queue:
+                if not remote_art:
+                    if len(self.lib_art_rows_local) > 0 and (iter, data, icon) == self.lib_art_rows_local[0]:
+                        self.lib_art_rows_local.pop(0)
+                        if pb is None and self.config.covers_pref == consts.ART_LOCAL_REMOTE:
+                            # No local art found, add to remote queue for later
+                            self.lib_art_rows_remote.append((iter, data, icon))
+                else:
+                    if len(self.lib_art_rows_remote) > 0 and (iter, data, icon) == self.lib_art_rows_remote[0]:
+                        self.lib_art_rows_remote.pop(0)
+                        if pb is None:
+                            # No remote art found, store self.albumpb in cache
+                            self.cache[cache_key] = self.albumpb
+
+    def library_set_cover(self, model, iter, pb):
+        if model.iter_is_valid(iter):
+            model.set_value(iter, 0, pb)
+
+    def library_get_album_cover(self, dir, artist, album, pb_size):
+        tmp, coverfile = self.artwork_get_local_image(dir, artist, album)
+        if coverfile:
+            try:
+                coverfile = gtk.gdk.pixbuf_new_from_file_at_size(coverfile, pb_size, pb_size)
+            except:
+                # Delete bad image:
+                misc.remove_file(coverfile)
+                return
+            w = coverfile.get_width()
+            h = coverfile.get_height()
+            coverfile = self.artwork_apply_composite_case(coverfile, w, h)
+            return coverfile
+        return None
+
+    def get_library_artwork_cached_pb(self, data, origpb):
+        try:
+            return self.cache[data]
+        except:
+            return origpb
 
     def artwork_update(self, force=False):
         if force:
@@ -243,39 +368,39 @@ class Artwork(object):
                 # still be downloading
                 try:
                     pix = gtk.gdk.pixbuf_new_from_file(filename)
-                    # Artwork for tooltip, left-top of player:
-                    if not info_img_only:
-                        (pix1, w, h) = img.get_pixbuf_of_size(pix, 75)
-                        pix1 = self.artwork_apply_composite_case(pix1, w, h)
-                        pix1 = img.pixbuf_add_border(pix1)
-                        pix1 = img.pixbuf_pad(pix1, 77, 77)
-                        self.albumimage.set_from_pixbuf(pix1)
-                        self.artwork_set_tooltip_art(pix1)
-                        del pix1
-                    # Artwork for info tab:
-                    if self.info_imagebox_get_size_request()[0] == -1:
-                        fullwidth = self.notebook_get_allocation()[2] - 50
-                        (pix2, w, h) = img.get_pixbuf_of_size(pix, fullwidth)
-                    else:
-                        (pix2, w, h) = img.get_pixbuf_of_size(pix, 150)
-                    pix2 = self.artwork_apply_composite_case(pix2, w, h)
-                    pix2 = img.pixbuf_add_border(pix2)
-                    self.info_image.set_from_pixbuf(pix2)
-                    del pix2
-                    # Artwork for fullscreen cover mode
-                    (pix3, w, h) = img.get_pixbuf_of_size(pix, consts.FULLSCREEN_COVER_SIZE)
-                    pix3 = self.artwork_apply_composite_case(pix3, w, h)
-                    pix3 = img.pixbuf_pad(pix3, consts.FULLSCREEN_COVER_SIZE, consts.FULLSCREEN_COVER_SIZE)
-                    self.fullscreenalbumimage.set_from_pixbuf(pix3)
-                    del pix, pix3
-                    self.lastalbumart = filename
                 except:
                     # If we have a 0-byte file, it should mean that
                     # sonata reset the image file. Otherwise, it's a
                     # bad file and should be removed.
                     if os.stat(filename).st_size != 0:
                         misc.remove_file(filename)
-
+                    return
+                # Artwork for tooltip, left-top of player:
+                if not info_img_only:
+                    (pix1, w, h) = img.get_pixbuf_of_size(pix, 75)
+                    pix1 = self.artwork_apply_composite_case(pix1, w, h)
+                    pix1 = img.pixbuf_add_border(pix1)
+                    pix1 = img.pixbuf_pad(pix1, 77, 77)
+                    self.albumimage.set_from_pixbuf(pix1)
+                    self.artwork_set_tooltip_art(pix1)
+                    del pix1
+                # Artwork for info tab:
+                if self.info_imagebox_get_size_request()[0] == -1:
+                    fullwidth = self.notebook_get_allocation()[2] - 50
+                    (pix2, w, h) = img.get_pixbuf_of_size(pix, fullwidth)
+                else:
+                    (pix2, w, h) = img.get_pixbuf_of_size(pix, 150)
+                pix2 = self.artwork_apply_composite_case(pix2, w, h)
+                pix2 = img.pixbuf_add_border(pix2)
+                self.info_image.set_from_pixbuf(pix2)
+                del pix2
+                # Artwork for fullscreen cover mode
+                (pix3, w, h) = img.get_pixbuf_of_size(pix, consts.FULLSCREEN_COVER_SIZE)
+                pix3 = self.artwork_apply_composite_case(pix3, w, h)
+                pix3 = img.pixbuf_pad(pix3, consts.FULLSCREEN_COVER_SIZE, consts.FULLSCREEN_COVER_SIZE)
+                self.fullscreenalbumimage.set_from_pixbuf(pix3)
+                del pix, pix3
+                self.lastalbumart = filename
                 self.schedule_gc_collect()
 
     def artwork_set_image_last(self, info_img_only=False):

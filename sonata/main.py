@@ -908,7 +908,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.cursonglabel1.connect('notify::label', self.on_currsong_notify)
         self.progressbar.connect('notify::fraction', self.on_progressbar_notify_fraction)
         self.progressbar.connect('notify::text', self.on_progressbar_notify_text)
-
         self.playlists.connect('button_press_event', self.on_playlists_button_press)
         self.playlists.connect('row_activated', self.playlists_activated)
         self.playlists.connect('key-press-event', self.playlists_key_press)
@@ -995,6 +994,7 @@ class Base(object, consts.Constants, preferences.Preferences):
 
         # Initialize library data and widget
         self.librarydata = self.library.get_model()
+        self.artwork.library_artwork_init(self.LIB_COVER_SIZE, self.librarydata)
 
         if self.window_owner:
             icon = self.window.render_icon('sonata', gtk.ICON_SIZE_DIALOG)
@@ -1762,7 +1762,6 @@ class Base(object, consts.Constants, preferences.Preferences):
     def on_streams_activated(self, treeview, path, column=0):
         self.on_add_item(None)
 
-
     def _parse_formatting_return_substrings(self, format):
         substrings = []
         begin_pos = format.find("{")
@@ -1916,7 +1915,6 @@ class Base(object, consts.Constants, preferences.Preferences):
             newbitrate = ''
         self.info.info_update(playing_or_paused, newbitrate, self.songinfo, self.album_current_artist, update_all, blank_window, skip_lyrics)
 
-
     def on_treeview_selection_changed(self, treeselection):
         self.update_menu_visibility()
         if treeselection == self.current.get_selection():
@@ -1925,6 +1923,8 @@ class Base(object, consts.Constants, preferences.Preferences):
             if self.sel_rows:
                 for row in self.sel_rows:
                     treeselection.select_path(row)
+        # Update lib artwork
+        self.library.on_library_scrolled(None, None)
 
     def on_library_button_press(self, widget, event):
         if self.on_button_press(widget, event, False): return True
@@ -1983,7 +1983,6 @@ class Base(object, consts.Constants, preferences.Preferences):
             selection.unselect_all()
             path, col, x, y = widget.get_path_at_pos(int(event.x), int(event.y))
             selection.select_path(path)
-
 
     def on_add_item_play(self, widget):
         self.on_add_item(widget, True)
@@ -2114,7 +2113,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                 column = self.columns[0]
             elif self.current_tab == self.TAB_LIBRARY:
                 widget = self.library_treeview
-                column = self.librarycolumn
+                column = self.library.librarycolumn
             elif self.current_tab == self.TAB_PLAYLISTS:
                 widget = self.playlists
                 column = self.playlistscolumn
@@ -3328,7 +3327,8 @@ class Base(object, consts.Constants, preferences.Preferences):
         for song in songs:
             year = mpdh.get(song, 'date', '')
             artist = mpdh.get(song, 'artist', '')
-            data = library.library_set_data(album=album, artist=artist, year=year)
+            path = os.path.dirname(mpdh.get(song, 'file'))
+            data = library.library_set_data(album=album, artist=artist, year=year, path=path)
             list.append(data)
         list = misc.remove_list_duplicates(list, case=False)
         list = self.library.list_identify_VA_albums(list)
