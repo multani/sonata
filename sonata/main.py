@@ -3571,7 +3571,7 @@ class Base(object, consts.Constants, preferences.Preferences):
     def header_save_column_widths(self):
         if not self.withdrawn and self.expanded:
             windowwidth = self.window.allocation.width
-            if windowwidth <= 10 or self.columns[0] <= 10:
+            if windowwidth <= 10 or self.columns[0].get_width() <= 10:
                 # Make sure we only set self.columnwidths if self.current
                 # has its normal allocated width:
                 return
