@@ -1676,7 +1676,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         if playlists is None:
             playlists = mpdh.call(self.client, 'lsinfo')
         for item in playlists:
-            if item.has_key('playlist'):
+            if 'playlist' in item:
                 if mpdh.get(item, 'playlist') == plname and plname != skip_plname:
                     if ui.show_msg(self.window, _("A playlist with this name already exists. Would you like to replace it?"), title, role, gtk.BUTTONS_YES_NO) == gtk.RESPONSE_YES:
                         return False
@@ -1710,7 +1710,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             if playlists is None:
                 playlists = mpdh.call(self.client, 'lsinfo')
             for item in playlists:
-                if item.has_key('playlist'):
+                if 'playlist' in item:
                     playlistinfo.append(misc.escape_html(mpdh.get(item, 'playlist')))
             playlistinfo.sort(key=lambda x: x.lower()) # Remove case sensitivity
             for item in playlistinfo:
@@ -2258,9 +2258,9 @@ class Base(object, consts.Constants, preferences.Preferences):
                 self.scrobbler.handle_change_status(False, self.prevsonginfo)
 
     def album_get_artist(self):
-        if self.songinfo and self.songinfo.has_key('album'):
+        if self.songinfo and 'album' in self.songinfo:
             self.album_return_artist_name()
-        elif self.songinfo and self.songinfo.has_key('artist'):
+        elif self.songinfo and 'artist' in self.songinfo:
             self.album_current_artist = [self.songinfo, mpdh.get(self.songinfo, 'artist')]
         else:
             self.album_current_artist = [self.songinfo, ""]
@@ -2278,7 +2278,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         # next song that will be played.
         self.unbold_boldrow(self.prev_boldrow)
 
-        if self.status and self.status.has_key('song'):
+        if self.status and 'song' in self.status:
             row = int(self.status['song'])
             self.boldrow(row)
             if self.songinfo:
@@ -2540,7 +2540,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                 except:
                     pass
 
-            if self.songinfo.has_key('pos'):
+            if 'pos' in self.songinfo:
                 currsong = int(mpdh.get(self.songinfo, 'pos'))
                 self.boldrow(currsong)
                 self.prev_boldrow = currsong
@@ -3047,7 +3047,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                     if len(paths[i]) == 0: paths[i] = "/"
                     listallinfo = mpdh.call(self.client, 'listallinfo', paths[i])
                     for item in listallinfo:
-                        if item.has_key('file'):
+                        if 'file' in item:
                             mpdpaths.append(mpdh.get(item, 'file'))
                 elif self.mpd_major_version() >= 0.14:
                     # Add local file, available in mpd 0.14. This currently won't
@@ -4253,7 +4253,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.switch_to_tab_name(self.TAB_LIBRARY)
         if self.library.search_visible():
             self.library.on_search_end(None)
-        gobject.idle_add(self.searchtext.grab_focus)
+        self.library.libsearchfilter_set_focus()
 
     def update_menu_visibility(self, show_songinfo_only=False):
         if show_songinfo_only or not self.expanded:
@@ -4449,7 +4449,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         if self.filterbox_visible:
             ui.hide(self.filterbox)
             self.filterbox_visible = False
-            self.edit_style_orig = self.searchtext.get_style()
+            self.edit_style_orig = self.library.libsearchfilter_get_style()
             self.filterpattern.set_text("")
             self.searchfilter_stop_loop()
         elif self.conn:

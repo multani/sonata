@@ -76,7 +76,7 @@ class Scrobbler(object):
 
     def handle_change_status(self, playing, prevsonginfo, songinfo=None, switched_from_stop_to_play=None, mpd_time_now=None):
         """Handle changes to play status, submitting info as appropriate"""
-        if prevsonginfo and prevsonginfo.has_key('time'):
+        if prevsonginfo and 'time' in prevsonginfo:
             prevsong_time = mpdh.get(prevsonginfo, 'time')
         else:
             prevsong_time = None
@@ -130,7 +130,7 @@ class Scrobbler(object):
             if self.config.as_enabled and songinfo:
                 # No need to check if the song is 30 seconds or longer,
                 # audioscrobbler.py takes care of that.
-                if songinfo.has_key('time'):
+                if 'time' in songinfo:
                     self.np(songinfo)
 
                     self.scrob_start_time = str(int(time.time()))
@@ -144,14 +144,14 @@ class Scrobbler(object):
     def do_np(self, songinfo):
         self.init()
         if self.config.as_enabled and self.scrob_post and songinfo:
-            if songinfo.has_key('artist') and \
-               songinfo.has_key('title') and \
-               songinfo.has_key('time'):
-                if not songinfo.has_key('album'):
+            if 'artist' in songinfo and \
+               'title' in songinfo and \
+               'time' in songinfo:
+                if not 'album' in songinfo:
                     album = u''
                 else:
                     album = mpdh.get(songinfo, 'album')
-                if not songinfo.has_key('track'):
+                if not 'track' in songinfo:
                     tracknumber = u''
                 else:
                     tracknumber = mpdh.get(songinfo, 'track')
@@ -166,14 +166,14 @@ class Scrobbler(object):
     def post(self, prevsonginfo):
         self.init()
         if self.config.as_enabled and self.scrob_post and prevsonginfo:
-            if prevsonginfo.has_key('artist') and \
-               prevsonginfo.has_key('title') and \
-               prevsonginfo.has_key('time'):
-                if not prevsonginfo.has_key('album'):
+            if 'artist' in prevsonginfo and \
+               'title' in prevsonginfo and \
+               'time' in prevsonginfo:
+                if not 'album' in prevsonginfo:
                     album = u''
                 else:
                     album = mpdh.get(prevsonginfo, 'album')
-                if not prevsonginfo.has_key('track'):
+                if not 'track' in prevsonginfo:
                     tracknumber = u''
                 else:
                     tracknumber = mpdh.get(prevsonginfo, 'track')

@@ -234,12 +234,12 @@ def mpd_env_vars():
     host = None
     port = None
     password = None
-    if os.environ.has_key('MPD_HOST'):
+    if 'MPD_HOST' in os.environ:
         if '@' in os.environ['MPD_HOST']:
             password, host = os.environ['MPD_HOST'].split('@')
         else:
             host = os.environ['MPD_HOST']
-    if os.environ.has_key('MPD_PORT'):
+    if 'MPD_PORT' in os.environ:
         port = int(os.environ['MPD_PORT'])
     return (host, port, password)
 

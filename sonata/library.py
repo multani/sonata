@@ -367,11 +367,11 @@ class Library(object):
             bd = self.lib_view_filesystem_cache
         else:
             for item in mpdh.call(self.client, 'lsinfo', path):
-                if item.has_key('directory'):
+                if 'directory' in item:
                     name = mpdh.get(item, 'directory').split('/')[-1]
                     data = self.library_set_data(path=mpdh.get(item, 'directory'))
                     bd += [('d' + name.lower(), [self.openpb, data, misc.escape_html(name)])]
-                elif item.has_key('file'):
+                elif 'file' in item:
                     data = self.library_set_data(path=mpdh.get(item, 'file'))
                     bd += [('f' + mpdh.get(item, 'file').lower(), [self.sonatapb, data, self.parse_formatting(self.config.libraryformat, item, True)])]
             bd.sort(key=misc.first_of_2tuple)
@@ -431,7 +431,7 @@ class Library(object):
             list = []
             untagged_found = False
             for item in mpdh.call(self.client, 'listallinfo', '/'):
-                if item.has_key('file') and item.has_key('album'):
+                if 'file' in item and 'album' in item:
                     album = mpdh.get(item, 'album')
                     artist = mpdh.get(item, 'artist', self.NOTAG)
                     year = mpdh.get(item, 'date', self.NOTAG)
@@ -890,9 +890,9 @@ class Library(object):
 
     def library_get_path_files_recursive(self, path, list):
         for item in mpdh.call(self.client, 'lsinfo', path):
-            if item.has_key('directory'):
+            if 'directory' in item:
                 self.library_get_path_files_recursive(mpdh.get(item, 'directory'), list)
-            elif item.has_key('file'):
+            elif 'file' in item:
                 list.append(mpdh.get(item, 'file'))
 
     def on_library_search_combo_change(self, combo):
@@ -1019,7 +1019,7 @@ class Library(object):
         currlen = len(self.librarydata)
         newlist = []
         for item in matches:
-            if item.has_key('file'):
+            if 'file' in item:
                 newlist.append([self.sonatapb, self.library_set_data(path=mpdh.get(item, 'file')), self.parse_formatting(self.config.libraryformat, item, True)])
         for i, item in enumerate(newlist):
             if i < currlen:
@@ -1049,3 +1049,9 @@ class Library(object):
 
     def libsearchfilter_on_enter(self, entry):
         self.on_library_row_activated(None, None)
+
+    def libsearchfilter_set_focus(self):
+        gobject.idle_add(self.searchtext.grab_focus)
+
+    def libsearchfilter_get_style(self):
+        return self.searchtext.get_style()

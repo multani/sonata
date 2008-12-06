@@ -237,10 +237,10 @@ class Info(object):
             if update_all:
                 # Use artist/album Wikipedia links?
                 artist_use_link = False
-                if songinfo.has_key('artist'):
+                if 'artist' in songinfo:
                     artist_use_link = True
                 album_use_link = False
-                if songinfo.has_key('album'):
+                if 'album' in songinfo:
                     album_use_link = True
                 titlelabel.set_text(mpdh.get(songinfo, 'title'))
                 if artist_use_link:
@@ -253,7 +253,7 @@ class Info(object):
                     albumlabel.set_text(mpdh.get(songinfo, 'album'))
                 datelabel.set_text(mpdh.get(songinfo, 'date'))
                 genrelabel.set_text(mpdh.get(songinfo, 'genre'))
-                if songinfo.has_key('track'):
+                if 'track' in songinfo:
                     tracklabel.set_text(mpdh.getnum(songinfo, 'track', '0', False, 0))
                 else:
                     tracklabel.set_text("")
@@ -264,7 +264,7 @@ class Info(object):
                 else:
                     filelabel.set_text(mpdh.get(songinfo, 'file'))
                     self.info_editlabel.set_text("")
-                if songinfo.has_key('album'):
+                if 'album' in songinfo:
                     # Update album info:
                     trackinfo = ""
                     album = mpdh.get(songinfo, 'album')
@@ -274,7 +274,7 @@ class Info(object):
                     tracks, playtime, num_songs = self.library_return_search_items(album=album, artist=artist, year=year)
                     if len(tracks) > 0:
                         for track in tracks:
-                            if track.has_key('title'):
+                            if 'title' in track:
                                 trackinfo = trackinfo + mpdh.getnum(track, 'track', '0', False, 2) + '. ' + mpdh.get(track, 'title') + '\n'
                             else:
                                 trackinfo = trackinfo + mpdh.getnum(track, 'track', '0', False, 2) + '. ' + mpdh.get(track, 'file').split('/')[-1] + '\n'
@@ -301,7 +301,7 @@ class Info(object):
                     if ServiceProxy is None:
                         self.info_searchlabel.set_text("")
                         self.info_show_lyrics(_("ZSI not found, fetching lyrics support disabled."), "", "", True)
-                    elif songinfo.has_key('artist') and songinfo.has_key('title'):
+                    elif 'artist' in songinfo and 'title' in songinfo:
                         self.get_lyrics_start(mpdh.get(songinfo, 'artist'), mpdh.get(songinfo, 'title'), mpdh.get(songinfo, 'artist'), mpdh.get(songinfo, 'title'), os.path.dirname(mpdh.get(songinfo, 'file')))
                     else:
                         self.info_searchlabel.set_text("")

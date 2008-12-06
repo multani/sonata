@@ -87,7 +87,7 @@ class Artwork(object):
 
     def on_reset_image(self, _action):
         if self.songinfo:
-            if self.songinfo.has_key('name'):
+            if 'name' in self.songinfo:
                 # Stream, remove file:
                 misc.remove_file(self.artwork_stream_filename(mpdh.get(self.songinfo, 'name')))
             else:
@@ -252,7 +252,7 @@ class Artwork(object):
             self.artwork_set_default_icon()
 
     def _artwork_update(self):
-        if self.songinfo.has_key('name'):
+        if 'name' in self.songinfo:
             # Stream
             streamfile = self.artwork_stream_filename(mpdh.get(self.songinfo, 'name'))
             if os.path.exists(streamfile):
@@ -429,7 +429,7 @@ class Artwork(object):
         # this will ensure that only the artwork for the currently playing
         # song is displayed
         if self.status_is_play_or_pause() and self.songinfo:
-            if self.songinfo.has_key('name'):
+            if 'name' in self.songinfo:
                 streamfile = self.artwork_stream_filename(mpdh.get(self.songinfo, 'name'))
                 if filename == streamfile:
                     return True
