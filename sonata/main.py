@@ -4616,7 +4616,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                 self.playlist_retain_view(self.current, filterposition)
                 for path in filterselected:
                     self.current_selection.select_path(path)
-            else:
+            elif len(matches) > 0:
                 self.current.set_cursor('0')
             if len(matches) == 0:
                 gobject.idle_add(self.filtering_entry_make_red, self.filterpattern)
