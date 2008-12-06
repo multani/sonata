@@ -15,7 +15,6 @@ v1.6
 		- support for composer, disc
 		- save selection afterwards
 		- fix sorting (e.g. disc-track)
-		- deleting comments bug?
 
 v1.6.1
 	work with mpd's new "allow authenticated local users to add any local file to the playlist"

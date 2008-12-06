@@ -380,6 +380,10 @@ class TagEditor():
             else:
                 tag.genre = value
         elif field=='comment':
+            # For some reason, setting the comment to nothing doesn't
+            # change it (unlike every other tag). So lets set it to a
+            # space instead.
+            if len(value)==0: value = ' '
             if not self.tagpy_is_91:
                 tag.setComment(value)
             else:
