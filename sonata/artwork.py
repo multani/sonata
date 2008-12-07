@@ -92,6 +92,7 @@ class Artwork(object):
                 misc.remove_file(self.artwork_stream_filename(mpdh.get(self.songinfo, 'name')))
             else:
                 # Normal song:
+                misc.remove_file(self.target_image_filename())
                 misc.remove_file(self.target_image_filename(consts.ART_LOCATION_HOMECOVERS))
                 # Use blank cover as the artwork
                 dest_filename = self.target_image_filename(consts.ART_LOCATION_HOMECOVERS)
