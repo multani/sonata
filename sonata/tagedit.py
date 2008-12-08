@@ -46,14 +46,12 @@ class TagEditor():
                 pass
         if tagpy is None:
             ui.show_msg(self.window, _("Taglib and/or tagpy not found, tag editing support disabled."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=ui.dialog_destroy)
+            ui.change_cursor(None)
             return
         if not os.path.isdir(misc.file_from_utf8(music_dir)):
             ui.show_msg(self.window, _("The path") + " " + music_dir + " " + _("does not exist. Please specify a valid music directory in preferences."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=ui.dialog_destroy)
+            ui.change_cursor(None)
             return
-        ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
-
-        while gtk.events_pending():
-            gtk.main_iteration()
 
                 # XXX file list was created here
 

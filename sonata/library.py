@@ -882,6 +882,7 @@ class Library(object):
                             items.append(path)
                 else:
                     results, playtime, num_songs = self.library_return_search_items(genre=genre, artist=artist, album=album, year=year)
+                    results.sort(key=lambda x: (mpdh.get(x, 'genre', 'zzz').lower(), mpdh.get(x, 'artist', 'zzz').lower(), mpdh.get(x, 'album', 'zzz').lower(), mpdh.getnum(x, 'disc', '0', True, 0), mpdh.getnum(x, 'track', '0', True, 0), mpdh.get(x, 'file')))
                     for item in results:
                         items.append(mpdh.get(item, 'file'))
         # Make sure we don't have any EXACT duplicates:

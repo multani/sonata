@@ -4358,6 +4358,10 @@ class Base(object, consts.Constants, preferences.Preferences):
         return full_filename
 
     def on_tags_edit(self, widget):
+        ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
+        while gtk.events_pending():
+            gtk.main_iteration()
+
         files = []
         temp_mpdpaths = []
         if self.current_tab == self.TAB_INFO:

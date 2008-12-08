@@ -13,8 +13,7 @@ v1.6
 	sonata freezes with gail/accessibility enabled during new library searching
 	tag editing 
 		- support for composer, disc
-		- save selection afterwards
-		- fix sorting (e.g. disc-track)
+		- save selection afterwards (what did we have before?)
 
 v1.6.1
 	work with mpd's new "allow authenticated local users to add any local file to the playlist"
