@@ -541,35 +541,29 @@ class Library(object):
                         pb = self.artwork.get_library_artwork_cached_pb(cache_data, self.albumpb)
                         bd += [(ordered_year + misc.lower_no_the(album), [pb, data, display])]
             # Now, songs not in albums:
-            if genre is not None:
-                songs, playtime, num_songs = self.library_return_search_items(genre=genre, artist=artist, album=self.NOTAG)
-            else:
-                songs, playtime, num_songs = self.library_return_search_items(artist=artist, album=self.NOTAG)
-            for song in songs:
-                data = self.library_set_data(path=mpdh.get(song, 'file'))
-                track = mpdh.getnum(song, 'track', '99', False, 2)
-                disc = mpdh.getnum(song, 'disc', '99', False, 2)
-                try:
-                    bd += [('f' + disc + track + misc.lower_no_the(mpdh.get(song, 'title')), [self.sonatapb, data, self.parse_formatting(self.config.libraryformat, song, True)])]
-                except:
-                    bd += [('f' + disc + track + mpdh.get(song, 'file').lower(), [self.sonatapb, data, self.parse_formatting(self.config.libraryformat, song, True)])]
+            bd += self.library_populate_data_songs(genre, artist, self.NOTAG, None)
         else:
             # Songs within an album, artist, year, and possibly genre
-            if genre is not None:
-                songs, playtime, num_songs = self.library_return_search_items(genre=genre, artist=artist, album=album, year=year)
-            else:
-                songs, playtime, num_songs = self.library_return_search_items(artist=artist, album=album, year=year)
-            for song in songs:
-                data = self.library_set_data(path=mpdh.get(song, 'file'))
-                track = mpdh.getnum(song, 'track', '99', False, 2)
-                disc = mpdh.getnum(song, 'disc', '99', False, 2)
-                try:
-                    bd += [('f' + disc + track + misc.lower_no_the(mpdh.get(song, 'title')), [self.sonatapb, data, self.parse_formatting(self.config.libraryformat, song, True)])]
-                except:
-                    bd += [('f' + disc + track + mpdh.get(song, 'file').lower(), [self.sonatapb, data, self.parse_formatting(self.config.libraryformat, song, True)])]
+            bd += self.library_populate_data_songs(genre, artist, album, year)
         if len(bd) > 0:
             bd = self.library_populate_add_parent_rows() + bd
         bd.sort(locale.strcoll, key=misc.first_of_2tuple)
+        return bd
+
+    def library_populate_data_songs(self, genre, artist, album, year):
+        bd = []
+        if genre is not None:
+            songs, playtime, num_songs = self.library_return_search_items(genre=genre, artist=artist, album=album, year=year)
+        else:
+            songs, playtime, num_songs = self.library_return_search_items(artist=artist, album=album, year=year)
+        for song in songs:
+            data = self.library_set_data(path=mpdh.get(song, 'file'))
+            track = mpdh.getnum(song, 'track', '99', False, 2)
+            disc = mpdh.getnum(song, 'disc', '99', False, 2)
+            try:
+                bd += [('f' + disc + track + misc.lower_no_the(mpdh.get(song, 'title')), [self.sonatapb, data, self.parse_formatting(self.config.libraryformat, song, True)])]
+            except:
+                bd += [('f' + disc + track + mpdh.get(song, 'file').lower(), [self.sonatapb, data, self.parse_formatting(self.config.libraryformat, song, True)])]
         return bd
 
     def library_return_list_items(self, type, genre=None, artist=None, album=None, year=None, ignore_case=True):
