@@ -34,9 +34,6 @@ def library_set_data(album=None, artist=None, genre=None, year=None, path=None):
     return ret
 
 def library_get_data(data, *args):
-    # Data retrieved from the gtktreeview model is not in
-    # unicode anymore, so convert it.
-    data = unicode(data)
     map = {'album':0, 'artist':1, 'genre':2, 'year':3, 'path':4}
     dl = data.split(consts.LIB_DELIM)
     retlist = []
