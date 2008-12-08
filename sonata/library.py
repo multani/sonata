@@ -447,11 +447,11 @@ class Library(object):
                     data = self.library_set_data(artist=artist, album=album, year=year, path=path)
                     cache_data = self.library_set_data(artist=artist, album=album, path=path)
                     display = misc.escape_html(album)
-                    if artist and year and len(artist) > 0 and len(year) > 0:
+                    if artist and year and len(artist) > 0 and len(year) > 0 and artist != self.NOTAG and year != self.NOTAG:
                         display += " <span weight='light'>(" + misc.escape_html(artist) + ", " + misc.escape_html(year) + ")</span>"
-                    elif artist and len(artist) > 0:
+                    elif artist and len(artist) > 0 and artist != self.NOTAG:
                         display += " <span weight='light'>(" + misc.escape_html(artist) + ")</span>"
-                    elif year and len(year) > 0:
+                    elif year and len(year) > 0 and year != self.NOTAG:
                         display += " <span weight='light'>(" + misc.escape_html(year) + ")</span>"
                     display += self.add_display_info(num_songs, int(playtime)/60)
                     pb = self.artwork.get_library_artwork_cached_pb(cache_data, self.albumpb)
