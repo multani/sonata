@@ -295,7 +295,7 @@ audioscrobbler_request_host = 'ws.audioscrobbler.com'
 # AudioScrobblerPost configuration settings
 audioscrobbler_post_version = u'1.2' #updated
 audioscrobbler_post_host = 'post.audioscrobbler.com'
-client_name = u'tst'
+client_name = u'sna'
 pyscrobbler_version = u'1.0.0.0' # This is set to 1.0 while we use
                              # client_name = u'tst' as we keep getting
                              # UPDATE responses with anything less.
