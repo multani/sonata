@@ -36,7 +36,7 @@ gettext.textdomain('sonata')
 import mpdhelper as mpdh
 from socket import setdefaulttimeout as socketsettimeout
 
-import consts, config, preferences, tagedit, artwork, about, scrobbler, info, library
+import consts, config, preferences, tagedit, artwork, about, scrobbler, info, library, streams
 
 ElementTree = None
 
@@ -421,8 +421,6 @@ class Base(object, consts.Constants, preferences.Preferences):
             ('updatemenu', None, _('_Update Library'), None, None, self.on_updatedb),
             ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'), 'F5', None, self.on_prefs),
             ('aboutmenu', None, _('_About...'), 'F1', None, self.on_about),
-            ('newmenu', None, _('_New...'), '<Ctrl>n', None, self.on_streams_new),
-            ('editmenu', None, _('_Edit...'), None, None, self.on_streams_edit),
             ('renamemenu', None, _('_Rename...'), None, None, self.on_playlist_rename),
             ('tagmenu', None, _('_Edit Tags...'), '<Ctrl>t', None, self.on_tags_edit),
             ('addmenu', gtk.STOCK_ADD, _('_Add'), '<Ctrl>d', None, self.on_add_item),
@@ -607,11 +605,31 @@ class Base(object, consts.Constants, preferences.Preferences):
             ('albumview', 'album', _('Album'), None, None, self.library.on_libraryview_chosen),
             ]
 
+        # Streams tab
+        self.streams = streams.Streams(self.config, self.window, self.on_streams_button_press, self.on_add_item, self.settings_save, self.iterate_now, self.TAB_STREAMS)
+
+        streamswindow, streamsevbox = self.streams.get_widgets()
+        self.streams_treeview = self.streams.get_treeview()
+        self.streams_selection = self.streams.get_selection()
+
+        streamsevbox.connect("button_press_event", self.on_tab_click)
+
+        self.notebook.append_page(streamswindow, streamsevbox)
+        streams_tab = streamswindow
+        if not self.streams_tab_visible:
+            ui.hide(streams_tab)
+
+        streamsactions = [
+            ('newmenu', None, _('_New...'), '<Ctrl>n', None, self.streams.on_streams_new),
+            ('editmenu', None, _('_Edit...'), None, None, self.streams.on_streams_edit),
+            ]
+
         # Main app:
         self.UIManager = gtk.UIManager()
         actionGroup = gtk.ActionGroup('Actions')
         actionGroup.add_actions(actions)
         actionGroup.add_actions(libraryactions)
+        actionGroup.add_actions(streamsactions)
         actionGroup.add_toggle_actions(toggle_actions)
         self.UIManager.insert_action_group(actionGroup, 0)
         self.UIManager.add_ui_from_string(uiDescription)
@@ -713,20 +731,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         playlists_tab = expanderwindow3
         if not self.playlists_tab_visible:
             ui.hide(playlists_tab)
-        # Streams tab
-        self.streams = ui.treeview()
-        self.streams_selection = self.streams.get_selection()
-        expanderwindow4 = ui.scrollwindow(add=self.streams)
-        streamshbox = gtk.HBox()
-        streamshbox.pack_start(ui.image(stock=gtk.STOCK_NETWORK), False, False, 2)
-        streamshbox.pack_start(ui.label(text=self.TAB_STREAMS), False, False, 2)
-        streamsevbox = ui.eventbox(add=streamshbox)
-        streamsevbox.show_all()
-        streamsevbox.connect("button_press_event", self.on_tab_click)
-        self.notebook.append_page(expanderwindow4, streamsevbox)
-        streams_tab = expanderwindow4
-        if not self.streams_tab_visible:
-            ui.hide(streams_tab)
+
         # Info tab
         self.info_area = ui.scrollwindow()
         infohbox = gtk.HBox()
@@ -911,9 +916,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.playlists.connect('button_press_event', self.on_playlists_button_press)
         self.playlists.connect('row_activated', self.playlists_activated)
         self.playlists.connect('key-press-event', self.playlists_key_press)
-        self.streams.connect('button_press_event', self.on_streams_button_press)
-        self.streams.connect('row_activated', self.on_streams_activated)
-        self.streams.connect('key-press-event', self.on_streams_key_press)
         self.mainwinhandler = self.window.connect('button_press_event', self.on_window_click)
         self.notebook.connect('button_press_event', self.on_notebook_click)
         self.notebook.connect('size-allocate', self.on_notebook_resize)
@@ -926,7 +928,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.fullscreencoverart.add_events(gtk.gdk.BUTTON_PRESS_MASK | gtk.gdk.BUTTON_PRESS_MASK)
         self.fullscreencoverart.connect("button-press-event", self.fullscreen_cover_art_close, False)
         self.fullscreencoverart.connect("key-press-event", self.fullscreen_cover_art_close, True)
-        for treeview in [self.current, self.library_treeview, self.playlists, self.streams]:
+        for treeview in [self.current, self.library_treeview, self.playlists, self.streams_treeview]:
             treeview.connect('popup_menu', self.on_menu_popup)
         for treeviewsel in [self.current_selection, self.library_selection, self.playlists_selection, self.streams_selection]:
             treeviewsel.connect('changed', self.on_treeview_selection_changed)
@@ -978,19 +980,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.playlists_selection.set_mode(gtk.SELECTION_MULTIPLE)
 
         # Initialize streams data and widget
-        self.streamsdata = gtk.ListStore(str, str, str)
-        self.streams.set_model(self.streamsdata)
-        self.streams.set_search_column(1)
-        self.streamsimg = gtk.CellRendererPixbuf()
-        self.streamscell = gtk.CellRendererText()
-        self.streamscell.set_property("ellipsize", pango.ELLIPSIZE_END)
-        self.streamscolumn = gtk.TreeViewColumn()
-        self.streamscolumn.pack_start(self.streamsimg, False)
-        self.streamscolumn.pack_start(self.streamscell, True)
-        self.streamscolumn.set_attributes(self.streamsimg, stock_id=0)
-        self.streamscolumn.set_attributes(self.streamscell, markup=1)
-        self.streams.append_column(self.streamscolumn)
-        self.streams_selection.set_mode(gtk.SELECTION_MULTIPLE)
+        self.streamsdata = self.streams.get_model()
 
         # Initialize library data and widget
         self.librarydata = self.library.get_model()
@@ -1000,7 +990,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             icon = self.window.render_icon('sonata', gtk.ICON_SIZE_DIALOG)
             self.window.set_icon(icon)
 
-        self.streams_populate()
+        self.streams.populate()
 
         self.iterate_now()
         if self.window_owner:
@@ -1570,75 +1560,6 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.playlists_populate()
             self.on_notebook_page_change(self.notebook, 0, self.notebook.get_current_page())
 
-    def on_streams_edit(self, action):
-        model, selected = self.streams_selection.get_selected_rows()
-        try:
-            streamname = model.get_value(model.get_iter(selected[0]), 1)
-            for i in range(len(self.stream_names)):
-                if self.stream_names[i] == streamname:
-                    self.on_streams_new(action, i)
-                    return
-        except:
-            pass
-
-    def on_streams_new(self, action, stream_num=-1):
-        if stream_num > -1:
-            edit_mode = True
-        else:
-            edit_mode = False
-        # Prompt user for playlist name:
-        dialog = ui.dialog(title=None, parent=self.window, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_OK, gtk.RESPONSE_ACCEPT), role="streamsNew")
-        if edit_mode:
-            dialog.set_title(_("Edit Stream"))
-        else:
-            dialog.set_title(_("New Stream"))
-        hbox = gtk.HBox()
-        namelabel = ui.label(text=_('Stream name') + ':')
-        hbox.pack_start(namelabel, False, False, 5)
-        nameentry = ui.entry()
-        if edit_mode:
-            nameentry.set_text(self.stream_names[stream_num])
-        hbox.pack_start(nameentry, True, True, 5)
-        hbox2 = gtk.HBox()
-        urllabel = ui.label(text=_('Stream URL') + ':')
-        hbox2.pack_start(urllabel, False, False, 5)
-        urlentry = ui.entry()
-        if edit_mode:
-            urlentry.set_text(self.stream_uris[stream_num])
-        hbox2.pack_start(urlentry, True, True, 5)
-        ui.set_widths_equal([namelabel, urllabel])
-        dialog.vbox.pack_start(hbox)
-        dialog.vbox.pack_start(hbox2)
-        ui.show(dialog.vbox)
-        response = dialog.run()
-        if response == gtk.RESPONSE_ACCEPT:
-            name = nameentry.get_text()
-            uri = urlentry.get_text()
-            if len(name.decode('utf-8')) > 0 and len(uri.decode('utf-8')) > 0:
-                # Make sure this stream name doesn't already exit:
-                i = 0
-                for item in self.stream_names:
-                    # Prevent a name collision in edit_mode..
-                    if not edit_mode or (edit_mode and i != stream_num):
-                        if item == name:
-                            dialog.destroy()
-                            if ui.show_msg(self.window, _("A stream with this name already exists. Would you like to replace it?"), _("New Stream"), 'newStreamError', gtk.BUTTONS_YES_NO) == gtk.RESPONSE_YES:
-                                # Pop existing stream:
-                                self.stream_names.pop(i)
-                                self.stream_uris.pop(i)
-                            else:
-                                return
-                    i = i + 1
-                if edit_mode:
-                    self.stream_names.pop(stream_num)
-                    self.stream_uris.pop(stream_num)
-                self.stream_names.append(name)
-                self.stream_uris.append(uri)
-                self.streams_populate()
-                self.settings_save()
-        dialog.destroy()
-        self.iterate_now()
-
     def on_playlist_save(self, action):
         plname = self.prompt_for_playlist_name(_("Save Playlist"), 'savePlaylist')
         if plname:
@@ -1734,32 +1655,12 @@ class Base(object, consts.Constants, preferences.Preferences):
                     return
                 row = row + 1
 
-    def streams_populate(self):
-        self.streamsdata.clear()
-        streamsinfo = []
-        for i in range(len(self.stream_names)):
-            dict = {}
-            dict["name"] = misc.escape_html(self.stream_names[i])
-            dict["uri"] = misc.escape_html(self.stream_uris[i])
-            streamsinfo.append(dict)
-        streamsinfo.sort(key=lambda x: x["name"].lower()) # Remove case sensitivity
-        for item in streamsinfo:
-            self.streamsdata.append([gtk.STOCK_NETWORK, item["name"], item["uri"]])
-
     def playlists_key_press(self, widget, event):
         if event.keyval == gtk.gdk.keyval_from_name('Return'):
             self.playlists_activated(widget, widget.get_cursor()[0])
             return True
 
     def playlists_activated(self, treeview, path, column=0):
-        self.on_add_item(None)
-
-    def on_streams_key_press(self, widget, event):
-        if event.keyval == gtk.gdk.keyval_from_name('Return'):
-            self.on_streams_activated(widget, widget.get_cursor()[0])
-            return True
-
-    def on_streams_activated(self, treeview, path, column=0):
         self.on_add_item(None)
 
     def _parse_formatting_return_substrings(self, format):
@@ -2118,8 +2019,8 @@ class Base(object, consts.Constants, preferences.Preferences):
                 widget = self.playlists
                 column = self.playlistscolumn
             elif self.current_tab == self.TAB_STREAMS:
-                widget = self.streams
-                column = self.streamscolumn
+                widget = self.streams_treeview
+                column = self.streams.streamscolumn
             rows = widget.get_selection().get_selected_rows()[1]
             visible_rect = widget.get_visible_rect()
             row_y = 0
@@ -3898,7 +3799,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                                     self.stream_names.pop(i)
                                     self.stream_uris.pop(i)
                                     stream_removed = True
-                    self.streams_populate()
+                    self.streams.populate()
             self.iterate_now()
             # Attempt to retain selection in the vicinity..
             if model and len(model) > 0:
@@ -4186,7 +4087,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         elif self.current_tab == self.TAB_PLAYLISTS:
             gobject.idle_add(ui.focus, self.playlists)
         elif self.current_tab == self.TAB_STREAMS:
-            gobject.idle_add(ui.focus, self.streams)
+            gobject.idle_add(ui.focus, self.streams_treeview)
         elif self.current_tab == self.TAB_INFO:
             gobject.idle_add(ui.focus, self.info_area)
             # This prevents the artwork from being cutoff when the
