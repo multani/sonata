@@ -124,7 +124,8 @@ class Preferences(Config):
                 widget.set_sensitive(False)
         else:
             using_mpd_env_vars = False
-            for widget in [hostentry, portentry, passwordentry, nameentry, profiles, add_profile, remove_profile]:
+            # remove_profile is properly set in populate_profile_combo:
+            for widget in [hostentry, portentry, passwordentry, nameentry, profiles, add_profile]:
                 widget.set_sensitive(True)
             nameentry.connect('changed', self.prefs_nameentry_changed, profiles, remove_profile)
             hostentry.connect('changed', self.prefs_hostentry_changed, profiles)
