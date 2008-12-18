@@ -132,11 +132,19 @@ class Artwork(object):
         if not self.config.show_covers:
             return
 
+        # This avoids a warning about a NULL node in get_visible_range
+        if not treeview.props.visible:
+            return
+
         vis_range = treeview.get_visible_range()
         if vis_range is None:
             return
-        start_row = int(vis_range[0][0])
-        end_row = int(vis_range[1][0])
+        try:
+            start_row = int(vis_range[0][0])
+            end_row = int(vis_range[1][0])
+        except IndexError:
+            # get_visible_range failed
+            return
 
         self.albumpb = albumpb
 
