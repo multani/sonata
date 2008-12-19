@@ -26,6 +26,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from sonata import main
 import sys
+# the following line is to fix python-zsi 2.0 and thus lyrics in ubuntu:
+# https://bugs.launchpad.net/ubuntu/+source/zsi/+bug/208855
+sys.path.append('/usr/lib/python2.5/site-packages/oldxml')
 import platform
 
 if platform.system == 'Linux':
