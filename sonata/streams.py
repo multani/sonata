@@ -73,10 +73,10 @@ class Streams(object):
         self.streamsdata.clear()
         streamsinfo = []
         for i in range(len(self.config.stream_names)):
-            dict = {}
-            dict["name"] = misc.escape_html(self.config.stream_names[i])
-            dict["uri"] = misc.escape_html(self.config.stream_uris[i])
-            streamsinfo.append(dict)
+            record = {}
+            record["name"] = misc.escape_html(self.config.stream_names[i])
+            record["uri"] = misc.escape_html(self.config.stream_uris[i])
+            streamsinfo.append(record)
         streamsinfo.sort(key=lambda x: x["name"].lower()) # Remove case sensitivity
         for item in streamsinfo:
             self.streamsdata.append([gtk.STOCK_NETWORK, item["name"], item["uri"]])
@@ -86,7 +86,7 @@ class Streams(object):
             self.on_streams_activated(widget, widget.get_cursor()[0])
             return True
 
-    def on_streams_activated(self, treeview, path, column=0):
+    def on_streams_activated(self, _treeview, _path, _column=0):
         self.on_add_item(None)
 
     def on_streams_edit(self, action):
@@ -100,7 +100,7 @@ class Streams(object):
         except:
             pass
 
-    def on_streams_new(self, action, stream_num=-1):
+    def on_streams_new(self, _action, stream_num=-1):
         if stream_num > -1:
             edit_mode = True
         else:

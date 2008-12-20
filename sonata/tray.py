@@ -16,6 +16,7 @@ class TrayIconTips(gtk.Window):
         self.set_name("gtk-tooltips")
         self.connect('expose-event', self._on__expose_event)
 
+        # FIXME nonsensical, unused:
         if widget != None:
             self._label = ui.label()
             self.add(self._label)
@@ -33,13 +34,11 @@ class TrayIconTips(gtk.Window):
                 if widget.flags() & gtk.NO_WINDOW:
                     x += widget.allocation.x
                     y += widget.allocation.y
-                width = widget.allocation.width
                 height = widget.allocation.height
             except:
                 icon_screen, icon_rect, icon_orient = widget.get_geometry()
                 x = icon_rect[0]
                 y = icon_rect[1]
-                width = icon_rect[2]
                 height = icon_rect[3]
         w, h = self.size_request()
 
@@ -72,7 +71,7 @@ class TrayIconTips(gtk.Window):
         except:
             pass
 
-        if self.use_notifications_location == False:
+        if not self.use_notifications_location:
             try:
                 return x, y
             except:
@@ -120,7 +119,7 @@ class TrayIconTips(gtk.Window):
         self.timer_tag = None
 
     # from gtktooltips.c:gtk_tooltips_paint_window
-    def _on__expose_event(self, window, event):
+    def _on__expose_event(self, window, _event):
         w, h = window.size_request()
         window.style.paint_flat_box(window.window,
                                     gtk.STATE_NORMAL, gtk.SHADOW_OUT,

@@ -285,11 +285,11 @@ class Config:
                 year = conf.get('library', 'lib_year')
             if conf.has_option('library', 'lib_path'):
                 path = conf.get('library', 'lib_path')
-            if album == self.LIB_NODATA: album = None
-            if artist == self.LIB_NODATA: artist = None
-            if genre == self.LIB_NODATA: genre = None
-            if year == self.LIB_NODATA: year = None
-            if path == self.LIB_NODATA: path = None
+            if album == consts.LIB_NODATA: album = None
+            if artist == consts.LIB_NODATA: artist = None
+            if genre == consts.LIB_NODATA: genre = None
+            if year == consts.LIB_NODATA: year = None
+            if path == consts.LIB_NODATA: path = None
             self.wd = library_set_data(album=album, artist=artist, genre=genre, year=year, path=path)
 
         if conf.has_section('currformat'):
@@ -426,11 +426,11 @@ class Config:
         genre = library_get_data(self.wd, 'genre')
         year = library_get_data(self.wd, 'year')
         path = library_get_data(self.wd, 'path')
-        if album is None: album = self.LIB_NODATA
-        if artist is None: artist = self.LIB_NODATA
-        if genre is None: genre = self.LIB_NODATA
-        if year is None: year = self.LIB_NODATA
-        if path is None: path = self.LIB_NODATA
+        if album is None: album = consts.LIB_NODATA
+        if artist is None: artist = consts.LIB_NODATA
+        if genre is None: genre = consts.LIB_NODATA
+        if year is None: year = consts.LIB_NODATA
+        if path is None: path = consts.LIB_NODATA
         conf.add_section('library')
         conf.set('library', 'lib_album', album)
         conf.set('library', 'lib_artist', artist)

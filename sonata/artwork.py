@@ -152,11 +152,11 @@ class Artwork(object):
         self.lib_art_cond.acquire()
         self.lib_art_rows_local = []
         for row in range(start_row,end_row+1):
-            iter = model.get_iter((row,))
-            icon = model.get_value(iter, 0)
+            i = model.get_iter((row,))
+            icon = model.get_value(i, 0)
             if icon == self.albumpb:
-                data = model.get_value(iter, 1)
-                self.lib_art_rows_local.append((iter, data, icon))
+                data = model.get_value(i, 1)
+                self.lib_art_rows_local.append((i, data, icon))
         self.lib_art_cond.notifyAll()
         self.lib_art_cond.release()
 

@@ -149,7 +149,7 @@ class Current(object):
     def get_current_songs(self):
         return self.current_songs
 
-    def dnd_get_data_for_file_managers(self, treeview, context, selection, info, timestamp):
+    def dnd_get_data_for_file_managers(self, _treeview, context, selection, _info, _timestamp):
 
         if not os.path.isdir(self.config.musicdir[self.config.profile_num]):
             # Prevent the DND mouse cursor from looking like we can DND
@@ -161,8 +161,8 @@ class Current(object):
         filenames = self.get_selected_filenames(True)
 
         uris = []
-        for file in filenames:
-            uris.append("file://" + urllib.quote(file))
+        for filename in filenames:
+            uris.append("file://" + urllib.quote(filename))
 
         selection.set_uris(uris)
         return
@@ -221,13 +221,13 @@ class Current(object):
 
                     if pos < currlen:
                         # Update attributes for item:
-                        iter = self.currentdata.get_iter((pos, ))
-                        id = int(mpdh.get(track, 'id'))
-                        if id != self.currentdata.get_value(iter, 0):
-                            self.currentdata.set_value(iter, 0, id)
+                        i = self.currentdata.get_iter((pos, ))
+                        trackid = int(mpdh.get(track, 'id'))
+                        if trackid != self.currentdata.get_value(i, 0):
+                            self.currentdata.set_value(i, 0, trackid)
                         for index in range(len(items)):
-                            if items[index] != self.currentdata.get_value(iter, index + 1):
-                                self.currentdata.set_value(iter, index + 1, items[index])
+                            if items[index] != self.currentdata.get_value(i, index + 1):
+                                self.currentdata.set_value(i, index + 1, items[index])
                         self.current_songs[pos] = track
                     else:
                         # Add new item:
@@ -240,8 +240,8 @@ class Current(object):
                 else:
                     # Remove excess songs:
                     for i in range(currlen-newlen):
-                        iter = self.currentdata.get_iter((newlen-1-i,))
-                        self.currentdata.remove(iter)
+                        it = self.currentdata.get_iter((newlen-1-i,))
+                        self.currentdata.remove(it)
                     self.current_songs = self.current_songs[:newlen]
 
                 if not self.filterbox_visible:
@@ -309,7 +309,7 @@ class Current(object):
             else:
                 column.set_sort_indicator(False)
 
-    def center_song_in_list(self, event=None):
+    def center_song_in_list(self, _event=None):
         if self.filterbox_visible:
             return
         if self.config.expanded and len(self.currentdata)>0:
@@ -327,10 +327,10 @@ class Current(object):
     def current_get_songid(self, iter, model):
         return int(model.get_value(iter, 0))
 
-    def on_current_drag_begin(self, widget, context):
+    def on_current_drag_begin(self, _widget, _context):
         self.sel_rows = False
 
-    def dnd_after_current_drag_begin(self, widget, context):
+    def dnd_after_current_drag_begin(self, _widget, context):
         # Override default image of selected row with sonata icon:
         context.set_icon_stock('sonata', 0, 0)
 
@@ -352,33 +352,34 @@ class Current(object):
                 self.sort('col' + str(col_num), column)
                 return
 
-    def on_sort_by_artist(self, action):
+    def on_sort_by_artist(self, _action):
         self.sort('artist', lower=misc.lower_no_the)
 
-    def on_sort_by_album(self, action):
+    def on_sort_by_album(self, _action):
         self.sort('album', lower=misc.lower_no_the)
 
-    def on_sort_by_title(self, action):
+    def on_sort_by_title(self, _action):
         self.sort('title')
 
-    def on_sort_by_file(self, action):
+    def on_sort_by_file(self, _action):
         self.sort('file')
 
-    def on_sort_by_dirfile(self, action):
+    def on_sort_by_dirfile(self, _action):
         self.sort('dirfile')
 
-    def sort(self, type, column=None, lower=lambda x: x.lower()):
+    # XXX should we actually be using _lower?
+    def sort(self, mode, column=None, _lower=lambda x: x.lower()):
         if self.connected():
             if not self.currentdata:
                 return
 
             while gtk.events_pending():
                 gtk.main_iteration()
-            list = []
+            songs = []
             track_num = 0
 
-            if type[0:3] == 'col':
-                col_num = int(type.replace('col', ''))
+            if mode[0:3] == 'col':
+                col_num = int(mode.replace('col', ''))
                 if column.get_sort_indicator():
                     # If this column was already sorted, reverse list:
                     self.column_sorted = (column, self.column_sorted[1])
@@ -386,49 +387,49 @@ class Current(object):
                     return
                 else:
                     self.column_sorted = (column, gtk.SORT_DESCENDING)
-                type = "col"
+                mode = "col"
 
             # If the first tag in the format is song length, we will make sure to compare
             # the same number of items in the song length string (e.g. always use
             # ##:##:##) and pad the first item to two (e.g. #:##:## -> ##:##:##)
             custom_sort = False
-            if type == 'col':
+            if mode == 'col':
                 custom_sort, custom_pos = self.sort_get_first_format_tag(self.config.currentformat, col_num, 'L')
 
             for track in self.current_songs:
-                dict = {}
+                record = {}
                 # Those items that don't have the specified tag will be put at
                 # the end of the list (hence the 'zzzzzzz'):
                 zzz = 'zzzzzzzz'
-                if type == 'artist':
-                    dict["sortby"] =  (misc.lower_no_the(mpdh.get(track, 'artist', zzz)),
+                if mode == 'artist':
+                    record["sortby"] =  (misc.lower_no_the(mpdh.get(track, 'artist', zzz)),
                                 mpdh.get(track, 'album', zzz).lower(),
                                 mpdh.getnum(track, 'disc', '0', True, 0),
                                 mpdh.getnum(track, 'track', '0', True, 0))
-                elif type == 'album':
-                    dict["sortby"] =  (mpdh.get(track, 'album', zzz).lower(),
+                elif mode == 'album':
+                    record["sortby"] =  (mpdh.get(track, 'album', zzz).lower(),
                                 mpdh.getnum(track, 'disc', '0', True, 0),
                                 mpdh.getnum(track, 'track', '0', True, 0))
-                elif type == 'file':
-                    dict["sortby"] = mpdh.get(track, 'file', zzz).lower().split('/')[-1]
-                elif type == 'dirfile':
-                    dict["sortby"] = mpdh.get(track, 'file', zzz).lower()
-                elif type == 'col':
+                elif mode == 'file':
+                    record["sortby"] = mpdh.get(track, 'file', zzz).lower().split('/')[-1]
+                elif mode == 'dirfile':
+                    record["sortby"] = mpdh.get(track, 'file', zzz).lower()
+                elif mode == 'col':
                     # Sort by column:
-                    dict["sortby"] = misc.unbold(self.currentdata.get_value(self.currentdata.get_iter((track_num, 0)), col_num).lower())
+                    record["sortby"] = misc.unbold(self.currentdata.get_value(self.currentdata.get_iter((track_num, 0)), col_num).lower())
                     if custom_sort:
-                        dict["sortby"] = self.sanitize_songlen_for_sorting(dict["sortby"], custom_pos)
+                        record["sortby"] = self.sanitize_songlen_for_sorting(record["sortby"], custom_pos)
                 else:
-                    dict["sortby"] = mpdh.get(track, type, zzz).lower()
-                dict["id"] = int(track["id"])
-                list.append(dict)
+                    record["sortby"] = mpdh.get(track, mode, zzz).lower()
+                record["id"] = int(track["id"])
+                songs.append(record)
                 track_num = track_num + 1
 
-            list.sort(key=lambda x: x["sortby"])
+            songs.sort(key=lambda x: x["sortby"])
 
             pos = 0
             mpdh.call(self.client, 'command_list_ok_begin')
-            for item in list:
+            for item in songs:
                 mpdh.call(self.client, 'moveid', item["id"], pos)
                 pos += 1
             mpdh.call(self.client, 'command_list_end')
@@ -457,7 +458,7 @@ class Current(object):
             items.insert(0, "00")
         return items[0] + ":" + items[1] + ":" + items[2]
 
-    def on_sort_reverse(self, action):
+    def on_sort_reverse(self, _action):
         if self.connected():
             if not self.currentdata:
                 return
@@ -473,7 +474,7 @@ class Current(object):
             mpdh.call(self.client, 'command_list_end')
             self.iterate_now()
 
-    def on_dnd(self, treeview, drag_context, x, y, selection, info, timestamp):
+    def on_dnd(self, treeview, drag_context, x, y, selection, _info, timestamp):
         drop_info = treeview.get_dest_row_at_pos(x, y)
 
         if selection.data is not None:
@@ -517,13 +518,13 @@ class Current(object):
                 if drop_info:
                     destpath, position = drop_info
                     if position in (gtk.TREE_VIEW_DROP_BEFORE, gtk.TREE_VIEW_DROP_INTO_OR_BEFORE):
-                        id = destpath[0]
+                        songid = destpath[0]
                     else:
-                        id = destpath[0] + 1
+                        songid = destpath[0] + 1
                 else:
-                    id = len(self.currentdata)
+                    songid = len(self.currentdata)
                 for mpdpath in mpdpaths:
-                    mpdh.call(self.client, 'addid', mpdpath, id)
+                    mpdh.call(self.client, 'addid', mpdpath, songid)
             self.iterate_now()
             return
 
@@ -535,10 +536,10 @@ class Current(object):
         drag_sources = []
         for path in selected:
             index = path[0]
-            iter = model.get_iter(path)
-            id = self.current_get_songid(iter, model)
-            text = model.get_value(iter, 1)
-            drag_sources.append([index, iter, id, text])
+            i = model.get_iter(path)
+            songid = self.current_get_songid(i, model)
+            text = model.get_value(i, 1)
+            drag_sources.append([index, i, songid, text])
 
         # Keep track of the moved iters so we can select them afterwards
         moved_iters = []
@@ -548,7 +549,7 @@ class Current(object):
         offset = 0
         mpdh.call(self.client, 'command_list_ok_begin')
         for source in drag_sources:
-            index, iter, id, text = source
+            index, i, songid, text = source
             if drop_info:
                 destpath, position = drop_info
                 dest = destpath[0] + offset
@@ -558,13 +559,13 @@ class Current(object):
                     self.current_songs.insert(dest, self.current_songs[index])
                     if dest < index+1:
                         self.current_songs.pop(index+1)
-                        mpdh.call(self.client, 'moveid', id, dest)
+                        mpdh.call(self.client, 'moveid', songid, dest)
                     else:
                         self.current_songs.pop(index)
-                        mpdh.call(self.client, 'moveid', id, dest-1)
+                        mpdh.call(self.client, 'moveid', songid, dest-1)
                     model.insert(dest, model[index])
                     moved_iters += [model.get_iter((dest,))]
-                    model.remove(iter)
+                    model.remove(i)
                 else:
                     self.current_songs.insert(dest+1, self.current_songs[index])
                     if dest < index:
@@ -575,7 +576,7 @@ class Current(object):
                         mpdh.call(self.client, 'moveid', id, dest)
                     model.insert(dest+1, model[index])
                     moved_iters += [model.get_iter((dest+1,))]
-                    model.remove(iter)
+                    model.remove(i)
             else:
                 #dest = int(self.status['playlistlength']) - 1
                 dest = len(self.currentdata) - 1
@@ -584,7 +585,7 @@ class Current(object):
                 self.current_songs.pop(index)
                 model.insert(dest+1, model[index])
                 moved_iters += [model.get_iter((dest+1,))]
-                model.remove(iter)
+                model.remove(i)
             # now fixup
             for source in drag_sources:
                 if dest < index:
@@ -609,23 +610,23 @@ class Current(object):
 
     def dnd_retain_selection(self, treeselection, moved_iters):
         treeselection.unselect_all()
-        for iter in moved_iters:
-            treeselection.select_iter(iter)
+        for i in moved_iters:
+            treeselection.select_iter(i)
 
-    def on_current_click(self, treeview, path, column):
+    def on_current_click(self, _treeview, path, _column):
         model = self.current.get_model()
         if self.filterbox_visible:
             self.searchfilter_on_enter(None)
             return
         try:
-            iter = model.get_iter(path)
-            mpdh.call(self.client, 'playid', self.current_get_songid(iter, model))
+            i = model.get_iter(path)
+            mpdh.call(self.client, 'playid', self.current_get_songid(i, model))
         except:
             pass
         self.sel_rows = False
         self.iterate_now()
 
-    def searchfilter_toggle(self, widget, initial_text=""):
+    def searchfilter_toggle(self, _widget, initial_text=""):
         if self.filterbox_visible:
             ui.hide(self.filterbox)
             self.filterbox_visible = False
@@ -649,7 +650,7 @@ class Current(object):
             gobject.idle_add(self.filter_entry_grab_focus, self.filterpattern)
         self.current.set_headers_clickable(not self.filterbox_visible)
 
-    def searchfilter_on_enter(self, entry):
+    def searchfilter_on_enter(self, _entry):
         model, selected = self.current.get_selection().get_selected_rows()
         song_id = None
         if len(selected) > 0:
@@ -862,11 +863,11 @@ class Current(object):
                     rownum = path[0]
                 else:
                     rownum = self.filter_row_mapping[path[0]]
-                iter = self.currentdata.get_iter((rownum, 0))
-                mpdh.call(self.client, 'deleteid', self.current_get_songid(iter, self.currentdata))
+                i = self.currentdata.get_iter((rownum, 0))
+                mpdh.call(self.client, 'deleteid', self.current_get_songid(i, self.currentdata))
                 # Prevents the entire playlist from refreshing:
                 self.current_songs.pop(rownum)
-                self.currentdata.remove(iter)
+                self.currentdata.remove(i)
             mpdh.call(self.client, 'command_list_end')
             if not self.filterbox_visible:
                 self.current.set_model(model)

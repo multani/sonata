@@ -2,7 +2,7 @@
 # $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/ui.py $
 # $Id: ui.py 141 2006-09-11 04:51:07Z stonecrest $
 
-import gtk, misc, sys
+import gtk, sys
 
 def label(text=None, textmn=None, markup=None, x=0, y=0.5, \
           wrap=False, select=False, w=-1, h=-1):
@@ -17,6 +17,7 @@ def label(text=None, textmn=None, markup=None, x=0, y=0.5, \
     tmplabel.set_alignment(x, y)
     tmplabel.set_size_request(w, h)
     tmplabel.set_line_wrap(wrap)
+    # FIXME pango is not imported, so is this unwanted?
     try: # Only recent versions of pygtk/gtk have this
         tmplabel.set_line_wrap_mode(pango.WRAP_WORD_CHAR)
     except:
@@ -182,11 +183,7 @@ def iconview(col=None, space=None, margin=None, itemw=None, selmode=None):
     return tmpiv
 
 def show_msg(owner, message, title, role, buttons, default=None, response_cb=None):
-    try:
-        tmp = buttons[0]
-        is_button_list = True
-    except:
-        is_button_list = False
+    is_button_list = hasattr(buttons, '__getitem__')
     if not is_button_list:
         dialog = gtk.MessageDialog(owner, gtk.DIALOG_MODAL|gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_WARNING, buttons, message)
     else:
@@ -206,7 +203,7 @@ def show_msg(owner, message, title, role, buttons, default=None, response_cb=Non
     dialog.destroy()
     return value
 
-def dialog_destroy(dialog, response_id):
+def dialog_destroy(dialog, _response_id):
     dialog.destroy()
 
 def show(widget):

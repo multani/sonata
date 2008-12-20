@@ -2,16 +2,15 @@
 # $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/mpdhelper.py $
 # $Id: mpdhelper.py 141 2006-09-11 04:51:07Z stonecrest $
 
-import string, locale, sys
+import locale, sys
 from time import strftime
 
 def status(client):
     status = call(client, 'status')
-    try:
-        test = status['state']
-    except:
+    if status and 'state' in status:
+        return status
+    else:
         return {}
-    return status
 
 def currsong(client):
     return call(client, 'currentsong')

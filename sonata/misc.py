@@ -125,14 +125,14 @@ def first_of_2tuple(t):
     fst, snd = t
     return fst
 
-def create_dir(dir):
-    if os.path.exists(os.path.expanduser(dir)) == False:
-        os.makedirs(os.path.expanduser(dir))
+def create_dir(dirname):
+    if not os.path.exists(os.path.expanduser(dirname)):
+        os.makedirs(os.path.expanduser(dirname))
 
-def remove_file(file):
-    if os.path.exists(file):
+def remove_file(filename):
+    if os.path.exists(filename):
         try:
-            os.remove(file)
+            os.remove(filename)
         except:
             pass
 
@@ -148,7 +148,7 @@ def remove_dir(path):
             f=os.remove
             _rmgeneric(fullpath, f)
         elif os.path.isdir(fullpath):
-            removeall(fullpath)
+            removeall(fullpath) # FIXME no such function defined
             f=os.rmdir
             _rmgeneric(fullpath, f)
 
@@ -177,30 +177,31 @@ def browser_load(docslink, browser, window):
     browser_error = False
     if len(browser.strip()) > 0:
         try:
-            pid = subprocess.Popen([browser, docslink]).pid
+            subprocess.Popen([browser, docslink])
         except:
             browser_error = True
     else:
         try:
-            pid = subprocess.Popen(["gnome-open", docslink]).pid
+            subprocess.Popen(["gnome-open", docslink])
         except:
             try:
-                pid = subprocess.Popen(["exo-open", docslink]).pid
+                subprocess.Popen(["exo-open", docslink])
             except:
                 try:
-                    pid = subprocess.Popen(["kfmclient", "openURL", docslink]).pid
+                    subprocess.Popen(["kfmclient", "openURL", docslink])
                 except:
                     try:
-                        pid = subprocess.Popen(["firefox", docslink]).pid
+                        subprocess.Popen(["firefox", docslink])
                     except:
                         try:
-                            pid = subprocess.Popen(["mozilla", docslink]).pid
+                            subprocess.Popen(["mozilla", docslink])
                         except:
                             try:
-                                pid = subprocess.Popen(["opera", docslink]).pid
+                                subprocess.Popen(["opera", docslink])
                             except:
                                 browser_error = True
     if browser_error:
+        # FIXME no function ui.show_error_msg defined
         ui.show_error_msg(window, _('Unable to launch a suitable browser.'), _('Launch Browser'), 'browserLoadError')
 
 def file_from_utf8(filename):

@@ -56,23 +56,23 @@ def extension_is_valid(extension):
             return True
     return False
 
-def single_image_in_dir(dir):
+def single_image_in_dir(dirname):
     # Returns None or a filename if there is exactly one image
     # in the dir.
     try:
-        dir = gobject.filename_from_utf8(dir)
+        dirname = gobject.filename_from_utf8(dirname)
     except:
         pass
     num = 0
     imgfile = None
-    if not os.path.exists(dir):
+    if not os.path.exists(dirname):
         return None
-    for file in os.listdir(dir):
-        ext = os.path.splitext(file)[1][1:]
+    for filename in os.listdir(dirname):
+        ext = os.path.splitext(filename)[1][1:]
         if extension_is_valid(ext):
             num += 1
             if num == 1:
-                imgfile = dir + "/" + file
+                imgfile = dirname + "/" + filename
             else:
                 break
     if num != 1:

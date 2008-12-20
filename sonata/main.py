@@ -87,7 +87,7 @@ except:
 
 if not skip_gui:
     import warnings, gobject, urllib, urllib2, re, gc, locale, shutil
-    import gtk, pango, threading, time, ui, img, tray
+    import gtk, pango, threading, ui, img, tray
 
     # Test pygtk version
     if gtk.pygtk_version < (2, 12, 0):
@@ -1138,7 +1138,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.UIManager.insert_action_group(self.actionGroupProfiles, 0)
         self.UIManager.get_widget('/hidden').set_property('visible', False)
 
-    def on_profiles_click(self, radioaction, current):
+    def on_profiles_click(self, _radioaction, current):
         if self.skip_on_profiles_click:
             return
         if current.get_name() == 'disconnect':
@@ -1155,7 +1155,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             thread.setDaemon(True)
             thread.start()
 
-    def _mpd_connect(self, blocking, force):
+    def _mpd_connect(self, _blocking, force):
         if self.trying_connection:
             return
         self.trying_connection = True
@@ -1190,7 +1190,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             mpdh.call(self.client, 'disconnect')
             self.conn = False
 
-    def on_connectkey_pressed(self, event):
+    def on_connectkey_pressed(self, _event):
         self.user_connect = True
         # Update selected radio button in menu:
         self.skip_on_profiles_click = True
@@ -1207,7 +1207,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.mpd_connect(force=True)
         self.iterate_now()
 
-    def on_disconnectkey_pressed(self, event):
+    def on_disconnectkey_pressed(self, _event):
         self.user_connect = False
         # Update selected radio button in menu:
         self.skip_on_profiles_click = True
@@ -1318,7 +1318,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                 self.tooltip_show_manually()
         gobject.timeout_add(250, self.iterate_status_icon)
 
-    def on_topwindow_keypress(self, widget, event):
+    def on_topwindow_keypress(self, _widget, event):
         shortcut = gtk.accelerator_name(event.keyval, event.state)
         shortcut = shortcut.replace("<Mod2>", "")
         # These shortcuts were moved here so that they don't interfere with searching the library
@@ -1609,7 +1609,7 @@ class Base(object, consts.Constants, preferences.Preferences):
     def on_add_item_play(self, widget):
         self.on_add_item(widget, True)
 
-    def on_add_item(self, widget, play_after=False):
+    def on_add_item(self, _widget, play_after=False):
         if self.conn:
             if play_after and self.status:
                 playid = self.status['playlistlength']
@@ -1725,7 +1725,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.on_add_item(widget, play_after)
         self.iterate_now()
 
-    def menu_position(self, menu):
+    def menu_position(self, _menu):
         if self.expanded:
             x, y, width, height = self.current_treeview.get_allocation()
             # Find first selected visible row and popup the menu
@@ -2094,7 +2094,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         elif self.notification_width < self.NOTIFICATION_WIDTH_MIN:
             self.notification_width = self.NOTIFICATION_WIDTH_MIN
 
-    def on_currsong_notify(self, foo=None, bar=None, force_popup=False):
+    def on_currsong_notify(self, _foo=None, _bar=None, force_popup=False):
         if self.fullscreencoverart.get_property('visible'):
             return
         if self.sonata_loaded:
@@ -2143,10 +2143,10 @@ class Base(object, consts.Constants, preferences.Preferences):
                 except:
                     pass
 
-    def on_progressbar_notify_fraction(self, *args):
+    def on_progressbar_notify_fraction(self, *_args):
         self.trayprogressbar.set_fraction(self.progressbar.get_fraction())
 
-    def on_progressbar_notify_text(self, *args):
+    def on_progressbar_notify_text(self, *_args):
         self.trayprogressbar.set_text(self.progressbar.get_text())
 
     def update_infofile(self):
@@ -2182,12 +2182,12 @@ class Base(object, consts.Constants, preferences.Preferences):
     # Gui Callbacks #
     #################
 
-    def on_delete_event_yes(self, widget):
+    def on_delete_event_yes(self, _widget):
         self.exit_now = True
         self.on_delete_event(None, None)
 
     # This one makes sure the program exits when the window is closed
-    def on_delete_event(self, widget, data=None):
+    def on_delete_event(self, _widget, _data=None):
         if not self.exit_now and self.minimize_to_systray:
             if HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible():
                 self.withdraw_app()
@@ -2203,37 +2203,37 @@ class Base(object, consts.Constants, preferences.Preferences):
         sys.exit()
         return False
 
-    def on_window_state_change(self, widget, event):
+    def on_window_state_change(self, _widget, _event):
         self.volume_hide()
 
-    def on_window_lost_focus(self, widget, event):
+    def on_window_lost_focus(self, _widget, _event):
         self.volume_hide()
 
-    def on_window_configure(self, widget, event):
+    def on_window_configure(self, _widget, _event):
         width, height = self.window.get_size()
         if self.expanded: self.w, self.h = width, height
         else: self.w = width
         self.x, self.y = self.window.get_position()
         self.expander_ellipse_workaround()
 
-    def on_notebook_resize(self, widget, event):
+    def on_notebook_resize(self, _widget, _event):
         if not self.current.resizing_columns :
             gobject.idle_add(self.header_save_column_widths)
         gobject.idle_add(self.info.resize_elements, self.notebook.allocation)
 
-    def on_expand(self, action):
+    def on_expand(self, _action):
         if not self.expanded:
             self.expander.set_expanded(False)
             self.on_expander_activate(None)
             self.expander.set_expanded(True)
 
-    def on_collapse(self, action):
+    def on_collapse(self, _action):
         if self.expanded:
             self.expander.set_expanded(True)
             self.on_expander_activate(None)
             self.expander.set_expanded(False)
 
-    def on_expander_activate(self, expander):
+    def on_expander_activate(self, _expander):
         currheight = self.window.get_size()[1]
         self.expanded = False
         # Note that get_expanded() will return the state of the expander
@@ -2279,7 +2279,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         return
 
     # This callback allows the user to seek to a specific portion of the song
-    def on_progressbar_press(self, widget, event):
+    def on_progressbar_press(self, _widget, event):
         if event.button == 1:
             if self.status and self.status['state'] in ['play', 'pause']:
                 at, length = [int(c) for c in self.status['time'].split(':')]
@@ -2294,7 +2294,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                     pass
             return True
 
-    def on_progressbar_scroll(self, widget, event):
+    def on_progressbar_scroll(self, _widget, event):
         if self.status and self.status['state'] in ['play', 'pause']:
             try:
                 gobject.source_remove(self.seekidle)
@@ -2317,7 +2317,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         except:
             pass
 
-    def on_lyrics_search(self, event):
+    def on_lyrics_search(self, _event):
         artist = mpdh.get(self.songinfo, 'artist')
         title = mpdh.get(self.songinfo, 'title')
         dialog = ui.dialog(title=_('Lyrics Search'), parent=self.window, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_FIND, gtk.RESPONSE_ACCEPT), role='lyricsSearch', default=gtk.RESPONSE_ACCEPT)
@@ -2349,7 +2349,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         else:
             dialog.destroy()
 
-    def mpd_shuffle(self, action):
+    def mpd_shuffle(self, _action):
         if self.conn:
             if not self.status or self.status['playlistlength'] == '0':
                 return
@@ -2358,18 +2358,18 @@ class Base(object, consts.Constants, preferences.Preferences):
                 gtk.main_iteration()
             mpdh.call(self.client, 'shuffle')
 
-    def on_menu_popup(self, widget):
+    def on_menu_popup(self, _widget):
         self.update_menu_visibility()
         gobject.idle_add(self.mainmenu.popup, None, None, self.menu_position, 3, 0)
 
-    def on_updatedb(self, widget):
+    def on_updatedb(self, _widget):
         if self.conn:
             if self.library.search_visible():
                 self.library.on_search_end(None)
             self.mpd_update('/')
             self.iterate_now()
 
-    def on_updatedb_path(self, action):
+    def on_updatedb_path(self, _action):
         if self.conn:
             if self.current_tab == self.TAB_LIBRARY:
                 if self.library.search_visible():
@@ -2379,8 +2379,8 @@ class Base(object, consts.Constants, preferences.Preferences):
                 if len(iters) > 0:
                     # If there are selected rows, update these paths..
                     mpdh.call(self.client, 'command_list_ok_begin')
-                    for iter in iters:
-                        self.mpd_update(self.librarydata.get_value(iter, 1))
+                    for i in iters:
+                        self.mpd_update(self.librarydata.get_value(i, 1))
                     mpdh.call(self.client, 'command_list_end')
                 else:
                     # If no selection, update the current path...
@@ -2430,11 +2430,11 @@ class Base(object, consts.Constants, preferences.Preferences):
         gobject.timeout_add(50, self.on_image_activate_after)
         return False
 
-    def on_image_motion_cb(self, widget, context, x, y, time):
+    def on_image_motion_cb(self, _widget, context, _x, _y, time):
         context.drag_status(gtk.gdk.ACTION_COPY, time)
         return True
 
-    def on_image_drop_cb(self, widget, context, x, y, selection, info, time):
+    def on_image_drop_cb(self, _widget, _context, _x, _y, selection, _info, _time):
         if self.conn and self.status and self.status['state'] in ['play', 'pause']:
             uri = selection.data.strip()
             path = urllib.url2pathname(uri)
@@ -2519,7 +2519,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         # Determine if album_name is a various artists album.
         if self.album_current_artist[0] == self.songinfo:
             return
-        list = []
+        songdatalist = []
         album = mpdh.get(self.songinfo, 'album')
         songs, playtime, num_songs = self.library.library_return_search_items(album=album)
         for song in songs:
@@ -2527,10 +2527,10 @@ class Base(object, consts.Constants, preferences.Preferences):
             artist = mpdh.get(song, 'artist', '')
             path = os.path.dirname(mpdh.get(song, 'file'))
             data = library.library_set_data(album=album, artist=artist, year=year, path=path)
-            list.append(data)
-        list = misc.remove_list_duplicates(list, case=False)
-        list = self.library.list_identify_VA_albums(list)
-        artist = library.library_get_data(list[0], 'artist')
+            songdatalist.append(data)
+        songdatalist = misc.remove_list_duplicates(songdatalist, case=False)
+        songdatalist = self.library.list_identify_VA_albums(songdatalist)
+        artist = library.library_get_data(songdatalist[0], 'artist')
         self.album_current_artist = [self.songinfo, artist]
 
     def album_reset_artist(self):
@@ -2566,16 +2566,16 @@ class Base(object, consts.Constants, preferences.Preferences):
         del pixbuf
         self.call_gc_collect = True
 
-    def image_local(self, widget):
+    def image_local(self, _widget):
         dialog = gtk.FileChooserDialog(title=_("Open Image"),action=gtk.FILE_CHOOSER_ACTION_OPEN,buttons=(gtk.STOCK_CANCEL,gtk.RESPONSE_CANCEL,gtk.STOCK_OPEN,gtk.RESPONSE_OK))
-        filter = gtk.FileFilter()
-        filter.set_name(_("Images"))
-        filter.add_pixbuf_formats()
-        dialog.add_filter(filter)
-        filter = gtk.FileFilter()
-        filter.set_name(_("All files"))
-        filter.add_pattern("*")
-        dialog.add_filter(filter)
+        filefilter = gtk.FileFilter()
+        filefilter.set_name(_("Images"))
+        filefilter.add_pixbuf_formats()
+        dialog.add_filter(filefilter)
+        filefilter = gtk.FileFilter()
+        filefilter.set_name(_("All files"))
+        filefilter.add_pattern("*")
+        dialog.add_filter(filefilter)
         preview = ui.image()
         dialog.set_preview_widget(preview)
         dialog.set_use_preview_label(False)
@@ -2596,7 +2596,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.local_dest_filename = self.target_image_filename()
         dialog.show()
 
-    def image_local_response(self, dialog, response, artist, album, stream):
+    def image_local_response(self, dialog, response, _artist, _album, _stream):
         if response == gtk.RESPONSE_OK:
             filename = dialog.get_filenames()[0]
             # Copy file to covers dir:
@@ -2614,7 +2614,7 @@ class Base(object, consts.Constants, preferences.Preferences):
     def remotefilelist_append(self, elem):
         self.remotefilelist.append(elem)
 
-    def image_remote(self, widget):
+    def image_remote(self, _widget):
         self.choose_dialog = ui.dialog(title=_("Choose Cover Art"), parent=self.window, flags=gtk.DIALOG_MODAL, buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT), role='chooseCoverArt', default=gtk.RESPONSE_ACCEPT, separator=False, resizable=False)
         choosebutton = self.choose_dialog.add_button(_("C_hoose"), gtk.RESPONSE_ACCEPT)
         chooseimage = ui.image(stock=gtk.STOCK_CONVERT, stocksize=gtk.ICON_SIZE_BUTTON)
@@ -2670,7 +2670,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.allow_art_search = True
         self.image_remote_refresh(None, imagewidget)
 
-    def image_remote_refresh(self, entry, imagewidget):
+    def image_remote_refresh(self, _entry, imagewidget):
         if not self.allow_art_search:
             return
         self.allow_art_search = False
@@ -2687,7 +2687,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         thread.setDaemon(True)
         thread.start()
 
-    def _image_remote_refresh(self, imagewidget, ignore):
+    def _image_remote_refresh(self, imagewidget, _ignore):
         self.artwork.stop_art_update = False
         # Retrieve all images from amazon:
         artist_search = self.remote_artistentry.get_text()
@@ -2735,7 +2735,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         ui.change_cursor(None)
         self.chooseimage_visible = False
 
-    def image_remote_replace_cover(self, iconview, path, artist, album, stream):
+    def image_remote_replace_cover(self, _iconview, path, _artist, _album, _stream):
         self.artwork.artwork_stop_update()
         image_num = int(path[0])
         if len(self.remotefilelist) > 0:
@@ -2751,14 +2751,14 @@ class Base(object, consts.Constants, preferences.Preferences):
         while self.artwork.artwork_is_downloading_image():
             gtk.main_iteration()
 
-    def fullscreen_cover_art(self, widget):
+    def fullscreen_cover_art(self, _widget):
         if self.fullscreencoverart.get_property('visible'):
             self.fullscreencoverart.hide()
         else:
             self.traytips.hide()
             self.fullscreencoverart.show_all()
 
-    def fullscreen_cover_art_close(self, widget, event, key_press):
+    def fullscreen_cover_art_close(self, _widget, event, key_press):
         if key_press:
             shortcut = gtk.accelerator_name(event.keyval, event.state)
             shortcut = shortcut.replace("<Mod2>", "")
@@ -2788,10 +2788,10 @@ class Base(object, consts.Constants, preferences.Preferences):
                 self.current.expanderwindow.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
         self.current.resizing_columns = False
 
-    def systemtray_menu(self, status_icon, button, activate_time):
+    def systemtray_menu(self, _status_icon, button, activate_time):
         self.traymenu.popup(None, None, None, button, activate_time)
 
-    def systemtray_activate(self, status_icon):
+    def systemtray_activate(self, _status_icon):
         # Clicking on a gtk.StatusIcon:
         if not self.ignore_toggle_signal:
             # This prevents the user clicking twice in a row quickly
@@ -2837,7 +2837,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             else:
                 self.traytips._remove_timer()
 
-    def systemtray_click(self, widget, event):
+    def systemtray_click(self, _widget, event):
         # Clicking on an egg system tray icon:
         if event.button == 1 and not self.ignore_toggle_signal: # Left button shows/hides window(s)
             self.systemtray_activate(None)
@@ -2848,7 +2848,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.traymenu.popup(None, None, None, event.button, event.time)
         return False
 
-    def on_traytips_press(self, widget, event):
+    def on_traytips_press(self, _widget, _event):
         if self.traytips.get_property('visible'):
             self.traytips._remove_timer()
 
@@ -2881,7 +2881,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.withdrawn = True
             self.UIManager.get_widget('/traymenu/showmenu').set_active(False)
 
-    def on_withdraw_app_toggle(self, action):
+    def on_withdraw_app_toggle(self, _action):
         if self.ignore_toggle_signal:
             return
         self.ignore_toggle_signal = True
@@ -2898,7 +2898,7 @@ class Base(object, consts.Constants, preferences.Preferences):
     def systemtray_scroll(self, widget, event):
         self.on_volumebutton_scroll(widget, event)
 
-    def systemtray_size(self, widget, allocation):
+    def systemtray_size(self, widget, _allocation):
         if widget.allocation.height <= 5:
             # For vertical panels, height can be 1px, so use width
             size = widget.allocation.width
@@ -2917,35 +2917,35 @@ class Base(object, consts.Constants, preferences.Preferences):
         if vis_tabnum != -1:
             self.notebook.set_current_page(vis_tabnum)
 
-    def on_switch_to_tab1(self, action):
+    def on_switch_to_tab1(self, _action):
         self.switch_to_tab_num(0)
 
-    def on_switch_to_tab2(self, action):
+    def on_switch_to_tab2(self, _action):
         self.switch_to_tab_num(1)
 
-    def on_switch_to_tab3(self, action):
+    def on_switch_to_tab3(self, _action):
         self.switch_to_tab_num(2)
 
-    def on_switch_to_tab4(self, action):
+    def on_switch_to_tab4(self, _action):
         self.switch_to_tab_num(3)
 
-    def on_switch_to_tab5(self, action):
+    def on_switch_to_tab5(self, _action):
         self.switch_to_tab_num(4)
 
-    def switch_to_next_tab(self, action):
+    def switch_to_next_tab(self, _action):
         self.notebook.next_page()
 
-    def switch_to_prev_tab(self, action):
+    def switch_to_prev_tab(self, _action):
         self.notebook.prev_page()
 
-    def on_volume_lower(self, action):
+    def on_volume_lower(self, _action):
         new_volume = int(self.volumescale.get_adjustment().get_value()) - 5
         if new_volume < 0:
             new_volume = 0
         self.volumescale.get_adjustment().set_value(new_volume)
         self.on_volumescale_change(self.volumescale, 0, 0)
 
-    def on_volume_raise(self, action):
+    def on_volume_raise(self, _action):
         new_volume = int(self.volumescale.get_adjustment().get_value()) + 5
         if new_volume > 100:
             new_volume = 100
@@ -2953,7 +2953,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.on_volumescale_change(self.volumescale, 0, 0)
 
     # Volume control
-    def on_volumebutton_clicked(self, widget):
+    def on_volumebutton_clicked(self, _widget):
         if not self.volumewindow.get_property('visible'):
             x_win, y_win = self.volumebutton.window.get_origin()
             button_rect = self.volumebutton.get_allocation()
@@ -2966,7 +2966,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.volume_hide()
         return
 
-    def on_volumebutton_scroll(self, widget, event):
+    def on_volumebutton_scroll(self, _widget, event):
         if self.conn:
             if event.direction == gtk.gdk.SCROLL_UP:
                 self.on_volume_raise(None)
@@ -2974,7 +2974,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                 self.on_volume_lower(None)
         return
 
-    def on_volumescale_scroll(self, widget, event):
+    def on_volumescale_scroll(self, _widget, event):
         if event.direction == gtk.gdk.SCROLL_UP:
             new_volume = int(self.volumescale.get_adjustment().get_value()) + 5
             if new_volume > 100:
@@ -2987,7 +2987,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.volumescale.get_adjustment().set_value(new_volume)
         return
 
-    def on_volumescale_change(self, obj, value, data):
+    def on_volumescale_change(self, obj, _value, _data):
         new_volume = int(obj.get_adjustment().get_value())
         mpdh.call(self.client, 'setvol', new_volume)
         self.iterate_now()
@@ -2998,7 +2998,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         if self.volumewindow.get_property('visible'):
             self.volumewindow.hide()
 
-    def mpd_pp(self, widget, key=None):
+    def mpd_pp(self, _widget, _key=None):
         if self.conn and self.status:
             if self.status['state'] in ('stop', 'pause'):
                 mpdh.call(self.client, 'play')
@@ -3007,19 +3007,19 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.iterate_now()
         return
 
-    def mpd_stop(self, widget, key=None):
+    def mpd_stop(self, _widget, _key=None):
         if self.conn:
             mpdh.call(self.client, 'stop')
             self.iterate_now()
         return
 
-    def mpd_prev(self, widget, key=None):
+    def mpd_prev(self, _widget, _key=None):
         if self.conn:
             mpdh.call(self.client, 'previous')
             self.iterate_now()
         return
 
-    def mpd_next(self, widget, key=None):
+    def mpd_next(self, _widget, _key=None):
         if self.conn:
             mpdh.call(self.client, 'next')
             self.iterate_now()
@@ -3029,7 +3029,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         if self.conn:
             mpdh.call(self.client, 'update', path)
 
-    def on_remove(self, widget):
+    def on_remove(self, _widget):
         if self.conn:
             model = None
             while gtk.events_pending():
@@ -3041,21 +3041,21 @@ class Base(object, consts.Constants, preferences.Preferences):
                 model, selected = treeviewsel.get_selected_rows()
                 if ui.show_msg(self.window, gettext.ngettext("Delete the selected playlist?", "Delete the selected playlists?", int(len(selected))), gettext.ngettext("Delete Playlist", "Delete Playlists", int(len(selected))), 'deletePlaylist', gtk.BUTTONS_YES_NO) == gtk.RESPONSE_YES:
                     iters = [model.get_iter(path) for path in selected]
-                    for iter in iters:
-                        mpdh.call(self.client, 'rm', misc.unescape_html(self.playlistsdata.get_value(iter, 1)))
+                    for i in iters:
+                        mpdh.call(self.client, 'rm', misc.unescape_html(self.playlistsdata.get_value(i, 1)))
                     self.playlists.populate()
             elif self.current_tab == self.TAB_STREAMS:
                 treeviewsel = self.streams_selection
                 model, selected = treeviewsel.get_selected_rows()
                 if ui.show_msg(self.window, gettext.ngettext("Delete the selected stream?", "Delete the selected streams?", int(len(selected))), gettext.ngettext("Delete Stream", "Delete Streams", int(len(selected))), 'deleteStreams', gtk.BUTTONS_YES_NO) == gtk.RESPONSE_YES:
                     iters = [model.get_iter(path) for path in selected]
-                    for iter in iters:
+                    for i in iters:
                         stream_removed = False
-                        for i in range(len(self.stream_names)):
+                        for j in range(len(self.stream_names)):
                             if not stream_removed:
-                                if self.streamsdata.get_value(iter, 1) == misc.escape_html(self.stream_names[i]):
-                                    self.stream_names.pop(i)
-                                    self.stream_uris.pop(i)
+                                if self.streamsdata.get_value(i, 1) == misc.escape_html(self.stream_names[j]):
+                                    self.stream_names.pop(j)
+                                    self.stream_uris.pop(j)
                                     stream_removed = True
                     self.streams.populate()
             self.iterate_now()
@@ -3073,7 +3073,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                 except:
                     pass
 
-    def mpd_clear(self, widget):
+    def mpd_clear(self, _widget):
         if self.conn:
             mpdh.call(self.client, 'clear')
             self.iterate_now()
@@ -3092,7 +3092,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             else:
                 mpdh.call(self.client, 'random', 0)
 
-    def on_prefs(self, widget):
+    def on_prefs(self, _widget):
         trayicon_available = HAVE_EGG or HAVE_STATUS_ICON
         trayicon_in_use = ((HAVE_STATUS_ICON and self.statusicon.is_embedded() and
                     self.statusicon.get_visible())
@@ -3100,7 +3100,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.preferences.on_prefs_real(self.window, self.popuptimes, self.scrobbler.imported(), self.scrobbler.import_module, self.scrobbler.init, self.scrobbler.auth_changed, trayicon_available, trayicon_in_use, self.on_connectkey_pressed, self.on_currsong_notify, self.update_infofile, self.prefs_notif_toggled, self.prefs_stylized_toggled, self.prefs_art_toggled, self.prefs_playback_toggled, self.prefs_progress_toggled, self.prefs_statusbar_toggled, self.prefs_lyrics_toggled, self.prefs_trayicon_toggled, self.prefs_window_response)
 
     # XXX move the prefs handling parts of prefs_* to preferences.py
-    def prefs_window_response(self, window, response, prefsnotebook, exit_stop, win_ontop, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, hostentry, portentry, passwordentry, using_mpd_env_vars, prev_host, prev_port, prev_password):
+    def prefs_window_response(self, window, response, prefsnotebook, exit_stop, win_ontop, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, using_mpd_env_vars, prev_host, prev_port, prev_password):
         if response == gtk.RESPONSE_CLOSE:
             self.stop_on_exit = exit_stop.get_active()
             self.ontop = win_ontop.get_active()
@@ -3300,12 +3300,12 @@ class Base(object, consts.Constants, preferences.Preferences):
         elif type == 'editlyrics':
             misc.browser_load("http://lyricwiki.org/index.php?title=" + urllib.quote(misc.capwords(mpdh.get(self.songinfo, 'artist'))) + ":" + urllib.quote(misc.capwords(mpdh.get(self.songinfo, 'title'))) + "&action=edit", self.url_browser, self.window)
 
-    def on_tab_click(self, widget, event):
+    def on_tab_click(self, _widget, event):
         if event.button == 3:
             self.notebookmenu.popup(None, None, None, 1, 0)
             return True
 
-    def on_notebook_click(self, widget, event):
+    def on_notebook_click(self, _widget, event):
         if event.button == 1:
             self.volume_hide()
 
@@ -3336,7 +3336,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         tab = notebook.get_children()[tab_num]
         return notebook.get_tab_label(tab).get_child().get_children()[1].get_text()
 
-    def on_notebook_page_change(self, notebook, page, page_num):
+    def on_notebook_page_change(self, _notebook, _page, page_num):
         self.current_tab = self.notebook_get_tab_text(self.notebook, page_num)
         if self.current_tab == self.TAB_CURRENT:
             gobject.idle_add(ui.focus, self.current_treeview)
@@ -3356,11 +3356,11 @@ class Base(object, consts.Constants, preferences.Preferences):
         if not self.img_clicked:
             self.last_tab = self.current_tab
 
-    def on_library_search_text_click(self, widget, event):
+    def on_library_search_text_click(self, _widget, event):
         if event.button == 1:
             self.volume_hide()
 
-    def on_window_click(self, widget, event):
+    def on_window_click(self, _widget, event):
         if event.button == 1:
             self.volume_hide()
         elif event.button == 3:
@@ -3404,7 +3404,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         else:
             ui.hide(self.notebook.get_children()[tabnum])
 
-    def on_library_search_shortcut(self, event):
+    def on_library_search_shortcut(self, _event):
         # Ensure library tab is visible
         if not self.notebook_tab_is_visible(self.notebook, self.TAB_LIBRARY):
             return
@@ -3492,9 +3492,9 @@ class Base(object, consts.Constants, preferences.Preferences):
                 parts = version.split(".")
                 return float(parts[0] + "." + parts[1])
             else:
-                return 0
+                return 0.0
         except:
-            return 0
+            return 0.0
 
     def find_path(self, filename):
         full_filename = None
@@ -3516,7 +3516,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             sys.exit(1)
         return full_filename
 
-    def on_tags_edit(self, widget):
+    def on_tags_edit(self, _widget):
         ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
         while gtk.events_pending():
             gtk.main_iteration()
@@ -3556,7 +3556,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             mpdh.call(self.client, 'command_list_end')
             self.iterate_now()
 
-    def on_about(self, action):
+    def on_about(self, _action):
         about_dialog = about.About(self.window, self.config, __version__, __license__, self.find_path('sonata_large.png'))
 
         statslabel = None

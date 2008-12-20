@@ -9,8 +9,8 @@ tageditor = tagedit.TagEditor(self.window, self.tags_mpd_update)
 tageditor.on_tags_edit(files, temp_mpdpaths, self.musicdir[self.profile_num])
 """
 
+import gettext
 import os
-_ = _ # install the gettext built-in from the main app as a global here, silences pylint
 
 import gtk, gobject
 tagpy = None # module loaded when needed
@@ -176,8 +176,8 @@ class TagEditor():
             # Only show save all button if more than one song being edited.
             saveall_button = ui.button(text=_("Save _All"))
             editwindow.action_area.pack_start(saveall_button)
-        cancelbutton = editwindow.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT)
-        savebutton = editwindow.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT)
+        editwindow.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT)
+        editwindow.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT)
         editwindow.connect('delete_event', self.tags_win_hide, tags)
         entries = [titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, self.filelabel]
         buttons = [titlebutton, artistbutton, albumbutton, yearbutton, trackbutton, genrebutton, commentbutton]
@@ -228,7 +228,7 @@ class TagEditor():
         padding = int((entry.size_request()[1] - button.size_request()[1])/2)+1
         vbox.pack_start(button, False, False, padding)
 
-    def tags_win_apply_all(self, button, item, tags, entries):
+    def tags_win_apply_all(self, _button, item, tags, entries):
         tagnum = 0
         for tag in tags:
             tagnum = tagnum + 1
@@ -324,11 +324,8 @@ class TagEditor():
         # Since tagpy went through an API change from 0.90.1 to 0.91, we'll
         # implement both methods of retrieving the tag:
         if self.tagpy_is_91 is None:
-            try:
-                test = tag[field]()
-                self.tagpy_is_91 = False
-            except:
-                self.tagpy_is_91 = True
+            self.tagpy_is_91 = not hasattr(tag[field], '__call__')
+
         if not self.tagpy_is_91:
             try:
                 return tag[field]().strip()
@@ -387,7 +384,7 @@ class TagEditor():
             else:
                 tag.comment = value
 
-    def tags_win_save_all(self, button, window, tags, entries, entries_names):
+    def tags_win_save_all(self, _button, window, tags, entries, entries_names):
         for entry in entries:
             try: # Skip GtkLabels
                 entry.set_property('editable', False)
@@ -428,7 +425,7 @@ class TagEditor():
                 self.tagnum = self.tagnum + 1 # To ensure we update the last file in tags_mpd_update
                 self.tags_win_hide(window, None, tags)
 
-    def tags_win_hide(self, window, data=None, tags=None):
+    def tags_win_hide(self, window, _data=None, tags=None):
         gobject.idle_add(self.tags_mpd_update, tags, self.tagnum)
         window.destroy()
         self.tags_set_use_mpdpath(self.use_mpdpaths)
@@ -461,26 +458,21 @@ class TagEditor():
                 "Swing", "Symphonic Rock", "Symphony", "Synthpop", "Tango", "Techno",
                 "Techno-Industrial", "Terror", "Thrash Metal", "Top 40", "Trailer"]
 
-    def tags_win_entry_constraint(self, entry, new_text, new_text_length, position, isyearlabel):
-        lst_old_string = list(entry.get_chars(0, -1))
-        _pos = entry.get_position()
-        lst_new_string = lst_old_string.insert(_pos, new_text)
-        _string = "".join(lst_old_string)
-        if isyearlabel:
-            _hid = entry.get_data('handlerid')
-        else:
-            _hid = entry.get_data('handlerid2')
-        entry.handler_block(_hid)
+    def tags_win_entry_constraint(self, entry, new_text, _new_text_length, _broken_position, isyearlabel):
+        entry_chars = list(entry.get_chars(0, -1))
+        position = entry.get_position()
+        entry_chars.insert(position, new_text)
+        proposed_text = "".join(entry_chars)
         try:
-            _val = float(_string)
-            if (isyearlabel and _val <= 9999) or not isyearlabel:
-                _pos = entry.insert_text(new_text, _pos)
-        except StandardError, e:
+            # XXX why float instead of int:
+            val = float(proposed_text)
+            # XXX check for negative numbers, leading zeros...:
+            if (isyearlabel and val <= 9999) or not isyearlabel:
+                return # accept
+        except ValueError:
             pass
-        entry.handler_unblock(_hid)
-        gobject.idle_add(lambda t: t.set_position(t.get_position()+1), entry)
+        # deny:
         entry.stop_emission("insert-text")
-        pass
 
     def toggle_path(self, button):
         self.use_mpdpaths = not self.use_mpdpaths
