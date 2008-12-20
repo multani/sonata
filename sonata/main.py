@@ -36,7 +36,7 @@ gettext.textdomain('sonata')
 import mpdhelper as mpdh
 from socket import setdefaulttimeout as socketsettimeout
 
-import consts, config, preferences, tagedit, artwork, about, scrobbler, info, library, streams
+import consts, config, preferences, tagedit, artwork, about, scrobbler, info, library, streams, playlists
 
 ElementTree = None
 
@@ -310,9 +310,9 @@ class Base(object, consts.Constants, preferences.Preferences):
         show_prefs = False
         self.updating_nameentry = False
         self.merge_id = None
-        self.mergepl_id = None
+
         self.actionGroupProfiles = None
-        self.actionGroupPlaylists = None
+
         self.skip_on_profiles_click = False
         self.last_repeat = None
         self.last_random = None
@@ -417,11 +417,9 @@ class Base(object, consts.Constants, preferences.Preferences):
             ('quitmenu', gtk.STOCK_QUIT, _('_Quit'), None, None, self.on_delete_event_yes),
             ('removemenu', gtk.STOCK_REMOVE, _('_Remove'), None, None, self.on_remove),
             ('clearmenu', gtk.STOCK_CLEAR, _('_Clear'), '<Ctrl>Delete', None, self.mpd_clear),
-            ('savemenu', None, _('_New...'), '<Ctrl><Shift>s', None, self.on_playlist_save),
             ('updatemenu', None, _('_Update Library'), None, None, self.on_updatedb),
             ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'), 'F5', None, self.on_prefs),
             ('aboutmenu', None, _('_About...'), 'F1', None, self.on_about),
-            ('renamemenu', None, _('_Rename...'), None, None, self.on_playlist_rename),
             ('tagmenu', None, _('_Edit Tags...'), '<Ctrl>t', None, self.on_tags_edit),
             ('addmenu', gtk.STOCK_ADD, _('_Add'), '<Ctrl>d', None, self.on_add_item),
             ('replacemenu', gtk.STOCK_REDO, _('_Replace'), '<Ctrl>r', None, self.on_replace_item),
@@ -624,12 +622,31 @@ class Base(object, consts.Constants, preferences.Preferences):
             ('editmenu', None, _('_Edit...'), None, None, self.streams.on_streams_edit),
             ]
 
+        # Playlists tab
+        self.playlists = playlists.Playlists(self.config, self.window, self.client, lambda:self.UIManager, self.update_menu_visibility, self.iterate_now, self.on_add_item, self.on_playlists_button_press, self.get_current_songs, self.connected, self.mpd_major_version, self.TAB_PLAYLISTS)
+
+        playlistswindow, playlistsevbox = self.playlists.get_widgets()
+        self.playlists_treeview = self.playlists.get_treeview()
+        self.playlists_selection = self.playlists.get_selection()
+
+        playlistsevbox.connect("button_press_event", self.on_tab_click)
+        self.notebook.append_page(playlistswindow, playlistsevbox)
+        playlists_tab = playlistswindow
+        if not self.playlists_tab_visible:
+            ui.hide(playlists_tab)
+
+        playlistsactions = [
+            ('savemenu', None, _('_New...'), '<Ctrl><Shift>s', None, self.playlists.on_playlist_save),
+            ('renamemenu', None, _('_Rename...'), None, None, self.playlists.on_playlist_rename),
+            ]
+
         # Main app:
         self.UIManager = gtk.UIManager()
         actionGroup = gtk.ActionGroup('Actions')
         actionGroup.add_actions(actions)
         actionGroup.add_actions(libraryactions)
         actionGroup.add_actions(streamsactions)
+        actionGroup.add_actions(playlistsactions)
         actionGroup.add_toggle_actions(toggle_actions)
         self.UIManager.insert_action_group(actionGroup, 0)
         self.UIManager.add_ui_from_string(uiDescription)
@@ -717,20 +734,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         current_tab = vbox_current
         if not self.current_tab_visible:
             ui.hide(current_tab)
-        # Playlists tab
-        self.playlists = ui.treeview()
-        self.playlists_selection = self.playlists.get_selection()
-        expanderwindow3 = ui.scrollwindow(add=self.playlists)
-        playlistshbox = gtk.HBox()
-        playlistshbox.pack_start(ui.image(stock=gtk.STOCK_JUSTIFY_CENTER), False, False, 2)
-        playlistshbox.pack_start(ui.label(text=self.TAB_PLAYLISTS), False, False, 2)
-        playlistsevbox = ui.eventbox(add=playlistshbox)
-        playlistsevbox.show_all()
-        playlistsevbox.connect("button_press_event", self.on_tab_click)
-        self.notebook.append_page(expanderwindow3, playlistsevbox)
-        playlists_tab = expanderwindow3
-        if not self.playlists_tab_visible:
-            ui.hide(playlists_tab)
 
         # Info tab
         self.info_area = ui.scrollwindow()
@@ -913,9 +916,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.cursonglabel1.connect('notify::label', self.on_currsong_notify)
         self.progressbar.connect('notify::fraction', self.on_progressbar_notify_fraction)
         self.progressbar.connect('notify::text', self.on_progressbar_notify_text)
-        self.playlists.connect('button_press_event', self.on_playlists_button_press)
-        self.playlists.connect('row_activated', self.playlists_activated)
-        self.playlists.connect('key-press-event', self.playlists_key_press)
         self.mainwinhandler = self.window.connect('button_press_event', self.on_window_click)
         self.notebook.connect('button_press_event', self.on_notebook_click)
         self.notebook.connect('size-allocate', self.on_notebook_resize)
@@ -928,7 +928,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.fullscreencoverart.add_events(gtk.gdk.BUTTON_PRESS_MASK | gtk.gdk.BUTTON_PRESS_MASK)
         self.fullscreencoverart.connect("button-press-event", self.fullscreen_cover_art_close, False)
         self.fullscreencoverart.connect("key-press-event", self.fullscreen_cover_art_close, True)
-        for treeview in [self.current, self.library_treeview, self.playlists, self.streams_treeview]:
+        for treeview in [self.current, self.library_treeview, self.playlists_treeview, self.streams_treeview]:
             treeview.connect('popup_menu', self.on_menu_popup)
         for treeviewsel in [self.current_selection, self.library_selection, self.playlists_selection, self.streams_selection]:
             treeviewsel.connect('changed', self.on_treeview_selection_changed)
@@ -965,19 +965,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.current.connect('drag-data-get', self.dnd_get_data_for_file_managers)
 
         # Initialize playlist data and widget
-        self.playlistsdata = gtk.ListStore(str, str)
-        self.playlists.set_model(self.playlistsdata)
-        self.playlists.set_search_column(1)
-        self.playlistsimg = gtk.CellRendererPixbuf()
-        self.playlistscell = gtk.CellRendererText()
-        self.playlistscell.set_property("ellipsize", pango.ELLIPSIZE_END)
-        self.playlistscolumn = gtk.TreeViewColumn()
-        self.playlistscolumn.pack_start(self.playlistsimg, False)
-        self.playlistscolumn.pack_start(self.playlistscell, True)
-        self.playlistscolumn.set_attributes(self.playlistsimg, stock_id=0)
-        self.playlistscolumn.set_attributes(self.playlistscell, markup=1)
-        self.playlists.append_column(self.playlistscolumn)
-        self.playlists_selection.set_mode(gtk.SELECTION_MULTIPLE)
+        self.playlistsdata = self.playlists.get_model()
 
         # Initialize streams data and widget
         self.streamsdata = self.streams.get_model()
@@ -1030,6 +1018,8 @@ class Base(object, consts.Constants, preferences.Preferences):
             return self.songinfo
         return None
 
+    def get_current_songs(self):
+        return self.current_songs
 
     def dnd_get_data_for_file_managers(self, treeview, context, selection, info, timestamp):
 
@@ -1223,35 +1213,6 @@ class Base(object, consts.Constants, preferences.Preferences):
                         pass
         else:
             print _("Unable to connect to MPD.\nPlease check your Sonata preferences or MPD_HOST/MPD_PORT environment variables.")
-
-    def populate_playlists_for_menu(self, playlistinfo):
-        if self.mergepl_id:
-            self.UIManager.remove_ui(self.mergepl_id)
-        if self.actionGroupPlaylists:
-            self.UIManager.remove_action_group(self.actionGroupPlaylists)
-            self.actionGroupPlaylists = None
-        self.actionGroupPlaylists = gtk.ActionGroup('MPDPlaylists')
-        self.UIManager.ensure_update()
-        actions = []
-        for i in range(len(playlistinfo)):
-            action_name = "Playlist: " + playlistinfo[i].replace("&", "")
-            actions.append((action_name, gtk.STOCK_JUSTIFY_CENTER, misc.unescape_html(playlistinfo[i]), None, None, self.on_playlist_menu_click))
-        self.actionGroupPlaylists.add_actions(actions)
-        uiDescription = """
-            <ui>
-              <popup name="mainmenu">
-                  <menu action="plmenu">
-            """
-        for i in range(len(playlistinfo)):
-            action_name = "Playlist: " + playlistinfo[i].replace("&", "")
-            uiDescription = uiDescription + """<menuitem action=\"""" + action_name + """\" position="bottom"/>"""
-        uiDescription = uiDescription + """</menu></popup></ui>"""
-        self.mergepl_id = self.UIManager.add_ui_from_string(uiDescription)
-        self.UIManager.insert_action_group(self.actionGroupPlaylists, 0)
-        self.UIManager.get_widget('/hidden').set_property('visible', False)
-        # If we're not on the Current tab, prevent additional menu items
-        # from displaying:
-        self.update_menu_visibility()
 
     def profile_menu_name(self, profile_num):
         return _("Profile") + ": " + self.profile_names[profile_num].replace("&", "")
@@ -1557,111 +1518,8 @@ class Base(object, consts.Constants, preferences.Preferences):
                 mediabutton.set_property('sensitive', True)
             if self.sonata_loaded:
                 self.library.library_browse(library.library_set_data(path="/"))
-            self.playlists_populate()
+            self.playlists.populate()
             self.on_notebook_page_change(self.notebook, 0, self.notebook.get_current_page())
-
-    def on_playlist_save(self, action):
-        plname = self.prompt_for_playlist_name(_("Save Playlist"), 'savePlaylist')
-        if plname:
-            if self.playlist_name_exists(_("Save Playlist"), 'savePlaylistError', plname):
-                return
-            self.playlist_create(plname)
-
-    def playlist_create(self, playlistname, oldname=None):
-        mpdh.call(self.client, 'rm', playlistname)
-        if oldname is not None:
-            mpdh.call(self.client, 'rename', oldname, playlistname)
-        else:
-            mpdh.call(self.client, 'save', playlistname)
-        self.playlists_populate()
-        self.iterate_now()
-
-    def on_playlist_menu_click(self, action):
-        plname = misc.unescape_html(action.get_name().replace("Playlist: ", ""))
-        response = ui.show_msg(self.window, _("Would you like to replace the existing playlist or append these songs?"), _("Existing Playlist"), "existingPlaylist", (_("Replace playlist"), 1, _("Append songs"), 2), default=self.existing_playlist_option)
-        if response == 1: # Overwrite
-            self.existing_playlist_option = response
-            self.playlist_create(plname)
-        elif response == 2: # Append songs:
-            self.existing_playlist_option = response
-            mpdh.call(self.client, 'command_list_ok_begin')
-            for song in self.current_songs:
-                mpdh.call(self.client, 'playlistadd', plname, mpdh.get(song, 'file'))
-            mpdh.call(self.client, 'command_list_end')
-        return
-
-    def playlist_name_exists(self, title, role, plname, skip_plname=""):
-        # If the playlist already exists, and the user does not want to replace it, return True; In
-        # all other cases, return False
-        playlists = mpdh.call(self.client, 'listplaylists')
-        if playlists is None:
-            playlists = mpdh.call(self.client, 'lsinfo')
-        for item in playlists:
-            if 'playlist' in item:
-                if mpdh.get(item, 'playlist') == plname and plname != skip_plname:
-                    if ui.show_msg(self.window, _("A playlist with this name already exists. Would you like to replace it?"), title, role, gtk.BUTTONS_YES_NO) == gtk.RESPONSE_YES:
-                        return False
-                    else:
-                        return True
-        return False
-
-    def prompt_for_playlist_name(self, title, role):
-        plname = None
-        if self.conn:
-            # Prompt user for playlist name:
-            dialog = ui.dialog(title=title, parent=self.window, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT), role=role, default=gtk.RESPONSE_ACCEPT)
-            hbox = gtk.HBox()
-            hbox.pack_start(ui.label(text=_('Playlist name') + ':'), False, False, 5)
-            entry = ui.entry()
-            entry.set_activates_default(True)
-            hbox.pack_start(entry, True, True, 5)
-            dialog.vbox.pack_start(hbox)
-            ui.show(dialog.vbox)
-            response = dialog.run()
-            if response == gtk.RESPONSE_ACCEPT:
-                plname = misc.strip_all_slashes(entry.get_text())
-            dialog.destroy()
-        return plname
-
-    def playlists_populate(self):
-        if self.conn:
-            self.playlistsdata.clear()
-            playlistinfo = []
-            playlists = mpdh.call(self.client, 'listplaylists')
-            if playlists is None:
-                playlists = mpdh.call(self.client, 'lsinfo')
-            for item in playlists:
-                if 'playlist' in item:
-                    playlistinfo.append(misc.escape_html(mpdh.get(item, 'playlist')))
-            playlistinfo.sort(key=lambda x: x.lower()) # Remove case sensitivity
-            for item in playlistinfo:
-                self.playlistsdata.append([gtk.STOCK_JUSTIFY_FILL, item])
-            if self.mpd_major_version() >= 0.13:
-                self.populate_playlists_for_menu(playlistinfo)
-
-    def on_playlist_rename(self, action):
-        plname = self.prompt_for_playlist_name(_("Rename Playlist"), 'renamePlaylist')
-        if plname:
-            model, selected = self.playlists_selection.get_selected_rows()
-            oldname = misc.unescape_html(model.get_value(model.get_iter(selected[0]), 1))
-            if self.playlist_name_exists(_("Rename Playlist"), 'renamePlaylistError', plname, oldname):
-                return
-            self.playlist_create(plname, oldname)
-            # Re-select item:
-            row = 0
-            for pl in self.playlistsdata:
-                if pl[1] == plname:
-                    self.playlists_selection.select_path((row,))
-                    return
-                row = row + 1
-
-    def playlists_key_press(self, widget, event):
-        if event.keyval == gtk.gdk.keyval_from_name('Return'):
-            self.playlists_activated(widget, widget.get_cursor()[0])
-            return True
-
-    def playlists_activated(self, treeview, path, column=0):
-        self.on_add_item(None)
 
     def _parse_formatting_return_substrings(self, format):
         substrings = []
@@ -2016,8 +1874,8 @@ class Base(object, consts.Constants, preferences.Preferences):
                 widget = self.library_treeview
                 column = self.library.librarycolumn
             elif self.current_tab == self.TAB_PLAYLISTS:
-                widget = self.playlists
-                column = self.playlistscolumn
+                widget = self.playlists_treeview
+                column = self.playlists.playlistscolumn
             elif self.current_tab == self.TAB_STREAMS:
                 widget = self.streams_treeview
                 column = self.streams.streamscolumn
@@ -2142,7 +2000,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                     self.album_get_artist()
                     # Now update the library and playlist tabs
                     self.library.library_browse(root=self.wd)
-                    self.playlists_populate()
+                    self.playlists.populate()
                     # Update infow if it's visible:
                     self.info_update(True)
 
@@ -3785,7 +3643,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                     iters = [model.get_iter(path) for path in selected]
                     for iter in iters:
                         mpdh.call(self.client, 'rm', misc.unescape_html(self.playlistsdata.get_value(iter, 1)))
-                    self.playlists_populate()
+                    self.playlists.populate()
             elif self.current_tab == self.TAB_STREAMS:
                 treeviewsel = self.streams_selection
                 model, selected = treeviewsel.get_selected_rows()
@@ -4085,7 +3943,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         elif self.current_tab == self.TAB_LIBRARY:
             gobject.idle_add(ui.focus, self.library_treeview)
         elif self.current_tab == self.TAB_PLAYLISTS:
-            gobject.idle_add(ui.focus, self.playlists)
+            gobject.idle_add(ui.focus, self.playlists_treeview)
         elif self.current_tab == self.TAB_STREAMS:
             gobject.idle_add(ui.focus, self.streams_treeview)
         elif self.current_tab == self.TAB_INFO:
