@@ -400,7 +400,7 @@ class Config:
         tmp = ""
         for i in range(len(self.columnwidths)-1):
             tmp += str(self.columnwidths[i]) + ","
-        tmp += str(self.columnwidths[len(self.columns)-1])
+        tmp += str(self.columnwidths[-1])
         conf.set('player', 'columnwidths', tmp)
 
         conf.set('player', 'show_header', self.show_header)

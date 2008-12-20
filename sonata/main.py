@@ -36,7 +36,7 @@ gettext.textdomain('sonata')
 import mpdhelper as mpdh
 from socket import setdefaulttimeout as socketsettimeout
 
-import consts, config, preferences, tagedit, artwork, about, scrobbler, info, library, streams, playlists
+import consts, config, preferences, tagedit, artwork, about, scrobbler, info, library, streams, playlists, current
 
 ElementTree = None
 
@@ -166,13 +166,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.allow_art_search = None
         self.choose_dialog = None
         self.chooseimage_visible = None
-        self.columnformat = None
-        self.columns = None
-        self.currentdata = None
-        self.current_songs = None
-        self.filterbox_cmd_buf = None
-        self.filterbox_cond = None
-        self.filterbox_source = None
+
         self.imagelist = None
 
         self.info_imagebox = None
@@ -181,14 +175,11 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.local_dest_filename = None
 
         self.notification_width = None
-        self.playlist_pos_before_filter = None
 
-        self.prevtodo = None
         self.remote_albumentry = None
         self.remote_artistentry = None
         self.remote_dest_filename = None
         self.remotefilelist = None
-        self.resizing_columns = None
         self.seekidle = None
         self.statusicon = None
         self.trayeventbox = None
@@ -300,11 +291,7 @@ class Base(object, consts.Constants, preferences.Preferences):
 
         self.sonata_loaded = False
         self.call_gc_collect = False
-        self.total_time = 0
-        self.prev_boldrow = -1
 
-        self.filterbox_visible = False
-        self.edit_style_orig = None
         self.album_reset_artist()
 
         show_prefs = False
@@ -320,20 +307,12 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.last_progress_frac = None
         self.last_progress_text = None
 
-        self.column_sorted = (None, gtk.SORT_DESCENDING)				# TreeViewColumn, order
-
-        self.filter_row_mapping = [] # Mapping between filter rows and self.currentdata rows
-        self.plpos = None
-
         self.last_status_text = ""
 
         self.eggtrayfile = None
         self.eggtrayheight = None
 
-        self.sel_rows = None
         self.img_clicked = False
-
-        self.current_update_skip = False
 
         self.all_tab_names = [self.TAB_CURRENT, self.TAB_LIBRARY, self.TAB_PLAYLISTS, self.TAB_STREAMS, self.TAB_INFO]
 
@@ -426,12 +405,6 @@ class Base(object, consts.Constants, preferences.Preferences):
             ('add2menu', None, _('Add'), '<Shift><Ctrl>d', None, self.on_add_item_play),
             ('replace2menu', None, _('Replace'), '<Shift><Ctrl>r', None, self.on_replace_item_play),
             ('rmmenu', None, _('_Delete...'), None, None, self.on_remove),
-            ('sortbyartist', None, _('By Artist'), None, None, self.on_sort_by_artist),
-            ('sortbyalbum', None, _('By Album'), None, None, self.on_sort_by_album),
-            ('sortbytitle', None, _('By Song Title'), None, None, self.on_sort_by_title),
-            ('sortbyfile', None, _('By File Name'), None, None, self.on_sort_by_file),
-            ('sortbydirfile', None, _('By Dir & File Name'), None, None, self.on_sort_by_dirfile),
-            ('sortreverse', None, _('Reverse List'), None, None, self.on_sort_reverse),
             ('sortshuffle', None, _('Shuffle'), '<Alt>r', None, self.mpd_shuffle),
             ('tab1key', None, 'Tab1 Key', '<Alt>1', None, self.on_switch_to_tab1),
             ('tab2key', None, 'Tab2 Key', '<Alt>2', None, self.on_switch_to_tab2),
@@ -455,7 +428,6 @@ class Base(object, consts.Constants, preferences.Preferences):
             ('updatekey2', None, 'Update Key 2', '<Ctrl><Shift>u', None, self.on_updatedb_path),
             ('connectkey', None, 'Connect Key', '<Alt>c', None, self.on_connectkey_pressed),
             ('disconnectkey', None, 'Disconnect Key', '<Alt>d', None, self.on_disconnectkey_pressed),
-            ('centerplaylistkey', None, 'Center Playlist Key', '<Ctrl>i', None, self.current_center_song_in_list),
             ('searchkey', None, 'Search Key', '<Ctrl>h', None, self.on_library_search_shortcut),
             )
 
@@ -585,8 +557,31 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.scrobbler.import_module()
         self.scrobbler.init()
 
+        # Current tab
+        self.current = current.Current(self.config, self.client, self.TAB_CURRENT, self.on_current_button_press, self.parse_formatting_colnames, self.parse_formatting, self.connected, lambda:self.sonata_loaded, lambda:self.songinfo, self.update_statusbar, self.iterate_now, self.mpd_major_version, lambda:self.library.libsearchfilter_get_style())
+
+        vbox_current, playlistevbox = self.current.get_widgets()
+        self.current_treeview = self.current.get_treeview()
+        self.current_selection = self.current.get_selection()
+
+        playlistevbox.connect("button_press_event", self.on_tab_click)
+        self.notebook.append_page(vbox_current, playlistevbox)
+        current_tab = vbox_current
+        if not self.current_tab_visible:
+            ui.hide(current_tab)
+
+        currentactions = [
+            ('centerplaylistkey', None, 'Center Playlist Key', '<Ctrl>i', None, self.current.center_song_in_list),
+            ('sortbyartist', None, _('By Artist'), None, None, self.current.on_sort_by_artist),
+            ('sortbyalbum', None, _('By Album'), None, None, self.current.on_sort_by_album),
+            ('sortbytitle', None, _('By Song Title'), None, None, self.current.on_sort_by_title),
+            ('sortbyfile', None, _('By File Name'), None, None, self.current.on_sort_by_file),
+            ('sortbydirfile', None, _('By Dir & File Name'), None, None, self.current.on_sort_by_dirfile),
+            ('sortreverse', None, _('Reverse List'), None, None, self.current.on_sort_reverse),
+            ]
+
         # Library tab
-        self.library = library.Library(self.config, self.client, self.artwork, self.TAB_LIBRARY, self.find_path('sonata-album.png'), self.settings_save, self.filtering_entry_make_red, self.filtering_entry_revert_color, self.filter_key_pressed, self.on_add_item, self.parse_formatting, self.connected, self.on_library_button_press, self.on_library_search_text_click)
+        self.library = library.Library(self.config, self.client, self.artwork, self.TAB_LIBRARY, self.find_path('sonata-album.png'), self.settings_save, self.current.filtering_entry_make_red, self.current.filtering_entry_revert_color, self.current.filter_key_pressed, self.on_add_item, self.parse_formatting, self.connected, self.on_library_button_press, self.on_library_search_text_click)
         libraryvbox, libraryevbox = self.library.get_widgets()
         self.library_treeview = self.library.get_treeview()
         self.library_selection = self.library.get_selection()
@@ -623,7 +618,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             ]
 
         # Playlists tab
-        self.playlists = playlists.Playlists(self.config, self.window, self.client, lambda:self.UIManager, self.update_menu_visibility, self.iterate_now, self.on_add_item, self.on_playlists_button_press, self.get_current_songs, self.connected, self.mpd_major_version, self.TAB_PLAYLISTS)
+        self.playlists = playlists.Playlists(self.config, self.window, self.client, lambda:self.UIManager, self.update_menu_visibility, self.iterate_now, self.on_add_item, self.on_playlists_button_press, self.current.get_current_songs, self.connected, self.mpd_major_version, self.TAB_PLAYLISTS)
 
         playlistswindow, playlistsevbox = self.playlists.get_widgets()
         self.playlists_treeview = self.playlists.get_treeview()
@@ -644,6 +639,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.UIManager = gtk.UIManager()
         actionGroup = gtk.ActionGroup('Actions')
         actionGroup.add_actions(actions)
+        actionGroup.add_actions(currentactions)
         actionGroup.add_actions(libraryactions)
         actionGroup.add_actions(streamsactions)
         actionGroup.add_actions(playlistsactions)
@@ -710,30 +706,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         mainvbox.pack_start(tophbox, False, False, 5)
         self.notebook.set_tab_pos(gtk.POS_TOP)
         self.notebook.set_scrollable(True)
-        # Current tab
-        self.current = ui.treeview(reorder=True, search=False, headers=True)
-        self.current_selection = self.current.get_selection()
-        self.expanderwindow = ui.scrollwindow(shadow=gtk.SHADOW_IN, add=self.current)
-        self.filterpattern = ui.entry()
-        self.filterbox = gtk.HBox()
-        self.filterbox.pack_start(ui.label(text=_("Filter") + ":"), False, False, 5)
-        self.filterbox.pack_start(self.filterpattern, True, True, 5)
-        filterclosebutton = ui.button(img=ui.image(stock=gtk.STOCK_CLOSE), relief=gtk.RELIEF_NONE)
-        self.filterbox.pack_start(filterclosebutton, False, False, 0)
-        self.filterbox.set_no_show_all(True)
-        vbox_current = gtk.VBox()
-        vbox_current.pack_start(self.expanderwindow, True, True)
-        vbox_current.pack_start(self.filterbox, False, False, 5)
-        playlisthbox = gtk.HBox()
-        playlisthbox.pack_start(ui.image(stock=gtk.STOCK_CDROM), False, False, 2)
-        playlisthbox.pack_start(ui.label(text=self.TAB_CURRENT), False, False, 2)
-        playlistevbox = ui.eventbox(add=playlisthbox)
-        playlistevbox.show_all()
-        playlistevbox.connect("button_press_event", self.on_tab_click)
-        self.notebook.append_page(vbox_current, playlistevbox)
-        current_tab = vbox_current
-        if not self.current_tab_visible:
-            ui.hide(current_tab)
 
         # Info tab
         self.info_area = ui.scrollwindow()
@@ -903,12 +875,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.volumebutton.connect('clicked', self.on_volumebutton_clicked)
         self.volumebutton.connect('scroll-event', self.on_volumebutton_scroll)
         self.expander.connect('activate', self.on_expander_activate)
-        self.current.connect('drag_data_received', self.on_dnd)
-        self.current.connect('row_activated', self.on_current_click)
-        self.current.connect('button_press_event', self.on_current_button_press)
-        self.current.connect('drag-begin', self.on_current_drag_begin)
-        self.current.connect_after('drag-begin', self.dnd_after_current_drag_begin)
-        self.current.connect('button_release_event', self.on_current_button_release)
         self.randommenu.connect('toggled', self.on_random_clicked)
         self.repeatmenu.connect('toggled', self.on_repeat_clicked)
         self.volumescale.connect('change_value', self.on_volumescale_change)
@@ -921,14 +887,10 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.notebook.connect('size-allocate', self.on_notebook_resize)
         self.notebook.connect('switch-page', self.on_notebook_page_change)
 
-        self.filter_changed_handler = self.filterpattern.connect('changed', self.searchfilter_feed_loop)
-        self.filterpattern.connect('activate', self.searchfilter_on_enter)
-        self.filterpattern.connect('key-press-event', self.searchfilter_key_pressed)
-        filterclosebutton.connect('clicked', self.searchfilter_toggle)
         self.fullscreencoverart.add_events(gtk.gdk.BUTTON_PRESS_MASK | gtk.gdk.BUTTON_PRESS_MASK)
         self.fullscreencoverart.connect("button-press-event", self.fullscreen_cover_art_close, False)
         self.fullscreencoverart.connect("key-press-event", self.fullscreen_cover_art_close, True)
-        for treeview in [self.current, self.library_treeview, self.playlists_treeview, self.streams_treeview]:
+        for treeview in [self.current_treeview, self.library_treeview, self.playlists_treeview, self.streams_treeview]:
             treeview.connect('popup_menu', self.on_menu_popup)
         for treeviewsel in [self.current_selection, self.library_selection, self.playlists_selection, self.streams_selection]:
             treeviewsel.connect('changed', self.on_treeview_selection_changed)
@@ -956,13 +918,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.keys.connect("mm_stop", self.mpd_stop)
 
         # Set up current view
-        self.current_initialize_columns()
-        self.current_selection.set_mode(gtk.SELECTION_MULTIPLE)
-        target_reorder = ('MY_TREE_MODEL_ROW', gtk.TARGET_SAME_WIDGET, 0)
-        target_file_managers = ('text/uri-list', 0, 0)
-        self.current.enable_model_drag_source(gtk.gdk.BUTTON1_MASK, [target_reorder, target_file_managers], gtk.gdk.ACTION_COPY | gtk.gdk.ACTION_DEFAULT)
-        self.current.enable_model_drag_dest([target_reorder, target_file_managers], gtk.gdk.ACTION_MOVE | gtk.gdk.ACTION_DEFAULT)
-        self.current.connect('drag-data-get', self.dnd_get_data_for_file_managers)
+        self.currentdata = self.current.get_model()
 
         # Initialize playlist data and widget
         self.playlistsdata = self.playlists.get_model()
@@ -1004,7 +960,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         # Ensure that sonata is loaded before we display the notif window
         self.sonata_loaded = True
         self.on_currsong_notify()
-        self.current_center_song_in_list()
+        self.current.center_song_in_list()
 
         if HAVE_STATUS_ICON:
             gobject.timeout_add(250, self.iterate_status_icon)
@@ -1017,42 +973,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         if self.status and self.status['state'] in ['play', 'pause'] and self.songinfo:
             return self.songinfo
         return None
-
-    def get_current_songs(self):
-        return self.current_songs
-
-    def dnd_get_data_for_file_managers(self, treeview, context, selection, info, timestamp):
-
-        if not os.path.isdir(self.musicdir[self.profile_num]):
-            # Prevent the DND mouse cursor from looking like we can DND
-            # when we clearly can't.
-            return
-
-        context.drag_status(gtk.gdk.ACTION_COPY, context.start_time)
-
-        filenames = self.current_get_selected_filenames(True)
-
-        uris = []
-        for file in filenames:
-            uris.append("file://" + urllib.quote(file))
-
-        selection.set_uris(uris)
-        return
-
-    def current_get_selected_filenames(self, return_abs_paths):
-        model, selected = self.current_selection.get_selected_rows()
-        filenames = []
-
-        for path in selected:
-            if not self.filterbox_visible:
-                item = mpdh.get(self.current_songs[path[0]], 'file')
-            else:
-                item = mpdh.get(self.current_songs[self.filter_row_mapping[path[0]]], 'file')
-            if return_abs_paths:
-                filenames.append(self.musicdir[self.profile_num] + item)
-            else:
-                filenames.append(item)
-        return filenames
 
     def print_version(self):
         print _("Version: Sonata"), __version__
@@ -1082,39 +1002,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         print "  random               " + _("Toggle random mode")
         print "  info                 " + _("Display current song info")
         print "  status               " + _("Display MPD status")
-
-    def current_initialize_columns(self):
-        # Initialize current playlist data and widget
-        self.resizing_columns = False
-        self.columnformat = self.currentformat.split("|")
-        self.currentdata = gtk.ListStore(*([int] + [str] * len(self.columnformat)))
-        self.current.set_model(self.currentdata)
-        cellrenderer = gtk.CellRendererText()
-        cellrenderer.set_property("ellipsize", pango.ELLIPSIZE_END)
-        self.columns = []
-        colnames = self.parse_formatting_colnames(self.currentformat)
-        if len(self.columnformat) != len(self.columnwidths):
-            # Number of columns changed, set columns equally spaced:
-            self.columnwidths = []
-            for i in range(len(self.columnformat)):
-                self.columnwidths.append(int(self.current.allocation.width/len(self.columnformat)))
-        for i in range(len(self.columnformat)):
-            column = gtk.TreeViewColumn(colnames[i], cellrenderer, markup=(i+1))
-            self.columns += [column]
-            column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
-            # If just one column, we want it to expand with the tree, so don't set a
-            # fixed_width; if multiple columns, size accordingly:
-            if len(self.columnformat) > 1:
-                column.set_resizable(True)
-                try:
-                    column.set_fixed_width(max(self.columnwidths[i], 10))
-                except:
-                    column.set_fixed_width(150)
-            column.connect('clicked', self.on_current_column_click)
-            self.current.append_column(column)
-        self.current.set_fixed_height_mode(True)
-        self.current.set_headers_visible(len(self.columnformat) > 1 and self.show_header)
-        self.current.set_headers_clickable(not self.filterbox_visible)
 
     def gnome_session_management(self):
         try:
@@ -1302,6 +1189,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.songinfo = None
             if self.artwork is not None:
                 self.artwork.update_songinfo(self.songinfo)
+
             self.iterate_time = self.iterate_time_when_disconnected_or_stopped
         self.trying_connection = False
 
@@ -1450,8 +1338,8 @@ class Base(object, consts.Constants, preferences.Preferences):
                 self.volume_hide()
             elif self.current_tab == self.TAB_LIBRARY and self.library.search_visible():
                 self.library.on_search_end(None)
-            elif self.current_tab == self.TAB_CURRENT and self.filterbox_visible:
-                self.searchfilter_toggle(None)
+            elif self.current_tab == self.TAB_CURRENT and self.current.filterbox_visible:
+                self.current.searchfilter_toggle(None)
             elif self.minimize_to_systray:
                 if HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible():
                     self.withdraw_app()
@@ -1473,12 +1361,12 @@ class Base(object, consts.Constants, preferences.Preferences):
             # will ensure that we skip, e.g., F5, Alt, Ctrl, ...
             # XXX event.string is deprecated
             if len(event.string.strip()) > 0:
-                if not self.filterbox_visible:
+                if not self.current.filterbox_visible:
                     if event.string != "/":
                         text = event.string.decode(locale.getpreferredencoding(), 'replace')
-                        self.searchfilter_toggle(None, text)
+                        self.current.searchfilter_toggle(None, text)
                     else:
-                        self.searchfilter_toggle(None)
+                        self.current.searchfilter_toggle(None)
 
     def settings_load(self):
         self.config.settings_load_real(library.library_set_data)
@@ -1499,16 +1387,16 @@ class Base(object, consts.Constants, preferences.Preferences):
             for mediabutton in (self.ppbutton, self.stopbutton, self.prevbutton, self.nextbutton, self.volumebutton):
                 mediabutton.set_property('sensitive', False)
             self.currentdata.clear()
-            if self.current.get_model():
-                self.current.get_model().clear()
+            if self.current_treeview.get_model():
+                self.current_treeview.get_model().clear()
             if HAVE_STATUS_ICON:
                 self.statusicon.set_from_file(self.find_path('sonata_disconnect.png'))
             elif HAVE_EGG and self.eggtrayheight:
                 self.eggtrayfile = self.find_path('sonata_disconnect.png')
                 self.trayimage.set_from_pixbuf(img.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
             self.info_update(True)
-            if self.filterbox_visible:
-                gobject.idle_add(self.searchfilter_toggle, None)
+            if self.current.filterbox_visible:
+                gobject.idle_add(self.current.searchfilter_toggle, None)
             if self.library.search_visible():
                 self.library.on_search_end(None)
             self.handle_change_song()
@@ -1679,8 +1567,8 @@ class Base(object, consts.Constants, preferences.Preferences):
         if treeselection == self.current.get_selection():
             # User previously clicked inside group of selected rows, re-select
             # rows so it doesn't look like anything changed:
-            if self.sel_rows:
-                for row in self.sel_rows:
+            if self.current.sel_rows:
+                for row in self.current.sel_rows:
                     treeselection.select_path(row)
         # Update lib artwork
         self.library.on_library_scrolled(None, None)
@@ -1700,7 +1588,7 @@ class Base(object, consts.Constants, preferences.Preferences):
     def on_button_press(self, widget, event, widget_is_current):
         ctrl_press = (event.state & gtk.gdk.CONTROL_MASK)
         self.volume_hide()
-        self.sel_rows = None
+        self.current.sel_rows = None
         if event.button == 1 and widget_is_current and not ctrl_press:
             # If the user clicked inside a group of rows that were already selected,
             # we need to retain the selected rows in case the user wants to DND the
@@ -1710,7 +1598,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             try:
                 path, col, x, y = widget.get_path_at_pos(int(event.x), int(event.y))
                 if widget.get_selection().path_is_selected(path):
-                    self.sel_rows = widget.get_selection().get_selected_rows()[1]
+                    self.current.sel_rows = widget.get_selection().get_selected_rows()[1]
             except:
                 pass
         elif event.button == 3:
@@ -1726,22 +1614,6 @@ class Base(object, consts.Constants, preferences.Preferences):
             # the current selection change to the current row)
             if widget.get_selection().count_selected_rows() > 1:
                 return True
-
-    def on_current_drag_begin(self, widget, context):
-        self.sel_rows = False
-
-    def dnd_after_current_drag_begin(self, widget, context):
-        # Override default image of selected row with sonata icon:
-        context.set_icon_stock('sonata', 0, 0)
-
-    def on_current_button_release(self, widget, event):
-        if self.sel_rows:
-            self.sel_rows = False
-            # User released mouse, select single row:
-            selection = widget.get_selection()
-            selection.unselect_all()
-            path, col, x, y = widget.get_path_at_pos(int(event.x), int(event.y))
-            selection.select_path(path)
 
     def on_add_item_play(self, widget):
         self.on_add_item(widget, True)
@@ -1864,12 +1736,12 @@ class Base(object, consts.Constants, preferences.Preferences):
 
     def menu_position(self, menu):
         if self.expanded:
-            x, y, width, height = self.current.get_allocation()
+            x, y, width, height = self.current_treeview.get_allocation()
             # Find first selected visible row and popup the menu
             # from there
             if self.current_tab == self.TAB_CURRENT:
-                widget = self.current
-                column = self.columns[0]
+                widget = self.current_treeview
+                column = self.current.columns[0]
             elif self.current_tab == self.TAB_LIBRARY:
                 widget = self.library_treeview
                 column = self.library.librarycolumn
@@ -1912,7 +1784,10 @@ class Base(object, consts.Constants, preferences.Preferences):
 
         # Display current playlist
         if self.prevstatus == None or self.prevstatus['playlist'] != self.status['playlist']:
-            self.current_update()
+            prevstatus_playlist = None
+            if self.prevstatus:
+                prevstatus_playlist = self.prevstatus['playlist']
+            self.current.current_update(prevstatus_playlist, self.status['playlistlength'])
 
         # Update progress frequently if we're playing
         if self.status['state'] in ['play', 'pause']:
@@ -1969,7 +1844,7 @@ class Base(object, consts.Constants, preferences.Preferences):
 
             self.artwork.artwork_update()
             if self.status['state'] in ['play', 'pause']:
-                self.current_center_song_in_list()
+                self.current.center_song_in_list()
 
         if self.prevstatus is None or self.status['volume'] != self.prevstatus['volume']:
             try:
@@ -2035,15 +1910,15 @@ class Base(object, consts.Constants, preferences.Preferences):
         #  2. Position in playlist (e.g. if playlist is sorted)
         # Note that the song does not have to be playing; it can reflect the
         # next song that will be played.
-        self.unbold_boldrow(self.prev_boldrow)
+        self.current.unbold_boldrow(self.current.prev_boldrow)
 
         if self.status and 'song' in self.status:
             row = int(self.status['song'])
-            self.boldrow(row)
+            self.current.boldrow(row)
             if self.songinfo:
                 if not self.prevsonginfo or mpdh.get(self.songinfo, 'file') != mpdh.get(self.prevsonginfo, 'file'):
-                    self.current_center_song_in_list()
-            self.prev_boldrow = row
+                    self.current.center_song_in_list()
+            self.current.prev_boldrow = row
 
         self.album_get_artist()
 
@@ -2051,22 +1926,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.update_wintitle()
         self.artwork.artwork_update()
         self.info_update(True)
-
-    def boldrow(self, row):
-        if row > -1:
-            try:
-                for i in range(len(self.currentdata[row]) - 1):
-                    self.currentdata[row][i + 1] = misc.bold(self.currentdata[row][i + 1])
-            except:
-                pass
-
-    def unbold_boldrow(self, row):
-        if row > -1:
-            try:
-                for i in range(len(self.currentdata[row]) - 1):
-                    self.currentdata[row][i + 1] = misc.unbold(self.currentdata[row][i + 1])
-            except:
-                pass
 
     def update_progressbar(self):
         if self.conn and self.status and self.status['state'] in ['play', 'pause']:
@@ -2106,7 +1965,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                     days = None
                     hours = None
                     mins = None
-                    total_time = misc.convert_time(self.total_time)
+                    total_time = misc.convert_time(self.current.total_time)
                     try:
                         mins = total_time.split(":")[-2]
                         hours = total_time.split(":")[-3]
@@ -2223,148 +2082,6 @@ class Base(object, consts.Constants, preferences.Preferences):
             if not self.last_title or self.last_title != newtitle:
                 self.window.set_property('title', newtitle)
                 self.last_title = newtitle
-
-    def current_update_format(self):
-        for track in self.current_songs:
-            items = []
-            for part in self.columnformat:
-                items += [self.parse_formatting(part, track, True)]
-
-            self.currentdata.append([int(mpdh.get(track, 'id'))] + items)
-
-    def current_update(self):
-        if self.conn:
-
-            if self.sonata_loaded:
-                playlistposition = self.current.get_visible_rect()[1]
-
-            self.current.freeze_child_notify()
-
-            if not self.current_update_skip:
-
-                if not self.filterbox_visible:
-                    self.current.set_model(None)
-
-                if self.prevstatus:
-                    changed_songs = mpdh.call(self.client, 'plchanges', self.prevstatus['playlist'])
-                else:
-                    changed_songs = mpdh.call(self.client, 'plchanges', 0)
-                    self.current_songs = []
-
-                newlen = int(self.status['playlistlength'])
-                currlen = len(self.currentdata)
-
-                for track in changed_songs:
-                    pos = int(mpdh.get(track, 'pos'))
-
-                    items = []
-                    for part in self.columnformat:
-                        items += [self.parse_formatting(part, track, True)]
-
-                    if pos < currlen:
-                        # Update attributes for item:
-                        iter = self.currentdata.get_iter((pos, ))
-                        id = int(mpdh.get(track, 'id'))
-                        if id != self.currentdata.get_value(iter, 0):
-                            self.currentdata.set_value(iter, 0, id)
-                        for index in range(len(items)):
-                            if items[index] != self.currentdata.get_value(iter, index + 1):
-                                self.currentdata.set_value(iter, index + 1, items[index])
-                        self.current_songs[pos] = track
-                    else:
-                        # Add new item:
-                        self.currentdata.append([int(mpdh.get(track, 'id'))] + items)
-                        self.current_songs.append(track)
-
-                if newlen == 0:
-                    self.currentdata.clear()
-                    self.current_songs = []
-                else:
-                    # Remove excess songs:
-                    for i in range(currlen-newlen):
-                        iter = self.currentdata.get_iter((newlen-1-i,))
-                        self.currentdata.remove(iter)
-                    self.current_songs = self.current_songs[:newlen]
-
-                if not self.filterbox_visible:
-                    self.current.set_model(self.currentdata)
-
-            self.current_update_skip = False
-
-            # Update statusbar time:
-            self.total_time = 0
-            for track in self.current_songs:
-                try:
-                    self.total_time = self.total_time + int(mpdh.get(track, 'time'))
-                except:
-                    pass
-
-            if 'pos' in self.songinfo:
-                currsong = int(mpdh.get(self.songinfo, 'pos'))
-                self.boldrow(currsong)
-                self.prev_boldrow = currsong
-            if self.filterbox_visible:
-                # Refresh filtered results:
-                self.prevtodo = "RETAIN_POS_AND_SEL" # Hacky, but this ensures we retain the self.current position/selection
-                self.plpos = playlistposition
-                self.searchfilter_feed_loop(self.filterpattern)
-            elif self.sonata_loaded:
-                self.playlist_retain_view(self.current, playlistposition)
-                self.current.thaw_child_notify()
-            self.header_update_column_indicators()
-            self.update_statusbar()
-            ui.change_cursor(None)
-
-    def header_update_column_indicators(self):
-        # If we just sorted a column, display the sorting arrow:
-        if self.column_sorted[0]:
-            if self.column_sorted[1] == gtk.SORT_DESCENDING:
-                self.header_hide_all_indicators(self.current, True)
-                self.column_sorted[0].set_sort_order(gtk.SORT_ASCENDING)
-                self.column_sorted = (None, gtk.SORT_ASCENDING)
-            else:
-                self.header_hide_all_indicators(self.current, True)
-                self.column_sorted[0].set_sort_order(gtk.SORT_DESCENDING)
-                self.column_sorted = (None, gtk.SORT_DESCENDING)
-
-    def playlist_retain_view(self, listview, playlistposition):
-        # Attempt to retain library position:
-        try:
-            # This is the weirdest thing I've ever seen. But if, for
-            # example, you edit a song twice, the position of the
-            # playlist will revert to the top the second time because
-            # we are telling gtk to scroll to the same point as
-            # before. So we will simply scroll to the top and then
-            # back to the actual position. The first position change
-            # shouldn't be visible by the user.
-            listview.scroll_to_point(-1, 0)
-            listview.scroll_to_point(-1, playlistposition)
-        except:
-            pass
-
-    def header_hide_all_indicators(self, treeview, show_sorted_column):
-        if not show_sorted_column:
-            self.column_sorted = (None, gtk.SORT_DESCENDING)
-        for column in treeview.get_columns():
-            if show_sorted_column and column == self.column_sorted[0]:
-                column.set_sort_indicator(True)
-            else:
-                column.set_sort_indicator(False)
-
-    def current_center_song_in_list(self, event=None):
-        if self.filterbox_visible:
-            return
-        if self.expanded and len(self.currentdata)>0:
-            self.current.realize()
-            try:
-                row = mpdh.get(self.songinfo, 'pos', None)
-                if row is None: return
-                visible_rect = self.current.get_visible_rect()
-                row_rect = self.current.get_background_area(row, self.columns[0])
-                top_coord = (row_rect.y + row_rect.height - int(visible_rect.height/2)) + visible_rect.y
-                self.current.scroll_to_point(-1, top_coord)
-            except:
-                pass
 
     def set_allow_art_search(self):
         self.allow_art_search = True
@@ -2509,7 +2226,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.expander_ellipse_workaround()
 
     def on_notebook_resize(self, widget, event):
-        if not self.resizing_columns :
+        if not self.current.resizing_columns :
             gobject.idle_add(self.header_save_column_widths)
         gobject.idle_add(self.info.resize_elements, self.notebook.allocation)
 
@@ -2564,7 +2281,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         if window_about_to_be_expanded:
             self.expanded = True
             if self.status and self.status['state'] in ['play','pause']:
-                gobject.idle_add(self.current_center_song_in_list)
+                gobject.idle_add(self.current.center_song_in_list)
             self.window.set_geometry_hints(self.window)
         # Put focus to the notebook:
         self.on_notebook_page_change(self.notebook, 0, self.notebook.get_current_page())
@@ -2641,137 +2358,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         else:
             dialog.destroy()
 
-    def on_current_column_click(self, column):
-        columns = self.current.get_columns()
-        col_num = 0
-        for col in columns:
-            col_num = col_num + 1
-            if column == col:
-                self.sort('col' + str(col_num), column)
-                return
-
-    def on_sort_by_artist(self, action):
-        self.sort('artist', lower=misc.lower_no_the)
-
-    def on_sort_by_album(self, action):
-        self.sort('album', lower=misc.lower_no_the)
-
-    def on_sort_by_title(self, action):
-        self.sort('title')
-
-    def on_sort_by_file(self, action):
-        self.sort('file')
-
-    def on_sort_by_dirfile(self, action):
-        self.sort('dirfile')
-
-    def sort(self, type, column=None, lower=lambda x: x.lower()):
-        if self.conn:
-            if not self.status or self.status['playlistlength'] == '0':
-                return
-
-            while gtk.events_pending():
-                gtk.main_iteration()
-            list = []
-            track_num = 0
-
-            if type[0:3] == 'col':
-                col_num = int(type.replace('col', ''))
-                if column.get_sort_indicator():
-                    # If this column was already sorted, reverse list:
-                    self.column_sorted = (column, self.column_sorted[1])
-                    self.on_sort_reverse(None)
-                    return
-                else:
-                    self.column_sorted = (column, gtk.SORT_DESCENDING)
-                type = "col"
-
-            # If the first tag in the format is song length, we will make sure to compare
-            # the same number of items in the song length string (e.g. always use
-            # ##:##:##) and pad the first item to two (e.g. #:##:## -> ##:##:##)
-            custom_sort = False
-            if type == 'col':
-                custom_sort, custom_pos = self.sort_get_first_format_tag(self.currentformat, col_num, 'L')
-
-            for track in self.current_songs:
-                dict = {}
-                # Those items that don't have the specified tag will be put at
-                # the end of the list (hence the 'zzzzzzz'):
-                zzz = 'zzzzzzzz'
-                if type == 'artist':
-                    dict["sortby"] =  (misc.lower_no_the(mpdh.get(track, 'artist', zzz)),
-                                mpdh.get(track, 'album', zzz).lower(),
-                                mpdh.getnum(track, 'disc', '0', True, 0),
-                                mpdh.getnum(track, 'track', '0', True, 0))
-                elif type == 'album':
-                    dict["sortby"] =  (mpdh.get(track, 'album', zzz).lower(),
-                                mpdh.getnum(track, 'disc', '0', True, 0),
-                                mpdh.getnum(track, 'track', '0', True, 0))
-                elif type == 'file':
-                    dict["sortby"] = mpdh.get(track, 'file', zzz).lower().split('/')[-1]
-                elif type == 'dirfile':
-                    dict["sortby"] = mpdh.get(track, 'file', zzz).lower()
-                elif type == 'col':
-                    # Sort by column:
-                    dict["sortby"] = misc.unbold(self.currentdata.get_value(self.currentdata.get_iter((track_num, 0)), col_num).lower())
-                    if custom_sort:
-                        dict["sortby"] = self.sanitize_songlen_for_sorting(dict["sortby"], custom_pos)
-                else:
-                    dict["sortby"] = mpdh.get(track, type, zzz).lower()
-                dict["id"] = int(track["id"])
-                list.append(dict)
-                track_num = track_num + 1
-
-            list.sort(key=lambda x: x["sortby"])
-
-            pos = 0
-            mpdh.call(self.client, 'command_list_ok_begin')
-            for item in list:
-                mpdh.call(self.client, 'moveid', item["id"], pos)
-                pos += 1
-            mpdh.call(self.client, 'command_list_end')
-            self.iterate_now()
-
-            self.header_update_column_indicators()
-
-    def sort_get_first_format_tag(self, format, colnum, tag_letter):
-        # Returns a tuple with whether the first tag of the format
-        # includes tag_letter and the position of the tag in the string:
-        formats = format.split('|')
-        format = formats[colnum-1]
-        for pos in range(len(format)-1):
-            if format[pos] == '%':
-                if format[pos+1] == tag_letter:
-                    return (True, pos)
-                else:
-                    break
-        return (False, 0)
-
-    def sanitize_songlen_for_sorting(self, songlength, pos_of_string):
-        songlength = songlength[pos_of_string:]
-        items = songlength.split(':')
-        for i in range(len(items)):
-            items[i] = items[i].zfill(2)
-        for i in range(3-len(items)):
-            items.insert(0, "00")
-        return items[0] + ":" + items[1] + ":" + items[2]
-
-    def on_sort_reverse(self, action):
-        if self.conn:
-            if not self.status or self.status['playlistlength'] == '0':
-                return
-            while gtk.events_pending():
-                gtk.main_iteration()
-            top = 0
-            bot = int(self.status['playlistlength'])-1
-            mpdh.call(self.client, 'command_list_ok_begin')
-            while top < bot:
-                mpdh.call(self.client, 'swap', top, bot)
-                top = top + 1
-                bot = bot - 1
-            mpdh.call(self.client, 'command_list_end')
-            self.iterate_now()
-
     def mpd_shuffle(self, action):
         if self.conn:
             if not self.status or self.status['playlistlength'] == '0':
@@ -2780,144 +2366,6 @@ class Base(object, consts.Constants, preferences.Preferences):
             while gtk.events_pending():
                 gtk.main_iteration()
             mpdh.call(self.client, 'shuffle')
-
-    def on_dnd(self, treeview, drag_context, x, y, selection, info, timestamp):
-        drop_info = treeview.get_dest_row_at_pos(x, y)
-
-        if selection.data is not None:
-            if not os.path.isdir(misc.file_from_utf8(self.musicdir[self.profile_num])):
-                return
-            # DND from outside sonata:
-            uri = selection.data.strip()
-            path = urllib.url2pathname(uri)
-            paths = path.rsplit('\n')
-            mpdpaths = []
-            # Strip off paranthesis so that we can DND entire music dir
-            # if we wish.
-            musicdir = self.musicdir[self.profile_num][:-1]
-            for i, path in enumerate(paths):
-                paths[i] = path.rstrip('\r')
-                if paths[i].startswith('file://'):
-                    paths[i] = paths[i][7:]
-                elif paths[i].startswith('file:'):
-                    paths[i] = paths[i][5:]
-                if paths[i].startswith(musicdir):
-                    paths[i] = paths[i][len(self.musicdir[self.profile_num]):]
-                    if len(paths[i]) == 0: paths[i] = "/"
-                    listallinfo = mpdh.call(self.client, 'listallinfo', paths[i])
-                    for item in listallinfo:
-                        if 'file' in item:
-                            mpdpaths.append(mpdh.get(item, 'file'))
-                elif self.mpd_major_version() >= 0.14:
-                    # Add local file, available in mpd 0.14. This currently won't
-                    # work because python-mpd does not support unix socket paths,
-                    # which is needed for authentication for local files. It's also
-                    # therefore untested.
-                    if os.path.isdir(misc.file_from_utf8(paths[i])):
-                        filenames = misc.get_files_recursively(paths[i])
-                    else:
-                        filenames = [paths[i]]
-                    for filename in filenames:
-                        if os.path.exists(misc.file_from_utf8(filename)):
-                            mpdpaths.append("file://" + urllib.quote(filename))
-            if len(mpdpaths) > 0:
-                # Items found, add to list at drop position:
-                if drop_info:
-                    destpath, position = drop_info
-                    if position in (gtk.TREE_VIEW_DROP_BEFORE, gtk.TREE_VIEW_DROP_INTO_OR_BEFORE):
-                        id = destpath[0]
-                    else:
-                        id = destpath[0] + 1
-                else:
-                    id = int(self.status['playlistlength'])
-                for mpdpath in mpdpaths:
-                    mpdh.call(self.client, 'addid', mpdpath, id)
-            self.iterate_now()
-            return
-
-        # Otherwise, it's a DND just within the current playlist
-        model = treeview.get_model()
-        foobar, selected = self.current_selection.get_selected_rows()
-
-        # calculate all this now before we start moving stuff
-        drag_sources = []
-        for path in selected:
-            index = path[0]
-            iter = model.get_iter(path)
-            id = self.current_get_songid(iter, model)
-            text = model.get_value(iter, 1)
-            drag_sources.append([index, iter, id, text])
-
-        # Keep track of the moved iters so we can select them afterwards
-        moved_iters = []
-
-        # We will manipulate self.current_songs and model to prevent the entire playlist
-        # from refreshing
-        offset = 0
-        mpdh.call(self.client, 'command_list_ok_begin')
-        for source in drag_sources:
-            index, iter, id, text = source
-            if drop_info:
-                destpath, position = drop_info
-                dest = destpath[0] + offset
-                if dest < index:
-                    offset = offset + 1
-                if position in (gtk.TREE_VIEW_DROP_BEFORE, gtk.TREE_VIEW_DROP_INTO_OR_BEFORE):
-                    self.current_songs.insert(dest, self.current_songs[index])
-                    if dest < index+1:
-                        self.current_songs.pop(index+1)
-                        mpdh.call(self.client, 'moveid', id, dest)
-                    else:
-                        self.current_songs.pop(index)
-                        mpdh.call(self.client, 'moveid', id, dest-1)
-                    model.insert(dest, model[index])
-                    moved_iters += [model.get_iter((dest,))]
-                    model.remove(iter)
-                else:
-                    self.current_songs.insert(dest+1, self.current_songs[index])
-                    if dest < index:
-                        self.current_songs.pop(index+1)
-                        mpdh.call(self.client, 'moveid', id, dest+1)
-                    else:
-                        self.current_songs.pop(index)
-                        mpdh.call(self.client, 'moveid', id, dest)
-                    model.insert(dest+1, model[index])
-                    moved_iters += [model.get_iter((dest+1,))]
-                    model.remove(iter)
-            else:
-                dest = int(self.status['playlistlength']) - 1
-                mpdh.call(self.client, 'moveid', id, dest)
-                self.current_songs.insert(dest+1, self.current_songs[index])
-                self.current_songs.pop(index)
-                model.insert(dest+1, model[index])
-                moved_iters += [model.get_iter((dest+1,))]
-                model.remove(iter)
-            # now fixup
-            for source in drag_sources:
-                if dest < index:
-                    # we moved it back, so all indexes inbetween increased by 1
-                    if dest < source[0] < index:
-                        source[0] += 1
-                else:
-                    # we moved it ahead, so all indexes inbetween decreased by 1
-                    if index < source[0] < dest:
-                        source[0] -= 1
-        mpdh.call(self.client, 'command_list_end')
-
-        # we are manipulating the model manually for speed, so...
-        self.current_update_skip = True
-
-        if drag_context.action == gtk.gdk.ACTION_MOVE:
-            drag_context.finish(True, True, timestamp)
-            self.header_hide_all_indicators(self.current, False)
-        self.iterate_now()
-
-        gobject.idle_add(self.dnd_retain_selection, treeview.get_selection(), moved_iters)
-
-    def dnd_retain_selection(self, treeselection, moved_iters):
-        treeselection.unselect_all()
-        for iter in moved_iters:
-            treeselection.select_iter(iter)
 
     def on_menu_popup(self, widget):
         self.update_menu_visibility()
@@ -3330,24 +2778,24 @@ class Base(object, consts.Constants, preferences.Preferences):
     def header_save_column_widths(self):
         if not self.withdrawn and self.expanded:
             windowwidth = self.window.allocation.width
-            if windowwidth <= 10 or self.columns[0].get_width() <= 10:
+            if windowwidth <= 10 or self.current.columns[0].get_width() <= 10:
                 # Make sure we only set self.columnwidths if self.current
                 # has its normal allocated width:
                 return
             notebookwidth = self.notebook.allocation.width
             treewidth = 0
-            for i, column in enumerate(self.columns):
+            for i, column in enumerate(self.current.columns):
                 colwidth = column.get_width()
                 treewidth += colwidth
-                if i == len(self.columns)-1 and treewidth <= windowwidth:
+                if i == len(self.current.columns)-1 and treewidth <= windowwidth:
                     self.columnwidths[i] = min(colwidth, column.get_fixed_width())
                 else:
                     self.columnwidths[i] = colwidth
             if treewidth > notebookwidth:
-                self.expanderwindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+                self.current.expanderwindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
             else:
-                self.expanderwindow.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
-        self.resizing_columns = False
+                self.current.expanderwindow.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+        self.current.resizing_columns = False
 
     def systemtray_menu(self, status_icon, button, activate_time):
         self.traymenu.popup(None, None, None, button, activate_time)
@@ -3469,19 +2917,6 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.eggtrayheight = size
             if size > 5 and self.eggtrayfile:
                 self.trayimage.set_from_pixbuf(img.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
-
-    def on_current_click(self, treeview, path, column):
-        model = self.current.get_model()
-        if self.filterbox_visible:
-            self.searchfilter_on_enter(None)
-            return
-        try:
-            iter = model.get_iter(path)
-            mpdh.call(self.client, 'playid', self.current_get_songid(iter, model))
-        except:
-            pass
-        self.sel_rows = False
-        self.iterate_now()
 
     def switch_to_tab_name(self, tab_name):
         self.notebook.set_current_page(self.notebook_get_tab_num(self.notebook, tab_name))
@@ -3609,33 +3044,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             while gtk.events_pending():
                 gtk.main_iteration()
             if self.current_tab == self.TAB_CURRENT:
-                # we are manipulating the model manually for speed, so...
-                self.current_update_skip = True
-                treeviewsel = self.current_selection
-                model, selected = treeviewsel.get_selected_rows()
-                if len(selected) == len(self.currentdata) and not self.filterbox_visible:
-                    # Everything is selected, clear:
-                    mpdh.call(self.client, 'clear')
-                elif len(selected) > 0:
-                    selected.reverse()
-                    if not self.filterbox_visible:
-                        # If we remove an item from the filtered results, this
-                        # causes a visual refresh in the interface.
-                        self.current.set_model(None)
-                    mpdh.call(self.client, 'command_list_ok_begin')
-                    for path in selected:
-                        if not self.filterbox_visible:
-                            rownum = path[0]
-                        else:
-                            rownum = self.filter_row_mapping[path[0]]
-                        iter = self.currentdata.get_iter((rownum, 0))
-                        mpdh.call(self.client, 'deleteid', self.current_get_songid(iter, self.currentdata))
-                        # Prevents the entire playlist from refreshing:
-                        self.current_songs.pop(rownum)
-                        self.currentdata.remove(iter)
-                    mpdh.call(self.client, 'command_list_end')
-                    if not self.filterbox_visible:
-                        self.current.set_model(model)
+                self.current.on_remove()
             elif self.current_tab == self.TAB_PLAYLISTS:
                 treeviewsel = self.playlists_selection
                 model, selected = treeviewsel.get_selected_rows()
@@ -3725,10 +3134,10 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.autoconnect = autoconnect.get_active()
             if self.currentformat != currentoptions.get_text():
                 self.currentformat = currentoptions.get_text()
-                for column in self.current.get_columns():
-                    self.current.remove_column(column)
-                self.current_initialize_columns()
-                self.current_update_format()
+                for column in self.current_treeview.get_columns():
+                    self.current_treeview.remove_column(column)
+                self.current.initialize_columns()
+                self.current.update_format()
             if self.libraryformat != libraryoptions.get_text():
                 self.libraryformat = libraryoptions.get_text()
                 self.library.library_browse(root=self.wd)
@@ -3939,7 +3348,7 @@ class Base(object, consts.Constants, preferences.Preferences):
     def on_notebook_page_change(self, notebook, page, page_num):
         self.current_tab = self.notebook_get_tab_text(self.notebook, page_num)
         if self.current_tab == self.TAB_CURRENT:
-            gobject.idle_add(ui.focus, self.current)
+            gobject.idle_add(ui.focus, self.current_treeview)
         elif self.current_tab == self.TAB_LIBRARY:
             gobject.idle_add(ui.focus, self.library_treeview)
         elif self.current_tab == self.TAB_PLAYLISTS:
@@ -4028,7 +3437,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                 else:
                     for menu in ['remove', 'tag']:
                         self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
-                if not self.filterbox_visible:
+                if not self.current.filterbox_visible:
                     for menu in ['clear', 'pl', 'sort']:
                         self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').show()
                 else:
@@ -4138,8 +3547,8 @@ class Base(object, consts.Constants, preferences.Preferences):
                 temp_mpdpaths.append(item)
         elif self.current_tab == self.TAB_CURRENT:
             # Populates files array with selected current playlist items:
-            temp_mpdpaths = self.current_get_selected_filenames(False)
-            files = self.current_get_selected_filenames(True)
+            temp_mpdpaths = self.current.get_selected_filenames(False)
+            files = self.current.get_selected_filenames(True)
 
         tageditor = tagedit.TagEditor(self.window, self.tags_mpd_update, self.tags_set_use_mpdpath)
         tageditor.set_use_mpdpaths(self.tags_use_mpdpath)
@@ -4204,209 +3613,6 @@ class Base(object, consts.Constants, preferences.Preferences):
                     self.trayicon.hide_all()
             except:
                 pass
-
-    def current_get_songid(self, iter, model):
-        return int(model.get_value(iter, 0))
-
-    def searchfilter_toggle(self, widget, initial_text=""):
-        if self.filterbox_visible:
-            ui.hide(self.filterbox)
-            self.filterbox_visible = False
-            self.edit_style_orig = self.library.libsearchfilter_get_style()
-            self.filterpattern.set_text("")
-            self.searchfilter_stop_loop()
-        elif self.conn:
-            self.playlist_pos_before_filter = self.current.get_visible_rect()[1]
-            self.filterbox_visible = True
-            self.filterpattern.handler_block(self.filter_changed_handler)
-            self.filterpattern.set_text(initial_text)
-            self.filterpattern.handler_unblock(self.filter_changed_handler)
-            self.prevtodo = 'foo'
-            ui.show(self.filterbox)
-            # extra thread for background search work, synchronized with a condition and its internal mutex
-            self.filterbox_cond = threading.Condition()
-            self.filterbox_cmd_buf = initial_text
-            qsearch_thread = threading.Thread(target=self.searchfilter_loop)
-            qsearch_thread.setDaemon(True)
-            qsearch_thread.start()
-            gobject.idle_add(self.filter_entry_grab_focus, self.filterpattern)
-        self.current.set_headers_clickable(not self.filterbox_visible)
-
-    def searchfilter_on_enter(self, entry):
-        model, selected = self.current.get_selection().get_selected_rows()
-        song_id = None
-        if len(selected) > 0:
-            # If items are selected, play the first selected item:
-            song_id = self.current_get_songid(model.get_iter(selected[0]), model)
-        elif len(model) > 0:
-            # If nothing is selected: play the first item:
-            song_id = self.current_get_songid(model.get_iter_first(), model)
-        if song_id:
-            self.searchfilter_toggle(None)
-            mpdh.call(self.client, 'playid', song_id)
-
-    def searchfilter_feed_loop(self, editable):
-        # Lets only trigger the searchfilter_loop if 200ms pass without a change
-        # in gtk.Entry
-        try:
-            gobject.remove_source(self.filterbox_source)
-        except:
-            pass
-        self.filterbox_source = gobject.timeout_add(200, self.searchfilter_start_loop, editable)
-
-    def searchfilter_start_loop(self, editable):
-        self.filterbox_cond.acquire()
-        self.filterbox_cmd_buf = editable.get_text()
-        self.filterbox_cond.notifyAll()
-        self.filterbox_cond.release()
-
-    def searchfilter_stop_loop(self):
-        self.filterbox_cond.acquire()
-        self.filterbox_cmd_buf='$$$QUIT###'
-        self.filterbox_cond.notifyAll()
-        self.filterbox_cond.release()
-
-    def searchfilter_loop(self):
-        while self.filterbox_visible:
-            # copy the last command or pattern safely
-            self.filterbox_cond.acquire()
-            try:
-                while(self.filterbox_cmd_buf == '$$$DONE###'):
-                    self.filterbox_cond.wait()
-                todo = self.filterbox_cmd_buf
-                self.filterbox_cond.release()
-            except:
-                todo = self.filterbox_cmd_buf
-                pass
-            self.current.freeze_child_notify()
-            matches = gtk.ListStore(*([int] + [str] * len(self.columnformat)))
-            matches.clear()
-            filterposition = self.current.get_visible_rect()[1]
-            model, selected = self.current_selection.get_selected_rows()
-            filterselected = []
-            for path in selected:
-                filterselected.append(path)
-            rownum = 0
-            # Store previous rownums in temporary list, in case we are
-            # about to populate the songfilter with a subset of the
-            # current filter. This will allow us to preserve the mapping.
-            prev_rownums = []
-            for song in self.filter_row_mapping:
-                prev_rownums.append(song)
-            self.filter_row_mapping = []
-            if todo == '$$$QUIT###':
-                gobject.idle_add(self.searchfilter_revert_model)
-                return
-            elif len(todo) == 0:
-                for row in self.currentdata:
-                    self.filter_row_mapping.append(rownum)
-                    rownum = rownum + 1
-                    song_info = [row[0]]
-                    for i in range(len(self.columnformat)):
-                        song_info.append(misc.unbold(row[i+1]))
-                    matches.append(song_info)
-            else:
-                # this make take some seconds... and we'll escape the search text because
-                # we'll be searching for a match in items that are also escaped.
-                todo = misc.escape_html(todo)
-                todo = re.escape(todo)
-                todo = '.*' + todo.replace(' ', ' .*').lower()
-                regexp = re.compile(todo)
-                rownum = 0
-                if self.prevtodo in todo and len(self.prevtodo) > 0:
-                    # If the user's current filter is a subset of the
-                    # previous selection (e.g. "h" -> "ha"), search
-                    # for files only in the current model, not the
-                    # entire self.currentdata
-                    subset = True
-                    use_data = self.current.get_model()
-                    if len(use_data) != len(prev_rownums):
-                        # Not exactly sure why this happens sometimes
-                        # so lets just revert to prevent a possible, but
-                        # infrequent, crash. The only downside is speed.
-                        subset = False
-                        use_data = self.currentdata
-                else:
-                    subset = False
-                    use_data = self.currentdata
-                for row in use_data:
-                    song_info = [row[0]]
-                    for i in range(len(self.columnformat)):
-                        song_info.append(misc.unbold(row[i+1]))
-                    # Search for matches in all columns:
-                    for i in range(len(self.columnformat)):
-                        if regexp.match(unicode(song_info[i+1]).lower()):
-                            matches.append(song_info)
-                            if subset:
-                                self.filter_row_mapping.append(prev_rownums[rownum])
-                            else:
-                                self.filter_row_mapping.append(rownum)
-                            break
-                    rownum = rownum + 1
-            if self.prevtodo == todo or self.prevtodo == "RETAIN_POS_AND_SEL":
-                # mpd update, retain view of treeview:
-                retain_position_and_selection = True
-                if self.plpos:
-                    filterposition = self.plpos
-                    self.plpos = None
-            else:
-                retain_position_and_selection = False
-            self.filterbox_cond.acquire()
-            self.filterbox_cmd_buf='$$$DONE###'
-            try:
-                self.filterbox_cond.release()
-            except:
-                pass
-            gobject.idle_add(self.searchfilter_set_matches, matches, filterposition, filterselected, retain_position_and_selection)
-            self.prevtodo = todo
-
-    def searchfilter_revert_model(self):
-        self.current.set_model(self.currentdata)
-        self.current_center_song_in_list()
-        self.current.thaw_child_notify()
-        gobject.idle_add(self.current_center_song_in_list)
-        gobject.idle_add(self.current.grab_focus)
-
-    def searchfilter_set_matches(self, matches, filterposition, filterselected, retain_position_and_selection):
-        self.filterbox_cond.acquire()
-        flag = self.filterbox_cmd_buf
-        self.filterbox_cond.release()
-        # blit only when widget is still ok (segfault candidate, Gtk bug?) and no other
-        # search is running, avoid pointless work and don't confuse the user
-        if (self.current.get_property('visible') and flag == '$$$DONE###'):
-            self.current.set_model(matches)
-            if retain_position_and_selection and filterposition:
-                self.playlist_retain_view(self.current, filterposition)
-                for path in filterselected:
-                    self.current_selection.select_path(path)
-            elif len(matches) > 0:
-                self.current.set_cursor('0')
-            if len(matches) == 0:
-                gobject.idle_add(self.filtering_entry_make_red, self.filterpattern)
-            else:
-                gobject.idle_add(self.filtering_entry_revert_color, self.filterpattern)
-            self.current.thaw_child_notify()
-
-    def searchfilter_key_pressed(self, widget, event):
-        self.filter_key_pressed(widget, event, self.current)
-
-    def filter_key_pressed(self, widget, event, treeview):
-        if event.keyval == gtk.gdk.keyval_from_name('Down') or event.keyval == gtk.gdk.keyval_from_name('Up') or event.keyval == gtk.gdk.keyval_from_name('Page_Down') or event.keyval == gtk.gdk.keyval_from_name('Page_Up'):
-            treeview.grab_focus()
-            treeview.emit("key-press-event", event)
-            gobject.idle_add(self.filter_entry_grab_focus, widget)
-
-    def filter_entry_grab_focus(self, widget):
-        widget.grab_focus()
-        widget.set_position(-1)
-
-    def filtering_entry_make_red(self, editable):
-        style = editable.get_style().copy()
-        style.text[gtk.STATE_NORMAL] = editable.get_colormap().alloc_color("red")
-        editable.set_style(style)
-
-    def filtering_entry_revert_color(self, editable):
-        editable.set_style(self.edit_style_orig)
 
     def main(self):
         gtk.main()
