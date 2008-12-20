@@ -169,8 +169,6 @@ class Base(object, consts.Constants, preferences.Preferences):
 
         self.imagelist = None
 
-        self.info_imagebox = None
-
         self.iterate_handler = None
         self.local_dest_filename = None
 
@@ -552,6 +550,14 @@ class Base(object, consts.Constants, preferences.Preferences):
         elif self.initial_run:
             show_prefs = True
 
+        # Realizing self.window will allow us to retrieve the theme's
+        # link-color; we can then apply to it various widgets:
+        try:
+            self.window.realize()
+            linkcolor = self.window.style_get_property("link-color").to_string()
+        except:
+            linkcolor = None
+
         # Audioscrobbler
         self.scrobbler = scrobbler.Scrobbler(self.config)
         self.scrobbler.import_module()
@@ -597,6 +603,18 @@ class Base(object, consts.Constants, preferences.Preferences):
             ('genreview', gtk.STOCK_ORIENTATION_PORTRAIT, _('Genre'), None, None, self.library.on_libraryview_chosen),
             ('albumview', 'album', _('Album'), None, None, self.library.on_libraryview_chosen),
             ]
+
+        # Info tab
+        self.info = info.Info(self.config, self.artwork.get_info_image(), linkcolor, self.on_link_click, self.library.library_return_search_items, self.get_playing_song, self.TAB_INFO, self.on_image_activate, self.on_image_motion_cb, self.on_image_drop_cb)
+
+        self.info_area, infoevbox = self.info.get_widgets()
+        self.info_imagebox = self.info.get_info_imagebox()
+
+        infoevbox.connect("button_press_event", self.on_tab_click)
+        self.notebook.append_page(self.info_area, infoevbox)
+        info_tab = self.info_area
+        if not self.info_tab_visible:
+            ui.hide(info_tab)
 
         # Streams tab
         self.streams = streams.Streams(self.config, self.window, self.on_streams_button_press, self.on_add_item, self.settings_save, self.iterate_now, self.TAB_STREAMS)
@@ -707,35 +725,8 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.notebook.set_tab_pos(gtk.POS_TOP)
         self.notebook.set_scrollable(True)
 
-        # Info tab
-        self.info_area = ui.scrollwindow()
-        infohbox = gtk.HBox()
-        infohbox.pack_start(ui.image(stock=gtk.STOCK_JUSTIFY_FILL), False, False, 2)
-        infohbox.pack_start(ui.label(text=self.TAB_INFO), False, False, 2)
-        infoevbox = ui.eventbox(add=infohbox)
-        infoevbox.show_all()
-        infoevbox.connect("button_press_event", self.on_tab_click)
-
-        # Realizing self.window will allow us to retrieve the theme's
-        # link-color; we can then apply to it various widgets:
-        try:
-            self.window.realize()
-            linkcolor = self.window.style_get_property("link-color").to_string()
-        except:
-            linkcolor = None
-        self.info = info.Info(self.config, self.artwork.get_info_image(), linkcolor, self.on_link_click, self.library.library_return_search_items, self.get_playing_song)
-        self.info.widgets_initialize(self.info_area)
-        self.info_imagebox = self.info.get_info_imagebox()
-        self.info_imagebox.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT | gtk.DEST_DEFAULT_DROP, [("text/uri-list", 0, 80), ("text/plain", 0, 80)], gtk.gdk.ACTION_DEFAULT)
-        self.info_imagebox.connect('button_press_event', self.on_image_activate)
-        self.info_imagebox.connect('drag_motion', self.on_image_motion_cb)
-        self.info_imagebox.connect('drag_data_received', self.on_image_drop_cb)
-
-        self.notebook.append_page(self.info_area, infoevbox)
-        info_tab = self.info_area
         mainvbox.pack_start(self.notebook, True, True, 5)
-        if not self.info_tab_visible:
-            ui.hide(info_tab)
+
         self.statusbar = gtk.Statusbar()
         self.statusbar.set_has_resize_grip(True)
         if not self.show_statusbar or not self.expanded:

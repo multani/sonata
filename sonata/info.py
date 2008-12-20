@@ -12,13 +12,17 @@ import mpdhelper as mpdh
 from consts import consts
 
 class Info(object):
-    def __init__(self, config, info_image, linkcolor, on_link_click_cb, library_return_search_items, get_playing_song):
+    def __init__(self, config, info_image, linkcolor, on_link_click_cb, library_return_search_items, get_playing_song, TAB_INFO, on_image_activate, on_image_motion_cb, on_image_drop_cb):
         self.config = config
         self.info_image = info_image
         self.linkcolor = linkcolor
         self.on_link_click_cb = on_link_click_cb
         self.library_return_search_items = library_return_search_items
         self.get_playing_song = get_playing_song
+        self.TAB_INFO = TAB_INFO
+        self.on_image_activate = on_image_activate
+        self.on_image_motion_cb = on_image_motion_cb
+        self.on_image_drop_cb = on_image_drop_cb
 
         try:
             self.enc = locale.getpreferredencoding()
@@ -32,7 +36,6 @@ class Info(object):
         self.info_boxes_in_more = None
         self.info_editlabel = None
         self.info_editlyricslabel = None
-        self.info_imagebox = None
         self.info_labels = None
         self.info_left_label = None
         self.info_lyrics = None
@@ -43,6 +46,29 @@ class Info(object):
 
         self.lyricsText = None
         self.albumText = None
+
+        # Info tab
+        self.info_area = ui.scrollwindow()
+
+        if self.config.info_art_enlarged:
+            self.info_imagebox = ui.eventbox()
+        else:
+            self.info_imagebox = ui.eventbox(w=152)
+
+        self.info_imagebox.add(self.info_image)
+
+        infohbox = gtk.HBox()
+        infohbox.pack_start(ui.image(stock=gtk.STOCK_JUSTIFY_FILL), False, False, 2)
+        infohbox.pack_start(ui.label(text=self.TAB_INFO), False, False, 2)
+        self.infoevbox = ui.eventbox(add=infohbox)
+        self.infoevbox.show_all()
+
+        self.info_imagebox.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT | gtk.DEST_DEFAULT_DROP, [("text/uri-list", 0, 80), ("text/plain", 0, 80)], gtk.gdk.ACTION_DEFAULT)
+        self.info_imagebox.connect('button_press_event', self.on_image_activate)
+        self.info_imagebox.connect('drag_motion', self.on_image_motion_cb)
+        self.info_imagebox.connect('drag_data_received', self.on_image_drop_cb)
+
+        self.widgets_initialize(self.info_area)
 
     def widgets_initialize(self, info_scrollwindow):
 
@@ -56,13 +82,6 @@ class Info(object):
         info_song = ui.expander(markup="<b>" + _("Song Info") + "</b>", expand=self.config.info_song_expanded, focus=False)
         info_song.connect("activate", self.info_expanded, "song")
         inner_hbox = gtk.HBox()
-
-        if self.config.info_art_enlarged:
-            self.info_imagebox = ui.eventbox()
-        else:
-            self.info_imagebox = ui.eventbox(w=152)
-
-        self.info_imagebox.add(self.info_image)
 
         inner_hbox.pack_start(self.info_imagebox, False, False, horiz_spacing)
 
@@ -167,6 +186,9 @@ class Info(object):
             self.on_link_click(moreevbox, None, 'more')
         outter_hbox.pack_start(outter_vbox, False, False, margin)
         info_scrollwindow.add_with_viewport(outter_hbox)
+
+    def get_widgets(self):
+        return self.info_area, self.infoevbox
 
     def get_info_imagebox(self):
         return self.info_imagebox
