@@ -24,7 +24,7 @@ def label(text=None, textmn=None, markup=None, x=0, y=0.5, \
     tmplabel.set_selectable(select)
     return tmplabel
 
-def expander(text=None, markup=None, expand=False, focus=True):
+def expander(text=None, markup=None, expand=False, can_focus=True):
     tmpexp = gtk.Expander()
     if text:
         tmpexp.set_label(text)
@@ -32,7 +32,7 @@ def expander(text=None, markup=None, expand=False, focus=True):
         tmpexp.set_label(markup)
         tmpexp.set_use_markup(True)
     tmpexp.set_expanded(expand)
-    tmpexp.set_property('can-focus', focus)
+    tmpexp.set_property('can-focus', can_focus)
     return tmpexp
 
 def eventbox(visible=False, add=None, w=-1, h=-1, state=None):
@@ -45,7 +45,7 @@ def eventbox(visible=False, add=None, w=-1, h=-1, state=None):
         tmpevbox.add(add)
     return tmpevbox
 
-def button(text=None, stock=None, relief=None, focus=True, \
+def button(text=None, stock=None, relief=None, can_focus=True, \
            hidetxt=False, img=None, w=-1, h=-1):
     tmpbut = gtk.Button()
     if text:
@@ -58,40 +58,41 @@ def button(text=None, stock=None, relief=None, focus=True, \
         tmpbut.set_image(img)
     if relief:
         tmpbut.set_relief(relief)
-    tmpbut.set_property('can-focus', focus)
+    tmpbut.set_property('can-focus', can_focus)
     if hidetxt:
         tmpbut.get_child().get_child().get_children()[1].set_text('')
     tmpbut.set_size_request(w, h)
     return tmpbut
 
-def combo(list=[], active=None, changed_cb=None, wrap=1):
+def combo(items=None, active=None, changed_cb=None, wrap=1):
     tmpcb = gtk.combo_box_new_text()
-    tmpcb = _combo_common(tmpcb, list, active, changed_cb, wrap)
+    tmpcb = _combo_common(tmpcb, items, active, changed_cb, wrap)
     return tmpcb
 
-def comboentry(list=[], active=None, changed_cb=None, wrap=1):
+def comboentry(items=None, active=None, changed_cb=None, wrap=1):
     tmpcbe = gtk.combo_box_entry_new_text()
-    tmpcbe = _combo_common(tmpcbe, list, active, changed_cb, wrap)
+    tmpcbe = _combo_common(tmpcbe, items, active, changed_cb, wrap)
     return tmpcbe
 
-def _combo_common(combo, list, active, changed_cb, wrap):
-    for item in list:
-        combo.append_text(item)
+def _combo_common(combobox, items, active, changed_cb, wrap):
+    if items:
+        for item in items:
+            combobox.append_text(item)
     if active is not None:
-        combo.set_active(active)
+        combobox.set_active(active)
     if changed_cb:
-        combo.connect('changed', changed_cb)
-    combo.set_wrap_width(wrap)
-    return combo
+        combobox.connect('changed', changed_cb)
+    combobox.set_wrap_width(wrap)
+    return combobox
 
 def togglebutton(text=None, underline=False, relief=False, \
-                 focus=True):
+                 can_focus=True):
     tmptbut = gtk.ToggleButton()
     if text:
         tmptbut.set_label(text)
     tmptbut.set_use_underline(underline)
     tmptbut.set_relief(relief)
-    tmptbut.set_property('can-focus', focus)
+    tmptbut.set_property('can-focus', can_focus)
     return tmptbut
 
 def image(stock=None, stocksize=gtk.ICON_SIZE_MENU, w=-1, h=-1, \
@@ -184,26 +185,26 @@ def iconview(col=None, space=None, margin=None, itemw=None, selmode=None):
 def show_msg(owner, message, title, role, buttons, default=None, response_cb=None):
     is_button_list = hasattr(buttons, '__getitem__')
     if not is_button_list:
-        dialog = gtk.MessageDialog(owner, gtk.DIALOG_MODAL|gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_WARNING, buttons, message)
+        messagedialog = gtk.MessageDialog(owner, gtk.DIALOG_MODAL|gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_WARNING, buttons, message)
     else:
-        dialog = gtk.MessageDialog(owner, gtk.DIALOG_MODAL|gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_WARNING, message_format=message)
+        messagedialog = gtk.MessageDialog(owner, gtk.DIALOG_MODAL|gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_WARNING, message_format=message)
         i = 0
         while i < len(buttons):
-            dialog.add_button(buttons[i], buttons[i+1])
+            messagedialog.add_button(buttons[i], buttons[i+1])
             i += 2
-    dialog.set_title(title)
-    dialog.set_role(role)
+    messagedialog.set_title(title)
+    messagedialog.set_role(role)
     if default is not None:
-        dialog.set_default_response(default)
+        messagedialog.set_default_response(default)
     if response_cb:
-        dialog.connect("response", response_cb)
-    response = dialog.run()
+        messagedialog.connect("response", response_cb)
+    response = messagedialog.run()
     value = response
-    dialog.destroy()
+    messagedialog.destroy()
     return value
 
-def dialog_destroy(dialog, _response_id):
-    dialog.destroy()
+def dialog_destroy(dialog_widget, _response_id):
+    dialog_widget.destroy()
 
 def show(widget):
     widget.set_no_show_all(False)
@@ -237,6 +238,6 @@ def icon(factory, icon_name, path):
     factory.add(icon_name, sonataset)
     factory.add_default()
 
-def change_cursor(type):
+def change_cursor(cursortype):
     for i in gtk.gdk.window_get_toplevels():
-        i.set_cursor(type)
+        i.set_cursor(cursortype)

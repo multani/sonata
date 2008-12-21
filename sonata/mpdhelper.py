@@ -6,29 +6,29 @@ import locale, sys
 from time import strftime
 
 def status(client):
-    status = call(client, 'status')
-    if status and 'state' in status:
-        return status
+    result = call(client, 'status')
+    if result and 'state' in result:
+        return result
     else:
         return {}
 
 def currsong(client):
     return call(client, 'currentsong')
 
-def get(dict, type, alt=''):
+def get(mapping, key, alt=''):
     # Returns either the value in the dict or, currently, the
     # first list's values. e.g. this will return 'foo' if genres
     # is ['foo' 'bar']. This should always be used to retrieve
     # values from a mpd song.
-    value = dict.get(type, alt)
+    value = mapping.get(key, alt)
     if isinstance(value, list):
         return value[0]
     else:
         return value
 
-def getnum(dict, type, alt='0', return_int=False, str_padding=0):
+def getnum(mapping, key, alt='0', return_int=False, str_padding=0):
     # Same as get(), but sanitizes the number before returning
-    tag = get(dict, type, alt)
+    tag = get(mapping, key, alt)
     return sanitize(tag, return_int, str_padding)
 
 def sanitize(tag, return_int, str_padding):

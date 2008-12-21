@@ -69,7 +69,7 @@ def strip_all_slashes(s):
 def _rmgeneric(path, __func__):
     try:
         __func__(path)
-    except OSError, (errno, strerror):
+    except OSError:
         pass
 
 def is_binary(f):
@@ -122,7 +122,7 @@ def lower_no_the(s):
     return s
 
 def first_of_2tuple(t):
-    fst, snd = t
+    fst, _snd = t
     return fst
 
 def create_dir(dirname):
@@ -140,16 +140,16 @@ def remove_dir_recursive(path):
     if not os.path.isdir(path):
         return
 
-    files=os.listdir(path)
+    files = os.listdir(path)
 
     for x in files:
-        fullpath=os.path.join(path, x)
+        fullpath = os.path.join(path, x)
         if os.path.isfile(fullpath):
-            f=os.remove
+            f = os.remove
             _rmgeneric(fullpath, f)
         elif os.path.isdir(fullpath):
             remove_dir_recursive(fullpath)
-            f=os.rmdir
+            f = os.rmdir
             _rmgeneric(fullpath, f)
 
 def file_exists_insensitive(filename):
@@ -244,15 +244,13 @@ def mpd_env_vars():
         port = int(os.environ['MPD_PORT'])
     return (host, port, password)
 
-def get_files_recursively(dir):
+def get_files_recursively(dirname):
     filenames = []
-    os.path.walk(dir, _get_files_recursively, filenames)
+    os.path.walk(dirname, _get_files_recursively, filenames)
     return filenames
 
-def _get_files_recursively(filenames, dir, files):
-    def f1(a,dir=dir): return os.path.join(dir,a)
-    files2 = map(f1, files)
-    filenames.extend(files2)
+def _get_files_recursively(filenames, dirname, files):
+    filenames.extend([os.path.join(dirname, f) for f in files])
 
 def iunique(iterable):
     seen = set()

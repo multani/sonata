@@ -67,15 +67,15 @@ except:
 
 # Test python version (note that python 2.5 returns a list of
 # strings while python 2.6 returns a tuple of ints):
-if tuple(map(int,platform.python_version_tuple())) < (2, 5, 0):
+if tuple(map(int, platform.python_version_tuple())) < (2, 5, 0):
     sys.stderr.write("Sonata requires Python 2.5 or newer. Aborting...\n")
     sys.exit(1)
 
 try:
     import dbus, dbus.service
-    if getattr(dbus, "version", (0,0,0)) >= (0,41,0):
+    if getattr(dbus, "version", (0, 0, 0)) >= (0, 41, 0):
         import dbus.glib
-    if getattr(dbus, "version", (0,0,0)) >= (0,80,0):
+    if getattr(dbus, "version", (0, 0, 0)) >= (0, 80, 0):
         import _dbus_bindings as dbus_bindings
         NEW_DBUS = True
     else:
@@ -334,7 +334,6 @@ class Base(object, consts.Constants, preferences.Preferences):
                     print _("Not a valid profile number. Profile number must be between 1 and"), str(len(self.profile_names)) + "."
             except:
                 print _("Not a valid profile number. Profile number must be between 1 and"), str(len(self.profile_names)) + "."
-                pass
 
         # Add some icons, assign pixbufs:
         self.iconfactory = gtk.IconFactory()
@@ -345,7 +344,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         if HAVE_SUGAR:
             activity_root = activity.get_bundle_path()
             icon_theme.append_search_path(os.path.join(activity_root, 'share'))
-        (img_width, img_height) = gtk.icon_size_lookup(VOLUME_ICON_SIZE)
+        img_width, _img_height = gtk.icon_size_lookup(VOLUME_ICON_SIZE)
         for iconname in ('stock_volume-mute', 'stock_volume-min', 'stock_volume-med', 'stock_volume-max'):
             try:
                 ui.icon(self.iconfactory, iconname, icon_theme.lookup_icon(iconname, img_width, gtk.ICON_LOOKUP_USE_BUILTIN).get_filename())
@@ -687,10 +686,10 @@ class Base(object, consts.Constants, preferences.Preferences):
         tophbox.pack_start(self.imageeventbox, False, False, 5)
         topvbox = gtk.VBox()
         toptophbox = gtk.HBox()
-        self.prevbutton = ui.button(stock=gtk.STOCK_MEDIA_PREVIOUS, relief=gtk.RELIEF_NONE, focus=False, hidetxt=True)
-        self.ppbutton = ui.button(stock=gtk.STOCK_MEDIA_PLAY, relief=gtk.RELIEF_NONE, focus=False, hidetxt=True)
-        self.stopbutton = ui.button(stock=gtk.STOCK_MEDIA_STOP, relief=gtk.RELIEF_NONE, focus=False, hidetxt=True)
-        self.nextbutton = ui.button(stock=gtk.STOCK_MEDIA_NEXT, relief=gtk.RELIEF_NONE, focus=False, hidetxt=True)
+        self.prevbutton = ui.button(stock=gtk.STOCK_MEDIA_PREVIOUS, relief=gtk.RELIEF_NONE, can_focus=False, hidetxt=True)
+        self.ppbutton = ui.button(stock=gtk.STOCK_MEDIA_PLAY, relief=gtk.RELIEF_NONE, can_focus=False, hidetxt=True)
+        self.stopbutton = ui.button(stock=gtk.STOCK_MEDIA_STOP, relief=gtk.RELIEF_NONE, can_focus=False, hidetxt=True)
+        self.nextbutton = ui.button(stock=gtk.STOCK_MEDIA_NEXT, relief=gtk.RELIEF_NONE, can_focus=False, hidetxt=True)
         for mediabutton in (self.prevbutton, self.ppbutton, self.stopbutton, self.nextbutton):
             toptophbox.pack_start(mediabutton, False, False, 0)
             if not self.show_playback:
@@ -706,13 +705,13 @@ class Base(object, consts.Constants, preferences.Preferences):
         toptophbox.pack_start(self.progressbox, True, True, 0)
         if not self.show_progress:
             ui.hide(self.progressbox)
-        self.volumebutton = ui.togglebutton(relief=gtk.RELIEF_NONE, focus=False)
+        self.volumebutton = ui.togglebutton(relief=gtk.RELIEF_NONE, can_focus=False)
         self.volume_set_image("stock_volume-med")
         if not self.show_playback:
             ui.hide(self.volumebutton)
         toptophbox.pack_start(self.volumebutton, False, False, 0)
         topvbox.pack_start(toptophbox, False, False, 2)
-        self.expander = ui.expander(text=_("Playlist"), expand=self.expanded, focus=False)
+        self.expander = ui.expander(text=_("Playlist"), expand=self.expanded, can_focus=False)
         expanderbox = gtk.VBox()
         self.cursonglabel1 = ui.label(y=0)
         self.cursonglabel2 = ui.label(y=0)
@@ -1013,43 +1012,43 @@ class Base(object, consts.Constants, preferences.Preferences):
         except:
             pass
 
-    def single_connect_for_passed_arg(self, type):
+    def single_connect_for_passed_arg(self, cmd):
         self.user_connect = True
         self.settings_load()
         self.mpd_connect(blocking=True, force=True)
         if self.conn:
             self.status = mpdh.status(self.client)
             self.songinfo = mpdh.currsong(self.client)
-            if type == "play":
+            if cmd == "play":
                 mpdh.call(self.client, 'play')
-            elif type == "pause":
+            elif cmd == "pause":
                 mpdh.call(self.client, 'pause', 1)
-            elif type == "stop":
+            elif cmd == "stop":
                 mpdh.call(self.client, 'stop')
-            elif type == "next":
+            elif cmd == "next":
                 mpdh.call(self.client, 'next')
-            elif type == "prev":
+            elif cmd == "prev":
                 mpdh.call(self.client, 'previous')
-            elif type == "random":
+            elif cmd == "random":
                 if self.status:
                     if self.status['random'] == '0':
                         mpdh.call(self.client, 'random', 1)
                     else:
                         mpdh.call(self.client, 'random', 0)
-            elif type == "repeat":
+            elif cmd == "repeat":
                 if self.status:
                     if self.status['repeat'] == '0':
                         mpdh.call(self.client, 'repeat', 1)
                     else:
                         mpdh.call(self.client, 'repeat', 0)
-            elif type == "pp":
+            elif cmd == "pp":
                 self.status = mpdh.status(self.client)
                 if self.status:
                     if self.status['state'] in ['play']:
                         mpdh.call(self.client, 'pause', 1)
                     elif self.status['state'] in ['pause', 'stop']:
                         mpdh.call(self.client, 'play')
-            elif type == "info":
+            elif cmd == "info":
                 if self.status and self.status['state'] in ['play', 'pause']:
                     mpdh.conout (_("Title") + ": " + mpdh.get(self.songinfo, 'title'))
                     mpdh.conout (_("Artist") + ": " + mpdh.get(self.songinfo, 'artist'))
@@ -1058,7 +1057,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                     mpdh.conout (_("Track") + ": " + mpdh.getnum(self.songinfo, 'track', '0', False, 2))
                     mpdh.conout (_("Genre") + ": " + mpdh.get(self.songinfo, 'genre'))
                     mpdh.conout (_("File") + ": " + os.path.basename(mpdh.get(self.songinfo, 'file')))
-                    at, length = [int(c) for c in self.status['time'].split(':')]
+                    at, _length = [int(c) for c in self.status['time'].split(':')]
                     at_time = misc.convert_time(at)
                     try:
                         time = misc.convert_time(int(mpdh.get(self.songinfo, 'time')))
@@ -1068,7 +1067,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                     print _("Bitrate") + ": " + self.status.get('bitrate', '')
                 else:
                     print _("MPD stopped")
-            elif type == "status":
+            elif cmd == "status":
                 if self.status:
                     try:
                         if self.status['state'] == 'play':
@@ -1096,7 +1095,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         return _("Profile") + ": " + self.profile_names[profile_num].replace("&", "")
 
     def populate_profiles_for_menu(self):
-        host, port, password = misc.mpd_env_vars()
+        host, port, _password = misc.mpd_env_vars()
         if self.merge_id:
             self.UIManager.remove_ui(self.merge_id)
         if self.actionGroupProfiles:
@@ -1138,13 +1137,13 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.UIManager.insert_action_group(self.actionGroupProfiles, 0)
         self.UIManager.get_widget('/hidden').set_property('visible', False)
 
-    def on_profiles_click(self, _radioaction, current):
+    def on_profiles_click(self, _radioaction, profile):
         if self.skip_on_profiles_click:
             return
-        if current.get_name() == 'disconnect':
+        if profile.get_name() == 'disconnect':
             self.on_disconnectkey_pressed(None)
         else:
-            self.profile_num = current.get_current_value()
+            self.profile_num = profile.get_current_value()
             self.on_connectkey_pressed(None)
 
     def mpd_connect(self, blocking=False, force=False):
@@ -1162,9 +1161,12 @@ class Base(object, consts.Constants, preferences.Preferences):
         if self.user_connect or force:
             mpdh.call(self.client, 'disconnect')
             host, port, password = misc.mpd_env_vars()
-            if not host: host = self.host[self.profile_num]
-            if not port: port = self.port[self.profile_num]
-            if not password: password = self.password[self.profile_num]
+            if not host:
+                host = self.host[self.profile_num]
+            if not port:
+                port = self.port[self.profile_num]
+            if not password:
+                password = self.password[self.profile_num]
             mpdh.call(self.client, 'connect', host, port)
             if len(password) > 0:
                 mpdh.call(self.client, 'password', password)
@@ -1194,7 +1196,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.user_connect = True
         # Update selected radio button in menu:
         self.skip_on_profiles_click = True
-        host, port, password = misc.mpd_env_vars()
+        host, port, _password = misc.mpd_env_vars()
         if host or port:
             self.actionGroupProfiles.list_actions()[0].activate()
         else:
@@ -1240,7 +1242,8 @@ class Base(object, consts.Constants, preferences.Preferences):
                     else:
                         self.xfade_enabled = True
                         self.xfade = int(self.status['xfade'])
-                        if self.xfade > 30: self.xfade = 30
+                        if self.xfade > 30:
+                            self.xfade = 30
                     self.last_repeat = self.status['repeat']
                     self.last_random = self.status['random']
                     return

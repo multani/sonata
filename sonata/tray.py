@@ -21,6 +21,7 @@ class TrayIconTips(gtk.Window):
         self.notif_handler = None
         self.use_notifications_location = False
         self.notifications_location = 0
+        self.widget = None
 
     def _calculate_pos(self, widget):
         if widget is not None:
@@ -31,7 +32,7 @@ class TrayIconTips(gtk.Window):
                     y += widget.allocation.y
                 height = widget.allocation.height
             except:
-                icon_screen, icon_rect, icon_orient = widget.get_geometry()
+                _icon_screen, icon_rect, _icon_orient = widget.get_geometry()
                 x = icon_rect[0]
                 y = icon_rect[1]
                 height = icon_rect[3]
@@ -149,5 +150,4 @@ class TrayIconTips(gtk.Window):
         self._event_handler (self.widget)
 
     def add_widget (self, widget_to_add):
-        self.widget_to_add = widget_to_add
-        self.add(self.widget_to_add)
+        self.add(widget_to_add)

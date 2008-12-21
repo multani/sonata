@@ -4,8 +4,8 @@
 
 import gtk, os, gobject
 
-def valid_image(file):
-    test = gtk.gdk.pixbuf_get_file_info(file)
+def valid_image(filename):
+    test = gtk.gdk.pixbuf_get_file_info(filename)
     if test == None:
         return False
     else:

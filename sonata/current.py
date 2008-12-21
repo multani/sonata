@@ -168,7 +168,7 @@ class Current(object):
         return
 
     def get_selected_filenames(self, return_abs_paths):
-        model, selected = self.current_selection.get_selected_rows()
+        _model, selected = self.current_selection.get_selected_rows()
         filenames = []
 
         for path in selected:
@@ -316,7 +316,8 @@ class Current(object):
             self.current.realize()
             try:
                 row = mpdh.get(self.songinfo(), 'pos', None)
-                if row is None: return
+                if row is None:
+                    return
                 visible_rect = self.current.get_visible_rect()
                 row_rect = self.current.get_background_area(row, self.columns[0])
                 top_coord = (row_rect.y + row_rect.height - int(visible_rect.height/2)) + visible_rect.y
@@ -324,8 +325,8 @@ class Current(object):
             except:
                 pass
 
-    def current_get_songid(self, iter, model):
-        return int(model.get_value(iter, 0))
+    def current_get_songid(self, i, model):
+        return int(model.get_value(i, 0))
 
     def on_current_drag_begin(self, _widget, _context):
         self.sel_rows = False
@@ -340,7 +341,7 @@ class Current(object):
             # User released mouse, select single row:
             selection = widget.get_selection()
             selection.unselect_all()
-            path, col, x, y = widget.get_path_at_pos(int(event.x), int(event.y))
+            path, _col, _x, _y = widget.get_path_at_pos(int(event.x), int(event.y))
             selection.select_path(path)
 
     def on_current_column_click(self, column):
@@ -495,7 +496,8 @@ class Current(object):
                     paths[i] = paths[i][5:]
                 if paths[i].startswith(musicdir):
                     paths[i] = paths[i][len(self.config.musicdir[self.config.profile_num]):]
-                    if len(paths[i]) == 0: paths[i] = "/"
+                    if len(paths[i]) == 0:
+                        paths[i] = "/"
                     listallinfo = mpdh.call(self.client, 'listallinfo', paths[i])
                     for item in listallinfo:
                         if 'file' in item:
@@ -529,7 +531,7 @@ class Current(object):
 
         # Otherwise, it's a DND just within the current playlist
         model = treeview.get_model()
-        foobar, selected = self.current_selection.get_selected_rows()
+        _foobar, selected = self.current_selection.get_selected_rows()
 
         # calculate all this now before we start moving stuff
         drag_sources = []
@@ -679,7 +681,7 @@ class Current(object):
 
     def searchfilter_stop_loop(self):
         self.filterbox_cond.acquire()
-        self.filterbox_cmd_buf='$$$QUIT###'
+        self.filterbox_cmd_buf = '$$$QUIT###'
         self.filterbox_cond.notifyAll()
         self.filterbox_cond.release()
 
@@ -694,12 +696,11 @@ class Current(object):
                 self.filterbox_cond.release()
             except:
                 todo = self.filterbox_cmd_buf
-                pass
             self.current.freeze_child_notify()
             matches = gtk.ListStore(*([int] + [str] * len(self.columnformat)))
             matches.clear()
             filterposition = self.current.get_visible_rect()[1]
-            model, selected = self.current_selection.get_selected_rows()
+            _model, selected = self.current_selection.get_selected_rows()
             filterselected = []
             for path in selected:
                 filterselected.append(path)
@@ -769,7 +770,7 @@ class Current(object):
             else:
                 retain_position_and_selection = False
             self.filterbox_cond.acquire()
-            self.filterbox_cmd_buf='$$$DONE###'
+            self.filterbox_cmd_buf = '$$$DONE###'
             try:
                 self.filterbox_cond.release()
             except:

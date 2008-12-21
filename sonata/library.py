@@ -97,7 +97,7 @@ class Library(object):
         self.library_selection = self.library.get_selection()
         expanderwindow2 = ui.scrollwindow(add=self.library)
         self.searchbox = gtk.HBox()
-        self.searchcombo = ui.combo(list=self.search_terms)
+        self.searchcombo = ui.combo(items=self.search_terms)
         self.searchtext = ui.entry()
         self.searchbutton = ui.button(text=_('_End Search'), img=ui.image(stock=gtk.STOCK_CLOSE), h=self.searchcombo.size_request()[1])
         self.searchbutton.set_no_show_all(True)
@@ -181,7 +181,7 @@ class Library(object):
         self.librarymenu.popup(None, None, self.library_view_position_menu, 1, 0)
 
     def library_view_position_menu(self, _menu):
-        x, y, width, height = self.libraryview.get_allocation()
+        x, y, _width, height = self.libraryview.get_allocation()
         return (self.config.x + x, self.config.y + y + height, True)
 
     def on_libraryview_chosen(self, action):
@@ -337,7 +337,7 @@ class Library(object):
                 if self.config.wd == last_wd:
                     break
 
-        for sort, path in bd:
+        for _sort, path in bd:
             self.librarydata.append(path)
 
         self.library.thaw_child_notify()
@@ -389,7 +389,7 @@ class Library(object):
         else:
             return None
         # Check if we can update any artwork:
-        for sort, path in bd:
+        for _sort, path in bd:
             pb = path[0]
             if pb == self.albumpb:
                 artist, album, path = self.library_get_data(path[1], 'artist', 'album', 'path')
@@ -414,7 +414,8 @@ class Library(object):
             else:
                 items = self.library_return_list_items('artist')
                 pb = self.artistpb
-            if not (self.NOTAG in items): items.append(self.NOTAG)
+            if not (self.NOTAG in items):
+                items.append(self.NOTAG)
             for item in items:
                 if genreview:
                     playtime, num_songs = self.library_return_count(genre=item)
@@ -438,7 +439,8 @@ class Library(object):
                     albums.append(data)
                     if album == self.NOTAG:
                         untagged_found = True
-            if not untagged_found: albums.append(self.library_set_data(album=self.NOTAG))
+            if not untagged_found:
+                albums.append(self.library_set_data(album=self.NOTAG))
             albums = misc.remove_list_duplicates(albums, case=False)
             albums = self.list_identify_VA_albums(albums)
             for item in albums:
@@ -497,7 +499,8 @@ class Library(object):
             # Artists within a genre
             artists = self.library_return_list_items('artist', genre=genre)
             if len(artists) > 0:
-                if not self.NOTAG in artists: artists.append(self.NOTAG)
+                if not self.NOTAG in artists:
+                    artists.append(self.NOTAG)
                 for artist in artists:
                     playtime, num_songs = self.library_return_count(genre=genre, artist=artist)
                     if num_songs > 0:
@@ -517,7 +520,8 @@ class Library(object):
                     years = self.library_return_list_items('date', genre=genre, artist=artist, album=album)
                 else:
                     years = self.library_return_list_items('date', artist=artist, album=album)
-                if not self.NOTAG in years: years.append(self.NOTAG)
+                if not self.NOTAG in years:
+                    years.append(self.NOTAG)
                 for year in years:
                     if genre is not None:
                         playtime, num_songs = self.library_return_count(genre=genre, artist=artist, album=album, year=year)
@@ -538,7 +542,8 @@ class Library(object):
                             display += " <span weight='light'>(" + misc.escape_html(year) + ")</span>"
                         display += self.add_display_info(num_songs, int(playtime)/60)
                         ordered_year = year
-                        if ordered_year == self.NOTAG: ordered_year = '9999'
+                        if ordered_year == self.NOTAG:
+                            ordered_year = '9999'
                         pb = self.artwork.get_library_artwork_cached_pb(cache_data, self.albumpb)
                         bd += [(ordered_year + misc.lower_no_the(album), [pb, data, display])]
             # Now, songs not in albums:
@@ -554,9 +559,9 @@ class Library(object):
     def library_populate_data_songs(self, genre, artist, album, year):
         bd = []
         if genre is not None:
-            songs, playtime, num_songs = self.library_return_search_items(genre=genre, artist=artist, album=album, year=year)
+            songs, _playtime, _num_songs = self.library_return_search_items(genre=genre, artist=artist, album=album, year=year)
         else:
-            songs, playtime, num_songs = self.library_return_search_items(artist=artist, album=album, year=year)
+            songs, _playtime, _num_songs = self.library_return_search_items(artist=artist, album=album, year=year)
         for song in songs:
             data = self.library_set_data(path=mpdh.get(song, 'file'))
             track = mpdh.getnum(song, 'track', '99', False, 2)
@@ -614,19 +619,19 @@ class Library(object):
             num_songs += int(mpdh.get(count, 'songs'))
         return (playtime, num_songs)
 
-    def library_compose_list_count_searchlist_single(self, type, typename, cached_list, searchlist):
+    def library_compose_list_count_searchlist_single(self, search, typename, cached_list, searchlist):
         s = []
-        skip_type = (typename == 'artist' and type == self.VAstr)
-        if type is not None and not skip_type:
-            if type == self.NOTAG:
-                itemlist = [type, '']
+        skip_type = (typename == 'artist' and search == self.VAstr)
+        if search is not None and not skip_type:
+            if search == self.NOTAG:
+                itemlist = [search, '']
             else:
                 itemlist = []
                 if cached_list is None:
                     cached_list = self.library_return_list_items(typename, ignore_case=False)
                     cached_list.append('') # This allows us to match untagged items
                 for item in cached_list:
-                    if item.lower() == type.lower():
+                    if item.lower() == search.lower():
                         itemlist.append(item)
             if len(itemlist) == 0:
                 # There should be no results!
@@ -644,23 +649,27 @@ class Library(object):
     def library_compose_list_count_searchlist(self, genre=None, artist=None, album=None, year=None):
         s = []
         s, self.lib_list_genres = self.library_compose_list_count_searchlist_single(genre, 'genre', self.lib_list_genres, s)
-        if s is None: return []
+        if s is None:
+            return []
         s, self.lib_list_artists = self.library_compose_list_count_searchlist_single(artist, 'artist', self.lib_list_artists, s)
-        if s is None: return []
+        if s is None:
+            return []
         s, self.lib_list_albums = self.library_compose_list_count_searchlist_single(album, 'album', self.lib_list_albums, s)
-        if s is None: return []
+        if s is None:
+            return []
         s, self.lib_list_years = self.library_compose_list_count_searchlist_single(year, 'date', self.lib_list_years, s)
-        if s is None: return []
+        if s is None:
+            return []
         return s
 
-    def library_compose_search_searchlist_single(self, type, typename, searchlist):
+    def library_compose_search_searchlist_single(self, search, typename, searchlist):
         s = []
-        skip_type = (typename == 'artist' and type == self.VAstr)
-        if type is not None and not skip_type:
-            if type == self.NOTAG:
-                itemlist = [type, '']
+        skip_type = (typename == 'artist' and search == self.VAstr)
+        if search is not None and not skip_type:
+            if search == self.NOTAG:
+                itemlist = [search, '']
             else:
-                itemlist = [type]
+                itemlist = [search]
             for item in itemlist:
                 if len(searchlist) > 0:
                     for item2 in searchlist:
@@ -772,7 +781,7 @@ class Library(object):
 
         bin_x, bin_y = widget.convert_widget_to_bin_window_coords(x, y)
 
-        path, col, x2, y2 = widget.get_path_at_pos(bin_x, bin_y)
+        path, _col, _x2, _y2 = widget.get_path_at_pos(bin_x, bin_y)
         if not path:
             widget.set_tooltip_text(None)
             return False
@@ -800,7 +809,7 @@ class Library(object):
     def on_library_row_activated(self, _widget, path, _column=0):
         if path is None:
             # Default to last item in selection:
-            model, selected = self.library_selection.get_selected_rows()
+            _model, selected = self.library_selection.get_selected_rows()
             if len(selected) >= 1:
                 path = selected[0]
             else:
@@ -868,7 +877,7 @@ class Library(object):
                         else:
                             items.append(path)
                 else:
-                    results, playtime, num_songs = self.library_return_search_items(genre=genre, artist=artist, album=album, year=year)
+                    results, _playtime, _num_songs = self.library_return_search_items(genre=genre, artist=artist, album=album, year=year)
                     results.sort(key=lambda x: (mpdh.get(x, 'genre', 'zzz').lower(), mpdh.get(x, 'artist', 'zzz').lower(), mpdh.get(x, 'album', 'zzz').lower(), mpdh.getnum(x, 'disc', '0', True, 0), mpdh.getnum(x, 'track', '0', True, 0), mpdh.get(x, 'file')))
                     for item in results:
                         items.append(mpdh.get(item, 'file'))
@@ -940,7 +949,7 @@ class Library(object):
 
     def libsearchfilter_stop_loop(self):
         self.libfilterbox_cond.acquire()
-        self.libfilterbox_cmd_buf='$$$QUIT###'
+        self.libfilterbox_cmd_buf = '$$$QUIT###'
         self.libfilterbox_cond.notifyAll()
         self.libfilterbox_cond.release()
 
@@ -955,7 +964,6 @@ class Library(object):
                 self.libfilterbox_cond.release()
             except:
                 todo = self.libfilterbox_cmd_buf
-                pass
             searchby = self.search_terms_mpd[self.config.last_search_num]
             if self.prevlibtodo != todo:
                 if todo == '$$$QUIT###':
@@ -969,7 +977,7 @@ class Library(object):
                 else:
                     gobject.idle_add(self.filtering_entry_revert_color, self.searchtext)
             self.libfilterbox_cond.acquire()
-            self.libfilterbox_cmd_buf='$$$DONE###'
+            self.libfilterbox_cmd_buf = '$$$DONE###'
             try:
                 self.libfilterbox_cond.release()
             except:

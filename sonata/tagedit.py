@@ -31,6 +31,10 @@ class TagEditor():
         self.tagpy_is_91 = None
         self.edit_style_orig = None
         self.filelabel = None
+        self.curr_mpdpath = None
+        self.tagnum = None
+        self.use_mpdpaths = None
+        self.updating_edit_entries = None
 
     def on_tags_edit(self, files, temp_mpdpaths, music_dir):
         """Display the editing dialog"""
@@ -147,7 +151,7 @@ class TagEditor():
         yearandtrackhbox.pack_start(trackentry, True, True, 2)
         yearandtrackhbox.pack_start(trackbuttonvbox, False, False, 2)
         genrelabel = ui.label(text=_("Genre") + ":", x=1)
-        genrecombo = ui.comboentry(list=self.tags_win_genres(), wrap=2)
+        genrecombo = ui.comboentry(items=self.tags_win_genres(), wrap=2)
         genreentry = genrecombo.get_child()
         genrehbox = gtk.HBox()
         genrebutton = ui.button()
@@ -344,7 +348,7 @@ class TagEditor():
             value = value.strip()
         except:
             pass
-        if field=='artist':
+        if field == 'artist':
             if not self.tagpy_is_91:
                 tag.setArtist(value)
             else:
@@ -378,7 +382,8 @@ class TagEditor():
             # For some reason, setting the comment to nothing doesn't
             # change it (unlike every other tag). So lets set it to a
             # space instead.
-            if len(value)==0: value = ' '
+            if len(value)==0:
+                value = ' '
             if not self.tagpy_is_91:
                 tag.setComment(value)
             else:

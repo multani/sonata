@@ -151,7 +151,7 @@ class Artwork(object):
         # Update self.lib_art_rows_local with new rows
         self.lib_art_cond.acquire()
         self.lib_art_rows_local = []
-        for row in range(start_row,end_row+1):
+        for row in range(start_row, end_row+1):
             i = model.get_iter((row,))
             icon = model.get_value(i, 0)
             if icon == self.albumpb:
@@ -173,15 +173,15 @@ class Artwork(object):
 
             # Try first element, giving precedence to local queue:
             if len(self.lib_art_rows_local) > 0:
-                iter, data, icon = self.lib_art_rows_local[0]
+                i, data, icon = self.lib_art_rows_local[0]
                 remote_art = False
             elif len(self.lib_art_rows_remote) > 0:
-                iter, data, icon = self.lib_art_rows_remote[0]
+                i, data, icon = self.lib_art_rows_remote[0]
                 remote_art = True
             else:
-                iter = None
+                i = None
 
-            if iter is not None and model.iter_is_valid(iter):
+            if i is not None and model.iter_is_valid(i):
 
                 artist, album, path = library_get_data(data, 'artist', 'album', 'path')
                 cache_key = library_set_data(artist=artist, album=album, path=path)
@@ -201,28 +201,28 @@ class Artwork(object):
                 # Set pixbuf icon in model; add to cache
                 if pb is not None:
                     self.cache[cache_key] = pb
-                    gobject.idle_add(self.library_set_cover, model, iter, pb)
+                    gobject.idle_add(self.library_set_cover, model, i, pb)
 
                 # Remote processed item from queue:
                 if not remote_art:
-                    if len(self.lib_art_rows_local) > 0 and (iter, data, icon) == self.lib_art_rows_local[0]:
+                    if len(self.lib_art_rows_local) > 0 and (i, data, icon) == self.lib_art_rows_local[0]:
                         self.lib_art_rows_local.pop(0)
                         if pb is None and self.config.covers_pref == consts.ART_LOCAL_REMOTE:
                             # No local art found, add to remote queue for later
-                            self.lib_art_rows_remote.append((iter, data, icon))
+                            self.lib_art_rows_remote.append((i, data, icon))
                 else:
-                    if len(self.lib_art_rows_remote) > 0 and (iter, data, icon) == self.lib_art_rows_remote[0]:
+                    if len(self.lib_art_rows_remote) > 0 and (i, data, icon) == self.lib_art_rows_remote[0]:
                         self.lib_art_rows_remote.pop(0)
                         if pb is None:
                             # No remote art found, store self.albumpb in cache
                             self.cache[cache_key] = self.albumpb
 
-    def library_set_cover(self, model, iter, pb):
-        if model.iter_is_valid(iter):
-            model.set_value(iter, 0, pb)
+    def library_set_cover(self, model, i, pb):
+        if model.iter_is_valid(i):
+            model.set_value(i, 0, pb)
 
-    def library_get_album_cover(self, dir, artist, album, pb_size):
-        tmp, coverfile = self.artwork_get_local_image(dir, artist, album)
+    def library_get_album_cover(self, dirname, artist, album, pb_size):
+        _tmp, coverfile = self.artwork_get_local_image(dirname, artist, album)
         if coverfile:
             try:
                 coverfile = gtk.gdk.pixbuf_new_from_file_at_size(coverfile, pb_size, pb_size)

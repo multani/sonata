@@ -79,7 +79,7 @@ class Info(object):
         outter_vbox = gtk.VBox()
 
         # Song info
-        info_song = ui.expander(markup="<b>" + _("Song Info") + "</b>", expand=self.config.info_song_expanded, focus=False)
+        info_song = ui.expander(markup="<b>" + _("Song Info") + "</b>", expand=self.config.info_song_expanded, can_focus=False)
         info_song.connect("activate", self.info_expanded, "song")
         inner_hbox = gtk.HBox()
 
@@ -141,7 +141,7 @@ class Info(object):
         outter_vbox.pack_start(info_song, False, False, margin)
 
         # Lyrics
-        self.info_lyrics = ui.expander(markup="<b>" + _("Lyrics") + "</b>", expand=self.config.info_lyrics_expanded, focus=False)
+        self.info_lyrics = ui.expander(markup="<b>" + _("Lyrics") + "</b>", expand=self.config.info_lyrics_expanded, can_focus=False)
         self.info_lyrics.connect("activate", self.info_expanded, "lyrics")
         lyricsbox = gtk.VBox()
         lyricsbox_top = gtk.HBox()
@@ -162,7 +162,7 @@ class Info(object):
         outter_vbox.pack_start(self.info_lyrics, False, False, margin)
 
         # Album info
-        info_album = ui.expander(markup="<b>" + _("Album Info") + "</b>", expand=self.config.info_album_expanded, focus=False)
+        info_album = ui.expander(markup="<b>" + _("Album Info") + "</b>", expand=self.config.info_album_expanded, can_focus=False)
         info_album.connect("activate", self.info_expanded, "album")
         albumbox = gtk.VBox()
         albumbox_top = gtk.HBox()
@@ -199,10 +199,10 @@ class Info(object):
         else:
             ui.hide(self.info_lyrics)
 
-    def info_apply_link_signals(self, widget, type, tooltip):
+    def info_apply_link_signals(self, widget, linktype, tooltip):
         widget.connect("enter-notify-event", self.on_link_enter)
         widget.connect("leave-notify-event", self.on_link_leave)
-        widget.connect("button-press-event", self.on_link_click, type)
+        widget.connect("button-press-event", self.on_link_click, linktype)
         widget.set_tooltip_text(tooltip)
 
     def on_link_enter(self, widget, _event):
@@ -212,8 +212,8 @@ class Info(object):
     def on_link_leave(self, _widget, _event):
         ui.change_cursor(None)
 
-    def on_link_click(self, _widget, _event, type):
-        if type == 'more':
+    def on_link_click(self, _widget, _event, linktype):
+        if linktype == 'more':
             previous_is_more = (self.info_morelabel.get_text() == "(" + _("more") + ")")
             if previous_is_more:
                 self.info_morelabel.set_markup(misc.link_markup(_("hide"), True, True, self.linkcolor))
@@ -228,15 +228,15 @@ class Info(object):
                 for hbox in self.info_boxes_in_more:
                     ui.hide(hbox)
         else:
-            self.on_link_click_cb(type)
+            self.on_link_click_cb(linktype)
 
-    def info_expanded(self, expander, type):
+    def info_expanded(self, expander, infotype):
         expanded = not expander.get_expanded()
-        if type == "song":
+        if infotype == "song":
             self.config.info_song_expanded = expanded
-        elif type == "lyrics":
+        elif infotype == "lyrics":
             self.config.info_lyrics_expanded = expanded
-        elif type == "album":
+        elif infotype == "album":
             self.config.info_album_expanded = expanded
 
     def info_update(self, playing_or_paused, newbitrate, songinfo, album_current_artist, update_all, blank_window=False, skip_lyrics=False):
@@ -293,7 +293,7 @@ class Info(object):
                     artist = mpdh.get(songinfo, 'artist', None)
                     year = mpdh.get(songinfo, 'date', None)
                     albuminfo = album + "\n"
-                    tracks, playtime, num_songs = self.library_return_search_items(album=album, artist=artist, year=year)
+                    tracks, playtime, _num_songs = self.library_return_search_items(album=album, artist=artist, year=year)
                     if len(tracks) > 0:
                         for track in tracks:
                             if 'title' in track:
@@ -301,8 +301,10 @@ class Info(object):
                             else:
                                 trackinfo = trackinfo + mpdh.getnum(track, 'track', '0', False, 2) + '. ' + mpdh.get(track, 'file').split('/')[-1] + '\n'
                         artist = album_current_artist[1]
-                        if artist is not None: albuminfo += artist + "\n"
-                        if year is not None: albuminfo += year + "\n"
+                        if artist is not None:
+                            albuminfo += artist + "\n"
+                        if year is not None:
+                            albuminfo += year + "\n"
                         albuminfo += misc.convert_time(playtime) + "\n"
                         albuminfo += "\n" + trackinfo
                     else:

@@ -10,7 +10,7 @@ prefs = preferences.Preferences()
 prefs.on_prefs_real(self.window, ...a huge list of callbacks..., self.prefs_window_response)
 """
 
-import gettext, os, hashlib
+import gettext, hashlib
 
 import gtk
 
@@ -51,6 +51,8 @@ class Preferences(Config):
         self.prev_host = None
         self.prev_password = None
         self.prev_port = None
+
+        # XXX when Base doesn't inherit from us anymore: self.window = None
 
     def on_prefs_real(self, parent_window, popuptimes, as_imported, as_import, as_init, as_reauth, trayicon_available, trayicon_in_use, reconnect, renotify, reinfofile, prefs_notif_toggled, prefs_stylized_toggled, prefs_art_toggled, prefs_playback_toggled, prefs_progress_toggled, prefs_statusbar_toggled, prefs_lyrics_toggled, prefs_trayicon_toggled, prefs_window_response):
         """Display the preferences dialog"""
@@ -113,9 +115,12 @@ class Preferences(Config):
         host, port, password = misc.mpd_env_vars()
         if host or port:
             using_mpd_env_vars = True
-            if not host: host = ""
-            if not port: port = ""
-            if not password: password = ""
+            if not host:
+                host = ""
+            if not port:
+                port = ""
+            if not password:
+                password = ""
             hostentry.set_text(str(host))
             portentry.set_text(str(port))
             passwordentry.set_text(str(password))
@@ -191,9 +196,9 @@ class Preferences(Config):
                 time_names.append(i + ' ' + gettext.ngettext('second', 'seconds', int(i)))
             else:
                 time_names.append(i)
-        notification_options = ui.combo(list=time_names, active=self.popup_option, changed_cb=self.prefs_notiftime_changed)
+        notification_options = ui.combo(items=time_names, active=self.popup_option, changed_cb=self.prefs_notiftime_changed)
 
-        notification_locs = ui.combo(list=self.popuplocations, active=self.traytips_notifications_location, changed_cb=self.prefs_notiflocation_changed)
+        notification_locs = ui.combo(items=self.popuplocations, active=self.traytips_notifications_location, changed_cb=self.prefs_notiflocation_changed)
         display_notification.connect('toggled', prefs_notif_toggled, notifhbox)
         notifhbox.pack_start(notification_options, False, False, 2)
         notifhbox.pack_start(notification_locs, False, False, 2)
@@ -205,8 +210,8 @@ class Preferences(Config):
         crossfadespin.set_range(1, 30)
         crossfadespin.set_value(self.xfade)
         crossfadespin.set_numeric(True)
-        crossfadespin.set_increments(1,5)
-        crossfadespin.set_size_request(70,-1)
+        crossfadespin.set_increments(1, 5)
+        crossfadespin.set_size_request(70, -1)
         crossfadelabel2 = ui.label(text=_("Fade length") + ":", x=1)
         crossfadelabel3 = ui.label(text=_("sec"))
         if not self.xfade_enabled:
@@ -249,12 +254,12 @@ class Preferences(Config):
         display_art_hbox = gtk.HBox()
         display_art = gtk.CheckButton(_("Enable album art"))
         display_art.set_active(self.show_covers)
-        display_stylized_combo = ui.combo(list=[_("Standard"), _("Stylized")], active=self.covers_type, changed_cb=prefs_stylized_toggled)
+        display_stylized_combo = ui.combo(items=[_("Standard"), _("Stylized")], active=self.covers_type, changed_cb=prefs_stylized_toggled)
         display_stylized_hbox = gtk.HBox()
         display_stylized_hbox.pack_start(ui.label(text=_("Artwork style:"), x=1))
         display_stylized_hbox.pack_start(display_stylized_combo, False, False, 5)
         display_stylized_hbox.set_sensitive(self.show_covers)
-        display_art_combo = ui.combo(list=[_("Local only"), _("Local and remote")], active=self.covers_pref)
+        display_art_combo = ui.combo(items=[_("Local only"), _("Local and remote")], active=self.covers_pref)
         orderart_label = ui.label(text=_("Search locations:"), x=1)
         display_art_hbox.pack_start(orderart_label)
         display_art_hbox.pack_start(display_art_combo, False, False, 5)
@@ -265,7 +270,7 @@ class Preferences(Config):
         art_paths = ["~/.covers/"]
         for item in ["/cover.jpg", "/album.jpg", "/folder.jpg", "/" + _("custom")]:
             art_paths.append("../" + _("file_path") + item)
-        display_art_location = ui.combo(list=art_paths, active=self.art_location, changed_cb=self.prefs_art_location_changed)
+        display_art_location = ui.combo(items=art_paths, active=self.art_location, changed_cb=self.prefs_art_location_changed)
 
         display_art_location_hbox.pack_start(display_art_location, False, False, 5)
         display_art_location_hbox.set_sensitive(self.show_covers)
@@ -284,7 +289,7 @@ class Preferences(Config):
         display_lyrics_location_hbox = gtk.HBox()
         savelyrics_label = ui.label(text=_("Save lyrics to:"), x=1)
         display_lyrics_location_hbox.pack_start(savelyrics_label)
-        display_lyrics_location = ui.combo(list=["~/.lyrics/", "../" + _("file_path") + "/"], active=self.lyrics_location, changed_cb=self.prefs_lyrics_location_changed)
+        display_lyrics_location = ui.combo(items=["~/.lyrics/", "../" + _("file_path") + "/"], active=self.lyrics_location, changed_cb=self.prefs_lyrics_location_changed)
         display_lyrics_location_hbox.pack_start(display_lyrics_location, False, False, 5)
         display_lyrics_location_hbox.set_sensitive(self.show_lyrics)
         display_lyrics.connect('toggled', prefs_lyrics_toggled, display_lyrics_location_hbox)

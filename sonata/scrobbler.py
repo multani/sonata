@@ -196,7 +196,7 @@ class Scrobbler(object):
         self.scrob_start_time = ""
 
     def do_post(self):
-        for _i in range(0,3):
+        for _i in range(0, 3):
             if not self.scrob_post:
                 return
             if len(self.scrob_post.cache) == 0:
@@ -205,7 +205,6 @@ class Scrobbler(object):
                 self.scrob_post.post()
             except audioscrobbler.AudioScrobblerConnectionError, e:
                 print e
-                pass
             time.sleep(10)
 
     def save_cache(self):
