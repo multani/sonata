@@ -464,11 +464,11 @@ class TagEditor():
         entry_chars.insert(position, new_text)
         proposed_text = "".join(entry_chars)
         try:
-            # XXX why float instead of int:
-            val = float(proposed_text)
-            # XXX check for negative numbers, leading zeros...:
+            val = int(proposed_text)
+            # XXX check for leading zeros...:
             if (isyearlabel and val <= 9999) or not isyearlabel:
-                return # accept
+                if val > 0:
+                    return # accept
         except ValueError:
             pass
         # deny:

@@ -838,11 +838,10 @@ class Library(object):
         return value
 
     def library_browse_parent(self, _action):
-        # FIXME: is this needed: if self.current_tab == self.TAB_LIBRARY:
-            if not self.search_visible():
-                if self.library.is_focus():
-                    value = self.library_get_parent()
-                    self.library_browse(None, value)
+        if not self.search_visible():
+            if self.library.is_focus():
+                value = self.library_get_parent()
+                self.library_browse(None, value)
 
     def get_path_child_filenames(self, return_root):
         # If return_root=True, return main directories whenever possible
@@ -928,8 +927,7 @@ class Library(object):
         # Lets only trigger the searchfilter_loop if 200ms pass without a change
         # in gtk.Entry
         try:
-            # FIXME is this useless as the function is misspelled?
-            gobject.remove_source(self.libfilterbox_source)
+            gobject.source_remove(self.libfilterbox_source)
         except:
             pass
         self.libfilterbox_source = gobject.timeout_add(300, self.libsearchfilter_start_loop, editable)

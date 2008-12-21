@@ -2696,7 +2696,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             gobject.idle_add(self.image_remote_no_tag_found, imagewidget)
             return
         filename = os.path.expanduser("~/.covers/temp/<imagenum>.jpg")
-        misc.remove_dir(os.path.dirname(filename))
+        misc.remove_dir_recursive(os.path.dirname(filename))
         misc.create_dir(os.path.dirname(filename))
         imgfound = self.artwork.artwork_download_img_to_file(artist_search, album_search, filename, True)
         ui.change_cursor(None)
@@ -2745,7 +2745,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                 # And finally, set the image in the interface:
                 self.artwork.artwork_update(True)
                 # Clean up..
-                misc.remove_dir(os.path.dirname(filename))
+                misc.remove_dir_recursive(os.path.dirname(filename))
         self.chooseimage_visible = False
         self.choose_dialog.destroy()
         while self.artwork.artwork_is_downloading_image():

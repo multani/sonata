@@ -8,18 +8,13 @@ class TrayIconTips(gtk.Window):
     """Custom tooltips derived from gtk.Window() that allow for markup text and multiple widgets, e.g. a progress bar. ;)"""
     MARGIN = 4
 
-    def __init__(self, widget=None):
+    def __init__(self):
         gtk.Window.__init__(self, gtk.WINDOW_POPUP)
         # from gtktooltips.c:gtk_tooltips_force_window
         self.set_app_paintable(True)
         self.set_resizable(False)
         self.set_name("gtk-tooltips")
         self.connect('expose-event', self._on__expose_event)
-
-        # FIXME nonsensical, unused:
-        if widget != None:
-            self._label = ui.label()
-            self.add(self._label)
 
         self._show_timeout_id = -1
         self.timer_tag = None
@@ -133,9 +128,6 @@ class TrayIconTips(gtk.Window):
         self.show()
 
     # Public API
-
-    def set_text(self, text):
-        self._label.set_text(text)
 
     def hide(self):
         gtk.Window.hide(self)

@@ -136,7 +136,7 @@ def remove_file(filename):
         except:
             pass
 
-def remove_dir(path):
+def remove_dir_recursive(path):
     if not os.path.isdir(path):
         return
 
@@ -148,7 +148,7 @@ def remove_dir(path):
             f=os.remove
             _rmgeneric(fullpath, f)
         elif os.path.isdir(fullpath):
-            removeall(fullpath) # FIXME no such function defined
+            remove_dir_recursive(fullpath)
             f=os.rmdir
             _rmgeneric(fullpath, f)
 

@@ -353,10 +353,10 @@ class Current(object):
                 return
 
     def on_sort_by_artist(self, _action):
-        self.sort('artist', lower=misc.lower_no_the)
+        self.sort('artist')
 
     def on_sort_by_album(self, _action):
-        self.sort('album', lower=misc.lower_no_the)
+        self.sort('album')
 
     def on_sort_by_title(self, _action):
         self.sort('title')
@@ -367,8 +367,7 @@ class Current(object):
     def on_sort_by_dirfile(self, _action):
         self.sort('dirfile')
 
-    # XXX should we actually be using _lower?
-    def sort(self, mode, column=None, _lower=lambda x: x.lower()):
+    def sort(self, mode, column=None):
         if self.connected():
             if not self.currentdata:
                 return
@@ -667,8 +666,7 @@ class Current(object):
         # Lets only trigger the searchfilter_loop if 200ms pass without a change
         # in gtk.Entry
         try:
-            # FIXME is this useless as the function is misspelled?
-            gobject.remove_source(self.filterbox_source)
+            gobject.source_remove(self.filterbox_source)
         except:
             pass
         self.filterbox_source = gobject.timeout_add(200, self.searchfilter_start_loop, editable)
