@@ -13,7 +13,7 @@ self.scrobbler.iterate()
 self.scrobbler.handle_change_status(False, self.prevsonginfo)
 """
 
-import os, time
+import os, time, sys
 import threading # init, np, post start threads init_thread, do_np, do_post
 
 audioscrobbler = None # imported when first needed
@@ -155,12 +155,15 @@ class Scrobbler(object):
                     tracknumber = u''
                 else:
                     tracknumber = mpdh.get(songinfo, 'track')
-                self.scrob_post.nowplaying(mpdh.get(songinfo, 'artist'),
-                                            mpdh.get(songinfo, 'title'),
-                                            mpdh.get(songinfo, 'time'),
-                                            tracknumber,
-                                            album,
-                                            self.scrob_start_time)
+                try:
+                    self.scrob_post.nowplaying(mpdh.get(songinfo, 'artist'),
+                                                mpdh.get(songinfo, 'title'),
+                                                mpdh.get(songinfo, 'time'),
+                                                tracknumber,
+                                                album,
+                                                self.scrob_start_time)
+                except:
+                    print sys.exc_info()[1]
         time.sleep(10)
 
     def post(self, prevsonginfo):
@@ -177,12 +180,15 @@ class Scrobbler(object):
                     tracknumber = u''
                 else:
                     tracknumber = mpdh.get(prevsonginfo, 'track')
-                self.scrob_post.addtrack(mpdh.get(prevsonginfo, 'artist'),
+                try:
+                    self.scrob_post.addtrack(mpdh.get(prevsonginfo, 'artist'),
                                                 mpdh.get(prevsonginfo, 'title'),
                                                 mpdh.get(prevsonginfo, 'time'),
                                                 self.scrob_start_time,
                                                 tracknumber,
                                                 album)
+                except:
+                    print sys.exc_info()[1]
 
                 thread = threading.Thread(target=self.do_post)
                 thread.setDaemon(True)
