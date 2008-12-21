@@ -137,7 +137,7 @@ class Current(object):
             if len(self.columnformat) > 1:
                 column.set_resizable(True)
                 try:
-                    column.set_fixed_width(max(self.columnwidths[i], 10))
+                    column.set_fixed_width(max(self.config.columnwidths[i], 10))
                 except:
                     column.set_fixed_width(150)
             column.connect('clicked', self.on_current_column_click)
