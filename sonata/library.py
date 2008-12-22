@@ -389,14 +389,14 @@ class Library(object):
         else:
             return None
         # Check if we can update any artwork:
-        for _sort, path in bd:
-            pb = path[0]
+        for _sort, info in bd:
+            pb = info[0]
             if pb == self.albumpb:
-                artist, album, path = self.library_get_data(path[1], 'artist', 'album', 'path')
+                artist, album, path = self.library_get_data(info[1], 'artist', 'album', 'path')
                 key = self.library_set_data(path=path, artist=artist, album=album)
                 pb2 = self.artwork.get_library_artwork_cached_pb(key, None)
                 if pb2 is not None:
-                    path[0] = pb2
+                    info[0] = pb2
         return bd
 
     def library_populate_toplevel_data(self, genreview=False, artistview=False, albumview=False):
