@@ -1950,7 +1950,6 @@ class Base(object, consts.Constants, preferences.Preferences):
             newtime = _('Not Connected')
         if not self.last_progress_text or self.last_progress_text != newtime:
             self.progressbar.set_text(newtime)
-        return
 
     def update_statusbar(self, updatingdb=False):
         if self.show_statusbar:
@@ -2279,7 +2278,6 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.window.set_geometry_hints(self.window)
         # Put focus to the notebook:
         self.on_notebook_page_change(self.notebook, 0, self.notebook.get_current_page())
-        return
 
     # This callback allows the user to seek to a specific portion of the song
     def on_progressbar_press(self, _widget, event):
@@ -2967,7 +2965,6 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.volumewindow.present()
         else:
             self.volume_hide()
-        return
 
     def on_volumebutton_scroll(self, _widget, event):
         if self.conn:
@@ -2975,7 +2972,6 @@ class Base(object, consts.Constants, preferences.Preferences):
                 self.on_volume_raise(None)
             elif event.direction == gtk.gdk.SCROLL_DOWN:
                 self.on_volume_lower(None)
-        return
 
     def on_volumescale_scroll(self, _widget, event):
         if event.direction == gtk.gdk.SCROLL_UP:
@@ -2988,13 +2984,11 @@ class Base(object, consts.Constants, preferences.Preferences):
             if new_volume < 0:
                 new_volume = 0
             self.volumescale.get_adjustment().set_value(new_volume)
-        return
 
     def on_volumescale_change(self, obj, _value, _data):
         new_volume = int(obj.get_adjustment().get_value())
         mpdh.call(self.client, 'setvol', new_volume)
         self.iterate_now()
-        return
 
     def volume_hide(self):
         self.volumebutton.set_active(False)
@@ -3008,25 +3002,21 @@ class Base(object, consts.Constants, preferences.Preferences):
             elif self.status['state'] == 'play':
                 mpdh.call(self.client, 'pause', '1')
             self.iterate_now()
-        return
 
     def mpd_stop(self, _widget, _key=None):
         if self.conn:
             mpdh.call(self.client, 'stop')
             self.iterate_now()
-        return
 
     def mpd_prev(self, _widget, _key=None):
         if self.conn:
             mpdh.call(self.client, 'previous')
             self.iterate_now()
-        return
 
     def mpd_next(self, _widget, _key=None):
         if self.conn:
             mpdh.call(self.client, 'next')
             self.iterate_now()
-        return
 
     def mpd_update(self, path='/'):
         if self.conn:
@@ -3288,7 +3278,6 @@ class Base(object, consts.Constants, preferences.Preferences):
     def seek(self, song, seektime):
         mpdh.call(self.client, 'seek', song, seektime)
         self.iterate_now()
-        return
 
     def on_link_click(self, type):
         if type == 'artist':
