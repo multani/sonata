@@ -60,7 +60,7 @@ class About(object):
                  [ "Alt-Up", _("Collapse player") ],
                  [ "Ctrl-H", _("Search library") ],
                  [ "Ctrl-Q", _("Quit") ],
-                 [ "Ctrl-U", _("Update entire library") ],
+                 [ "Ctrl-Shift-U", _("Update entire library") ],
                  [ "Menu", _("Display popup menu") ],
                  [ "Escape", _("Minimize to system tray (if enabled)") ]]
         playbackshortcuts = \
@@ -86,7 +86,7 @@ class About(object):
                  [ "Ctrl-T", _("Edit selected song's tags") ],
                  [ "Ctrl-Shift-D", _("Add selected item(s) and play") ],
                  [ "Ctrl-Shift-R", _("Replace with selected item(s) and play") ],
-                 [ "Ctrl-Shift-U", _("Update library for selected item(s)") ]]
+                 [ "Ctrl-U", _("Update selected item(s)/path(s)") ]]
         playlistshortcuts = \
                 [[ "Enter/Space", _("Add selected playlist(s)") ],
                  [ "Delete", _("Remove selected playlist(s)") ],

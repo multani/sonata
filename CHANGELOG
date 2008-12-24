@@ -3,6 +3,7 @@ v1.6
 	+ Real-time searching of library (search as you type)
 	+ Fullscreen artwork covers mode (via right-click on artwork) (mips)
 	+ Show file path in tooltip for library search results
+	+ Default to updating selected path(s) in library, not entire library
 	+ DND to copy files from Sonata to a file manager (Kamil)
 	+ Ability to show path in tag editing window
 	+ Use plchanges for faster performance of some actions (e.g. add to playlist)
@@ -12,6 +13,7 @@ v1.6
 	+ Make process name 'sonata' for linux (himdel)
 	+ Bug: Bad profiles prevent sonata from starting
 	+ Bug: Error for cli arguments when sonata can't connect to MPD (Juan)
+	+ Bug: Files may not update in interface after tag editing
 
 v1.5.3
 	+ Quick link to edit lyrics through LyricWiki

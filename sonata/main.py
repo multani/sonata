@@ -312,6 +312,8 @@ class Base(object, consts.Constants, preferences.Preferences):
 
         self.img_clicked = False
 
+        self.mpd_update_queued = False
+
         self.all_tab_names = [self.TAB_CURRENT, self.TAB_LIBRARY, self.TAB_PLAYLISTS, self.TAB_STREAMS, self.TAB_INFO]
 
         # FIXME Don't subclass
@@ -393,7 +395,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             ('quitmenu', gtk.STOCK_QUIT, _('_Quit'), None, None, self.on_delete_event_yes),
             ('removemenu', gtk.STOCK_REMOVE, _('_Remove'), None, None, self.on_remove),
             ('clearmenu', gtk.STOCK_CLEAR, _('_Clear'), '<Ctrl>Delete', None, self.mpd_clear),
-            ('updatemenu', None, _('_Update Library'), None, None, self.on_updatedb),
+            ('updatemenu', None, _('_Update Path'), None, None, self.on_updatedb_path),
             ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'), 'F5', None, self.on_prefs),
             ('aboutmenu', None, _('_About...'), 'F1', None, self.on_about),
             ('tagmenu', None, _('_Edit Tags...'), '<Ctrl>t', None, self.on_tags_edit),
@@ -421,8 +423,8 @@ class Base(object, consts.Constants, preferences.Preferences):
             ('raisekey2', None, 'Raise Volume Key 2', '<Ctrl>equal', None, self.on_volume_raise),
             ('quitkey', None, 'Quit Key', '<Ctrl>q', None, self.on_delete_event_yes),
             ('quitkey2', None, 'Quit Key 2', '<Ctrl>w', None, self.on_delete_event_yes),
-            ('updatekey', None, 'Update Key', '<Ctrl>u', None, self.on_updatedb),
-            ('updatekey2', None, 'Update Key 2', '<Ctrl><Shift>u', None, self.on_updatedb_path),
+            ('updatekey', None, 'Update Key', '<Ctrl>u', None, self.on_updatedb_path),
+            ('updatekey2', None, 'Update Key 2', '<Ctrl><Shift>u', None, self.on_updatedb),
             ('connectkey', None, 'Connect Key', '<Alt>c', None, self.on_connectkey_pressed),
             ('disconnectkey', None, 'Disconnect Key', '<Alt>d', None, self.on_disconnectkey_pressed),
             ('searchkey', None, 'Search Key', '<Ctrl>h', None, self.on_library_search_shortcut),
@@ -1861,17 +1863,12 @@ class Base(object, consts.Constants, preferences.Preferences):
                 self.update_statusbar(True)
             elif self.prevstatus == None or self.prevstatus.get('updating_db', 0) != self.status.get('updating_db', 0):
                 if not (self.status and self.status.get('updating_db', 0)):
-                    # Update over:
-                    self.library.view_caches_reset()
-                    self.update_statusbar(False)
-                    # We need to make sure that we update the artist in case tags have changed:
-                    self.album_reset_artist()
-                    self.album_get_artist()
-                    # Now update the library and playlist tabs
-                    self.library.library_browse(root=self.wd)
-                    self.playlists.populate()
-                    # Update infow if it's visible:
-                    self.info_update(True)
+                    self.mpd_updated_db()
+            elif self.mpd_update_queued:
+                # If the update happens too quickly, we won't catch it in
+                # our polling. So let's force an update of the interface:
+                self.mpd_updated_db()
+        self.mpd_update_queued = False
 
         if self.as_enabled:
             playing = self.status and self.status['state'] == 'play'
@@ -1884,6 +1881,19 @@ class Base(object, consts.Constants, preferences.Preferences):
                 self.scrobbler.handle_change_status(True, self.prevsonginfo, self.songinfo, switched_from_stop_to_play, mpd_time_now)
             elif stopped:
                 self.scrobbler.handle_change_status(False, self.prevsonginfo)
+
+    def mpd_updated_db(self):
+        self.library.view_caches_reset()
+        self.update_statusbar(False)
+        # We need to make sure that we update the artist in case tags have changed:
+        self.album_reset_artist()
+        self.album_get_artist()
+        # Now update the library and playlist tabs
+        self.library.library_browse(root=self.wd)
+        self.playlists.populate()
+        # Update info if it's visible:
+        self.info_update(True)
+        return False
 
     def album_get_artist(self):
         if self.songinfo and 'album' in self.songinfo:
@@ -2368,25 +2378,21 @@ class Base(object, consts.Constants, preferences.Preferences):
             if self.library.search_visible():
                 self.library.on_search_end(None)
             self.mpd_update('/')
-            self.iterate_now()
+            self.mpd_update_queued = true
 
     def on_updatedb_path(self, _action):
         if self.conn:
             if self.current_tab == self.TAB_LIBRARY:
                 if self.library.search_visible():
                     self.library.on_search_end(None)
-                model, selected = self.library_selection.get_selected_rows()
-                iters = [model.get_iter(path) for path in selected]
-                if len(iters) > 0:
-                    # If there are selected rows, update these paths..
+                filenames = self.library.get_path_child_filenames(True)
+                if len(filenames) > 0:
+                    print filenames
                     mpdh.call(self.client, 'command_list_ok_begin')
-                    for i in iters:
-                        self.mpd_update(self.librarydata.get_value(i, 1))
+                    for filename in filenames:
+                        self.mpd_update(filename)
                     mpdh.call(self.client, 'command_list_end')
-                else:
-                    # If no selection, update the current path...
-                    self.mpd_update(self.wd)
-                self.iterate_now()
+                    self.mpd_update_queued = True
 
     def on_image_activate(self, widget, event):
         self.window.handler_block(self.mainwinhandler)
@@ -3433,19 +3439,15 @@ class Base(object, consts.Constants, preferences.Preferences):
                          'update', 'new', 'edit']:
                 self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
         elif self.current_tab == self.TAB_LIBRARY:
-            if self.conn:
-                self.UIManager.get_widget('/mainmenu/updatemenu/').show()
-            else:
-                self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
             if len(self.librarydata) > 0:
                 if self.library_selection.count_selected_rows() > 0:
-                    for menu in ['add', 'replace', 'playafter', 'tag']:
+                    for menu in ['add', 'replace', 'playafter', 'tag', 'update']:
                         self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').show()
                 else:
-                    for menu in ['add', 'replace', 'playafter', 'tag']:
+                    for menu in ['add', 'replace', 'playafter', 'tag', 'update']:
                         self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
             else:
-                for menu in ['add', 'replace', 'playafter', 'tag']:
+                for menu in ['add', 'replace', 'playafter', 'tag', 'update']:
                     self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
             for menu in ['remove', 'clear', 'pl', 'rename', 'rm', 'new', 'edit', 'sort']:
                 self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
@@ -3546,7 +3548,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             for i in range(tagnum):
                 mpdh.call(self.client, 'update', tags[i]['mpdpath'])
             mpdh.call(self.client, 'command_list_end')
-            self.iterate_now()
+            self.mpd_update_queued = True
 
     def on_about(self, _action):
         about_dialog = about.About(self.window, self.config, __version__, __license__, self.find_path('sonata_large.png'))
