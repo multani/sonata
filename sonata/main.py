@@ -375,7 +375,7 @@ class Base(object, consts.Constants, preferences.Preferences):
 
         # Artwork
 
-        self.artwork = artwork.Artwork(self.config, self.find_path, misc.is_lang_rtl(self.window), lambda:self.info_imagebox.get_size_request(), self.schedule_gc_collect, self.target_image_filename, self.imagelist_append, self.remotefilelist_append, self.notebook.get_allocation, self.set_allow_art_search, self.status_is_play_or_pause)
+        self.artwork = artwork.Artwork(self.config, self.find_path, misc.is_lang_rtl(self.window), lambda:self.info_imagebox.get_size_request(), self.schedule_gc_collect, self.target_image_filename, self.imagelist_append, self.remotefilelist_append, self.notebook.get_allocation, self.set_allow_art_search, self.status_is_play_or_pause, self.find_path('sonata-album.png'))
 
         # Popup menus:
         actions = (
@@ -2378,7 +2378,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             if self.library.search_visible():
                 self.library.on_search_end(None)
             self.mpd_update('/')
-            self.mpd_update_queued = true
+            self.mpd_update_queued = True
 
     def on_updatedb_path(self, _action):
         if self.conn:
@@ -2387,7 +2387,6 @@ class Base(object, consts.Constants, preferences.Preferences):
                     self.library.on_search_end(None)
                 filenames = self.library.get_path_child_filenames(True)
                 if len(filenames) > 0:
-                    print filenames
                     mpdh.call(self.client, 'command_list_ok_begin')
                     for filename in filenames:
                         self.mpd_update(filename)

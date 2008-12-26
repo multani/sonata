@@ -1,5 +1,6 @@
 v1.6
 	- threaded method for artwork
+		- can show wrong image if navigating treeview quickly
 		- update lib artwork if current song artwork changes
 		- save across sessions?
 		- possible threading traceback when exiting sonata

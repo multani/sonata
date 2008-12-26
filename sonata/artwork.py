@@ -16,8 +16,9 @@ AMAZON_NS = "{http://webservices.amazon.com/AWSECommerceService/2005-10-05}"
 AMAZON_URI = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=%s&Operation=ItemSearch&SearchIndex=Music&Artist=%s&ResponseGroup=Images"
 
 class Artwork(object):
-    def __init__(self, config, find_path, is_lang_rtl, info_imagebox_get_size_request, schedule_gc_collect, target_image_filename, imagelist_append, remotefilelist_append, notebook_get_allocation, allow_art_search, status_is_play_or_pause):
+    def __init__(self, config, find_path, is_lang_rtl, info_imagebox_get_size_request, schedule_gc_collect, target_image_filename, imagelist_append, remotefilelist_append, notebook_get_allocation, allow_art_search, status_is_play_or_pause, album_filename):
         self.config = config
+        self.album_filename = album_filename
 
         # constants from main
         self.is_lang_rtl = is_lang_rtl
@@ -192,15 +193,15 @@ class Artwork(object):
                 # No cached pixbuf, try local/remote search:
                 if pb is None:
                     if not remote_art:
-                        pb = self.library_get_album_cover(path, artist, album, self.lib_art_pb_size)
+                        pb, filename = self.library_get_album_cover(path, artist, album, self.lib_art_pb_size)
                     else:
                         filename = self.target_image_filename(None, path, artist, album)
                         self.artwork_download_img_to_file(artist, album, filename)
-                        pb = self.library_get_album_cover(path, artist, album, self.lib_art_pb_size)
+                        pb, filename = self.library_get_album_cover(path, artist, album, self.lib_art_pb_size)
 
                 # Set pixbuf icon in model; add to cache
                 if pb is not None:
-                    self.cache[cache_key] = pb
+                    self.cache[cache_key] = filename
                     gobject.idle_add(self.library_set_cover, model, i, pb)
 
                 # Remote processed item from queue:
@@ -214,8 +215,8 @@ class Artwork(object):
                     if len(self.lib_art_rows_remote) > 0 and (i, data, icon) == self.lib_art_rows_remote[0]:
                         self.lib_art_rows_remote.pop(0)
                         if pb is None:
-                            # No remote art found, store self.albumpb in cache
-                            self.cache[cache_key] = self.albumpb
+                            # No remote art found, store self.albumpb filename in cache
+                            self.cache[cache_key] = self.album_filename
 
     def library_set_cover(self, model, i, pb):
         if model.iter_is_valid(i):
@@ -225,21 +226,28 @@ class Artwork(object):
         _tmp, coverfile = self.artwork_get_local_image(dirname, artist, album)
         if coverfile:
             try:
-                coverfile = gtk.gdk.pixbuf_new_from_file_at_size(coverfile, pb_size, pb_size)
+                coverpb = gtk.gdk.pixbuf_new_from_file_at_size(coverfile, pb_size, pb_size)
             except:
                 # Delete bad image:
                 misc.remove_file(coverfile)
-                return
-            w = coverfile.get_width()
-            h = coverfile.get_height()
-            coverfile = self.artwork_apply_composite_case(coverfile, w, h)
-            return coverfile
-        return None
+                return (None, None)
+            w = coverpb.get_width()
+            h = coverpb.get_height()
+            coverpb = self.artwork_apply_composite_case(coverpb, w, h)
+            return (coverpb, coverfile)
+        return (None, None)
 
-    def get_library_artwork_cached_pb(self, data, origpb):
+    def get_library_artwork_cached_filename(self, data):
         try:
             return self.cache[data]
         except:
+            return None
+
+    def get_library_artwork_cached_pb(self, data, origpb):
+        filename = self.get_library_artwork_cached_filename(data)
+        if filename is not None and os.path.exists(filename):
+            return gtk.gdk.pixbuf_new_from_file_at_size(filename, self.lib_art_pb_size, self.lib_art_pb_size)
+        else:
             return origpb
 
     def artwork_update(self, force=False):
