@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sonata-1.6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-03-21 19:38-0600\n"
+"POT-Creation-Date: 2008-12-28 17:46-0700\n"
 "PO-Revision-Date: 2008-07-12 21:47+0200\n"
 "Last-Translator: Lazaros Koromilas <koromilaz@gmail.com>\n"
 "Language-Team: GREEK\n"
@@ -18,1432 +18,1543 @@ msgstr ""
 "X-Poedit-Language: Greek\n"
 "X-Poedit-Country: GREECE\n"
 
-#: ../sonata/main.py:153
-msgid "Default Profile"
-msgstr "Προεπιλεγμένο Προφίλ"
-
-#: ../sonata/main.py:162
-msgid "Current"
-msgstr "Τρέχουσα Λίστα"
-
-#: ../sonata/main.py:163
-msgid "Library"
-msgstr "Βιβλιοθήκη"
-
-#: ../sonata/main.py:164
-msgid "Playlists"
-msgstr "Λίστες Κομματιών"
-
-#: ../sonata/main.py:165
-msgid "Streams"
-msgstr "Μεταδώσεις"
-
-#: ../sonata/main.py:166
-msgid "Info"
-msgstr "Πληροφορίες"
-
-#: ../sonata/main.py:194
-msgid "Untagged"
-msgstr "Χωρίς Ετικέτες"
-
-#: ../sonata/main.py:216
-msgid "The toggle argument requires D-Bus. Aborting."
-msgstr "Η επιλογή εναλλαγής προϋποθέτει την ύπαρξη του D-Bus. Αποτυχία."
-
-#: ../sonata/main.py:222
-msgid "The popup argument requires D-Bus. Aborting."
-msgstr "Η επιλογή ανάδυσης προϋποθέτει την ύπαρξη του D-Bus. Αποτυχία."
-
-#: ../sonata/main.py:246
-msgid "PyGTK+ 2.10 or gnome-python-extras not found, system tray support disabled."
-msgstr "Το PyGTK+ 2.10 ή το gnome-python-extras δεν εντοπίστηκε, η υποστήριξη μπάρας εργασιών απενεργοποιήθηκε."
-
-#: ../sonata/main.py:288
-#: ../sonata/main.py:5680
-msgid "Entire song"
-msgstr "Ολόκληρο τραγούδι"
-
-#: ../sonata/main.py:289
-msgid "System tray"
-msgstr "Μπάρα εργασιών"
-
-#: ../sonata/main.py:289
-msgid "Top Left"
-msgstr "Πάνω Αριστερά"
-
-#: ../sonata/main.py:289
-msgid "Top Right"
-msgstr "Πάνω Δεξιά"
-
-#: ../sonata/main.py:289
-msgid "Bottom Left"
-msgstr "Κάτω Αριστερά"
-
-#: ../sonata/main.py:289
-msgid "Bottom Right"
-msgstr "Κάτω Δεξιά"
-
-#: ../sonata/main.py:289
-msgid "Screen Center"
-msgstr "Κέντρο Οθόνης"
-
-#: ../sonata/main.py:300
-msgid "by"
-msgstr "από"
-
-#: ../sonata/main.py:300
-msgid "from"
-msgstr "στο"
-
-#: ../sonata/main.py:308
-#: ../sonata/main.py:435
-#: ../sonata/main.py:1152
-#: ../sonata/main.py:1344
-#: ../sonata/main.py:2685
-#: ../sonata/main.py:2817
-#: ../sonata/main.py:6696
-msgid "Artist"
-msgstr "Καλλιτέχνης"
-
-#: ../sonata/main.py:308
-#: ../sonata/main.py:1152
-#: ../sonata/main.py:1343
-#: ../sonata/main.py:2816
-#: ../sonata/main.py:6687
-msgid "Title"
-msgstr "Τίτλος"
-
-#: ../sonata/main.py:308
-#: ../sonata/main.py:1152
-#: ../sonata/main.py:1345
-#: ../sonata/main.py:2686
-#: ../sonata/main.py:2818
-#: ../sonata/main.py:5071
-#: ../sonata/main.py:6705
-msgid "Album"
-msgstr "Άλμπουμ"
-
-#: ../sonata/main.py:308
-#: ../sonata/main.py:436
-#: ../sonata/main.py:1152
-#: ../sonata/main.py:1348
-#: ../sonata/main.py:2690
-#: ../sonata/main.py:2820
-#: ../sonata/main.py:5887
-#: ../sonata/main.py:6735
-msgid "Genre"
-msgstr "Είδος"
-
-#: ../sonata/main.py:308
-msgid "Filename"
-msgstr "Όνομα αρχείου"
-
-#: ../sonata/main.py:308
-msgid "Everything"
-msgstr "Όλα"
-
-#: ../sonata/main.py:404
-msgid "Starting Sonata with profile"
-msgstr "Εκκίνηση του Sonata με προφίλ"
-
-#: ../sonata/main.py:406
-#: ../sonata/main.py:408
-msgid "Not a valid profile number. Profile number must be between 1 and"
-msgstr "Μη νόμιμος αριθμός προφίλ. Ο αριθμός προφίλ πρέπει να είναι μεταξύ του 1 και"
-
-#: ../sonata/main.py:430
-msgid "_Sort List"
-msgstr "_Ταξινόμηση Λίστας"
-
-#: ../sonata/main.py:431
-msgid "Sa_ve List to"
-msgstr "Α_ποθήκευση Λίστες σε"
-
-#: ../sonata/main.py:432
-msgid "_Connection"
-msgstr "_Σύνδεση"
-
-#: ../sonata/main.py:433
-msgid "P_lay after"
-msgstr "Αναπαραγωγή μετά"
-
-#: ../sonata/main.py:434
-msgid "Filesystem"
-msgstr "Σύστημα Αρχείων"
-
-#: ../sonata/main.py:437
-msgid "Use _Remote Image..."
-msgstr "Χρήση _Απομακρυσμένης Εικόνας..."
-
-#: ../sonata/main.py:438
-msgid "Use _Local Image..."
-msgstr "Χρήση _Τοπικής Εικόνας..."
-
-#: ../sonata/main.py:439
-msgid "Reset to Default"
-msgstr "Επαναφορά Προεπιλογής"
-
-#: ../sonata/main.py:440
-msgid "_Play"
-msgstr "_Αναπαραγωγή"
-
-#: ../sonata/main.py:441
-msgid "_Pause"
-msgstr "_Παύση"
-
-#: ../sonata/main.py:442
-msgid "_Stop"
-msgstr "_Διακοπή"
-
-#: ../sonata/main.py:443
-msgid "_Previous"
-msgstr "_Προηγούμενο"
-
-#: ../sonata/main.py:444
-msgid "_Next"
-msgstr "_Επόμενο"
-
-#: ../sonata/main.py:445
-msgid "_Quit"
-msgstr "_Έξοδος"
-
-#: ../sonata/main.py:446
-msgid "_Remove"
-msgstr "_Αφαίρεση"
-
-#: ../sonata/main.py:447
-msgid "_Clear"
-msgstr "_Καθαρισμός"
-
-#: ../sonata/main.py:448
-msgid "_New Playlist..."
-msgstr "_Νέα Λίστα Κομματιών..."
-
-#: ../sonata/main.py:449
-msgid "_Update Library"
-msgstr "_Ανανέωση Βιβλιοθήκης"
-
-#: ../sonata/main.py:450
-msgid "_Preferences..."
-msgstr "_Επιλογές..."
-
-#: ../sonata/main.py:451
-msgid "_About..."
-msgstr "_Περί..."
-
-#: ../sonata/main.py:452
-msgid "_New..."
-msgstr "_Νέο..."
-
-#: ../sonata/main.py:453
-msgid "_Edit..."
-msgstr "_Επεξεργασία..."
-
-#: ../sonata/main.py:454
-msgid "_Rename..."
-msgstr "_Μετονομασία..."
-
-#: ../sonata/main.py:455
-msgid "_Edit Tags..."
-msgstr "_Επεξεργασία Ετικετών..."
-
-#: ../sonata/main.py:456
-msgid "_Add"
-msgstr "_Προσθήκη"
-
-#: ../sonata/main.py:457
-msgid "_Replace"
-msgstr "_Αντικατάσταση"
-
-#: ../sonata/main.py:458
-msgid "Add"
-msgstr "Προσθήκη"
-
-#: ../sonata/main.py:459
-msgid "Replace"
-msgstr "Αντικατάσταση"
-
-#: ../sonata/main.py:460
-msgid "_Delete..."
-msgstr "_Διαγραφή..."
-
-#: ../sonata/main.py:461
-msgid "By Artist"
-msgstr "Ανά Καλλιτέχνη"
-
-#: ../sonata/main.py:462
-msgid "By Album"
-msgstr "Ανά Δίσκο"
-
-#: ../sonata/main.py:463
-msgid "By Song Title"
-msgstr "Ανά Τίτλο Τραγουδιού"
-
-#: ../sonata/main.py:464
-msgid "By File Name"
-msgstr "Ανά νομα Αρχείου"
-
-#: ../sonata/main.py:465
-msgid "By Dir & File Name"
-msgstr "Ανά Όνομα Καταλόγου & Αρχείου"
-
-#: ../sonata/main.py:466
-msgid "Reverse List"
-msgstr "Αντιστροφή Λίστας"
-
-#: ../sonata/main.py:467
-msgid "Random"
-msgstr "Τυχαία"
-
-#: ../sonata/main.py:493
-msgid "_Show Sonata"
-msgstr "_Εμφάνιση του Sonata"
-
-#: ../sonata/main.py:494
-msgid "_Repeat"
-msgstr "_Επανάληψη"
-
-#: ../sonata/main.py:495
-msgid "_Shuffle"
-msgstr "_Ανακάτεμα"
-
-#: ../sonata/main.py:682
-#: ../sonata/main.py:849
-#: ../sonata/main.py:850
-msgid "Playlist"
-msgstr "Λίστα Κομματιών"
-
-#: ../sonata/main.py:701
-msgid "Filter"
-msgstr "Φίλτρο"
-
-#: ../sonata/main.py:727
-msgid "_End Search"
-msgstr "_Τέλος Αναζήτησης"
-
-#: ../sonata/main.py:731
-#: ../sonata/main.py:821
-msgid "Library browsing view"
-msgstr "Όψη περιήγησης βιβλιοθήκης"
-
-#: ../sonata/main.py:807
-#: ../sonata/main.py:812
-#: ../sonata/main.py:1368
-#: ../sonata/main.py:3754
-#: ../sonata/main.py:3765
-msgid "Stopped"
-msgstr "_Στάσιμο"
-
-#: ../sonata/main.py:808
-#: ../sonata/main.py:3758
-#: ../sonata/main.py:4416
-msgid "Click to expand"
-msgstr "Κλικ για επέκταση"
-
-# using a word similar to unfold
-#: ../sonata/main.py:813
-#: ../sonata/main.py:3756
-#: ../sonata/main.py:4414
-#, fuzzy
-msgid "Click to collapse"
-msgstr "Κλικ για αναδίπλωση"
-
-#: ../sonata/main.py:818
-#: ../sonata/main.py:3654
-#: ../sonata/main.py:3761
-msgid "Not Connected"
-msgstr "Μη Συνδεδεμένο"
-
-#: ../sonata/main.py:820
-#: ../sonata/main.py:3652
-#: ../sonata/main.py:3763
-msgid "No Read Permission"
-msgstr "Χωρίς Δικαίωμα Ανάγνωσης"
-
-#: ../sonata/main.py:1086
-msgid "Version: Sonata"
-msgstr "Έκδοση: Sonata"
-
-#: ../sonata/main.py:1087
-msgid "Website: http://sonata.berlios.de/"
-msgstr "Ιστοσελίδα: http://sonata.berlios.de/"
-
-#: ../sonata/main.py:1092
-msgid "Usage: sonata [OPTION]"
-msgstr "Χρήση: sonata [ΕΠΙΛΟΓΗ]"
-
-#: ../sonata/main.py:1094
-msgid "Options"
-msgstr "Επιλογές"
-
-#: ../sonata/main.py:1095
-msgid "Show this help and exit"
-msgstr "Εμφάνιση της βοήθειας και έξοδος"
-
-#: ../sonata/main.py:1096
-msgid "Popup song notification (requires DBus)"
-msgstr "Ανάδυση ειδοποίησης τραγουδιού (προϋποθέτει το DBus)"
-
-#: ../sonata/main.py:1097
-msgid "Toggles whether the app is minimized"
-msgstr "Εναλλαγή της εφαρμογής σε ελαχιστοποιημένη"
-
-#: ../sonata/main.py:1098
-msgid "to tray or visible (requires D-Bus)"
-msgstr "στην μπάρα εργασών ή ορατή (προϋποθέτει το DBus)"
-
-#: ../sonata/main.py:1099
-msgid "Show version information and exit"
-msgstr "Εμφάνιση πληροφοριών έκδοσης και έξοδος"
-
-#: ../sonata/main.py:1100
-msgid "Start app hidden (requires systray)"
-msgstr "Εκκίνηση σε απόκρυψη (προϋποθέτει μπάρα εργασιών)"
-
-#: ../sonata/main.py:1101
-msgid "Start app visible (requires systray)"
-msgstr "Εκκίνηση ορατό (προϋποθέτει μπάρα εργασιών)"
-
-#: ../sonata/main.py:1102
-msgid "Start with profile [NUM]"
-msgstr "Εκκίνηση με προφίλ [ΑΡΙΘΜΟΣ]"
-
-#: ../sonata/main.py:1103
-msgid "Play song in playlist"
-msgstr "Αναπαραγωγή τραγουδιού στην λίστα κομματιών"
-
-#: ../sonata/main.py:1104
-msgid "Pause currently playing song"
-msgstr "Παύση τρέχοντος αναπαραγώμενου τραγουδιού"
-
-#: ../sonata/main.py:1105
-msgid "Stop currently playing song"
-msgstr "Διακοπή τρέχοντος αναπαραγώμενου τραγουδιού"
-
-#: ../sonata/main.py:1106
-msgid "Play next song in playlist"
-msgstr "Αναπαραγωγή του επόμενου τραγουδιού στην λίστα κομματιών"
-
-#: ../sonata/main.py:1107
-msgid "Play previous song in playlist"
-msgstr "Αναπαραγωγή του προηγούμενου τραγουδιού στην λίστα κομματιών"
-
-#: ../sonata/main.py:1108
-msgid "Toggle play/pause; plays if stopped"
-msgstr "Εναλλαγή  αναπαραγωγής/παύσης. Αναπαραγωγή από στάσιμο"
-
-#: ../sonata/main.py:1109
-msgid "Toggle repeat mode"
-msgstr "Εναλλαγή λειτουργίας επανάληψης"
-
-#: ../sonata/main.py:1110
-msgid "Toggle shuffle mode"
-msgstr "Εναλλαγή λειτουργίας ανακατέματος"
-
-#: ../sonata/main.py:1111
-msgid "Display current song info"
-msgstr "Εμφάνιση πληροφοριών τρέχοντος τραγουδιού"
-
-# status tretated as `state'
-#: ../sonata/main.py:1112
-msgid "Display MPD status"
-msgstr "Εμφάνιση κατάστασης του MPD"
-
-#: ../sonata/main.py:1130
-msgid "Song Info"
-msgstr "Πληροφορίες Τραγουδιού"
-
-#: ../sonata/main.py:1152
-#: ../sonata/main.py:1346
-#: ../sonata/main.py:2819
-msgid "Date"
-msgstr "Ημερομηνία"
-
-#: ../sonata/main.py:1152
-#: ../sonata/main.py:1347
-#: ../sonata/main.py:2687
-#: ../sonata/main.py:2821
-#: ../sonata/main.py:6718
-msgid "Track"
-msgstr "Κομμάτι"
-
-#: ../sonata/main.py:1152
-#: ../sonata/main.py:1349
-#: ../sonata/main.py:2691
-#: ../sonata/main.py:2822
-msgid "File"
-msgstr "Αρχείο"
-
-#: ../sonata/main.py:1152
-#: ../sonata/main.py:1357
-#: ../sonata/main.py:2815
-msgid "Bitrate"
-msgstr "Ρυθμός Δεδομένων"
-
-#: ../sonata/main.py:1154
-msgid "Launch artist in Wikipedia"
-msgstr "Άνοιγμα καλλιτέχνη στην Wikipedia"
-
-#: ../sonata/main.py:1154
-msgid "Launch album in Wikipedia"
-msgstr "Άνοιγμα άλμπουμ στην Wikipedia"
-
-#: ../sonata/main.py:1188
-msgid "Toggle extra tags"
-msgstr "Εναλλαγή επιπλέον ετικετών"
-
-#: ../sonata/main.py:1191
-msgid "Edit song tags"
-msgstr "Επεξεργασία ετικετών τραγουδιού"
-
-#: ../sonata/main.py:1201
-msgid "Lyrics"
-msgstr "Στίχοι"
-
-#: ../sonata/main.py:1211
-msgid "Search Lyricwiki.org for lyrics"
-msgstr "Αναζήτηση στο Lyricwiki.org για στίχους"
-
-#: ../sonata/main.py:1218
-msgid "Album Info"
-msgstr "Πληροφορίες Άλμπουμ"
-
-# meaning length
-#: ../sonata/main.py:1354
-#: ../sonata/main.py:1356
-msgid "Time"
-msgstr "Διάρκεια"
-
-#: ../sonata/main.py:1359
-msgid "MPD stopped"
-msgstr "MPD στάσιμο"
-
-#: ../sonata/main.py:1364
-#: ../sonata/main.py:1366
-#: ../sonata/main.py:1368
-msgid "State"
-msgstr "Κατάσταση"
-
-# like `in play'
-#: ../sonata/main.py:1364
-msgid "Playing"
-msgstr "Σε αναπαραγωγή"
-
-# like `in pause'
-#: ../sonata/main.py:1366
-msgid "Paused"
-msgstr "Σε παύση"
-
-#: ../sonata/main.py:1370
-#: ../sonata/main.py:1372
-msgid "Repeat"
-msgstr "Επανάληψη"
-
-#: ../sonata/main.py:1370
-#: ../sonata/main.py:1374
-msgid "Off"
-msgstr "Ανενεργό"
-
-#: ../sonata/main.py:1372
-#: ../sonata/main.py:1376
-msgid "On"
-msgstr "Ενεργό"
-
-#: ../sonata/main.py:1374
-#: ../sonata/main.py:1376
-msgid "Shuffle"
-msgstr "Ανακάτεμα"
-
-#: ../sonata/main.py:1377
-msgid "Volume"
-msgstr "Ένταση"
-
-# descriptive translation
-#: ../sonata/main.py:1378
-#, fuzzy
-msgid "Crossfade"
-msgstr "Ομαλή μετάβαση κομματιών"
-
-#: ../sonata/main.py:1378
-#: ../sonata/main.py:5681
-msgid "second"
-msgid_plural "seconds"
-msgstr[0] "δευτερόλεπτο"
-msgstr[1] "δευτερόλεπτα"
-
-#: ../sonata/main.py:1382
-msgid ""
-"Unable to connect to MPD.\n"
-"Please check your Sonata preferences or MPD_HOST/MPD_PORT environment variables."
-msgstr ""
-"Αδύνατη η σύνδεση στο MPD.\n"
-"Παρακαλώ ελέγξτε τις ρυθμίσεις του Sonata ή τις μεταβλητές περιβάλλοντος MPD_HOST/MPD_PORT."
-
-#: ../sonata/main.py:1427
-msgid "Disconnect"
-msgstr "Αποσύνδεση"
-
-#: ../sonata/main.py:2015
-msgid "Edit Stream"
-msgstr "Επεξεργασία"
-
-#: ../sonata/main.py:2017
-#: ../sonata/main.py:2048
-msgid "New Stream"
-msgstr "Νέα Μετάδωση"
-
-#: ../sonata/main.py:2019
-#: ../sonata/main.py:5887
-msgid "Stream name"
-msgstr "Όνομα μετάδωσης"
-
-#: ../sonata/main.py:2026
-msgid "Stream URL"
-msgstr "URL Μετάδωσης"
-
-#: ../sonata/main.py:2048
-msgid "A stream with this name already exists. Would you like to replace it?"
-msgstr "Μια μετάδωση με αυτό το όνομα υπάρχει ήδη. Θέλετε να την αντικαταστήσετε;"
-
-#: ../sonata/main.py:2066
-#: ../sonata/main.py:2068
-msgid "Save Playlist"
-msgstr "Αποθήκευση Λίστας Κομματιών"
-
-#: ../sonata/main.py:2091
-msgid "A playlist with this name already exists. Would you like to replace it?"
-msgstr "Μια λίστα κομματιών με αυτό το όνομα υπάρχει ήδη. Θέλετε να την αντικαταστήσετε;"
-
-#: ../sonata/main.py:2103
-msgid "Playlist name"
-msgstr "Όνομα λίστας κομματιών"
-
-#: ../sonata/main.py:2129
-#: ../sonata/main.py:2133
-msgid "Rename Playlist"
-msgstr "Μετονομασία Λίστας Κομματιών"
-
-#: ../sonata/main.py:2688
-#: ../sonata/main.py:2694
-msgid "#"
-msgstr "Α/Α"
-
-#: ../sonata/main.py:2689
-#: ../sonata/main.py:5886
-#: ../sonata/main.py:6714
-msgid "Year"
-msgstr "Έτος"
-
-#: ../sonata/main.py:2692
-msgid "Stream"
-msgstr "Μετάδωση"
-
-# length
-#: ../sonata/main.py:2693
-msgid "Len"
-msgstr "Διάρκεια"
-
-#: ../sonata/main.py:2714
-#: ../sonata/main.py:2721
-#: ../sonata/main.py:2756
-#: ../sonata/main.py:2763
-msgid "Unknown"
-msgstr "Άγνωστο"
-
-#: ../sonata/main.py:2856
-msgid "edit tags"
-msgstr "επεξεργασία ετικετών"
-
-#: ../sonata/main.py:2883
-#: ../sonata/main.py:4970
-msgid "Various Artists"
-msgstr "Διάφοροι Καλλιτέχνες"
-
-#: ../sonata/main.py:2891
-msgid "Album info not found."
-msgstr "Δεν βρέθηκαν πληροφορίες άλμπουμ."
-
-#: ../sonata/main.py:2894
-msgid "Album name not set."
-msgstr "Δεν αποδόθηκε όνομα άλμπουμ."
-
-#: ../sonata/main.py:2907
-msgid "ZSI not found, fetching lyrics support disabled."
-msgstr "Δεν βρέθηκε το ZSI, η προσκόμιση στίχων απενεργοποιήθηκε."
-
-#: ../sonata/main.py:2914
-msgid "Artist or song title not set."
-msgstr "Δεν αποδόθηκε καλλιτέχνης ή τίτλος τραγουδιού."
-
-#: ../sonata/main.py:2940
-msgid "search"
-msgstr "αναζήτηση"
-
-#: ../sonata/main.py:2949
-#: ../sonata/main.py:3002
-msgid "Lyrics not found"
-msgstr "Δεν βρέθηκαν στίχοι"
-
-#: ../sonata/main.py:2968
-msgid "Fetching lyrics..."
-msgstr "Προσκόμιση στίχων"
-
-#: ../sonata/main.py:2978
-msgid "Couldn't connect to LyricWiki"
-msgstr "Αδύνατη η σύνδεση με το LyricWiki"
-
-#: ../sonata/main.py:3005
-msgid "Fetching lyrics failed"
-msgstr "Προσκόμιση στίχων απέτυχε"
-
-#: ../sonata/main.py:3676
-msgid "day"
-msgid_plural "days"
-msgstr[0] "μέρα"
-msgstr[1] "μέρες"
-
-#: ../sonata/main.py:3680
-msgid "minute"
-msgid_plural "minutes"
-msgstr[0] "λεπτό"
-msgstr[1] "λεπτά"
-
-#: ../sonata/main.py:3684
-msgid "hour"
-msgid_plural "hours"
-msgstr[0] "ώρα"
-msgstr[1] "ώρες"
-
-#: ../sonata/main.py:3686
-#: ../sonata/main.py:7183
-msgid "song"
-msgid_plural "songs"
-msgstr[0] "τραγούδι"
-msgstr[1] "τραγούδια"
-
-#: ../sonata/main.py:3688
-#: ../sonata/main.py:3690
-msgid "and"
-msgstr "και"
-
-#: ../sonata/main.py:3696
-msgid "(updating mpd)"
-msgstr "(ανανέωση του mpd)"
-
-#: ../sonata/main.py:4476
-msgid "Lyrics Search"
-msgstr "Αναζήτηση Στίχων"
-
-#: ../sonata/main.py:4477
-msgid "_Search"
-msgstr "Ανα_ζήτηση"
-
-#: ../sonata/main.py:4480
-msgid "Artist Name"
-msgstr "Όνομα Καλλιτέχνη"
-
-#: ../sonata/main.py:4485
-msgid "Song Title"
-msgstr "Τίτλος Τραγουδιού"
-
-#: ../sonata/main.py:5007
-msgid "Open Image"
-msgstr "Άνοιγμα Εικόνας"
-
-#: ../sonata/main.py:5009
-msgid "Images"
-msgstr "Εικόνες"
-
-#: ../sonata/main.py:5013
-msgid "All files"
-msgstr "Όλα τα αρχεία"
-
-#: ../sonata/main.py:5057
-msgid "Choose Cover Art"
-msgstr "Επιλογή Εξωφύλλου"
-
-#: ../sonata/main.py:5058
-msgid "C_hoose"
-msgstr "Ε_πιλογή"
-
-#: ../sonata/main.py:5086
-msgid "_Update"
-msgstr "Α_νανέωση"
-
-#: ../sonata/main.py:5091
-msgid "Edit search terms"
-msgstr "Επεξεργασία όρων αναζήτησης"
-
-#: ../sonata/main.py:5148
-msgid "No artist or album name found."
-msgstr "Δεν βρέθηκε όνομα καλλιτέχνη ή άλμπουμ."
-
-#: ../sonata/main.py:5151
-msgid "No cover art found."
-msgstr "Δεν βρέθηκε εξώφυλλο."
-
-#: ../sonata/main.py:5506
-msgid "Delete the selected playlist?"
-msgid_plural "Delete the selected playlists?"
-msgstr[0] "Διαγραφή της επιλεγμένης λίστας κομματιών;"
-msgstr[1] "Διαγραφή των επιλεγμένων λιστών κομματιών;"
-
-#: ../sonata/main.py:5506
-msgid "Delete Playlist"
-msgid_plural "Delete Playlists"
-msgstr[0] "Διαγραφή λίστας κομματιών"
-msgstr[1] "Διαγραφή λιστών κομματιών"
-
-#: ../sonata/main.py:5514
-msgid "Delete the selected stream?"
-msgid_plural "Delete the selected streams?"
-msgstr[0] "Διαγραφή της επιλεγμένης μετάδοσης;"
-msgstr[1] "Διαγραφή των επιλεγμένων μεταδόσεων;"
-
-#: ../sonata/main.py:5514
-msgid "Delete Stream"
-msgid_plural "Delete Streams"
-msgstr[0] "Διαγραφή μετάδοσης"
-msgstr[1] "Διαγραφή μεταδόσεων"
-
-#: ../sonata/main.py:5560
-#: ../sonata/main.py:7081
-msgid "Preferences"
-msgstr "Προτιμίσεις"
-
-#: ../sonata/main.py:5564
-msgid "MPD Connection"
-msgstr "Σύνδεση με το MPD"
-
-#: ../sonata/main.py:5574
-msgid "Name"
-msgstr "Όνομα"
-
-#: ../sonata/main.py:5579
-msgid "Host"
-msgstr "Διακομιστής"
-
-#: ../sonata/main.py:5584
-msgid "Port"
-msgstr "Θύρα"
-
-#: ../sonata/main.py:5589
-msgid "Music dir"
-msgstr "Κατάλογος μουσικής"
-
-#: ../sonata/main.py:5595
-msgid "Password"
-msgstr "Κωδικός"
-
-# `required' translated as `needed'
-#: ../sonata/main.py:5598
-msgid "Leave blank if no password is required."
-msgstr "Κενό εάν ο κωδικός δεν είναι αναγκαίος."
-
-#: ../sonata/main.py:5602
-msgid "Autoconnect on start"
-msgstr "Αυτόματη σύνδεση κατα την εκκίνηση"
-
-#: ../sonata/main.py:5616
-msgid "Using MPD_HOST/PORT"
-msgstr "Χρήση "
-
-#: ../sonata/main.py:5656
-msgid "Extras"
-msgstr "Πρόσθετα"
-
-#: ../sonata/main.py:5663
-msgid "Enable Audioscrobbler"
-msgstr "Ενεροποίηση του Audioscrobbler"
-
-#: ../sonata/main.py:5668
-msgid "Username:"
-msgstr "Όνομα χρήστη:"
-
-#: ../sonata/main.py:5669
-msgid "Password:"
-msgstr "Κωδικός:"
-
-#: ../sonata/main.py:5672
-msgid "Notification"
-msgstr "Ειδοποίηση"
-
-#: ../sonata/main.py:5673
-msgid "Popup notification on song changes"
-msgstr "Ανάδυση ειδοποίησης σε αλλαγές τραγουδιού"
-
-# descriptive translation
-#: ../sonata/main.py:5691
-#, fuzzy
-msgid "Enable Crossfade"
-msgstr "Ενεργοποίηση Ομαλής Μετάβασης Κομματιών"
-
-#: ../sonata/main.py:5699
-msgid "Fade length"
-msgstr "Διάρκεια μετάβασης"
-
-# abbreviation
-#: ../sonata/main.py:5700
-msgid "sec"
-msgstr "δευτ"
-
-#: ../sonata/main.py:5737
-msgid "Display"
-msgstr "Εμφάνιση"
-
-# descriptive translation
-#: ../sonata/main.py:5739
-msgid "Enable album art"
-msgstr "Ενεργοποίηση εξωφύλλων άλμπουμ"
-
-#: ../sonata/main.py:5741
-msgid "Standard"
-msgstr "Βασική"
-
-#: ../sonata/main.py:5741
-msgid "Stylized"
-msgstr "Μορφοποιημένη"
-
-#: ../sonata/main.py:5743
-msgid "Artwork style:"
-msgstr "Μορφή εξωφύλλων:"
-
-#: ../sonata/main.py:5746
-msgid "Local only"
-msgstr "Μόνο τοπικά"
-
-#: ../sonata/main.py:5746
-msgid "Local, then remote"
-msgstr "Τοπικά, μετα απομακρυσμένα"
-
-#: ../sonata/main.py:5747
-msgid "Search order:"
-msgstr "Σειρά αναζήτησης:"
-
-#: ../sonata/main.py:5752
-msgid "Save art to:"
-msgstr "Αποθήκευση εξωφύλλων σε:"
-
-#: ../sonata/main.py:5754
-msgid "custom"
-msgstr "παραμετροποίηση"
-
-#: ../sonata/main.py:5755
-#: ../sonata/main.py:5774
-msgid "file_path"
-msgstr "μονο_πάτι αρχείου"
-
-#: ../sonata/main.py:5760
-msgid "Enable playback/volume buttons"
-msgstr "Ενεργοποίηση κουμπιών αναπαραγωγής/έντασης"
-
-#: ../sonata/main.py:5763
-msgid "Enable progressbar"
-msgstr "Ενεργοποίηση μπάρας προόδου"
-
-#: ../sonata/main.py:5766
-msgid "Enable statusbar"
-msgstr "Ενεργοποίηση μπάρας κατάστασης"
-
-#: ../sonata/main.py:5769
-msgid "Enable lyrics"
-msgstr "Ενεργοποίηση στίχων"
-
-#: ../sonata/main.py:5772
-msgid "Save lyrics to:"
-msgstr "Αποθήκευση στίχων σε:"
-
-#: ../sonata/main.py:5778
-msgid "Enable system tray icon"
-msgstr "Ενεργοποίηση εικονιδίου στην μπάρα εργασιών"
-
-#: ../sonata/main.py:5798
-msgid "Window Behavior"
-msgstr "Συμπεριφορά Παραθύρου"
-
-#: ../sonata/main.py:5799
-msgid "Show window on all workspaces"
-msgstr "Εμφάνιση παραθύρου σε όλες τις επιφάνειες εργασίας"
-
-#: ../sonata/main.py:5801
-msgid "Keep window above other windows"
-msgstr "Παραμονή παραθύρου πάνω από τα άλλα παράθυρα"
-
-#: ../sonata/main.py:5803
-msgid "Update MPD library on start"
-msgstr "Ανανέωση της βιβλιοθήκης του MPD κατά την εκκίνηση"
-
-#: ../sonata/main.py:5805
-msgid "If enabled, Sonata will automatically update your MPD library when it starts up."
-msgstr "Εάν είναι ενεργοποιημένο, το Sonata θα ανανεώνει την βιβλιοθήκη του MPD όταν ξεκινά."
-
-#: ../sonata/main.py:5806
-msgid "Stop playback on exit"
-msgstr "Διακοπή αναπαραγωγής κατά την έξοδο"
-
-#: ../sonata/main.py:5808
-msgid "MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit."
-msgstr "Το MPD επιτρέπει την αναπαραγωγή ακόμη κι αν το πρόγραμμα-πελάτης δεν είναι ανοιχτό. Εάν είναι ενεργοποιημένο, το Sonata θα συμπεριφέρεται σαν ένα περισσότερο συμβατικό πρόγραμμα αναπαραγωγής μουσικής και, αντιθέτως, θα σταματά την αναπαραγωγή με το που κλείνει."
-
-# `escape' translated as `pressing Escape'
-#: ../sonata/main.py:5809
-msgid "Minimize to system tray on close/escape"
-msgstr "Ελαχιστοπίηση στην μπάρα εργασιών κατά το κλείσιμο ή πάτημα του Escape"
-
-#: ../sonata/main.py:5811
-msgid "If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."
-msgstr "Εάν είναι ενεργοποιημένο, το κλείσιμο του Sonata θα το ελαχιστοποιεί στην μπάρα εργασιών. Σημειώστε ότι αυτή την στιγμή είναι αδύνατο να εντοπιστεί η ύπαρξη μπάρας εργασιών, οπότε επιλέξτε το άν έχετε μία."
-
-#: ../sonata/main.py:5820
-msgid "Write status file:"
-msgstr "Εγγραφή αρχείου κατάστασης:"
-
-#: ../sonata/main.py:5822
-#: ../sonata/main.py:5824
-msgid "If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)"
-msgstr "Εάν είναι ενεργό, το Sonata θα δημιουργήσει ένα αρχείο xmms-infopipe το οποίο θα περιέχει πληροφορίες σχετικά με το τρέχον κομμάτι. Πολλές εφαρμογές υποστηρίζουν το αρχείο xmms-info (Προγράμματα Άμεσης Συνομιλίας, Προγράμματα-πελάτες IRC...)"
-
-#: ../sonata/main.py:5830
-msgid "Miscellaneous"
-msgstr "Λοιπά"
-
-#: ../sonata/main.py:5852
-msgid "Song Formatting"
-msgstr "Μορφοποίηση Τραγουδιού"
-
-#: ../sonata/main.py:5854
-msgid "Current playlist:"
-msgstr "Τρέχουσα λίστα κομματιών:"
-
-#: ../sonata/main.py:5859
-msgid "Library:"
-msgstr "Βιβλιοθήκη:"
-
-#: ../sonata/main.py:5864
-msgid "Window title:"
-msgstr "Τίτλος παραθύρου:"
-
-#: ../sonata/main.py:5870
-msgid "Current song line 1:"
-msgstr "Γραμμή τρέχοντος τραγουδιού 1:"
-
-#: ../sonata/main.py:5875
-msgid "Current song line 2:"
-msgstr "Γραμμή τρέχοντος τραγουδιού 2:"
-
-#: ../sonata/main.py:5883
-msgid "Available options"
-msgstr "Διαθέσιμες επιλογές"
-
-#: ../sonata/main.py:5886
-msgid "Artist name"
-msgstr "Όνομα καλλιτέχνη"
-
-#: ../sonata/main.py:5886
-msgid "Album name"
-msgstr "Όνομα άλμπουμ"
-
-#: ../sonata/main.py:5886
-msgid "Track name"
-msgstr "Όνομα κομματιού"
-
-#: ../sonata/main.py:5886
-msgid "Track number"
-msgstr "Αριθμός κομματιού"
-
-#: ../sonata/main.py:5886
-msgid "Disc Number"
-msgstr "Αριθμός Δίσκου"
-
-#: ../sonata/main.py:5887
-msgid "File name"
-msgstr "Όνομα αρχείου"
-
-# translated as `duration'
-#: ../sonata/main.py:5887
-msgid "Song length"
-msgstr "Διάρκεια τραγουδιού"
-
-# descriptive translation
-#: ../sonata/main.py:5887
-msgid "Elapsed time (title only)"
-msgstr "Χρόνος που έχει αναπαραχθεί (μόνο στον τίτλο)"
-
-#: ../sonata/main.py:5891
-msgid "Info displayed only if all enclosed tags are defined"
-msgstr "Πληροφορίες που εμφανίζονται μόνο εάν όλες οι εσωκλειώμενες ετικέτες έχουν οριστεί"
-
-#: ../sonata/main.py:5891
-msgid "Creates columns in the current playlist"
-msgstr "Δημιουργεί στήλες στην τρέχουσα λίστα κομματιών"
-
-#: ../sonata/main.py:5905
-msgid "_MPD"
-msgstr "_MPD"
-
-#: ../sonata/main.py:5906
-msgid "_Display"
-msgstr "_Εμφάνιση"
-
-#: ../sonata/main.py:5907
-msgid "_Behavior"
-msgstr "_Συμπεριφορά"
-
-#: ../sonata/main.py:5908
-msgid "_Format"
-msgstr "_Μορφοποίηση"
-
-#: ../sonata/main.py:5909
-msgid "_Extras"
-msgstr "_Πρόσθετα"
-
-#: ../sonata/main.py:5983
-msgid "Python 2.5 or python-elementtree not found, audioscrobbler support disabled."
-msgstr "Το Python 2.5 ή το python-elementtree δεν βρέθηκαν, η υποστήριξη του audioscrobbler απενεργοποιήθηκε."
-
-#: ../sonata/main.py:5983
-msgid "Audioscrobbler Verification"
-msgstr "Επιβεβαίωση Audioscrobbler"
-
-#: ../sonata/main.py:6007
-msgid "To save lyrics to the music file's directory, you must specify a valid music directory."
-msgstr "Για αποθήκευση στίχων στον κατάλογο του μουσικού αρχείου, πρέπει να προσδιοριστεί ένας νόμιμος μουσικός κοτάλογος."
-
-#: ../sonata/main.py:6007
-#: ../sonata/main.py:6014
-msgid "Music Dir Verification"
-msgstr "Επιβεβαίωση Μουσικού Καταλόγου"
-
-#: ../sonata/main.py:6014
-msgid "To save artwork to the music file's directory, you must specify a valid music directory."
-msgstr "Για αποθήκευση εξωφύλλων στον κατάλογο του μουσικού αρχείου, πρέπει να προσδιοριστεί ένας νόμιμος μουσικός κοτάλογος."
-
-#: ../sonata/main.py:6107
-msgid "New Profile"
-msgstr "Νέο Προφίλ"
-
-#: ../sonata/main.py:6215
-msgid "Custom Artwork"
-msgstr "Παραμετροποιημένο Εξώφυλλο"
-
-#: ../sonata/main.py:6217
-msgid "Artwork filename"
-msgstr "Όνομα αρχείου εξωφύλλου"
-
-#: ../sonata/main.py:6330
-#: ../sonata/main.py:6335
-msgid "more"
-msgstr "περισσότερα"
-
-#: ../sonata/main.py:6332
-msgid "hide"
-msgstr "απόκρυψη"
-
-#: ../sonata/main.py:6620
-msgid "Taglib and/or tagpy not found, tag editing support disabled."
-msgstr "Το Taglib και/ή το tagpy δεν βρέθηκαν, η υποστήριξη επεξεργασίας ετικετών απενεργοποιήθηκε."
-
-#: ../sonata/main.py:6620
-#: ../sonata/main.py:6623
-#: ../sonata/main.py:6670
-#: ../sonata/main.py:6674
-#: ../sonata/main.py:6887
-#: ../sonata/main.py:6999
-msgid "Edit Tags"
-msgstr "Επεξεργασία Ετικετών"
-
-#: ../sonata/main.py:6623
-msgid "The path"
-msgstr "Το μονοπάτι"
-
-#: ../sonata/main.py:6623
-msgid "does not exist. Please specify a valid music directory in preferences."
-msgstr "δεν υπάρχει. Παρακαλώ, προσδιορίστε έναν νόμιμο μουσικό κατάλογο στις προτιμήσεις."
-
-#: ../sonata/main.py:6670
-msgid "File "
-msgstr "Το αρχείο"
-
-#: ../sonata/main.py:6670
-msgid " not found. Please specify a valid music directory in preferences."
-msgstr "δεν βρέθηκε. Παρακαλώ, προσδιορίστε έναν νόμιμο μουσικό κατάλογο στις προτιμήσεις."
-
-#: ../sonata/main.py:6674
-msgid "No music files with editable tags found."
-msgstr "Δεν βρέθηκαν μουσικά αρχεία με επεξεργάσιμες ετικέτες."
-
-#: ../sonata/main.py:6745
-msgid "Comment"
-msgstr "Σχόλιο"
-
-#: ../sonata/main.py:6763
-msgid "Save _All"
-msgstr "Αποθήκευση _Όλων"
-
-#: ../sonata/main.py:6809
-msgid "Increment each selected music file, starting at track 1 for this file."
-msgstr "Επαύξηση κάθε επιλεγμένου μουσικού αρχείου, ξεκινώντας από το κομμάτι 1 για αυτό το αρχείο."
-
-#: ../sonata/main.py:6811
-msgid "Apply to all selected music files."
-msgstr "Εφαρμογή σε όλα τα επιλεγμένα μουσικά αρχεία."
-
-#: ../sonata/main.py:6887
-msgid "of"
-msgstr "από"
-
-#: ../sonata/main.py:6999
-msgid "Unable to save tag to music file."
-msgstr "Αδύνατη η αποθήκευση ετικέτας στο μουσικό αρχείο."
-
-#: ../sonata/main.py:7080
+#. define the shortcuts and their descriptions
+#. these are all gettextable
+#: .././sonata/about.py:51
 msgid "About Sonata"
 msgstr "Σχετικά με το Sonata"
 
-#: ../sonata/main.py:7082
+#: .././sonata/about.py:52 .././sonata/preferences.py:68
+msgid "Preferences"
+msgstr "Προτιμίσεις"
+
+#: .././sonata/about.py:53
+msgid "Fullscreen Artwork Mode"
+msgstr ""
+
+#: .././sonata/about.py:54
 msgid "Switch to [1st-5th] tab"
 msgstr "Αλλαγή στην [1η-5η] καρτέλα"
 
-#: ../sonata/main.py:7083
+#: .././sonata/about.py:55
 msgid "Connect to MPD"
 msgstr "Σύνδεση με το MPD"
 
-#: ../sonata/main.py:7084
+#: .././sonata/about.py:56
 msgid "Disconnect from MPD"
 msgstr "Αποσύνδεση από το MPD"
 
-#: ../sonata/main.py:7085
+#: .././sonata/about.py:57
 msgid "Randomize current playlist"
 msgstr "Ανακάτεμα τρέχουσας λίστας κομματιών"
 
-#: ../sonata/main.py:7086
+#: .././sonata/about.py:58
 msgid "Expand player"
 msgstr "Επέκταση προγράμματος αναπαραγωγής"
 
-#: ../sonata/main.py:7087
+#: .././sonata/about.py:59
+#, fuzzy
+msgid "Switch to previous tab"
+msgstr "Αλλαγή στην [1η-5η] καρτέλα"
+
+#: .././sonata/about.py:60
+#, fuzzy
+msgid "Switch to next tab"
+msgstr "Αλλαγή στην [1η-5η] καρτέλα"
+
+#: .././sonata/about.py:61
 msgid "Collapse player"
 msgstr "Αναδίπλωση προγράμματος αναπαραγωγής"
 
-#: ../sonata/main.py:7088
+#: .././sonata/about.py:62
 msgid "Search library"
 msgstr "Αναζήτηση στη βιβλιοθήκη"
 
-#: ../sonata/main.py:7089
+#: .././sonata/about.py:63
 msgid "Quit"
 msgstr "Κλείσιμο"
 
-#: ../sonata/main.py:7090
+#: .././sonata/about.py:64
 msgid "Update entire library"
 msgstr "Ανανέωση ολόκληρης της βιβλιοθήκης"
 
-#: ../sonata/main.py:7091
+#: .././sonata/about.py:65
 msgid "Display popup menu"
 msgstr "Εμφάνιση αναδυώμενων μενού"
 
-#: ../sonata/main.py:7092
+#: .././sonata/about.py:66
 msgid "Minimize to system tray (if enabled)"
 msgstr "Ελαχιστοποίηση στην μπάρα εργασιών (εάν είναι ενεργοποιημένη)"
 
-#: ../sonata/main.py:7094
+#: .././sonata/about.py:68
 msgid "Previous track"
 msgstr "Προηγούμενο κομμάτι"
 
-#: ../sonata/main.py:7095
+#: .././sonata/about.py:69
 msgid "Next track"
 msgstr "Επόμενο κομμάτι"
 
-#: ../sonata/main.py:7096
+#: .././sonata/about.py:70
 msgid "Play/Pause"
 msgstr "Αναπαραγωγή/Παύση"
 
-#: ../sonata/main.py:7097
+#: .././sonata/about.py:71
 msgid "Stop"
 msgstr "Διακοπή"
 
-#: ../sonata/main.py:7098
+#: .././sonata/about.py:72
 msgid "Lower the volume"
 msgstr "Μείωση της έντασης"
 
-#: ../sonata/main.py:7099
+#: .././sonata/about.py:73
 msgid "Raise the volume"
 msgstr "Αύξηση της έντασης"
 
-#: ../sonata/main.py:7101
+#: .././sonata/about.py:75
 msgid "Play selected song"
 msgstr "Αναπαραγωγή επιλεγμένου τραγουδιού"
 
 # translating to plural only because conditional singular is optically ugly:
 # `Αφαίρεση επιλεγμέν-ου/-ων κοματι-ού/-ών'
-#: ../sonata/main.py:7102
+#: .././sonata/about.py:76
 msgid "Remove selected song(s)"
 msgstr "Αφαίρεση επιλεγμένων κοματιών"
 
-#: ../sonata/main.py:7103
+#: .././sonata/about.py:77
 msgid "Center currently playing song"
 msgstr "Τοποθέτηση τρέχοντος τραγουδιού στο κέντρο"
 
-#: ../sonata/main.py:7104
-#: ../sonata/main.py:7113
+#: .././sonata/about.py:78 .././sonata/about.py:87
 msgid "Edit selected song's tags"
 msgstr "Επεξεργασία ετικετών των επιλεγμένων κομματιών"
 
-#: ../sonata/main.py:7105
+#: .././sonata/about.py:79
 msgid "Save to new playlist"
 msgstr "Αποθήκευση σε νέα λίστα κομματιών"
 
-#: ../sonata/main.py:7106
+#: .././sonata/about.py:80
 msgid "Clear list"
 msgstr "Καθαρισμός λίστας"
 
-#: ../sonata/main.py:7107
+#: .././sonata/about.py:81
 msgid "Randomize list"
 msgstr "Ανακάτεμα λίστας"
 
-#: ../sonata/main.py:7109
+#: .././sonata/about.py:83
 msgid "Add selected song(s) or enter directory"
 msgstr "Προσθήκη επιλεγμένων τραγουδιών ή είσοδος στον κοτάλογο"
 
 # free interpretation, translated as `up one dir'
-#: ../sonata/main.py:7110
+#: .././sonata/about.py:84
 msgid "Go to parent directory"
 msgstr "Επάνω κατα έναν κατάλογο"
 
-#: ../sonata/main.py:7111
+#: .././sonata/about.py:85
 msgid "Add selected item(s)"
 msgstr "Προσθήκη επιλεγμένων αντικειμένων"
 
-#: ../sonata/main.py:7112
+#: .././sonata/about.py:86
 msgid "Replace with selected item(s)"
 msgstr "Αντικατάσταση με τα επιλεγμένα αντικείμενα"
 
-#: ../sonata/main.py:7114
+#: .././sonata/about.py:88
 msgid "Add selected item(s) and play"
 msgstr "Προσθήκη επιλεγμένων αντικειμένων και αναπαραγωγή"
 
-#: ../sonata/main.py:7115
+#: .././sonata/about.py:89
 msgid "Replace with selected item(s) and play"
 msgstr "Αντικατάσταση με τα επιλεγμένα αντικείμενα και αναπαραγωγή"
 
-#: ../sonata/main.py:7116
-msgid "Update library for selected item(s)"
-msgstr "Ανανέωση βιβλιοθήκης για τα επιλεγμένα αντικείμενα"
+#: .././sonata/about.py:90
+#, fuzzy
+msgid "Update selected item(s)/path(s)"
+msgstr "Προσθήκη επιλεγμένων αντικειμένων"
 
-#: ../sonata/main.py:7118
-#: ../sonata/main.py:7120
+#: .././sonata/about.py:92 .././sonata/about.py:94
 msgid "Add selected playlist(s)"
 msgstr "Προσθήκη επιλεγμένων λιστών κομματιών"
 
-#: ../sonata/main.py:7119
+#: .././sonata/about.py:93
 msgid "Remove selected playlist(s)"
 msgstr "Αφαίρεση επιλεγμένων λιστών κομματιών"
 
-#: ../sonata/main.py:7121
+#: .././sonata/about.py:95
 msgid "Replace with selected playlist(s)"
 msgstr "Αντικατάσταση με τις επιλεγμένες λίστες κομματιών«"
 
-#: ../sonata/main.py:7122
+#: .././sonata/about.py:96
 msgid "Add selected playlist(s) and play"
 msgstr "Προσθήκη επιλεγμένων λιστών κομματιών και αναπαραγωγή"
 
-#: ../sonata/main.py:7123
+#: .././sonata/about.py:97
 msgid "Replace with selected playlist(s) and play"
 msgstr "Αντικατάσταση με τις επιλεγμένες λίστες κομματιών και αναπαραγωγή"
 
-#: ../sonata/main.py:7125
-#: ../sonata/main.py:7127
+#: .././sonata/about.py:99 .././sonata/about.py:101
 msgid "Add selected stream(s)"
 msgstr "Προσθήκη επιλεγμένων μεταδόσεων"
 
-#: ../sonata/main.py:7126
+#: .././sonata/about.py:100
 msgid "Remove selected stream(s)"
 msgstr "Αφαίρεση επιλεγμένων μεταδόσεων"
 
-#: ../sonata/main.py:7128
+#: .././sonata/about.py:102
 msgid "Replace with selected stream(s)"
 msgstr "Αντικατάσταση με τις επιλεγμένες μεταδόσεις"
 
-#: ../sonata/main.py:7129
+#: .././sonata/about.py:103
 msgid "Add selected stream(s) and play"
 msgstr "Προσθήκη επιλεγμένων μεταδόσεων και αναπαραγωγή"
 
-#: ../sonata/main.py:7130
+#: .././sonata/about.py:104
 msgid "Replace with selected stream(s) and play"
 msgstr "Αντικατάσταση με τις επιλεγμένες μεταδόσεις και αναπαραγωγή"
 
-#: ../sonata/main.py:7132
+#: .././sonata/about.py:106
 msgid "Edit playing song's tags"
 msgstr "Επεξεργασία ετικετών αναπαραγώμενων τραγουδιών"
 
-#: ../sonata/main.py:7135
+#. define the main array- this adds headings to each section of
+#. shortcuts that will be displayed
+#: .././sonata/about.py:109
 msgid "Main Shortcuts"
 msgstr "Κύριες Συντομεύσεις"
 
-#: ../sonata/main.py:7136
+#: .././sonata/about.py:110
 msgid "Playback Shortcuts"
 msgstr "Συντομεύσεις Αναπαραγωγής"
 
-#: ../sonata/main.py:7137
+#: .././sonata/about.py:111
 msgid "Current Shortcuts"
 msgstr "Συντομεύσεις Τρέχουσας Λίστας"
 
-#: ../sonata/main.py:7138
+#: .././sonata/about.py:112
 msgid "Library Shortcuts"
 msgstr "Συντομεύσεις Βιβλιοθήκης"
 
-#: ../sonata/main.py:7139
+#: .././sonata/about.py:113
 msgid "Playlist Shortcuts"
 msgstr "Συντομεύσεις Λιστών Κομματιών"
 
-#: ../sonata/main.py:7140
+#: .././sonata/about.py:114
 msgid "Stream Shortcuts"
 msgstr "Συντομεύσεις Μεταδόσεων"
 
-#: ../sonata/main.py:7141
+#: .././sonata/about.py:115
 msgid "Info Shortcuts"
 msgstr "Συντομεύσεις Πληροφοριών"
 
-#: ../sonata/main.py:7142
+#: .././sonata/about.py:116
 msgid "Shortcuts"
 msgstr "Συντομεύσεις"
 
-#: ../sonata/main.py:7178
+#: .././sonata/about.py:152
 msgid "An elegant music client for MPD."
 msgstr "Ένα κομψό πρόγραμμα/πελάτης μουσικής για το MPD."
 
+#. Add button to show keybindings:
+#: .././sonata/about.py:165
+msgid "_Shortcuts"
+msgstr "_Συντομεύσεις"
+
+#: .././sonata/current.py:66
+msgid "Filter"
+msgstr "Φίλτρο"
+
+#. Song info
+#: .././sonata/info.py:82
+msgid "Song Info"
+msgstr "Πληροφορίες Τραγουδιού"
+
+#: .././sonata/info.py:95 .././sonata/info.py:249 .././sonata/library.py:71
+#: .././sonata/main.py:1055 .././sonata/tagedit.py:105
+msgid "Title"
+msgstr "Τίτλος"
+
+#: .././sonata/info.py:95 .././sonata/info.py:250 .././sonata/library.py:71
+#: .././sonata/main.py:603 .././sonata/main.py:1056 .././sonata/main.py:1424
+#: .././sonata/tagedit.py:114
+msgid "Artist"
+msgstr "Καλλιτέχνης"
+
+#: .././sonata/info.py:95 .././sonata/info.py:251 .././sonata/library.py:71
+#: .././sonata/main.py:605 .././sonata/main.py:1057 .././sonata/main.py:1425
+#: .././sonata/main.py:2638 .././sonata/tagedit.py:123
+msgid "Album"
+msgstr "Άλμπουμ"
+
+#: .././sonata/info.py:95 .././sonata/info.py:252 .././sonata/main.py:1058
+msgid "Date"
+msgstr "Ημερομηνία"
+
+#: .././sonata/info.py:95 .././sonata/info.py:254 .././sonata/main.py:1059
+#: .././sonata/main.py:1426 .././sonata/tagedit.py:136
+msgid "Track"
+msgstr "Κομμάτι"
+
+#: .././sonata/info.py:95 .././sonata/info.py:253 .././sonata/library.py:71
+#: .././sonata/main.py:604 .././sonata/main.py:1060 .././sonata/main.py:1429
+#: .././sonata/preferences.py:399 .././sonata/tagedit.py:153
+msgid "Genre"
+msgstr "Είδος"
+
+#: .././sonata/info.py:95 .././sonata/info.py:255 .././sonata/main.py:1061
+#: .././sonata/main.py:1430
+msgid "File"
+msgstr "Αρχείο"
+
+#: .././sonata/info.py:95 .././sonata/info.py:248 .././sonata/main.py:1069
+msgid "Bitrate"
+msgstr "Ρυθμός Δεδομένων"
+
+#: .././sonata/info.py:97
+msgid "Launch artist in Wikipedia"
+msgstr "Άνοιγμα καλλιτέχνη στην Wikipedia"
+
+#: .././sonata/info.py:97
+msgid "Launch album in Wikipedia"
+msgstr "Άνοιγμα άλμπουμ στην Wikipedia"
+
+#: .././sonata/info.py:131
+msgid "Toggle extra tags"
+msgstr "Εναλλαγή επιπλέον ετικετών"
+
+#: .././sonata/info.py:134
+msgid "Edit song tags"
+msgstr "Επεξεργασία ετικετών τραγουδιού"
+
+#. Lyrics
+#: .././sonata/info.py:144
+msgid "Lyrics"
+msgstr "Στίχοι"
+
+#: .././sonata/info.py:156
+msgid "Search Lyricwiki.org for lyrics"
+msgstr "Αναζήτηση στο Lyricwiki.org για στίχους"
+
+#: .././sonata/info.py:157
+msgid "Edit lyrics at Lyricwiki.org"
+msgstr ""
+
+#. Album info
+#: .././sonata/info.py:165
+msgid "Album Info"
+msgstr "Πληροφορίες Άλμπουμ"
+
+#: .././sonata/info.py:217 .././sonata/info.py:222
+msgid "more"
+msgstr "περισσότερα"
+
+#: .././sonata/info.py:219
+msgid "hide"
+msgstr "απόκρυψη"
+
+#: .././sonata/info.py:285
+msgid "edit tags"
+msgstr "επεξεργασία ετικετών"
+
+#: .././sonata/info.py:311
+msgid "Album info not found."
+msgstr "Δεν βρέθηκαν πληροφορίες άλμπουμ."
+
+#: .././sonata/info.py:314
+msgid "Album name not set."
+msgstr "Δεν αποδόθηκε όνομα άλμπουμ."
+
+#: .././sonata/info.py:327
+msgid "ZSI not found, fetching lyrics support disabled."
+msgstr "Δεν βρέθηκε το ZSI, η προσκόμιση στίχων απενεργοποιήθηκε."
+
+#: .././sonata/info.py:332
+msgid "Artist or song title not set."
+msgstr "Δεν αποδόθηκε καλλιτέχνης ή τίτλος τραγουδιού."
+
+#: .././sonata/info.py:362
+msgid "search"
+msgstr "αναζήτηση"
+
+#: .././sonata/info.py:363
+#, fuzzy
+msgid "edit"
+msgstr "επεξεργασία ετικετών"
+
+#: .././sonata/info.py:372 .././sonata/info.py:427
+msgid "Lyrics not found"
+msgstr "Δεν βρέθηκαν στίχοι"
+
+#. Fetch lyrics from lyricwiki.org
+#: .././sonata/info.py:392
+msgid "Fetching lyrics..."
+msgstr "Προσκόμιση στίχων"
+
+#: .././sonata/info.py:402
+msgid "Couldn't connect to LyricWiki"
+msgstr "Αδύνατη η σύνδεση με το LyricWiki"
+
+#: .././sonata/info.py:430
+msgid "Fetching lyrics failed"
+msgstr "Προσκόμιση στίχων απέτυχε"
+
+#: .././sonata/library.py:69
+msgid "Untagged"
+msgstr "Χωρίς Ετικέτες"
+
+#: .././sonata/library.py:70
+msgid "Various Artists"
+msgstr "Διάφοροι Καλλιτέχνες"
+
+#: .././sonata/library.py:71
+msgid "Filename"
+msgstr "Όνομα αρχείου"
+
+#: .././sonata/library.py:71
+msgid "Everything"
+msgstr "Όλα"
+
+#: .././sonata/library.py:102
+msgid "_End Search"
+msgstr "_Τέλος Αναζήτησης"
+
+#: .././sonata/library.py:106
+msgid "Library browsing view"
+msgstr "Όψη περιήγησης βιβλιοθήκης"
+
+#. Show text:
+#: .././sonata/library.py:709 .././sonata/main.py:1991
+#: .././sonata/main.py:3559
+msgid "song"
+msgid_plural "songs"
+msgstr[0] "τραγούδι"
+msgstr[1] "τραγούδια"
+
+#: .././sonata/library.py:709 .././sonata/main.py:1985
+msgid "minute"
+msgid_plural "minutes"
+msgstr[0] "λεπτό"
+msgstr[1] "λεπτά"
+
+#: .././sonata/library.py:792
+#, fuzzy
+msgid "Song"
+msgstr "τραγούδι"
+
+#: .././sonata/library.py:792
+msgid "Path"
+msgstr ""
+
+#: .././sonata/main.py:191 .././sonata/main.py:214
+msgid "Default Profile"
+msgstr "Προεπιλεγμένο Προφίλ"
+
+#. Constants
+#: .././sonata/main.py:200
+msgid "Current"
+msgstr "Τρέχουσα Λίστα"
+
+#: .././sonata/main.py:201
+msgid "Library"
+msgstr "Βιβλιοθήκη"
+
+#: .././sonata/main.py:202
+msgid "Playlists"
+msgstr "Λίστες Κομματιών"
+
+#: .././sonata/main.py:203
+msgid "Streams"
+msgstr "Μεταδώσεις"
+
+#: .././sonata/main.py:204
+msgid "Info"
+msgstr "Πληροφορίες"
+
+#: .././sonata/main.py:214
+msgid "by"
+msgstr "από"
+
+#: .././sonata/main.py:214
+msgid "from"
+msgstr "στο"
+
+#: .././sonata/main.py:237
+msgid "The toggle argument requires D-Bus. Aborting."
+msgstr "Η επιλογή εναλλαγής προϋποθέτει την ύπαρξη του D-Bus. Αποτυχία."
+
+#: .././sonata/main.py:243
+msgid "The popup argument requires D-Bus. Aborting."
+msgstr "Η επιλογή ανάδυσης προϋποθέτει την ύπαρξη του D-Bus. Αποτυχία."
+
+#: .././sonata/main.py:283 .././sonata/preferences.py:195
+msgid "Entire song"
+msgstr "Ολόκληρο τραγούδι"
+
+#: .././sonata/main.py:334
+msgid "Starting Sonata with profile"
+msgstr "Εκκίνηση του Sonata με προφίλ"
+
+#: .././sonata/main.py:336 .././sonata/main.py:338
+msgid "Not a valid profile number. Profile number must be between 1 and"
+msgstr ""
+"Μη νόμιμος αριθμός προφίλ. Ο αριθμός προφίλ πρέπει να είναι μεταξύ του 1 και"
+
+#: .././sonata/main.py:382
+msgid "_Sort List"
+msgstr "_Ταξινόμηση Λίστας"
+
+#: .././sonata/main.py:383
+msgid "Sa_ve List to"
+msgstr "Α_ποθήκευση Λίστες σε"
+
+#: .././sonata/main.py:384
+msgid "_Connection"
+msgstr "_Σύνδεση"
+
+#: .././sonata/main.py:385
+msgid "P_lay after"
+msgstr "Αναπαραγωγή μετά"
+
+#: .././sonata/main.py:386
+msgid "Use _Remote Image..."
+msgstr "Χρήση _Απομακρυσμένης Εικόνας..."
+
+#: .././sonata/main.py:387
+msgid "Use _Local Image..."
+msgstr "Χρήση _Τοπικής Εικόνας..."
+
+#: .././sonata/main.py:388
+msgid "_Fullscreen Mode"
+msgstr ""
+
+#: .././sonata/main.py:389
+#, fuzzy
+msgid "Reset Image"
+msgstr "Άνοιγμα Εικόνας"
+
+#: .././sonata/main.py:390
+msgid "_Play"
+msgstr "_Αναπαραγωγή"
+
+#: .././sonata/main.py:391
+msgid "_Pause"
+msgstr "_Παύση"
+
+#: .././sonata/main.py:392
+msgid "_Stop"
+msgstr "_Διακοπή"
+
+#: .././sonata/main.py:393
+msgid "_Previous"
+msgstr "_Προηγούμενο"
+
+#: .././sonata/main.py:394
+msgid "_Next"
+msgstr "_Επόμενο"
+
+#: .././sonata/main.py:395
+msgid "_Quit"
+msgstr "_Έξοδος"
+
+#: .././sonata/main.py:396
+msgid "_Remove"
+msgstr "_Αφαίρεση"
+
+#: .././sonata/main.py:397
+msgid "_Clear"
+msgstr "_Καθαρισμός"
+
+#: .././sonata/main.py:398
+#, fuzzy
+msgid "_Update Path"
+msgstr "Α_νανέωση"
+
+#: .././sonata/main.py:399
+msgid "_Preferences..."
+msgstr "_Επιλογές..."
+
+#: .././sonata/main.py:400
+msgid "_About..."
+msgstr "_Περί..."
+
+#: .././sonata/main.py:401
+msgid "_Edit Tags..."
+msgstr "_Επεξεργασία Ετικετών..."
+
+#: .././sonata/main.py:402
+msgid "_Add"
+msgstr "_Προσθήκη"
+
+#: .././sonata/main.py:403
+msgid "_Replace"
+msgstr "_Αντικατάσταση"
+
+#: .././sonata/main.py:404
+msgid "Add"
+msgstr "Προσθήκη"
+
+#: .././sonata/main.py:405
+msgid "Replace"
+msgstr "Αντικατάσταση"
+
+#: .././sonata/main.py:406
+msgid "_Delete..."
+msgstr "_Διαγραφή..."
+
+#: .././sonata/main.py:407
+msgid "Shuffle"
+msgstr "Ανακάτεμα"
+
+#: .././sonata/main.py:434
+msgid "_Show Sonata"
+msgstr "_Εμφάνιση του Sonata"
+
+#: .././sonata/main.py:435
+msgid "_Repeat"
+msgstr "_Επανάληψη"
+
+#: .././sonata/main.py:436
+#, fuzzy
+msgid "Rando_m"
+msgstr "Τυχαία"
+
+#: .././sonata/main.py:582
+msgid "By Artist"
+msgstr "Ανά Καλλιτέχνη"
+
+#: .././sonata/main.py:583
+msgid "By Album"
+msgstr "Ανά Δίσκο"
+
+#: .././sonata/main.py:584
+msgid "By Song Title"
+msgstr "Ανά Τίτλο Τραγουδιού"
+
+#: .././sonata/main.py:585
+msgid "By File Name"
+msgstr "Ανά νομα Αρχείου"
+
+#: .././sonata/main.py:586
+msgid "By Dir & File Name"
+msgstr "Ανά Όνομα Καταλόγου & Αρχείου"
+
+#: .././sonata/main.py:587
+msgid "Reverse List"
+msgstr "Αντιστροφή Λίστας"
+
+#: .././sonata/main.py:602
+msgid "Filesystem"
+msgstr "Σύστημα Αρχείων"
+
+#: .././sonata/main.py:635 .././sonata/main.py:653
+msgid "_New..."
+msgstr "_Νέο..."
+
+#: .././sonata/main.py:636
+msgid "_Edit..."
+msgstr "_Επεξεργασία..."
+
+#: .././sonata/main.py:654
+msgid "_Rename..."
+msgstr "_Μετονομασία..."
+
+#: .././sonata/main.py:716 .././sonata/main.py:787 .././sonata/main.py:788
+msgid "Playlist"
+msgstr "Λίστα Κομματιών"
+
+#: .././sonata/main.py:745 .././sonata/main.py:750 .././sonata/main.py:1080
+#: .././sonata/main.py:2061 .././sonata/main.py:2072
+msgid "Stopped"
+msgstr "_Στάσιμο"
+
+#: .././sonata/main.py:746 .././sonata/main.py:2065 .././sonata/main.py:2272
+msgid "Click to expand"
+msgstr "Κλικ για επέκταση"
+
+# using a word similar to unfold
+#: .././sonata/main.py:751 .././sonata/main.py:2063 .././sonata/main.py:2270
+#, fuzzy
+msgid "Click to collapse"
+msgstr "Κλικ για αναδίπλωση"
+
+#: .././sonata/main.py:756 .././sonata/main.py:1960 .././sonata/main.py:2068
+msgid "Not Connected"
+msgstr "Μη Συνδεδεμένο"
+
+#: .././sonata/main.py:758 .././sonata/main.py:1958 .././sonata/main.py:2070
+msgid "No Read Permission"
+msgstr "Χωρίς Δικαίωμα Ανάγνωσης"
+
+#: .././sonata/main.py:835
+#, fuzzy
+msgid "Cover Art"
+msgstr "Επιλογή Εξωφύλλου"
+
+#: .././sonata/main.py:970
+msgid "Version: Sonata"
+msgstr "Έκδοση: Sonata"
+
+#: .././sonata/main.py:971
+msgid "Website: http://sonata.berlios.de/"
+msgstr "Ιστοσελίδα: http://sonata.berlios.de/"
+
+#: .././sonata/main.py:976
+msgid "Usage: sonata [OPTION]"
+msgstr "Χρήση: sonata [ΕΠΙΛΟΓΗ]"
+
+#: .././sonata/main.py:978
+msgid "Options"
+msgstr "Επιλογές"
+
+#: .././sonata/main.py:979
+msgid "Show this help and exit"
+msgstr "Εμφάνιση της βοήθειας και έξοδος"
+
+#: .././sonata/main.py:980
+msgid "Popup song notification (requires DBus)"
+msgstr "Ανάδυση ειδοποίησης τραγουδιού (προϋποθέτει το DBus)"
+
+#: .././sonata/main.py:981
+msgid "Toggles whether the app is minimized"
+msgstr "Εναλλαγή της εφαρμογής σε ελαχιστοποιημένη"
+
+#: .././sonata/main.py:982
+msgid "to tray or visible (requires D-Bus)"
+msgstr "στην μπάρα εργασών ή ορατή (προϋποθέτει το DBus)"
+
+#: .././sonata/main.py:983
+msgid "Show version information and exit"
+msgstr "Εμφάνιση πληροφοριών έκδοσης και έξοδος"
+
+#: .././sonata/main.py:984
+msgid "Start app hidden (requires systray)"
+msgstr "Εκκίνηση σε απόκρυψη (προϋποθέτει μπάρα εργασιών)"
+
+#: .././sonata/main.py:985
+msgid "Start app visible (requires systray)"
+msgstr "Εκκίνηση ορατό (προϋποθέτει μπάρα εργασιών)"
+
+#: .././sonata/main.py:986
+msgid "Start with profile [NUM]"
+msgstr "Εκκίνηση με προφίλ [ΑΡΙΘΜΟΣ]"
+
+#: .././sonata/main.py:987
+msgid "Play song in playlist"
+msgstr "Αναπαραγωγή τραγουδιού στην λίστα κομματιών"
+
+#: .././sonata/main.py:988
+msgid "Pause currently playing song"
+msgstr "Παύση τρέχοντος αναπαραγώμενου τραγουδιού"
+
+#: .././sonata/main.py:989
+msgid "Stop currently playing song"
+msgstr "Διακοπή τρέχοντος αναπαραγώμενου τραγουδιού"
+
+#: .././sonata/main.py:990
+msgid "Play next song in playlist"
+msgstr "Αναπαραγωγή του επόμενου τραγουδιού στην λίστα κομματιών"
+
+#: .././sonata/main.py:991
+msgid "Play previous song in playlist"
+msgstr "Αναπαραγωγή του προηγούμενου τραγουδιού στην λίστα κομματιών"
+
+#: .././sonata/main.py:992
+msgid "Toggle play/pause; plays if stopped"
+msgstr "Εναλλαγή  αναπαραγωγής/παύσης. Αναπαραγωγή από στάσιμο"
+
+#: .././sonata/main.py:993
+msgid "Toggle repeat mode"
+msgstr "Εναλλαγή λειτουργίας επανάληψης"
+
+#: .././sonata/main.py:994
+#, fuzzy
+msgid "Toggle random mode"
+msgstr "Εναλλαγή λειτουργίας επανάληψης"
+
+#: .././sonata/main.py:995
+msgid "Display current song info"
+msgstr "Εμφάνιση πληροφοριών τρέχοντος τραγουδιού"
+
+# status tretated as `state'
+#: .././sonata/main.py:996
+msgid "Display MPD status"
+msgstr "Εμφάνιση κατάστασης του MPD"
+
+# meaning length
+#: .././sonata/main.py:1066 .././sonata/main.py:1068
+msgid "Time"
+msgstr "Διάρκεια"
+
+#: .././sonata/main.py:1071
+msgid "MPD stopped"
+msgstr "MPD στάσιμο"
+
+#: .././sonata/main.py:1076 .././sonata/main.py:1078 .././sonata/main.py:1080
+msgid "State"
+msgstr "Κατάσταση"
+
+# like `in play'
+#: .././sonata/main.py:1076
+msgid "Playing"
+msgstr "Σε αναπαραγωγή"
+
+# like `in pause'
+#: .././sonata/main.py:1078
+msgid "Paused"
+msgstr "Σε παύση"
+
+#: .././sonata/main.py:1082 .././sonata/main.py:1084
+msgid "Repeat"
+msgstr "Επανάληψη"
+
+#: .././sonata/main.py:1082 .././sonata/main.py:1086
+msgid "Off"
+msgstr "Ανενεργό"
+
+#: .././sonata/main.py:1084 .././sonata/main.py:1088
+msgid "On"
+msgstr "Ενεργό"
+
+#: .././sonata/main.py:1086 .././sonata/main.py:1088
+msgid "Random"
+msgstr "Τυχαία"
+
+#: .././sonata/main.py:1089
+msgid "Volume"
+msgstr "Ένταση"
+
+# descriptive translation
+#: .././sonata/main.py:1090
+#, fuzzy
+msgid "Crossfade"
+msgstr "Ομαλή μετάβαση κομματιών"
+
+#: .././sonata/main.py:1090 .././sonata/preferences.py:196
+msgid "second"
+msgid_plural "seconds"
+msgstr[0] "δευτερόλεπτο"
+msgstr[1] "δευτερόλεπτα"
+
+#: .././sonata/main.py:1094
+msgid ""
+"Unable to connect to MPD.\n"
+"Please check your Sonata preferences or MPD_HOST/MPD_PORT environment "
+"variables."
+msgstr ""
+"Αδύνατη η σύνδεση στο MPD.\n"
+"Παρακαλώ ελέγξτε τις ρυθμίσεις του Sonata ή τις μεταβλητές περιβάλλοντος "
+"MPD_HOST/MPD_PORT."
+
+#: .././sonata/main.py:1097 .././sonata/main.py:1110 .././sonata/main.py:1131
+#, fuzzy
+msgid "Profile"
+msgstr "Νέο Προφίλ"
+
+#: .././sonata/main.py:1110 .././sonata/main.py:1111 .././sonata/main.py:1131
+#, fuzzy
+msgid "MPD_HOST/PORT"
+msgstr "Χρήση "
+
+#: .././sonata/main.py:1112 .././sonata/main.py:1118
+msgid "Disconnect"
+msgstr "Αποσύνδεση"
+
+#: .././sonata/main.py:1427 .././sonata/main.py:1433
+msgid "#"
+msgstr "Α/Α"
+
+#: .././sonata/main.py:1428 .././sonata/preferences.py:398
+#: .././sonata/tagedit.py:132
+msgid "Year"
+msgstr "Έτος"
+
+#: .././sonata/main.py:1431
+msgid "Stream"
+msgstr "Μετάδωση"
+
+# length
+#: .././sonata/main.py:1432
+msgid "Len"
+msgstr "Διάρκεια"
+
+#: .././sonata/main.py:1453 .././sonata/main.py:1460 .././sonata/main.py:1501
+#: .././sonata/main.py:1508
+msgid "Unknown"
+msgstr "Άγνωστο"
+
+#: .././sonata/main.py:1981
+msgid "day"
+msgid_plural "days"
+msgstr[0] "μέρα"
+msgstr[1] "μέρες"
+
+#: .././sonata/main.py:1989
+msgid "hour"
+msgid_plural "hours"
+msgstr[0] "ώρα"
+msgstr[1] "ώρες"
+
+#: .././sonata/main.py:1994 .././sonata/main.py:1996
+msgid "and"
+msgstr "και"
+
+#: .././sonata/main.py:2004
+msgid "(updating mpd)"
+msgstr "(ανανέωση του mpd)"
+
+#: .././sonata/main.py:2334
+msgid "Lyrics Search"
+msgstr "Αναζήτηση Στίχων"
+
+#: .././sonata/main.py:2335
+msgid "_Search"
+msgstr "Ανα_ζήτηση"
+
+#: .././sonata/main.py:2338
+msgid "Artist Name"
+msgstr "Όνομα Καλλιτέχνη"
+
+#: .././sonata/main.py:2343
+msgid "Song Title"
+msgstr "Τίτλος Τραγουδιού"
+
+#: .././sonata/main.py:2576
+msgid "Open Image"
+msgstr "Άνοιγμα Εικόνας"
+
+#: .././sonata/main.py:2578
+msgid "Images"
+msgstr "Εικόνες"
+
+#: .././sonata/main.py:2582
+msgid "All files"
+msgstr "Όλα τα αρχεία"
+
+#: .././sonata/main.py:2624
+msgid "Choose Cover Art"
+msgstr "Επιλογή Εξωφύλλου"
+
+#: .././sonata/main.py:2625
+msgid "C_hoose"
+msgstr "Ε_πιλογή"
+
+#: .././sonata/main.py:2653
+msgid "_Update"
+msgstr "Α_νανέωση"
+
+#: .././sonata/main.py:2658
+msgid "Edit search terms"
+msgstr "Επεξεργασία όρων αναζήτησης"
+
+#: .././sonata/main.py:2715
+msgid "No artist or album name found."
+msgstr "Δεν βρέθηκε όνομα καλλιτέχνη ή άλμπουμ."
+
+#: .././sonata/main.py:2718
+msgid "No cover art found."
+msgstr "Δεν βρέθηκε εξώφυλλο."
+
+#: .././sonata/main.py:3040
+msgid "Delete the selected playlist?"
+msgid_plural "Delete the selected playlists?"
+msgstr[0] "Διαγραφή της επιλεγμένης λίστας κομματιών;"
+msgstr[1] "Διαγραφή των επιλεγμένων λιστών κομματιών;"
+
+#: .././sonata/main.py:3040
+msgid "Delete Playlist"
+msgid_plural "Delete Playlists"
+msgstr[0] "Διαγραφή λίστας κομματιών"
+msgstr[1] "Διαγραφή λιστών κομματιών"
+
+#: .././sonata/main.py:3048
+msgid "Delete the selected stream?"
+msgid_plural "Delete the selected streams?"
+msgstr[0] "Διαγραφή της επιλεγμένης μετάδοσης;"
+msgstr[1] "Διαγραφή των επιλεγμένων μεταδόσεων;"
+
+#: .././sonata/main.py:3048
+msgid "Delete Stream"
+msgid_plural "Delete Streams"
+msgstr[0] "Διαγραφή μετάδοσης"
+msgstr[1] "Διαγραφή μεταδόσεων"
+
+#: .././sonata/main.py:3109
+msgid ""
+"To save lyrics to the music file's directory, you must specify a valid music "
+"directory."
+msgstr ""
+"Για αποθήκευση στίχων στον κατάλογο του μουσικού αρχείου, πρέπει να "
+"προσδιοριστεί ένας νόμιμος μουσικός κοτάλογος."
+
+#: .././sonata/main.py:3109 .././sonata/main.py:3116
+msgid "Music Dir Verification"
+msgstr "Επιβεβαίωση Μουσικού Καταλόγου"
+
+#: .././sonata/main.py:3116
+msgid ""
+"To save artwork to the music file's directory, you must specify a valid "
+"music directory."
+msgstr ""
+"Για αποθήκευση εξωφύλλων στον κατάλογο του μουσικού αρχείου, πρέπει να "
+"προσδιοριστεί ένας νόμιμος μουσικός κοτάλογος."
+
 # decided to use the foreign word, so no plural in greek
-#: ../sonata/main.py:7184
+#: .././sonata/main.py:3560
 msgid "album"
 msgid_plural "albums"
 msgstr[0] "άλμπουμ"
 msgstr[1] "άλμπουμ"
 
-#: ../sonata/main.py:7185
+#: .././sonata/main.py:3561
 msgid "artist"
 msgid_plural "artists"
 msgstr[0] "καλλιτέχνης"
 msgstr[1] "καλλιτέχνες"
 
-#: ../sonata/main.py:7192
+#: .././sonata/main.py:3568
 msgid "day of bliss"
 msgid_plural "days of bliss"
 msgstr[0] "μέρα χαράς"
 msgstr[1] "μέρες χαράς"
 
-#: ../sonata/main.py:7194
+#: .././sonata/main.py:3570
 msgid "hour of bliss"
 msgid_plural "hours of bliss"
 msgstr[0] "ώρα χαράς"
 msgstr[1] "ώρες χαράς"
 
-#: ../sonata/main.py:7205
-msgid "_Shortcuts"
-msgstr "_Συντομεύσεις"
-
-#: ../sonata/main.py:7463
+#: .././sonata/main.py:3627
 msgid "An instance of Sonata is already running."
 msgstr "Ένα στιγμιότυπο του Sonata τρέχει ήδη."
 
-#: ../sonata/main.py:7469
-msgid "Sonata failed to connect to the D-BUS session bus: Unable to determine the address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for help)"
-msgstr "Το Sonata απέτυχε να συνδεθεί με τη λεωφόρο του D-BUS: Δεν ήταν δυνατός ο προσδιορισμός της διεύθυνσης της λεωφόρου μηνυμάτων (δοκιμάστε 'man dbus-launch' και 'man dbus-daemon' για βοήθεια)"
+#: .././sonata/main.py:3633
+msgid ""
+"Sonata failed to connect to the D-BUS session bus: Unable to determine the "
+"address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for "
+"help)"
+msgstr ""
+"Το Sonata απέτυχε να συνδεθεί με τη λεωφόρο του D-BUS: Δεν ήταν δυνατός ο "
+"προσδιορισμός της διεύθυνσης της λεωφόρου μηνυμάτων (δοκιμάστε 'man dbus-"
+"launch' και 'man dbus-daemon' για βοήθεια)"
 
+#. FIXME no function ui.show_error_msg defined
+#: .././sonata/misc.py:205
+msgid "Unable to launch a suitable browser."
+msgstr ""
+
+#: .././sonata/misc.py:205
+msgid "Launch Browser"
+msgstr ""
+
+#: .././sonata/playlists.py:110 .././sonata/playlists.py:112
+msgid "Save Playlist"
+msgstr "Αποθήκευση Λίστας Κομματιών"
+
+#: .././sonata/playlists.py:127
+msgid "Would you like to replace the existing playlist or append these songs?"
+msgstr ""
+
+#: .././sonata/playlists.py:127
+#, fuzzy
+msgid "Existing Playlist"
+msgstr "Λίστα Κομματιών"
+
+#: .././sonata/playlists.py:127
+#, fuzzy
+msgid "Replace playlist"
+msgstr "Μετονομασία Λίστας Κομματιών"
+
+#: .././sonata/playlists.py:127
+msgid "Append songs"
+msgstr ""
+
+#: .././sonata/playlists.py:148
+msgid "A playlist with this name already exists. Would you like to replace it?"
+msgstr ""
+"Μια λίστα κομματιών με αυτό το όνομα υπάρχει ήδη. Θέλετε να την "
+"αντικαταστήσετε;"
+
+#: .././sonata/playlists.py:160
+msgid "Playlist name"
+msgstr "Όνομα λίστας κομματιών"
+
+#: .././sonata/playlists.py:189 .././sonata/playlists.py:193
+msgid "Rename Playlist"
+msgstr "Μετονομασία Λίστας Κομματιών"
+
+#. Constants:
+#: .././sonata/preferences.py:35
+msgid "System tray"
+msgstr "Μπάρα εργασιών"
+
+#: .././sonata/preferences.py:35
+msgid "Top Left"
+msgstr "Πάνω Αριστερά"
+
+#: .././sonata/preferences.py:35
+msgid "Top Right"
+msgstr "Πάνω Δεξιά"
+
+#: .././sonata/preferences.py:35
+msgid "Bottom Left"
+msgstr "Κάτω Αριστερά"
+
+#: .././sonata/preferences.py:35
+msgid "Bottom Right"
+msgstr "Κάτω Δεξιά"
+
+#: .././sonata/preferences.py:35
+msgid "Screen Center"
+msgstr "Κέντρο Οθόνης"
+
+#. MPD tab
+#: .././sonata/preferences.py:72
+msgid "MPD Connection"
+msgstr "Σύνδεση με το MPD"
+
+#: .././sonata/preferences.py:82
+msgid "Name"
+msgstr "Όνομα"
+
+#: .././sonata/preferences.py:87
+msgid "Host"
+msgstr "Διακομιστής"
+
+#: .././sonata/preferences.py:92
+msgid "Port"
+msgstr "Θύρα"
+
+#: .././sonata/preferences.py:97
+msgid "Music dir"
+msgstr "Κατάλογος μουσικής"
+
+#: .././sonata/preferences.py:103
+msgid "Password"
+msgstr "Κωδικός"
+
+# `required' translated as `needed'
+#: .././sonata/preferences.py:106
+msgid "Leave blank if no password is required."
+msgstr "Κενό εάν ο κωδικός δεν είναι αναγκαίος."
+
+#: .././sonata/preferences.py:110
+msgid "Autoconnect on start"
+msgstr "Αυτόματη σύνδεση κατα την εκκίνηση"
+
+#: .././sonata/preferences.py:127
+msgid "Using MPD_HOST/PORT"
+msgstr "Χρήση "
+
+#: .././sonata/preferences.py:168
+msgid "Extras"
+msgstr "Πρόσθετα"
+
+#: .././sonata/preferences.py:175
+msgid "Enable Audioscrobbler"
+msgstr "Ενεροποίηση του Audioscrobbler"
+
+#: .././sonata/preferences.py:180
+msgid "Username:"
+msgstr "Όνομα χρήστη:"
+
+#: .././sonata/preferences.py:181
+msgid "Password:"
+msgstr "Κωδικός:"
+
+#: .././sonata/preferences.py:187
+msgid "Popup notification on song changes"
+msgstr "Ανάδυση ειδοποίησης σε αλλαγές τραγουδιού"
+
+# descriptive translation
+#: .././sonata/preferences.py:207
+#, fuzzy
+msgid "Enable Crossfade"
+msgstr "Ενεργοποίηση Ομαλής Μετάβασης Κομματιών"
+
+#: .././sonata/preferences.py:215
+msgid "Fade length"
+msgstr "Διάρκεια μετάβασης"
+
+# abbreviation
+#: .././sonata/preferences.py:216
+msgid "sec"
+msgstr "δευτ"
+
+#: .././sonata/preferences.py:253
+msgid "Display"
+msgstr "Εμφάνιση"
+
+# descriptive translation
+#: .././sonata/preferences.py:255
+msgid "Enable album art"
+msgstr "Ενεργοποίηση εξωφύλλων άλμπουμ"
+
+#: .././sonata/preferences.py:257
+msgid "Standard"
+msgstr "Βασική"
+
+#: .././sonata/preferences.py:257
+msgid "Stylized"
+msgstr "Μορφοποιημένη"
+
+#: .././sonata/preferences.py:259
+msgid "Artwork style:"
+msgstr "Μορφή εξωφύλλων:"
+
+#: .././sonata/preferences.py:262
+msgid "Local only"
+msgstr "Μόνο τοπικά"
+
+#: .././sonata/preferences.py:262
+#, fuzzy
+msgid "Local and remote"
+msgstr "Τοπικά, μετα απομακρυσμένα"
+
+#: .././sonata/preferences.py:263
+#, fuzzy
+msgid "Search locations:"
+msgstr "Σειρά αναζήτησης:"
+
+#: .././sonata/preferences.py:268
+msgid "Save art to:"
+msgstr "Αποθήκευση εξωφύλλων σε:"
+
+#: .././sonata/preferences.py:271
+msgid "custom"
+msgstr "παραμετροποίηση"
+
+#: .././sonata/preferences.py:272 .././sonata/preferences.py:292
+msgid "file_path"
+msgstr "μονο_πάτι αρχείου"
+
+#: .././sonata/preferences.py:278
+msgid "Enable playback/volume buttons"
+msgstr "Ενεργοποίηση κουμπιών αναπαραγωγής/έντασης"
+
+#: .././sonata/preferences.py:281
+msgid "Enable progressbar"
+msgstr "Ενεργοποίηση μπάρας προόδου"
+
+#: .././sonata/preferences.py:284
+msgid "Enable statusbar"
+msgstr "Ενεργοποίηση μπάρας κατάστασης"
+
+#: .././sonata/preferences.py:287
+msgid "Enable lyrics"
+msgstr "Ενεργοποίηση στίχων"
+
+#: .././sonata/preferences.py:290
+msgid "Save lyrics to:"
+msgstr "Αποθήκευση στίχων σε:"
+
+#: .././sonata/preferences.py:296
+msgid "Enable system tray icon"
+msgstr "Ενεργοποίηση εικονιδίου στην μπάρα εργασιών"
+
+#: .././sonata/preferences.py:315
+msgid "Window Behavior"
+msgstr "Συμπεριφορά Παραθύρου"
+
+#: .././sonata/preferences.py:316
+msgid "Show window on all workspaces"
+msgstr "Εμφάνιση παραθύρου σε όλες τις επιφάνειες εργασίας"
+
+#: .././sonata/preferences.py:318
+msgid "Keep window above other windows"
+msgstr "Παραμονή παραθύρου πάνω από τα άλλα παράθυρα"
+
+#: .././sonata/preferences.py:320
+msgid "Update MPD library on start"
+msgstr "Ανανέωση της βιβλιοθήκης του MPD κατά την εκκίνηση"
+
+#: .././sonata/preferences.py:322
+msgid ""
+"If enabled, Sonata will automatically update your MPD library when it starts "
+"up."
+msgstr ""
+"Εάν είναι ενεργοποιημένο, το Sonata θα ανανεώνει την βιβλιοθήκη του MPD όταν "
+"ξεκινά."
+
+#: .././sonata/preferences.py:323
+msgid "Stop playback on exit"
+msgstr "Διακοπή αναπαραγωγής κατά την έξοδο"
+
+#: .././sonata/preferences.py:325
+msgid ""
+"MPD allows playback even when the client is not open. If enabled, Sonata "
+"will behave like a more conventional music player and, instead, stop "
+"playback upon exit."
+msgstr ""
+"Το MPD επιτρέπει την αναπαραγωγή ακόμη κι αν το πρόγραμμα-πελάτης δεν είναι "
+"ανοιχτό. Εάν είναι ενεργοποιημένο, το Sonata θα συμπεριφέρεται σαν ένα "
+"περισσότερο συμβατικό πρόγραμμα αναπαραγωγής μουσικής και, αντιθέτως, θα "
+"σταματά την αναπαραγωγή με το που κλείνει."
+
+# `escape' translated as `pressing Escape'
+#: .././sonata/preferences.py:326
+msgid "Minimize to system tray on close/escape"
+msgstr "Ελαχιστοπίηση στην μπάρα εργασιών κατά το κλείσιμο ή πάτημα του Escape"
+
+#: .././sonata/preferences.py:328
+msgid ""
+"If enabled, closing Sonata will minimize it to the system tray. Note that "
+"it's currently impossible to detect if there actually is a system tray, so "
+"only check this if you have one."
+msgstr ""
+"Εάν είναι ενεργοποιημένο, το κλείσιμο του Sonata θα το ελαχιστοποιεί στην "
+"μπάρα εργασιών. Σημειώστε ότι αυτή την στιγμή είναι αδύνατο να εντοπιστεί η "
+"ύπαρξη μπάρας εργασιών, οπότε επιλέξτε το άν έχετε μία."
+
+#: .././sonata/preferences.py:332
+msgid "Write status file:"
+msgstr "Εγγραφή αρχείου κατάστασης:"
+
+#: .././sonata/preferences.py:334 .././sonata/preferences.py:336
+msgid ""
+"If enabled, Sonata will create a xmms-infopipe like file containing "
+"information about the current song. Many applications support the xmms-info "
+"file (Instant Messengers, IRC Clients...)"
+msgstr ""
+"Εάν είναι ενεργό, το Sonata θα δημιουργήσει ένα αρχείο xmms-infopipe το "
+"οποίο θα περιέχει πληροφορίες σχετικά με το τρέχον κομμάτι. Πολλές εφαρμογές "
+"υποστηρίζουν το αρχείο xmms-info (Προγράμματα Άμεσης Συνομιλίας, Προγράμματα-"
+"πελάτες IRC...)"
+
+#: .././sonata/preferences.py:342
+msgid "Miscellaneous"
+msgstr "Λοιπά"
+
+#: .././sonata/preferences.py:364
+msgid "Song Formatting"
+msgstr "Μορφοποίηση Τραγουδιού"
+
+#: .././sonata/preferences.py:366
+msgid "Current playlist:"
+msgstr "Τρέχουσα λίστα κομματιών:"
+
+#: .././sonata/preferences.py:371
+msgid "Library:"
+msgstr "Βιβλιοθήκη:"
+
+#: .././sonata/preferences.py:376
+msgid "Window title:"
+msgstr "Τίτλος παραθύρου:"
+
+#: .././sonata/preferences.py:382
+msgid "Current song line 1:"
+msgstr "Γραμμή τρέχοντος τραγουδιού 1:"
+
+#: .././sonata/preferences.py:387
+msgid "Current song line 2:"
+msgstr "Γραμμή τρέχοντος τραγουδιού 2:"
+
+#: .././sonata/preferences.py:395
+msgid "Available options"
+msgstr "Διαθέσιμες επιλογές"
+
+#: .././sonata/preferences.py:398
+msgid "Artist name"
+msgstr "Όνομα καλλιτέχνη"
+
+#: .././sonata/preferences.py:398
+msgid "Album name"
+msgstr "Όνομα άλμπουμ"
+
+#: .././sonata/preferences.py:398
+msgid "Track name"
+msgstr "Όνομα κομματιού"
+
+#: .././sonata/preferences.py:398
+msgid "Track number"
+msgstr "Αριθμός κομματιού"
+
+#: .././sonata/preferences.py:398
+msgid "Disc Number"
+msgstr "Αριθμός Δίσκου"
+
+#: .././sonata/preferences.py:399
+msgid "File name"
+msgstr "Όνομα αρχείου"
+
+#: .././sonata/preferences.py:399 .././sonata/streams.py:115
+msgid "Stream name"
+msgstr "Όνομα μετάδωσης"
+
+# translated as `duration'
+#: .././sonata/preferences.py:399
+msgid "Song length"
+msgstr "Διάρκεια τραγουδιού"
+
+# descriptive translation
+#: .././sonata/preferences.py:399
+msgid "Elapsed time (title only)"
+msgstr "Χρόνος που έχει αναπαραχθεί (μόνο στον τίτλο)"
+
+#: .././sonata/preferences.py:403
+msgid "Info displayed only if all enclosed tags are defined"
+msgstr ""
+"Πληροφορίες που εμφανίζονται μόνο εάν όλες οι εσωκλειώμενες ετικέτες έχουν "
+"οριστεί"
+
+#: .././sonata/preferences.py:403
+msgid "Creates columns in the current playlist"
+msgstr "Δημιουργεί στήλες στην τρέχουσα λίστα κομματιών"
+
+#: .././sonata/preferences.py:417
+msgid "_MPD"
+msgstr "_MPD"
+
+#: .././sonata/preferences.py:418
+msgid "_Display"
+msgstr "_Εμφάνιση"
+
+#: .././sonata/preferences.py:419
+msgid "_Behavior"
+msgstr "_Συμπεριφορά"
+
+#: .././sonata/preferences.py:420
+msgid "_Format"
+msgstr "_Μορφοποίηση"
+
+#: .././sonata/preferences.py:421
+msgid "_Extras"
+msgstr "_Πρόσθετα"
+
+#: .././sonata/preferences.py:490
+msgid "New Profile"
+msgstr "Νέο Προφίλ"
+
+#. Prompt user for playlist name:
+#: .././sonata/preferences.py:546
+msgid "Custom Artwork"
+msgstr "Παραμετροποιημένο Εξώφυλλο"
+
+#: .././sonata/preferences.py:548
+msgid "Artwork filename"
+msgstr "Όνομα αρχείου εξωφύλλου"
+
+#: .././sonata/streams.py:111
+msgid "Edit Stream"
+msgstr "Επεξεργασία"
+
+#: .././sonata/streams.py:113 .././sonata/streams.py:144
+msgid "New Stream"
+msgstr "Νέα Μετάδωση"
+
+#: .././sonata/streams.py:122
+msgid "Stream URL"
+msgstr "URL Μετάδωσης"
+
+#: .././sonata/streams.py:144
+msgid "A stream with this name already exists. Would you like to replace it?"
+msgstr ""
+"Μια μετάδωση με αυτό το όνομα υπάρχει ήδη. Θέλετε να την αντικαταστήσετε;"
+
+#: .././sonata/tagedit.py:52
+msgid "Taglib and/or tagpy not found, tag editing support disabled."
+msgstr ""
+"Το Taglib και/ή το tagpy δεν βρέθηκαν, η υποστήριξη επεξεργασίας ετικετών "
+"απενεργοποιήθηκε."
+
+#: .././sonata/tagedit.py:52 .././sonata/tagedit.py:56
+#: .././sonata/tagedit.py:80 .././sonata/tagedit.py:84
+#: .././sonata/tagedit.py:310 .././sonata/tagedit.py:424
+msgid "Edit Tags"
+msgstr "Επεξεργασία Ετικετών"
+
+#: .././sonata/tagedit.py:56
+msgid "The path"
+msgstr "Το μονοπάτι"
+
+#: .././sonata/tagedit.py:56
+msgid "does not exist. Please specify a valid music directory in preferences."
+msgstr ""
+"δεν υπάρχει. Παρακαλώ, προσδιορίστε έναν νόμιμο μουσικό κατάλογο στις "
+"προτιμήσεις."
+
+#: .././sonata/tagedit.py:80
+msgid "File "
+msgstr "Το αρχείο"
+
+#: .././sonata/tagedit.py:80
+msgid " not found. Please specify a valid music directory in preferences."
+msgstr ""
+"δεν βρέθηκε. Παρακαλώ, προσδιορίστε έναν νόμιμο μουσικό κατάλογο στις "
+"προτιμήσεις."
+
+#: .././sonata/tagedit.py:84
+msgid "No music files with editable tags found."
+msgstr "Δεν βρέθηκαν μουσικά αρχεία με επεξεργάσιμες ετικέτες."
+
+#: .././sonata/tagedit.py:163
+msgid "Comment"
+msgstr "Σχόλιο"
+
+#. Only show save all button if more than one song being edited.
+#: .././sonata/tagedit.py:181
+msgid "Save _All"
+msgstr "Αποθήκευση _Όλων"
+
+#: .././sonata/tagedit.py:229
+msgid "Increment each selected music file, starting at track 1 for this file."
+msgstr ""
+"Επαύξηση κάθε επιλεγμένου μουσικού αρχείου, ξεκινώντας από το κομμάτι 1 για "
+"αυτό το αρχείο."
+
+#: .././sonata/tagedit.py:231
+msgid "Apply to all selected music files."
+msgstr "Εφαρμογή σε όλα τα επιλεγμένα μουσικά αρχεία."
+
+#: .././sonata/tagedit.py:310
+msgid "of"
+msgstr "από"
+
+#. FIXME: was (save_success and self.conn and self.status):
+#: .././sonata/tagedit.py:424
+msgid "Unable to save tag to music file."
+msgstr "Αδύνατη η αποθήκευση ετικέτας στο μουσικό αρχείο."
+
+#: .././sonata/tagedit.py:493
+#, fuzzy
+msgid "Hide file path"
+msgstr "μονο_πάτι αρχείου"
+
+#: .././sonata/tagedit.py:496
+#, fuzzy
+msgid "Show file path"
+msgstr "μονο_πάτι αρχείου"
+
+#~ msgid ""
+#~ "PyGTK+ 2.10 or gnome-python-extras not found, system tray support "
+#~ "disabled."
+#~ msgstr ""
+#~ "Το PyGTK+ 2.10 ή το gnome-python-extras δεν εντοπίστηκε, η υποστήριξη "
+#~ "μπάρας εργασιών απενεργοποιήθηκε."
+
+#~ msgid "Reset to Default"
+#~ msgstr "Επαναφορά Προεπιλογής"
+
+#~ msgid "_New Playlist..."
+#~ msgstr "_Νέα Λίστα Κομματιών..."
+
+#~ msgid "_Update Library"
+#~ msgstr "_Ανανέωση Βιβλιοθήκης"
+
+#~ msgid "_Shuffle"
+#~ msgstr "_Ανακάτεμα"
+
+#~ msgid "Toggle shuffle mode"
+#~ msgstr "Εναλλαγή λειτουργίας ανακατέματος"
+
+#~ msgid "Notification"
+#~ msgstr "Ειδοποίηση"
+
+#~ msgid ""
+#~ "Python 2.5 or python-elementtree not found, audioscrobbler support "
+#~ "disabled."
+#~ msgstr ""
+#~ "Το Python 2.5 ή το python-elementtree δεν βρέθηκαν, η υποστήριξη του "
+#~ "audioscrobbler απενεργοποιήθηκε."
+
+#~ msgid "Audioscrobbler Verification"
+#~ msgstr "Επιβεβαίωση Audioscrobbler"
+
+#~ msgid "Update library for selected item(s)"
+#~ msgstr "Ανανέωση βιβλιοθήκης για τα επιλεγμένα αντικείμενα"

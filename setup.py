@@ -36,7 +36,7 @@ def rmgeneric(path, __func__):
 if not os.path.exists("mo/"):
     os.mkdir("mo/")
 for lang in ('de', 'pl', 'ru', 'fr', 'zh_CN', 'sv', 'es', 'fi', 'uk', 'it', 'cs', \
-             'nl', 'pt_BR', 'da', 'be@latin', 'et', 'ca', 'ar', 'tr', 'el_GR'):
+             'nl', 'pt_BR', 'da', 'be@latin', 'et', 'ca', 'ar', 'tr', 'el_GR', 'sk'):
     pofile = "po/" + lang + ".po"
     mofile = "mo/" + lang + "/sonata.mo"
     if not os.path.exists("mo/" + lang + "/"):
@@ -93,6 +93,7 @@ setup(name='Sonata',
                     ('share/locale/tr/LC_MESSAGES', ['mo/tr/sonata.mo']),
                     ('share/locale/be@latin/LC_MESSAGES', ['mo/be@latin/sonata.mo']),
                     ('share/locale/el_GR/LC_MESSAGES', ['mo/el_GR/sonata.mo']),
+                    ('share/locale/sk/LC_MESSAGES', ['mo/sk/sonata.mo']),
                     ('share/locale/uk/LC_MESSAGES', ['mo/uk/sonata.mo'])],
         )
 

@@ -1,0 +1,41 @@
+#!/bin/sh
+
+writelines() {
+   for i in *.py 
+     do
+     if [ ${i} != "__init__.py" ]
+     then
+       echo $2${i} >> $1
+     fi
+   done
+}
+
+cd $(dirname "$0")
+
+echo
+echo Updating POTFILES.in...
+echo
+
+rm ../po/POTFILES.in
+touch ../po/POTFILES.in
+cd ..
+writelines po/POTFILES.in ./
+cd sonata
+writelines ../po/POTFILES.in ./sonata/
+cd ../po
+
+for i in *.po 
+  do
+  if [ "$i" = "messages.po" ]
+    then
+    continue
+  fi
+  echo Updating ${i}...
+  intltool-update "${i%*.po}"
+  echo
+done
+
+echo Cleaning up...
+echo
+
+rm untitled.pot
