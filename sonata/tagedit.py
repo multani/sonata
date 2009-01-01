@@ -11,6 +11,7 @@ tageditor.on_tags_edit(files, temp_mpdpaths, self.musicdir[self.profile_num])
 
 import gettext
 import os
+import re
 
 import gtk, gobject
 tagpy = None # module loaded when needed
@@ -465,20 +466,17 @@ class TagEditor():
                 "Techno-Industrial", "Terror", "Thrash Metal", "Top 40", "Trailer"]
 
     def tags_win_entry_constraint(self, entry, new_text, _new_text_length, _broken_position, isyearlabel):
-        entry_chars = list(entry.get_chars(0, -1))
-        position = entry.get_position()
-        entry_chars.insert(position, new_text)
-        proposed_text = "".join(entry_chars)
-        try:
-            val = int(proposed_text)
-            # XXX check for leading zeros...:
-            if (isyearlabel and val <= 9999) or not isyearlabel:
-                if val > 0:
-                    return # accept
-        except ValueError:
-            pass
-        # deny:
-        entry.stop_emission("insert-text")
+        entry_chars = entry.get_text()
+        pos = entry.get_position()
+        proposed_text = entry_chars[:pos] + new_text + entry_chars[pos:]
+
+        # get the correct regular expression
+        expr = r'(0|[1-9][0-9]{0,3})$' if isyearlabel else r'(0|[1-9][0-9]*)$'
+        expr = re.compile(expr)
+
+        if not expr.match(proposed_text):
+            # deny
+            entry.stop_emission("insert-text")
 
     def toggle_path(self, button):
         self.use_mpdpaths = not self.use_mpdpaths
