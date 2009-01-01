@@ -271,21 +271,21 @@ class TagEditor():
         self.updating_edit_entries = True
         # Populate tags(). Note that we only retrieve info from the
         # file if the info hasn't already been changed:
-        fileref = tagpy.FileRef(tags[self.tagnum]['fullpath'])
+        tag = tagpy.FileRef(tags[self.tagnum]['fullpath']).tag()
         if not tags[self.tagnum]['title-changed']:
-            tags[self.tagnum]['title'] = fileref.tag().title
+            tags[self.tagnum]['title'] = tag.title
         if not tags[self.tagnum]['artist-changed']:
-            tags[self.tagnum]['artist'] = fileref.tag().artist
+            tags[self.tagnum]['artist'] = tag.artist
         if not tags[self.tagnum]['album-changed']:
-            tags[self.tagnum]['album'] = fileref.tag().album
+            tags[self.tagnum]['album'] = tag.album
         if not tags[self.tagnum]['year-changed']:
-            tags[self.tagnum]['year'] = fileref.tag().year
+            tags[self.tagnum]['year'] = tag.year
         if not tags[self.tagnum]['track-changed']:
-            tags[self.tagnum]['track'] = fileref.tag().track
+            tags[self.tagnum]['track'] = tag.track
         if not tags[self.tagnum]['genre-changed']:
-            tags[self.tagnum]['genre'] = fileref.tag().genre
+            tags[self.tagnum]['genre'] = tag.genre
         if not tags[self.tagnum]['comment-changed']:
-            tags[self.tagnum]['comment'] = fileref.tag().comment
+            tags[self.tagnum]['comment'] = tag.comment
         # Update interface:
         entries[0].set_text(self.tags_get_tag(tags[self.tagnum], 'title'))
         entries[1].set_text(self.tags_get_tag(tags[self.tagnum], 'artist'))
@@ -406,19 +406,20 @@ class TagEditor():
             while window.action_area.get_property("sensitive") or gtk.events_pending():
                 gtk.main_iteration()
             filetag = tagpy.FileRef(tags[self.tagnum]['fullpath'])
-            self.tags_set_tag(filetag.tag(), 'title', entries[0].get_text())
-            self.tags_set_tag(filetag.tag(), 'artist', entries[1].get_text())
-            self.tags_set_tag(filetag.tag(), 'album', entries[2].get_text())
+            tag = filetag.tag()
+            self.tags_set_tag(tag, 'title', entries[0].get_text())
+            self.tags_set_tag(tag, 'artist', entries[1].get_text())
+            self.tags_set_tag(tag, 'album', entries[2].get_text())
             if len(entries[3].get_text()) > 0:
-                self.tags_set_tag(filetag.tag(), 'year', entries[3].get_text())
+                self.tags_set_tag(tag, 'year', entries[3].get_text())
             else:
-                self.tags_set_tag(filetag.tag(), 'year', 0)
+                self.tags_set_tag(tag, 'year', 0)
             if len(entries[4].get_text()) > 0:
-                self.tags_set_tag(filetag.tag(), 'track', entries[4].get_text())
+                self.tags_set_tag(tag, 'track', entries[4].get_text())
             else:
-                self.tags_set_tag(filetag.tag(), 'track', 0)
-            self.tags_set_tag(filetag.tag(), 'genre', entries[5].get_text())
-            self.tags_set_tag(filetag.tag(), 'comment', entries[6].get_text())
+                self.tags_set_tag(tag, 'track', 0)
+            self.tags_set_tag(tag, 'genre', entries[5].get_text())
+            self.tags_set_tag(tag, 'comment', entries[6].get_text())
             save_success = filetag.save()
             if not (save_success): # FIXME: was (save_success and self.conn and self.status):
                 ui.show_msg(self.window, _("Unable to save tag to music file."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=ui.dialog_destroy)
