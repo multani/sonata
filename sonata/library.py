@@ -36,10 +36,12 @@ def library_set_data(album=None, artist=None, genre=None, year=None, path=None):
     return ret
 
 def library_get_data(data, *args):
+    # Data retrieved from the gtktreeview model is not in
+    # unicode anymore, so convert it.
     dl = data.split(consts.LIB_DELIM)
     retlist = []
     for arg in list(args):
-        ret = dl[name_to_index[arg]]
+        ret = unicode(dl[name_to_index[arg]])
         if ret == consts.LIB_NODATA:
             ret = None
         retlist.append(ret)
@@ -388,10 +390,10 @@ class Library(object):
                 if 'directory' in item:
                     name = mpdh.get(item, 'directory').split('/')[-1]
                     data = self.library_set_data(path=mpdh.get(item, 'directory'))
-                    bd += [('d' + name.lower(), [self.openpb, data, misc.escape_html(name)])]
+                    bd += [('d' + unicode(name).lower(), [self.openpb, data, misc.escape_html(name)])]
                 elif 'file' in item:
                     data = self.library_set_data(path=mpdh.get(item, 'file'))
-                    bd += [('f' + mpdh.get(item, 'file').lower(), [self.sonatapb, data, self.parse_formatting(self.config.libraryformat, item, True)])]
+                    bd += [('f' + unicode(mpdh.get(item, 'file')).lower(), [self.sonatapb, data, self.parse_formatting(self.config.libraryformat, item, True)])]
             bd.sort(key=misc.first_of_2tuple)
             if path != '/' and len(bd) > 0:
                 bd = self.library_populate_add_parent_rows() + bd
@@ -494,7 +496,7 @@ class Library(object):
                 break
             VA = False
             for j in range(1, consts.NUM_ARTISTS_FOR_VA):
-                if self.library_get_data(albums[i], 'album').lower() != self.library_get_data(albums[i+j], 'album').lower() \
+                if unicode(self.library_get_data(albums[i], 'album')).lower() != unicode(self.library_get_data(albums[i+j], 'album')).lower() \
                 or self.library_get_data(albums[i], 'year') != self.library_get_data(albums[i+j], 'year'):
                     break
                 if j == consts.NUM_ARTISTS_FOR_VA - 1:
@@ -505,7 +507,7 @@ class Library(object):
                 albums[i] = self.library_set_data(album=album, artist=artist, year=year, path=path)
                 j = 1
                 while i+j <= len(albums)-1:
-                    if self.library_get_data(albums[i], 'album').lower() == self.library_get_data(albums[i+j], 'album').lower() \
+                    if unicode(self.library_get_data(albums[i], 'album')).lower() == unicode(self.library_get_data(albums[i+j], 'album')).lower() \
                     and self.library_get_data(albums[i], 'year') == self.library_get_data(albums[i+j], 'year'):
                         albums.pop(i+j)
                     else:
@@ -589,7 +591,7 @@ class Library(object):
             try:
                 bd += [('f' + disc + track + misc.lower_no_the(mpdh.get(song, 'title')), [self.sonatapb, data, self.parse_formatting(self.config.libraryformat, song, True)])]
             except:
-                bd += [('f' + disc + track + mpdh.get(song, 'file').lower(), [self.sonatapb, data, self.parse_formatting(self.config.libraryformat, song, True)])]
+                bd += [('f' + disc + track + unicode(mpdh.get(song, 'file')).lower(), [self.sonatapb, data, self.parse_formatting(self.config.libraryformat, song, True)])]
         return bd
 
     def library_return_list_items(self, itemtype, genre=None, artist=None, album=None, year=None, ignore_case=True):
@@ -651,7 +653,7 @@ class Library(object):
                     cached_list = self.library_return_list_items(typename, ignore_case=False)
                     cached_list.append('') # This allows us to match untagged items
                 for item in cached_list:
-                    if item.lower() == search.lower():
+                    if unicode(item).lower() == unicode(search).lower():
                         itemlist.append(item)
             if len(itemlist) == 0:
                 # There should be no results!
@@ -898,7 +900,7 @@ class Library(object):
                             items.append(path)
                 else:
                     results, _playtime, _num_songs = self.library_return_search_items(genre=genre, artist=artist, album=album, year=year)
-                    results.sort(key=lambda x: (mpdh.get(x, 'genre', 'zzz').lower(), mpdh.get(x, 'artist', 'zzz').lower(), mpdh.get(x, 'album', 'zzz').lower(), mpdh.getnum(x, 'disc', '0', True, 0), mpdh.getnum(x, 'track', '0', True, 0), mpdh.get(x, 'file')))
+                    results.sort(key=lambda x: (unicode(mpdh.get(x, 'genre', 'zzz')).lower(), unicode(mpdh.get(x, 'artist', 'zzz')).lower(), unicode(mpdh.get(x, 'album', 'zzz')).lower(), mpdh.getnum(x, 'disc', '0', True, 0), mpdh.getnum(x, 'track', '0', True, 0), mpdh.get(x, 'file')))
                     for item in results:
                         items.append(mpdh.get(item, 'file'))
         # Make sure we don't have any EXACT duplicates:

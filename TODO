@@ -3,8 +3,6 @@ v1.6
 		- update lib artwork if current song artwork changes
 		- save across sessions?
 		- possible threading traceback when exiting sonata
-		- remove case handling? -> faster?
-		- 2007-08-25 isn't cached correctly
 	support for new idle command (waiting on python-mpd)
 	fullscreen artwork:
 		- remove 500x500 hardcode
