@@ -303,7 +303,7 @@ class TagEditor():
         self.curr_mpdpath = gobject.filename_display_name(tags[self.tagnum]['mpdpath'])
         filename = self.curr_mpdpath
         if not self.use_mpdpaths:
-            filename = filename.split('/')[-1]
+            filename = os.path.basename(filename)
         entries[7].set_text(filename)
         entries[0].select_region(0, len(entries[0].get_text()))
         entries[0].grab_focus()
@@ -484,7 +484,7 @@ class TagEditor():
         if self.use_mpdpaths:
             self.filelabel.set_text(self.curr_mpdpath)
         else:
-            self.filelabel.set_text(self.curr_mpdpath.split('/')[-1])
+            self.filelabel.set_text(os.path.basename(self.curr_mpdpath))
         self.set_expandbutton_state(button)
 
     def set_expandbutton_state(self, button):
