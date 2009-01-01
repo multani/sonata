@@ -374,7 +374,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.notebook = gtk.Notebook()
 
         # Artwork
-
         self.artwork = artwork.Artwork(self.config, self.find_path, misc.is_lang_rtl(self.window), lambda:self.info_imagebox.get_size_request(), self.schedule_gc_collect, self.target_image_filename, self.imagelist_append, self.remotefilelist_append, self.notebook.get_allocation, self.set_allow_art_search, self.status_is_play_or_pause, self.find_path('sonata-album.png'))
 
         # Popup menus:
@@ -920,7 +919,7 @@ class Base(object, consts.Constants, preferences.Preferences):
 
         # Initialize library data and widget
         self.librarydata = self.library.get_model()
-        self.artwork.library_artwork_init(self.LIB_COVER_SIZE, self.librarydata)
+        self.artwork.library_artwork_init(self.librarydata, self.LIB_COVER_SIZE)
 
         if self.window_owner:
             icon = self.window.render_icon('sonata', gtk.ICON_SIZE_DIALOG)

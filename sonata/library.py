@@ -232,9 +232,29 @@ class Library(object):
     def on_library_scrolled(self, _widget, _event):
         try:
             # Use gobject.idle_add so that we can get the visible state of the treeview
-            gobject.idle_add(self.artwork.library_artwork_update, self.library, self.librarydata, self.albumpb)
+            gobject.idle_add(self._on_library_scrolled)
         except:
             pass
+
+    def _on_library_scrolled(self):
+        if not self.config.show_covers:
+            return
+
+        # This avoids a warning about a NULL node in get_visible_range
+        if not self.library.props.visible:
+            return
+
+        vis_range = self.library.get_visible_range()
+        if vis_range is None:
+            return
+        try:
+            start_row = int(vis_range[0][0])
+            end_row = int(vis_range[1][0])
+        except IndexError:
+            # get_visible_range failed
+            return
+
+        self.artwork.library_artwork_update(self.librarydata, start_row, end_row, self.albumpb)
 
     def library_browse(self, _widget=None, root=None):
         # Populates the library list with entries

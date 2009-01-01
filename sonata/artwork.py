@@ -66,6 +66,7 @@ class Artwork(object):
         self.lib_art_cond = None
 
         # local artwork, cache for library
+        self.lib_model = None
         self.lib_art_rows_local = []
         self.lib_art_rows_remote = []
         self.lib_art_pb_size = 0
@@ -120,33 +121,17 @@ class Artwork(object):
     def artwork_is_downloading_image(self):
         return self.downloading_image
 
-    def library_artwork_init(self, pb_size, model):
+    def library_artwork_init(self, model, pb_size):
 
+        self.lib_model = model
         self.lib_art_pb_size = pb_size
 
         self.lib_art_cond = threading.Condition()
-        thread = threading.Thread(target=self._library_artwork_update, args=(model,))
+        thread = threading.Thread(target=self._library_artwork_update)
         thread.setDaemon(True)
         thread.start()
 
-    def library_artwork_update(self, treeview, model, albumpb):
-        if not self.config.show_covers:
-            return
-
-        # This avoids a warning about a NULL node in get_visible_range
-        if not treeview.props.visible:
-            return
-
-        vis_range = treeview.get_visible_range()
-        if vis_range is None:
-            return
-        try:
-            start_row = int(vis_range[0][0])
-            end_row = int(vis_range[1][0])
-        except IndexError:
-            # get_visible_range failed
-            return
-
+    def library_artwork_update(self, model, start_row, end_row, albumpb):
         self.albumpb = albumpb
 
         # Update self.lib_art_rows_local with new rows
@@ -161,7 +146,8 @@ class Artwork(object):
         self.lib_art_cond.notifyAll()
         self.lib_art_cond.release()
 
-    def _library_artwork_update(self, model):
+    def _library_artwork_update(self):
+
         # XXX Save cache across app sessions?
         while True:
             remote_art = False
@@ -182,10 +168,11 @@ class Artwork(object):
             else:
                 i = None
 
-            if i is not None and model.iter_is_valid(i):
+            if i is not None and self.lib_model.iter_is_valid(i):
 
                 artist, album, path = library_get_data(data, 'artist', 'album', 'path')
                 cache_key = library_set_data(artist=artist, album=album, path=path)
+                filename = None
 
                 # Try to replace default icons with cover art:
                 pb = self.get_library_artwork_cached_pb(cache_key, None)
@@ -201,8 +188,9 @@ class Artwork(object):
 
                 # Set pixbuf icon in model; add to cache
                 if pb is not None:
-                    self.cache[cache_key] = filename
-                    gobject.idle_add(self.library_set_cover, model, i, pb)
+                    if filename is not None:
+                        self.set_library_artwork_cached_filename(cache_key, filename)
+                    gobject.idle_add(self.library_set_cover, i, pb, data)
 
                 # Remote processed item from queue:
                 if not remote_art:
@@ -216,11 +204,16 @@ class Artwork(object):
                         self.lib_art_rows_remote.pop(0)
                         if pb is None:
                             # No remote art found, store self.albumpb filename in cache
-                            self.cache[cache_key] = self.album_filename
+                            self.set_library_artwork_cached_filename(cache_key, self.album_filename)
 
-    def library_set_cover(self, model, i, pb):
-        if model.iter_is_valid(i):
-            model.set_value(i, 0, pb)
+    def library_search_current_song(self, cache_key, filename):
+        # XXX Need to update album in treeview if it exists
+        treeview = get_treeview()
+
+    def library_set_cover(self, i, pb, data):
+        if self.lib_model.iter_is_valid(i):
+            if self.lib_model.get_value(i, 1) == data:
+                self.lib_model.set_value(i, 0, pb)
 
     def library_get_album_cover(self, dirname, artist, album, pb_size):
         _tmp, coverfile = self.artwork_get_local_image(dirname, artist, album)
@@ -237,14 +230,17 @@ class Artwork(object):
             return (coverpb, coverfile)
         return (None, None)
 
-    def get_library_artwork_cached_filename(self, data):
+    def set_library_artwork_cached_filename(self, cache_key, filename):
+        self.cache[cache_key] = filename
+
+    def get_library_artwork_cached_filename(self, cache_key):
         try:
-            return self.cache[data]
+            return self.cache[cache_key]
         except:
             return None
 
-    def get_library_artwork_cached_pb(self, data, origpb):
-        filename = self.get_library_artwork_cached_filename(data)
+    def get_library_artwork_cached_pb(self, cache_key, origpb):
+        filename = self.get_library_artwork_cached_filename(cache_key)
         if filename is not None and os.path.exists(filename):
             return gtk.gdk.pixbuf_new_from_file_at_size(filename, self.lib_art_pb_size, self.lib_art_pb_size)
         else:
@@ -273,7 +269,7 @@ class Artwork(object):
             # Stream
             streamfile = self.artwork_stream_filename(mpdh.get(self.songinfo, 'name'))
             if os.path.exists(streamfile):
-                gobject.idle_add(self.artwork_set_image, streamfile)
+                gobject.idle_add(self.artwork_set_image, streamfile, None, None, None)
             else:
                 self.artwork_set_default_icon()
                 return
@@ -281,6 +277,7 @@ class Artwork(object):
             # Normal song:
             artist = mpdh.get(self.songinfo, 'artist', "")
             album = mpdh.get(self.songinfo, 'album', "")
+            path = os.path.dirname(mpdh.get(self.songinfo, 'file'))
             if len(artist) == 0 and len(album) == 0:
                 self.artwork_set_default_icon()
                 return
@@ -290,15 +287,15 @@ class Artwork(object):
                 self.stop_art_update = False
                 return
             self.lastalbumart = None
-            imgfound = self.artwork_check_for_local()
+            imgfound = self.artwork_check_for_local(artist, album, path)
             if not imgfound:
                 if self.config.covers_pref == consts.ART_LOCAL_REMOTE:
-                    imgfound = self.artwork_check_for_remote(artist, album, filename)
+                    imgfound = self.artwork_check_for_remote(artist, album, path, filename)
 
     def artwork_stream_filename(self, streamname):
         return os.path.expanduser('~/.covers/') + streamname.replace("/", "") + ".jpg"
 
-    def artwork_check_for_local(self):
+    def artwork_check_for_local(self, artist, album, path):
         self.artwork_set_default_icon()
         self.misc_img_in_dir = None
         self.single_img_in_dir = None
@@ -309,7 +306,7 @@ class Artwork(object):
                 self.misc_img_in_dir = filename
             elif location_type == consts.ART_LOCATION_SINGLE:
                 self.single_img_in_dir = filename
-            gobject.idle_add(self.artwork_set_image, filename)
+            gobject.idle_add(self.artwork_set_image, filename, artist, album, path)
             return True
 
         return False
@@ -352,11 +349,11 @@ class Artwork(object):
 
         return None, None
 
-    def artwork_check_for_remote(self, artist, album, filename):
+    def artwork_check_for_remote(self, artist, album, path, filename):
         self.artwork_set_default_icon()
         self.artwork_download_img_to_file(artist, album, filename)
         if os.path.exists(filename):
-            gobject.idle_add(self.artwork_set_image, filename)
+            gobject.idle_add(self.artwork_set_image, filename, artist, album, path)
             return True
         return False
 
@@ -377,10 +374,15 @@ class Artwork(object):
                     return filename
         return False
 
-    def artwork_set_image(self, filename, info_img_only=False):
+    def artwork_set_image(self, filename, artist, album, path, info_img_only=False):
         # Note: filename arrives here is in FILESYSTEM_CHARSET, not UTF-8!
         if self.artwork_is_for_playing_song(filename):
             if os.path.exists(filename):
+
+                # Store in cache
+                cache_key = library_set_data(artist=artist, album=album, path=path)
+                self.set_library_artwork_cached_filename(cache_key, filename)
+
                 # We use try here because the file might exist, but might
                 # still be downloading
                 try:
@@ -392,6 +394,7 @@ class Artwork(object):
                     if os.stat(filename).st_size != 0:
                         misc.remove_file(filename)
                     return
+
                 # Artwork for tooltip, left-top of player:
                 if not info_img_only:
                     (pix1, w, h) = img.get_pixbuf_of_size(pix, 75)
@@ -401,6 +404,7 @@ class Artwork(object):
                     self.albumimage.set_from_pixbuf(pix1)
                     self.artwork_set_tooltip_art(pix1)
                     del pix1
+
                 # Artwork for info tab:
                 if self.info_imagebox_get_size_request()[0] == -1:
                     fullwidth = self.notebook_get_allocation()[2] - 50
@@ -411,17 +415,19 @@ class Artwork(object):
                 pix2 = img.pixbuf_add_border(pix2)
                 self.info_image.set_from_pixbuf(pix2)
                 del pix2
+
                 # Artwork for fullscreen cover mode
                 (pix3, w, h) = img.get_pixbuf_of_size(pix, consts.FULLSCREEN_COVER_SIZE)
                 pix3 = self.artwork_apply_composite_case(pix3, w, h)
                 pix3 = img.pixbuf_pad(pix3, consts.FULLSCREEN_COVER_SIZE, consts.FULLSCREEN_COVER_SIZE)
                 self.fullscreenalbumimage.set_from_pixbuf(pix3)
                 del pix, pix3
+
                 self.lastalbumart = filename
                 self.schedule_gc_collect()
 
     def artwork_set_image_last(self, info_img_only=False):
-        self.artwork_set_image(self.lastalbumart, info_img_only)
+        self.artwork_set_image(self.lastalbumart, None, None, None, info_img_only)
 
     def artwork_apply_composite_case(self, pix, w, h):
         if self.config.covers_type == consts.COVERS_TYPE_STYLIZED and float(w)/h > 0.5:
