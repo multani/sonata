@@ -1,4 +1,3 @@
-
 import os
 import threading # artwork_update starts a thread _artwork_update
 import urllib, urllib2
@@ -206,9 +205,19 @@ class Artwork(object):
                             # No remote art found, store self.albumpb filename in cache
                             self.set_library_artwork_cached_filename(cache_key, self.album_filename)
 
-    def library_search_current_song(self, cache_key, filename):
-        # XXX Need to update album in treeview if it exists
-        treeview = get_treeview()
+    def library_set_image_for_current_song(self, cache_key, filename):
+        # XXX Need to handle reset
+        # Search through the rows in the library to see
+        # if we match the currently playing song:
+        play_artist, play_album = library_get_data(cache_key, 'artist', 'album')
+        for row in range(len(self.lib_model)):
+            i = self.lib_model.get_iter((row,))
+            data = self.lib_model.get_value(i, 1)
+            artist, album, path = library_get_data(data, 'artist', 'album', 'path')
+            if unicode(play_artist).lower() == unicode(artist).lower() \
+            and unicode(play_album).lower() == unicode(album).lower():
+                pb = self.get_library_artwork_cached_pb(cache_key, None)
+                self.lib_model.set_value(i, 0, pb)
 
     def library_set_cover(self, i, pb, data):
         if self.lib_model.iter_is_valid(i):
@@ -241,8 +250,12 @@ class Artwork(object):
 
     def get_library_artwork_cached_pb(self, cache_key, origpb):
         filename = self.get_library_artwork_cached_filename(cache_key)
-        if filename is not None and os.path.exists(filename):
-            return gtk.gdk.pixbuf_new_from_file_at_size(filename, self.lib_art_pb_size, self.lib_art_pb_size)
+        if filename is not None:
+            if os.path.exists(filename):
+                return gtk.gdk.pixbuf_new_from_file_at_size(filename, self.lib_art_pb_size, self.lib_art_pb_size)
+            else:
+                self.cache.pop(cache_key)
+                return origpb
         else:
             return origpb
 
@@ -279,7 +292,7 @@ class Artwork(object):
             album = mpdh.get(self.songinfo, 'album', "")
             path = os.path.dirname(mpdh.get(self.songinfo, 'file'))
             if len(artist) == 0 and len(album) == 0:
-                self.artwork_set_default_icon()
+                self.artwork_set_default_icon(artist, album, path)
                 return
             filename = self.target_image_filename()
             if filename == self.lastalbumart:
@@ -296,7 +309,7 @@ class Artwork(object):
         return os.path.expanduser('~/.covers/') + streamname.replace("/", "") + ".jpg"
 
     def artwork_check_for_local(self, artist, album, path):
-        self.artwork_set_default_icon()
+        self.artwork_set_default_icon(artist, album, path)
         self.misc_img_in_dir = None
         self.single_img_in_dir = None
         location_type, filename = self.artwork_get_local_image()
@@ -350,20 +363,26 @@ class Artwork(object):
         return None, None
 
     def artwork_check_for_remote(self, artist, album, path, filename):
-        self.artwork_set_default_icon()
+        self.artwork_set_default_icon(artist, album, path)
         self.artwork_download_img_to_file(artist, album, filename)
         if os.path.exists(filename):
             gobject.idle_add(self.artwork_set_image, filename, artist, album, path)
             return True
         return False
 
-    def artwork_set_default_icon(self):
+    def artwork_set_default_icon(self, artist=None, album=None, path=None):
         if self.albumimage.get_property('file') != self.sonatacd:
             gobject.idle_add(self.albumimage.set_from_file, self.sonatacd)
             gobject.idle_add(self.info_image.set_from_file, self.sonatacd_large)
             gobject.idle_add(self.fullscreen_cover_art_set_image, self.sonatacd_large)
         gobject.idle_add(self.artwork_set_tooltip_art, gtk.gdk.pixbuf_new_from_file(self.sonatacd))
         self.lastalbumart = None
+
+        # Also, update row in library:
+        if artist is not None:
+            cache_key = library_set_data(artist=artist, album=album, path=path)
+            self.set_library_artwork_cached_filename(cache_key, self.album_filename)
+            gobject.idle_add(self.library_set_image_for_current_song, cache_key, self.album_filename)
 
     def artwork_get_misc_img_in_path(self, songdir):
         path = misc.file_from_utf8(self.config.musicdir[self.config.profile_num] + songdir)
@@ -415,6 +434,9 @@ class Artwork(object):
                 pix2 = img.pixbuf_add_border(pix2)
                 self.info_image.set_from_pixbuf(pix2)
                 del pix2
+
+                # Artwork for library, if current song matches:
+                self.library_set_image_for_current_song(cache_key, filename)
 
                 # Artwork for fullscreen cover mode
                 (pix3, w, h) = img.get_pixbuf_of_size(pix, consts.FULLSCREEN_COVER_SIZE)
