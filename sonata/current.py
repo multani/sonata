@@ -5,7 +5,7 @@ interface for it.
 
 Example usage:
 import current
-self.current = current.Current(self.config, self.client, self.TAB_CURRENT, self.on_current_button_press, self.parse_formatting_colnames, self.parse_formatting, self.connected, lambda:self.sonata_loaded, lambda:self.songinfo, self.update_statusbar, self.iterate_now, self.mpd_major_version, lambda:self.library.libsearchfilter_get_style())
+self.current = current.Current(self.config, self.client, self.TAB_CURRENT, self.on_current_button_press, self.parse_formatting_colnames, self.parse_formatting, self.connected, lambda:self.sonata_loaded, lambda:self.songinfo, self.update_statusbar, self.iterate_now, lambda:self.library.libsearchfilter_get_style())
 vbox_current, playlistevbox = self.current.get_widgets()
 ...
 self.current.current_update(prevstatus_playlist, self.status['playlistlength'])
@@ -21,7 +21,7 @@ import ui, misc
 import mpdhelper as mpdh
 
 class Current(object):
-    def __init__(self, config, client, TAB_CURRENT, on_current_button_press, parse_formatting_colnames, parse_formatting, connected, sonata_loaded, songinfo, update_statusbar, iterate_now, mpd_major_version, libsearchfilter_get_style):
+    def __init__(self, config, client, TAB_CURRENT, on_current_button_press, parse_formatting_colnames, parse_formatting, connected, sonata_loaded, songinfo, update_statusbar, iterate_now, libsearchfilter_get_style):
         self.config = config
         self.client = client
         self.TAB_CURRENT = TAB_CURRENT
@@ -33,7 +33,6 @@ class Current(object):
         self.songinfo = songinfo
         self.update_statusbar = update_statusbar
         self.iterate_now = iterate_now
-        self.mpd_major_version = mpd_major_version
         self.libsearchfilter_get_style = libsearchfilter_get_style
 
         self.currentdata = None
@@ -502,7 +501,7 @@ class Current(object):
                     for item in listallinfo:
                         if 'file' in item:
                             mpdpaths.append(mpdh.get(item, 'file'))
-                elif self.mpd_major_version() >= 0.14:
+                elif mpdh.mpd_major_version(self.client) >= 0.14:
                     # Add local file, available in mpd 0.14. This currently won't
                     # work because python-mpd does not support unix socket paths,
                     # which is needed for authentication for local files. It's also

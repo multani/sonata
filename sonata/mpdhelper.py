@@ -67,3 +67,11 @@ def call(mpdclient, mpd_cmd, *mpd_args):
             return None
 
     return retval
+
+def mpd_major_version(client):
+    #try:
+    version = getattr(client, "mpd_version", 0.0)
+    parts = version.split(".")
+    return float(parts[0] + "." + parts[1])
+    #except:
+    #	return 0.0

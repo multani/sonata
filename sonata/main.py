@@ -564,7 +564,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.scrobbler.init()
 
         # Current tab
-        self.current = current.Current(self.config, self.client, self.TAB_CURRENT, self.on_current_button_press, self.parse_formatting_colnames, self.parse_formatting, self.connected, lambda:self.sonata_loaded, lambda:self.songinfo, self.update_statusbar, self.iterate_now, self.mpd_major_version, lambda:self.library.libsearchfilter_get_style())
+        self.current = current.Current(self.config, self.client, self.TAB_CURRENT, self.on_current_button_press, self.parse_formatting_colnames, self.parse_formatting, self.connected, lambda:self.sonata_loaded, lambda:self.songinfo, self.update_statusbar, self.iterate_now, lambda:self.library.libsearchfilter_get_style())
 
         vbox_current, playlistevbox = self.current.get_widgets()
         self.current_treeview = self.current.get_treeview()
@@ -636,7 +636,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             ]
 
         # Playlists tab
-        self.playlists = playlists.Playlists(self.config, self.window, self.client, lambda:self.UIManager, self.update_menu_visibility, self.iterate_now, self.on_add_item, self.on_playlists_button_press, self.current.get_current_songs, self.connected, self.mpd_major_version, self.TAB_PLAYLISTS)
+        self.playlists = playlists.Playlists(self.config, self.window, self.client, lambda:self.UIManager, self.update_menu_visibility, self.iterate_now, self.on_add_item, self.on_playlists_button_press, self.current.get_current_songs, self.connected, self.TAB_PLAYLISTS)
 
         playlistswindow, playlistsevbox = self.playlists.get_widgets()
         self.playlists_treeview = self.playlists.get_treeview()
@@ -3453,7 +3453,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             if self.playlists_selection.count_selected_rows() > 0:
                 for menu in ['add', 'replace', 'playafter', 'rm']:
                     self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').show()
-                if self.playlists_selection.count_selected_rows() == 1 and self.mpd_major_version() >= 0.13:
+                if self.playlists_selection.count_selected_rows() == 1 and mpdh.mpd_major_version(self.client) >= 0.13:
                     self.UIManager.get_widget('/mainmenu/renamemenu/').show()
                 else:
                     self.UIManager.get_widget('/mainmenu/renamemenu/').hide()
@@ -3476,17 +3476,6 @@ class Base(object, consts.Constants, preferences.Preferences):
                     self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
             for menu in ['rename', 'remove', 'clear', 'pl', 'update', 'sort', 'tag']:
                 self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
-
-    def mpd_major_version(self):
-        try:
-            if self.conn:
-                version = getattr(self.client, "mpd_version", 0.0)
-                parts = version.split(".")
-                return float(parts[0] + "." + parts[1])
-            else:
-                return 0.0
-        except:
-            return 0.0
 
     def find_path(self, filename):
         full_filename = None

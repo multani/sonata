@@ -1,6 +1,7 @@
 v1.6
 	- threaded method for artwork
 		- update lib artwork if current song artwork changes
+		- empty string searching doesn't work with mpd < 0.14...
 		- save across sessions?
 		- possible threading traceback when exiting sonata
 	support for new idle command (waiting on python-mpd)

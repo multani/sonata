@@ -712,7 +712,8 @@ class Library(object):
 
     def library_return_search_items(self, genre=None, artist=None, album=None, year=None):
         # Returns all mpd items, using mpd's 'search', along with
-        # playtime and num_songs
+        # playtime and num_songs. Note that if one of the args is
+        # '', the search results will only be correct for mpd=0.14
         searches = self.library_compose_search_searchlist(genre, artist, album, year)
         for s in searches:
             args_tuple = tuple(map(str, s))

@@ -4,7 +4,7 @@ This module implements a user interface for mpd playlists.
 
 Example usage:
 import playlists
-self.playlists = playlists.Playlists(self.config, self.window, self.client, lambda:self.UIManager, self.update_menu_visibility, self.iterate_now, self.on_add_item, self.on_playlists_button_press, self.get_current_songs, self.connected, self.mpd_major_version, self.TAB_PLAYLISTS)
+self.playlists = playlists.Playlists(self.config, self.window, self.client, lambda:self.UIManager, self.update_menu_visibility, self.iterate_now, self.on_add_item, self.on_playlists_button_press, self.get_current_songs, self.connected, self.TAB_PLAYLISTS)
 playlistswindow, playlistsevbox = self.playlists.get_widgets()
 ...
 self.playlists.populate()
@@ -19,7 +19,7 @@ import ui, misc
 import mpdhelper as mpdh
 
 class Playlists(object):
-    def __init__(self, config, window, client, UIManager, update_menu_visibility, iterate_now, on_add_item, on_playlists_button_press, get_current_songs, connected, mpd_major_version, TAB_PLAYLISTS):
+    def __init__(self, config, window, client, UIManager, update_menu_visibility, iterate_now, on_add_item, on_playlists_button_press, get_current_songs, connected, TAB_PLAYLISTS):
         self.config = config
         self.window = window
         self.client = client
@@ -30,7 +30,6 @@ class Playlists(object):
         self.on_playlists_button_press = on_playlists_button_press
         self.get_current_songs = get_current_songs
         self.connected = connected
-        self.mpd_major_version = mpd_major_version
         self.TAB_PLAYLISTS = TAB_PLAYLISTS
 
         self.mergepl_id = None
@@ -182,7 +181,7 @@ class Playlists(object):
             playlistinfo.sort(key=lambda x: x.lower()) # Remove case sensitivity
             for item in playlistinfo:
                 self.playlistsdata.append([gtk.STOCK_JUSTIFY_FILL, item])
-            if self.mpd_major_version() >= 0.13:
+            if mpdh.mpd_major_version(self.client) >= 0.13:
                 self.populate_playlists_for_menu(playlistinfo)
 
     def on_playlist_rename(self, _action):
