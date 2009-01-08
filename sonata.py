@@ -34,28 +34,8 @@ import platform
 if platform.system == 'Linux':
     sys.argv[0] = 'sonata'
 
+app = main.Base()
 try:
-    import dbus
-    import dbus.service
-    if getattr(dbus, "version", (0,0,0)) >= (0,41,0):
-        import dbus.glib
-    HAVE_DBUS = True
-except:
-    HAVE_DBUS = False
-
-if __name__ == "__main__":
-    if HAVE_DBUS:
-        try:
-            session_bus = dbus.SessionBus()
-            bus_name = dbus.service.BusName('org.MPD', bus=session_bus)
-            app = main.BaseDBus(bus_name, '/org/MPD/Sonata')
-        except SystemExit:
-            sys.exit()
-        except:
-            app = main.Base()
-    else:
-        app = main.Base()
-    try:
-        app.main()
-    except KeyboardInterrupt:
-        pass
+    app.main()
+except KeyboardInterrupt:
+    pass

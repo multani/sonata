@@ -37,6 +37,7 @@ import mpdhelper as mpdh
 from socket import setdefaulttimeout as socketsettimeout
 
 import consts, config, preferences, tagedit, artwork, about, scrobbler, info, library, streams, playlists, current
+import dbus_plugin as dbus
 
 ElementTree = None
 
@@ -71,20 +72,6 @@ if tuple(map(int, platform.python_version_tuple())) < (2, 5, 0):
     sys.stderr.write("Sonata requires Python 2.5 or newer. Aborting...\n")
     sys.exit(1)
 
-try:
-    import dbus, dbus.service
-    if getattr(dbus, "version", (0, 0, 0)) >= (0, 41, 0):
-        import dbus.glib
-    if getattr(dbus, "version", (0, 0, 0)) >= (0, 80, 0):
-        import _dbus_bindings as dbus_bindings
-        NEW_DBUS = True
-    else:
-        import dbus.dbus_bindings as dbus_bindings
-        NEW_DBUS = False
-    HAVE_DBUS = True
-except:
-    HAVE_DBUS = False
-
 if not skip_gui:
     import warnings, gobject, urllib, urllib2, re, gc, locale, shutil
     import gtk, pango, threading, ui, img, tray
@@ -105,36 +92,6 @@ if not skip_gui:
         HAVE_STATUS_ICON = True
     # Reset so that we can see any other deprecation warnings
     warnings.simplefilter('default', DeprecationWarning)
-
-    HAVE_GNOME_MMKEYS = False
-    if HAVE_DBUS:
-        try:
-            bus = dbus.SessionBus()
-            dbusObj = bus.get_object('org.freedesktop.DBus', '/org/freedesktop/DBus')
-            dbusInterface = dbus.Interface(dbusObj, 'org.freedesktop.DBus')
-            if dbusInterface.NameHasOwner('org.gnome.SettingsDaemon'):
-                try:
-                    # mmkeys for gnome 2.22+
-                    settingsDaemonObj = bus.get_object('org.gnome.SettingsDaemon', '/org/gnome/SettingsDaemon/MediaKeys')
-                    settingsDaemonInterface = dbus.Interface(settingsDaemonObj, 'org.gnome.SettingsDaemon.MediaKeys')
-                    settingsDaemonInterface.GrabMediaPlayerKeys('Sonata', 0)
-                except:
-                    # mmkeys for gnome 2.18+
-                    settingsDaemonObj = bus.get_object('org.gnome.SettingsDaemon', '/org/gnome/SettingsDaemon')
-                    settingsDaemonInterface = dbus.Interface(settingsDaemonObj, 'org.gnome.SettingsDaemon')
-                    settingsDaemonInterface.GrabMediaPlayerKeys('Sonata', 0)
-                HAVE_GNOME_MMKEYS = True
-                HAVE_MMKEYS = False
-        except:
-            pass
-
-    if not HAVE_GNOME_MMKEYS:
-        try:
-            # if not gnome 2.18+, mmkeys for everyone else
-            import mmkeys
-            HAVE_MMKEYS = True
-        except:
-            HAVE_MMKEYS = False
 
     # Default to no sugar, then test...
     HAVE_SUGAR = False
@@ -233,13 +190,13 @@ class Base(object, consts.Constants, preferences.Preferences):
                 for o, a in opts:
                     if o in ("-t", "--toggle"):
                         toggle_arg = True
-                        if not HAVE_DBUS:
+                        if not dbus.using_dbus():
                             print _("The toggle argument requires D-Bus. Aborting.")
                             self.print_usage()
                             sys.exit()
                     elif o in ("-p", "--popup"):
                         popup_arg = True
-                        if not HAVE_DBUS:
+                        if not dbus.using_dbus():
                             print _("The popup argument requires D-Bus. Aborting.")
                             self.print_usage()
                             sys.exit()
@@ -267,7 +224,8 @@ class Base(object, consts.Constants, preferences.Preferences):
 
         self.traytips = tray.TrayIconTips()
 
-        start_dbus_interface(toggle_arg, popup_arg)
+        self.dbus_service = dbus.SonataDBus(self.dbus_show, self.dbus_toggle, self.dbus_popup)
+        dbus.start_dbus_interface(toggle_arg, popup_arg)
 
         self.gnome_session_management()
 
@@ -900,13 +858,20 @@ class Base(object, consts.Constants, preferences.Preferences):
             while gtk.events_pending():
                 gtk.main_iteration()
 
-        # Connect to mmkeys signals
-        if HAVE_MMKEYS:
-            self.keys = mmkeys.MmKeys()
-            self.keys.connect("mm_prev", self.mpd_prev)
-            self.keys.connect("mm_next", self.mpd_next)
-            self.keys.connect("mm_playpause", self.mpd_pp)
-            self.keys.connect("mm_stop", self.mpd_stop)
+        dbus.init_gnome_mediakeys(self.mpd_pp, self.mpd_stop, self.mpd_prev, self.mpd_next)
+
+        # Try to connect to mmkeys signals, if no dbus and gnome 2.18+
+        if not dbus.using_gnome_mediakeys():
+            try:
+                import mmkeys
+                # this must be an attribute to keep it around:
+                self.keys = mmkeys.MmKeys()
+                self.keys.connect("mm_prev", self.mpd_prev)
+                self.keys.connect("mm_next", self.mpd_next)
+                self.keys.connect("mm_playpause", self.mpd_pp)
+                self.keys.connect("mm_stop", self.mpd_stop)
+            except ImportError:
+                pass
 
         # Set up current view
         self.currentdata = self.current.get_model()
@@ -976,7 +941,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         print ""
         print _("Options") + ":"
         print "  -h, --help           " + _("Show this help and exit")
-        print "  -p, --popup          " + _("Popup song notification (requires DBus)")
+        print "  -p, --popup          " + _("Popup song notification (requires D-Bus)")
         print "  -t, --toggle         " + _("Toggles whether the app is minimized")
         print "                       " + _("to tray or visible (requires D-Bus)")
         print "  -v, --version        " + _("Show version information and exit")
@@ -3586,6 +3551,19 @@ class Base(object, consts.Constants, preferences.Preferences):
             except:
                 pass
 
+    def dbus_show(self):
+        self.window.hide()
+        self.withdraw_app_undo()
+
+    def dbus_toggle(self):
+        if self.window.get_property('visible'):
+            self.withdraw_app()
+        else:
+            self.withdraw_app_undo()
+
+    def dbus_popup(self):
+        self.on_currsong_notify(force_popup=True)
+
     def main(self):
         gtk.main()
 
@@ -3595,62 +3573,3 @@ if __name__ == "__main__":
     base.main()
     gtk.gdk.threads_leave()
 
-def start_dbus_interface(toggle=False, popup=False):
-    if HAVE_DBUS:
-        try:
-            bus = dbus.SessionBus()
-            if NEW_DBUS:
-                retval = bus.request_name("org.MPD.Sonata", dbus_bindings.NAME_FLAG_DO_NOT_QUEUE)
-            else:
-                retval = dbus_bindings.bus_request_name(bus.get_connection(), "org.MPD.Sonata", dbus_bindings.NAME_FLAG_DO_NOT_QUEUE)
-            if retval in (dbus_bindings.REQUEST_NAME_REPLY_PRIMARY_OWNER, dbus_bindings.REQUEST_NAME_REPLY_ALREADY_OWNER):
-                pass
-            elif retval in (dbus_bindings.REQUEST_NAME_REPLY_EXISTS, dbus_bindings.REQUEST_NAME_REPLY_IN_QUEUE):
-                obj = bus.get_object('org.MPD', '/org/MPD/Sonata')
-                if toggle:
-                    obj.toggle(dbus_interface='org.MPD.SonataInterface')
-                elif popup:
-                    obj.popup(dbus_interface='org.MPD.SonataInterface')
-                else:
-                    print _("An instance of Sonata is already running.")
-                    obj.show(dbus_interface='org.MPD.SonataInterface')
-                sys.exit()
-        except SystemExit:
-            raise
-        except Exception:
-            print _("Sonata failed to connect to the D-BUS session bus: Unable to determine the address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for help)")
-
-if HAVE_DBUS:
-    class BaseDBus(dbus.service.Object, Base):
-        def __init__(self, bus_name, object_path, window=None, sugar=False):
-            dbus.service.Object.__init__(self, bus_name, object_path)
-            Base.__init__(self, window, sugar)
-            if HAVE_GNOME_MMKEYS:
-                settingsDaemonInterface.connect_to_signal('MediaPlayerKeyPressed', self.mediaPlayerKeysCallback)
-
-        def mediaPlayerKeysCallback(self, app, key):
-            if app == 'Sonata':
-                if key in ('Play', 'PlayPause', 'Pause'):
-                    self.mpd_pp(None)
-                elif key == 'Stop':
-                    self.mpd_stop(None)
-                elif key == 'Previous':
-                    self.mpd_prev(None)
-                elif key == 'Next':
-                    self.mpd_next(None)
-
-        @dbus.service.method('org.MPD.SonataInterface')
-        def show(self):
-            self.window.hide()
-            self.withdraw_app_undo()
-
-        @dbus.service.method('org.MPD.SonataInterface')
-        def toggle(self):
-            if self.window.get_property('visible'):
-                self.withdraw_app()
-            else:
-                self.withdraw_app_undo()
-
-        @dbus.service.method('org.MPD.SonataInterface')
-        def popup(self):
-            self.on_currsong_notify(force_popup=True)
