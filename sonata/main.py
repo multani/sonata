@@ -2498,7 +2498,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             path = os.path.dirname(mpdh.get(song, 'file'))
             data = library.library_set_data(album=album, artist=artist, year=year, path=path)
             songdatalist.append(data)
-        if len(seongdatalist) > 0:
+        if len(songdatalist) > 0:
             songdatalist = misc.remove_list_duplicates(songdatalist, case=False)
             songdatalist = self.library.list_identify_VA_albums(songdatalist)
             artist = library.library_get_data(songdatalist[0], 'artist')
