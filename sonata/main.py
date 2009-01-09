@@ -2498,10 +2498,13 @@ class Base(object, consts.Constants, preferences.Preferences):
             path = os.path.dirname(mpdh.get(song, 'file'))
             data = library.library_set_data(album=album, artist=artist, year=year, path=path)
             songdatalist.append(data)
-        songdatalist = misc.remove_list_duplicates(songdatalist, case=False)
-        songdatalist = self.library.list_identify_VA_albums(songdatalist)
-        artist = library.library_get_data(songdatalist[0], 'artist')
-        self.album_current_artist = [self.songinfo, artist]
+        if len(seongdatalist) > 0:
+            songdatalist = misc.remove_list_duplicates(songdatalist, case=False)
+            songdatalist = self.library.list_identify_VA_albums(songdatalist)
+            artist = library.library_get_data(songdatalist[0], 'artist')
+            self.album_current_artist = [self.songinfo, artist]
+        else:
+            self.album_current_artist = [self.songinfo, ""]
 
     def album_reset_artist(self):
         self.album_current_artist = [None, ""]
