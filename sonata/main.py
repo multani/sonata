@@ -2761,8 +2761,8 @@ class Base(object, consts.Constants, preferences.Preferences):
                 self.current.expanderwindow.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
         self.current.resizing_columns = False
 
-    def systemtray_menu(self, _status_icon, button, activate_time):
-        self.traymenu.popup(None, None, None, button, activate_time)
+    def systemtray_menu(self, status_icon, button, activate_time):
+        self.traymenu.popup(None, None, gtk.status_icon_position_menu, button, activate_time, status_icon)
 
     def systemtray_activate(self, _status_icon):
         # Clicking on a gtk.StatusIcon:
