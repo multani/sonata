@@ -13,6 +13,7 @@ v1.6
 	tag editing 
 		- support for composer, disc
 		- save selection afterwards (what did we have before?)
+	remove libegg? statusicon provides everything in gtk 2.15
 
 Future:
 	support for new idle command (waiting on python-mpd)
