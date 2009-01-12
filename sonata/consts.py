@@ -1,4 +1,6 @@
 
+__version__ = "1.5.3"
+
 """
 This module contains various constant definitions that any other
 module can import without risk of cyclic imports.
@@ -18,6 +20,8 @@ if view == consts.VIEW_ALBUM: ...
 class Constants:
     """This class contains the constant definitions as attributes."""
     def __init__(self):
+        self.VERSION = __version__
+
         self.ART_LOCAL = 0
         self.ART_LOCAL_REMOTE = 1
         self.VIEW_FILESYSTEM = 0

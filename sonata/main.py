@@ -2,8 +2,6 @@
 # $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/main.py $
 # $Id: main.py 141 2006-09-11 04:51:07Z stonecrest $
 
-__version__ = "1.5.3"
-
 __license__ = """
 Sonata, an elegant GTK+ client for the Music Player Daemon
 Copyright 2006-2008 Scott Horowitz <stonecrest@gmail.com>
@@ -24,98 +22,49 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import getopt, sys, gettext, os, misc, platform
+import sys, locale, gettext, os, warnings
+import urllib, urllib2, re, gc, shutil
+import threading
 
-# let gettext install _ as a built-in for all modules to see
+import mpd
+
+import gobject, gtk, pango
+
+# Prevent deprecation warning for egg:
+warnings.simplefilter('ignore', DeprecationWarning)
 try:
-    gettext.install('sonata', os.path.join(__file__.split('/lib')[0], 'share', 'locale'), unicode=1)
-except:
-    gettext.install('sonata', '/usr/share/locale', unicode=1)
-gettext.textdomain('sonata')
+    import egg.trayicon
+    HAVE_EGG = True
+    HAVE_STATUS_ICON = False
+except ImportError:
+    HAVE_EGG = False
+    HAVE_STATUS_ICON = True
+# Reset so that we can see any other deprecation warnings
+warnings.simplefilter('default', DeprecationWarning)
+
+# Default to no sugar, then test...
+HAVE_SUGAR = False
+VOLUME_ICON_SIZE = 4
+if 'SUGAR_BUNDLE_PATH' in os.environ:
+    try:
+        from sugar.activity import activity
+        HAVE_STATUS_ICON = False
+        HAVE_SUGAR = True
+        VOLUME_ICON_SIZE = 3
+    except:
+        pass
 
 import mpdhelper as mpdh
-from socket import setdefaulttimeout as socketsettimeout
+
+import misc, ui, img, tray
 
 import consts, config, preferences, tagedit, artwork, about, scrobbler, info, library, streams, playlists, current
 import dbus_plugin as dbus
 
-ElementTree = None
-
-all_args = ["toggle", "version", "status", "info", "play", "pause",
-            "stop", "next", "prev", "pp", "random", "repeat", "hidden",
-            "visible", "profile=", "popup"]
-cli_args = ("play", "pause", "stop", "next", "prev", "pp", "info",
-            "status", "repeat", "random", "popup")
-short_args = "tpv"
-
-# Check if we have a cli arg passed.. if so, skip importing all
-# gui-related modules
-skip_gui = False
-try:
-    opts, args = getopt.getopt(sys.argv[1:], short_args, all_args)
-    if args != []:
-        for a in args:
-            if a in cli_args:
-                skip_gui = True
-except getopt.GetoptError:
-    pass
-
-try:
-    import mpd
-except:
-    sys.stderr.write("Sonata requires python-mpd. Aborting...\n")
-    sys.exit(1)
-
-# Test python version (note that python 2.5 returns a list of
-# strings while python 2.6 returns a tuple of ints):
-if tuple(map(int, platform.python_version_tuple())) < (2, 5, 0):
-    sys.stderr.write("Sonata requires Python 2.5 or newer. Aborting...\n")
-    sys.exit(1)
-
-if not skip_gui:
-    import warnings, gobject, urllib, urllib2, re, gc, locale, shutil
-    import gtk, pango, threading, ui, img, tray
-
-    # Test pygtk version
-    if gtk.pygtk_version < (2, 12, 0):
-        sys.stderr.write("Sonata requires PyGTK 2.12.0 or newer. Aborting...\n")
-        sys.exit(1)
-
-    # Prevent deprecation warning for egg:
-    warnings.simplefilter('ignore', DeprecationWarning)
-    try:
-        import egg.trayicon
-        HAVE_EGG = True
-        HAVE_STATUS_ICON = False
-    except ImportError:
-        HAVE_EGG = False
-        HAVE_STATUS_ICON = True
-    # Reset so that we can see any other deprecation warnings
-    warnings.simplefilter('default', DeprecationWarning)
-
-    # Default to no sugar, then test...
-    HAVE_SUGAR = False
-    VOLUME_ICON_SIZE = 4
-    if 'SUGAR_BUNDLE_PATH' in os.environ:
-        try:
-            from sugar.activity import activity
-            HAVE_STATUS_ICON = False
-            HAVE_SUGAR = True
-            VOLUME_ICON_SIZE = 3
-        except:
-            pass
-
 # FIXME Constants, Config and Preferences should not be inherited from
 class Base(object, consts.Constants, preferences.Preferences):
-    def __init__(self, window=None, sugar=False):
+    def __init__(self, args, window=None, sugar=False):
         consts.Constants.__init__(self)
-
-        # This is needed so that python-mpd correctly returns lowercase
-        # keys for, e.g., playlistinfo() with a turkish locale
-        try:
-            locale.setlocale(locale.LC_CTYPE, "C")
-        except:
-            pass
 
         # The following attributes were used but not defined here before:
         self.album_current_artist = None
@@ -143,7 +92,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.artwork = None
 
         # Initialize vars (these can be needed if we have a cli argument, e.g., "sonata play")
-        socketsettimeout(5)
         self.profile_num = 0
         self.profile_names = [_('Default Profile')]
         self.musicdir = [misc.sanitize_musicdir("~/music")]
@@ -171,61 +119,15 @@ class Base(object, consts.Constants, preferences.Preferences):
         config.Config.__init__(self, _('Default Profile'), _("by") + " %A " + _("from") + " %B", library.library_set_data)
 
         self.trying_connection = False
-        toggle_arg = False
-        popup_arg = False
-        start_hidden = False
-        start_visible = False
-        arg_profile = False
-
-        # Read any passed options/arguments:
-        if not sugar:
-            try:
-                opts, args = getopt.getopt(sys.argv[1:], short_args, all_args)
-            except getopt.GetoptError:
-                # print help information and exit:
-                self.print_usage()
-                sys.exit()
-            # If options were passed, perform action on them.
-            if opts != []:
-                for o, a in opts:
-                    if o in ("-t", "--toggle"):
-                        toggle_arg = True
-                        if not dbus.using_dbus():
-                            print _("The toggle argument requires D-Bus. Aborting.")
-                            self.print_usage()
-                            sys.exit()
-                    elif o in ("-p", "--popup"):
-                        popup_arg = True
-                        if not dbus.using_dbus():
-                            print _("The popup argument requires D-Bus. Aborting.")
-                            self.print_usage()
-                            sys.exit()
-                    elif o in ("-v", "--version"):
-                        self.print_version()
-                        sys.exit()
-                    elif o in ("--visible"):
-                        start_visible = True
-                    elif o in ("--hidden"):
-                        start_hidden = True
-                    elif o in ("--profile"):
-                        arg_profile = True
-                    else:
-                        self.print_usage()
-                        sys.exit()
-            if args != []:
-                for a in args:
-                    if a in cli_args:
-                        self.single_connect_for_passed_arg(a)
-                    else:
-                        self.print_usage()
-                    sys.exit()
-
-        gtk.gdk.threads_init()
 
         self.traytips = tray.TrayIconTips()
 
-        self.dbus_service = dbus.SonataDBus(self.dbus_show, self.dbus_toggle, self.dbus_popup)
-        dbus.start_dbus_interface(toggle_arg, popup_arg)
+        # better keep a reference around
+        try:
+            self.dbus_service = dbus.SonataDBus(self.dbus_show, self.dbus_toggle, self.dbus_popup)
+        except Exception:
+            pass
+        dbus.start_dbus_interface()
 
         self.gnome_session_management()
 
@@ -279,21 +181,11 @@ class Base(object, consts.Constants, preferences.Preferences):
         preferences.Preferences.__init__(self)
         self.settings_load()
 
-        if start_hidden:
-            self.withdrawn = True
-        if start_visible:
-            self.withdrawn = False
+        if args.start_visibility is not None:
+            self.withdrawn = not args.start_visibility
         if self.autoconnect:
             self.user_connect = True
-        if arg_profile:
-            try:
-                if int(a) > 0 and int(a) <= len(self.profile_names):
-                    self.profile_num = int(a)-1
-                    print _("Starting Sonata with profile"), self.profile_names[self.profile_num]
-                else:
-                    print _("Not a valid profile number. Profile number must be between 1 and"), str(len(self.profile_names)) + "."
-            except:
-                print _("Not a valid profile number. Profile number must be between 1 and"), str(len(self.profile_names)) + "."
+        args.apply_profile_arg(self)
 
         # Add some icons, assign pixbufs:
         self.iconfactory = gtk.IconFactory()
@@ -930,40 +822,11 @@ class Base(object, consts.Constants, preferences.Preferences):
             return self.songinfo
         return None
 
-    def print_version(self):
-        print _("Version: Sonata"), __version__
-        print _("Website: http://sonata.berlios.de/")
-
-    def print_usage(self):
-        self.print_version()
-        print ""
-        print _("Usage: sonata [OPTION]")
-        print ""
-        print _("Options") + ":"
-        print "  -h, --help           " + _("Show this help and exit")
-        print "  -p, --popup          " + _("Popup song notification (requires D-Bus)")
-        print "  -t, --toggle         " + _("Toggles whether the app is minimized")
-        print "                       " + _("to tray or visible (requires D-Bus)")
-        print "  -v, --version        " + _("Show version information and exit")
-        print "  --hidden             " + _("Start app hidden (requires systray)")
-        print "  --visible            " + _("Start app visible (requires systray)")
-        print "  --profile=[NUM]      " + _("Start with profile [NUM]")
-        print "  play                 " + _("Play song in playlist")
-        print "  pause                " + _("Pause currently playing song")
-        print "  stop                 " + _("Stop currently playing song")
-        print "  next                 " + _("Play next song in playlist")
-        print "  prev                 " + _("Play previous song in playlist")
-        print "  pp                   " + _("Toggle play/pause; plays if stopped")
-        print "  repeat               " + _("Toggle repeat mode")
-        print "  random               " + _("Toggle random mode")
-        print "  info                 " + _("Display current song info")
-        print "  status               " + _("Display MPD status")
-
     def gnome_session_management(self):
         try:
             import gnome, gnome.ui
             # Code thanks to quodlibet:
-            gnome.init("sonata", __version__)
+            gnome.init("sonata", consts.consts.VERSION)
             client = gnome.ui.master_client()
             client.set_restart_style(gnome.ui.RESTART_IF_RUNNING)
             command = os.path.normpath(os.path.join(os.getcwd(), sys.argv[0]))
@@ -977,85 +840,6 @@ class Base(object, consts.Constants, preferences.Preferences):
             client.connect('die', gtk.main_quit)
         except:
             pass
-
-    def single_connect_for_passed_arg(self, cmd):
-        self.user_connect = True
-        self.settings_load()
-        self.mpd_connect(blocking=True, force=True)
-        if self.conn:
-            self.status = mpdh.status(self.client)
-            self.songinfo = mpdh.currsong(self.client)
-            if cmd == "play":
-                mpdh.call(self.client, 'play')
-            elif cmd == "pause":
-                mpdh.call(self.client, 'pause', 1)
-            elif cmd == "stop":
-                mpdh.call(self.client, 'stop')
-            elif cmd == "next":
-                mpdh.call(self.client, 'next')
-            elif cmd == "prev":
-                mpdh.call(self.client, 'previous')
-            elif cmd == "random":
-                if self.status:
-                    if self.status['random'] == '0':
-                        mpdh.call(self.client, 'random', 1)
-                    else:
-                        mpdh.call(self.client, 'random', 0)
-            elif cmd == "repeat":
-                if self.status:
-                    if self.status['repeat'] == '0':
-                        mpdh.call(self.client, 'repeat', 1)
-                    else:
-                        mpdh.call(self.client, 'repeat', 0)
-            elif cmd == "pp":
-                self.status = mpdh.status(self.client)
-                if self.status:
-                    if self.status['state'] in ['play']:
-                        mpdh.call(self.client, 'pause', 1)
-                    elif self.status['state'] in ['pause', 'stop']:
-                        mpdh.call(self.client, 'play')
-            elif cmd == "info":
-                if self.status and self.status['state'] in ['play', 'pause']:
-                    mpdh.conout (_("Title") + ": " + mpdh.get(self.songinfo, 'title'))
-                    mpdh.conout (_("Artist") + ": " + mpdh.get(self.songinfo, 'artist'))
-                    mpdh.conout (_("Album") + ": " + mpdh.get(self.songinfo, 'album'))
-                    mpdh.conout (_("Date") + ": " + mpdh.get(self.songinfo, 'date'))
-                    mpdh.conout (_("Track") + ": " + mpdh.getnum(self.songinfo, 'track', '0', False, 2))
-                    mpdh.conout (_("Genre") + ": " + mpdh.get(self.songinfo, 'genre'))
-                    mpdh.conout (_("File") + ": " + os.path.basename(mpdh.get(self.songinfo, 'file')))
-                    at, _length = [int(c) for c in self.status['time'].split(':')]
-                    at_time = misc.convert_time(at)
-                    try:
-                        time = misc.convert_time(int(mpdh.get(self.songinfo, 'time')))
-                        print _("Time") + ": " + at_time + " / " + time
-                    except:
-                        print _("Time") + ": " + at_time
-                    print _("Bitrate") + ": " + self.status.get('bitrate', '')
-                else:
-                    print _("MPD stopped")
-            elif cmd == "status":
-                if self.status:
-                    try:
-                        if self.status['state'] == 'play':
-                            print _("State") + ": " + _("Playing")
-                        elif self.status['state'] == 'pause':
-                            print _("State") + ": " + _("Paused")
-                        elif self.status['state'] == 'stop':
-                            print _("State") + ": " + _("Stopped")
-                        if self.status['repeat'] == '0':
-                            print _("Repeat") + ": " + _("Off")
-                        else:
-                            print _("Repeat") + ": " + _("On")
-                        if self.status['random'] == '0':
-                            print _("Random") + ": " + _("Off")
-                        else:
-                            print _("Random") + ": " + _("On")
-                        print _("Volume") + ": " + self.status['volume'] + "/100"
-                        print _('Crossfade') + ": " + self.status['xfade'] + ' ' + gettext.ngettext('second', 'seconds', int(self.status['xfade']))
-                    except:
-                        pass
-        else:
-            print _("Unable to connect to MPD.\nPlease check your Sonata preferences or MPD_HOST/MPD_PORT environment variables.")
 
     def profile_menu_name(self, profile_num):
         return _("Profile") + ": " + self.profile_names[profile_num].replace("&", "")
@@ -3506,7 +3290,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.mpd_update_queued = True
 
     def on_about(self, _action):
-        about_dialog = about.About(self.window, self.config, __version__, __license__, self.find_path('sonata_large.png'))
+        about_dialog = about.About(self.window, self.config, consts.consts.VERSION, __license__, self.find_path('sonata_large.png'))
 
         statslabel = None
         if self.conn:

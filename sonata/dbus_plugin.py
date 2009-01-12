@@ -18,6 +18,8 @@ if not dbus.using_gnome_mediakeys():
         # do something else instead...
 """
 
+import sys
+
 try:
     import dbus, dbus.service
     if getattr(dbus, "version", (0, 0, 0)) >= (0, 41, 0):
@@ -74,10 +76,30 @@ def mediaPlayerKeysCallback(mpd_pp, mpd_stop, mpd_prev, mpd_next, app, key):
         elif key == 'Next':
             mpd_next(None)
 
-def start_dbus_interface(toggle=False, popup=False):
+def get_session_bus():
+    try:
+        return dbus.SessionBus()
+    except Exception:
+        print _("Sonata failed to connect to the D-BUS session bus: Unable to determine the address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for help)")
+        raise
+
+def execute_remote_commands(toggle=False, popup=False):
+    try:
+        bus = get_session_bus()
+        obj = bus.get_object('org.MPD', '/org/MPD/Sonata')
+        if toggle:
+            obj.toggle(dbus_interface='org.MPD.SonataInterface')
+        if popup:
+            obj.popup(dbus_interface='org.MPD.SonataInterface')
+        sys.exit(0)
+    except Exception:
+        print _("Failed to execute remote commands.")
+        sys.exit(1)
+
+def start_dbus_interface():
     if HAVE_DBUS:
         try:
-            bus = dbus.SessionBus()
+            bus = get_session_bus()
             if NEW_DBUS:
                 retval = bus.request_name("org.MPD.Sonata", dbus_bindings.NAME_FLAG_DO_NOT_QUEUE)
             else:
@@ -85,19 +107,18 @@ def start_dbus_interface(toggle=False, popup=False):
             if retval in (dbus_bindings.REQUEST_NAME_REPLY_PRIMARY_OWNER, dbus_bindings.REQUEST_NAME_REPLY_ALREADY_OWNER):
                 pass
             elif retval in (dbus_bindings.REQUEST_NAME_REPLY_EXISTS, dbus_bindings.REQUEST_NAME_REPLY_IN_QUEUE):
-                obj = bus.get_object('org.MPD', '/org/MPD/Sonata')
-                if toggle:
-                    obj.toggle(dbus_interface='org.MPD.SonataInterface')
-                elif popup:
-                    obj.popup(dbus_interface='org.MPD.SonataInterface')
-                else:
-                    print _("An instance of Sonata is already running.")
+                print _("An instance of Sonata is already running. Showing it...")
+                try:
+                    obj = bus.get_object('org.MPD', '/org/MPD/Sonata')
                     obj.show(dbus_interface='org.MPD.SonataInterface')
-                sys.exit()
+                    sys.exit()
+                except Exception:
+                    print _("Failed to execute remote command.")
+                    sys.exit(1)
+        except Exception:
+            pass
         except SystemExit:
             raise
-        except Exception:
-            print _("Sonata failed to connect to the D-BUS session bus: Unable to determine the address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for help)")
 
 if HAVE_DBUS:
     class SonataDBus(dbus.service.Object):
@@ -105,7 +126,7 @@ if HAVE_DBUS:
             self.dbus_show = dbus_show
             self.dbus_toggle = dbus_toggle
             self.dbus_popup = dbus_popup
-            session_bus = dbus.SessionBus()
+            session_bus = get_session_bus()
             bus_name = dbus.service.BusName('org.MPD', bus=session_bus)
             object_path = '/org/MPD/Sonata'
             dbus.service.Object.__init__(self, bus_name, object_path)
