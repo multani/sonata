@@ -3569,10 +3569,3 @@ class Base(object, consts.Constants, preferences.Preferences):
 
     def main(self):
         gtk.main()
-
-if __name__ == "__main__":
-    base = Base()
-    gtk.gdk.threads_enter()
-    base.main()
-    gtk.gdk.threads_leave()
-
