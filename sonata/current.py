@@ -842,14 +842,14 @@ class Current(object):
                 pass
 
     def on_remove(self):
-        # we are manipulating the model manually for speed, so...
-        self.current_update_skip = True
         treeviewsel = self.current_selection
         model, selected = treeviewsel.get_selected_rows()
         if len(selected) == len(self.currentdata) and not self.filterbox_visible:
             # Everything is selected, clear:
             mpdh.call(self.client, 'clear')
         elif len(selected) > 0:
+            # we are manipulating the model manually for speed, so...
+            self.current_update_skip = True
             selected.reverse()
             if not self.filterbox_visible:
                 # If we remove an item from the filtered results, this
