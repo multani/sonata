@@ -138,6 +138,7 @@ class Artwork(object):
         # Update self.lib_art_rows_local with new rows
         self.lib_art_cond.acquire()
         self.lib_art_rows_local = []
+        self.lib_art_rows_remote = []
         for row in range(start_row, end_row+1):
             i = model.get_iter((row,))
             icon = model.get_value(i, 0)
