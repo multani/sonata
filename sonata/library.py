@@ -874,6 +874,7 @@ class Library(object):
             if self.library.is_focus():
                 value = self.library_get_parent()
                 self.library_browse(None, value)
+                return True
 
     def get_path_child_filenames(self, return_root):
         # If return_root=True, return main directories whenever possible

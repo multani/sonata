@@ -1076,7 +1076,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         shortcut = shortcut.replace("<Mod2>", "")
         # These shortcuts were moved here so that they don't interfere with searching the library
         if shortcut == 'BackSpace' and self.current_tab == self.TAB_LIBRARY:
-            self.library.library_browse_parent(None)
+            return self.library.library_browse_parent(None)
         elif shortcut == 'Escape':
             if self.volumewindow.get_property('visible'):
                 self.volume_hide()
