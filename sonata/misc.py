@@ -29,6 +29,7 @@ def unbold(s):
         return s
 
 def escape_html(s):
+    # & needs to be escaped first, before more are introduced:
     s = s.replace('&', '&amp;')
     s = s.replace('<', '&lt;')
     s = s.replace('>', '&gt;')
@@ -36,28 +37,19 @@ def escape_html(s):
     return s
 
 def unescape_html(s):
-    s = s.replace('&amp;', '&')
-    s = s.replace('amp;', '&')
     s = s.replace('&lt;', '<')
     s = s.replace('&gt;', '>')
     s = s.replace('&quot;', '"')
     s = s.replace('&nbsp;', ' ')
+    # & needs to be unescaped last, so it can't get unescaped twice
+    s = s.replace('&amp;', '&')
+    # FIXME why did we have this too? s = s.replace('amp;', '&')
     return s
 
+# XXX Should we depend on a library to do this or get html from the services?
 def wiki_to_html(s):
-    tag_pairs = [["'''", "<b>", "</b>"], ["''", "<i>", "</i>"]]
-    for tag in tag_pairs:
-        tag_start = True
-        pos = 0
-        while pos > -1:
-            pos = s.find(tag[0], pos)
-            if pos > -1:
-                if tag_start:
-                    s = s[:pos] + tag[1] + s[pos+3:]
-                else:
-                    s = s[:pos] + tag[2] + s[pos+3:]
-                pos += 1
-                tag_start = not tag_start
+    s = re.sub(r"'''(.*?)'''", r"<b>\1</b>", s)
+    s = re.sub(r"''(.*?)''",   r"<i>\1</i>", s)
     return s
 
 def strip_all_slashes(s):
@@ -89,30 +81,21 @@ def link_markup(s, enclose_in_parentheses, small, linkcolor):
     s = "<span color='" + color + "'>" + s + "</span>"
     return s
 
+def iunique(iterable, key=id):
+    seen = set()
+    for i in iterable:
+        if key(i) not in seen:
+            seen.add(key(i))
+            yield i
+
 def remove_list_duplicates(inputlist, case=True):
-    # Note that we do this manually instead of using list(set(x))
-    # so that the inputlist order is preserved.
-    outputlist = []
-    for i in range(len(inputlist)):
-        dup = False
-        # Search outputlist from the end, since the inputlist is typically in
-        # alphabetical order
-        j = len(outputlist)-1
-        if case:
-            while j >= 0:
-                if inputlist[i] == outputlist[j]:
-                    dup = True
-                    break
-                j = j - 1
-        else:
-            while j >= 0:
-                if inputlist[i].lower() == outputlist[j].lower():
-                    dup = True
-                    break
-                j = j - 1
-        if not dup:
-            outputlist.append(inputlist[i])
-    return outputlist
+    # Note that we can't use list(set(inputlist))
+    # because we want the inputlist order preserved.
+    if case:
+        key = id
+    else:
+        key = lambda x:x.lower()
+    return list(iunique(inputlist, key))
 
 the_re = re.compile('^the ')
 def lower_no_the(s):
@@ -174,33 +157,23 @@ def file_exists_insensitive(filename):
     return filename
 
 def browser_load(docslink, browser, window):
-    browser_error = False
-    if len(browser.strip()) > 0:
-        try:
-            subprocess.Popen([browser, docslink])
-        except:
-            browser_error = True
+    if browser and browser.strip():
+        browsers = [browser.strip()]
     else:
+        browsers = ["gnome-open",    # default, we are a "gnome" app
+                "x-www-browser", # default on Debian-based systems
+                "exo-open",
+                "kfmclient openURL",
+                "firefox",
+                "mozilla",
+                "opera"]
+    for browser in browsers:
         try:
-            subprocess.Popen(["gnome-open", docslink])
-        except:
-            try:
-                subprocess.Popen(["exo-open", docslink])
-            except:
-                try:
-                    subprocess.Popen(["kfmclient", "openURL", docslink])
-                except:
-                    try:
-                        subprocess.Popen(["firefox", docslink])
-                    except:
-                        try:
-                            subprocess.Popen(["mozilla", docslink])
-                        except:
-                            try:
-                                subprocess.Popen(["opera", docslink])
-                            except:
-                                browser_error = True
-    if browser_error:
+            subprocess.Popen(browser.split()+[docslink])
+            break # done
+        except OSError:
+            pass  # try next
+    else: # none worked
         # FIXME no function ui.show_error_msg defined
         ui.show_error_msg(window, _('Unable to launch a suitable browser.'), _('Launch Browser'), 'browserLoadError')
 
@@ -212,13 +185,12 @@ def file_from_utf8(filename):
 
 def is_lang_rtl(window):
     # Check if a RTL (right-to-left) language:
-    rtl = (window.get_pango_context().get_base_dir() == pango.DIRECTION_RTL)
-    return rtl
+    return window.get_pango_context().get_base_dir() == pango.DIRECTION_RTL
 
 def capword(s):
-    for i in range(len(s)):
-        if s[i:i+1].isalnum():
-            return s[:i] + s[i:i+1].upper() + s[i+1:]
+    for i, c in enumerate(s):
+        if c.isalnum():
+            return s[:i] + c.upper() + s[i+1:]
     return s
 
 def capwords(s):
@@ -226,9 +198,8 @@ def capwords(s):
 
 def sanitize_musicdir(mdir):
     mdir = os.path.expanduser(mdir)
-    if len(mdir) > 0:
-        if mdir[-1] != "/":
-            mdir = mdir + "/"
+    if mdir and not mdir.endswith("/"):
+        mdir = mdir + "/"
     return mdir
 
 def mpd_env_vars():
@@ -251,10 +222,3 @@ def get_files_recursively(dirname):
 
 def _get_files_recursively(filenames, dirname, files):
     filenames.extend([os.path.join(dirname, f) for f in files])
-
-def iunique(iterable):
-    seen = set()
-    for i in iterable:
-        if i not in seen:
-            seen.add(i)
-            yield i
