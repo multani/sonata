@@ -1956,6 +1956,7 @@ class Base(object, consts.Constants, preferences.Preferences):
                 self.withdraw_app()
                 return True
         self.settings_save()
+        self.artwork.artwork_save_cache()
         if self.as_enabled:
             self.scrobbler.save_cache()
         if self.conn and self.stop_on_exit:

@@ -71,6 +71,8 @@ class Artwork(object):
         self.lib_art_pb_size = 0
         self.cache = {}
 
+        self.artwork_load_cache()
+
     def get_albumimage(self):
         return self.albumimage
 
@@ -147,7 +149,6 @@ class Artwork(object):
 
     def _library_artwork_update(self):
 
-        # XXX Save cache across app sessions?
         while True:
             remote_art = False
 
@@ -170,6 +171,13 @@ class Artwork(object):
             if i is not None and self.lib_model.iter_is_valid(i):
 
                 artist, album, path = library_get_data(data, 'artist', 'album', 'path')
+
+                if artist is None or album is None:
+                    if remote_art:
+                        self.lib_art_rows_remote.pop(0)
+                    else:
+                        self.lib_art_rows_local.pop(0)
+
                 cache_key = library_set_data(artist=artist, album=album, path=path)
                 filename = None
 
@@ -206,7 +214,6 @@ class Artwork(object):
                             self.set_library_artwork_cached_filename(cache_key, self.album_filename)
 
     def library_set_image_for_current_song(self, cache_key, filename):
-        # XXX Need to handle reset
         # Search through the rows in the library to see
         # if we match the currently playing song:
         play_artist, play_album = library_get_data(cache_key, 'artist', 'album')
@@ -258,6 +265,26 @@ class Artwork(object):
                 return origpb
         else:
             return origpb
+
+    def artwork_save_cache(self):
+        misc.create_dir('~/.config/sonata/')
+        filename = os.path.expanduser("~/.config/sonata/art_cache")
+        f = open(filename, 'w')
+        f.write(repr(self.cache))
+        f.close()
+
+    def artwork_load_cache(self):
+        filename = os.path.expanduser("~/.config/sonata/art_cache")
+        if os.path.exists(filename):
+            try:
+                f = open(filename, 'r')
+                r = f.read()
+                self.cache = eval(r)
+                f.close()
+            except:
+                self.cache = {}
+        else:
+            self.cache = {}
 
     def artwork_update(self, force=False):
         if force:
