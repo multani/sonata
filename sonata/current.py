@@ -570,17 +570,17 @@ class Current(object):
                     self.current_songs.insert(dest+1, self.current_songs[index])
                     if dest < index:
                         self.current_songs.pop(index+1)
-                        mpdh.call(self.client, 'moveid', id, dest+1)
+                        mpdh.call(self.client, 'moveid', songid, dest+1)
                     else:
                         self.current_songs.pop(index)
-                        mpdh.call(self.client, 'moveid', id, dest)
+                        mpdh.call(self.client, 'moveid', songid, dest)
                     model.insert(dest+1, model[index])
                     moved_iters += [model.get_iter((dest+1,))]
                     model.remove(i)
             else:
                 #dest = int(self.status['playlistlength']) - 1
                 dest = len(self.currentdata) - 1
-                mpdh.call(self.client, 'moveid', id, dest)
+                mpdh.call(self.client, 'moveid', songid, dest)
                 self.current_songs.insert(dest+1, self.current_songs[index])
                 self.current_songs.pop(index)
                 model.insert(dest+1, model[index])
