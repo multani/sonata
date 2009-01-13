@@ -1962,7 +1962,6 @@ class Base(object, consts.Constants, preferences.Preferences):
         if self.conn and self.stop_on_exit:
             self.mpd_stop(None)
         sys.exit()
-        return False
 
     def on_window_state_change(self, _widget, _event):
         self.volume_hide()

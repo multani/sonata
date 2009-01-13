@@ -60,7 +60,7 @@ def init_gnome_mediakeys(mpd_pp, mpd_stop, mpd_prev, mpd_next):
                     settingsDaemonObj = bus.get_object('org.gnome.SettingsDaemon', '/org/gnome/SettingsDaemon')
                     settingsDaemonInterface = dbus.Interface(settingsDaemonObj, 'org.gnome.SettingsDaemon')
                     settingsDaemonInterface.GrabMediaPlayerKeys('Sonata', 0)
-                settingsDaemonInterface.connect_to_signal('MediaPlayerKeyPressed', mediaPlayerKeysCallback, mpd_pp, mpd_stop, mpd_prev, mpd_next)
+                settingsDaemonInterface.connect_to_signal('MediaPlayerKeyPressed', lambda app, key:mediaPlayerKeysCallback(mpd_pp, mpd_stop, mpd_prev, mpd_next, app, key))
                 HAVE_GNOME_MMKEYS = True
         except:
             pass
@@ -91,7 +91,7 @@ def execute_remote_commands(toggle=False, popup=False):
             obj.toggle(dbus_interface='org.MPD.SonataInterface')
         if popup:
             obj.popup(dbus_interface='org.MPD.SonataInterface')
-        sys.exit(0)
+        sys.exit()
     except Exception:
         print _("Failed to execute remote commands.")
         sys.exit(1)

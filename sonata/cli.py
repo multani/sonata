@@ -82,7 +82,7 @@ class Args(object):
             main.mpd_connect()
             for a in self.args:
                 main.execute_cmd(a)
-            sys.exit(0)
+            sys.exit()
 
     def print_version(self):
         print _("Version") + ": Sonata", consts.VERSION
@@ -125,9 +125,11 @@ class Args(object):
                 else:
                     print _("%d is not an available profile number.") % a
                     print _("Profile numbers must be between 1 and %d.") % len(config.profile_names)
+                    sys.exit(1)
             except ValueError:
                 print _("Python is unable to interpret %s as a number.") % self.arg_profile
                 print _("Profile numbers must be between 1 and %d.") % len(config.profile_names)
+                sys.exit(1)
 
 class CliMain(object):
     def __init__(self, args):
@@ -162,7 +164,7 @@ class CliMain(object):
         self.status = mpdh.status(self.client)
         if not self.status:
             print _("Unable to connect to MPD.\nPlease check your Sonata preferences or MPD_HOST/MPD_PORT environment variables.")
-            sys.exit(0)
+            sys.exit(1)
 
         self.songinfo = mpdh.currsong(self.client)
 
