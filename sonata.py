@@ -40,7 +40,7 @@ except ImportError:
 # https://bugs.launchpad.net/ubuntu/+source/zsi/+bug/208855
 sys.path.append('/usr/lib/python2.5/site-packages/oldxml')
 
-# XXX What does this affect?
+# set the process name as 'sonata'
 if platform.system == 'Linux':
     sys.argv[0] = 'sonata'
 

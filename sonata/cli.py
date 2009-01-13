@@ -78,14 +78,15 @@ class Args(object):
         """If arguments were passed, perform action on them."""
         if self.args:
             main = CliMain(self)
+            mpdh.suppress_mpd_errors(True)
             main.mpd_connect()
             for a in self.args:
                 main.execute_cmd(a)
             sys.exit(0)
 
     def print_version(self):
-        print _("Version: Sonata"), consts.VERSION
-        print _("Website: http://sonata.berlios.de/")
+        print _("Version") + ": Sonata", consts.VERSION
+        print _("Website") + ": http://sonata.berlios.de/"
 
     def print_usage(self):
         self.print_version()
@@ -161,6 +162,7 @@ class CliMain(object):
         self.status = mpdh.status(self.client)
         if not self.status:
             print _("Unable to connect to MPD.\nPlease check your Sonata preferences or MPD_HOST/MPD_PORT environment variables.")
+            sys.exit(0)
 
         self.songinfo = mpdh.currsong(self.client)
 

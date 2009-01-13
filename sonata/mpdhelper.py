@@ -5,6 +5,12 @@
 import locale, sys
 from time import strftime
 
+suppress_errors = False
+
+def suppress_mpd_errors(val):
+    global suppress_errors
+    suppress_errors = val
+
 def status(client):
     result = call(client, 'status')
     if result and 'state' in result:
@@ -60,7 +66,8 @@ def call(mpdclient, mpd_cmd, *mpd_args):
         retval = getattr(mpdclient, mpd_cmd)(*mpd_args)
     except:
         if not mpd_cmd in ['disconnect', 'lsinfo', 'listplaylists']:
-            print strftime("%Y-%m-%d %H:%M:%S") + "  " + str(sys.exc_info()[1])
+            if not suppress_errors:
+                print strftime("%Y-%m-%d %H:%M:%S") + "  " + str(sys.exc_info()[1])
         if mpd_cmd == 'lsinfo':
             return []
         else:
