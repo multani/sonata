@@ -2,14 +2,12 @@
 # $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/img.py $
 # $Id: img.py 141 2006-09-11 04:51:07Z stonecrest $
 
-import gtk, os, gobject
+import os
+
+import gtk, gobject
 
 def valid_image(filename):
-    test = gtk.gdk.pixbuf_get_file_info(filename)
-    if test == None:
-        return False
-    else:
-        return True
+    return bool(gtk.gdk.pixbuf_get_file_info(filename))
 
 def get_pixbuf_of_size(pixbuf, size):
     # Creates a pixbuf that fits in the specified square of sizexsize
@@ -17,7 +15,7 @@ def get_pixbuf_of_size(pixbuf, size):
     # Returns tuple: (scaled_pixbuf, actual_width, actual_height)
     image_width = pixbuf.get_width()
     image_height = pixbuf.get_height()
-    if image_width-size > image_height-size:
+    if image_width > image_height:
         if image_width > size:
             image_height = int(size/float(image_width)*image_height)
             image_width = size
@@ -44,17 +42,21 @@ def pixbuf_pad(pix, w, h):
     width = pix.get_width()
     height = pix.get_height()
     transpbox = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, w, h)
-    transpbox.fill(0xffff00)
+    transpbox.fill(0)
     x_pos = int((w - width)/2)
     y_pos = int((h - height)/2)
     pix.copy_area(0, 0, width, height, transpbox, x_pos, y_pos)
     return transpbox
 
 def extension_is_valid(extension):
-    for ext in gtk.gdk.pixbuf_get_formats():
-        if extension.lower() in ext['extensions']:
+    for format in gtk.gdk.pixbuf_get_formats():
+        if extension.lower() in format['extensions']:
             return True
     return False
+
+def is_imgfile(filename):
+    ext = os.path.splitext(filename)[1][1:]
+    return extension_is_valid(ext)
 
 def single_image_in_dir(dirname):
     # Returns None or a filename if there is exactly one image
@@ -63,18 +65,11 @@ def single_image_in_dir(dirname):
         dirname = gobject.filename_from_utf8(dirname)
     except:
         pass
-    num = 0
-    imgfile = None
+
     if not os.path.exists(dirname):
         return None
-    for filename in os.listdir(dirname):
-        ext = os.path.splitext(filename)[1][1:]
-        if extension_is_valid(ext):
-            num += 1
-            if num == 1:
-                imgfile = dirname + "/" + filename
-            else:
-                break
-    if num != 1:
+
+    imgfiles = [f for f in os.listdir(dirname) if is_imgfile(f)]
+    if len(imgfiles) != 1:
         return None
-    return imgfile
+    return os.path.join(dirname, imgfiles[0])
