@@ -2,6 +2,7 @@
 import sys, getopt
 
 from consts import consts
+import misc
 
 # the mpd commands need a connection to server and exit without gui
 mpd_cmds = ["play", "pause", "stop", "next", "prev", "pp", "info",
@@ -85,7 +86,8 @@ class Args(object):
             sys.exit()
 
     def print_version(self):
-        print _("Version") + ": Sonata", consts.VERSION
+        print _("Version") + ": Sonata", (consts.VERSION+
+                          misc.find_svnrev())
         print _("Website") + ": http://sonata.berlios.de/"
 
     def print_usage(self):

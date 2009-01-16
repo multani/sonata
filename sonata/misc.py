@@ -6,6 +6,7 @@ import os, subprocess, re, gettext
 
 import gobject, pango
 
+import sonata
 import ui
 
 def convert_time(raw):
@@ -226,3 +227,23 @@ def get_files_recursively(dirname):
 
 def _get_files_recursively(filenames, dirname, files):
     filenames.extend([os.path.join(dirname, f) for f in files])
+
+def find_svnrev():
+    ret = ""
+    dir = os.path.dirname(os.path.dirname(sonata.__file__))
+
+    if os.path.exists(os.path.join(dir, '.svn')):
+        ret = "+svn????"
+
+    try:
+        output = subprocess.Popen(["svn", "info", dir],
+                      stdout=subprocess.PIPE,
+                      stderr=subprocess.PIPE
+                      ).communicate()[0]
+        keys = dict(line.split(": ",1) for line in output.split("\n")
+                if ":" in line)
+        ret = "+svn" + keys["Revision"]
+    except (OSError, ValueError, KeyError):
+        pass
+
+    return ret
