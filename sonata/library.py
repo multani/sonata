@@ -810,7 +810,7 @@ class Library(object):
             return False
 
         i = self.librarydata.get_iter(path[0])
-        path = misc.escape_html(self.librarydata.get_value(i, 1))
+        path = misc.escape_html(self.library_get_data(self.librarydata.get_value(i, 1), 'path'))
         song = self.librarydata.get_value(i, 2)
         new_tooltip = "<b>" + _("Song") + ": </b>" + song + "\n<b>" + _("Path") + ": </b>" + path
 
