@@ -65,7 +65,7 @@ class Config:
         self.initial_run = True
         self.show_header = True
         self.tabs_expanded = False
-        self.currentformat = "%A - %T"
+        self.currentformat = "%A - %T|%L"
         self.libraryformat = "%A - %T"
         self.titleformat = "[Sonata] %A - %T"
         self.currsongformat1 = "%T"
