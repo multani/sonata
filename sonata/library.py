@@ -804,12 +804,13 @@ class Library(object):
 
         bin_x, bin_y = widget.convert_widget_to_bin_window_coords(x, y)
 
-        path, _col, _x2, _y2 = widget.get_path_at_pos(bin_x, bin_y)
-        if not path:
+        pathinfo = widget.get_path_at_pos(bin_x, bin_y)
+        if not pathinfo:
             widget.set_tooltip_text(None)
             return False
+        treepath, _col, _x2, _y2 = pathinfo
 
-        i = self.librarydata.get_iter(path[0])
+        i = self.librarydata.get_iter(treepath[0])
         path = misc.escape_html(self.library_get_data(self.librarydata.get_value(i, 1), 'path'))
         song = self.librarydata.get_value(i, 2)
         new_tooltip = "<b>" + _("Song") + ": </b>" + song + "\n<b>" + _("Path") + ": </b>" + path
