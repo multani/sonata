@@ -40,19 +40,13 @@ def getnum(mapping, key, alt='0', return_int=False, str_padding=0):
 def sanitize(tag, return_int, str_padding):
     # Sanitizes a mpd tag; used for numerical tags. Known forms
     # for the mpd tag can be "4", "4/10", and "4,10".
-    try:
-        ret = int(tag.split('/')[0])
-    except:
-        try:
-            ret = int(tag.split(',')[0])
-        except:
-            ret = 0
-    # Don't allow negative numbers:
-    if ret < 0:
-        ret = 0
-    if not return_int:
-        ret = str(ret).zfill(str_padding)
-    return ret
+    ret = 0
+
+    split_tag = tag.replace(',',' ',1).replace('/',' ',1).split()
+    if split_tag[0].isdigit():
+        ret = int(split_tag[0])
+
+    return ret if return_int else str(ret).zfill(str_padding)
 
 def conout(s):
     # A kind of 'print' which does not throw exceptions if the string
