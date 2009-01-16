@@ -61,7 +61,6 @@ def conout(s):
     print s.encode(locale.getpreferredencoding(), "replace")
 
 def call(mpdclient, mpd_cmd, *mpd_args):
-    mpd_args = list(mpd_args)
     try:
         retval = getattr(mpdclient, mpd_cmd)(*mpd_args)
     except:
