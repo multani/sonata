@@ -3,6 +3,7 @@
 # $Id: misc.py 141 2006-09-11 04:51:07Z stonecrest $
 
 import os, subprocess, re, gettext
+from xml.etree import ElementTree
 
 import gobject, pango
 
@@ -236,14 +237,15 @@ def find_svnrev():
         ret = "+svn????"
 
     try:
-        output = subprocess.Popen(["svn", "info", dir],
+        output = subprocess.Popen(["svn", "info", "--xml", dir],
                       stdout=subprocess.PIPE,
                       stderr=subprocess.PIPE
                       ).communicate()[0]
-        keys = dict(line.split(": ",1) for line in output.split("\n")
-                if ":" in line)
-        ret = "+svn" + keys["Revision"]
-    except (OSError, ValueError, KeyError):
+        info = ElementTree.fromstring(output)
+        ret = "+svn" + info.find("entry").get("revision","????")
+    except (OSError, # svn fails to run
+        Exception, # no repo causes parsing svn info to fail
+        AttributeError): # no <entry> for some reason
         pass
 
     return ret
