@@ -189,7 +189,7 @@ class Current(object):
 
             self.currentdata.append([int(mpdh.get(track, 'id'))] + items)
 
-    def current_update(self, prevstatus_playlist, status_playlistlength):
+    def current_update(self, prevstatus_playlist, new_playlist_length):
         if self.connected():
 
             if self.sonata_loaded():
@@ -208,7 +208,7 @@ class Current(object):
                     changed_songs = mpdh.call(self.client, 'plchanges', 0)
                     self.current_songs = []
 
-                newlen = int(status_playlistlength)
+                newlen = int(new_playlist_length)
                 currlen = len(self.currentdata)
 
                 for track in changed_songs:
@@ -239,7 +239,7 @@ class Current(object):
                 else:
                     # Remove excess songs:
                     for i in range(currlen-newlen):
-                        it = self.currentdata.get_iter((newlen-1-i,))
+                        it = self.currentdata.get_iter((currlen-1-i,))
                         self.currentdata.remove(it)
                     self.current_songs = self.current_songs[:newlen]
 
