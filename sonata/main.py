@@ -893,6 +893,10 @@ class Base(object, consts.Constants, preferences.Preferences):
         if profile.get_name() == 'disconnect':
             self.on_disconnectkey_pressed(None)
         else:
+            # Clear sonata before we try to connect:
+            self.mpd_disconnect()
+            self.iterate_now()
+            # Now connect to new profile:
             self.profile_num = profile.get_current_value()
             self.on_connectkey_pressed(None)
 

@@ -260,6 +260,7 @@ class Current(object):
                 currsong = int(mpdh.get(self.songinfo(), 'pos'))
                 self.boldrow(currsong)
                 self.prev_boldrow = currsong
+
             if self.filterbox_visible:
                 # Refresh filtered results:
                 self.prevtodo = "RETAIN_POS_AND_SEL" # Hacky, but this ensures we retain the self.current position/selection
@@ -268,6 +269,7 @@ class Current(object):
             elif self.sonata_loaded():
                 self.playlist_retain_view(self.current, playlistposition)
                 self.current.thaw_child_notify()
+
             self.header_update_column_indicators()
             self.update_statusbar()
             ui.change_cursor(None)
