@@ -71,7 +71,7 @@ class Config:
         self.currsongformat1 = "%T"
         self.currsongformat2 = currsongformat2
         # this mirrors Main.columns widths
-        self.columnwidths = []
+        self.columnwidths = [325,10]
         self.colwidthpercents = []
         self.autoconnect = True
 
