@@ -61,6 +61,11 @@ import misc, ui, img, tray
 import consts, config, preferences, tagedit, artwork, about, scrobbler, info, library, streams, playlists, current
 import dbus_plugin as dbus
 
+try:
+    import version
+except ImportError:
+    import svnversion as version
+
 # FIXME Constants, Config and Preferences should not be inherited from
 class Base(object, consts.Constants, preferences.Preferences):
     def __init__(self, args, window=None, sugar=False):
@@ -826,7 +831,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         try:
             import gnome, gnome.ui
             # Code thanks to quodlibet:
-            gnome.init("sonata", consts.consts.VERSION)
+            gnome.init("sonata", version.VERSION)
             client = gnome.ui.master_client()
             client.set_restart_style(gnome.ui.RESTART_IF_RUNNING)
             command = os.path.normpath(os.path.join(os.getcwd(), sys.argv[0]))
@@ -3294,7 +3299,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.mpd_update_queued = True
 
     def on_about(self, _action):
-        about_dialog = about.About(self.window, self.config, consts.consts.VERSION, __license__, self.find_path('sonata_large.png'))
+        about_dialog = about.About(self.window, self.config, version.VERSION, __license__, self.find_path('sonata_large.png'))
 
         statslabel = None
         if self.conn:
