@@ -55,7 +55,9 @@ import mpdhelper as mpdh
 
 import misc, ui, img, tray
 
-import consts, config, preferences, tagedit, artwork, about, scrobbler, info, library, streams, playlists, current
+from consts import consts
+
+import config, preferences, tagedit, artwork, about, scrobbler, info, library, streams, playlists, current
 import dbus_plugin as dbus
 
 try:
@@ -63,11 +65,9 @@ try:
 except ImportError:
     import svnversion as version
 
-# FIXME Constants, Config and Preferences should not be inherited from
-class Base(object, consts.Constants, preferences.Preferences):
+# FIXME Config and Preferences should not be inherited from
+class Base(object, preferences.Preferences):
     def __init__(self, args, window=None, sugar=False):
-        consts.Constants.__init__(self)
-
         # The following attributes were used but not defined here before:
         self.album_current_artist = None
 
@@ -778,7 +778,7 @@ class Base(object, consts.Constants, preferences.Preferences):
 
         # Initialize library data and widget
         self.librarydata = self.library.get_model()
-        self.artwork.library_artwork_init(self.librarydata, self.LIB_COVER_SIZE)
+        self.artwork.library_artwork_init(self.librarydata, consts.LIB_COVER_SIZE)
 
         if self.window_owner:
             icon = self.window.render_icon('sonata', gtk.ICON_SIZE_DIALOG)
@@ -1855,10 +1855,10 @@ class Base(object, consts.Constants, preferences.Preferences):
         monitor_num = screen.get_monitor_at_point(px, py)
         monitor = screen.get_monitor_geometry(monitor_num)
         self.notification_width = int(monitor.width * 0.30)
-        if self.notification_width > self.NOTIFICATION_WIDTH_MAX:
-            self.notification_width = self.NOTIFICATION_WIDTH_MAX
-        elif self.notification_width < self.NOTIFICATION_WIDTH_MIN:
-            self.notification_width = self.NOTIFICATION_WIDTH_MIN
+        if self.notification_width > consts.NOTIFICATION_WIDTH_MAX:
+            self.notification_width = consts.NOTIFICATION_WIDTH_MAX
+        elif self.notification_width < consts.NOTIFICATION_WIDTH_MIN:
+            self.notification_width = consts.NOTIFICATION_WIDTH_MIN
 
     def on_currsong_notify(self, _foo=None, _bar=None, force_popup=False):
         if self.fullscreencoverart.get_property('visible'):
@@ -2174,7 +2174,7 @@ class Base(object, consts.Constants, preferences.Preferences):
             album = None
             stream = None
             if self.conn and self.status and self.status['state'] in ['play', 'pause']:
-                if self.covers_pref != self.ART_LOCAL:
+                if self.covers_pref != consts.ART_LOCAL:
                     self.UIManager.get_widget('/imagemenu/chooseimage_menu/').show()
                 else:
                     self.UIManager.get_widget('/imagemenu/chooseimage_menu/').hide()
@@ -2262,15 +2262,15 @@ class Base(object, consts.Constants, preferences.Preferences):
                 art_loc = force_location
             else:
                 art_loc = self.art_location
-            if art_loc == self.ART_LOCATION_HOMECOVERS:
+            if art_loc == consts.ART_LOCATION_HOMECOVERS:
                 targetfile = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
-            elif art_loc == self.ART_LOCATION_COVER:
+            elif art_loc == consts.ART_LOCATION_COVER:
                 targetfile = self.musicdir[self.profile_num] + songpath + "/cover.jpg"
-            elif art_loc == self.ART_LOCATION_FOLDER:
+            elif art_loc == consts.ART_LOCATION_FOLDER:
                 targetfile = self.musicdir[self.profile_num] + songpath + "/folder.jpg"
-            elif art_loc == self.ART_LOCATION_ALBUM:
+            elif art_loc == consts.ART_LOCATION_ALBUM:
                 targetfile = self.musicdir[self.profile_num] + songpath + "/album.jpg"
-            elif art_loc == self.ART_LOCATION_CUSTOM:
+            elif art_loc == consts.ART_LOCATION_CUSTOM:
                 targetfile = self.musicdir[self.profile_num] + songpath + "/" + self.art_location_custom_filename
             targetfile = misc.file_exists_insensitive(targetfile)
             return misc.file_from_utf8(targetfile)
@@ -2350,7 +2350,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         dialog.set_default_response(gtk.RESPONSE_OK)
         songdir = os.path.dirname(mpdh.get(self.songinfo, 'file'))
         currdir = misc.file_from_utf8(self.musicdir[self.profile_num] + songdir)
-        if self.art_location != self.ART_LOCATION_HOMECOVERS:
+        if self.art_location != consts.ART_LOCATION_HOMECOVERS:
             dialog.set_current_folder(currdir)
         if stream is not None:
             # Allow saving an image file for a stream:
@@ -2861,14 +2861,14 @@ class Base(object, consts.Constants, preferences.Preferences):
             self.ontop = win_ontop.get_active()
             self.covers_pref = display_art_combo.get_active()
             self.sticky = win_sticky.get_active()
-            if self.show_lyrics and self.lyrics_location != self.LYRICS_LOCATION_HOME:
+            if self.show_lyrics and self.lyrics_location != consts.LYRICS_LOCATION_HOME:
                 if not os.path.isdir(misc.file_from_utf8(self.musicdir[self.profile_num])):
                     ui.show_msg(self.window, _("To save lyrics to the music file's directory, you must specify a valid music directory."), _("Music Dir Verification"), 'musicdirVerificationError', gtk.BUTTONS_CLOSE)
                     # Set music_dir entry focused:
                     prefsnotebook.set_current_page(0)
                     direntry.grab_focus()
                     return
-            if self.show_covers and self.art_location != self.ART_LOCATION_HOMECOVERS:
+            if self.show_covers and self.art_location != consts.ART_LOCATION_HOMECOVERS:
                 if not os.path.isdir(misc.file_from_utf8(self.musicdir[self.profile_num])):
                     ui.show_msg(self.window, _("To save artwork to the music file's directory, you must specify a valid music directory."), _("Music Dir Verification"), 'musicdirVerificationError', gtk.BUTTONS_CLOSE)
                     # Set music_dir entry focused:
