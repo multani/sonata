@@ -24,14 +24,33 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys, platform, locale, gettext
+import sys, platform, locale, gettext, os
+
+# XXX insert the correct sonata package dir in sys.path
 
 try:
     import sonata
 except ImportError:
     sys.stderr.write("Python failed to find the sonata modules.\n")
-    sys.stderr.write("Perhaps Sonata is improperly installed?\n")
+    sys.stderr.write("\nSearched in the following directories:\n" +
+             "\n".join(sys.path) + "\n")
+    sys.stderr.write("\nPerhaps Sonata is improperly installed?\n")
     sys.exit(1)
+
+try:
+    import sonata.version as version
+except ImportError:
+    try:
+        import sonata.svnversion as version
+    except ImportError:
+        sys.stderr.write("Python failed to find the sonata modules.\n")
+        sys.stderr.write("\nAn old or incomplete installation was " +
+                 "found in the following directory:\n" +
+                 os.path.dirname(sonata.__file__) + "\n")
+        sys.stderr.write("\nPerhaps you want to delete it?\n")
+        sys.exit(1)
+
+# XXX check that version.VERSION is what this script was installed for
 
 
 ## Apply global fixes:
