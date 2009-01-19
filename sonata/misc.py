@@ -189,15 +189,6 @@ def is_lang_rtl(window):
     # Check if a RTL (right-to-left) language:
     return window.get_pango_context().get_base_dir() == pango.DIRECTION_RTL
 
-def capword(s):
-    for i, c in enumerate(s):
-        if c.isalnum():
-            return s[:i] + c.upper() + s[i+1:]
-    return s
-
-def capwords(s):
-    return str(' '.join([capword(x) for x in unicode(s).split()]))
-
 def sanitize_musicdir(mdir):
     mdir = os.path.expanduser(mdir)
     if mdir and not mdir.endswith("/"):

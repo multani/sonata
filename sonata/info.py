@@ -355,6 +355,14 @@ class Info(object):
         lyricThread.setDaemon(True)
         lyricThread.start()
 
+    def lyricwiki_format(self, text):
+        return urllib.quote(str(unicode(text).title()))
+
+    def lyricwiki_editlink(self, songinfo):
+        artist, title = [self.lyricwiki_format(mpdh.get(songinfo, key))
+                 for key in ('artist', 'title')]
+        return "http://lyricwiki.org/index.php?title=%s:%s&action=edit" % (artist, title)
+
     def get_lyrics_thread(self, search_artist, search_title, filename_artist, filename_title, song_dir):
         filename_artist = misc.strip_all_slashes(filename_artist)
         filename_title = misc.strip_all_slashes(filename_title)
@@ -408,7 +416,7 @@ class Info(object):
             try:
                 timeout = socketgettimeout()
                 socketsettimeout(consts.LYRIC_TIMEOUT)
-                lyrics = self.lyricServer.getSong(artist=urllib.quote(misc.capwords(search_artist)), song=urllib.quote(misc.capwords(search_title)))['return']["lyrics"]
+                lyrics = self.lyricServer.getSong(artist=self.lyricwiki_format(search_artist), song=self.lyricwiki_format(search_title))['return']["lyrics"]
                 if lyrics.lower() != "not found":
                     lyrics = misc.unescape_html(lyrics)
                     lyrics = misc.wiki_to_html(lyrics)

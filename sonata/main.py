@@ -3052,7 +3052,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         elif type == 'search':
             self.on_lyrics_search(None)
         elif type == 'editlyrics':
-            misc.browser_load("http://lyricwiki.org/index.php?title=" + urllib.quote(misc.capwords(mpdh.get(self.songinfo, 'artist'))) + ":" + urllib.quote(misc.capwords(mpdh.get(self.songinfo, 'title'))) + "&action=edit", self.url_browser, self.window)
+            misc.browser_load(self.info.lyricwiki_editlink(self.songinfo), self.url_browser, self.window)
 
     def on_tab_click(self, _widget, event):
         if event.button == 3:
