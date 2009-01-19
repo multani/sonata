@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-# $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/setup.py $
-# $Id: setup.py 141 2006-09-11 04:51:07Z stonecrest $
-
 import os, glob, shutil
 
 from distutils.core import setup, Extension

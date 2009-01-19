@@ -1,6 +1,3 @@
-# coding=utf-8
-# $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/mpdhelper.py $
-# $Id: mpdhelper.py 141 2006-09-11 04:51:07Z stonecrest $
 
 import locale, sys
 from time import strftime

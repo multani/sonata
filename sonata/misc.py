@@ -1,6 +1,3 @@
-# coding=utf-8
-# $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/misc.py $
-# $Id: misc.py 141 2006-09-11 04:51:07Z stonecrest $
 
 import os, subprocess, re, gettext
 

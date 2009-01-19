@@ -1,6 +1,3 @@
-# coding=utf-8
-# $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/main.py $
-# $Id: main.py 141 2006-09-11 04:51:07Z stonecrest $
 
 __license__ = """
 Sonata, an elegant GTK+ client for the Music Player Daemon

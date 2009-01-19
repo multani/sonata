@@ -1,6 +1,3 @@
-# coding=utf-8
-# $HeadURL: http://svn.berlios.de/svnroot/repos/sonata/trunk/tray.py $
-# $Id: tray.py 141 2006-09-11 04:51:07Z stonecrest $
 
 import gtk, gobject
 
