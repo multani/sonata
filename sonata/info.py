@@ -1,5 +1,5 @@
 
-import sys, os, gettext, locale, urllib
+import sys, os, locale, urllib
 import threading # get_lyrics_start starts a thread get_lyrics_thread
 from socket import getdefaulttimeout as socketgettimeout
 from socket import setdefaulttimeout as socketsettimeout

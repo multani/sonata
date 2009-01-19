@@ -1,7 +1,5 @@
 # coding=utf-8
 
-import gettext
-
 import gtk
 
 import misc, ui

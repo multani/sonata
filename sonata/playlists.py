@@ -11,8 +11,6 @@ self.playlists.populate()
 ...
 """
 
-import gettext
-
 import gtk, pango
 
 import ui, misc

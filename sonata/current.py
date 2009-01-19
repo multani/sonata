@@ -12,7 +12,7 @@ self.current.current_update(prevstatus_playlist, self.status['playlistlength'])
 ...
 """
 
-import os, gettext, re, urllib
+import os, re, urllib
 import threading # searchfilter_toggle starts thread searchfilter_loop
 
 import gtk, pango, gobject

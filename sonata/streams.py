@@ -12,8 +12,6 @@ self.streams.populate()
 ...
 """
 
-import gettext
-
 import gtk, pango
 
 import misc, ui

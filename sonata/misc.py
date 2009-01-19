@@ -1,5 +1,5 @@
 
-import os, subprocess, re, gettext
+import os, subprocess, re
 
 import gobject, pango
 

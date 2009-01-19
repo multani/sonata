@@ -9,7 +9,6 @@ tageditor = tagedit.TagEditor(self.window, self.tags_mpd_update)
 tageditor.on_tags_edit(files, temp_mpdpaths, self.musicdir[self.profile_num])
 """
 
-import gettext
 import os
 import re
 
