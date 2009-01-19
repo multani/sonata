@@ -106,10 +106,6 @@ def lower_no_the(s):
     s = str(s)
     return s
 
-def first_of_2tuple(t):
-    fst, _snd = t
-    return fst
-
 def create_dir(dirname):
     if not os.path.exists(os.path.expanduser(dirname)):
         os.makedirs(os.path.expanduser(dirname))

@@ -1,6 +1,7 @@
 import os
 import re, gettext, locale
 import threading # libsearchfilter_toggle starts thread libsearchfilter_loop
+import operator
 
 import gtk, gobject, pango
 
@@ -394,7 +395,7 @@ class Library(object):
                 elif 'file' in item:
                     data = self.library_set_data(path=mpdh.get(item, 'file'))
                     bd += [('f' + unicode(mpdh.get(item, 'file')).lower(), [self.sonatapb, data, self.parse_formatting(self.config.libraryformat, item, True)])]
-            bd.sort(key=misc.first_of_2tuple)
+            bd.sort(key=operator.itemgetter(0))
             if path != '/' and len(bd) > 0:
                 bd = self.library_populate_add_parent_rows() + bd
             if path == '/':
@@ -481,7 +482,7 @@ class Library(object):
                     display += self.add_display_info(num_songs, int(playtime)/60)
                     pb = self.artwork.get_library_artwork_cached_pb(cache_data, self.albumpb)
                     bd += [(misc.lower_no_the(album), [pb, data, display])]
-        bd.sort(locale.strcoll, key=misc.first_of_2tuple)
+        bd.sort(locale.strcoll, key=operator.itemgetter(0))
         if genreview:
             self.lib_view_genre_cache = bd
         elif artistview:
@@ -575,7 +576,7 @@ class Library(object):
             bd += self.library_populate_data_songs(genre, artist, album, year)
         if len(bd) > 0:
             bd = self.library_populate_add_parent_rows() + bd
-        bd.sort(locale.strcoll, key=misc.first_of_2tuple)
+        bd.sort(locale.strcoll, key=operator.itemgetter(0))
         return bd
 
     def library_populate_data_songs(self, genre, artist, album, year):
