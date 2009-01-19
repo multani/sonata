@@ -133,15 +133,6 @@ class TrayIconTips(gtk.Window):
         self._show_timeout_id = -1
         self.notif_handler = None
 
-    def display(self, widget):
-        if not self._label.get_text():
-            return
-
-        if self._show_timeout_id != -1:
-            return
-
-        self._show_timeout_id = gobject.timeout_add(500, self._real_display, widget)
-
     def set_tip (self, widget):
         self.widget = widget
         self._event_handler (self.widget)
