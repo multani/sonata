@@ -730,7 +730,7 @@ class Base(object, consts.Constants, preferences.Preferences):
         self.notebook.connect('size-allocate', self.on_notebook_resize)
         self.notebook.connect('switch-page', self.on_notebook_page_change)
 
-        self.fullscreencoverart.add_events(gtk.gdk.BUTTON_PRESS_MASK | gtk.gdk.BUTTON_PRESS_MASK)
+        self.fullscreencoverart.add_events(gtk.gdk.BUTTON_PRESS_MASK)
         self.fullscreencoverart.connect("button-press-event", self.fullscreen_cover_art_close, False)
         self.fullscreencoverart.connect("key-press-event", self.fullscreen_cover_art_close, True)
         for treeview in [self.current_treeview, self.library_treeview, self.playlists_treeview, self.streams_treeview]:
