@@ -214,7 +214,7 @@ class Artwork(object):
                             # No remote art found, store self.albumpb filename in cache
                             self.set_library_artwork_cached_filename(cache_key, self.album_filename)
 
-    def library_set_image_for_current_song(self, cache_key, filename):
+    def library_set_image_for_current_song(self, cache_key):
         # Search through the rows in the library to see
         # if we match the currently playing song:
         play_artist, play_album = library_get_data(cache_key, 'artist', 'album')
@@ -410,7 +410,7 @@ class Artwork(object):
         if artist is not None:
             cache_key = library_set_data(artist=artist, album=album, path=path)
             self.set_library_artwork_cached_filename(cache_key, self.album_filename)
-            gobject.idle_add(self.library_set_image_for_current_song, cache_key, self.album_filename)
+            gobject.idle_add(self.library_set_image_for_current_song, cache_key)
 
     def artwork_get_misc_img_in_path(self, songdir):
         path = misc.file_from_utf8(self.config.musicdir[self.config.profile_num] + songdir)
@@ -464,7 +464,7 @@ class Artwork(object):
                 del pix2
 
                 # Artwork for library, if current song matches:
-                self.library_set_image_for_current_song(cache_key, filename)
+                self.library_set_image_for_current_song(cache_key)
 
                 # Artwork for fullscreen cover mode
                 (pix3, w, h) = img.get_pixbuf_of_size(pix, consts.FULLSCREEN_COVER_SIZE)
