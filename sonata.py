@@ -63,13 +63,6 @@ sys.path.append('/usr/lib/python2.5/site-packages/oldxml')
 if platform.system() == 'Linux':
     sys.argv[0] = 'sonata'
 
-# This is needed so that python-mpd correctly returns lowercase
-# keys for, e.g., playlistinfo() with a turkish locale
-try:
-    locale.setlocale(locale.LC_CTYPE, "C")
-except:
-    pass
-
 
 ## Apply translation:
 
