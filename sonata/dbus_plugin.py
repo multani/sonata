@@ -83,7 +83,7 @@ def get_session_bus():
         print _("Sonata failed to connect to the D-BUS session bus: Unable to determine the address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for help)")
         raise
 
-def execute_remote_commands(toggle=False, popup=False):
+def execute_remote_commands(toggle=False, popup=False, start=False):
     try:
         bus = get_session_bus()
         obj = bus.get_object('org.MPD', '/org/MPD/Sonata')
@@ -94,7 +94,11 @@ def execute_remote_commands(toggle=False, popup=False):
         sys.exit()
     except Exception:
         print _("Failed to execute remote commands.")
-        sys.exit(1)
+        if start is None or start:
+            print _("Starting Sonata instead...")
+        else:
+            print _("Maybe Sonata is not running?")
+            sys.exit(1)
 
 def start_dbus_interface():
     if HAVE_DBUS:

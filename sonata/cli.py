@@ -9,12 +9,12 @@ except ImportError:
 # the mpd commands need a connection to server and exit without gui
 mpd_cmds = ["play", "pause", "stop", "next", "prev", "pp", "info",
             "status", "repeat", "random"]
-# toggle and popup need d-bus and exit without gui
+# toggle and popup need d-bus and don't always need gui
 # version and help don't need anything and exit without gui
 # hidden and visible are only applicable when gui is launched
-# profile doesn't need anything
-short_opts = "tpvh"
-long_opts = ["toggle", "popup", "version", "help", "hidden", "visible", "profile="]
+# profile and no-start don't need anything
+short_opts = "tpnvh"
+long_opts = ["toggle", "popup", "no-start", "version", "help", "hidden", "visible", "profile="]
 
 class Args(object):
     def __init__(self):
@@ -23,8 +23,9 @@ class Args(object):
         self.opts = []
         self.args = []
 
-        self.toggle_arg = False
-        self.popup_arg = False
+        self.toggle_arg = None
+        self.popup_arg = None
+        self.start_arg = None
         self.start_visibility = None
         self.arg_profile = None
 
@@ -54,8 +55,13 @@ class Args(object):
         for o, a in self.opts:
             if o in ("-t", "--toggle"):
                 self.toggle_arg = True
+                self.start_visibility = True
             elif o in ("-p", "--popup"):
                 self.popup_arg = True
+                if self.start_visibility is None:
+                    self.start_visibility = False
+            elif o in ("-n", "--no-start"):
+                self.start_arg = False
             elif o in ("-v", "--version"):
                 self.print_version()
                 sys.exit()
@@ -75,7 +81,7 @@ class Args(object):
                 print _("The toggle and popup arguments require D-Bus. Aborting.")
                 sys.exit(1)
 
-            dbus.execute_remote_commands(self.toggle_arg, self.popup_arg)
+            dbus.execute_remote_commands(self.toggle_arg, self.popup_arg, self.start_arg)
 
     def execute_cmds(self):
         """If arguments were passed, perform action on them."""
@@ -101,6 +107,7 @@ class Args(object):
         print "  -p, --popup          " + _("Popup song notification (requires D-Bus)")
         print "  -t, --toggle         " + _("Toggles whether the app is minimized")
         print "                       " + _("to tray or visible (requires D-Bus)")
+        print "  -n, --no-start       " + _("Don't start app if D-Bus commands fail")
         print "  -v, --version        " + _("Show version information and exit")
         print "  --hidden             " + _("Start app hidden (requires systray)")
         print "  --visible            " + _("Start app visible (requires systray)")
