@@ -1117,13 +1117,15 @@ class Base(object, preferences.Preferences):
         if self.current_tab == self.TAB_CURRENT:
             if event.state & (gtk.gdk.CONTROL_MASK | gtk.gdk.MOD1_MASK):
                 return
+
+            # XXX this isn't the right thing with GTK input methods:
+            text = unichr(gtk.gdk.keyval_to_unicode(event.keyval))
+
             # We only want to toggle open the filterbar if the key press is actual text! This
             # will ensure that we skip, e.g., F5, Alt, Ctrl, ...
-            # XXX event.string is deprecated
-            if len(event.string.strip()) > 0:
+            if text != u"\x00" and text.strip():
                 if not self.current.filterbox_visible:
-                    if event.string != "/":
-                        text = event.string.decode(locale.getpreferredencoding(), 'replace')
+                    if text != u"/":
                         self.current.searchfilter_toggle(None, text)
                     else:
                         self.current.searchfilter_toggle(None)
