@@ -18,7 +18,10 @@ if view == consts.VIEW_ALBUM: ...
 class Constants:
     """This class contains the constant definitions as attributes."""
     def __init__(self):
-        self.HEAD_URL = "$HeadURL$".split()[1][:-len("/sonata/consts.py")]
+        try:
+            self.HEAD_URL = "$HeadURL$".split()[1][:-len("/sonata/consts.py")]
+        except IndexError: # svn internal files don't have the url
+            self.HEAD_URL = ""
 
         self.ART_LOCAL = 0
         self.ART_LOCAL_REMOTE = 1
