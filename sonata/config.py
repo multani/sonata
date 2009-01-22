@@ -23,7 +23,6 @@ class Config:
     saved to a file in settings_save_real.
 
     XXX This is mostly ConfigParser plus some custom serialization work.
-    XXX Preferences and Base currently inherit from us.
     """
     def __init__(self, default_profile_name, currsongformat2, library_set_data):
         # the config settings:

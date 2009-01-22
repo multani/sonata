@@ -56,8 +56,10 @@ import mpdhelper as mpdh
 import misc, ui, img, tray
 
 from consts import consts
+from preferences import Preferences
+from config import Config
 
-import config, preferences, tagedit, artwork, about, scrobbler, info, library, streams, playlists, current
+import tagedit, artwork, about, scrobbler, info, library, streams, playlists, current
 import dbus_plugin as dbus
 
 try:
@@ -65,8 +67,7 @@ try:
 except ImportError:
     import svnversion as version
 
-# FIXME Config and Preferences should not be inherited from
-class Base(object, preferences.Preferences):
+class Base(object):
     def __init__(self, args, window=None, sugar=False):
         # The following attributes were used but not defined here before:
         self.album_current_artist = None
@@ -93,13 +94,6 @@ class Base(object, preferences.Preferences):
         self.trayimage = None
         self.artwork = None
 
-        # Initialize vars (these can be needed if we have a cli argument, e.g., "sonata play")
-        self.profile_num = 0
-        self.profile_names = [_('Default Profile')]
-        self.musicdir = [misc.sanitize_musicdir("~/music")]
-        self.host = ['localhost']
-        self.port = [6600]
-        self.password = ['']
         self.client = mpd.MPDClient()
         self.conn = False
 
@@ -116,9 +110,6 @@ class Base(object, preferences.Preferences):
         self.iterate_time_when_connected = 500
         self.iterate_time_when_disconnected_or_stopped = 1000 # Slow down polling when disconnected stopped
 
-        # FIXME Don't subclass
-        self.config = self
-        config.Config.__init__(self, _('Default Profile'), _("by") + " %A " + _("from") + " %B", library.library_set_data)
 
         self.trying_connection = False
 
@@ -155,7 +146,6 @@ class Base(object, preferences.Preferences):
         self.album_reset_artist()
 
         show_prefs = False
-        self.updating_nameentry = False
         self.merge_id = None
 
         self.actionGroupProfiles = None
@@ -178,14 +168,13 @@ class Base(object, preferences.Preferences):
 
         self.all_tab_names = [self.TAB_CURRENT, self.TAB_LIBRARY, self.TAB_PLAYLISTS, self.TAB_STREAMS, self.TAB_INFO]
 
-        # FIXME Don't subclass
-        self.preferences = self
-        preferences.Preferences.__init__(self)
+        self.config = Config(_('Default Profile'), _("by") + " %A " + _("from") + " %B", library.library_set_data)
+        self.preferences = Preferences(self.config)
         self.settings_load()
 
         if args.start_visibility is not None:
-            self.withdrawn = not args.start_visibility
-        if self.autoconnect:
+            self.config.withdrawn = not args.start_visibility
+        if self.config.autoconnect:
             self.user_connect = True
         args.apply_profile_arg(self)
 
@@ -218,9 +207,9 @@ class Base(object, preferences.Preferences):
             self.window.set_title('Sonata')
             self.window.set_role('mainWindow')
             self.window.set_resizable(True)
-            if self.ontop:
+            if self.config.ontop:
                 self.window.set_keep_above(True)
-            if self.sticky:
+            if self.config.sticky:
                 self.window.stick()
 
         self.notebook = gtk.Notebook()
@@ -282,14 +271,14 @@ class Base(object, preferences.Preferences):
             )
 
         toggle_actions = (
-            ('showmenu', None, _('_Show Sonata'), None, None, self.on_withdraw_app_toggle, not self.withdrawn),
+            ('showmenu', None, _('_Show Sonata'), None, None, self.on_withdraw_app_toggle, not self.config.withdrawn),
             ('repeatmenu', None, _('_Repeat'), None, None, self.on_repeat_clicked, False),
             ('randommenu', None, _('Rando_m'), None, None, self.on_random_clicked, False),
-            (self.TAB_CURRENT, None, self.TAB_CURRENT, None, None, self.on_tab_toggle, self.current_tab_visible),
-            (self.TAB_LIBRARY, None, self.TAB_LIBRARY, None, None, self.on_tab_toggle, self.library_tab_visible),
-            (self.TAB_PLAYLISTS, None, self.TAB_PLAYLISTS, None, None, self.on_tab_toggle, self.playlists_tab_visible),
-            (self.TAB_STREAMS, None, self.TAB_STREAMS, None, None, self.on_tab_toggle, self.streams_tab_visible),
-            (self.TAB_INFO, None, self.TAB_INFO, None, None, self.on_tab_toggle, self.info_tab_visible),
+            (self.TAB_CURRENT, None, self.TAB_CURRENT, None, None, self.on_tab_toggle, self.config.current_tab_visible),
+            (self.TAB_LIBRARY, None, self.TAB_LIBRARY, None, None, self.on_tab_toggle, self.config.library_tab_visible),
+            (self.TAB_PLAYLISTS, None, self.TAB_PLAYLISTS, None, None, self.on_tab_toggle, self.config.playlists_tab_visible),
+            (self.TAB_STREAMS, None, self.TAB_STREAMS, None, None, self.on_tab_toggle, self.config.streams_tab_visible),
+            (self.TAB_INFO, None, self.TAB_INFO, None, None, self.on_tab_toggle, self.config.info_tab_visible),
             )
 
         uiDescription = """
@@ -399,7 +388,7 @@ class Base(object, preferences.Preferences):
             self.iterate_time = self.iterate_time_when_connected
             self.songinfo = mpdh.currsong(self.client)
             self.artwork.update_songinfo(self.songinfo)
-        elif self.initial_run:
+        elif self.config.initial_run:
             show_prefs = True
 
         # Realizing self.window will allow us to retrieve the theme's
@@ -425,7 +414,7 @@ class Base(object, preferences.Preferences):
         playlistevbox.connect("button_press_event", self.on_tab_click)
         self.notebook.append_page(vbox_current, playlistevbox)
         current_tab = vbox_current
-        if not self.current_tab_visible:
+        if not self.config.current_tab_visible:
             ui.hide(current_tab)
 
         currentactions = [
@@ -446,7 +435,7 @@ class Base(object, preferences.Preferences):
         libraryevbox.connect("button_press_event", self.on_tab_click)
         self.notebook.append_page(libraryvbox, libraryevbox)
         library_tab = libraryvbox
-        if not self.library_tab_visible:
+        if not self.config.library_tab_visible:
             ui.hide(library_tab)
 
         libraryactions = [
@@ -465,7 +454,7 @@ class Base(object, preferences.Preferences):
         infoevbox.connect("button_press_event", self.on_tab_click)
         self.notebook.append_page(self.info_area, infoevbox)
         info_tab = self.info_area
-        if not self.info_tab_visible:
+        if not self.config.info_tab_visible:
             ui.hide(info_tab)
 
         # Streams tab
@@ -479,7 +468,7 @@ class Base(object, preferences.Preferences):
 
         self.notebook.append_page(streamswindow, streamsevbox)
         streams_tab = streamswindow
-        if not self.streams_tab_visible:
+        if not self.config.streams_tab_visible:
             ui.hide(streams_tab)
 
         streamsactions = [
@@ -497,7 +486,7 @@ class Base(object, preferences.Preferences):
         playlistsevbox.connect("button_press_event", self.on_tab_click)
         self.notebook.append_page(playlistswindow, playlistsevbox)
         playlists_tab = playlistswindow
-        if not self.playlists_tab_visible:
+        if not self.config.playlists_tab_visible:
             ui.hide(playlists_tab)
 
         playlistsactions = [
@@ -534,7 +523,7 @@ class Base(object, preferences.Preferences):
 
         self.imageeventbox = ui.eventbox(add=self.albumimage)
         self.imageeventbox.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT | gtk.DEST_DEFAULT_DROP, [("text/uri-list", 0, 80), ("text/plain", 0, 80)], gtk.gdk.ACTION_DEFAULT)
-        if not self.show_covers:
+        if not self.config.show_covers:
             ui.hide(self.imageeventbox)
         tophbox.pack_start(self.imageeventbox, False, False, 5)
         topvbox = gtk.VBox()
@@ -545,7 +534,7 @@ class Base(object, preferences.Preferences):
         self.nextbutton = ui.button(stock=gtk.STOCK_MEDIA_NEXT, relief=gtk.RELIEF_NONE, can_focus=False, hidetxt=True)
         for mediabutton in (self.prevbutton, self.ppbutton, self.stopbutton, self.nextbutton):
             toptophbox.pack_start(mediabutton, False, False, 0)
-            if not self.show_playback:
+            if not self.config.show_playback:
                 ui.hide(mediabutton)
         self.progressbox = gtk.VBox()
         self.progresslabel = ui.label(w=-1, h=6)
@@ -556,15 +545,15 @@ class Base(object, preferences.Preferences):
         self.progresslabel2 = ui.label(w=-1, h=6)
         self.progressbox.pack_start(self.progresslabel2)
         toptophbox.pack_start(self.progressbox, True, True, 0)
-        if not self.show_progress:
+        if not self.config.show_progress:
             ui.hide(self.progressbox)
         self.volumebutton = ui.togglebutton(relief=gtk.RELIEF_NONE, can_focus=False)
         self.volume_set_image("stock_volume-med")
-        if not self.show_playback:
+        if not self.config.show_playback:
             ui.hide(self.volumebutton)
         toptophbox.pack_start(self.volumebutton, False, False, 0)
         topvbox.pack_start(toptophbox, False, False, 2)
-        self.expander = ui.expander(text=_("Playlist"), expand=self.expanded, can_focus=False)
+        self.expander = ui.expander(text=_("Playlist"), expand=self.config.expanded, can_focus=False)
         expanderbox = gtk.VBox()
         self.cursonglabel1 = ui.label(y=0)
         self.cursonglabel2 = ui.label(y=0)
@@ -581,27 +570,27 @@ class Base(object, preferences.Preferences):
 
         self.statusbar = gtk.Statusbar()
         self.statusbar.set_has_resize_grip(True)
-        if not self.show_statusbar or not self.expanded:
+        if not self.config.show_statusbar or not self.config.expanded:
             ui.hide(self.statusbar)
         mainvbox.pack_start(self.statusbar, False, False, 0)
         mainhbox.pack_start(mainvbox, True, True, 3)
         if self.window_owner:
             self.window.add(mainhbox)
-            self.window.move(self.x, self.y)
+            self.window.move(self.config.x, self.config.y)
             self.window.set_size_request(270, -1)
         elif HAVE_SUGAR:
             self.window.set_canvas(mainhbox)
-        if not self.expanded:
+        if not self.config.expanded:
             ui.hide(self.notebook)
             self.cursonglabel1.set_markup('<big><b>' + _('Stopped') + '</b></big>')
             self.cursonglabel2.set_markup('<small>' + _('Click to expand') + '</small>')
             if self.window_owner:
-                self.window.set_default_size(self.w, 1)
+                self.window.set_default_size(self.config.w, 1)
         else:
             self.cursonglabel1.set_markup('<big><b>' + _('Stopped') + '</b></big>')
             self.cursonglabel2.set_markup('<small>' + _('Click to collapse') + '</small>')
             if self.window_owner:
-                self.window.set_default_size(self.w, self.h)
+                self.window.set_default_size(self.config.w, self.config.h)
         self.expander.set_tooltip_text(self.cursonglabel1.get_text())
         if not self.conn:
             self.progressbar.set_text(_('Not Connected'))
@@ -610,14 +599,14 @@ class Base(object, preferences.Preferences):
 
         for child in self.notebook.get_children():
             self.notebook.set_tab_reorderable(child, True)
-            if self.tabs_expanded:
+            if self.config.tabs_expanded:
                 self.notebook.set_tab_label_packing(child, True, True, gtk.PACK_START)
         # Update tab positions:
-        self.notebook.reorder_child(current_tab, self.current_tab_pos)
-        self.notebook.reorder_child(library_tab, self.library_tab_pos)
-        self.notebook.reorder_child(playlists_tab, self.playlists_tab_pos)
-        self.notebook.reorder_child(streams_tab, self.streams_tab_pos)
-        self.notebook.reorder_child(info_tab, self.info_tab_pos)
+        self.notebook.reorder_child(current_tab, self.config.current_tab_pos)
+        self.notebook.reorder_child(library_tab, self.config.library_tab_pos)
+        self.notebook.reorder_child(playlists_tab, self.config.playlists_tab_pos)
+        self.notebook.reorder_child(streams_tab, self.config.streams_tab_pos)
+        self.notebook.reorder_child(info_tab, self.config.info_tab_pos)
         self.last_tab = self.notebook_get_tab_text(self.notebook, 0)
 
         # Song notification window:
@@ -631,7 +620,7 @@ class Base(object, preferences.Preferences):
         tipbox.pack_start(self.trayalbumeventbox, False, False, 0)
 
         tipbox.pack_start(self.trayalbumimage2, False, False, 0)
-        if not self.show_covers:
+        if not self.config.show_covers:
             ui.hide(self.trayalbumeventbox)
             ui.hide(self.trayalbumimage2)
         innerbox = gtk.VBox()
@@ -645,7 +634,7 @@ class Base(object, preferences.Preferences):
         label2 = ui.label(markup='<span size="10"> </span>')
         innerbox.pack_start(label2)
         innerbox.pack_start(self.trayprogressbar, False, False, 0)
-        if not self.show_progress:
+        if not self.config.show_progress:
             ui.hide(self.trayprogressbar)
         label3 = ui.label(markup='<span size="10"> </span>')
         innerbox.pack_start(label3)
@@ -693,7 +682,7 @@ class Base(object, preferences.Preferences):
         self.fullscreenalbumimage = self.artwork.get_fullscreenalbumimage()
         fscahbox.pack_start(self.fullscreenalbumimage, True, False, 0)
         fscavbox.pack_start(fscahbox, True, False, 0)
-        if not self.show_covers:
+        if not self.config.show_covers:
             ui.hide(self.fullscreenalbumimage)
         self.fullscreencoverart.add(fscavbox)
 
@@ -748,7 +737,7 @@ class Base(object, preferences.Preferences):
 
         # Ensure that the systemtray icon is added here. This is really only
         # important if we're starting in hidden (minimized-to-tray) mode:
-        if self.window_owner and self.withdrawn:
+        if self.window_owner and self.config.withdrawn:
             while gtk.events_pending():
                 gtk.main_iteration()
 
@@ -788,7 +777,7 @@ class Base(object, preferences.Preferences):
 
         self.iterate_now()
         if self.window_owner:
-            if self.withdrawn:
+            if self.config.withdrawn:
                 if (HAVE_EGG and self.trayicon.get_property('visible')) or (HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible()):
                     ui.hide(self.window)
         self.window.show_all()
@@ -796,7 +785,7 @@ class Base(object, preferences.Preferences):
         # Ensure that button images are displayed despite GTK+ theme
         self.window.get_settings().set_property("gtk-button-images", True)
 
-        if self.update_on_start:
+        if self.config.update_on_start:
             self.on_updatedb(None)
 
         self.notebook.set_no_show_all(False)
@@ -805,7 +794,7 @@ class Base(object, preferences.Preferences):
         if show_prefs:
             self.on_prefs(None)
 
-        self.initial_run = False
+        self.config.initial_run = False
 
         # Ensure that sonata is loaded before we display the notif window
         self.sonata_loaded = True
@@ -849,7 +838,7 @@ class Base(object, preferences.Preferences):
             pass
 
     def profile_menu_name(self, profile_num):
-        return _("Profile") + ": " + self.profile_names[profile_num].replace("&", "")
+        return _("Profile") + ": " + self.config.profile_names[profile_num].replace("&", "")
 
     def populate_profiles_for_menu(self):
         host, port, _password = misc.mpd_env_vars()
@@ -867,13 +856,13 @@ class Base(object, preferences.Preferences):
             actions.append(('disconnect', None, _('Disconnect'), None, None, 1))
             active_radio = 0
         else:
-            for i in range(len(self.profile_names)):
+            for i in range(len(self.config.profile_names)):
                 action_name = self.profile_menu_name(i)
-                actions.append((action_name, None, "[" + str(i+1) + "] " + self.profile_names[i].replace("_", "__"), None, None, i))
-            actions.append(('disconnect', None, _('Disconnect'), None, None, len(self.profile_names)))
-            active_radio = self.profile_num
+                actions.append((action_name, None, "[" + str(i+1) + "] " + self.config.profile_names[i].replace("_", "__"), None, None, i))
+            actions.append(('disconnect', None, _('Disconnect'), None, None, len(self.config.profile_names)))
+            active_radio = self.config.profile_num
         if not self.conn:
-            active_radio = len(self.profile_names)
+            active_radio = len(self.config.profile_names)
         self.actionGroupProfiles.add_radio_actions(actions, active_radio, self.on_profiles_click)
         uiDescription = """
             <ui>
@@ -882,12 +871,12 @@ class Base(object, preferences.Preferences):
             """
         uiDescription = uiDescription + """<menuitem action=\"""" + 'disconnect' + """\" position="top"/>"""
         if host or port:
-            for i in range(len(self.profile_names)):
+            for i in range(len(self.config.profile_names)):
                 action_name = _("Profile") + ": " + _("MPD_HOST/PORT")
                 uiDescription = uiDescription + """<menuitem action=\"""" + action_name + """\" position="top"/>"""
         else:
-            for i in range(len(self.profile_names)):
-                action_name = self.profile_menu_name(len(self.profile_names)-i-1)
+            for i in range(len(self.config.profile_names)):
+                action_name = self.profile_menu_name(len(self.config.profile_names)-i-1)
                 uiDescription = uiDescription + """<menuitem action=\"""" + action_name + """\" position="top"/>"""
         uiDescription = uiDescription + """</menu></popup></ui>"""
         self.merge_id = self.UIManager.add_ui_from_string(uiDescription)
@@ -904,7 +893,7 @@ class Base(object, preferences.Preferences):
             self.mpd_disconnect()
             self.iterate_now()
             # Now connect to new profile:
-            self.profile_num = profile.get_current_value()
+            self.config.profile_num = profile.get_current_value()
             self.on_connectkey_pressed(None)
 
     def mpd_connect(self, blocking=False, force=False):
@@ -923,11 +912,11 @@ class Base(object, preferences.Preferences):
             mpdh.call(self.client, 'disconnect')
             host, port, password = misc.mpd_env_vars()
             if not host:
-                host = self.host[self.profile_num]
+                host = self.config.host[self.config.profile_num]
             if not port:
-                port = self.port[self.profile_num]
+                port = self.config.port[self.config.profile_num]
             if not password:
-                password = self.password[self.profile_num]
+                password = self.config.password[self.config.profile_num]
             mpdh.call(self.client, 'connect', host, port)
             if len(password) > 0:
                 mpdh.call(self.client, 'password', password)
@@ -962,7 +951,7 @@ class Base(object, preferences.Preferences):
             self.actionGroupProfiles.list_actions()[0].activate()
         else:
             for gtkAction in self.actionGroupProfiles.list_actions():
-                if gtkAction.get_name() == self.profile_menu_name(self.profile_num):
+                if gtkAction.get_name() == self.profile_menu_name(self.config.profile_num):
                     gtkAction.activate()
                     break
         self.skip_on_profiles_click = False
@@ -999,12 +988,12 @@ class Base(object, preferences.Preferences):
                     if not self.last_random or self.last_random != self.status['random']:
                         self.randommenu.set_active(self.status['random'] == '1')
                     if self.status['xfade'] == '0':
-                        self.xfade_enabled = False
+                        self.config.xfade_enabled = False
                     else:
-                        self.xfade_enabled = True
-                        self.xfade = int(self.status['xfade'])
-                        if self.xfade > 30:
-                            self.xfade = 30
+                        self.config.xfade_enabled = True
+                        self.config.xfade = int(self.status['xfade'])
+                        if self.config.xfade > 30:
+                            self.config.xfade = 30
                     self.last_repeat = self.status['repeat']
                     self.last_random = self.status['random']
                     return
@@ -1026,7 +1015,7 @@ class Base(object, preferences.Preferences):
             self.handle_change_conn()
         if self.status != self.prevstatus:
             self.handle_change_status()
-        if self.as_enabled:
+        if self.config.as_enabled:
             # We update this here because self.handle_change_status() won't be
             # called while the client is paused.
             self.scrobbler.iterate()
@@ -1039,12 +1028,12 @@ class Base(object, preferences.Preferences):
 
         self.iterate_handler = gobject.timeout_add(self.iterate_time, self.iterate) # Repeat ad infitum..
 
-        if self.show_trayicon:
+        if self.config.show_trayicon:
             if HAVE_STATUS_ICON:
                 if self.statusicon.is_embedded() and not self.statusicon.get_visible():
                     # Systemtray appears, add icon:
                     self.systemtray_initialize()
-                elif not self.statusicon.is_embedded() and self.withdrawn:
+                elif not self.statusicon.is_embedded() and self.config.withdrawn:
                     # Systemtray gone, unwithdraw app:
                     self.withdraw_app_undo()
             elif HAVE_EGG:
@@ -1077,7 +1066,7 @@ class Base(object, preferences.Preferences):
         # Polls for the users' cursor position to display the custom tooltip window when over the
         # gtk.StatusIcon. We use this instead of self.iterate() in order to poll more often and
         # increase responsiveness.
-        if self.show_trayicon:
+        if self.config.show_trayicon:
             if self.statusicon.is_embedded() and self.statusicon.get_visible():
                 self.tooltip_show_manually()
         gobject.timeout_add(250, self.iterate_status_icon)
@@ -1095,7 +1084,7 @@ class Base(object, preferences.Preferences):
                 self.library.on_search_end(None)
             elif self.current_tab == self.TAB_CURRENT and self.current.filterbox_visible:
                 self.current.searchfilter_toggle(None)
-            elif self.minimize_to_systray:
+            elif self.config.minimize_to_systray:
                 if HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible():
                     self.withdraw_app()
                 elif HAVE_EGG and self.trayicon.get_property('visible'):
@@ -1492,7 +1481,7 @@ class Base(object, preferences.Preferences):
         self.iterate_now()
 
     def menu_position(self, _menu):
-        if self.expanded:
+        if self.config.expanded:
             x, y, width, height = self.current_treeview.get_allocation()
             # Find first selected visible row and popup the menu
             # from there
@@ -1516,9 +1505,9 @@ class Base(object, preferences.Preferences):
                 if row_rect.y + row_rect.height <= visible_rect.height and row_rect.y >= 0:
                     row_y = row_rect.y + 30
                     break
-            return (self.x + width - 150, self.y + y + row_y, True)
+            return (self.config.x + width - 150, self.config.y + y + row_y, True)
         else:
-            return (self.x + 250, self.y + 80, True)
+            return (self.config.x + 250, self.config.y + 80, True)
 
     def handle_change_status(self):
         # Called when one of the following items are changed:
@@ -1551,7 +1540,7 @@ class Base(object, preferences.Preferences):
             self.update_progressbar()
 
         # If elapsed time is shown in the window title, we need to update more often:
-        if "%E" in self.titleformat:
+        if "%E" in self.config.titleformat:
             self.update_wintitle()
 
         # If state changes
@@ -1631,7 +1620,7 @@ class Base(object, preferences.Preferences):
                 self.mpd_updated_db()
         self.mpd_update_queued = False
 
-        if self.as_enabled:
+        if self.config.as_enabled:
             playing = self.status and self.status['state'] == 'play'
             stopped = self.status and self.status['state'] == 'stop'
 
@@ -1650,7 +1639,7 @@ class Base(object, preferences.Preferences):
         self.album_reset_artist()
         self.album_get_artist()
         # Now update the library and playlist tabs
-        self.library.library_browse(root=self.wd)
+        self.library.library_browse(root=self.config.wd)
         self.playlists.populate()
         # Update info if it's visible:
         self.info_update(True)
@@ -1723,7 +1712,7 @@ class Base(object, preferences.Preferences):
             self.progressbar.set_text(newtime)
 
     def update_statusbar(self, updatingdb=False):
-        if self.show_statusbar:
+        if self.config.show_statusbar:
             if self.conn and self.status:
                 try:
                     days = None
@@ -1786,10 +1775,10 @@ class Base(object, preferences.Preferences):
             # self.on_currsong_notify()) in order to ensure that the notification
             # popup will have the correct height when being displayed for
             # the first time after a stopped state.
-            if self.show_progress:
+            if self.config.show_progress:
                 self.trayprogressbar.show()
             self.traycursonglabel2.show()
-            if self.show_covers:
+            if self.config.show_covers:
                 self.trayalbumeventbox.show()
                 self.trayalbumimage2.show()
 
@@ -1798,12 +1787,12 @@ class Base(object, preferences.Preferences):
 
             self.expander_ellipse_workaround()
 
-            if len(self.currsongformat1) > 0:
-                newlabel1 = '<big><b>' + self.parse_formatting(self.currsongformat1, self.songinfo, True) + ' </b></big>'
+            if len(self.config.currsongformat1) > 0:
+                newlabel1 = '<big><b>' + self.parse_formatting(self.config.currsongformat1, self.songinfo, True) + ' </b></big>'
             else:
                 newlabel1 = '<big><b> </b></big>'
-            if len(self.currsongformat2) > 0:
-                newlabel2 = '<small>' + self.parse_formatting(self.currsongformat2, self.songinfo, True) + ' </small>'
+            if len(self.config.currsongformat2) > 0:
+                newlabel2 = '<small>' + self.parse_formatting(self.config.currsongformat2, self.songinfo, True) + ' </small>'
             else:
                 newlabel2 = '<small> </small>'
             if newlabel1 != self.cursonglabel1.get_label():
@@ -1820,7 +1809,7 @@ class Base(object, preferences.Preferences):
                 label.set_ellipsize(pango.ELLIPSIZE_NONE)
 
             self.cursonglabel1.set_markup('<big><b>' + _('Stopped') + '</b></big>')
-            if self.expanded:
+            if self.config.expanded:
                 self.cursonglabel2.set_markup('<small>' + _('Click to collapse') + '</small>')
             else:
                 self.cursonglabel2.set_markup('<small>' + _('Click to expand') + '</small>')
@@ -1840,7 +1829,7 @@ class Base(object, preferences.Preferences):
     def update_wintitle(self):
         if self.window_owner:
             if self.conn and self.status and self.status['state'] in ['play', 'pause']:
-                newtitle = self.parse_formatting(self.titleformat, self.songinfo, False, True)
+                newtitle = self.parse_formatting(self.config.titleformat, self.songinfo, False, True)
             else:
                 newtitle = '[Sonata]'
             if not self.last_title or self.last_title != newtitle:
@@ -1872,20 +1861,20 @@ class Base(object, preferences.Preferences):
             return
         if self.sonata_loaded:
             if self.conn and self.status and self.status['state'] in ['play', 'pause']:
-                if self.show_covers:
+                if self.config.show_covers:
                     self.traytips.set_size_request(self.notification_width, -1)
                 else:
                     self.traytips.set_size_request(self.notification_width-100, -1)
             else:
                 self.traytips.set_size_request(-1, -1)
-            if self.show_notification or force_popup:
+            if self.config.show_notification or force_popup:
                 try:
                     gobject.source_remove(self.traytips.notif_handler)
                 except:
                     pass
                 if self.conn and self.status and self.status['state'] in ['play', 'pause']:
                     try:
-                        self.traytips.notifications_location = self.traytips_notifications_location
+                        self.traytips.notifications_location = self.config.traytips_notifications_location
                         self.traytips.use_notifications_location = True
                         if HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible():
                             self.traytips._real_display(self.statusicon)
@@ -1893,13 +1882,13 @@ class Base(object, preferences.Preferences):
                             self.traytips._real_display(self.trayeventbox)
                         else:
                             self.traytips._real_display(None)
-                        if self.popup_option != len(self.popuptimes)-1:
-                            if force_popup and not self.show_notification:
+                        if self.config.popup_option != len(self.popuptimes)-1:
+                            if force_popup and not self.config.show_notification:
                                 # Used -p argument and notification is disabled in
                                 # player; default to 3 seconds
                                 timeout = 3000
                             else:
-                                timeout = int(self.popuptimes[self.popup_option])*1000
+                                timeout = int(self.popuptimes[self.config.popup_option])*1000
                             self.traytips.notif_handler = gobject.timeout_add(timeout, self.traytips.hide)
                         else:
                             # -1 indicates that the timeout should be forever.
@@ -1923,9 +1912,9 @@ class Base(object, preferences.Preferences):
         self.trayprogressbar.set_text(self.progressbar.get_text())
 
     def update_infofile(self):
-        if self.use_infofile is True:
+        if self.config.use_infofile is True:
             try:
-                info_file = open(self.infofile_path, 'w')
+                info_file = open(self.config.infofile_path, 'w')
 
                 if self.status['state'] in ['play']:
                     info_file.write('Status: ' + 'Playing' + '\n')
@@ -1961,7 +1950,7 @@ class Base(object, preferences.Preferences):
 
     # This one makes sure the program exits when the window is closed
     def on_delete_event(self, _widget, _data=None):
-        if not self.exit_now and self.minimize_to_systray:
+        if not self.exit_now and self.config.minimize_to_systray:
             if HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible():
                 self.withdraw_app()
                 return True
@@ -1970,9 +1959,9 @@ class Base(object, preferences.Preferences):
                 return True
         self.settings_save()
         self.artwork.artwork_save_cache()
-        if self.as_enabled:
+        if self.config.as_enabled:
             self.scrobbler.save_cache()
-        if self.conn and self.stop_on_exit:
+        if self.conn and self.config.stop_on_exit:
             self.mpd_stop(None)
         sys.exit()
 
@@ -1984,9 +1973,9 @@ class Base(object, preferences.Preferences):
 
     def on_window_configure(self, _widget, _event):
         width, height = self.window.get_size()
-        if self.expanded: self.w, self.h = width, height
-        else: self.w = width
-        self.x, self.y = self.window.get_position()
+        if self.config.expanded: self.config.w, self.config.h = width, height
+        else: self.config.w = width
+        self.config.x, self.config.y = self.window.get_position()
         self.expander_ellipse_workaround()
 
     def on_notebook_resize(self, _widget, _event):
@@ -1995,32 +1984,32 @@ class Base(object, preferences.Preferences):
         gobject.idle_add(self.info.resize_elements, self.notebook.allocation)
 
     def on_expand(self, _action):
-        if not self.expanded:
+        if not self.config.expanded:
             self.expander.set_expanded(False)
             self.on_expander_activate(None)
             self.expander.set_expanded(True)
 
     def on_collapse(self, _action):
-        if self.expanded:
+        if self.config.expanded:
             self.expander.set_expanded(True)
             self.on_expander_activate(None)
             self.expander.set_expanded(False)
 
     def on_expander_activate(self, _expander):
         currheight = self.window.get_size()[1]
-        self.expanded = False
+        self.config.expanded = False
         # Note that get_expanded() will return the state of the expander
         # before this current click
         window_about_to_be_expanded = not self.expander.get_expanded()
         if window_about_to_be_expanded:
-            if self.window.get_size()[1] == self.h:
+            if self.window.get_size()[1] == self.config.h:
                 # For WMs like ion3, the app will not actually resize
                 # when in collapsed mode, so prevent the waiting
                 # of the player to expand from happening:
                 skip_size_check = True
             else:
                 skip_size_check = False
-            if self.show_statusbar:
+            if self.config.show_statusbar:
                 self.statusbar.show()
             self.notebook.show_all()
         else:
@@ -2039,11 +2028,11 @@ class Base(object, preferences.Preferences):
                     while self.window.get_size()[1] == currheight:
                         gtk.main_iteration()
                 # Notebook is visible, now resize:
-                self.window.resize(self.w, self.h)
+                self.window.resize(self.config.w, self.config.h)
             else:
-                self.window.resize(self.w, 1)
+                self.window.resize(self.config.w, 1)
         if window_about_to_be_expanded:
-            self.expanded = True
+            self.config.expanded = True
             if self.status and self.status['state'] in ['play','pause']:
                 gobject.idle_add(self.current.center_song_in_list)
             self.window.set_geometry_hints(self.window)
@@ -2157,19 +2146,19 @@ class Base(object, preferences.Preferences):
     def on_image_activate(self, widget, event):
         self.window.handler_block(self.mainwinhandler)
         if event.button == 1 and widget == self.info_imagebox and self.artwork.have_last():
-            if not self.info_art_enlarged:
+            if not self.config.info_art_enlarged:
                 self.info_imagebox.set_size_request(-1,-1)
                 self.artwork.artwork_set_image_last(True)
-                self.info_art_enlarged = True
+                self.config.info_art_enlarged = True
             else:
                 self.info_imagebox.set_size_request(152, -1)
                 self.artwork.artwork_set_image_last(True)
-                self.info_art_enlarged = False
+                self.config.info_art_enlarged = False
             self.volume_hide()
             # Force a resize of the info labels, if needed:
             gobject.idle_add(self.on_notebook_resize, self.notebook, None)
         elif event.button == 1 and widget != self.info_imagebox:
-            if self.expanded:
+            if self.config.expanded:
                 if self.current_tab != self.TAB_INFO:
                     self.img_clicked = True
                     self.switch_to_tab_name(self.TAB_INFO)
@@ -2181,7 +2170,7 @@ class Base(object, preferences.Preferences):
             album = None
             stream = None
             if self.conn and self.status and self.status['state'] in ['play', 'pause']:
-                if self.covers_pref != consts.ART_LOCAL:
+                if self.config.covers_pref != consts.ART_LOCAL:
                     self.UIManager.get_widget('/imagemenu/chooseimage_menu/').show()
                 else:
                     self.UIManager.get_widget('/imagemenu/chooseimage_menu/').hide()
@@ -2268,17 +2257,17 @@ class Base(object, preferences.Preferences):
             if force_location is not None:
                 art_loc = force_location
             else:
-                art_loc = self.art_location
+                art_loc = self.config.art_location
             if art_loc == consts.ART_LOCATION_HOMECOVERS:
                 targetfile = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
             elif art_loc == consts.ART_LOCATION_COVER:
-                targetfile = self.musicdir[self.profile_num] + songpath + "/cover.jpg"
+                targetfile = self.config.musicdir[self.config.profile_num] + songpath + "/cover.jpg"
             elif art_loc == consts.ART_LOCATION_FOLDER:
-                targetfile = self.musicdir[self.profile_num] + songpath + "/folder.jpg"
+                targetfile = self.config.musicdir[self.config.profile_num] + songpath + "/folder.jpg"
             elif art_loc == consts.ART_LOCATION_ALBUM:
-                targetfile = self.musicdir[self.profile_num] + songpath + "/album.jpg"
+                targetfile = self.config.musicdir[self.config.profile_num] + songpath + "/album.jpg"
             elif art_loc == consts.ART_LOCATION_CUSTOM:
-                targetfile = self.musicdir[self.profile_num] + songpath + "/" + self.art_location_custom_filename
+                targetfile = self.config.musicdir[self.config.profile_num] + songpath + "/" + self.config.art_location_custom_filename
             targetfile = misc.file_exists_insensitive(targetfile)
             return misc.file_from_utf8(targetfile)
 
@@ -2356,8 +2345,8 @@ class Base(object, preferences.Preferences):
         dialog.connect("response", self.image_local_response, artist, album, stream)
         dialog.set_default_response(gtk.RESPONSE_OK)
         songdir = os.path.dirname(mpdh.get(self.songinfo, 'file'))
-        currdir = misc.file_from_utf8(self.musicdir[self.profile_num] + songdir)
-        if self.art_location != consts.ART_LOCATION_HOMECOVERS:
+        currdir = misc.file_from_utf8(self.config.musicdir[self.config.profile_num] + songdir)
+        if self.config.art_location != consts.ART_LOCATION_HOMECOVERS:
             dialog.set_current_folder(currdir)
         if stream is not None:
             # Allow saving an image file for a stream:
@@ -2537,10 +2526,10 @@ class Base(object, preferences.Preferences):
         self.fullscreencoverart.hide()
 
     def header_save_column_widths(self):
-        if not self.withdrawn and self.expanded:
+        if not self.config.withdrawn and self.config.expanded:
             windowwidth = self.window.allocation.width
             if windowwidth <= 10 or self.current.columns[0].get_width() <= 10:
-                # Make sure we only set self.columnwidths if self.current
+                # Make sure we only set self.config.columnwidths if self.current
                 # has its normal allocated width:
                 return
             notebookwidth = self.notebook.allocation.width
@@ -2549,9 +2538,9 @@ class Base(object, preferences.Preferences):
                 colwidth = column.get_width()
                 treewidth += colwidth
                 if i == len(self.current.columns)-1 and treewidth <= windowwidth:
-                    self.columnwidths[i] = min(colwidth, column.get_fixed_width())
+                    self.config.columnwidths[i] = min(colwidth, column.get_fixed_width())
                 else:
-                    self.columnwidths[i] = colwidth
+                    self.config.columnwidths[i] = colwidth
             if treewidth > notebookwidth:
                 self.current.expanderwindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
             else:
@@ -2572,7 +2561,7 @@ class Base(object, preferences.Preferences):
             self.UIManager.get_widget('/traymenu/showmenu').set_active(not prev_state)
             if not self.window.window:
                 # For some reason, self.window.window is not defined if mpd is not running
-                # and sonata is started with self.withdrawn = True
+                # and sonata is started with self.config.withdrawn = True
                 self.withdraw_app_undo()
             elif not (self.window.window.get_state() & gtk.gdk.WINDOW_STATE_WITHDRAWN) and self.window.is_active():
                 # Window is not withdrawn and is active (has toplevel focus):
@@ -2623,22 +2612,22 @@ class Base(object, preferences.Preferences):
             self.traytips._remove_timer()
 
     def withdraw_app_undo(self):
-        self.window.move(self.x, self.y)
-        if not self.expanded:
+        self.window.move(self.config.x, self.config.y)
+        if not self.config.expanded:
             self.notebook.set_no_show_all(True)
             self.statusbar.set_no_show_all(True)
         self.window.show_all()
         self.notebook.set_no_show_all(False)
-        self.withdrawn = False
+        self.config.withdrawn = False
         self.UIManager.get_widget('/traymenu/showmenu').set_active(True)
         gobject.idle_add(self.withdraw_app_undo_present_and_focus)
 
     def withdraw_app_undo_present_and_focus(self):
         self.window.present() # Helps to raise the window (useful against focus stealing prevention)
         self.window.grab_focus()
-        if self.sticky:
+        if self.config.sticky:
             self.window.stick()
-        if self.ontop:
+        if self.config.ontop:
             self.window.set_keep_above(True)
 
     def withdraw_app(self):
@@ -2648,7 +2637,7 @@ class Base(object, preferences.Preferences):
             # widths if the user quits sonata while it is withdrawn.
             self.header_save_column_widths()
             self.window.hide()
-            self.withdrawn = True
+            self.config.withdrawn = True
             self.UIManager.get_widget('/traymenu/showmenu').set_active(False)
 
     def on_withdraw_app_toggle(self, _action):
@@ -2813,11 +2802,11 @@ class Base(object, preferences.Preferences):
                     iters = [model.get_iter(path) for path in selected]
                     for i in iters:
                         stream_removed = False
-                        for j in range(len(self.stream_names)):
+                        for j in range(len(self.config.stream_names)):
                             if not stream_removed:
-                                if self.streamsdata.get_value(i, 1) == misc.escape_html(self.stream_names[j]):
-                                    self.stream_names.pop(j)
-                                    self.stream_uris.pop(j)
+                                if self.streamsdata.get_value(i, 1) == misc.escape_html(self.config.stream_names[j]):
+                                    self.config.stream_names.pop(j)
+                                    self.config.stream_uris.pop(j)
                                     stream_removed = True
                     self.streams.populate()
             self.iterate_now()
@@ -2864,70 +2853,70 @@ class Base(object, preferences.Preferences):
     # XXX move the prefs handling parts of prefs_* to preferences.py
     def prefs_window_response(self, window, response, prefsnotebook, exit_stop, win_ontop, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, using_mpd_env_vars, prev_host, prev_port, prev_password):
         if response == gtk.RESPONSE_CLOSE:
-            self.stop_on_exit = exit_stop.get_active()
-            self.ontop = win_ontop.get_active()
-            self.covers_pref = display_art_combo.get_active()
-            self.sticky = win_sticky.get_active()
-            if self.show_lyrics and self.lyrics_location != consts.LYRICS_LOCATION_HOME:
-                if not os.path.isdir(misc.file_from_utf8(self.musicdir[self.profile_num])):
+            self.config.stop_on_exit = exit_stop.get_active()
+            self.config.ontop = win_ontop.get_active()
+            self.config.covers_pref = display_art_combo.get_active()
+            self.config.sticky = win_sticky.get_active()
+            if self.config.show_lyrics and self.config.lyrics_location != consts.LYRICS_LOCATION_HOME:
+                if not os.path.isdir(misc.file_from_utf8(self.config.musicdir[self.config.profile_num])):
                     ui.show_msg(self.window, _("To save lyrics to the music file's directory, you must specify a valid music directory."), _("Music Dir Verification"), 'musicdirVerificationError', gtk.BUTTONS_CLOSE)
                     # Set music_dir entry focused:
                     prefsnotebook.set_current_page(0)
                     direntry.grab_focus()
                     return
-            if self.show_covers and self.art_location != consts.ART_LOCATION_HOMECOVERS:
-                if not os.path.isdir(misc.file_from_utf8(self.musicdir[self.profile_num])):
+            if self.config.show_covers and self.config.art_location != consts.ART_LOCATION_HOMECOVERS:
+                if not os.path.isdir(misc.file_from_utf8(self.config.musicdir[self.config.profile_num])):
                     ui.show_msg(self.window, _("To save artwork to the music file's directory, you must specify a valid music directory."), _("Music Dir Verification"), 'musicdirVerificationError', gtk.BUTTONS_CLOSE)
                     # Set music_dir entry focused:
                     prefsnotebook.set_current_page(0)
                     direntry.grab_focus()
                     return
-            self.minimize_to_systray = minimize.get_active()
-            self.update_on_start = update_start.get_active()
-            self.autoconnect = autoconnect.get_active()
-            if self.currentformat != currentoptions.get_text():
-                self.currentformat = currentoptions.get_text()
+            self.config.minimize_to_systray = minimize.get_active()
+            self.config.update_on_start = update_start.get_active()
+            self.config.autoconnect = autoconnect.get_active()
+            if self.config.currentformat != currentoptions.get_text():
+                self.config.currentformat = currentoptions.get_text()
                 for column in self.current_treeview.get_columns():
                     self.current_treeview.remove_column(column)
                 self.current.initialize_columns()
                 self.current.update_format()
-            if self.libraryformat != libraryoptions.get_text():
-                self.libraryformat = libraryoptions.get_text()
-                self.library.library_browse(root=self.wd)
-            if self.titleformat != titleoptions.get_text():
-                self.titleformat = titleoptions.get_text()
+            if self.config.libraryformat != libraryoptions.get_text():
+                self.config.libraryformat = libraryoptions.get_text()
+                self.library.library_browse(root=self.config.wd)
+            if self.config.titleformat != titleoptions.get_text():
+                self.config.titleformat = titleoptions.get_text()
                 self.update_wintitle()
-            if (self.currsongformat1 != currsongoptions1.get_text()) or (self.currsongformat2 != currsongoptions2.get_text()):
-                self.currsongformat1 = currsongoptions1.get_text()
-                self.currsongformat2 = currsongoptions2.get_text()
+            if (self.config.currsongformat1 != currsongoptions1.get_text()) or (self.config.currsongformat2 != currsongoptions2.get_text()):
+                self.config.currsongformat1 = currsongoptions1.get_text()
+                self.config.currsongformat2 = currsongoptions2.get_text()
                 self.update_cursong()
             if self.window_owner:
-                if self.ontop:
+                if self.config.ontop:
                     self.window.set_keep_above(True)
                 else:
                     self.window.set_keep_above(False)
-                if self.sticky:
+                if self.config.sticky:
                     self.window.stick()
                 else:
                     self.window.unstick()
-            self.xfade = crossfadespin.get_value_as_int()
+            self.config.xfade = crossfadespin.get_value_as_int()
             if crossfadecheck.get_active():
-                self.xfade_enabled = True
+                self.config.xfade_enabled = True
                 if self.conn:
-                    mpdh.call(self.client, 'crossfade', self.xfade)
+                    mpdh.call(self.client, 'crossfade', self.config.xfade)
             else:
-                self.xfade_enabled = False
+                self.config.xfade_enabled = False
                 if self.conn:
                     mpdh.call(self.client, 'crossfade', 0)
-            if self.infofile_path != infopath_options.get_text():
-                self.infofile_path = os.path.expanduser(infopath_options.get_text())
-                if self.use_infofile: self.update_infofile()
+            if self.config.infofile_path != infopath_options.get_text():
+                self.config.infofile_path = os.path.expanduser(infopath_options.get_text())
+                if self.config.use_infofile: self.update_infofile()
             if not using_mpd_env_vars:
-                if prev_host != self.host[self.profile_num] or prev_port != self.port[self.profile_num] or prev_password != self.password[self.profile_num]:
+                if prev_host != self.config.host[self.config.profile_num] or prev_port != self.config.port[self.config.profile_num] or prev_password != self.config.password[self.config.profile_num]:
                     # Try to connect if mpd connection info has been updated:
                     ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
                     self.mpd_connect(force=True)
-            if self.as_enabled:
+            if self.config.as_enabled:
                 gobject.idle_add(self.scrobbler.init)
             self.settings_save()
             self.populate_profiles_for_menu()
@@ -2936,21 +2925,21 @@ class Base(object, preferences.Preferences):
 
     def prefs_playback_toggled(self, button):
         if button.get_active():
-            self.show_playback = True
+            self.config.show_playback = True
             for widget in [self.prevbutton, self.ppbutton, self.stopbutton, self.nextbutton, self.volumebutton]:
                 ui.show(widget)
         else:
-            self.show_playback = False
+            self.config.show_playback = False
             for widget in [self.prevbutton, self.ppbutton, self.stopbutton, self.nextbutton, self.volumebutton]:
                 ui.hide(widget)
 
     def prefs_progress_toggled(self, button):
         if button.get_active():
-            self.show_progress = True
+            self.config.show_progress = True
             for widget in [self.progressbox, self.trayprogressbar]:
                 ui.show(widget)
         else:
-            self.show_progress = False
+            self.config.show_progress = False
             for widget in [self.progressbox, self.trayprogressbar]:
                 ui.hide(widget)
 
@@ -2969,54 +2958,54 @@ class Base(object, preferences.Preferences):
                         widget.show_all()
                 else:
                     widget.show_all()
-            self.show_covers = True
+            self.config.show_covers = True
             self.update_cursong()
             self.artwork.artwork_update()
         else:
             self.traytips.set_size_request(self.notification_width-100, -1)
             for widget in [self.imageeventbox, self.info_imagebox, self.trayalbumeventbox, self.trayalbumimage2]:
                 ui.hide(widget)
-            self.show_covers = False
+            self.config.show_covers = False
             self.update_cursong()
 
         # Force a resize of the info labels, if needed:
         gobject.idle_add(self.on_notebook_resize, self.notebook, None)
 
     def prefs_stylized_toggled(self, button):
-        self.covers_type = button.get_active()
+        self.config.covers_type = button.get_active()
         self.artwork.artwork_update(True)
 
     def prefs_lyrics_toggled(self, button, lyrics_hbox):
         if button.get_active():
             lyrics_hbox.set_sensitive(True)
-            self.show_lyrics = True
+            self.config.show_lyrics = True
         else:
             lyrics_hbox.set_sensitive(False)
-            self.show_lyrics = False
+            self.config.show_lyrics = False
         self.info.show_lyrics_updated()
-        if self.show_lyrics:
+        if self.config.show_lyrics:
             self.info_update(True)
 
     def prefs_statusbar_toggled(self, button):
         if button.get_active():
             self.statusbar.set_no_show_all(False)
-            if self.expanded:
+            if self.config.expanded:
                 self.statusbar.show_all()
-            self.show_statusbar = True
+            self.config.show_statusbar = True
             self.update_statusbar()
         else:
             ui.hide(self.statusbar)
-            self.show_statusbar = False
+            self.config.show_statusbar = False
             self.update_statusbar()
 
     def prefs_notif_toggled(self, button, notifhbox):
         if button.get_active():
             notifhbox.set_sensitive(True)
-            self.show_notification = True
+            self.config.show_notification = True
             self.on_currsong_notify()
         else:
             notifhbox.set_sensitive(False)
-            self.show_notification = False
+            self.config.show_notification = False
             try:
                 gobject.source_remove(self.traytips.notif_handler)
             except:
@@ -3027,7 +3016,7 @@ class Base(object, preferences.Preferences):
         # Note that we update the sensitivity of the minimize
         # CheckButton to reflect if the trayicon is visible.
         if button.get_active():
-            self.show_trayicon = True
+            self.config.show_trayicon = True
             if HAVE_STATUS_ICON:
                 self.statusicon.set_visible(True)
                 if self.statusicon.is_embedded() and self.statusicon.get_visible():
@@ -3037,7 +3026,7 @@ class Base(object, preferences.Preferences):
                 if self.trayicon.get_property('visible'):
                     minimize.set_sensitive(True)
         else:
-            self.show_trayicon = False
+            self.config.show_trayicon = False
             minimize.set_sensitive(False)
             if HAVE_STATUS_ICON:
                 self.statusicon.set_visible(False)
@@ -3050,16 +3039,16 @@ class Base(object, preferences.Preferences):
 
     def on_link_click(self, type):
         if type == 'artist':
-            misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + urllib.quote(mpdh.get(self.songinfo, 'artist')), self.url_browser, self.window)
+            misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + urllib.quote(mpdh.get(self.songinfo, 'artist')), self.config.url_browser, self.window)
         elif type == 'album':
-            misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + urllib.quote(mpdh.get(self.songinfo, 'album')), self.url_browser, self.window)
+            misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + urllib.quote(mpdh.get(self.songinfo, 'album')), self.config.url_browser, self.window)
         elif type == 'edit':
             if self.songinfo:
                 self.on_tags_edit(None)
         elif type == 'search':
             self.on_lyrics_search(None)
         elif type == 'editlyrics':
-            misc.browser_load(self.info.lyricwiki_editlink(self.songinfo), self.url_browser, self.window)
+            misc.browser_load(self.info.lyricwiki_editlink(self.songinfo), self.config.url_browser, self.window)
 
     def on_tab_click(self, _widget, event):
         if event.button == 3:
@@ -3149,15 +3138,15 @@ class Base(object, preferences.Preferences):
                 return
         # Store value:
         if name == self.TAB_CURRENT:
-            self.current_tab_visible = toggleAction.get_active()
+            self.config.current_tab_visible = toggleAction.get_active()
         elif name == self.TAB_LIBRARY:
-            self.library_tab_visible = toggleAction.get_active()
+            self.config.library_tab_visible = toggleAction.get_active()
         elif name == self.TAB_PLAYLISTS:
-            self.playlists_tab_visible = toggleAction.get_active()
+            self.config.playlists_tab_visible = toggleAction.get_active()
         elif name == self.TAB_STREAMS:
-            self.streams_tab_visible = toggleAction.get_active()
+            self.config.streams_tab_visible = toggleAction.get_active()
         elif name == self.TAB_INFO:
-            self.info_tab_visible = toggleAction.get_active()
+            self.config.info_tab_visible = toggleAction.get_active()
         # Hide/show:
         tabnum = self.notebook_get_tab_num(self.notebook, name)
         if toggleAction.get_active():
@@ -3176,7 +3165,7 @@ class Base(object, preferences.Preferences):
         self.library.libsearchfilter_set_focus()
 
     def update_menu_visibility(self, show_songinfo_only=False):
-        if show_songinfo_only or not self.expanded:
+        if show_songinfo_only or not self.config.expanded:
             for menu in ['add', 'replace', 'playafter', 'rename', 'rm', 'pl', \
                         'remove', 'clear', 'update', 'new', 'edit', 'sort', 'tag']:
                 self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
@@ -3273,14 +3262,14 @@ class Base(object, preferences.Preferences):
             if self.status and self.status['state'] in ['play', 'pause']:
                 # Use current file in songinfo:
                 mpdpath = mpdh.get(self.songinfo, 'file')
-                fullpath = self.musicdir[self.profile_num] + mpdpath
+                fullpath = self.config.musicdir[self.config.profile_num] + mpdpath
                 files.append(fullpath)
                 temp_mpdpaths.append(mpdpath)
         elif self.current_tab == self.TAB_LIBRARY:
             # Populates files array with selected library items:
             items = self.library.get_path_child_filenames(False)
             for item in items:
-                files.append(self.musicdir[self.profile_num] + item)
+                files.append(self.config.musicdir[self.config.profile_num] + item)
                 temp_mpdpaths.append(item)
         elif self.current_tab == self.TAB_CURRENT:
             # Populates files array with selected current playlist items:
@@ -3288,11 +3277,11 @@ class Base(object, preferences.Preferences):
             files = self.current.get_selected_filenames(True)
 
         tageditor = tagedit.TagEditor(self.window, self.tags_mpd_update, self.tags_set_use_mpdpath)
-        tageditor.set_use_mpdpaths(self.tags_use_mpdpath)
-        tageditor.on_tags_edit(files, temp_mpdpaths, self.musicdir[self.profile_num])
+        tageditor.set_use_mpdpaths(self.config.tags_use_mpdpath)
+        tageditor.on_tags_edit(files, temp_mpdpaths, self.config.musicdir[self.config.profile_num])
 
     def tags_set_use_mpdpath(self, use_mpdpath):
-        self.tags_use_mpdpath = use_mpdpath
+        self.config.tags_use_mpdpath = use_mpdpath
 
     def tags_mpd_update(self, tags, tagnum):
         if tags:
@@ -3329,7 +3318,7 @@ class Base(object, preferences.Preferences):
         if HAVE_STATUS_ICON:
             self.statusicon = gtk.StatusIcon()
             self.statusicon.set_from_file(self.find_path('sonata.png'))
-            self.statusicon.set_visible(self.show_trayicon)
+            self.statusicon.set_visible(self.config.show_trayicon)
             self.statusicon.connect('popup_menu', self.systemtray_menu)
             self.statusicon.connect('activate', self.systemtray_activate)
         elif HAVE_EGG:
@@ -3342,7 +3331,7 @@ class Base(object, preferences.Preferences):
             try:
                 self.trayicon = egg.trayicon.TrayIcon("TrayIcon")
                 self.trayicon.add(self.trayeventbox)
-                if self.show_trayicon:
+                if self.config.show_trayicon:
                     self.trayicon.show_all()
                     self.eggtrayfile = self.find_path('sonata.png')
                     self.trayimage.set_from_pixbuf(img.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
