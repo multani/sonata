@@ -63,13 +63,27 @@ sys.path.append('/usr/lib/python2.5/site-packages/oldxml')
 if platform.system() == 'Linux':
     sys.argv[0] = 'sonata'
 
+# apply as well:
+    try:
+        import ctypes
+        libc = ctypes.CDLL('libc.so.6')
+        PR_SET_NAME = 15
+        libc.prctl(PR_SET_NAME, sys.argv[0], 0, 0, 0)
+    except Exception: # if it fails, it fails
+        pass
 
-## Apply translation:
+
+## Apply locale and translation:
+
+from sonata import misc
+misc.setlocale()
 
 # let gettext install _ as a built-in for all modules to see
+# XXX what's the correct way to find the localization?
 try:
     gettext.install('sonata', os.path.join(sonata.__file__.split('/lib')[0], 'share', 'locale'), unicode=1)
 except:
+    print "Warning: trying to use an old translation"
     gettext.install('sonata', '/usr/share/locale', unicode=1)
 gettext.textdomain('sonata')
 
@@ -96,13 +110,29 @@ args = cli.Args()
 args.parse(sys.argv)
 args.process_options()
 
-## Check more dependencies:
+
+## Deal with GTK:
 
 if not args.should_skip_gui():
+    # importing gtk does sys.setdefaultencoding("utf-8"), sets locale etc.
     import gtk
     if gtk.pygtk_version < (2, 12, 0):
         sys.stderr.write("Sonata requires PyGTK 2.12.0 or newer. Aborting...\n")
         sys.exit(1)
+    # fix locale
+    misc.setlocale()
+else:
+    class FakeModule(object):
+        pass
+    # make sure the ui modules aren't imported
+    for m in 'gtk', 'pango', 'sonata.ui':
+        if m in sys.modules:
+            print "Warning: module %s imported in CLI mode" % m
+        else:
+            sys.modules[m] = FakeModule()
+    # like gtk, set utf-8 encoding of str objects
+    reload(sys) # hack access to setdefaultencoding
+    sys.setdefaultencoding("utf-8")
 
 
 ## Global init:

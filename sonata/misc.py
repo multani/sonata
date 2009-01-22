@@ -1,10 +1,6 @@
 
-import os, subprocess, re
+import os, subprocess, re, locale, sys
 
-import gobject, pango
-
-import sonata
-import ui
 
 def convert_time(raw):
     # Converts raw time to 'hh:mm:ss' with leading zeros as appropriate
@@ -176,12 +172,14 @@ def browser_load(docslink, browser, window):
         ui.show_error_msg(window, _('Unable to launch a suitable browser.'), _('Launch Browser'), 'browserLoadError')
 
 def file_from_utf8(filename):
+    import gobject
     try:
         return gobject.filename_from_utf8(filename)
     except:
         return filename
 
 def is_lang_rtl(window):
+    import pango
     # Check if a RTL (right-to-left) language:
     return window.get_pango_context().get_base_dir() == pango.DIRECTION_RTL
 
@@ -211,3 +209,13 @@ def get_files_recursively(dirname):
 
 def _get_files_recursively(filenames, dirname, files):
     filenames.extend([os.path.join(dirname, f) for f in files])
+
+def setlocale():
+    try:
+        locale.setlocale(locale.LC_ALL, "")
+        # XXX this makes python-mpd correctly return lowercase
+        # keys for, e.g., playlistinfo() with a turkish locale:
+        locale.setlocale(locale.LC_CTYPE, "C")
+    except:
+        print "Failed to set locale"
+        sys.exit(1)

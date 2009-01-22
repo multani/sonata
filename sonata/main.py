@@ -832,12 +832,7 @@ class Base(object, preferences.Preferences):
             # XXX gnome.init sets process name, locale...
             gnome.init("sonata", version.VERSION)
 
-            # XXX this makes python-mpd correctly return lowercase
-            # keys for, e.g., playlistinfo() with a turkish locale:
-            try:
-                locale.setlocale(locale.LC_CTYPE, "C")
-            except:
-                pass
+            misc.setlocale()
 
             client = gnome.ui.master_client()
             client.set_restart_style(gnome.ui.RESTART_IF_RUNNING)
