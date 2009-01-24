@@ -2515,6 +2515,7 @@ class Base(object):
             self.fullscreencoverart.hide()
         else:
             self.traytips.hide()
+            self.artwork.fullscreen_cover_art_set_image(force_update=True)
             self.fullscreencoverart.show_all()
 
     def fullscreen_cover_art_close(self, _widget, event, key_press):

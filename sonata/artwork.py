@@ -37,6 +37,7 @@ class Artwork(object):
         self.sonatacd_large = find_path('sonatacd_large.png')
         self.casepb = gtk.gdk.pixbuf_new_from_file(find_path('sonata-case.png'))
         self.albumpb = None
+        self.currentpb = None
 
         # local UI widgets provided to main by getter methods
         self.albumimage = ui.image()
@@ -48,7 +49,7 @@ class Artwork(object):
         self.trayalbumimage2 = ui.image(w=26, h=77)
 
         self.fullscreenalbumimage = ui.image(w=consts.FULLSCREEN_COVER_SIZE, h=consts.FULLSCREEN_COVER_SIZE, x=1)
-        self.fullscreen_cover_art_set_image(self.sonatacd_large)
+        self.fullscreen_cover_art_reset_image()
 
         self.info_image = ui.image(y=0)
         self.info_image.set_from_file(self.sonatacd_large)
@@ -402,7 +403,7 @@ class Artwork(object):
         if self.albumimage.get_property('file') != self.sonatacd:
             gobject.idle_add(self.albumimage.set_from_file, self.sonatacd)
             gobject.idle_add(self.info_image.set_from_file, self.sonatacd_large)
-            gobject.idle_add(self.fullscreen_cover_art_set_image, self.sonatacd_large)
+            gobject.idle_add(self.fullscreen_cover_art_reset_image)
         gobject.idle_add(self.artwork_set_tooltip_art, gtk.gdk.pixbuf_new_from_file(self.sonatacd))
         self.lastalbumart = None
 
@@ -442,6 +443,8 @@ class Artwork(object):
                         misc.remove_file(filename)
                     return
 
+                self.currentpb = pix
+
                 # Artwork for tooltip, left-top of player:
                 if not info_img_only:
                     (pix1, w, h) = img.get_pixbuf_of_size(pix, 75)
@@ -462,16 +465,12 @@ class Artwork(object):
                 pix2 = img.pixbuf_add_border(pix2)
                 self.info_image.set_from_pixbuf(pix2)
                 del pix2
+                del pix
 
                 # Artwork for library, if current song matches:
                 self.library_set_image_for_current_song(cache_key)
 
-                # Artwork for fullscreen cover mode
-                (pix3, w, h) = img.get_pixbuf_of_size(pix, consts.FULLSCREEN_COVER_SIZE)
-                pix3 = self.artwork_apply_composite_case(pix3, w, h)
-                pix3 = img.pixbuf_pad(pix3, consts.FULLSCREEN_COVER_SIZE, consts.FULLSCREEN_COVER_SIZE)
-                self.fullscreenalbumimage.set_from_pixbuf(pix3)
-                del pix, pix3
+                self.fullscreen_cover_art_set_image()
 
                 self.lastalbumart = filename
                 self.schedule_gc_collect()
@@ -585,10 +584,23 @@ class Artwork(object):
             self.downloading_image = False
             return imgfound
 
-    def fullscreen_cover_art_set_image(self, filename):
-        pix = gtk.gdk.pixbuf_new_from_file(filename)
+    def fullscreen_cover_art_set_image(self, force_update=False):
+        if self.fullscreenalbumimage.get_property('visible') or force_update:
+            if self.currentpb is None:
+                self.fullscreen_cover_art_reset_image()
+                return
+            # Artwork for fullscreen cover mode
+            (pix3, w, h) = img.get_pixbuf_of_size(self.currentpb, consts.FULLSCREEN_COVER_SIZE)
+            pix3 = self.artwork_apply_composite_case(pix3, w, h)
+            pix3 = img.pixbuf_pad(pix3, consts.FULLSCREEN_COVER_SIZE, consts.FULLSCREEN_COVER_SIZE)
+            self.fullscreenalbumimage.set_from_pixbuf(pix3)
+            del pix3
+
+    def fullscreen_cover_art_reset_image(self):
+        pix = gtk.gdk.pixbuf_new_from_file(self.sonatacd_large)
         pix = img.pixbuf_pad(pix, consts.FULLSCREEN_COVER_SIZE, consts.FULLSCREEN_COVER_SIZE)
         self.fullscreenalbumimage.set_from_pixbuf(pix)
+        self.currentpb = None
 
     def have_last(self):
         if self.lastalbumart is not None:

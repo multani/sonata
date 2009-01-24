@@ -1,4 +1,3 @@
-
 v1.6
 	empty string searching doesn't work with mpd < 0.14...
 	threaded method for artwork - possible threading traceback when exiting sonata
@@ -13,6 +12,7 @@ v1.6
 		- support for composer, disc
 		- save selection afterwards (what did we have before?)
 	remove libegg? statusicon provides everything in gtk 2.15, not yet in pygtk
+	albumartist tag
 
 Future:
 	support for new idle command (waiting on python-mpd)
