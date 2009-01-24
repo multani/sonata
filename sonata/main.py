@@ -215,7 +215,7 @@ class Base(object):
         self.notebook = gtk.Notebook()
 
         # Artwork
-        self.artwork = artwork.Artwork(self.config, self.find_path, misc.is_lang_rtl(self.window), lambda:self.info_imagebox.get_size_request(), self.schedule_gc_collect, self.target_image_filename, self.imagelist_append, self.remotefilelist_append, self.notebook.get_allocation, self.set_allow_art_search, self.status_is_play_or_pause, self.find_path('sonata-album.png'))
+        self.artwork = artwork.Artwork(self.config, self.find_path, misc.is_lang_rtl(self.window), lambda:self.info_imagebox.get_size_request(), self.schedule_gc_collect, self.target_image_filename, self.imagelist_append, self.remotefilelist_append, self.notebook.get_allocation, self.set_allow_art_search, self.status_is_play_or_pause, self.find_path('sonata-album.png'), self.get_current_song_text)
 
         # Popup menus:
         actions = (
@@ -680,8 +680,13 @@ class Base(object):
         fscavbox = gtk.VBox()
         fscahbox = gtk.HBox()
         self.fullscreenalbumimage = self.artwork.get_fullscreenalbumimage()
+        fscalbl, fscalbl2 = self.artwork.get_fullscreenalbumlabels()
         fscahbox.pack_start(self.fullscreenalbumimage, True, False, 0)
-        fscavbox.pack_start(fscahbox, True, False, 0)
+        fscavbox.pack_start(ui.label(), True, False, 0)
+        fscavbox.pack_start(fscahbox, False, False, 0)
+        fscavbox.pack_start(fscalbl, False, False, 5)
+        fscavbox.pack_start(fscalbl2, False, False, 5)
+        fscavbox.pack_start(ui.label(), True, False, 0)
         if not self.config.show_covers:
             ui.hide(self.fullscreenalbumimage)
         self.fullscreencoverart.add(fscavbox)
@@ -1767,6 +1772,9 @@ class Base(object):
         if cursonglabelwidth > 0:
             self.cursonglabel1.set_size_request(cursonglabelwidth, -1)
             self.cursonglabel1.set_size_request(cursonglabelwidth, -1)
+
+    def get_current_song_text(self):
+        return self.cursonglabel1.get_text(), self.cursonglabel2.get_text()
 
     def update_cursong(self):
         if self.conn and self.status and self.status['state'] in ['play', 'pause']:

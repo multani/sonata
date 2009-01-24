@@ -15,7 +15,7 @@ AMAZON_NS = "{http://webservices.amazon.com/AWSECommerceService/2005-10-05}"
 AMAZON_URI = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=%s&Operation=ItemSearch&SearchIndex=Music&Artist=%s&ResponseGroup=Images"
 
 class Artwork(object):
-    def __init__(self, config, find_path, is_lang_rtl, info_imagebox_get_size_request, schedule_gc_collect, target_image_filename, imagelist_append, remotefilelist_append, notebook_get_allocation, allow_art_search, status_is_play_or_pause, album_filename):
+    def __init__(self, config, find_path, is_lang_rtl, info_imagebox_get_size_request, schedule_gc_collect, target_image_filename, imagelist_append, remotefilelist_append, notebook_get_allocation, allow_art_search, status_is_play_or_pause, album_filename, get_current_song_text):
         self.config = config
         self.album_filename = album_filename
 
@@ -31,6 +31,7 @@ class Artwork(object):
         self.notebook_get_allocation = notebook_get_allocation
         self.allow_art_search = allow_art_search
         self.status_is_play_or_pause = status_is_play_or_pause
+        self.get_current_song_text = get_current_song_text
 
         # local pixbufs, image file names
         self.sonatacd = find_path('sonatacd.png')
@@ -49,6 +50,8 @@ class Artwork(object):
         self.trayalbumimage2 = ui.image(w=26, h=77)
 
         self.fullscreenalbumimage = ui.image(w=consts.FULLSCREEN_COVER_SIZE, h=consts.FULLSCREEN_COVER_SIZE, x=1)
+        self.fullscreenalbumlabel = ui.label(x=0.5)
+        self.fullscreenalbumlabel2 = ui.label(x=0.5)
         self.fullscreen_cover_art_reset_image()
 
         self.info_image = ui.image(y=0)
@@ -85,6 +88,9 @@ class Artwork(object):
 
     def get_fullscreenalbumimage(self):
         return self.fullscreenalbumimage
+
+    def get_fullscreenalbumlabels(self):
+        return self.fullscreenalbumlabel, self.fullscreenalbumlabel2
 
     def update_songinfo(self, songinfo):
         self.songinfo = songinfo
@@ -595,11 +601,17 @@ class Artwork(object):
             pix3 = img.pixbuf_pad(pix3, consts.FULLSCREEN_COVER_SIZE, consts.FULLSCREEN_COVER_SIZE)
             self.fullscreenalbumimage.set_from_pixbuf(pix3)
             del pix3
+            # Text below
+            line1, line2 = self.get_current_song_text()
+            self.fullscreenalbumlabel.set_markup("<span size='20000' color='white'>" + line1 + "</span>")
+            self.fullscreenalbumlabel2.set_markup("<span size='12000' color='white'>" + line2 + "</span>")
 
     def fullscreen_cover_art_reset_image(self):
         pix = gtk.gdk.pixbuf_new_from_file(self.sonatacd_large)
         pix = img.pixbuf_pad(pix, consts.FULLSCREEN_COVER_SIZE, consts.FULLSCREEN_COVER_SIZE)
         self.fullscreenalbumimage.set_from_pixbuf(pix)
+        self.fullscreenalbumlabel.set_markup(" ")
+        self.fullscreenalbumlabel2.set_markup(" ")
         self.currentpb = None
 
     def have_last(self):
