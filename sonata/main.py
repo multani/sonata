@@ -1182,6 +1182,7 @@ class Base(object):
             text[i] = text[i].replace("%N", _("#"))
             text[i] = text[i].replace("%Y", _("Year"))
             text[i] = text[i].replace("%G", _("Genre"))
+            text[i] = text[i].replace("%P", _("Path"))
             text[i] = text[i].replace("%F", _("File"))
             text[i] = text[i].replace("%S", _("Stream"))
             text[i] = text[i].replace("%L", _("Len"))
@@ -1269,10 +1270,17 @@ class Base(object):
             else:
                 if not has_brackets: text = text.replace("%Y", "?")
                 else: return ""
-        if "%F" in text:
-            text = text.replace("%F", mpdh.get(item, 'file'))
+
+        pathname = mpdh.get(item, 'file')
+        try:
+            dirname, filename = pathname.rsplit('/', 1)
+        except ValueError: # XXX is file without '/' ever possible?
+            dirname, filename = "", pathname
         if "%P" in text:
-            text = text.replace("%P", mpdh.get(item, 'file').split('/')[-1])
+            text = text.replace("%P", dirname)
+        if "%F" in text:
+            text = text.replace("%F", filename)
+
         if "%L" in text:
             time = mpdh.get(item, 'time', flag)
             if time != flag:
