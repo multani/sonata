@@ -675,7 +675,10 @@ class Base(object):
         self.fullscreencoverart.set_title(_("Cover Art"))
         self.fullscreencoverart.set_decorated(True)
         self.fullscreencoverart.fullscreen()
-        self.fullscreencoverart.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("black"))
+        style = self.fullscreencoverart.get_style().copy()
+        style.bg[gtk.STATE_NORMAL] = self.fullscreencoverart.get_colormap().alloc_color("black")
+        style.bg_pixmap[gtk.STATE_NORMAL] = None
+        self.fullscreencoverart.set_style(style)
         self.fullscreencoverart.add_accel_group(self.UIManager.get_accel_group())
         fscavbox = gtk.VBox()
         fscahbox = gtk.HBox()
