@@ -391,16 +391,35 @@ class Preferences():
         for label in formatlabels:
             label.set_alignment(0, 0.5)
         ui.set_widths_equal(formatlabels)
+
         availableheading = ui.label(markup='<small>' + _('Available options') + ':</small>', y=0)
         availablevbox = gtk.VBox()
         availableformatbox = gtk.HBox()
-        availableformatting = ui.label(markup='<small><span font_family="Monospace">%A</span> - ' + _('Artist name') + '\n<span font_family="Monospace">%B</span> - ' + _('Album name') + '\n<span font_family="Monospace">%T</span> - ' + _('Track name') + '\n<span font_family="Monospace">%N</span> - ' + _('Track number') + '\n<span font_family="Monospace">%D</span> - ' + _('Disc Number') + '\n<span font_family="Monospace">%Y</span> - ' + _('Year') + '</small>', y=0)
-        availableformatting2 = ui.label(markup='<small><span font_family="Monospace">%G</span> - ' + _('Genre') + '\n<span font_family="Monospace">%F</span> - ' + _('File name') + '\n<span font_family="Monospace">%S</span> - ' + _('Stream name') + '\n<span font_family="Monospace">%L</span> - ' + _('Song length') + '\n<span font_family="Monospace">%E</span> - ' + _('Elapsed time (title only)') + '</small>', y=0)
-        availableformatbox.pack_start(availableformatting)
-        availableformatbox.pack_start(availableformatting2)
+        # XXX get these directly from the formatting function:
+        formatcodes = [('A', _('Artist name')),
+                   ('B', _('Album name')),
+                   ('T', _('Track name')),
+                   ('N', _('Track number')),
+                   ('D', _('Disc Number')),
+                   ('Y', _('Year')),
+                   ('G', _('Genre')),
+                   ('F', _('File name')),
+                   ('S', _('Stream name')),
+                   ('L', _('Song length')),
+                   ('E', _('Elapsed time (title only)')),
+                   ]
+        for codes in [formatcodes[:(len(formatcodes)+1)/2],
+                  formatcodes[(len(formatcodes)+1)/2:]]:
+            rows = '\n'.join('<tt>' + code + '</tt> - ' + help
+                     for code, help in codes)
+            markup = '<small>' + rows + '</small>'
+            formattinghelp = ui.label(markup=markup, y=0)
+            availableformatbox.pack_start(formattinghelp)
+
         availablevbox.pack_start(availableformatbox, False, False, 0)
-        additionalinfo = ui.label(markup='<small>{ } - ' + _('Info displayed only if all enclosed tags are defined') + '\n' + '| - ' + _('Creates columns in the current playlist') + '</small>', y=0)
+        additionalinfo = ui.label(markup='<small><tt>{ }</tt> - ' + _('Info displayed only if all enclosed tags are defined') + '\n' + '<tt>|</tt> - ' + _('Creates columns in the current playlist') + '</small>', y=0)
         availablevbox.pack_start(additionalinfo, False, False, 4)
+
         table4.attach(ui.label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table4.attach(formatlabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
         table4.attach(ui.label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
@@ -413,6 +432,7 @@ class Preferences():
         table4.attach(availableheading, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table4.attach(availablevbox, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 45, 0)
         table4.attach(ui.label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+
         table_names = [[_("_MPD"), mpd_table],
                        [_("_Display"), table2],
                        [_("_Behavior"), table3],
