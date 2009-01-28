@@ -132,10 +132,8 @@ class TagEditor():
         yearandtrackhbox.pack_start(yearhbox, True, True, 0)
         yearandtrackhbox.pack_start(trackhbox, True, True, 0)
 
-        handlerid = yearentry.connect("insert_text", self.tags_win_entry_constraint, True)
-        yearentry.set_data('handlerid', handlerid)
-        handlerid2 = trackentry.connect("insert_text", self.tags_win_entry_constraint, False)
-        trackentry.set_data('handlerid2', handlerid2)
+        yearentry.connect("insert_text", self.tags_win_entry_constraint, True)
+        trackentry.connect("insert_text", self.tags_win_entry_constraint, False)
 
         genrelabel = ui.label(text=_("Genre") + ":", x=1)
         genrecombo = ui.comboentry(items=self.tags_win_genres(), wrap=2)
