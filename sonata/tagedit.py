@@ -36,6 +36,23 @@ class TagEditor():
         self.use_mpdpaths = None
         self.updating_edit_entries = None
 
+    def _create_label_entry_button_hbox(self, label_name, track=False):
+        """Creates a label, entry, apply all button, packing them into an hbox.
+
+        This is usually one row in the tagedit dialog, for example the title.
+        """
+        entry = ui.entry()
+        button = ui.button()
+        buttonvbox = self.tags_win_create_apply_all_button(button, entry, track)
+
+        label = ui.label(text=label_name + ":", x=1)
+        hbox = gtk.HBox()
+        hbox.pack_start(label, False, False, 2)
+        hbox.pack_start(entry, True, True, 2)
+        hbox.pack_start(buttonvbox, False, False, 2)
+
+        return (label, entry, button, hbox)
+
     def on_tags_edit(self, files, temp_mpdpaths, music_dir):
         """Display the editing dialog"""
         # Try loading module
@@ -103,73 +120,36 @@ class TagEditor():
         filehbox.pack_start(self.filelabel, True, True, 2)
         filehbox.pack_start(expandvbox, False, False, 2)
         filehbox.pack_start(blanklabel, False, False, 2)
-        titlelabel = ui.label(text=_("Title") + ":", x=1)
-        titleentry = ui.entry()
-        titlebutton = ui.button()
-        titlebuttonvbox = gtk.VBox()
-        self.tags_win_create_apply_all_button(titlebutton, titlebuttonvbox, titleentry)
-        titlehbox = gtk.HBox()
-        titlehbox.pack_start(titlelabel, False, False, 2)
-        titlehbox.pack_start(titleentry, True, True, 2)
-        titlehbox.pack_start(titlebuttonvbox, False, False, 2)
-        artistlabel = ui.label(text=_("Artist") + ":", x=1)
-        artistentry = ui.entry()
-        artisthbox = gtk.HBox()
-        artistbutton = ui.button()
-        artistbuttonvbox = gtk.VBox()
-        self.tags_win_create_apply_all_button(artistbutton, artistbuttonvbox, artistentry)
-        artisthbox.pack_start(artistlabel, False, False, 2)
-        artisthbox.pack_start(artistentry, True, True, 2)
-        artisthbox.pack_start(artistbuttonvbox, False, False, 2)
-        albumlabel = ui.label(text=_("Album") + ":", x=1)
-        albumentry = ui.entry()
-        albumhbox = gtk.HBox()
-        albumbutton = ui.button()
-        albumbuttonvbox = gtk.VBox()
-        self.tags_win_create_apply_all_button(albumbutton, albumbuttonvbox, albumentry)
-        albumhbox.pack_start(albumlabel, False, False, 2)
-        albumhbox.pack_start(albumentry, True, True, 2)
-        albumhbox.pack_start(albumbuttonvbox, False, False, 2)
-        yearlabel = ui.label(text="  " + _("Year") + ":", x=1)
-        yearentry = ui.entry(w=50)
+
+        titlelabel, titleentry, titlebutton, titlehbox = self._create_label_entry_button_hbox(_("Title"))
+        artistlabel, artistentry, artistbutton, artisthbox = self._create_label_entry_button_hbox(_("Artist"))
+        albumlabel, albumentry, albumbutton, albumhbox = self._create_label_entry_button_hbox(_("Album"))
+        yearlabel, yearentry, yearbutton, yearhbox = self._create_label_entry_button_hbox(_("Year"))
+        yearentry.set_size_request(50,-1)
+        tracklabel, trackentry, trackbutton, trackhbox = self._create_label_entry_button_hbox("  " + _("Track"), True)
+        trackentry.set_size_request(50,-1)
+        yearandtrackhbox = gtk.HBox()
+        yearandtrackhbox.pack_start(yearhbox, True, True, 0)
+        yearandtrackhbox.pack_start(trackhbox, True, True, 0)
+
         handlerid = yearentry.connect("insert_text", self.tags_win_entry_constraint, True)
         yearentry.set_data('handlerid', handlerid)
-        tracklabel = ui.label(text="  " + _("Track") + ":", x=1)
-        trackentry = ui.entry(w=50)
         handlerid2 = trackentry.connect("insert_text", self.tags_win_entry_constraint, False)
         trackentry.set_data('handlerid2', handlerid2)
-        yearbutton = ui.button()
-        yearbuttonvbox = gtk.VBox()
-        self.tags_win_create_apply_all_button(yearbutton, yearbuttonvbox, yearentry)
-        trackbutton = ui.button()
-        trackbuttonvbox = gtk.VBox()
-        self.tags_win_create_apply_all_button(trackbutton, trackbuttonvbox, trackentry, True)
-        yearandtrackhbox = gtk.HBox()
-        yearandtrackhbox.pack_start(yearlabel, False, False, 2)
-        yearandtrackhbox.pack_start(yearentry, True, True, 2)
-        yearandtrackhbox.pack_start(yearbuttonvbox, False, False, 2)
-        yearandtrackhbox.pack_start(tracklabel, False, False, 2)
-        yearandtrackhbox.pack_start(trackentry, True, True, 2)
-        yearandtrackhbox.pack_start(trackbuttonvbox, False, False, 2)
+
         genrelabel = ui.label(text=_("Genre") + ":", x=1)
         genrecombo = ui.comboentry(items=self.tags_win_genres(), wrap=2)
         genreentry = genrecombo.get_child()
         genrehbox = gtk.HBox()
         genrebutton = ui.button()
-        genrebuttonvbox = gtk.VBox()
-        self.tags_win_create_apply_all_button(genrebutton, genrebuttonvbox, genreentry)
+        genrebuttonvbox = self.tags_win_create_apply_all_button(genrebutton,
+                                                                genreentry)
         genrehbox.pack_start(genrelabel, False, False, 2)
         genrehbox.pack_start(genrecombo, True, True, 2)
         genrehbox.pack_start(genrebuttonvbox, False, False, 2)
-        commentlabel = ui.label(text=_("Comment") + ":", x=1)
-        commententry = ui.entry()
-        commenthbox = gtk.HBox()
-        commentbutton = ui.button()
-        commentbuttonvbox = gtk.VBox()
-        self.tags_win_create_apply_all_button(commentbutton, commentbuttonvbox, commententry)
-        commenthbox.pack_start(commentlabel, False, False, 2)
-        commenthbox.pack_start(commententry, True, True, 2)
-        commenthbox.pack_start(commentbuttonvbox, False, False, 2)
+
+        commentlabel, commententry, commentbutton, commenthbox = self._create_label_entry_button_hbox(_("Comment"))
+
         ui.set_widths_equal([titlelabel, artistlabel, albumlabel, yearlabel, genrelabel, commentlabel, sonataicon])
         genrecombo.set_size_request(-1, titleentry.size_request()[1])
         tablewidgets = [ui.label(), filehbox, ui.label(), titlehbox, artisthbox, albumhbox, yearandtrackhbox, genrehbox, commenthbox, ui.label()]
@@ -227,14 +207,16 @@ class TagEditor():
     def tags_win_entry_revert_color(self, editable):
         editable.set_style(self.edit_style_orig)
 
-    def tags_win_create_apply_all_button(self, button, vbox, entry, autotrack=False):
+    def tags_win_create_apply_all_button(self, button, entry, autotrack=False):
         button.set_size_request(12, 12)
         if autotrack:
             button.set_tooltip_text(_("Increment each selected music file, starting at track 1 for this file."))
         else:
             button.set_tooltip_text(_("Apply to all selected music files."))
         padding = int((entry.size_request()[1] - button.size_request()[1])/2)+1
+        vbox = gtk.VBox();
         vbox.pack_start(button, False, False, padding)
+        return vbox
 
     def tags_win_apply_all(self, _button, item, tags, entry):
         for tagnum, tag in enumerate(tags):
