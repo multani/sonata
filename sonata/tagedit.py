@@ -183,19 +183,19 @@ class TagEditor():
         editwindow.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT)
         editwindow.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT)
         editwindow.connect('delete_event', self.tags_win_hide, tags)
-        entries = [titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry, self.filelabel]
+        entries = [titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry]
         buttons = [titlebutton, artistbutton, albumbutton, yearbutton, trackbutton, genrebutton, commentbutton]
         entries_names = ["title", "artist", "album", "year", "track", "genre", "comment"]
         editwindow.connect('response', self.tags_win_response, tags, entries, entries_names)
         if saveall_button:
             saveall_button.connect('clicked', self.tags_win_save_all, editwindow, tags, entries, entries_names)
-        for i in range(len(entries)-1):
+        for i in range(len(entries)):
             entries[i].connect('changed', self.tags_win_entry_changed)
         for i in range(len(buttons)):
             buttons[i].connect('clicked', self.tags_win_apply_all, entries_names[i], tags, entries)
         self.tags_win_update(editwindow, tags, entries, entries_names)
         ui.change_cursor(None)
-        entries[7].set_size_request(editwindow.size_request()[0] - titlelabel.size_request()[0] - 70, -1)
+        self.filelabel.set_size_request(editwindow.size_request()[0] - titlelabel.size_request()[0] - 70, -1)
         editwindow.show_all()
         # Need to get the entry style after the window has been shown
         self.edit_style_orig = titleentry.get_style()
@@ -304,13 +304,13 @@ class TagEditor():
         filename = self.curr_mpdpath
         if not self.use_mpdpaths:
             filename = os.path.basename(filename)
-        entries[7].set_text(filename)
+        self.filelabel.set_text(filename)
         entries[0].select_region(0, len(entries[0].get_text()))
         entries[0].grab_focus()
         window.set_title(_("Edit Tags") + " - " + str(self.tagnum+1) + " " + _("of") + " " + str(len(tags)))
         self.updating_edit_entries = False
         # Update text colors as appropriate:
-        for i in range(len(entries)-1):
+        for i in range(len(entries)):
             if tags[self.tagnum][entries_names[i] + '-changed']:
                 self.tags_win_entry_changed(entries[i])
             else:
@@ -391,10 +391,7 @@ class TagEditor():
 
     def tags_win_save_all(self, _button, window, tags, entries, entries_names):
         for entry in entries:
-            try: # Skip GtkLabels
-                entry.set_property('editable', False)
-            except:
-                pass
+            entry.set_property('editable', False)
         while window.get_property('visible'):
             self.tags_win_response(window, gtk.RESPONSE_ACCEPT, tags, entries, entries_names)
 
