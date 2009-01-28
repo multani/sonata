@@ -194,8 +194,8 @@ class TagEditor():
         for entry in entries:
             entry.connect('changed', self.tags_win_entry_changed)
 
-        for button, name in zip(buttons, entries_names):
-            button.connect('clicked', self.tags_win_apply_all, name, tags, entries)
+        for button, name, entry in zip(buttons, entries_names, entries):
+            button.connect('clicked', self.tags_win_apply_all, name, tags, entry)
 
         self.tags_win_update(editwindow, tags, entries, entries_names)
         ui.change_cursor(None)
@@ -236,22 +236,15 @@ class TagEditor():
         padding = int((entry.size_request()[1] - button.size_request()[1])/2)+1
         vbox.pack_start(button, False, False, padding)
 
-    def tags_win_apply_all(self, _button, item, tags, entries):
-        tagnum = 0
-        for tag in tags:
+    def tags_win_apply_all(self, _button, item, tags, entry):
+        for tagnum, tag in enumerate(tags):
             tagnum = tagnum + 1
-            if item == "title":
-                tag['title'] = entries[0].get_text()
-                tag['title-changed'] = True
-            elif item == "album":
-                tag['album'] = entries[2].get_text()
-                tag['album-changed'] = True
-            elif item == "artist":
-                tag['artist'] = entries[1].get_text()
-                tag['artist-changed'] = True
+            if item in ("title", "album", "artist", "genre", "comment"):
+                tag[item] = entry.get_text()
+                tag[item + '-changed'] = True
             elif item == "year":
-                if len(entries[3].get_text()) > 0:
-                    tag['year'] = int(entries[3].get_text())
+                if len(entry.get_text()) > 0:
+                    tag['year'] = int(entry.get_text())
                 else:
                     tag['year'] = 0
                 tag['year-changed'] = True
@@ -261,15 +254,9 @@ class TagEditor():
                     # song in the list.
                     tag['track'] = tagnum - self.tagnum
                 tag['track-changed'] = True
-            elif item == "genre":
-                tag['genre'] = entries[5].get_text()
-                tag['genre-changed'] = True
-            elif item == "comment":
-                tag['comment'] = entries[6].get_text()
-                tag['comment-changed'] = True
         if item == "track":
             # Update the entry for the current song:
-            entries[4].set_text(str(tags[self.tagnum]['track']))
+            entry.set_text(str(tags[self.tagnum]['track']))
 
     def tags_win_update(self, window, tags, entries, entries_names):
         self.updating_edit_entries = True
