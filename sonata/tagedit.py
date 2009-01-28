@@ -66,14 +66,15 @@ class TagEditor():
         # Initialize:
         self.tagnum = -1
         self.updating_edit_entries = False
-        tags = []
-        for filenum in range(len(files)):
-            tags.append({'title':'', 'artist':'', 'album':'', 'year':'',
-                     'track':'', 'genre':'', 'comment':'', 'title-changed':False,
-                     'artist-changed':False, 'album-changed':False, 'year-changed':False,
-                     'track-changed':False, 'genre-changed':False, 'comment-changed':False,
-                     'fullpath':misc.file_from_utf8(files[filenum]),
-                     'mpdpath':temp_mpdpaths[filenum]})
+
+        tags = [{'title':'', 'artist':'', 'album':'', 'year':'', 'track':'',
+             'genre':'', 'comment':'', 'title-changed':False,
+             'artist-changed':False, 'album-changed':False,
+             'year-changed':False, 'track-changed':False,
+             'genre-changed':False, 'comment-changed':False,
+             'fullpath':misc.file_from_utf8(filename),
+             'mpdpath':path}
+            for filename, path in zip(files, temp_mpdpaths)]
 
         if not os.path.exists(tags[0]['fullpath']):
             ui.change_cursor(None)
@@ -172,8 +173,8 @@ class TagEditor():
         ui.set_widths_equal([titlelabel, artistlabel, albumlabel, yearlabel, genrelabel, commentlabel, sonataicon])
         genrecombo.set_size_request(-1, titleentry.size_request()[1])
         tablewidgets = [ui.label(), filehbox, ui.label(), titlehbox, artisthbox, albumhbox, yearandtrackhbox, genrehbox, commenthbox, ui.label()]
-        for i in range(len(tablewidgets)):
-            table.attach(tablewidgets[i], 1, 2, i+1, i+2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 2, 0)
+        for i, widget in enumerate(tablewidgets):
+            table.attach(widget, 1, 2, i+1, i+2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 2, 0)
         editwindow.vbox.pack_start(table)
         saveall_button = None
         if len(files) > 1:
@@ -189,10 +190,13 @@ class TagEditor():
         editwindow.connect('response', self.tags_win_response, tags, entries, entries_names)
         if saveall_button:
             saveall_button.connect('clicked', self.tags_win_save_all, editwindow, tags, entries, entries_names)
-        for i in range(len(entries)):
-            entries[i].connect('changed', self.tags_win_entry_changed)
-        for i in range(len(buttons)):
-            buttons[i].connect('clicked', self.tags_win_apply_all, entries_names[i], tags, entries)
+
+        for entry in entries:
+            entry.connect('changed', self.tags_win_entry_changed)
+
+        for button, name in zip(buttons, entries_names):
+            button.connect('clicked', self.tags_win_apply_all, name, tags, entries)
+
         self.tags_win_update(editwindow, tags, entries, entries_names)
         ui.change_cursor(None)
         self.filelabel.set_size_request(editwindow.size_request()[0] - titlelabel.size_request()[0] - 70, -1)
@@ -310,11 +314,11 @@ class TagEditor():
         window.set_title(_("Edit Tags") + " - " + str(self.tagnum+1) + " " + _("of") + " " + str(len(tags)))
         self.updating_edit_entries = False
         # Update text colors as appropriate:
-        for i in range(len(entries)):
-            if tags[self.tagnum][entries_names[i] + '-changed']:
-                self.tags_win_entry_changed(entries[i])
+        for entry, entry_name in zip(entries, entries_names):
+            if tags[self.tagnum][entry_name + '-changed']:
+                self.tags_win_entry_changed(entry)
             else:
-                self.tags_win_entry_revert_color(entries[i])
+                self.tags_win_entry_revert_color(entry)
         self.tags_win_set_sensitive(window.action_area)
 
     def tags_win_set_sensitive(self, action_area):
