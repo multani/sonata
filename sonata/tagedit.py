@@ -260,38 +260,32 @@ class TagEditor():
 
     def tags_win_update(self, window, tags, entries, entries_names):
         self.updating_edit_entries = True
+        current_tag = tags[self.tagnum]
         # Populate tags(). Note that we only retrieve info from the
         # file if the info hasn't already been changed:
-        tag = tagpy.FileRef(tags[self.tagnum]['fullpath']).tag()
-        if not tags[self.tagnum]['title-changed']:
-            tags[self.tagnum]['title'] = tag.title
-        if not tags[self.tagnum]['artist-changed']:
-            tags[self.tagnum]['artist'] = tag.artist
-        if not tags[self.tagnum]['album-changed']:
-            tags[self.tagnum]['album'] = tag.album
-        if not tags[self.tagnum]['year-changed']:
-            tags[self.tagnum]['year'] = tag.year
-        if not tags[self.tagnum]['track-changed']:
-            tags[self.tagnum]['track'] = tag.track
-        if not tags[self.tagnum]['genre-changed']:
-            tags[self.tagnum]['genre'] = tag.genre
-        if not tags[self.tagnum]['comment-changed']:
-            tags[self.tagnum]['comment'] = tag.comment
+        tag = tagpy.FileRef(current_tag['fullpath']).tag()
+        if not current_tag['title-changed']:
+            current_tag['title'] = tag.title
+        if not current_tag['artist-changed']:
+            current_tag['artist'] = tag.artist
+        if not current_tag['album-changed']:
+            current_tag['album'] = tag.album
+        if not current_tag['year-changed']:
+            current_tag['year'] = tag.year
+        if not current_tag['track-changed']:
+            current_tag['track'] = tag.track
+        if not current_tag['genre-changed']:
+            current_tag['genre'] = tag.genre
+        if not current_tag['comment-changed']:
+            current_tag['comment'] = tag.comment
         # Update interface:
-        entries[0].set_text(self.tags_get_tag(tags[self.tagnum], 'title'))
-        entries[1].set_text(self.tags_get_tag(tags[self.tagnum], 'artist'))
-        entries[2].set_text(self.tags_get_tag(tags[self.tagnum], 'album'))
-        if self.tags_get_tag(tags[self.tagnum], 'year') != 0:
-            entries[3].set_text(str(self.tags_get_tag(tags[self.tagnum], 'year')))
-        else:
-            entries[3].set_text('')
-        if self.tags_get_tag(tags[self.tagnum], 'track') != 0:
-            entries[4].set_text(str(self.tags_get_tag(tags[self.tagnum], 'track')))
-        else:
-            entries[4].set_text('')
-        entries[5].set_text(self.tags_get_tag(tags[self.tagnum], 'genre'))
-        entries[6].set_text(self.tags_get_tag(tags[self.tagnum], 'comment'))
-        self.curr_mpdpath = gobject.filename_display_name(tags[self.tagnum]['mpdpath'])
+        for entry, entry_name in zip(entries, entries_names):
+            tag_value = self.tags_get_tag(current_tag, entry_name)
+            if tag_value == 0:
+                tag_value = ''
+            entry.set_text(str(tag_value))
+
+        self.curr_mpdpath = gobject.filename_display_name(current_tag['mpdpath'])
         filename = self.curr_mpdpath
         if not self.use_mpdpaths:
             filename = os.path.basename(filename)
@@ -302,7 +296,7 @@ class TagEditor():
         self.updating_edit_entries = False
         # Update text colors as appropriate:
         for entry, entry_name in zip(entries, entries_names):
-            if tags[self.tagnum][entry_name + '-changed']:
+            if current_tag[entry_name + '-changed']:
                 self.tags_win_entry_changed(entry)
             else:
                 self.tags_win_entry_revert_color(entry)
