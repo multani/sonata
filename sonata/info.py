@@ -12,14 +12,13 @@ import mpdhelper as mpdh
 from consts import consts
 
 class Info(object):
-    def __init__(self, config, info_image, linkcolor, on_link_click_cb, library_return_search_items, get_playing_song, TAB_INFO, on_image_activate, on_image_motion_cb, on_image_drop_cb):
+    def __init__(self, config, info_image, linkcolor, on_link_click_cb, library_return_search_items, get_playing_song, TAB_INFO, on_image_activate, on_image_motion_cb, on_image_drop_cb, new_tab):
         self.config = config
         self.info_image = info_image
         self.linkcolor = linkcolor
         self.on_link_click_cb = on_link_click_cb
         self.library_return_search_items = library_return_search_items
         self.get_playing_song = get_playing_song
-        self.TAB_INFO = TAB_INFO
         self.on_image_activate = on_image_activate
         self.on_image_motion_cb = on_image_motion_cb
         self.on_image_drop_cb = on_image_drop_cb
@@ -57,11 +56,7 @@ class Info(object):
 
         self.info_imagebox.add(self.info_image)
 
-        infohbox = gtk.HBox()
-        infohbox.pack_start(ui.image(stock=gtk.STOCK_JUSTIFY_FILL), False, False, 2)
-        infohbox.pack_start(ui.label(text=self.TAB_INFO), False, False, 2)
-        self.infoevbox = ui.eventbox(add=infohbox)
-        self.infoevbox.show_all()
+        self.tab = new_tab(self.info_area, gtk.STOCK_JUSTIFY_FILL, TAB_INFO)
 
         self.info_imagebox.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT | gtk.DEST_DEFAULT_DROP, [("text/uri-list", 0, 80), ("text/plain", 0, 80)], gtk.gdk.ACTION_DEFAULT)
         self.info_imagebox.connect('button_press_event', self.on_image_activate)
@@ -188,7 +183,7 @@ class Info(object):
         info_scrollwindow.add_with_viewport(outter_hbox)
 
     def get_widgets(self):
-        return self.info_area, self.infoevbox
+        return self.info_area
 
     def get_info_imagebox(self):
         return self.info_imagebox

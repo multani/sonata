@@ -17,24 +17,20 @@ import gtk, pango
 import misc, ui
 
 class Streams(object):
-    def __init__(self, config, window, on_streams_button_press, on_add_item, settings_save, iterate_now, TAB_STREAMS):
+    def __init__(self, config, window, on_streams_button_press, on_add_item, settings_save, iterate_now, TAB_STREAMS, new_tab):
         self.config = config
         self.window = window
         self.on_streams_button_press = on_streams_button_press
         self.on_add_item = on_add_item
         self.settings_save = settings_save
         self.iterate_now = iterate_now # XXX Do we really need this?
-        self.TAB_STREAMS = TAB_STREAMS
 
         # Streams tab
         self.streams = ui.treeview()
         self.streams_selection = self.streams.get_selection()
         self.streamswindow = ui.scrollwindow(add=self.streams)
-        streamshbox = gtk.HBox()
-        streamshbox.pack_start(ui.image(stock=gtk.STOCK_NETWORK), False, False, 2)
-        streamshbox.pack_start(ui.label(text=self.TAB_STREAMS), False, False, 2)
-        self.streamsevbox = ui.eventbox(add=streamshbox)
-        self.streamsevbox.show_all()
+
+        self.tab = new_tab(self.streamswindow, gtk.STOCK_NETWORK, TAB_STREAMS)
 
         self.streams.connect('button_press_event', self.on_streams_button_press)
         self.streams.connect('row_activated', self.on_streams_activated)
@@ -59,7 +55,7 @@ class Streams(object):
         return self.streamsdata
 
     def get_widgets(self):
-        return self.streamswindow, self.streamsevbox
+        return self.streamswindow
 
     def get_treeview(self):
         return self.streams

@@ -21,10 +21,9 @@ import ui, misc
 import mpdhelper as mpdh
 
 class Current(object):
-    def __init__(self, config, client, TAB_CURRENT, on_current_button_press, parse_formatting_colnames, parse_formatting, connected, sonata_loaded, songinfo, update_statusbar, iterate_now, libsearchfilter_get_style):
+    def __init__(self, config, client, TAB_CURRENT, on_current_button_press, parse_formatting_colnames, parse_formatting, connected, sonata_loaded, songinfo, update_statusbar, iterate_now, libsearchfilter_get_style, new_tab):
         self.config = config
         self.client = client
-        self.TAB_CURRENT = TAB_CURRENT
         self.on_current_button_press = on_current_button_press
         self.parse_formatting_colnames = parse_formatting_colnames
         self.parse_formatting = parse_formatting
@@ -70,11 +69,8 @@ class Current(object):
         self.vbox_current = gtk.VBox()
         self.vbox_current.pack_start(self.expanderwindow, True, True)
         self.vbox_current.pack_start(self.filterbox, False, False, 5)
-        playlisthbox = gtk.HBox()
-        playlisthbox.pack_start(ui.image(stock=gtk.STOCK_CDROM), False, False, 2)
-        playlisthbox.pack_start(ui.label(text=self.TAB_CURRENT), False, False, 2)
-        self.playlistevbox = ui.eventbox(add=playlisthbox)
-        self.playlistevbox.show_all()
+
+        self.tab = new_tab(self.vbox_current, gtk.STOCK_CDROM, TAB_CURRENT)
 
         self.current.connect('drag_data_received', self.on_dnd)
         self.current.connect('row_activated', self.on_current_click)
@@ -101,7 +97,7 @@ class Current(object):
         return self.currentdata
 
     def get_widgets(self):
-        return self.vbox_current, self.playlistevbox
+        return self.vbox_current
 
     def get_treeview(self):
         return self.current

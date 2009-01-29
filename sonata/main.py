@@ -166,7 +166,11 @@ class Base(object):
 
         self.mpd_update_queued = False
 
+        # XXX get rid of all of these:
         self.all_tab_names = [self.TAB_CURRENT, self.TAB_LIBRARY, self.TAB_PLAYLISTS, self.TAB_STREAMS, self.TAB_INFO]
+        all_tab_ids = "current library playlists streams info".split()
+        self.tabname2id = dict(zip(self.all_tab_names, all_tab_ids))
+        self.tabid2name = dict(zip(all_tab_ids, self.all_tab_names))
 
         self.config = Config(_('Default Profile'), _("by") + " %A " + _("from") + " %B", library.library_set_data)
         self.preferences = Preferences(self.config)
@@ -405,17 +409,10 @@ class Base(object):
         self.scrobbler.init()
 
         # Current tab
-        self.current = current.Current(self.config, self.client, self.TAB_CURRENT, self.on_current_button_press, self.parse_formatting_colnames, self.parse_formatting, self.connected, lambda:self.sonata_loaded, lambda:self.songinfo, self.update_statusbar, self.iterate_now, lambda:self.library.libsearchfilter_get_style())
+        self.current = current.Current(self.config, self.client, self.TAB_CURRENT, self.on_current_button_press, self.parse_formatting_colnames, self.parse_formatting, self.connected, lambda:self.sonata_loaded, lambda:self.songinfo, self.update_statusbar, self.iterate_now, lambda:self.library.libsearchfilter_get_style(), self.new_tab)
 
-        vbox_current, playlistevbox = self.current.get_widgets()
         self.current_treeview = self.current.get_treeview()
         self.current_selection = self.current.get_selection()
-
-        playlistevbox.connect("button_press_event", self.on_tab_click)
-        self.notebook.append_page(vbox_current, playlistevbox)
-        current_tab = vbox_current
-        if not self.config.current_tab_visible:
-            ui.hide(current_tab)
 
         currentactions = [
             ('centerplaylistkey', None, 'Center Playlist Key', '<Ctrl>i', None, self.current.center_song_in_list),
@@ -428,15 +425,10 @@ class Base(object):
             ]
 
         # Library tab
-        self.library = library.Library(self.config, self.client, self.artwork, self.TAB_LIBRARY, self.find_path('sonata-album.png'), self.settings_save, self.current.filtering_entry_make_red, self.current.filtering_entry_revert_color, self.current.filter_key_pressed, self.on_add_item, self.parse_formatting, self.connected, self.on_library_button_press, self.on_library_search_text_click)
-        libraryvbox, libraryevbox = self.library.get_widgets()
+        self.library = library.Library(self.config, self.client, self.artwork, self.TAB_LIBRARY, self.find_path('sonata-album.png'), self.settings_save, self.current.filtering_entry_make_red, self.current.filtering_entry_revert_color, self.current.filter_key_pressed, self.on_add_item, self.parse_formatting, self.connected, self.on_library_button_press, self.on_library_search_text_click, self.new_tab)
+
         self.library_treeview = self.library.get_treeview()
         self.library_selection = self.library.get_selection()
-        libraryevbox.connect("button_press_event", self.on_tab_click)
-        self.notebook.append_page(libraryvbox, libraryevbox)
-        library_tab = libraryvbox
-        if not self.config.library_tab_visible:
-            ui.hide(library_tab)
 
         libraryactions = [
             ('filesystemview', gtk.STOCK_HARDDISK, _('Filesystem'), None, None, self.library.on_libraryview_chosen),
@@ -446,30 +438,16 @@ class Base(object):
             ]
 
         # Info tab
-        self.info = info.Info(self.config, self.artwork.get_info_image(), linkcolor, self.on_link_click, self.library.library_return_search_items, self.get_playing_song, self.TAB_INFO, self.on_image_activate, self.on_image_motion_cb, self.on_image_drop_cb)
+        self.info = info.Info(self.config, self.artwork.get_info_image(), linkcolor, self.on_link_click, self.library.library_return_search_items, self.get_playing_song, self.TAB_INFO, self.on_image_activate, self.on_image_motion_cb, self.on_image_drop_cb, self.new_tab)
 
-        self.info_area, infoevbox = self.info.get_widgets()
+        self.info_area = self.info.get_widgets()
         self.info_imagebox = self.info.get_info_imagebox()
 
-        infoevbox.connect("button_press_event", self.on_tab_click)
-        self.notebook.append_page(self.info_area, infoevbox)
-        info_tab = self.info_area
-        if not self.config.info_tab_visible:
-            ui.hide(info_tab)
-
         # Streams tab
-        self.streams = streams.Streams(self.config, self.window, self.on_streams_button_press, self.on_add_item, self.settings_save, self.iterate_now, self.TAB_STREAMS)
+        self.streams = streams.Streams(self.config, self.window, self.on_streams_button_press, self.on_add_item, self.settings_save, self.iterate_now, self.TAB_STREAMS, self.new_tab)
 
-        streamswindow, streamsevbox = self.streams.get_widgets()
         self.streams_treeview = self.streams.get_treeview()
         self.streams_selection = self.streams.get_selection()
-
-        streamsevbox.connect("button_press_event", self.on_tab_click)
-
-        self.notebook.append_page(streamswindow, streamsevbox)
-        streams_tab = streamswindow
-        if not self.config.streams_tab_visible:
-            ui.hide(streams_tab)
 
         streamsactions = [
             ('newmenu', None, _('_New...'), '<Ctrl>n', None, self.streams.on_streams_new),
@@ -477,17 +455,10 @@ class Base(object):
             ]
 
         # Playlists tab
-        self.playlists = playlists.Playlists(self.config, self.window, self.client, lambda:self.UIManager, self.update_menu_visibility, self.iterate_now, self.on_add_item, self.on_playlists_button_press, self.current.get_current_songs, self.connected, self.TAB_PLAYLISTS)
+        self.playlists = playlists.Playlists(self.config, self.window, self.client, lambda:self.UIManager, self.update_menu_visibility, self.iterate_now, self.on_add_item, self.on_playlists_button_press, self.current.get_current_songs, self.connected, self.TAB_PLAYLISTS, self.new_tab)
 
-        playlistswindow, playlistsevbox = self.playlists.get_widgets()
         self.playlists_treeview = self.playlists.get_treeview()
         self.playlists_selection = self.playlists.get_selection()
-
-        playlistsevbox.connect("button_press_event", self.on_tab_click)
-        self.notebook.append_page(playlistswindow, playlistsevbox)
-        playlists_tab = playlistswindow
-        if not self.config.playlists_tab_visible:
-            ui.hide(playlists_tab)
 
         playlistsactions = [
             ('savemenu', None, _('_New...'), '<Ctrl><Shift>s', None, self.playlists.on_playlist_save),
@@ -597,16 +568,12 @@ class Base(object):
         elif not self.status:
             self.progressbar.set_text(_('No Read Permission'))
 
-        for child in self.notebook.get_children():
-            self.notebook.set_tab_reorderable(child, True)
-            if self.config.tabs_expanded:
-                self.notebook.set_tab_label_packing(child, True, True, gtk.PACK_START)
-        # Update tab positions:
-        self.notebook.reorder_child(current_tab, self.config.current_tab_pos)
-        self.notebook.reorder_child(library_tab, self.config.library_tab_pos)
-        self.notebook.reorder_child(playlists_tab, self.config.playlists_tab_pos)
-        self.notebook.reorder_child(streams_tab, self.config.streams_tab_pos)
-        self.notebook.reorder_child(info_tab, self.config.info_tab_pos)
+        # Update tab positions: XXX move to self.new_tab
+        self.notebook.reorder_child(self.current.get_widgets(), self.config.current_tab_pos)
+        self.notebook.reorder_child(self.library.get_widgets(), self.config.library_tab_pos)
+        self.notebook.reorder_child(self.playlists.get_widgets(), self.config.playlists_tab_pos)
+        self.notebook.reorder_child(self.streams.get_widgets(), self.config.streams_tab_pos)
+        self.notebook.reorder_child(self.info.get_widgets(), self.config.info_tab_pos)
         self.last_tab = self.notebook_get_tab_text(self.notebook, 0)
 
         # Song notification window:
@@ -815,6 +782,28 @@ class Base(object):
         gc.disable()
 
         gobject.idle_add(self.header_save_column_widths)
+
+    def new_tab(self, page, stock, text):
+        # create the "ear" of the tab:
+        hbox = gtk.HBox()
+        hbox.pack_start(ui.image(stock=stock), False, False, 2)
+        hbox.pack_start(ui.label(text=text), False, False, 2)
+        evbox = ui.eventbox(add=hbox)
+        evbox.show_all()
+
+        evbox.connect("button_press_event", self.on_tab_click)
+
+        # create the actual tab:
+        self.notebook.append_page(page, evbox)
+
+        if not getattr(self.config,
+                   self.tabname2id[text]+'_tab_visible'):
+            ui.hide(page)
+
+        self.notebook.set_tab_reorderable(page, True)
+        if self.config.tabs_expanded:
+            self.notebook.set_tab_label_packing(page, True, True, gtk.PACK_START)
+        return page
 
     def get_playing_song(self):
         if self.status and self.status['state'] in ['play', 'pause'] and self.songinfo:

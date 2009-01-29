@@ -52,12 +52,11 @@ def library_get_data(data, *args):
         return retlist
 
 class Library(object):
-    def __init__(self, config, client, artwork, TAB_LIBRARY, album_filename, settings_save, filtering_entry_make_red, filtering_entry_revert_color, filter_key_pressed, on_add_item, parse_formatting, connected, on_library_button_press, on_library_search_text_click):
+    def __init__(self, config, client, artwork, TAB_LIBRARY, album_filename, settings_save, filtering_entry_make_red, filtering_entry_revert_color, filter_key_pressed, on_add_item, parse_formatting, connected, on_library_button_press, on_library_search_text_click, new_tab):
         self.artwork = artwork
         self.config = config
         self.client = client
         self.librarymenu = None # cyclic dependency, set later
-        self.TAB_LIBRARY = TAB_LIBRARY
         self.album_filename = album_filename
         self.settings_save = settings_save
         self.filtering_entry_make_red = filtering_entry_make_red
@@ -115,11 +114,8 @@ class Library(object):
         self.searchbox.pack_start(self.searchbutton, False, False, 2)
         self.libraryvbox.pack_start(expanderwindow2, True, True, 2)
         self.libraryvbox.pack_start(self.searchbox, False, False, 2)
-        libraryhbox = gtk.HBox()
-        libraryhbox.pack_start(ui.image(stock=gtk.STOCK_HARDDISK), False, False, 2)
-        libraryhbox.pack_start(ui.label(text=self.TAB_LIBRARY), False, False, 2)
-        self.libraryevbox = ui.eventbox(add=libraryhbox)
-        self.libraryevbox.show_all()
+
+        self.tab = new_tab(self.libraryvbox, gtk.STOCK_HARDDISK, TAB_LIBRARY)
 
         # Assign some pixbufs for use in self.library
         self.openpb = self.library.render_icon(gtk.STOCK_OPEN, gtk.ICON_SIZE_LARGE_TOOLBAR)
@@ -168,7 +164,7 @@ class Library(object):
         return self.librarydata
 
     def get_widgets(self):
-        return self.libraryvbox, self.libraryevbox
+        return self.libraryvbox
 
     def get_treeview(self):
         return self.library

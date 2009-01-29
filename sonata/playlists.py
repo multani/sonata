@@ -17,7 +17,7 @@ import ui, misc
 import mpdhelper as mpdh
 
 class Playlists(object):
-    def __init__(self, config, window, client, UIManager, update_menu_visibility, iterate_now, on_add_item, on_playlists_button_press, get_current_songs, connected, TAB_PLAYLISTS):
+    def __init__(self, config, window, client, UIManager, update_menu_visibility, iterate_now, on_add_item, on_playlists_button_press, get_current_songs, connected, TAB_PLAYLISTS, new_tab):
         self.config = config
         self.window = window
         self.client = client
@@ -28,7 +28,6 @@ class Playlists(object):
         self.on_playlists_button_press = on_playlists_button_press
         self.get_current_songs = get_current_songs
         self.connected = connected
-        self.TAB_PLAYLISTS = TAB_PLAYLISTS
 
         self.mergepl_id = None
         self.actionGroupPlaylists = None
@@ -37,11 +36,8 @@ class Playlists(object):
         self.playlists = ui.treeview()
         self.playlists_selection = self.playlists.get_selection()
         self.playlistswindow = ui.scrollwindow(add=self.playlists)
-        playlistshbox = gtk.HBox()
-        playlistshbox.pack_start(ui.image(stock=gtk.STOCK_JUSTIFY_CENTER), False, False, 2)
-        playlistshbox.pack_start(ui.label(text=self.TAB_PLAYLISTS), False, False, 2)
-        self.playlistsevbox = ui.eventbox(add=playlistshbox)
-        self.playlistsevbox.show_all()
+
+        self.tab = new_tab(self.playlistswindow, gtk.STOCK_JUSTIFY_CENTER, TAB_PLAYLISTS)
 
         self.playlists.connect('button_press_event', self.on_playlists_button_press)
         self.playlists.connect('row_activated', self.playlists_activated)
@@ -66,7 +62,7 @@ class Playlists(object):
         return self.playlistsdata
 
     def get_widgets(self):
-        return self.playlistswindow, self.playlistsevbox
+        return self.playlistswindow
 
     def get_treeview(self):
         return self.playlists
