@@ -56,7 +56,7 @@ class Info(object):
 
         self.info_imagebox.add(self.info_image)
 
-        self.tab = new_tab(self.info_area, gtk.STOCK_JUSTIFY_FILL, TAB_INFO)
+        self.tab = new_tab(self.info_area, gtk.STOCK_JUSTIFY_FILL, TAB_INFO, self.info_area)
 
         self.info_imagebox.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT | gtk.DEST_DEFAULT_DROP, [("text/uri-list", 0, 80), ("text/plain", 0, 80)], gtk.gdk.ACTION_DEFAULT)
         self.info_imagebox.connect('button_press_event', self.on_image_activate)

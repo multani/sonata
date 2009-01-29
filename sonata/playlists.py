@@ -37,7 +37,7 @@ class Playlists(object):
         self.playlists_selection = self.playlists.get_selection()
         self.playlistswindow = ui.scrollwindow(add=self.playlists)
 
-        self.tab = new_tab(self.playlistswindow, gtk.STOCK_JUSTIFY_CENTER, TAB_PLAYLISTS)
+        self.tab = new_tab(self.playlistswindow, gtk.STOCK_JUSTIFY_CENTER, TAB_PLAYLISTS, self.playlists)
 
         self.playlists.connect('button_press_event', self.on_playlists_button_press)
         self.playlists.connect('row_activated', self.playlists_activated)

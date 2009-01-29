@@ -30,7 +30,7 @@ class Streams(object):
         self.streams_selection = self.streams.get_selection()
         self.streamswindow = ui.scrollwindow(add=self.streams)
 
-        self.tab = new_tab(self.streamswindow, gtk.STOCK_NETWORK, TAB_STREAMS)
+        self.tab = new_tab(self.streamswindow, gtk.STOCK_NETWORK, TAB_STREAMS, self.streams)
 
         self.streams.connect('button_press_event', self.on_streams_button_press)
         self.streams.connect('row_activated', self.on_streams_activated)

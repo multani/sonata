@@ -70,7 +70,7 @@ class Current(object):
         self.vbox_current.pack_start(self.expanderwindow, True, True)
         self.vbox_current.pack_start(self.filterbox, False, False, 5)
 
-        self.tab = new_tab(self.vbox_current, gtk.STOCK_CDROM, TAB_CURRENT)
+        self.tab = new_tab(self.vbox_current, gtk.STOCK_CDROM, TAB_CURRENT, self.current)
 
         self.current.connect('drag_data_received', self.on_dnd)
         self.current.connect('row_activated', self.on_current_click)

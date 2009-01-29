@@ -171,6 +171,7 @@ class Base(object):
         all_tab_ids = "current library playlists streams info".split()
         self.tabname2id = dict(zip(self.all_tab_names, all_tab_ids))
         self.tabid2name = dict(zip(all_tab_ids, self.all_tab_names))
+        self.tabname2focus = dict()
 
         self.config = Config(_('Default Profile'), _("by") + " %A " + _("from") + " %B", library.library_set_data)
         self.preferences = Preferences(self.config)
@@ -440,7 +441,6 @@ class Base(object):
         # Info tab
         self.info = info.Info(self.config, self.artwork.get_info_image(), linkcolor, self.on_link_click, self.library.library_return_search_items, self.get_playing_song, self.TAB_INFO, self.on_image_activate, self.on_image_motion_cb, self.on_image_drop_cb, self.new_tab)
 
-        self.info_area = self.info.get_widgets()
         self.info_imagebox = self.info.get_info_imagebox()
 
         # Streams tab
@@ -783,7 +783,7 @@ class Base(object):
 
         gobject.idle_add(self.header_save_column_widths)
 
-    def new_tab(self, page, stock, text):
+    def new_tab(self, page, stock, text, focus):
         # create the "ear" of the tab:
         hbox = gtk.HBox()
         hbox.pack_start(ui.image(stock=stock), False, False, 2)
@@ -803,6 +803,9 @@ class Base(object):
         self.notebook.set_tab_reorderable(page, True)
         if self.config.tabs_expanded:
             self.notebook.set_tab_label_packing(page, True, True, gtk.PACK_START)
+
+        self.tabname2focus[text] = focus
+
         return page
 
     def get_playing_song(self):
@@ -3097,20 +3100,16 @@ class Base(object):
 
     def on_notebook_page_change(self, _notebook, _page, page_num):
         self.current_tab = self.notebook_get_tab_text(self.notebook, page_num)
-        if self.current_tab == self.TAB_CURRENT:
-            gobject.idle_add(ui.focus, self.current_treeview)
-        elif self.current_tab == self.TAB_LIBRARY:
-            gobject.idle_add(ui.focus, self.library_treeview)
-        elif self.current_tab == self.TAB_PLAYLISTS:
-            gobject.idle_add(ui.focus, self.playlists_treeview)
-        elif self.current_tab == self.TAB_STREAMS:
-            gobject.idle_add(ui.focus, self.streams_treeview)
-        elif self.current_tab == self.TAB_INFO:
-            gobject.idle_add(ui.focus, self.info_area)
+        to_focus = self.tabname2focus.get(self.current_tab, None)
+        if to_focus:
+            gobject.idle_add(ui.focus, to_focus)
+
+        if False: # FIXME would we still need this?
             # This prevents the artwork from being cutoff when the
             # user first clicks on the Info tab. Why this happens
             # and how this fixes it is beyond me.
             gobject.idle_add(self.info_update, True, False, True)
+
         gobject.idle_add(self.update_menu_visibility)
         if not self.img_clicked:
             self.last_tab = self.current_tab
