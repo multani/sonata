@@ -234,9 +234,9 @@ class Base(object):
             ('fullscreencoverart_menu', gtk.STOCK_FULLSCREEN, _('_Fullscreen Mode'), 'F11', None, self.fullscreen_cover_art),
             ('resetimage_menu', gtk.STOCK_CLEAR, _('Reset Image'), None, None, self.artwork.on_reset_image),
             ('playmenu', gtk.STOCK_MEDIA_PLAY, _('_Play'), None, None, self.mpd_pp),
-            ('pausemenu', gtk.STOCK_MEDIA_PAUSE, _('_Pause'), None, None, self.mpd_pp),
+            ('pausemenu', gtk.STOCK_MEDIA_PAUSE, _('Pa_use'), None, None, self.mpd_pp),
             ('stopmenu', gtk.STOCK_MEDIA_STOP, _('_Stop'), None, None, self.mpd_stop),
-            ('prevmenu', gtk.STOCK_MEDIA_PREVIOUS, _('_Previous'), None, None, self.mpd_prev),
+            ('prevmenu', gtk.STOCK_MEDIA_PREVIOUS, _('Pre_vious'), None, None, self.mpd_prev),
             ('nextmenu', gtk.STOCK_MEDIA_NEXT, _('_Next'), None, None, self.mpd_next),
             ('quitmenu', gtk.STOCK_QUIT, _('_Quit'), None, None, self.on_delete_event_yes),
             ('removemenu', gtk.STOCK_REMOVE, _('_Remove'), None, None, self.on_remove),
@@ -277,7 +277,7 @@ class Base(object):
             )
 
         toggle_actions = (
-            ('showmenu', None, _('_Show Sonata'), None, None, self.on_withdraw_app_toggle, not self.config.withdrawn),
+            ('showmenu', None, _('S_how Sonata'), None, None, self.on_withdraw_app_toggle, not self.config.withdrawn),
             ('repeatmenu', None, _('_Repeat'), None, None, self.on_repeat_clicked, False),
             ('randommenu', None, _('Rando_m'), None, None, self.on_random_clicked, False),
             (self.TAB_CURRENT, None, self.TAB_CURRENT, None, None, self.on_tab_toggle, self.config.current_tab_visible),
