@@ -1,14 +1,14 @@
 
 # this is the magic interpreted by Sonata, referring to construct_tab below:
 
-### BEGIN SONATA INFO
+### BEGIN PLUGIN INFO
 # [plugin]
-# plugin_format: 0,0
+# plugin_format: 0, 0
 # name: Test plugin
-# version: 0,0,0
-# capabilities: tabs
+# version: 0, 0, 0
+# [capabilities]
 # tabs: construct_tab
-### END SONATA INFO
+### END PLUGIN INFO
 
 import gtk
 
