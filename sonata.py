@@ -103,6 +103,12 @@ except:
     sys.exit(1)
 
 
+## Initialize the plugin system:
+
+from sonata.pluginsystem import pluginsystem
+pluginsystem.find_plugins()
+
+
 ## Load the command line interface:
 
 from sonata import cli

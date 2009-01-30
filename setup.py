@@ -68,7 +68,7 @@ setup(name='Sonata',
             'Programming Language :: Python',
             'Topic :: Multimedia :: Sound :: Players',
             ],
-        packages=["sonata"],
+        packages=["sonata", "sonata.plugins"],
         package_dir={"sonata": "sonata/"},
         ext_modules=[Extension(
         "mmkeys", ["mmkeys/mmkeyspy.c", "mmkeys/mmkeys.c", "mmkeys/mmkeysmodule.c"],

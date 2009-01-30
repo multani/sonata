@@ -56,6 +56,7 @@ import mpdhelper as mpdh
 import misc, ui, img, tray
 
 from consts import consts
+from pluginsystem import pluginsystem
 from preferences import Preferences
 from config import Config
 
@@ -783,6 +784,9 @@ class Base(object):
 
         gobject.idle_add(self.header_save_column_widths)
 
+        for tabs in pluginsystem.get('tabs'):
+            self.new_tab(*tabs())
+
     def new_tab(self, page, stock, text, focus):
         # create the "ear" of the tab:
         hbox = gtk.HBox()
@@ -796,8 +800,9 @@ class Base(object):
         # create the actual tab:
         self.notebook.append_page(page, evbox)
 
-        if not getattr(self.config,
-                   self.tabname2id[text]+'_tab_visible'):
+        if (text in self.tabname2id and
+            not getattr(self.config,
+                self.tabname2id[text]+'_tab_visible')):
             ui.hide(page)
 
         self.notebook.set_tab_reorderable(page, True)
