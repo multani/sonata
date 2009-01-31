@@ -11,6 +11,7 @@ v1.6
 	+ Use new 'listplaylists' command for retrieving playlists
 	+ Better error trapping
 	+ Make process name 'sonata' for linux (himdel)
+	+ Add Traditional Chinese translation (b4283)
 	+ Bug: Bad profiles prevent sonata from starting
 	+ Bug: Error for cli arguments when sonata can't connect to MPD (Juan)
 	+ Bug: Files may not update in interface after tag editing
