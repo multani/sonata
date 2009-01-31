@@ -179,8 +179,8 @@ msgid "_Stop"
 msgstr "停止 (_S)"
 
 #: ../sonata/main.py:443
-msgid "_Previous"
-msgstr "前一首 (_P)"
+msgid "Pre_vious"
+msgstr "前一首 (_V)"
 
 #: ../sonata/main.py:444
 msgid "_Next"
@@ -275,12 +275,12 @@ msgid "Reverse List"
 msgstr "反轉清單"
 
 #: ../sonata/main.py:467
-msgid "Random"
-msgstr "隨機"
+msgid "Rando_m"
+msgstr "隨機 (_M)"
 
 #: ../sonata/main.py:493
-msgid "_Show Sonata"
-msgstr "顯示 Sonata (_S)"
+msgid "S_how Sonata"
+msgstr "顯示 Sonata (_H)"
 
 #: ../sonata/main.py:494
 msgid "_Repeat"
