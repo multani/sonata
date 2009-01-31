@@ -433,12 +433,8 @@ class Artwork(object):
         if self.artwork_is_for_playing_song(filename):
             if os.path.exists(filename):
 
-                # Store in cache
-                cache_key = library_set_data(artist=artist, album=album, path=path)
-                self.set_library_artwork_cached_filename(cache_key, filename)
-
                 # We use try here because the file might exist, but might
-                # still be downloading
+                # still be downloading or corrupt:
                 try:
                     pix = gtk.gdk.pixbuf_new_from_file(filename)
                 except:
@@ -451,8 +447,12 @@ class Artwork(object):
 
                 self.currentpb = pix
 
-                # Artwork for tooltip, left-top of player:
                 if not info_img_only:
+                    # Store in cache
+                    cache_key = library_set_data(artist=artist, album=album, path=path)
+                    self.set_library_artwork_cached_filename(cache_key, filename)
+
+                    # Artwork for tooltip, left-top of player:
                     (pix1, w, h) = img.get_pixbuf_of_size(pix, 75)
                     pix1 = self.artwork_apply_composite_case(pix1, w, h)
                     pix1 = img.pixbuf_add_border(pix1)
@@ -460,6 +460,12 @@ class Artwork(object):
                     self.albumimage.set_from_pixbuf(pix1)
                     self.artwork_set_tooltip_art(pix1)
                     del pix1
+
+                    # Artwork for library, if current song matches:
+                    self.library_set_image_for_current_song(cache_key)
+
+                    # Artwork for fullscreen
+                    self.fullscreen_cover_art_set_image()
 
                 # Artwork for info tab:
                 if self.info_imagebox_get_size_request()[0] == -1:
@@ -473,16 +479,12 @@ class Artwork(object):
                 del pix2
                 del pix
 
-                # Artwork for library, if current song matches:
-                self.library_set_image_for_current_song(cache_key)
-
-                self.fullscreen_cover_art_set_image()
-
                 self.lastalbumart = filename
+
                 self.schedule_gc_collect()
 
-    def artwork_set_image_last(self, info_img_only=False):
-        self.artwork_set_image(self.lastalbumart, None, None, None, info_img_only)
+    def artwork_set_image_last(self):
+        self.artwork_set_image(self.lastalbumart, None, None, None, True)
 
     def artwork_apply_composite_case(self, pix, w, h):
         if self.config.covers_type == consts.COVERS_TYPE_STYLIZED and float(w)/h > 0.5:

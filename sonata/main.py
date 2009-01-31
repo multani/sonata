@@ -2164,11 +2164,11 @@ class Base(object):
         if event.button == 1 and widget == self.info_imagebox and self.artwork.have_last():
             if not self.config.info_art_enlarged:
                 self.info_imagebox.set_size_request(-1,-1)
-                self.artwork.artwork_set_image_last(True)
+                self.artwork.artwork_set_image_last()
                 self.config.info_art_enlarged = True
             else:
                 self.info_imagebox.set_size_request(152, -1)
-                self.artwork.artwork_set_image_last(True)
+                self.artwork.artwork_set_image_last()
                 self.config.info_art_enlarged = False
             self.volume_hide()
             # Force a resize of the info labels, if needed:
