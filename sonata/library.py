@@ -718,12 +718,32 @@ class Library(object):
             playtime = 0
             num_songs = 0
             results = []
+
+            if '' in s and mpdh.mpd_major_version(self.client) <= 0.13:
+
+                # Can't search for empty tags, search broader and filter instead:
+
+                print args_tuple
+                # Strip empty tag args from tuple:
+                pos = list(args_tuple).index('')
+                strip_type = list(args_tuple)[pos-1]
+                new_lst = []
+                for i, item in enumerate(list(args_tuple)):
+                    if i != pos and i != pos-1:
+                        new_lst.append(item)
+                args_tuple = tuple(new_lst)
+                print args_tuple
+
+            else:
+                strip_type = None
+
             items = mpdh.call(self.client, 'search', *args_tuple)
             if items is not None:
                 for item in items:
-                    results.append(item)
-                    num_songs += 1
-                    playtime += int(mpdh.get(item, 'time', '0'))
+                    if strip_type is None or (strip_type is not None and not strip_type in item.keys()):
+                        results.append(item)
+                        num_songs += 1
+                        playtime += int(mpdh.get(item, 'time', '0'))
         return (results, int(playtime), num_songs)
 
     def add_display_info(self, num_songs, playtime):

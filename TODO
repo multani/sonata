@@ -1,5 +1,4 @@
 v1.6
-	empty string searching doesn't work with mpd < 0.14...
 	threaded method for artwork - possible threading traceback when exiting sonata
 	enabling/disabling outputs
 	prevent vertical resizing when collapsed 
