@@ -442,9 +442,10 @@ class Library(object):
                 else:
                     playtime, num_songs = self.library_return_count(artist=item)
                     data = self.library_set_data(artist=item)
-                display = misc.escape_html(item)
-                display += self.add_display_info(num_songs, int(playtime)/60)
-                bd += [(misc.lower_no_the(item), [pb, data, display])]
+                if num_songs > 0:
+                    display = misc.escape_html(item)
+                    display += self.add_display_info(num_songs, int(playtime)/60)
+                    bd += [(misc.lower_no_the(item), [pb, data, display])]
         elif albumview:
             albums = []
             untagged_found = False

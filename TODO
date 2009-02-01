@@ -10,6 +10,7 @@ v1.6
 		- save selection afterwards (what did we have before?)
 	remove libegg? statusicon provides everything in gtk 2.15, not yet in pygtk
 	albumartist tag
+	updating logic
 
 Future:
 	support for new idle command (waiting on python-mpd)
