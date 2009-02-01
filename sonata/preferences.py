@@ -16,6 +16,7 @@ import gtk
 
 from consts import consts
 from config import Config
+from pluginsystem import pluginsystem
 import ui
 import misc
 
@@ -64,7 +65,7 @@ class Preferences():
         self.renotify = renotify
         self.reinfofile = reinfofile
 
-        prefswindow = ui.dialog(title=_("Preferences"), parent=self.window, flags=gtk.DIALOG_DESTROY_WITH_PARENT, role='preferences', resizable=False, separator=False)
+        self.prefswindow = ui.dialog(title=_("Preferences"), parent=self.window, flags=gtk.DIALOG_DESTROY_WITH_PARENT, role='preferences', resizable=False, separator=False)
         hbox = gtk.HBox()
         prefsnotebook = gtk.Notebook()
         # MPD tab
@@ -434,27 +435,92 @@ class Preferences():
         table4.attach(availablevbox, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 45, 0)
         table4.attach(ui.label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
 
+        # Plugins tab
+
+        plugin_actions = (
+            ('plugin_about', gtk.STOCK_ABOUT, _('_About'), None, None, self.plugin_about),
+            ('plugin_configure', gtk.STOCK_PREFERENCES, _('_Configure...'), None, None, self.plugin_configure),
+            ('plugin_homepage', None, _('_Visit Homepage'), None, None, self.plugin_homepage),
+            )
+
+        uiDescription = """
+            <ui>
+              <popup name="pluginmenu">
+                <menuitem action="plugin_configure"/>
+                <menuitem action="plugin_about"/>
+                <menuitem action="plugin_homepage"/>
+              </popup>
+            </ui>
+            """
+
+        self.plugin_UIManager = gtk.UIManager()
+        actionGroup = gtk.ActionGroup('PluginActions')
+        actionGroup.add_actions(plugin_actions)
+        self.plugin_UIManager.insert_action_group(actionGroup, 0)
+        self.plugin_UIManager.add_ui_from_string(uiDescription)
+
+        pluginview = ui.treeview()
+        pluginview.set_headers_visible(True)
+        self.pluginselection = pluginview.get_selection()
+        self.pluginselection.set_mode(gtk.SELECTION_SINGLE)
+        pluginview.set_rules_hint(True)
+        pluginview.set_property('can-focus', False)
+        pluginwindow = ui.scrollwindow(add=pluginview)
+        plugindata = gtk.ListStore(bool, gtk.gdk.Pixbuf, str)
+        pluginview.set_model(plugindata)
+        pluginview.connect('button-press-event', self.plugin_click)
+
+        plugincheckcell = gtk.CellRendererToggle()
+        plugincheckcell.connect('toggled', self.plugin_toggled)
+        pluginpixbufcell = gtk.CellRendererPixbuf()
+        plugintextcell = gtk.CellRendererText()
+
+        plugincol0 = gtk.TreeViewColumn()
+        pluginview.append_column(plugincol0)
+        plugincol0.pack_start(plugincheckcell, True)
+        plugincol0.set_title(_("Loaded"))
+
+        plugincol1 = gtk.TreeViewColumn()
+        pluginview.append_column(plugincol1)
+        plugincol1.pack_start(pluginpixbufcell, False)
+        plugincol1.pack_start(plugintextcell, True)
+        plugincol1.set_attributes(pluginpixbufcell, pixbuf=1)
+        plugincol1.set_attributes(plugintextcell, markup=2)
+        plugincol1.set_title(_("Description"))
+
+        plugindata.clear()
+        for plugin in pluginsystem.get_info():
+            pb = plugin.iconurl
+            try:
+                pb = gtk.gdk.pixbuf_new_from_file(iconurl)
+            except:
+                pass
+            plugin_text = "<b>" + plugin.longname + "</b>   " + plugin.version_string
+            plugin_text += "\n" + plugin.description
+            plugindata.append((True, pb, plugin_text))
+
+        # Set up table
         table_names = [[_("_MPD"), mpd_table],
                        [_("_Display"), table2],
                        [_("_Behavior"), table3],
                        [_("_Format"), table4],
-                       [_("_Extras"), as_frame]]
+                       [_("_Extras"), as_frame],
+                       [_("_Plugins"), pluginwindow]]
         for table_name in table_names:
             tmplabel = ui.label(textmn=table_name[0])
             prefsnotebook.append_page(table_name[1], tmplabel)
         hbox.pack_start(prefsnotebook, False, False, 10)
-        prefswindow.vbox.pack_start(hbox, False, False, 10)
-        close_button = prefswindow.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
-        prefswindow.show_all()
+        self.prefswindow.vbox.pack_start(hbox, False, False, 10)
+        close_button = self.prefswindow.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
+        self.prefswindow.show_all()
         close_button.grab_focus()
-        prefswindow.connect('response', prefs_window_response, prefsnotebook, exit_stop, win_ontop, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, using_mpd_env_vars, self.prev_host, self.prev_port, self.prev_password)
+        self.prefswindow.connect('response', prefs_window_response, prefsnotebook, exit_stop, win_ontop, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, using_mpd_env_vars, self.prev_host, self.prev_port, self.prev_password)
         # Save previous connection properties to determine if we should try to
         # connect to MPD after prefs are closed:
         self.prev_host = self.config.host[self.config.profile_num]
         self.prev_port = self.config.port[self.config.profile_num]
         self.prev_password = self.config.password[self.config.profile_num]
-        prefswindow.show()
-
+        self.prefswindow.show()
 
     def prefs_as_enabled_toggled(self, checkbox, userentry, passentry, userlabel, passlabel):
         if checkbox.get_active():
@@ -467,7 +533,6 @@ class Preferences():
                 widget.set_sensitive(self.config.as_enabled)
         elif checkbox.get_active():
             checkbox.set_active(False)
-
 
     def prefs_as_username_changed(self, entry):
         if self.as_imported:
@@ -602,3 +667,26 @@ class Preferences():
             infofileformatbox.set_sensitive(False)
             self.config.use_infofile = False
 
+    def plugin_click(self, _widget, event):
+        if event.button == 3:
+            self.plugin_UIManager.get_widget('/pluginmenu').popup(None, None, None, event.button, event.time)
+
+    def plugin_toggled(self, renderer, _path):
+        renderer.set_active(not renderer.get_active())
+
+    def plugin_about(self, _widget):
+        model, iter = self.pluginselection.get_selected()
+        plugin_num = model.get_path(iter)[0]
+        plugin = pluginsystem.get_info()[plugin_num]
+
+        about_text = plugin.longname + "\n" + plugin.author + "\n"
+        if len(plugin.author_email) > 0:
+            about_text += "<" + plugin.author_email + ">"
+
+        ui.show_msg(self.prefswindow, about_text, "About", "pluginAbout", gtk.BUTTONS_CLOSE)
+
+    def plugin_configure(self, _widget):
+        ui.show_msg(self.prefswindow, "Nothing yet implemented.", "Configure", "pluginConfigure", gtk.BUTTONS_CLOSE)
+
+    def plugin_homepage(self, _widget):
+        ui.show_msg(self.prefswindow, "Nothing yet implemented.", "Visit Homepage", "pluginVisitHomepage", gtk.BUTTONS_CLOSE)

@@ -33,6 +33,14 @@ class Plugin(object):
         except ConfigParser.NoOptionError:
             self.description = ""
         try:
+            self.author = info.get('plugin', 'author')
+        except:
+            self.author = ""
+        try:
+            self.author_email = info.get('plugin', 'author_email')
+        except:
+            self.author_email = ""
+        try:
             self.iconurl = info.get('plugin', 'icon')
         except ConfigParser.NoOptionError:
             self.iconurl = None

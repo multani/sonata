@@ -6,6 +6,9 @@
 # plugin_format: 0, 0
 # name: Test plugin
 # version: 0, 0, 0
+# description: A simple test plugin.
+# author: Tuukka Hastrup
+# author_email: Tuukka.Hastrup@iki.fi
 # [capabilities]
 # tabs: construct_tab
 ### END PLUGIN INFO
