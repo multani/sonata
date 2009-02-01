@@ -723,7 +723,6 @@ class Library(object):
 
                 # Can't search for empty tags, search broader and filter instead:
 
-                print args_tuple
                 # Strip empty tag args from tuple:
                 pos = list(args_tuple).index('')
                 strip_type = list(args_tuple)[pos-1]
@@ -732,7 +731,6 @@ class Library(object):
                     if i != pos and i != pos-1:
                         new_lst.append(item)
                 args_tuple = tuple(new_lst)
-                print args_tuple
 
             else:
                 strip_type = None
