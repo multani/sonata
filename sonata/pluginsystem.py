@@ -14,17 +14,42 @@ sonata.plugins.__path__ = pkgutil.extend_path(sonata.plugins.__path__,
 # add dirs specific to sonata:
 sonata.plugins.__path__ = find_plugin_dirs() + sonata.plugins.__path__
 
+
+class Plugin(object):
+    def __init__(self, path, name, info):
+        self.path = path
+        self.name = name
+        self._info = info
+        # obligatory plugin info:
+        self.plugin_format = info.get('plugin', 'plugin_format')
+        self.longname =      info.get('plugin', 'name')
+        self.version =       info.get('plugin', 'version')
+        self._capabilities =  dict(info.items('capabilities'))
+        try:
+            self.description = info.get('plugin', 'description')
+        except ConfigParser.NoOptionError:
+            self.description = ""
+        try:
+            self.iconurl = info.get('plugin', 'icon')
+        except ConfigParser.NoOptionError:
+            self.iconurl = None
+
+
 class PluginSystem(object):
     def __init__(self):
         self.plugin_infos = []
         self.loaded_plugins = {}
 
+    def get_info(self):
+        return self.plugin_infos
+
     def get(self, capability):
         ret = []
-        for path, name, info in self.plugin_infos:
-            if info.has_option('capabilities', capability):
-                features = info.get('capabilities', capability)
-                ret += self.get_features(path, name, features)
+        for plugin in self.plugin_infos:
+            if capability in plugin._capabilities:
+                features = plugin._capabilities[capability]
+                ret += self.get_features(plugin.path,
+                             plugin.name, features)
         return ret
 
     def get_features(self, path, name, features):
@@ -77,7 +102,7 @@ class PluginSystem(object):
         info.readfp(StringIO.StringIO(uncommented))
 
         # XXX add only newest version of each name
-        self.plugin_infos.append((path, name, info))
+        self.plugin_infos.append(Plugin(path, name, info))
         if not info.options('capabilities'):
             print "Warning: No capabilities in plugin %s." % name
 
