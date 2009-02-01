@@ -21,9 +21,12 @@ class Plugin(object):
         self.name = name
         self._info = info
         # obligatory plugin info:
-        self.plugin_format = info.get('plugin', 'plugin_format')
-        self.longname =      info.get('plugin', 'name')
-        self.version =       info.get('plugin', 'version')
+        format_value = info.get('plugin', 'plugin_format')
+        self.plugin_format = tuple(map(int, format_value.split(',')))
+        self.longname = info.get('plugin', 'name')
+        versionvalue = info.get('plugin', 'version')
+        self.version = tuple(map(int, versionvalue.split(',')))
+        self.version_string = '.'.join(map(str, self.version))
         self._capabilities =  dict(info.items('capabilities'))
         try:
             self.description = info.get('plugin', 'description')
