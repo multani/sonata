@@ -44,7 +44,10 @@ class Plugin(object):
             self.iconurl = info.get('plugin', 'icon')
         except ConfigParser.NoOptionError:
             self.iconurl = None
-
+        try:
+            self.url = info.get('plugin', 'url')
+        except:
+            self.url = ""
 
 class PluginSystem(object):
     def __init__(self):

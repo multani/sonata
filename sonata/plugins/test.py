@@ -9,6 +9,7 @@
 # description: A simple test plugin.
 # author: Tuukka Hastrup
 # author_email: Tuukka.Hastrup@iki.fi
+# url: http://sonata.berlios.de
 # [capabilities]
 # tabs: construct_tab
 ### END PLUGIN INFO

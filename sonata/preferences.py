@@ -440,7 +440,6 @@ class Preferences():
         plugin_actions = (
             ('plugin_about', gtk.STOCK_ABOUT, _('_About'), None, None, self.plugin_about),
             ('plugin_configure', gtk.STOCK_PREFERENCES, _('_Configure...'), None, None, self.plugin_configure),
-            ('plugin_homepage', None, _('_Visit Homepage'), None, None, self.plugin_homepage),
             )
 
         uiDescription = """
@@ -448,7 +447,6 @@ class Preferences():
               <popup name="pluginmenu">
                 <menuitem action="plugin_configure"/>
                 <menuitem action="plugin_about"/>
-                <menuitem action="plugin_homepage"/>
               </popup>
             </ui>
             """
@@ -459,16 +457,16 @@ class Preferences():
         self.plugin_UIManager.insert_action_group(actionGroup, 0)
         self.plugin_UIManager.add_ui_from_string(uiDescription)
 
-        pluginview = ui.treeview()
-        pluginview.set_headers_visible(True)
-        self.pluginselection = pluginview.get_selection()
+        self.pluginview = ui.treeview()
+        self.pluginview.set_headers_visible(True)
+        self.pluginselection = self.pluginview.get_selection()
         self.pluginselection.set_mode(gtk.SELECTION_SINGLE)
-        pluginview.set_rules_hint(True)
-        pluginview.set_property('can-focus', False)
-        pluginwindow = ui.scrollwindow(add=pluginview)
+        self.pluginview.set_rules_hint(True)
+        self.pluginview.set_property('can-focus', False)
+        pluginwindow = ui.scrollwindow(add=self.pluginview)
         plugindata = gtk.ListStore(bool, gtk.gdk.Pixbuf, str)
-        pluginview.set_model(plugindata)
-        pluginview.connect('button-press-event', self.plugin_click)
+        self.pluginview.set_model(plugindata)
+        self.pluginview.connect('button-press-event', self.plugin_click)
 
         plugincheckcell = gtk.CellRendererToggle()
         plugincheckcell.set_property('activatable', True)
@@ -477,13 +475,13 @@ class Preferences():
         plugintextcell = gtk.CellRendererText()
 
         plugincol0 = gtk.TreeViewColumn()
-        pluginview.append_column(plugincol0)
+        self.pluginview.append_column(plugincol0)
         plugincol0.pack_start(plugincheckcell, True)
         plugincol0.set_attributes(plugincheckcell, active=0)
         plugincol0.set_title("  " + _("Loaded") + "  ")
 
         plugincol1 = gtk.TreeViewColumn()
-        pluginview.append_column(plugincol1)
+        self.pluginview.append_column(plugincol1)
         plugincol1.pack_start(pluginpixbufcell, False)
         plugincol1.pack_start(plugintextcell, True)
         plugincol1.set_attributes(pluginpixbufcell, pixbuf=1)
@@ -492,11 +490,7 @@ class Preferences():
 
         plugindata.clear()
         for plugin in pluginsystem.get_info():
-            pb = plugin.iconurl
-            try:
-                pb = gtk.gdk.pixbuf_new_from_file(iconurl)
-            except:
-                pb = pluginview.render_icon(gtk.STOCK_EXECUTE, gtk.ICON_SIZE_LARGE_TOOLBAR)
+            pb = self.plugin_get_icon_pixbuf(plugin)
             plugin_text = "<b> " + plugin.longname + "</b>   " + plugin.version_string
             plugin_text += "\n " + plugin.description
             enabled = True
@@ -680,18 +674,54 @@ class Preferences():
         return
 
     def plugin_about(self, _widget):
-        model, iter = self.pluginselection.get_selected()
-        plugin_num = model.get_path(iter)[0]
-        plugin = pluginsystem.get_info()[plugin_num]
+        plugin = self.plugin_get_selected()
+        iconpb = self.plugin_get_icon_pixbuf(plugin)
+        model = self.pluginview.get_model()
 
         about_text = plugin.longname + "\n" + plugin.author + "\n"
         if len(plugin.author_email) > 0:
             about_text += "<" + plugin.author_email + ">"
 
-        ui.show_msg(self.prefswindow, about_text, "About", "pluginAbout", gtk.BUTTONS_CLOSE)
+        self.about_dialog = gtk.AboutDialog()
+        self.about_dialog.set_name(plugin.longname)
+        self.about_dialog.set_role('about')
+        self.about_dialog.set_version(plugin.version_string)
+        if len(plugin.description.strip()) > 0:
+            self.about_dialog.set_comments(plugin.description)
+        if len(plugin.author.strip()) > 0:
+            author = plugin.author
+            if len(plugin.author.strip()) > 0:
+                author += ' <' + plugin.author_email + '>'
+            self.about_dialog.set_authors([author])
+        if len(plugin.url.strip()) > 0:
+            gtk.about_dialog_set_url_hook(self.plugin_show_website)
+            self.about_dialog.set_website(plugin.url)
+        self.about_dialog.set_logo(iconpb)
+
+        self.about_dialog.connect('response', self.plugin_about_close)
+        self.about_dialog.connect('delete_event', self.plugin_about_close)
+        self.about_dialog.show_all()
+
+    def plugin_about_close(self, _event, _data=None):
+        self.about_dialog.hide()
+        return True
+
+    def plugin_show_website(self, _dialog, link):
+        misc.browser_load(link, self.config.url_browser, self.window)
 
     def plugin_configure(self, _widget):
+        plugin = self.plugin_get_selected()
         ui.show_msg(self.prefswindow, "Nothing yet implemented.", "Configure", "pluginConfigure", gtk.BUTTONS_CLOSE)
 
-    def plugin_homepage(self, _widget):
-        ui.show_msg(self.prefswindow, "Nothing yet implemented.", "Visit Homepage", "pluginVisitHomepage", gtk.BUTTONS_CLOSE)
+    def plugin_get_selected(self):
+        model, iter = self.pluginselection.get_selected()
+        plugin_num = model.get_path(iter)[0]
+        return pluginsystem.get_info()[plugin_num]
+
+    def plugin_get_icon_pixbuf(self, plugin):
+        pb = plugin.iconurl
+        try:
+            pb = gtk.gdk.pixbuf_new_from_file(iconurl)
+        except:
+            pb = self.pluginview.render_icon(gtk.STOCK_EXECUTE, gtk.ICON_SIZE_LARGE_TOOLBAR)
+        return pb
