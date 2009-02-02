@@ -471,14 +471,16 @@ class Preferences():
         pluginview.connect('button-press-event', self.plugin_click)
 
         plugincheckcell = gtk.CellRendererToggle()
-        plugincheckcell.connect('toggled', self.plugin_toggled)
+        plugincheckcell.set_property('activatable', True)
+        plugincheckcell.connect('toggled', self.plugin_toggled, (plugindata, 0))
         pluginpixbufcell = gtk.CellRendererPixbuf()
         plugintextcell = gtk.CellRendererText()
 
         plugincol0 = gtk.TreeViewColumn()
         pluginview.append_column(plugincol0)
         plugincol0.pack_start(plugincheckcell, True)
-        plugincol0.set_title(_("Loaded"))
+        plugincol0.set_attributes(plugincheckcell, active=0)
+        plugincol0.set_title("  " + _("Loaded") + "  ")
 
         plugincol1 = gtk.TreeViewColumn()
         pluginview.append_column(plugincol1)
@@ -494,10 +496,11 @@ class Preferences():
             try:
                 pb = gtk.gdk.pixbuf_new_from_file(iconurl)
             except:
-                pass
-            plugin_text = "<b>" + plugin.longname + "</b>   " + plugin.version_string
-            plugin_text += "\n" + plugin.description
-            plugindata.append((True, pb, plugin_text))
+                pb = pluginview.render_icon(gtk.STOCK_EXECUTE, gtk.ICON_SIZE_LARGE_TOOLBAR)
+            plugin_text = "<b> " + plugin.longname + "</b>   " + plugin.version_string
+            plugin_text += "\n " + plugin.description
+            enabled = True
+            plugindata.append((enabled, pb, plugin_text))
 
         # Set up table
         table_names = [[_("_MPD"), mpd_table],
@@ -671,8 +674,10 @@ class Preferences():
         if event.button == 3:
             self.plugin_UIManager.get_widget('/pluginmenu').popup(None, None, None, event.button, event.time)
 
-    def plugin_toggled(self, renderer, _path):
-        renderer.set_active(not renderer.get_active())
+    def plugin_toggled(self, renderer, path, user_data):
+        model, column = user_data
+        model[path][column] = not model[path][column]
+        return
 
     def plugin_about(self, _widget):
         model, iter = self.pluginselection.get_selected()
