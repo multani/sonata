@@ -2118,8 +2118,7 @@ class Base(object):
         if response == gtk.RESPONSE_ACCEPT:
             dialog.destroy()
             # Delete current lyrics:
-            fname = misc.strip_all_slashes(artist + '-' + title + '.txt')
-            filename = os.path.expanduser('~/.lyrics/' + fname)
+            filename = self.info.target_lyrics_filename(artist, title, None, consts.LYRICS_LOCATION_HOME)
             misc.remove_file(filename)
             # Search for new lyrics:
             self.info.get_lyrics_start(artist_entry.get_text(), title_entry.get_text(), artist, title, os.path.dirname(mpdh.get(self.songinfo, 'file')))

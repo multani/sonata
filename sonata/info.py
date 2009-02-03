@@ -343,6 +343,10 @@ class Info(object):
             return self.target_lyrics_filename(artist, title, song_dir, consts.LYRICS_LOCATION_HOME)
         elif os.path.exists(self.target_lyrics_filename(artist, title, song_dir, consts.LYRICS_LOCATION_PATH)):
             return self.target_lyrics_filename(artist, title, song_dir, consts.LYRICS_LOCATION_PATH)
+        elif os.path.exists(self.target_lyrics_filename(artist, title, song_dir, consts.LYRICS_LOCATION_HOME_ALT)):
+            return self.target_lyrics_filename(artist, title, song_dir, consts.LYRICS_LOCATION_HOME_ALT)
+        elif os.path.exists(self.target_lyrics_filename(artist, title, song_dir, consts.LYRICS_LOCATION_PATH_ALT)):
+            return self.target_lyrics_filename(artist, title, song_dir, consts.LYRICS_LOCATION_PATH_ALT)
         return None
 
     def get_lyrics_start(self, *args):
@@ -473,10 +477,15 @@ class Info(object):
                 lyrics_loc = force_location
             else:
                 lyrics_loc = self.config.lyrics_location
+            # Note: *_ALT searching is for compatibility with other mpd clients (like ncmpcpp):
             if lyrics_loc == consts.LYRICS_LOCATION_HOME:
                 targetfile = os.path.expanduser("~/.lyrics/" + artist + "-" + title + ".txt")
             elif lyrics_loc == consts.LYRICS_LOCATION_PATH:
                 targetfile = self.config.musicdir[self.config.profile_num] + song_dir + "/" + artist + "-" + title + ".txt"
+            elif lyrics_loc == consts.LYRICS_LOCATION_HOME_ALT:
+                targetfile = os.path.expanduser("~/.lyrics/" + artist + " - " + title + ".txt")
+            elif lyrics_loc == consts.LYRICS_LOCATION_PATH_ALT:
+                targetfile = self.config.musicdir[self.config.profile_num] + song_dir + "/" + artist + " - " + title + ".txt"
             targetfile = misc.file_exists_insensitive(targetfile)
             return misc.file_from_utf8(targetfile)
 

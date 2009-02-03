@@ -172,7 +172,7 @@ class Preferences():
         as_frame.set_border_width(15)
         as_vbox = gtk.VBox()
         as_vbox.set_border_width(15)
-        as_checkbox = gtk.CheckButton(_("Enable Audioscrobbler"))
+        as_checkbox = gtk.CheckButton(_("Enable Audioscrobbling (Last.fm)"))
         as_checkbox.set_active(self.config.as_enabled)
         as_vbox.pack_start(as_checkbox, False)
         as_table = gtk.Table(2, 2)

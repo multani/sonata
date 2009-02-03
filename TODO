@@ -1,15 +1,35 @@
 v1.6
-	threaded method for artwork - possible threading traceback when exiting sonata
-	enabling/disabling outputs
-	prevent vertical resizing when collapsed 
-	save to playlist.. default to selected files? pref?
+	disconnect/connect/reconnect ui weirdness
+	window positioning weirdness when unwithdrawing app from systray
+	updating logic per Olivier feedback
 	sonata freezes with gail/accessibility enabled during new library searching
-	tag editing 
-		- support for composer, disc
-		- save selection afterwards (what did we have before?)
+	tag editing - retain selection (what did we have before?)
+	use object in library treeview model instead of str with lib_nodata stuff?
+	threaded method for artwork - possible threading traceback when exiting sonata
+	prevent vertical resizing when collapsed 
+	#4370: number in playlist
+
+v1.6.1
+	#3992: enabling/disabling outputs
+	save to playlist.. default to selected files? pref?
+	tag editing - support for composer, disc
+	song queue (mpd-git will be bringing it back)
+
+v1.7
 	remove libegg? statusicon provides everything in gtk 2.15, not yet in pygtk
-	albumartist tag
-	updating logic
+	albumartist tag for, e.g., VA albums
+	plugin support
+		- single instance, mmkeys (could remove dbus; faster on startup, less memory)
+		- artwork
+		- lyrics
+		- system tray
+		- audioscrobbler
+		- popup notification
+		- tag editing
+		- #2419 dynamic playlist (patch)
+		- #2454 Add as Next Track (patch)
+		- #4007 stop after track
+		- #Zeroconf/avahi (patch)
 
 Future:
 	support for new idle command (waiting on python-mpd)
@@ -26,17 +46,6 @@ Future:
 	lazy loading of the treeview
 		http://log.emmanuelebassi.net/documentation/lazy-loading/
 		http://blogs.gnome.org/jamesh/2006/03/31/re-lazy-loading/
-	plugin support
-		- single instance, mmkeys (could remove dbus; faster on startup, less memory)
-		- artwork
-		- lyrics
-		- system tray
-		- audioscrobbler
-		- popup notification
-		- tag editing
-		- "Find more" - "By Artist/Album" (patch 2507)
-		- Add as Next Track (patch 2454)
-		- Dynamic playlist (patch 2419)
 
 clean-up
 	extract duplicate code into functions, classes etc.
