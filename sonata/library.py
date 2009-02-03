@@ -823,6 +823,10 @@ class Library(object):
         pathinfo = widget.get_path_at_pos(bin_x, bin_y)
         if not pathinfo:
             widget.set_tooltip_text(None)
+            # If the user hovers over an empty row and then back to
+            # a row with a search result, this will ensure the tooltip
+            # shows up again:
+            gobject.idle_add(self.library_search_tooltips_enable, widget, x, y, keyboard_mode, None)
             return False
         treepath, _col, _x2, _y2 = pathinfo
 
@@ -844,7 +848,8 @@ class Library(object):
 
     def library_search_tooltips_enable(self, widget, x, y, keyboard_mode, tooltip):
         self.library.set_property('has-tooltip', True)
-        self.on_library_query_tooltip(widget, x, y, keyboard_mode, tooltip)
+        if tooltip is not None:
+            self.on_library_query_tooltip(widget, x, y, keyboard_mode, tooltip)
 
     def on_library_row_activated(self, _widget, path, _column=0):
         if path is None:

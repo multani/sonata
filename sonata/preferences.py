@@ -409,6 +409,7 @@ class Preferences():
                    ('S', _('Stream name')),
                    ('L', _('Song length')),
                    ('E', _('Elapsed time (title only)')),
+                   ('O', _('Number in playlist (current only)')),
                    ]
         for codes in [formatcodes[:(len(formatcodes)+1)/2],
                   formatcodes[(len(formatcodes)+1)/2:]]:
