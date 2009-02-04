@@ -53,8 +53,5 @@ class Constants:
         self.LIB_LEVEL_ALBUM = 2
         self.LIB_LEVEL_SONG = 3
         self.NUM_ARTISTS_FOR_VA = 2
-        # Kinda gross, but you can't store tuples, etc., in a treeview model
-        self.LIB_DELIM = "|:|"
-        self.LIB_NODATA = "!NONE!"
 
 consts = Constants()

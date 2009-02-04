@@ -9,42 +9,18 @@ import ui, misc
 import mpdhelper as mpdh
 from consts import consts
 
-name_to_index = {'album':0, 'artist':1, 'genre':2, 'year':3, 'path':4}
-
 def library_set_data(album=None, artist=None, genre=None, year=None, path=None):
-    d = consts.LIB_DELIM
-    nd = consts.LIB_NODATA
-    if album is not None:
-        ret = album
-    else:
-        ret = nd
-    if artist is not None:
-        ret += d + artist
-    else:
-        ret += d + nd
-    if genre is not None:
-        ret += d + genre
-    else:
-        ret += d + nd
-    if year is not None:
-        ret += d + year
-    else:
-        ret += d + nd
-    if path is not None:
-        ret += d + path
-    else:
-        ret += d + nd
-    return ret
+    return (album, artist, genre, year, path)
 
 def library_get_data(data, *args):
+    name_to_index = {'album':0, 'artist':1, 'genre':2, 'year':3, 'path':4}
     # Data retrieved from the gtktreeview model is not in
     # unicode anymore, so convert it.
-    dl = data.split(consts.LIB_DELIM)
     retlist = []
     for arg in list(args):
-        ret = unicode(dl[name_to_index[arg]])
-        if ret == consts.LIB_NODATA:
-            ret = None
+        ret = data[name_to_index[arg]]
+        if ret is not None:
+            ret = unicode(ret)
         retlist.append(ret)
     if len(retlist) == 1:
         return retlist[0]
@@ -145,7 +121,7 @@ class Library(object):
         self.searchcombo.handler_block(searchcombo_changed_handler)
         self.searchcombo.set_active(self.config.last_search_num)
         self.searchcombo.handler_unblock(searchcombo_changed_handler)
-        self.librarydata = gtk.ListStore(gtk.gdk.Pixbuf, str, str)
+        self.librarydata = gtk.ListStore(gtk.gdk.Pixbuf, gobject.TYPE_PYOBJECT, str)
         self.library.set_model(self.librarydata)
         self.library.set_search_column(2)
         self.librarycell = gtk.CellRendererText()
@@ -790,21 +766,21 @@ class Library(object):
         return library_get_data(data, *args)
 
     def library_get_data_level(self, data):
-        dl = data.split(consts.LIB_DELIM)
         if self.config.lib_view == consts.VIEW_FILESYSTEM:
             # Returns the number of directories down:
-            if dl[name_to_index['path']] == '/':
+            if library_get_data(data, 'path') == '/':
                 # Every other path doesn't start with "/", so
                 # start the level numbering at -1
                 return -1
             else:
-                return dl[name_to_index['path']].count("/")
+                return library_get_data(data, 'path').count("/")
         else:
             # Returns the number of items stored in data, excluding
             # the path:
             level = 0
-            for i, item in enumerate(dl):
-                if item != consts.LIB_NODATA and i != name_to_index['path']:
+            album, artist, genre, year = library_get_data(data, 'album', 'artist', 'genre', 'year')
+            for item in [album, artist, genre, year]:
+                if item is not None:
                     level += 1
             return level
 

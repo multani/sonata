@@ -92,7 +92,10 @@ def remove_list_duplicates(inputlist, case=True):
     if case:
         key = id
     else:
-        key = lambda x:x.lower()
+        # repr() allows inputlist to be a list of tuples
+        # FIXME: Doesn't correctly compare uppercase and
+        # lowercase unicode
+        key = lambda x:repr(x).lower()
     return list(iunique(inputlist, key))
 
 the_re = re.compile('^the ')

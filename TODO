@@ -4,7 +4,6 @@ v1.6
 	updating logic per Olivier feedback
 	sonata freezes with gail/accessibility enabled during new library searching
 	tag editing - retain selection (what did we have before?)
-	use object in library treeview model instead of str with lib_nodata stuff?
 	threaded method for artwork - possible threading traceback when exiting sonata
 	prevent vertical resizing when collapsed 
 	#4370: number in playlist
