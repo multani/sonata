@@ -28,7 +28,6 @@ class TagEditor():
         self.tags_mpd_update = tags_mpd_update
         self.tags_set_use_mpdpath = tags_set_use_mpdpath
 
-        self.edit_style_orig = None
         self.filelabel = None
         self.curr_mpdpath = None
         self.tagnum = None
@@ -171,18 +170,14 @@ class TagEditor():
         if saveall_button:
             saveall_button.connect('clicked', self.tags_win_save_all, editwindow, tags, entries, entries_names)
 
-        for entry in entries:
-            entry.connect('changed', self.tags_win_entry_changed)
-
         for button, name, entry in zip(buttons, entries_names, entries):
+            entry.connect('changed', self.tags_win_entry_changed)
             button.connect('clicked', self.tags_win_apply_all, name, tags, entry)
 
         self.tags_win_update(editwindow, tags, entries, entries_names)
         ui.change_cursor(None)
         self.filelabel.set_size_request(editwindow.size_request()[0] - titlelabel.size_request()[0] - 70, -1)
         editwindow.show_all()
-        # Need to get the entry style after the window has been shown
-        self.edit_style_orig = titleentry.get_style()
 
     def tags_next_tag(self, tags):
         # Returns true if next tag found (and self.tagnum is updated).
@@ -204,7 +199,7 @@ class TagEditor():
         editable.set_style(style)
 
     def tags_win_entry_revert_color(self, editable):
-        editable.set_style(self.edit_style_orig)
+        editable.set_style(None)
 
     def tags_win_create_apply_all_button(self, button, entry, autotrack=False):
         button.set_size_request(12, 12)
@@ -261,7 +256,6 @@ class TagEditor():
         if not self.use_mpdpaths:
             filename = os.path.basename(filename)
         self.filelabel.set_text(filename)
-        entries[0].select_region(0, len(entries[0].get_text()))
         entries[0].grab_focus()
         window.set_title(_("Edit Tags") + " - " + str(self.tagnum+1) + " " + _("of") + " " + str(len(tags)))
         self.tags_win_set_sensitive(window.action_area)
