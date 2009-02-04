@@ -2,7 +2,7 @@ Sonata, an elegant GTK+ client for the Music Player Daemon (MPD)
 Copyright 2006-2008 Scott Horowitz <stonecrest@gmail.com>
 
 Thanks to Andrew Conkling et al, for all their hard work on Pygmy!
-Sonata is a fork of the Pygmy project and licensed under the GPLv3.
+Sonata started as a fork of the Pygmy project and is licensed under the GPLv3.
 
 REQUIREMENTS:
 	(Required) PyGTK 2.12 or newer
@@ -25,20 +25,22 @@ INSTALLATION:
 	Run 'python setup.py install' as root.
 
 FEATURES:
-	+ Expanded and collapsed views
+	+ Expanded and collapsed views, fullscreen album art mode
 	+ Automatic remote and local album art
+	+ Library browsing by folders, or by genre/artist/album
 	+ User-configurable columns
 	+ Automatic fetching of lyrics
 	+ Playlist and stream support
 	+ Support for editing song tags
+	+ Drag-and-drop to copy files
 	+ Popup notification
-	+ Library and playlist searching
+	+ Library and playlist searching, filter as you type
 	+ Audioscrobbler (last.fm) 1.2 support
 	+ Multiple MPD profiles
 	+ Keyboard friendly
 	+ Support for multimedia keys
 	+ Commandline control
-	+ Available in 20 languages
+	+ Available in 22 languages
 
 DOCUMENTATION/FAQ:
 	http://sonata.berlios.de/documentation.html

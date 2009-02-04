@@ -1,24 +1,31 @@
 v1.6
-	+ Album mode, additional details in library views
+	+ Album browsing mode, additional details in library views
 	+ Real-time searching of library (search as you type)
-	+ Fullscreen artwork covers mode (via right-click on artwork) (mips)
+	+ Fullscreen album art mode (via right-click on artwork) (mips)
 	+ Show file path in tooltip for library search results
-	+ Default to updating selected path(s) in library, not entire library
-	+ DND to copy files from Sonata to a file manager (Kamil)
-	+ Ability to show path in tag editing window
-	+ Use plchanges for faster performance of some actions (e.g. add to playlist)
-	+ Only minimize to tray on trayicon click if focused; raise if not focused
+	+ Default to updating selected paths in library, not entire library
+	+ Drag-and-drop to copy files from Sonata to a file manager (Kamil)
+	+ Ability to show file paths in tag editing window
+	+ Use plchanges for faster performance (e.g. add to playlist)
+	+ Only minimize to trayicon on click if focused; raise if not focused
 	+ Use new 'listplaylists' command for retrieving playlists
 	+ Better error trapping
 	+ Make process name 'sonata' for linux (himdel)
-	+ Look for <artist> - <title>.txt lyrics for compatibility with other clients
+	+ Look for <artist> - <title>.txt lyrics files by other clients
 	+ Add Traditional Chinese translation (b4283)
-	+ Bug: Bad profiles prevent sonata from starting
-	+ Bug: Error for cli arguments when sonata can't connect to MPD (Juan)
+	+ Code modernisation, modularisation, overall cleanup, documentation
+	+ A prototype of a plug-in system
+	+ Unicode fixes
+	+ Some helpful error messages if startup fails
+	+ Useless code removed, various code cleanups and refactorings (Stephen)
+	+ Bug: Bad profiles prevent Sonata from starting
+	+ Bug: Error for CLI arguments when Sonata can't connect to MPD (Juan)
 	+ Bug: Files may not update in interface after tag editing
-	+ Bug: Traceback with turkish locale
+	+ Bug: Traceback with Turkish locale
+	+ Bug: Lyrics don't work with python-zsi 2.0 on Ubuntu
+	+ Bug: Bell sound when going to parent folder using backspace
 
-v1.5.3
+v1.5.3 - September 13, 2008
 	+ Quick link to edit lyrics through LyricWiki
 	+ Unicode lyrics and better searching with LyricWiki (orivej)
 	+ Store audioscrobbler password as md5 hash
