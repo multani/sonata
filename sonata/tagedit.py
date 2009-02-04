@@ -33,7 +33,6 @@ class TagEditor():
         self.curr_mpdpath = None
         self.tagnum = None
         self.use_mpdpaths = None
-        self.updating_edit_entries = None
 
     def _create_label_entry_button_hbox(self, label_name, track=False):
         """Creates a label, entry, apply all button, packing them into an hbox.
@@ -86,7 +85,6 @@ class TagEditor():
 
         # Initialize:
         self.tagnum = -1
-        self.updating_edit_entries = False
 
         tags = [{'title':'', 'artist':'', 'album':'', 'year':'', 'track':'',
              'genre':'', 'comment':'', 'title-changed':False,
@@ -200,11 +198,10 @@ class TagEditor():
                     pass
         return False
 
-    def tags_win_entry_changed(self, editable, force_red=False):
-        if force_red or not self.updating_edit_entries:
-            style = editable.get_style().copy()
-            style.text[gtk.STATE_NORMAL] = editable.get_colormap().alloc_color("red")
-            editable.set_style(style)
+    def tags_win_entry_changed(self, editable):
+        style = editable.get_style().copy()
+        style.text[gtk.STATE_NORMAL] = editable.get_colormap().alloc_color("red")
+        editable.set_style(style)
 
     def tags_win_entry_revert_color(self, editable):
         editable.set_style(self.edit_style_orig)
@@ -243,7 +240,6 @@ class TagEditor():
             entry.set_text(str(tags[self.tagnum]['track']))
 
     def tags_win_update(self, window, tags, entries, entries_names):
-        self.updating_edit_entries = True
         current_tag = tags[self.tagnum]
         tag = tagpy.FileRef(current_tag['fullpath']).tag()
         # Update interface:
@@ -256,6 +252,10 @@ class TagEditor():
                 tag_value = ''
             entry.set_text(str(tag_value).strip())
 
+            # Revert text color if this tag wasn't changed by the user
+            if not current_tag[entry_name + "-changed"]:
+                self.tags_win_entry_revert_color(entry)
+
         self.curr_mpdpath = gobject.filename_display_name(current_tag['mpdpath'])
         filename = self.curr_mpdpath
         if not self.use_mpdpaths:
@@ -264,13 +264,6 @@ class TagEditor():
         entries[0].select_region(0, len(entries[0].get_text()))
         entries[0].grab_focus()
         window.set_title(_("Edit Tags") + " - " + str(self.tagnum+1) + " " + _("of") + " " + str(len(tags)))
-        self.updating_edit_entries = False
-        # Update text colors as appropriate:
-        for entry, entry_name in zip(entries, entries_names):
-            if current_tag[entry_name + '-changed']:
-                self.tags_win_entry_changed(entry)
-            else:
-                self.tags_win_entry_revert_color(entry)
         self.tags_win_set_sensitive(window.action_area)
 
     def tags_win_set_sensitive(self, action_area):
