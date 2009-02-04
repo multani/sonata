@@ -28,7 +28,6 @@ class TagEditor():
         self.tags_mpd_update = tags_mpd_update
         self.tags_set_use_mpdpath = tags_set_use_mpdpath
 
-        self.tagpy_is_91 = None
         self.edit_style_orig = None
         self.filelabel = None
         self.curr_mpdpath = None
@@ -60,15 +59,20 @@ class TagEditor():
         if tagpy is None:
             try:
                 import tagpy
-                # Set default tag encoding to utf8.. fixes some reported bugs.
-                import tagpy.id3v2 as id3v2
-                id3v2.FrameFactory.instance().setDefaultTextEncoding(tagpy.StringType.UTF8)
-            except:
-                pass
-        if tagpy is None:
-            ui.show_msg(self.window, _("Taglib and/or tagpy not found, tag editing support disabled."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=ui.dialog_destroy)
+            except ImportError:
+                ui.show_msg(self.window, _("Taglib and/or tagpy not found, tag editing support disabled."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=ui.dialog_destroy)
+                ui.change_cursor(None)
+                return
+            # Set default tag encoding to utf8.. fixes some reported bugs.
+            import tagpy.id3v2 as id3v2
+            id3v2.FrameFactory.instance().setDefaultTextEncoding(tagpy.StringType.UTF8)
+
+        # Make sure tagpy is at least 0.91
+        if hasattr(tagpy.Tag.title, '__call__'):
+            ui.show_msg(self.window, _("Tagpy version < 0.91. Please upgrade to a newer version, tag editing support disabled."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=ui.dialog_destroy)
             ui.change_cursor(None)
             return
+
         if not os.path.isdir(misc.file_from_utf8(music_dir)):
             ui.show_msg(self.window, _("The path") + " " + music_dir + " " + _("does not exist. Please specify a valid music directory in preferences."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=ui.dialog_destroy)
             ui.change_cursor(None)
@@ -241,29 +245,16 @@ class TagEditor():
     def tags_win_update(self, window, tags, entries, entries_names):
         self.updating_edit_entries = True
         current_tag = tags[self.tagnum]
-        # Populate tags(). Note that we only retrieve info from the
-        # file if the info hasn't already been changed:
         tag = tagpy.FileRef(current_tag['fullpath']).tag()
-        if not current_tag['title-changed']:
-            current_tag['title'] = tag.title
-        if not current_tag['artist-changed']:
-            current_tag['artist'] = tag.artist
-        if not current_tag['album-changed']:
-            current_tag['album'] = tag.album
-        if not current_tag['year-changed']:
-            current_tag['year'] = tag.year
-        if not current_tag['track-changed']:
-            current_tag['track'] = tag.track
-        if not current_tag['genre-changed']:
-            current_tag['genre'] = tag.genre
-        if not current_tag['comment-changed']:
-            current_tag['comment'] = tag.comment
         # Update interface:
         for entry, entry_name in zip(entries, entries_names):
-            tag_value = self.tags_get_tag(current_tag, entry_name)
+            # Only retrieve info from the file if the info hasn't changed
+            if not current_tag[entry_name + "-changed"]:
+                current_tag[entry_name] = getattr(tag, entry_name, '')
+            tag_value = current_tag[entry_name]
             if tag_value == 0:
                 tag_value = ''
-            entry.set_text(str(tag_value))
+            entry.set_text(str(tag_value).strip())
 
         self.curr_mpdpath = gobject.filename_display_name(current_tag['mpdpath'])
         filename = self.curr_mpdpath
@@ -289,71 +280,6 @@ class TagEditor():
         action_area.hide()
         action_area.show_all()
 
-    def tags_get_tag(self, tag, field):
-        # Since tagpy went through an API change from 0.90.1 to 0.91, we'll
-        # implement both methods of retrieving the tag:
-        if self.tagpy_is_91 is None:
-            self.tagpy_is_91 = not hasattr(tag[field], '__call__')
-
-        if not self.tagpy_is_91:
-            try:
-                return tag[field]().strip()
-            except:
-                return tag[field]()
-        else:
-            try:
-                return tag[field].strip()
-            except:
-                return tag[field]
-
-    def tags_set_tag(self, tag, field, value):
-        # Since tagpy went through an API change from 0.90.1 to 0.91, we'll
-        # implement both methods of setting the tag:
-        try:
-            value = value.strip()
-        except:
-            pass
-        if field == 'artist':
-            if not self.tagpy_is_91:
-                tag.setArtist(value)
-            else:
-                tag.artist = value
-        elif field=='title':
-            if not self.tagpy_is_91:
-                tag.setTitle(value)
-            else:
-                tag.title = value
-        elif field=='album':
-            if not self.tagpy_is_91:
-                tag.setAlbum(value)
-            else:
-                tag.album = value
-        elif field=='year':
-            if not self.tagpy_is_91:
-                tag.setYear(int(value))
-            else:
-                tag.year = int(value)
-        elif field=='track':
-            if not self.tagpy_is_91:
-                tag.setTrack(int(value))
-            else:
-                tag.track = int(value)
-        elif field=='genre':
-            if not self.tagpy_is_91:
-                tag.setGenre(value)
-            else:
-                tag.genre = value
-        elif field=='comment':
-            # For some reason, setting the comment to nothing doesn't
-            # change it (unlike every other tag). So lets set it to a
-            # space instead.
-            if len(value)==0:
-                value = ' '
-            if not self.tagpy_is_91:
-                tag.setComment(value)
-            else:
-                tag.comment = value
-
     def tags_win_save_all(self, _button, window, tags, entries, entries_names):
         for entry in entries:
             entry.set_property('editable', False)
@@ -369,19 +295,15 @@ class TagEditor():
                 gtk.main_iteration()
             filetag = tagpy.FileRef(tags[self.tagnum]['fullpath'])
             tag = filetag.tag()
-            self.tags_set_tag(tag, 'title', entries[0].get_text())
-            self.tags_set_tag(tag, 'artist', entries[1].get_text())
-            self.tags_set_tag(tag, 'album', entries[2].get_text())
-            if len(entries[3].get_text()) > 0:
-                self.tags_set_tag(tag, 'year', entries[3].get_text())
-            else:
-                self.tags_set_tag(tag, 'year', 0)
-            if len(entries[4].get_text()) > 0:
-                self.tags_set_tag(tag, 'track', entries[4].get_text())
-            else:
-                self.tags_set_tag(tag, 'track', 0)
-            self.tags_set_tag(tag, 'genre', entries[5].get_text())
-            self.tags_set_tag(tag, 'comment', entries[6].get_text())
+            # Set tag fields according to entry text
+            for entry, field in zip(entries, entries_names):
+                tag_value = entry.get_text().strip()
+                if field in ('year', 'track'):
+                    if len(tag_value) == 0:
+                        tag_value = '0'
+                    tag_value = int(tag_value)
+                setattr(tag, field, tag_value)
+
             save_success = filetag.save()
             if not (save_success): # FIXME: was (save_success and self.conn and self.status):
                 ui.show_msg(self.window, _("Unable to save tag to music file."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=ui.dialog_destroy)
