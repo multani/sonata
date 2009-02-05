@@ -3295,13 +3295,12 @@ class Base(object):
     def tags_set_use_mpdpath(self, use_mpdpath):
         self.config.tags_use_mpdpath = use_mpdpath
 
-    def tags_mpd_update(self, tags, tagnum):
-        if tags:
-            mpdh.call(self.client, 'command_list_ok_begin')
-            for i in range(tagnum):
-                mpdh.call(self.client, 'update', tags[i]['mpdpath'])
-            mpdh.call(self.client, 'command_list_end')
-            self.mpd_update_queued = True
+    def tags_mpd_update(self, tag_paths):
+        mpdh.call(self.client, 'command_list_ok_begin')
+        for path in tag_paths:
+            mpdh.call(self.client, 'update', path)
+        mpdh.call(self.client, 'command_list_end')
+        self.mpd_update_queued = True
 
     def on_about(self, _action):
         about_dialog = about.About(self.window, self.config, version.VERSION, __license__, self.find_path('sonata_large.png'))

@@ -302,8 +302,9 @@ class TagEditor():
                 self.tagnum = self.tagnum + 1 # To ensure we update the last file in tags_mpd_update
                 self.tags_win_hide(window, None, tags)
 
-    def tags_win_hide(self, window, _data=None, tags=None):
-        gobject.idle_add(self.tags_mpd_update, tags, self.tagnum)
+    def tags_win_hide(self, window, _data, tags):
+        tag_paths = (tag['mpdpath'] for tag in tags[:self.tagnum])
+        gobject.idle_add(self.tags_mpd_update, tag_paths)
         window.destroy()
         self.tags_set_use_mpdpath(self.use_mpdpaths)
 
