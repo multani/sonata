@@ -2,7 +2,7 @@ body {
 margin:10; padding:0; font-family:verdana, arial, sans-serif; font-size:80%; color:#666666; text-align:center;
 background-color:#EEEEEE;}
 
-p {
+p, dl {
 margin:0.2em 0 1.2em 0.6em; padding:0.3em; align:justify;}
 
 h1 {

@@ -9,7 +9,7 @@ REQUIREMENTS:
 	(Required) GTK 2.12 or newer
 	(Required) python-mpd 0.2 or newer
 	(Required) Python 2.5 or newer
-	(Optional) MPD 0.12 or newer
+	(Required) MPD 0.12 or newer, possibly on another computer
 	(Optional) Gnome-python-extras for enhanced system tray
 	(Optional) taglib and tagpy for editing metadata
 	(Optional) ZSI 2.0 or newer for automatic lyrics fetching
