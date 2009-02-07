@@ -88,7 +88,7 @@ class Library(object):
         self.searchbox.pack_start(self.searchcombo, False, False, 2)
         self.searchbox.pack_start(self.searchtext, True, True, 2)
         self.searchbox.pack_start(self.searchbutton, False, False, 2)
-        self.libraryvbox.pack_start(expanderwindow2, True, True, 2)
+        self.libraryvbox.pack_start(expanderwindow2, True, True)
         self.libraryvbox.pack_start(self.searchbox, False, False, 2)
 
         self.tab = new_tab(self.libraryvbox, gtk.STOCK_HARDDISK, TAB_LIBRARY, self.library)
