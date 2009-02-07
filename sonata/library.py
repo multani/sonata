@@ -924,9 +924,10 @@ class Library(object):
                 results.append(mpdh.get(item, 'file'))
         return results
 
-    def on_library_search_combo_change(self, combo):
-        self.config.last_search_num = combo.get_active()
+    def on_library_search_combo_change(self, _combo=None):
+        self.config.last_search_num = self.searchcombo.get_active()
         self.prevlibtodo = ""
+        self.prevlibtodo_base = "__"
         self.libsearchfilter_feed_loop(self.searchtext)
 
     def on_search_end(self, _button, move_focus=True):

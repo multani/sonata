@@ -58,7 +58,7 @@ def call(mpdclient, mpd_cmd, *mpd_args):
         if not mpd_cmd in ['disconnect', 'lsinfo', 'listplaylists']:
             if not suppress_errors:
                 print strftime("%Y-%m-%d %H:%M:%S") + "  " + str(sys.exc_info()[1])
-        if mpd_cmd == 'lsinfo':
+        if mpd_cmd in ['lsinfo', 'list']:
             return []
         else:
             return None

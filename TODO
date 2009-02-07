@@ -6,6 +6,7 @@ v1.6
 	threaded method for artwork - possible threading traceback when exiting sonata
 	prevent vertical resizing when collapsed 
 	#4370: number in playlist
+	'everything' library search, remove order-specific matching
 
 v1.6.1
 	#3992: enabling/disabling outputs
