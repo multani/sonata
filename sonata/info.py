@@ -47,7 +47,7 @@ class Info(object):
         self.albumText = None
 
         # Info tab
-        self.info_area = ui.scrollwindow()
+        self.info_area = ui.scrollwindow(shadow=gtk.SHADOW_NONE)
 
         if self.config.info_art_enlarged:
             self.info_imagebox = ui.eventbox()
