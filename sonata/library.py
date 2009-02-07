@@ -686,8 +686,7 @@ class Library(object):
 
     def library_return_search_items(self, genre=None, artist=None, album=None, year=None):
         # Returns all mpd items, using mpd's 'search', along with
-        # playtime and num_songs. Note that if one of the args is
-        # '', the search results will only be correct for mpd=0.14
+        # playtime and num_songs.
         searches = self.library_compose_search_searchlist(genre, artist, album, year)
         for s in searches:
             args_tuple = tuple(map(str, s))
@@ -715,9 +714,18 @@ class Library(object):
             if items is not None:
                 for item in items:
                     if strip_type is None or (strip_type is not None and not strip_type in item.keys()):
-                        results.append(item)
-                        num_songs += 1
-                        playtime += int(mpdh.get(item, 'time', '0'))
+                        match = True
+                        pos = 0
+                        # Ensure that if, e.g., "foo" is searched, "foobar" isn't returned too
+                        for arg in args_tuple[::2]:
+                            if arg in item and item[arg].upper() != args_tuple[pos+1].upper():
+                                match = False
+                                break
+                            pos += 2
+                        if match:
+                            results.append(item)
+                            num_songs += 1
+                            playtime += int(mpdh.get(item, 'time', '0'))
         return (results, int(playtime), num_songs)
 
     def add_display_info(self, num_songs, playtime):
@@ -927,7 +935,6 @@ class Library(object):
 
     def search_visible(self):
         return self.searchbutton.get_property('visible')
-
 
     def libsearchfilter_toggle(self, move_focus):
         if not self.search_visible() and self.connected():
