@@ -4,12 +4,12 @@ v1.6
 	updating logic per Olivier feedback
 	sonata freezes with gail/accessibility enabled during new library searching
 	threaded method for artwork - possible threading traceback when exiting sonata
-	prevent vertical resizing when collapsed 
-	#4370: number in playlist
 	'everything' library search, remove order-specific matching
+	if sonata opened while collapsed, make sure first tab displayed when expanded
 
 v1.6.1
 	#3992: enabling/disabling outputs
+	#4370: number in playlist
 	save to playlist.. default to selected files? pref?
 	tag editing - support for composer, disc
 	song queue (mpd-git will be bringing it back)

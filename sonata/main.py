@@ -2031,8 +2031,10 @@ class Base(object):
             if self.config.show_statusbar:
                 self.statusbar.show()
             self.notebook.show_all()
+            if self.config.show_statusbar:
+                ui.show(self.statusbar)
         else:
-            self.statusbar.hide()
+            ui.hide(self.statusbar)
             self.notebook.hide()
         if not (self.conn and self.status and self.status['state'] in ['play', 'pause']):
             if window_about_to_be_expanded:
