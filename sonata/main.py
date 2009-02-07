@@ -1652,7 +1652,10 @@ class Base(object):
         self.album_reset_artist()
         self.album_get_artist()
         # Now update the library and playlist tabs
-        self.library.library_browse(root=self.config.wd)
+        if self.library.search_visible():
+            self.library.on_library_search_combo_change()
+        else:
+            self.library.library_browse(root=self.config.wd)
         self.playlists.populate()
         # Update info if it's visible:
         self.info_update(True)

@@ -1035,10 +1035,9 @@ class Library(object):
                     matches.append(row)
         else:
             for row in self.prevlibtodo_base_results:
-                for meta in row:
-                    if regexp.match(unicode(mpdh.get(row, meta)).lower()):
-                        matches.append(row)
-                        break
+                allstr = " ".join(mpdh.get(row, meta) for meta in row)
+                if regexp.match(unicode(allstr).lower()):
+                    matches.append(row)
         if subsearch and len(matches) == len(self.librarydata):
             # nothing changed..
             return

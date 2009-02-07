@@ -3,7 +3,6 @@ v1.6
 	window positioning weirdness when unwithdrawing app from systray
 	updating logic per Olivier feedback
 	sonata freezes with gail/accessibility enabled during new library searching
-	tag editing - retain selection (what did we have before?)
 	threaded method for artwork - possible threading traceback when exiting sonata
 	prevent vertical resizing when collapsed 
 	#4370: number in playlist
