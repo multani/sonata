@@ -718,7 +718,7 @@ class Library(object):
                         pos = 0
                         # Ensure that if, e.g., "foo" is searched, "foobar" isn't returned too
                         for arg in args_tuple[::2]:
-                            if arg in item and item[arg].upper() != args_tuple[pos+1].upper():
+                            if arg in item and unicode(mpdh.get(item, arg)).upper() != unicode(args_tuple[pos+1]).upper():
                                 match = False
                                 break
                             pos += 2
