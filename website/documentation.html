@@ -30,17 +30,6 @@
 	<p><a href="#overview">Overview</a><br/>
 	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#parts">Main parts of the interface</a><br/>
 	  <a href="#faq">FAQ</a><br/>
-	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#faq_1">1. I don't see support for [insert feature]. Why?</a><br/>
-	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#faq_2">2. How do I jump straight to certain tracks or search?</a><br/>
-	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#faq_3">3. Is there an easy way to toggle Sonata visible/hidden?</a><br/>
-	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#faq_4">4. How can I change the view of my library?</a><br/>
-	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#faq_5">5. How does the cover art logic work?</a><br/>
-	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#faq_6">6. How does the song formatting work?</a><br/>
-	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#faq_7">7. How does the tag editing work?</a><br/>
-	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#faq_8">8. What kind of audio streams does Sonata support?</a><br/>
-	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#faq_9">9. How can I interface with Sonata from the command line?</a><br/>
-	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#faq_10">10. If I have multiple columns for the playlist, can I hide the column header?</a><br/>
-	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#faq_11">11. Clicking on links launches the wrong browser, what can I do?</a><br/>
 	  <a href="#shortcuts">Shortcuts</a><br/></p>
 
 	<p><b><a name="overview">Overview</a></b></p>
@@ -134,93 +123,11 @@
 	</dl>
 
 	<p><b><a name="faq">FAQ</a></b></p>
-	
-	<p><a name="faq_1">1</a>. I don't see support for [insert feature]. Why?</p>
-	
-	<blockquote>There are a few optional features that will only work if a
-	  given Sonata dependency is installed. For systemtray support, PyGTK 2.10 
-	  or gnome-python-extras is required. For the ability to edit song tags, 
-	  tagpy and taglib are required. For automatic fetching of song lyrics,
-	  ZSI is required.</blockquote>
-	
-	<p><a name="faq_2">2</a>. How do I jump straight to certain tracks or search?</p>
-	
-	<blockquote>All you have to do is start typing! On your first keystroke, Sonata will pop
-	  open a filter bar (similar to xmms) at the bottom of your playlist and will filter your list 
-	  based on what you type. You can use the up and down arrows to quickly cycle through 
-	  songs. Escape will end the filtering.</blockquote>
 
-	<p><a name="faq_3">3</a>. Is there an easy way to toggle Sonata visible/hidden?</p>
+	<p>Frequently asked questions and answers about Sonata are kept at
+	  the <a href="http://mpd.wikia.com/wiki/Client:Sonata/FAQ">MPD
+	  wiki page Client:Sonata/FAQ</a>.</p>
 	
-	<blockquote>If you have dbus on your system, you can simply create a shortcut with your
-	  window manager to call "sonata --toggle". This will quickly make the application visible (if it
-	  wasn't visible) or minimized to the system tray (if it was visible).</blockquote>
-	
-	<p><a name="faq_4">4</a>. How can I change the view of my library?</p>
-	
-	<blockquote>By default, Sonata will present your music library in a Filesystem hierarchy
-	  view. You can also choose to switch to Artist or Genre views by clicking on the bottom-left
-	  icon that appears in the library tab.</blockquote>
-	
-	<p><a name="faq_5">5</a>. How does the cover art logic work?</p>
-	
-	<blockquote>First, you can set the priority between fetching for remote artwork from
-	  Amazon and searching your local filesystem for album covers. If "local, then remote" is
-	  chosen, Sonata will first search for artwork in your music directory, then fallback to
-	  fetching artwork from Amazon (and vice versa for "remote, then local"). If you were to
-	  set "local only" you could prevent Sonata from performing remote searches.</blockquote>
-	<blockquote>When searching locally for artwork, Sonata looks for the following:<br/>
-	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- ~/.covers/[Artist]-[Album].jpg<br/>
-	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- {cover, album, folder, front, .folder, AlbumArt, 
-	  AlbumArtSmall}.jpg<br/>
-	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- .folder.png<br/>
-	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- [the custom filename set in prefs]<br/>
-	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- [if there is exactly one image file]
-	</blockquote>
-
-	<p><a name="faq_6">6</a>. How does the song formatting work?</p>
-	
-	<blockquote>Sonata provides the user with flexibility to define how songs
-	  are displayed in various locations. The available pieces of information for a song
-	  are displayed in the preferences window. Note that you can enclose song formatting
-	  in curly brackets so that enclosed information only shows up if <i>all</i> of the 
-	  enclosed tags are found. For example, "{%T_}%A - %S{ [%B]}" will show 
-	  "07_Pearl Jam - Oceans [Ten]" if the track and album song tags exists, and 
-	  "Pearl Jam - Oceans" if neither tag exists.</blockquote>
-
-	<p><a name="faq_7">7</a>. How does the tag editing work?</p>
-
-	<blockquote>Sonata provides a pretty powerful tag editing interface, similar
-	  to that found in EasyTag. You can select multiple files (or even folders) and apply
-	  user changes to all selected files by clicking on the small button next to a given
-	  field. If you press the small button next to the track number field, it will set the current
-	  song at track number 1 and will increment each subsequent song. You can also do bulk 
-	  saving by clicking the "Save All" button. Note: You need taglib and tagpy installed in order
-	  to use the tag editing feature.</blockquote>
-
-	<p><a name="faq_8">8</a>. What kind of audio streams does Sonata support?</p>
-
-	<blockquote>In addition to streams natively supported by MPD, Sonata can also
-	  accept pls, m3u, and extm3u's as stream inputs.</blockquote>
-
-	<p><a name="faq_9">9</a>. How can I interface with Sonata from the command line?</p>
-	
-	<blockquote>Sonata has some playback arguments that allows you to set your own 
-	  keybindings to actions like play or pause. Type "sonata --help" to see the full 
-	  list of available command line arguments.</blockquote>
-
-	<p><a name="faq_10">10</a>. If I have multiple columns for the playlist, can I hide the column header?</p>
-	
-	<blockquote>Yes, Sonata has a hidden setting that can hide the column headers. Edit
-	  your ~/.config/sonata/sonatarc file while Sonata is closed and change the <i>show_header</i>
-	  value to False.</blockquote>
-	
-	<p><a name="faq_11">11</a>. Clicking on links launches the wrong browser, what can I do?</p>
-	
-	<blockquote>There is a hidden configuration option for manually setting your own browser.
-	  Simply edit your ~/.config/sonata/sonatarc file while Sonata is closed and change the
-	  <i>browser</i> value to your browser binary name (e.g. "firefox").</blockquote>
-
 	<p><b><a name="shortcuts">Shortcuts</a></b></p>
 
 	<p>Note: This list can also be found by going to About > Shortcuts.</p>
