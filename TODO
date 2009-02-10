@@ -16,7 +16,7 @@ v1.6.1
 
 v1.7
 	remove libegg? statusicon provides everything in gtk 2.15, not yet in pygtk
-	albumartist tag for, e.g., VA albums
+	albumartist tag for, e.g., VA albums; composer for classical
 	plugin support
 		- single instance, mmkeys (could remove dbus; faster on startup, less memory)
 		- artwork

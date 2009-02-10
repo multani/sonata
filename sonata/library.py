@@ -610,9 +610,19 @@ class Library(object):
         playtime = 0
         num_songs = 0
         for s in searches:
-            count = mpdh.call(self.client, 'count', *s)
-            playtime += int(mpdh.get(count, 'playtime'))
-            num_songs += int(mpdh.get(count, 'songs'))
+
+            if '' in s and mpdh.mpd_major_version(self.client) <= 0.13:
+
+                # Can't return count for empty tags, use search instead:
+
+                _results, playtime, num_songs = self.library_return_search_items(genre=genre, artist=artist, album=album, year=year)
+
+            else:
+
+                count = mpdh.call(self.client, 'count', *s)
+                playtime += int(mpdh.get(count, 'playtime'))
+                num_songs += int(mpdh.get(count, 'songs'))
+
         return (playtime, num_songs)
 
     def library_compose_list_count_searchlist_single(self, search, typename, cached_list, searchlist):
@@ -709,6 +719,9 @@ class Library(object):
 
             else:
                 strip_type = None
+
+            if len(args_tuple) == 0:
+                return None, 0, 0
 
             items = mpdh.call(self.client, 'search', *args_tuple)
             if items is not None:
