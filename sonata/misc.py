@@ -90,7 +90,7 @@ def remove_list_duplicates(inputlist, case=True):
     # Note that we can't use list(set(inputlist))
     # because we want the inputlist order preserved.
     if case:
-        key = id
+        key = lambda x:x
     else:
         # repr() allows inputlist to be a list of tuples
         # FIXME: Doesn't correctly compare uppercase and
