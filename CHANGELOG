@@ -8,6 +8,7 @@ v1.6
 	+ Drag-and-drop to copy files from Sonata to a file manager (Kamil)
 	+ Ability to show file paths in tag editing window
 	+ Use plchanges for faster performance (e.g. add to playlist)
+	+ Allow manually fetching remote art when using local art pref (Erik)
 	+ Only minimize to trayicon on click if focused; raise if not focused
 	+ Use new 'listplaylists' command for retrieving playlists
 	+ Better error trapping

@@ -2190,10 +2190,7 @@ class Base(object):
             album = None
             stream = None
             if self.conn and self.status and self.status['state'] in ['play', 'pause']:
-                if self.config.covers_pref != consts.ART_LOCAL:
-                    self.UIManager.get_widget('/imagemenu/chooseimage_menu/').show()
-                else:
-                    self.UIManager.get_widget('/imagemenu/chooseimage_menu/').hide()
+                self.UIManager.get_widget('/imagemenu/chooseimage_menu/').show()
                 self.UIManager.get_widget('/imagemenu/localimage_menu/').show()
                 artist = mpdh.get(self.songinfo, 'artist', None)
                 album = mpdh.get(self.songinfo, 'album', None)
