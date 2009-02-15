@@ -229,6 +229,7 @@ class Base(object):
             ('plmenu', None, _('Sa_ve List to')),
             ('profilesmenu', None, _('_Connection')),
             ('playaftermenu', None, _('P_lay after')),
+            ('updatemenu', None, _('_Update')),
             ('chooseimage_menu', gtk.STOCK_CONVERT, _('Use _Remote Image...'), None, None, self.image_remote),
             ('localimage_menu', gtk.STOCK_OPEN, _('Use _Local Image...'), None, None, self.image_local),
             ('fullscreencoverart_menu', gtk.STOCK_FULLSCREEN, _('_Fullscreen Mode'), 'F11', None, self.fullscreen_cover_art),
@@ -241,7 +242,8 @@ class Base(object):
             ('quitmenu', gtk.STOCK_QUIT, _('_Quit'), None, None, self.on_delete_event_yes),
             ('removemenu', gtk.STOCK_REMOVE, _('_Remove'), None, None, self.on_remove),
             ('clearmenu', gtk.STOCK_CLEAR, _('_Clear'), '<Ctrl>Delete', None, self.mpd_clear),
-            ('updatemenu', None, _('_Update Path'), None, None, self.on_updatedb_path),
+            ('updatefullmenu', None, _('_Entire Library'), '<Ctrl><Shift>u', None, self.on_updatedb),
+            ('updateselectedmenu', None, _('_Selected Items'), '<Ctrl>u', None, self.on_updatedb_shortcut),
             ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'), 'F5', None, self.on_prefs),
             ('aboutmenu', None, _('_About...'), 'F1', None, self.on_about),
             ('tagmenu', None, _('_Edit Tags...'), '<Ctrl>t', None, self.on_tags_edit),
@@ -269,8 +271,6 @@ class Base(object):
             ('raisekey2', None, 'Raise Volume Key 2', '<Ctrl>equal', None, self.on_volume_raise),
             ('quitkey', None, 'Quit Key', '<Ctrl>q', None, self.on_delete_event_yes),
             ('quitkey2', None, 'Quit Key 2', '<Ctrl>w', None, self.on_delete_event_yes),
-            ('updatekey', None, 'Update Key', '<Ctrl>u', None, self.on_updatedb_path),
-            ('updatekey2', None, 'Update Key 2', '<Ctrl><Shift>u', None, self.on_updatedb),
             ('connectkey', None, 'Connect Key', '<Alt>c', None, self.on_connectkey_pressed),
             ('disconnectkey', None, 'Disconnect Key', '<Alt>d', None, self.on_disconnectkey_pressed),
             ('searchkey', None, 'Search Key', '<Ctrl>h', None, self.on_library_search_shortcut),
@@ -336,9 +336,12 @@ class Base(object):
                   <separator name="FM4"/>
                 </menu>
                 <separator name="FM1"/>
-                <menuitem action="updatemenu"/>
                 <menuitem action="repeatmenu"/>
                 <menuitem action="randommenu"/>
+                <menu action="updatemenu">
+                  <menuitem action="updateselectedmenu"/>
+                  <menuitem action="updatefullmenu"/>
+                </menu>
                 <separator name="FM2"/>
                 <menu action="profilesmenu">
                 </menu>
@@ -373,8 +376,6 @@ class Base(object):
                 <menuitem action="lowerkey"/>
                 <menuitem action="raisekey"/>
                 <menuitem action="raisekey2"/>
-                <menuitem action="updatekey"/>
-                <menuitem action="updatekey2"/>
                 <menuitem action="connectkey"/>
                 <menuitem action="disconnectkey"/>
                 <menuitem action="centerplaylistkey"/>
@@ -1621,11 +1622,12 @@ class Base(object):
                 pass
 
         if self.conn:
-            if self.status and self.status.get('updating_db'):
+            if mpdh.mpd_is_updating(self.status):
                 # MPD library is being updated
                 self.update_statusbar(True)
-            elif self.prevstatus == None or self.prevstatus.get('updating_db', 0) != self.status.get('updating_db', 0):
-                if not (self.status and self.status.get('updating_db', 0)):
+            elif self.prevstatus == None or mpdh.mpd_is_updating(self.prevstatus) != mpdh.mpd_is_updating(self.status):
+                if not mpdh.mpd_is_updating(self.status):
+                    # Done updating, refresh interface
                     self.mpd_updated_db()
             elif self.mpd_update_queued:
                 # If the update happens too quickly, we won't catch it in
@@ -2143,25 +2145,29 @@ class Base(object):
         self.update_menu_visibility()
         gobject.idle_add(self.mainmenu.popup, None, None, self.menu_position, 3, 0)
 
-    def on_updatedb(self, _widget):
+    def on_updatedb(self, _action):
         if self.conn:
             if self.library.search_visible():
                 self.library.on_search_end(None)
-            self.mpd_update('/')
+            mpdh.update(self.client, '/', self.status)
             self.mpd_update_queued = True
 
-    def on_updatedb_path(self, _action):
-        if self.conn:
-            if self.current_tab == self.TAB_LIBRARY:
-                if self.library.search_visible():
-                    self.library.on_search_end(None)
-                filenames = self.library.get_path_child_filenames(True)
-                if len(filenames) > 0:
-                    mpdh.call(self.client, 'command_list_ok_begin')
-                    for filename in filenames:
-                        self.mpd_update(filename)
-                    mpdh.call(self.client, 'command_list_end')
-                    self.mpd_update_queued = True
+    def on_updatedb_shortcut(self, _action):
+        # If no songs selected, update view. Otherwise update
+        # selected items.
+        if self.library.not_parent_is_selected():
+            self.on_updatedb_path(True)
+        else:
+            self.on_updatedb_path(False)
+
+    def on_updatedb_path(self, selected_only):
+        if self.conn and self.current_tab == self.TAB_LIBRARY:
+            if self.library.search_visible():
+                self.library.on_search_end(None)
+            filenames = self.library.get_path_child_filenames(True, selected_only)
+            if len(filenames) > 0:
+                mpdh.update(self.client, filenames, self.status)
+                self.mpd_update_queued = True
 
     def on_image_activate(self, widget, event):
         self.window.handler_block(self.mainwinhandler)
@@ -2794,10 +2800,6 @@ class Base(object):
             mpdh.call(self.client, 'next')
             self.iterate_now()
 
-    def mpd_update(self, path='/'):
-        if self.conn:
-            mpdh.call(self.client, 'update', path)
-
     def on_remove(self, _widget):
         if self.conn:
             model = None
@@ -3110,12 +3112,6 @@ class Base(object):
         if to_focus:
             gobject.idle_add(ui.focus, to_focus)
 
-        if False: # FIXME would we still need this?
-            # This prevents the artwork from being cutoff when the
-            # user first clicks on the Info tab. Why this happens
-            # and how this fixes it is beyond me.
-            gobject.idle_add(self.info_update, True, False, True)
-
         gobject.idle_add(self.update_menu_visibility)
         if not self.img_clicked:
             self.last_tab = self.current_tab
@@ -3207,16 +3203,23 @@ class Base(object):
         elif self.current_tab == self.TAB_LIBRARY:
             if len(self.librarydata) > 0:
                 if self.library_selection.count_selected_rows() > 0:
-                    for menu in ['add', 'replace', 'playafter', 'tag', 'update']:
+                    for menu in ['add', 'replace', 'playafter', 'tag']:
                         self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').show()
+                    self.UIManager.get_widget('/mainmenu/updatemenu/updateselectedmenu/').show()
                 else:
-                    for menu in ['add', 'replace', 'playafter', 'tag', 'update']:
+                    for menu in ['add', 'replace', 'playafter', 'tag']:
                         self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
+                    self.UIManager.get_widget('/mainmenu/updatemenu/updateselectedmenu/').hide()
             else:
                 for menu in ['add', 'replace', 'playafter', 'tag', 'update']:
                     self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
             for menu in ['remove', 'clear', 'pl', 'rename', 'rm', 'new', 'edit', 'sort']:
                 self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
+            if self.library.search_visible():
+                self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
+            else:
+                self.UIManager.get_widget('/mainmenu/updatemenu/').show()
+                self.UIManager.get_widget('/mainmenu/updatemenu/updatefullmenu/').show()
         elif self.current_tab == self.TAB_PLAYLISTS:
             if self.playlists_selection.count_selected_rows() > 0:
                 for menu in ['add', 'replace', 'playafter', 'rm']:
@@ -3298,10 +3301,7 @@ class Base(object):
         self.config.tags_use_mpdpath = use_mpdpath
 
     def tags_mpd_update(self, tag_paths):
-        mpdh.call(self.client, 'command_list_ok_begin')
-        for path in tag_paths:
-            mpdh.call(self.client, 'update', path)
-        mpdh.call(self.client, 'command_list_end')
+        mpdh.update(self.client, list(tag_paths), self.status)
         self.mpd_update_queued = True
 
     def on_about(self, _action):

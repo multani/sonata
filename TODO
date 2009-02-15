@@ -1,7 +1,6 @@
 v1.6
 	disconnect/connect/reconnect ui weirdness
 	window positioning weirdness when unwithdrawing app from systray
-	updating logic per Olivier feedback
 	sonata freezes with gail/accessibility enabled during new library searching
 	threaded method for artwork - possible threading traceback when exiting sonata
 	'everything' library search, remove order-specific matching

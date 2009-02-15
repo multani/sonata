@@ -895,14 +895,31 @@ class Library(object):
                 self.library_browse(None, value)
                 return True
 
-    def get_path_child_filenames(self, return_root):
+    def not_parent_is_selected(self):
+        # Returns True if something is selected and it's not
+        # ".." or "/":
+        model, rows = self.library_selection.get_selected_rows()
+        for path in rows:
+            i = model.get_iter(path)
+            value = model.get_value(i, 2)
+            if value != ".." and value != "/":
+                return True
+        return False
+
+    def get_path_child_filenames(self, return_root, selected_only=True):
         # If return_root=True, return main directories whenever possible
         # instead of individual songs in order to reduce the number of
         # mpd calls we need to make. We won't want this behavior in some
         # instances, like when we want all end files for editing tags
         items = []
-        model, selected = self.library_selection.get_selected_rows()
-        for path in selected:
+        if selected_only:
+            model, rows = self.library_selection.get_selected_rows()
+        else:
+            model = self.librarydata
+            rows = []
+            for i in range(len(model)):
+                rows.append((i,))
+        for path in rows:
             i = model.get_iter(path)
             pb = model.get_value(i, 0)
             data = model.get_value(i, 1)

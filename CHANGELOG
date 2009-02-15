@@ -1,10 +1,10 @@
-v1.6
+v1.6 - February 21, 2009 ??
 	+ Album browsing mode, additional details in library views
 	+ Real-time searching of library (search as you type)
 	+ Fullscreen album art mode (via right-click on artwork) (mips)
 	+ Improve library searching across meta tags
 	+ Show file path in tooltip for library search results
-	+ Default to updating selected paths in library, not entire library
+	+ Improved support for updating less than entire library
 	+ Drag-and-drop to copy files from Sonata to a file manager (Kamil)
 	+ Ability to show file paths in tag editing window
 	+ Use plchanges for faster performance (e.g. add to playlist)
