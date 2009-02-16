@@ -433,12 +433,7 @@ class Base(object):
         self.library_treeview = self.library.get_treeview()
         self.library_selection = self.library.get_selection()
 
-        libraryactions = [
-            ('filesystemview', gtk.STOCK_HARDDISK, _('Filesystem'), None, None, self.library.on_libraryview_chosen),
-            ('artistview', 'artist', _('Artist'), None, None, self.library.on_libraryview_chosen),
-            ('genreview', gtk.STOCK_ORIENTATION_PORTRAIT, _('Genre'), None, None, self.library.on_libraryview_chosen),
-            ('albumview', 'album', _('Album'), None, None, self.library.on_libraryview_chosen),
-            ]
+        libraryactions = self.library.get_libraryactions()
 
         # Info tab
         self.info = info.Info(self.config, self.artwork.get_info_image(), linkcolor, self.on_link_click, self.library.library_return_search_items, self.get_playing_song, self.TAB_INFO, self.on_image_activate, self.on_image_motion_cb, self.on_image_drop_cb, self.new_tab)

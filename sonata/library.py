@@ -49,6 +49,11 @@ class Library(object):
         self.search_terms = [_('Artist'), _('Title'), _('Album'), _('Genre'), _('Filename'), _('Everything')]
         self.search_terms_mpd = ['artist', 'title', 'album', 'genre', 'file', 'any']
 
+        self.VIEW_FILESYSTEM_STR = _("Filesystem")
+        self.VIEW_ARTIST_STR = _("Artists")
+        self.VIEW_ALBUM_STR = _("Albums")
+        self.VIEW_GENRE_STR = _("Genres")
+
         self.libfilterbox_cmd_buf = None
         self.libfilterbox_cond = None
         self.libfilterbox_source = None
@@ -76,17 +81,21 @@ class Library(object):
         expanderwindow2 = ui.scrollwindow(add=self.library)
         self.searchbox = gtk.HBox()
         self.searchcombo = ui.combo(items=self.search_terms)
+        self.searchcombo.set_tooltip_text(_("Search terms"))
         self.searchtext = ui.entry()
-        self.searchbutton = ui.button(text=_('_End Search'), img=ui.image(stock=gtk.STOCK_CLOSE), h=self.searchcombo.size_request()[1])
+        self.searchtext.set_tooltip_text(_("Search library"))
+        self.searchbutton = ui.button(img=ui.image(stock=gtk.STOCK_CANCEL), h=self.searchcombo.size_request()[1])
         self.searchbutton.set_no_show_all(True)
         self.searchbutton.hide()
+        self.searchbutton.set_tooltip_text(_("End Search"))
         self.libraryview = ui.button(relief=gtk.RELIEF_NONE)
         self.libraryview.set_tooltip_text(_("Library browsing view"))
         self.library_view_assign_image()
         self.searchbox.pack_start(self.libraryview, False, False, 1)
-        self.searchbox.pack_start(gtk.VSeparator(), False, False, 0)
-        self.searchbox.pack_start(self.searchcombo, False, False, 2)
+        self.searchbox.pack_start(gtk.VSeparator(), False, False, 2)
+        self.searchbox.pack_start(ui.label(_("Search") + ":"), False, False, 3)
         self.searchbox.pack_start(self.searchtext, True, True, 2)
+        self.searchbox.pack_start(self.searchcombo, False, False, 2)
         self.searchbox.pack_start(self.searchbutton, False, False, 2)
         self.libraryvbox.pack_start(expanderwindow2, True, True)
         self.libraryvbox.pack_start(self.searchbox, False, False, 2)
@@ -136,6 +145,14 @@ class Library(object):
         self.library.append_column(self.librarycolumn)
         self.library_selection.set_mode(gtk.SELECTION_MULTIPLE)
 
+    def get_libraryactions(self):
+        return [
+            ('filesystemview', gtk.STOCK_HARDDISK, self.VIEW_FILESYSTEM_STR, None, None, self.on_libraryview_chosen),
+            ('artistview', 'artist', self.VIEW_ARTIST_STR, None, None, self.on_libraryview_chosen),
+            ('genreview', gtk.STOCK_ORIENTATION_PORTRAIT, self.VIEW_GENRE_STR, None, None, self.on_libraryview_chosen),
+            ('albumview', 'album', self.VIEW_ALBUM_STR, None, None, self.on_libraryview_chosen),
+            ]
+
     def get_model(self):
         return self.librarydata
 
@@ -183,14 +200,15 @@ class Library(object):
         gobject.idle_add(self.library.scroll_to_point, 0, 0)
 
     def library_view_assign_image(self):
-        if self.config.lib_view == consts.VIEW_FILESYSTEM:
-            self.libraryview.set_image(ui.image(stock=gtk.STOCK_HARDDISK))
-        elif self.config.lib_view == consts.VIEW_ARTIST:
-            self.libraryview.set_image(ui.image(stock='artist'))
-        elif self.config.lib_view == consts.VIEW_GENRE:
-            self.libraryview.set_image(ui.image(stock='gtk-orientation-portrait'))
-        elif self.config.lib_view == consts.VIEW_ALBUM:
-            self.libraryview.set_image(ui.image(stock='album'))
+        info = [(self.VIEW_FILESYSTEM_STR, gtk.STOCK_HARDDISK, consts.VIEW_FILESYSTEM), \
+                (self.VIEW_ARTIST_STR, 'artist', consts.VIEW_ARTIST), \
+                (self.VIEW_GENRE_STR, 'gtk-orientation-portrait', consts.VIEW_GENRE), \
+                (self.VIEW_ALBUM_STR, 'album', consts.VIEW_ALBUM)]
+        for i, txt in enumerate(info):
+            if self.config.lib_view == txt[2]:
+                self.libraryview.set_image(ui.image(stock=txt[1]))
+                self.libraryview.set_label(" " + txt[0])
+                break
 
     def view_caches_reset(self):
         # We should call this on first load and whenever mpd is
