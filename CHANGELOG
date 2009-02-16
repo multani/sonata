@@ -3,6 +3,7 @@ v1.6 - February 21, 2009 ??
 	+ Real-time searching of library (search as you type)
 	+ Fullscreen album art mode (via right-click on artwork) (mips)
 	+ Improve library searching across meta tags
+	+ Sort library search results
 	+ Show file path in tooltip for library search results
 	+ Improved support for updating less than entire library
 	+ Drag-and-drop to copy files from Sonata to a file manager (Kamil)

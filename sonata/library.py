@@ -1074,11 +1074,13 @@ class Library(object):
             return
         self.library.freeze_child_notify()
         currlen = len(self.librarydata)
-        newlist = []
+        bd = []
         for item in matches:
             if 'file' in item:
-                newlist.append([self.sonatapb, self.library_set_data(path=mpdh.get(item, 'file')), self.parse_formatting(self.config.libraryformat, item, True)])
-        for i, item in enumerate(newlist):
+                bd += [(self.parse_formatting(self.config.libraryformat, item, True), [self.sonatapb, self.library_set_data(path=mpdh.get(item, 'file')), self.parse_formatting(self.config.libraryformat, item, True)])]
+        bd.sort(locale.strcoll, key=operator.itemgetter(0))
+        i = 0
+        for _sort, item in bd:
             if i < currlen:
                 j = self.librarydata.get_iter((i, ))
                 for index in range(len(item)):
@@ -1086,8 +1088,9 @@ class Library(object):
                         self.librarydata.set_value(j, index, item[index])
             else:
                 self.librarydata.append(item)
+            i += 1
         # Remove excess items...
-        newlen = len(newlist)
+        newlen = len(bd)
         if newlen == 0:
             self.librarydata.clear()
         else:

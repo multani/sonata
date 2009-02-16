@@ -12,6 +12,7 @@ v1.6.1
 	save to playlist.. default to selected files? pref?
 	tag editing - support for composer, disc
 	song queue (mpd-git will be bringing it back)
+	search results - show albums, artists, genres that match
 
 v1.7
 	remove libegg? statusicon provides everything in gtk 2.15, not yet in pygtk
