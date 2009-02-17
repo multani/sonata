@@ -973,6 +973,8 @@ class Library(object):
 
     def on_library_search_combo_change(self, _combo=None):
         self.config.last_search_num = self.searchcombo.get_active()
+        if not self.search_visible():
+            return
         self.prevlibtodo = ""
         self.prevlibtodo_base = "__"
         self.libsearchfilter_feed_loop(self.searchtext)
