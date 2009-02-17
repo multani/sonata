@@ -142,11 +142,13 @@ class Artwork(object):
     def library_artwork_update(self, model, start_row, end_row, albumpb):
         self.albumpb = albumpb
 
-        # Update self.lib_art_rows_local with new rows
+        # Update self.lib_art_rows_local with new rows followed
+        # by the rest of the rows.
         self.lib_art_cond.acquire()
         self.lib_art_rows_local = []
         self.lib_art_rows_remote = []
-        for row in range(start_row, end_row+1):
+        test_rows = range(start_row, end_row+1) + range(len(model))
+        for row in test_rows:
             i = model.get_iter((row,))
             icon = model.get_value(i, 0)
             if icon == self.albumpb:

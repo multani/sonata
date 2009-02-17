@@ -471,8 +471,7 @@ class Library(object):
                     elif year and len(year) > 0 and year != self.NOTAG:
                         display += " <span weight='light'>(" + misc.escape_html(year) + ")</span>"
                     display += self.add_display_info(num_songs, int(playtime)/60)
-                    pb = self.artwork.get_library_artwork_cached_pb(cache_data, self.albumpb)
-                    bd += [(misc.lower_no_the(album), [pb, data, display])]
+                    bd += [(misc.lower_no_the(album), [self.albumpb, data, display])]
         bd.sort(locale.strcoll, key=operator.itemgetter(0))
         if genreview:
             self.lib_view_genre_cache = bd
