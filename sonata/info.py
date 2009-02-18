@@ -12,7 +12,7 @@ import mpdhelper as mpdh
 from consts import consts
 
 class Info(object):
-    def __init__(self, config, info_image, linkcolor, on_link_click_cb, library_return_search_items, get_playing_song, TAB_INFO, on_image_activate, on_image_motion_cb, on_image_drop_cb, new_tab):
+    def __init__(self, config, info_image, linkcolor, on_link_click_cb, library_return_search_items, get_playing_song, TAB_INFO, on_image_activate, on_image_motion_cb, on_image_drop_cb, album_return_artist_and_tracks, new_tab):
         self.config = config
         self.info_image = info_image
         self.linkcolor = linkcolor
@@ -22,6 +22,7 @@ class Info(object):
         self.on_image_activate = on_image_activate
         self.on_image_motion_cb = on_image_motion_cb
         self.on_image_drop_cb = on_image_drop_cb
+        self.album_return_artist_and_tracks = album_return_artist_and_tracks
 
         try:
             self.enc = locale.getpreferredencoding()
@@ -283,19 +284,20 @@ class Info(object):
                     self.info_editlabel.set_text("")
                 if 'album' in songinfo:
                     # Update album info:
+                    artist, tracks = self.album_return_artist_and_tracks()
                     trackinfo = ""
                     album = mpdh.get(songinfo, 'album')
-                    artist = mpdh.get(songinfo, 'artist', None)
                     year = mpdh.get(songinfo, 'date', None)
-                    albuminfo = album + "\n"
-                    tracks, playtime, _num_songs = self.library_return_search_items(album=album, artist=artist, year=year)
+                    if album is not None:
+                        albuminfo = album + "\n"
+                    playtime = 0
                     if len(tracks) > 0:
                         for track in tracks:
+                            playtime += int(mpdh.get(track, 'time', 0))
                             if 'title' in track:
                                 trackinfo = trackinfo + mpdh.getnum(track, 'track', '0', False, 2) + '. ' + mpdh.get(track, 'title') + '\n'
                             else:
                                 trackinfo = trackinfo + mpdh.getnum(track, 'track', '0', False, 2) + '. ' + mpdh.get(track, 'file').split('/')[-1] + '\n'
-                        artist = album_current_artist[1]
                         if artist is not None:
                             albuminfo += artist + "\n"
                         if year is not None:

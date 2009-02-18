@@ -436,7 +436,7 @@ class Base(object):
         libraryactions = self.library.get_libraryactions()
 
         # Info tab
-        self.info = info.Info(self.config, self.artwork.get_info_image(), linkcolor, self.on_link_click, self.library.library_return_search_items, self.get_playing_song, self.TAB_INFO, self.on_image_activate, self.on_image_motion_cb, self.on_image_drop_cb, self.new_tab)
+        self.info = info.Info(self.config, self.artwork.get_info_image(), linkcolor, self.on_link_click, self.library.library_return_search_items, self.get_playing_song, self.TAB_INFO, self.on_image_activate, self.on_image_motion_cb, self.on_image_drop_cb, self.album_return_artist_and_tracks, self.new_tab)
 
         self.info_imagebox = self.info.get_info_imagebox()
 
@@ -2289,11 +2289,10 @@ class Base(object):
             targetfile = misc.file_exists_insensitive(targetfile)
             return misc.file_from_utf8(targetfile)
 
-    def album_return_artist_name(self):
-        # Determine if album_name is a various artists album.
-        if self.album_current_artist[0] == self.songinfo:
-            return
-        songdatalist = []
+    def album_return_artist_and_tracks(self):
+        # Includes logic for Various Artists albums to determine
+        # the tracks.
+        datalist = []
         album = mpdh.get(self.songinfo, 'album')
         songs, playtime, num_songs = self.library.library_return_search_items(album=album)
         for song in songs:
@@ -2301,11 +2300,28 @@ class Base(object):
             artist = mpdh.get(song, 'artist', '')
             path = os.path.dirname(mpdh.get(song, 'file'))
             data = library.library_set_data(album=album, artist=artist, year=year, path=path)
-            songdatalist.append(data)
-        if len(songdatalist) > 0:
-            songdatalist = misc.remove_list_duplicates(songdatalist, case=False)
-            songdatalist = self.library.list_identify_VA_albums(songdatalist)
-            artist = library.library_get_data(songdatalist[0], 'artist')
+            datalist.append(data)
+        if len(datalist) > 0:
+            datalist = misc.remove_list_duplicates(datalist, case=False)
+            datalist = self.library.list_identify_VA_albums(datalist)
+            # Find all songs in album:
+            retsongs = []
+            for song in songs:
+                if unicode(mpdh.get(song, 'album')).lower() == unicode(library.library_get_data(datalist[0], 'album')).lower() \
+                and mpdh.get(song, 'date', '') == library.library_get_data(datalist[0], 'year'):
+                    retsongs.append(song)
+
+            artist = library.library_get_data(datalist[0], 'artist')
+            return artist, retsongs
+        else:
+            return None, None
+
+    def album_return_artist_name(self):
+        # Determine if album_name is a various artists album.
+        if self.album_current_artist[0] == self.songinfo:
+            return
+        artist, tracks = self.album_return_artist_and_tracks()
+        if artist is not None:
             self.album_current_artist = [self.songinfo, artist]
         else:
             self.album_current_artist = [self.songinfo, ""]
