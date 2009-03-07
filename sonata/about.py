@@ -16,6 +16,7 @@ es - Xoan Sampaiño <xoansampainho@gmail.com>
 et - Mihkel <turakas@gmail.com>
 fi - Ilkka Tuohela <hile@hack.fi>
 fr - Floreal M <florealm@gmail.com>
+ja - Masato Hashimoto <cabezon.hashimoto@gmail.com>
 it - Gianni Vialetto <forgottencrow@gmail.com>
 nl - Olivier Keun <litemotiv@gmail.com>
 pl - Tomasz Dominikowski <dominikowski@gmail.com>

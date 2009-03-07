@@ -1,4 +1,4 @@
-v1.6 - February 21, 2009 ??
+v1.6 - Pending
 	+ Album browsing mode, additional details in library views
 	+ Real-time searching of library (search as you type)
 	+ Fullscreen album art mode (via right-click on artwork) (mips)
@@ -16,6 +16,7 @@ v1.6 - February 21, 2009 ??
 	+ Make process name 'sonata' for linux (himdel)
 	+ Look for <artist> - <title>.txt lyrics files by other clients
 	+ Add Traditional Chinese translation (b4283)
+	+ Add Japanese translation (Masato)
 	+ Code modernisation, modularisation, overall cleanup, documentation
 	+ A prototype of a plug-in system
 	+ Unicode fixes
