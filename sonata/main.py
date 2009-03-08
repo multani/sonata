@@ -783,6 +783,8 @@ class Base(object):
         for tabs in pluginsystem.get('tabs'):
             self.new_tab(*tabs())
 
+        self.notebook_show_first_tab = not self.config.tabs_expanded or self.config.withdrawn
+
     def new_tab(self, page, stock, text, focus):
         # create the "ear" of the tab:
         hbox = gtk.HBox()
@@ -2054,6 +2056,11 @@ class Base(object):
             if self.status and self.status['state'] in ['play','pause']:
                 gobject.idle_add(self.current.center_song_in_list)
             self.window.set_geometry_hints(self.window)
+        if self.notebook_show_first_tab:
+            # Sonata was launched in collapsed state. Ensure we display
+            # first tab:
+            self.notebook_show_first_tab = False
+            self.notebook.set_current_page(0)
         # Put focus to the notebook:
         self.on_notebook_page_change(self.notebook, 0, self.notebook.get_current_page())
 
@@ -2655,6 +2662,11 @@ class Base(object):
         self.notebook.set_no_show_all(False)
         self.config.withdrawn = False
         self.UIManager.get_widget('/traymenu/showmenu').set_active(True)
+        if self.notebook_show_first_tab and self.config.expanded:
+            # Sonata was launched in withdrawn state. Ensure we display
+            # first tab:
+            self.notebook_show_first_tab = False
+            self.notebook.set_current_page(0)
         gobject.idle_add(self.withdraw_app_undo_present_and_focus)
 
     def withdraw_app_undo_present_and_focus(self):

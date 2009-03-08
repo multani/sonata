@@ -4,7 +4,6 @@ v1.6
 	sonata freezes with gail/accessibility enabled during new library searching
 	threaded method for artwork - possible threading traceback when exiting sonata
 	'everything' library search, remove order-specific matching
-	if sonata opened while collapsed, make sure first tab displayed when expanded
 	if sonata opened while mpd disconnected, streams not updated on connect
 
 v1.6.1
