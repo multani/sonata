@@ -2086,10 +2086,10 @@ class Base(object):
         at, length = [int(c) for c in self.status['time'].split(':')]
         try:
             if direction == gtk.gdk.SCROLL_UP:
-                seektime = int(self.status['time'].split(":")[0]) - 5
+                seektime = int(self.status['time'].split(":")[0]) + 5
                 if seektime < 0: seektime = 0
             elif direction == gtk.gdk.SCROLL_DOWN:
-                seektime = int(self.status['time'].split(":")[0]) + 5
+                seektime = int(self.status['time'].split(":")[0]) - 5
                 if seektime > mpdh.get(self.songinfo, 'time'):
                     seektime = mpdh.get(self.songinfo, 'time')
             self.seek(int(self.status['song']), seektime)
