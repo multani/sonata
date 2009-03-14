@@ -41,6 +41,7 @@ class Config:
         self.withdrawn = False
         self.sticky = False
         self.ontop = False
+        self.decorated = True
         self.screen = 0
 
         self.xfade = 0
@@ -179,6 +180,8 @@ class Config:
             self.sticky = conf.getboolean('player', 'sticky')
         if conf.has_option('player', 'ontop'):
             self.ontop = conf.getboolean('player', 'ontop')
+        if conf.has_option('player', 'decorated'):
+            self.decorated = conf.getboolean('player', 'decorated')
         if conf.has_option('player', 'notification'):
             self.show_notification = conf.getboolean('player', 'notification')
         if conf.has_option('player', 'popup_time'):
@@ -378,6 +381,7 @@ class Config:
         conf.set('player', 'lyrics', self.show_lyrics)
         conf.set('player', 'sticky', self.sticky)
         conf.set('player', 'ontop', self.ontop)
+        conf.set('player', 'decorated', self.decorated)
         conf.set('player', 'notification', self.show_notification)
         conf.set('player', 'popup_time', self.popup_option)
         conf.set('player', 'update_on_start', self.update_on_start)

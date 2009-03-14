@@ -217,6 +217,8 @@ class Base(object):
                 self.window.set_keep_above(True)
             if self.config.sticky:
                 self.window.stick()
+            if not self.config.decorated:
+                self.window.set_decorated(False)
 
         self.notebook = gtk.Notebook()
 
@@ -2894,12 +2896,8 @@ class Base(object):
         self.preferences.on_prefs_real(self.window, self.popuptimes, self.scrobbler.imported(), self.scrobbler.import_module, self.scrobbler.init, self.scrobbler.auth_changed, trayicon_available, trayicon_in_use, self.on_connectkey_pressed, self.on_currsong_notify, self.update_infofile, self.prefs_notif_toggled, self.prefs_stylized_toggled, self.prefs_art_toggled, self.prefs_playback_toggled, self.prefs_progress_toggled, self.prefs_statusbar_toggled, self.prefs_lyrics_toggled, self.prefs_trayicon_toggled, self.prefs_window_response)
 
     # XXX move the prefs handling parts of prefs_* to preferences.py
-    def prefs_window_response(self, window, response, prefsnotebook, exit_stop, win_ontop, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, using_mpd_env_vars, prev_host, prev_port, prev_password):
+    def prefs_window_response(self, window, response, prefsnotebook, exit_stop, win_ontop, win_decor, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, using_mpd_env_vars, prev_host, prev_port, prev_password):
         if response == gtk.RESPONSE_CLOSE:
-            self.config.stop_on_exit = exit_stop.get_active()
-            self.config.ontop = win_ontop.get_active()
-            self.config.covers_pref = display_art_combo.get_active()
-            self.config.sticky = win_sticky.get_active()
             if self.config.show_lyrics and self.config.lyrics_location != consts.LYRICS_LOCATION_HOME:
                 if not os.path.isdir(misc.file_from_utf8(self.config.musicdir[self.config.profile_num])):
                     ui.show_msg(self.window, _("To save lyrics to the music file's directory, you must specify a valid music directory."), _("Music Dir Verification"), 'musicdirVerificationError', gtk.BUTTONS_CLOSE)
@@ -2914,6 +2912,11 @@ class Base(object):
                     prefsnotebook.set_current_page(0)
                     direntry.grab_focus()
                     return
+            self.config.stop_on_exit = exit_stop.get_active()
+            self.config.ontop = win_ontop.get_active()
+            self.config.decorated = not win_decor.get_active()
+            self.config.covers_pref = display_art_combo.get_active()
+            self.config.sticky = win_sticky.get_active()
             self.config.minimize_to_systray = minimize.get_active()
             self.config.update_on_start = update_start.get_active()
             self.config.autoconnect = autoconnect.get_active()
@@ -2942,6 +2945,10 @@ class Base(object):
                     self.window.stick()
                 else:
                     self.window.unstick()
+                if self.config.decorated != self.window.get_decorated():
+                    self.withdraw_app()
+                    self.window.set_decorated(self.config.decorated)
+                    self.withdraw_app_undo()
             self.config.xfade = crossfadespin.get_value_as_int()
             if crossfadecheck.get_active():
                 self.config.xfade_enabled = True

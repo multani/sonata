@@ -13,6 +13,7 @@ v1.6 - Pending
 	+ Swap mousewheel behavior for progressbar
 	+ Only minimize to trayicon on click if focused; raise if not focused
 	+ Use new 'listplaylists' command for retrieving playlists
+	+ Allow hiding the application's titlebar in preferences
 	+ Better error trapping
 	+ Make process name 'sonata' for linux (himdel)
 	+ Look for <artist> - <title>.txt lyrics files by other clients
