@@ -1,18 +1,22 @@
 v1.6
 	disconnect/connect/reconnect ui weirdness
 	sonata freezes with gail/accessibility enabled during new library searching
+	right-click on tab bar (michael email)
+	tab right-click menu (michael email)
 
 v1.6.1
 	#3992: enabling/disabling outputs
 	#4370: number in playlist
+	contextual statusbar depending on tab opened (michael email)
 	save to playlist.. default to selected files? pref?
 	tag editing - support for composer, disc
 	song queue (mpd-git will be bringing it back)
 	search results - show albums, artists, genres that match
 	window positioning weirdness when unwithdrawing app from systray
+	preferences apply button? more auto applying? (michael email)
 
 v1.7
-	remove libegg? statusicon provides everything in gtk 2.15, not yet in pygtk
+	remove libegg? statusicon provides everything in gtk 2.16, not yet in pygtk
 	albumartist tag for, e.g., VA albums; composer for classical
 	plugin support
 		- single instance, mmkeys (could remove dbus; faster on startup, less memory)

@@ -28,7 +28,7 @@ sv - Daniel Nylander <po@danielnylander.se>
 tr - Gökmen Görgen <gkmngrgn@gmail.com>
 uk - Господарисько Тарас <dogmaton@gmail.com>
 zh_CN - Desmond Chang <dochang@gmail.com>
-zh_TW - b4283 <b4283@gmail>
+zh_TW - Ian-Xue Li <da.mi.spirit@gmail>
 '''
 
 class About(object):
