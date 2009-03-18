@@ -1158,6 +1158,7 @@ class Base(object):
             if self.sonata_loaded:
                 self.library.library_browse(library.library_set_data(path="/"))
             self.playlists.populate()
+            self.streams.populate()
             self.on_notebook_page_change(self.notebook, 0, self.notebook.get_current_page())
 
     def _parse_formatting_return_substrings(self, format):

@@ -1,10 +1,7 @@
 v1.6
 	disconnect/connect/reconnect ui weirdness
-	window positioning weirdness when unwithdrawing app from systray
 	sonata freezes with gail/accessibility enabled during new library searching
-	threaded method for artwork - possible threading traceback when exiting sonata
 	'everything' library search, remove order-specific matching
-	if sonata opened while mpd disconnected, streams not updated on connect
 
 v1.6.1
 	#3992: enabling/disabling outputs
@@ -13,6 +10,7 @@ v1.6.1
 	tag editing - support for composer, disc
 	song queue (mpd-git will be bringing it back)
 	search results - show albums, artists, genres that match
+	window positioning weirdness when unwithdrawing app from systray
 
 v1.7
 	remove libegg? statusicon provides everything in gtk 2.15, not yet in pygtk
