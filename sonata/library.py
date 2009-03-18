@@ -1071,22 +1071,40 @@ class Library(object):
             subsearch = False
         else:
             subsearch = True
+
         # Now, use filtering similar to playlist filtering:
         # this make take some seconds... and we'll escape the search text because
         # we'll be searching for a match in items that are also escaped.
-        todo = misc.escape_html(todo)
-        todo = re.escape(todo)
-        todo = '.*' + todo.replace(' ', ' .*').lower()
-        regexp = re.compile(todo)
+        #
+        # Note that the searching is not order specific. That is, "foo bar"
+        # will match on "fools bar" and "barstool foo".
+
+        todos = todo.split(" ")
+        regexps = []
+        for i in range(len(todos)):
+            todos[i] = misc.escape_html(todos[i])
+            todos[i] = re.escape(todos[i])
+            todos[i] = '.*' + todos[i].lower()
+            regexps.append(re.compile(todos[i]))
         matches = []
         if searchby != 'any':
             for row in self.prevlibtodo_base_results:
-                if regexp.match(unicode(mpdh.get(row, searchby)).lower()):
+                is_match = True
+                for regexp in regexps:
+                    if not regexp.match(unicode(mpdh.get(row, searchby)).lower()):
+                        is_match = False
+                        break
+                if is_match:
                     matches.append(row)
         else:
             for row in self.prevlibtodo_base_results:
                 allstr = " ".join(mpdh.get(row, meta) for meta in row)
-                if regexp.match(unicode(allstr).lower()):
+                is_match = True
+                for regexp in regexps:
+                    if not regexp.match(unicode(allstr).lower()):
+                        is_match = False
+                        break
+                if is_match:
                     matches.append(row)
         if subsearch and len(matches) == len(self.librarydata):
             # nothing changed..
