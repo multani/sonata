@@ -1,0 +1,1471 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sonata 1.5.3\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-01-24 10:29+0100\n"
+"PO-Revision-Date: 2009-03-15 17:39+0100\n"
+"Last-Translator: Alan Pepelko <alan.pepelko@gmail.com>\n"
+"Language-Team: Slovenian <sl@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);\n"
+"X-Poedit-Language: Slovenian\n"
+"X-Poedit-Country: SLOVENIA\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#. define the shortcuts and their descriptions
+#. these are all gettextable
+#: .././sonata/about.py:49
+msgid "About Sonata"
+msgstr "O Sonati"
+
+#: .././sonata/about.py:50
+#: .././sonata/preferences.py:67
+msgid "Preferences"
+msgstr "Nastavitve"
+
+#: .././sonata/about.py:51
+msgid "Fullscreen Artwork Mode"
+msgstr "Celozaslonski način prikaza naslovnice"
+
+#: .././sonata/about.py:52
+msgid "Switch to [1st-5th] tab"
+msgstr "Preklopi na [1st-5th] zavihek"
+
+#: .././sonata/about.py:53
+msgid "Connect to MPD"
+msgstr "Vzpostavi povezavo z MPD-jem"
+
+#: .././sonata/about.py:54
+msgid "Disconnect from MPD"
+msgstr "Prekini povezavo z MPD-jem"
+
+#: .././sonata/about.py:55
+msgid "Randomize current playlist"
+msgstr "Premešaj trenutni seznam predvajanja"
+
+#: .././sonata/about.py:56
+msgid "Expand player"
+msgstr "Razširi predvajalnik"
+
+#: .././sonata/about.py:57
+msgid "Switch to previous tab"
+msgstr "Preklopi na prejšnji zavihek"
+
+#: .././sonata/about.py:58
+msgid "Switch to next tab"
+msgstr "Preklopi na naslednji zavihek"
+
+#: .././sonata/about.py:59
+msgid "Collapse player"
+msgstr "Zožaj predvajalnik"
+
+#: .././sonata/about.py:60
+msgid "Search library"
+msgstr "Išči po zbirki"
+
+#: .././sonata/about.py:61
+msgid "Quit"
+msgstr "Končaj"
+
+#: .././sonata/about.py:62
+msgid "Update entire library"
+msgstr "Posodobi celotno zbirko"
+
+#: .././sonata/about.py:63
+msgid "Display popup menu"
+msgstr "Prikaži popup meni"
+
+#: .././sonata/about.py:64
+msgid "Minimize to system tray (if enabled)"
+msgstr "Pomanjšaj v sistemski pult (če je omogočeno)"
+
+#: .././sonata/about.py:66
+msgid "Previous track"
+msgstr "Predhodna sled"
+
+#: .././sonata/about.py:67
+msgid "Next track"
+msgstr "Naslednja sled"
+
+#: .././sonata/about.py:68
+msgid "Play/Pause"
+msgstr "Predvajaj/Premor"
+
+#: .././sonata/about.py:69
+msgid "Stop"
+msgstr "Ustavi"
+
+#: .././sonata/about.py:70
+msgid "Lower the volume"
+msgstr "Tišje"
+
+#: .././sonata/about.py:71
+msgid "Raise the volume"
+msgstr "Glasneje"
+
+#: .././sonata/about.py:73
+msgid "Play selected song"
+msgstr "Predvajaj izbrano skladbo"
+
+#: .././sonata/about.py:74
+msgid "Remove selected song(s)"
+msgstr "Odstrani izbrane skladbe"
+
+#: .././sonata/about.py:75
+msgid "Center currently playing song"
+msgstr "Trenutno predvajano skladbo postavi v sredino"
+
+#: .././sonata/about.py:76
+#: .././sonata/about.py:85
+msgid "Edit selected song's tags"
+msgstr "Uredi oznake izbrane skladbe"
+
+#: .././sonata/about.py:77
+msgid "Save to new playlist"
+msgstr "Shrani v nov seznam predvajanja"
+
+#: .././sonata/about.py:78
+msgid "Clear list"
+msgstr "Počisti seznam"
+
+#: .././sonata/about.py:79
+msgid "Randomize list"
+msgstr "Premešaj seznam"
+
+#: .././sonata/about.py:81
+msgid "Add selected song(s) or enter directory"
+msgstr "Dodaj izbrane skladbe ali vnesi imenik"
+
+#: .././sonata/about.py:82
+msgid "Go to parent directory"
+msgstr "Pojdi na starševski imenik"
+
+#: .././sonata/about.py:83
+msgid "Add selected item(s)"
+msgstr "Dodaj izbrane predmete"
+
+#: .././sonata/about.py:84
+msgid "Replace with selected item(s)"
+msgstr "Zamenjaj z izbranimi predmeti"
+
+#: .././sonata/about.py:86
+msgid "Add selected item(s) and play"
+msgstr "Dodaj izbrane predmete in predvajaj"
+
+#: .././sonata/about.py:87
+msgid "Replace with selected item(s) and play"
+msgstr "Zamenjaj z izbranimi predmeti in predvajaj"
+
+#: .././sonata/about.py:88
+msgid "Update selected item(s)/path(s)"
+msgstr "Posodobi izbrane predmete/poti"
+
+#: .././sonata/about.py:90
+#: .././sonata/about.py:92
+msgid "Add selected playlist(s)"
+msgstr "Dodaj izbrane sezname predvajanja"
+
+#: .././sonata/about.py:91
+msgid "Remove selected playlist(s)"
+msgstr "Odstrani izbrane sezname predvajanja"
+
+#: .././sonata/about.py:93
+msgid "Replace with selected playlist(s)"
+msgstr "Zamenjaj z izbranimi seznami predvajanja"
+
+#: .././sonata/about.py:94
+msgid "Add selected playlist(s) and play"
+msgstr "Dodaj izbrane sezname predvajanja in predvajaj"
+
+#: .././sonata/about.py:95
+msgid "Replace with selected playlist(s) and play"
+msgstr "Zamenjaj z izbranimi seznami predvajanja in predvajaj"
+
+#: .././sonata/about.py:97
+#: .././sonata/about.py:99
+msgid "Add selected stream(s)"
+msgstr "Dodaj izbrane pretoke"
+
+#: .././sonata/about.py:98
+msgid "Remove selected stream(s)"
+msgstr "Odstrani izbrane pretoke"
+
+#: .././sonata/about.py:100
+msgid "Replace with selected stream(s)"
+msgstr "Zamenjaj z izbranimi pretoki"
+
+#: .././sonata/about.py:101
+msgid "Add selected stream(s) and play"
+msgstr "Dodaj izbrane tokove in predvajaj"
+
+#: .././sonata/about.py:102
+msgid "Replace with selected stream(s) and play"
+msgstr "Zamenjaj z izbranimi tokovi in predvajaj"
+
+#: .././sonata/about.py:104
+msgid "Edit playing song's tags"
+msgstr "Uredi oznake predvajane skladbe"
+
+#. define the main array- this adds headings to each section of
+#. shortcuts that will be displayed
+#: .././sonata/about.py:107
+msgid "Main Shortcuts"
+msgstr "Glavne bližnjice"
+
+#: .././sonata/about.py:108
+msgid "Playback Shortcuts"
+msgstr "Bližnjice predvajanja"
+
+#: .././sonata/about.py:109
+msgid "Current Shortcuts"
+msgstr "Trenutne bližnjice"
+
+#: .././sonata/about.py:110
+msgid "Library Shortcuts"
+msgstr "Bližnjice zbirke"
+
+#: .././sonata/about.py:111
+msgid "Playlist Shortcuts"
+msgstr "Bližnjice seznama predvajanja"
+
+#: .././sonata/about.py:112
+msgid "Stream Shortcuts"
+msgstr "Bližnjice pretokov"
+
+#: .././sonata/about.py:113
+msgid "Info Shortcuts"
+msgstr "Bližnjice informacij"
+
+#: .././sonata/about.py:114
+msgid "Shortcuts"
+msgstr "Bližnjice"
+
+#: .././sonata/about.py:150
+msgid "An elegant music client for MPD."
+msgstr "Elegantni glasbeni odjemalec za MPD."
+
+#. Add button to show keybindings:
+#: .././sonata/about.py:163
+msgid "_Shortcuts"
+msgstr "_Bližnjice"
+
+#: .././sonata/current.py:65
+msgid "Filter"
+msgstr "Filter"
+
+#. Song info
+#: .././sonata/info.py:82
+msgid "Song Info"
+msgstr "Podatki o skladbi"
+
+#: .././sonata/info.py:95
+#: .././sonata/info.py:249
+#: .././sonata/library.py:74
+#: .././sonata/tagedit.py:105
+msgid "Title"
+msgstr "Naslov"
+
+#: .././sonata/info.py:95
+#: .././sonata/info.py:250
+#: .././sonata/library.py:74
+#: .././sonata/main.py:443
+#: .././sonata/main.py:1174
+#: .././sonata/tagedit.py:114
+msgid "Artist"
+msgstr "Izvajalec"
+
+#: .././sonata/info.py:95
+#: .././sonata/info.py:251
+#: .././sonata/library.py:74
+#: .././sonata/main.py:445
+#: .././sonata/main.py:1175
+#: .././sonata/main.py:2391
+#: .././sonata/tagedit.py:123
+msgid "Album"
+msgstr "Album"
+
+#: .././sonata/info.py:95
+#: .././sonata/info.py:252
+msgid "Date"
+msgstr "Datum"
+
+#: .././sonata/info.py:95
+#: .././sonata/info.py:254
+#: .././sonata/main.py:1176
+#: .././sonata/tagedit.py:136
+msgid "Track"
+msgstr "Sled"
+
+#: .././sonata/info.py:95
+#: .././sonata/info.py:253
+#: .././sonata/library.py:74
+#: .././sonata/main.py:444
+#: .././sonata/main.py:1179
+#: .././sonata/preferences.py:398
+#: .././sonata/tagedit.py:153
+msgid "Genre"
+msgstr "Žanr"
+
+#: .././sonata/info.py:95
+#: .././sonata/info.py:255
+#: .././sonata/main.py:1180
+msgid "File"
+msgstr "Datoteka"
+
+#: .././sonata/info.py:95
+#: .././sonata/info.py:248
+msgid "Bitrate"
+msgstr "Bitna hitrost"
+
+#: .././sonata/info.py:97
+msgid "Launch artist in Wikipedia"
+msgstr "Odpri izvajalca v Wikipediji"
+
+#: .././sonata/info.py:97
+msgid "Launch album in Wikipedia"
+msgstr "Odpri album v Wikipediji"
+
+#: .././sonata/info.py:131
+msgid "Toggle extra tags"
+msgstr "Vključi dodatne oznake"
+
+#: .././sonata/info.py:134
+msgid "Edit song tags"
+msgstr "Uredi oznake skladbe"
+
+#. Lyrics
+#: .././sonata/info.py:144
+msgid "Lyrics"
+msgstr "Besedilo skladbe"
+
+#: .././sonata/info.py:156
+msgid "Search Lyricwiki.org for lyrics"
+msgstr "Preišči Lyricwiki.org za besedilo skladbe"
+
+#: .././sonata/info.py:157
+msgid "Edit lyrics at Lyricwiki.org"
+msgstr "Uredi besedilo skladbe na Lyricwiki.org"
+
+#. Album info
+#: .././sonata/info.py:165
+msgid "Album Info"
+msgstr "Informacije o albumu"
+
+#: .././sonata/info.py:217
+#: .././sonata/info.py:222
+msgid "more"
+msgstr "več"
+
+#: .././sonata/info.py:219
+msgid "hide"
+msgstr "skrij"
+
+#: .././sonata/info.py:285
+msgid "edit tags"
+msgstr "uredi oznake"
+
+#: .././sonata/info.py:311
+msgid "Album info not found."
+msgstr "Informacije o albumu niso bile najdene."
+
+#: .././sonata/info.py:314
+msgid "Album name not set."
+msgstr "Naslov albuma ni določen."
+
+#: .././sonata/info.py:327
+msgid "ZSI not found, fetching lyrics support disabled."
+msgstr "ZSI ni bil najden. Podpora za pridobivanje besedil skladb izključena."
+
+#: .././sonata/info.py:332
+msgid "Artist or song title not set."
+msgstr "Izvajalec ali naslov skladbe ni določen."
+
+#: .././sonata/info.py:370
+msgid "search"
+msgstr "išči"
+
+#: .././sonata/info.py:371
+msgid "edit"
+msgstr "uredi"
+
+#: .././sonata/info.py:380
+#: .././sonata/info.py:435
+msgid "Lyrics not found"
+msgstr "Besedila skladbe ni mogoče najti"
+
+#. Fetch lyrics from lyricwiki.org
+#: .././sonata/info.py:400
+msgid "Fetching lyrics..."
+msgstr "Prenašanje besedila skladbe ..."
+
+#: .././sonata/info.py:410
+msgid "Couldn't connect to LyricWiki"
+msgstr "Povezava z LyricWiki ni uspela"
+
+#: .././sonata/info.py:438
+msgid "Fetching lyrics failed"
+msgstr "Prejemanje besedila skladbe je spodletelo"
+
+#: .././sonata/library.py:72
+msgid "Untagged"
+msgstr "Neoznačen"
+
+#: .././sonata/library.py:73
+msgid "Various Artists"
+msgstr "Različni izvajalci"
+
+#: .././sonata/library.py:74
+msgid "Filename"
+msgstr "Ime datoteke"
+
+#: .././sonata/library.py:74
+msgid "Everything"
+msgstr "Vse"
+
+#: .././sonata/library.py:105
+msgid "_End Search"
+msgstr "_Konec iskanja"
+
+#: .././sonata/library.py:109
+msgid "Library browsing view"
+msgstr "Pogled brskanja po zbirki"
+
+#. Show text:
+#: .././sonata/library.py:733
+#: .././sonata/main.py:1741
+#: .././sonata/main.py:3301
+msgid "song"
+msgid_plural "songs"
+msgstr[0] "skladba"
+msgstr[1] "skladbi"
+msgstr[2] "skladbe"
+msgstr[3] "skladb"
+
+#: .././sonata/library.py:733
+#: .././sonata/main.py:1735
+msgid "minute"
+msgid_plural "minutes"
+msgstr[0] "minuta"
+msgstr[1] "minuti"
+msgstr[2] "minute"
+msgstr[3] "minut"
+
+#: .././sonata/library.py:817
+msgid "Song"
+msgstr "Skladba"
+
+#: .././sonata/library.py:817
+msgid "Path"
+msgstr "Pot"
+
+#. Constants
+#: .././sonata/main.py:101
+msgid "Current"
+msgstr "Trenutno"
+
+#: .././sonata/main.py:102
+msgid "Library"
+msgstr "Zbirka"
+
+#: .././sonata/main.py:103
+msgid "Playlists"
+msgstr "Seznami predvajanja"
+
+#: .././sonata/main.py:104
+msgid "Streams"
+msgstr "Pretoki"
+
+#: .././sonata/main.py:105
+msgid "Info"
+msgstr "Podrobnosti"
+
+#: .././sonata/main.py:136
+#: .././sonata/preferences.py:194
+msgid "Entire song"
+msgstr "Celotna skladba"
+
+#: .././sonata/main.py:171
+msgid "Default Profile"
+msgstr "Privzeti profil"
+
+#: .././sonata/main.py:171
+msgid "by"
+msgstr "od"
+
+#: .././sonata/main.py:171
+msgid "from"
+msgstr "z albuma"
+
+#: .././sonata/main.py:222
+msgid "_Sort List"
+msgstr "_Sortiraj seznam"
+
+#: .././sonata/main.py:223
+msgid "Sa_ve List to"
+msgstr "S_hrani listo v"
+
+#: .././sonata/main.py:224
+msgid "_Connection"
+msgstr "_Povezava"
+
+#: .././sonata/main.py:225
+msgid "P_lay after"
+msgstr "P_redvajaj po"
+
+#: .././sonata/main.py:226
+msgid "Use _Remote Image..."
+msgstr "Uporabi _oddaljeno sliko ..."
+
+#: .././sonata/main.py:227
+msgid "Use _Local Image..."
+msgstr "Uporabi _lokalno sliko ..."
+
+#: .././sonata/main.py:228
+msgid "_Fullscreen Mode"
+msgstr "_Celozaslonski način"
+
+#: .././sonata/main.py:229
+msgid "Reset Image"
+msgstr "Ponastavi sliko"
+
+#: .././sonata/main.py:230
+msgid "_Play"
+msgstr "_Predvajaj"
+
+#: .././sonata/main.py:231
+msgid "_Pause"
+msgstr "_Premor"
+
+#: .././sonata/main.py:232
+msgid "_Stop"
+msgstr "_Ustavi"
+
+#: .././sonata/main.py:233
+msgid "_Previous"
+msgstr "_Prejšnja"
+
+#: .././sonata/main.py:234
+msgid "_Next"
+msgstr "_Naslednja"
+
+#: .././sonata/main.py:235
+msgid "_Quit"
+msgstr "_Izhod"
+
+#: .././sonata/main.py:236
+msgid "_Remove"
+msgstr "Odst_rani"
+
+#: .././sonata/main.py:237
+msgid "_Clear"
+msgstr "_Počisti"
+
+#: .././sonata/main.py:238
+msgid "_Update Path"
+msgstr "_Posodobi pot"
+
+#: .././sonata/main.py:239
+msgid "_Preferences..."
+msgstr "_Nastavitve ..."
+
+#: .././sonata/main.py:240
+msgid "_About..."
+msgstr "_O programu ..."
+
+#: .././sonata/main.py:241
+msgid "_Edit Tags..."
+msgstr "_Uredi oznake ..."
+
+#: .././sonata/main.py:242
+msgid "_Add"
+msgstr "_Dodaj"
+
+#: .././sonata/main.py:243
+msgid "_Replace"
+msgstr "_Zamenjaj"
+
+#: .././sonata/main.py:244
+msgid "Add"
+msgstr "Dodaj"
+
+#: .././sonata/main.py:245
+msgid "Replace"
+msgstr "Zamenjaj"
+
+#: .././sonata/main.py:246
+msgid "_Delete..."
+msgstr "_Izbriši ..."
+
+#: .././sonata/main.py:247
+msgid "Shuffle"
+msgstr "Premešaj"
+
+#: .././sonata/main.py:274
+msgid "_Show Sonata"
+msgstr "_Pokaži Sonato"
+
+#: .././sonata/main.py:275
+msgid "_Repeat"
+msgstr "_Ponovi"
+
+#: .././sonata/main.py:276
+msgid "Rando_m"
+msgstr "Naključ_no"
+
+#: .././sonata/main.py:422
+msgid "By Artist"
+msgstr "po izvajalcu"
+
+#: .././sonata/main.py:423
+msgid "By Album"
+msgstr "po albumu"
+
+#: .././sonata/main.py:424
+msgid "By Song Title"
+msgstr "po naslovu skladbe"
+
+#: .././sonata/main.py:425
+msgid "By File Name"
+msgstr "po imenu datoteke"
+
+#: .././sonata/main.py:426
+msgid "By Dir & File Name"
+msgstr "po imeniku in imenu datoteke"
+
+#: .././sonata/main.py:427
+msgid "Reverse List"
+msgstr "Obrni seznam predvajanja"
+
+#: .././sonata/main.py:442
+msgid "Filesystem"
+msgstr "Datotečni sistem"
+
+#: .././sonata/main.py:475
+#: .././sonata/main.py:493
+msgid "_New..."
+msgstr "_Nova ..."
+
+#: .././sonata/main.py:476
+msgid "_Edit..."
+msgstr "_Uredi ..."
+
+#: .././sonata/main.py:494
+msgid "_Rename..."
+msgstr "P_reimenuj ..."
+
+#: .././sonata/main.py:556
+#: .././sonata/main.py:627
+#: .././sonata/main.py:628
+msgid "Playlist"
+msgstr "Seznam predvajanja"
+
+#: .././sonata/main.py:585
+#: .././sonata/main.py:590
+#: .././sonata/main.py:1811
+#: .././sonata/main.py:1822
+msgid "Stopped"
+msgstr "Zaustavljen"
+
+#: .././sonata/main.py:586
+#: .././sonata/main.py:1815
+#: .././sonata/main.py:2022
+msgid "Click to expand"
+msgstr "Kliknite, da razširite"
+
+#: .././sonata/main.py:591
+#: .././sonata/main.py:1813
+#: .././sonata/main.py:2020
+msgid "Click to collapse"
+msgstr "Kliknite, da zožate"
+
+#: .././sonata/main.py:596
+#: .././sonata/main.py:1710
+#: .././sonata/main.py:1818
+msgid "Not Connected"
+msgstr "Ni povezave"
+
+#: .././sonata/main.py:598
+#: .././sonata/main.py:1708
+#: .././sonata/main.py:1820
+msgid "No Read Permission"
+msgstr "Ni dovoljenja za branje"
+
+#: .././sonata/main.py:675
+msgid "Cover Art"
+msgstr "Naslovnica"
+
+#: .././sonata/main.py:841
+#: .././sonata/main.py:854
+#: .././sonata/main.py:875
+msgid "Profile"
+msgstr "Profil"
+
+#: .././sonata/main.py:854
+#: .././sonata/main.py:855
+#: .././sonata/main.py:875
+msgid "MPD_HOST/PORT"
+msgstr "MPD_GOSTITELJ/VRATA"
+
+#: .././sonata/main.py:856
+#: .././sonata/main.py:862
+msgid "Disconnect"
+msgstr "Prekinitev povezave"
+
+#: .././sonata/main.py:1177
+#: .././sonata/main.py:1183
+msgid "#"
+msgstr "#"
+
+#: .././sonata/main.py:1178
+#: .././sonata/preferences.py:397
+#: .././sonata/tagedit.py:132
+msgid "Year"
+msgstr "Leto"
+
+#: .././sonata/main.py:1181
+msgid "Stream"
+msgstr "Pretok"
+
+#: .././sonata/main.py:1182
+msgid "Len"
+msgstr "Len"
+
+#: .././sonata/main.py:1203
+#: .././sonata/main.py:1210
+#: .././sonata/main.py:1251
+#: .././sonata/main.py:1258
+msgid "Unknown"
+msgstr "Neznan"
+
+#: .././sonata/main.py:1731
+msgid "day"
+msgid_plural "days"
+msgstr[0] "dan"
+msgstr[1] "dneva"
+msgstr[2] "dnevi"
+msgstr[3] "dni"
+
+#: .././sonata/main.py:1739
+msgid "hour"
+msgid_plural "hours"
+msgstr[0] "ura"
+msgstr[1] "uri"
+msgstr[2] "ure"
+msgstr[3] "ur"
+
+#: .././sonata/main.py:1744
+#: .././sonata/main.py:1746
+msgid "and"
+msgstr "in"
+
+#: .././sonata/main.py:1754
+msgid "(updating mpd)"
+msgstr "(posodabljam mpd)"
+
+#: .././sonata/main.py:2084
+msgid "Lyrics Search"
+msgstr "Išči besedilo pesmi"
+
+#: .././sonata/main.py:2085
+msgid "_Search"
+msgstr "_Iskanje"
+
+#: .././sonata/main.py:2088
+msgid "Artist Name"
+msgstr "Izvajalec"
+
+#: .././sonata/main.py:2093
+msgid "Song Title"
+msgstr "Skladba"
+
+#: .././sonata/main.py:2329
+msgid "Open Image"
+msgstr "Odpri sliko"
+
+#: .././sonata/main.py:2331
+msgid "Images"
+msgstr "Slike"
+
+#: .././sonata/main.py:2335
+msgid "All files"
+msgstr "Vse datoteke"
+
+#: .././sonata/main.py:2377
+msgid "Choose Cover Art"
+msgstr "Izberite naslovnico"
+
+#: .././sonata/main.py:2378
+msgid "C_hoose"
+msgstr "_Izberi"
+
+#: .././sonata/main.py:2406
+msgid "_Update"
+msgstr "_Posodobi"
+
+#: .././sonata/main.py:2411
+msgid "Edit search terms"
+msgstr "Uredi iskalni niz"
+
+#: .././sonata/main.py:2468
+msgid "No artist or album name found."
+msgstr "Izvajalec ali naslov albuma nista bila najdena."
+
+#: .././sonata/main.py:2471
+msgid "No cover art found."
+msgstr "Nobena naslovnica ni bila najdena"
+
+#: .././sonata/main.py:2793
+msgid "Delete the selected playlist?"
+msgid_plural "Delete the selected playlists?"
+msgstr[0] "Izbrišem izbrani seznam predvajanja?"
+msgstr[1] "Izbrišem izbrana seznama predvajanja?"
+msgstr[2] "Izbrišem izbrane sezname predvajanja?"
+msgstr[3] "Izbrišem izbrane sezname predvajanja?"
+
+#: .././sonata/main.py:2793
+msgid "Delete Playlist"
+msgid_plural "Delete Playlists"
+msgstr[0] "Izbriši seznam predvajanja"
+msgstr[1] "Izbriši seznama predvajanja"
+msgstr[2] "Izbriši sezname predvajanja"
+msgstr[3] "Izbriši sezname predvajanja"
+
+#: .././sonata/main.py:2801
+msgid "Delete the selected stream?"
+msgid_plural "Delete the selected streams?"
+msgstr[0] "Izbrišem izbrani pretok?"
+msgstr[1] "Izbrišem izbrana pretoka?"
+msgstr[2] "Izbrišem izbrane pretoke?"
+msgstr[3] "Izbrišem izbrane pretoke?"
+
+#: .././sonata/main.py:2801
+msgid "Delete Stream"
+msgid_plural "Delete Streams"
+msgstr[0] "Izbriši pretok"
+msgstr[1] "Izbriši pretoka"
+msgstr[2] "Izbriši pretoke"
+msgstr[3] "Izbriši pretoke"
+
+#: .././sonata/main.py:2862
+msgid "To save lyrics to the music file's directory, you must specify a valid music directory."
+msgstr "Določiti morate veljaven glasbeni imenik, da bi lahko shranili besedilo skladbe v imenik glasbene datoteke. "
+
+#: .././sonata/main.py:2862
+#: .././sonata/main.py:2869
+msgid "Music Dir Verification"
+msgstr "Preverjanje verodostojnosti glasbenega imenika"
+
+#: .././sonata/main.py:2869
+msgid "To save artwork to the music file's directory, you must specify a valid music directory."
+msgstr "Določiti morate veljaven glasbeni imenik, da bi lahko shranili naslovnico v imenik glasbene datoteke."
+
+#: .././sonata/main.py:3302
+msgid "album"
+msgid_plural "albums"
+msgstr[0] "album"
+msgstr[1] "albuma"
+msgstr[2] "albumi"
+msgstr[3] "albumov"
+
+#: .././sonata/main.py:3303
+msgid "artist"
+msgid_plural "artists"
+msgstr[0] "izvajalec"
+msgstr[1] "izvajalca"
+msgstr[2] "izvajalci"
+msgstr[3] "izvajalcev"
+
+#: .././sonata/main.py:3310
+msgid "day of bliss"
+msgid_plural "days of bliss"
+msgstr[0] "dan blaženosti"
+msgstr[1] "dneva blaženosti"
+msgstr[2] "dnevi blaženosti"
+msgstr[3] "dni blaženosti"
+
+#: .././sonata/main.py:3312
+msgid "hour of bliss"
+msgid_plural "hours of bliss"
+msgstr[0] "ura blaženosti"
+msgstr[1] "uri blaženosti"
+msgstr[2] "ure blaženosti"
+msgstr[3] "ur blaženosti"
+
+#. try next
+#. none worked
+#. FIXME no function ui.show_error_msg defined
+#: .././sonata/misc.py:172
+msgid "Unable to launch a suitable browser."
+msgstr "Ne morem zagnati primernega brskalnika."
+
+#: .././sonata/misc.py:172
+msgid "Launch Browser"
+msgstr "Zaženi brskalnik"
+
+#: .././sonata/playlists.py:107
+#: .././sonata/playlists.py:109
+msgid "Save Playlist"
+msgstr "Shrani seznam predvajanja"
+
+#: .././sonata/playlists.py:124
+msgid "Would you like to replace the existing playlist or append these songs?"
+msgstr "Želite zamenjati obstoječi seznam predvajanja ali dodati skladbe?"
+
+#: .././sonata/playlists.py:124
+msgid "Existing Playlist"
+msgstr "Obstoječ seznam predvajanja"
+
+#: .././sonata/playlists.py:124
+msgid "Replace playlist"
+msgstr "Zamenjaj seznam predvajanja"
+
+#: .././sonata/playlists.py:124
+msgid "Append songs"
+msgstr "Dodaj skladbe"
+
+#: .././sonata/playlists.py:145
+msgid "A playlist with this name already exists. Would you like to replace it?"
+msgstr "Seznam predvajanja s tem imenom že obstaja. Bi ga želeli zamenjati?"
+
+#: .././sonata/playlists.py:157
+msgid "Playlist name"
+msgstr "Ime seznama predvajanja"
+
+#: .././sonata/playlists.py:186
+#: .././sonata/playlists.py:190
+msgid "Rename Playlist"
+msgstr "Preimenuj seznam predvajanja"
+
+#. Constants:
+#: .././sonata/preferences.py:34
+msgid "System tray"
+msgstr "sistemski pult"
+
+#: .././sonata/preferences.py:34
+msgid "Top Left"
+msgstr "zgoraj levo"
+
+#: .././sonata/preferences.py:34
+msgid "Top Right"
+msgstr "zgoraj desno"
+
+#: .././sonata/preferences.py:34
+msgid "Bottom Left"
+msgstr "spodaj levo"
+
+#: .././sonata/preferences.py:34
+msgid "Bottom Right"
+msgstr "spodaj desno"
+
+#: .././sonata/preferences.py:34
+msgid "Screen Center"
+msgstr "sredina zaslona"
+
+#. MPD tab
+#: .././sonata/preferences.py:71
+msgid "MPD Connection"
+msgstr "MPD povezava"
+
+#: .././sonata/preferences.py:81
+msgid "Name"
+msgstr "Ime"
+
+#: .././sonata/preferences.py:86
+msgid "Host"
+msgstr "Gostitelj"
+
+#: .././sonata/preferences.py:91
+msgid "Port"
+msgstr "Vrata"
+
+#: .././sonata/preferences.py:96
+msgid "Music dir"
+msgstr "Glasbeni imenik"
+
+#: .././sonata/preferences.py:102
+msgid "Password"
+msgstr "Geslo"
+
+#: .././sonata/preferences.py:105
+msgid "Leave blank if no password is required."
+msgstr "Pustite prazno, če ni zahtevano geslo."
+
+#: .././sonata/preferences.py:109
+msgid "Autoconnect on start"
+msgstr "Samodejno poveži ob zagonu."
+
+#: .././sonata/preferences.py:126
+msgid "Using MPD_HOST/PORT"
+msgstr "Uporabljam MPD_HOST/PORT"
+
+#: .././sonata/preferences.py:167
+msgid "Extras"
+msgstr "Dodatno"
+
+#: .././sonata/preferences.py:174
+msgid "Enable Audioscrobbler"
+msgstr "Omogoči Audioscrobbler"
+
+#: .././sonata/preferences.py:179
+msgid "Username:"
+msgstr "Uporabniško ime:"
+
+#: .././sonata/preferences.py:180
+msgid "Password:"
+msgstr "Geslo:"
+
+#: .././sonata/preferences.py:186
+msgid "Popup notification on song changes"
+msgstr "Popup obvestilo ob spremembi skladbe"
+
+#: .././sonata/preferences.py:195
+msgid "second"
+msgid_plural "seconds"
+msgstr[0] "sekunda"
+msgstr[1] "sekundi"
+msgstr[2] "sekunde"
+msgstr[3] "sekund"
+
+#: .././sonata/preferences.py:206
+msgid "Enable Crossfade"
+msgstr "Omogoči prelivanje"
+
+#: .././sonata/preferences.py:214
+msgid "Fade length"
+msgstr "Trajanje pojemanja"
+
+#: .././sonata/preferences.py:215
+msgid "sec"
+msgstr "sek."
+
+#: .././sonata/preferences.py:252
+msgid "Display"
+msgstr "Prikaži"
+
+#: .././sonata/preferences.py:254
+msgid "Enable album art"
+msgstr "Omogoči naslovnico"
+
+#: .././sonata/preferences.py:256
+msgid "Standard"
+msgstr "Standardno"
+
+#: .././sonata/preferences.py:256
+msgid "Stylized"
+msgstr "Stilizirano"
+
+#: .././sonata/preferences.py:258
+msgid "Artwork style:"
+msgstr "Slog naslovnice:"
+
+#: .././sonata/preferences.py:261
+msgid "Local only"
+msgstr "samo krajevno"
+
+#: .././sonata/preferences.py:261
+msgid "Local and remote"
+msgstr "Lokalno, nato oddaljeno"
+
+#: .././sonata/preferences.py:262
+msgid "Search locations:"
+msgstr "Išči lokacije:"
+
+#: .././sonata/preferences.py:267
+msgid "Save art to:"
+msgstr "Shrani naslovnico v:"
+
+#: .././sonata/preferences.py:270
+msgid "custom"
+msgstr "po meri"
+
+#: .././sonata/preferences.py:271
+#: .././sonata/preferences.py:291
+msgid "file_path"
+msgstr "_pot do datoteke"
+
+#: .././sonata/preferences.py:277
+msgid "Enable playback/volume buttons"
+msgstr "Omogoči gumbe predvajanja/glasnosti"
+
+#: .././sonata/preferences.py:280
+msgid "Enable progressbar"
+msgstr "Omogoči vrstico napredka"
+
+#: .././sonata/preferences.py:283
+msgid "Enable statusbar"
+msgstr "Omogoči vrstico stanja"
+
+#: .././sonata/preferences.py:286
+msgid "Enable lyrics"
+msgstr "Omogoči besedilo skladbe"
+
+#: .././sonata/preferences.py:289
+msgid "Save lyrics to:"
+msgstr "Shrani besedilo skladbe v:"
+
+#: .././sonata/preferences.py:295
+msgid "Enable system tray icon"
+msgstr "Omogoči ikono v sistemski vrstici"
+
+#: .././sonata/preferences.py:314
+msgid "Window Behavior"
+msgstr "Obnašanje oken"
+
+#: .././sonata/preferences.py:315
+msgid "Show window on all workspaces"
+msgstr "Prikaži okno na vseh delovnih površinah"
+
+#: .././sonata/preferences.py:317
+msgid "Keep window above other windows"
+msgstr "Obdrži okno nad drugimi okni"
+
+#: .././sonata/preferences.py:319
+msgid "Update MPD library on start"
+msgstr "Ob zagonu posodobi MPD zbirko"
+
+#: .././sonata/preferences.py:321
+msgid "If enabled, Sonata will automatically update your MPD library when it starts up."
+msgstr "Če je omogočeno, bo Sonata ob zagonu samodejno posodobila MPD zbirko."
+
+#: .././sonata/preferences.py:322
+msgid "Stop playback on exit"
+msgstr "Ob izhodu ustavi predvajanje"
+
+#: .././sonata/preferences.py:324
+msgid "MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit."
+msgstr "MPD omogoča predvajanje tudi, ko je odjemalec ustavljen. Če je omogočeno, bo Sonata delovala kot običajni predvajalnik glasbe in ustavila predvajanje ob izhodu iz programa."
+
+#: .././sonata/preferences.py:325
+msgid "Minimize to system tray on close/escape"
+msgstr "Pomanjšaj v sistemski pult ob zaprtju/izhodu"
+
+#: .././sonata/preferences.py:327
+msgid "If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."
+msgstr "Če je omogočeno, se bo Sonata ob izhodu pomanjšala v sistemski pult. Podite pozorni na to, da je trenutno nemogoče zaznati, ali je sistemski pult dejansko omogočen, zato označite to možnost, če res deluje."
+
+#: .././sonata/preferences.py:331
+msgid "Write status file:"
+msgstr "Zapiši datoteko stanja:"
+
+#: .././sonata/preferences.py:333
+#: .././sonata/preferences.py:335
+msgid "If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)"
+msgstr "Če je omogočeno, bo Sonata ustvarila datoteko podobno xmms-infopipe, ki vsebuje informacije o trenutni skladbi. Veliko aplikacij podpira datoteko xmms-info (takojšnji sporočilniki, IRC odjemalci ...)"
+
+#: .././sonata/preferences.py:341
+msgid "Miscellaneous"
+msgstr "Razno"
+
+#: .././sonata/preferences.py:363
+msgid "Song Formatting"
+msgstr "Način prikaza skladb"
+
+#: .././sonata/preferences.py:365
+msgid "Current playlist:"
+msgstr "Trenutni seznam predvajanja:"
+
+#: .././sonata/preferences.py:370
+msgid "Library:"
+msgstr "Zbirka:"
+
+#: .././sonata/preferences.py:375
+msgid "Window title:"
+msgstr "Naziv okna:"
+
+#: .././sonata/preferences.py:381
+msgid "Current song line 1:"
+msgstr "1. vrstica trenutne skladbe:"
+
+#: .././sonata/preferences.py:386
+msgid "Current song line 2:"
+msgstr "2. vrstica trenutne skladbe:"
+
+#: .././sonata/preferences.py:394
+msgid "Available options"
+msgstr "Razpoložljive možnosti"
+
+#: .././sonata/preferences.py:397
+msgid "Artist name"
+msgstr "Ime izvajalca"
+
+#: .././sonata/preferences.py:397
+msgid "Album name"
+msgstr "Naslov albuma"
+
+#: .././sonata/preferences.py:397
+msgid "Track name"
+msgstr "Naslov skladbe"
+
+#: .././sonata/preferences.py:397
+msgid "Track number"
+msgstr "Številka sledi"
+
+#: .././sonata/preferences.py:397
+msgid "Disc Number"
+msgstr "Številka diska"
+
+#: .././sonata/preferences.py:398
+msgid "File name"
+msgstr "Ime datoteke"
+
+#: .././sonata/preferences.py:398
+#: .././sonata/streams.py:113
+msgid "Stream name"
+msgstr "Ime pretoka"
+
+#: .././sonata/preferences.py:398
+msgid "Song length"
+msgstr "Trajanje skladbe"
+
+#: .././sonata/preferences.py:398
+msgid "Elapsed time (title only)"
+msgstr "Ocenjen čas (samo naslov)"
+
+#: .././sonata/preferences.py:402
+msgid "Info displayed only if all enclosed tags are defined"
+msgstr "Informacije so prikazane le, če so vse vključene oznake definirane"
+
+#: .././sonata/preferences.py:402
+msgid "Creates columns in the current playlist"
+msgstr "Ustvari stolpce v trenutnem seznamu predvajanja"
+
+#: .././sonata/preferences.py:416
+msgid "_MPD"
+msgstr "_MPD"
+
+#: .././sonata/preferences.py:417
+msgid "_Display"
+msgstr "_Prikaz"
+
+#: .././sonata/preferences.py:418
+msgid "_Behavior"
+msgstr "_Obnašanje"
+
+#: .././sonata/preferences.py:419
+msgid "_Format"
+msgstr "_Oblika"
+
+#: .././sonata/preferences.py:420
+msgid "_Extras"
+msgstr "_Dodatno"
+
+#: .././sonata/preferences.py:489
+msgid "New Profile"
+msgstr "Nov profil"
+
+#. Prompt user for playlist name:
+#: .././sonata/preferences.py:545
+msgid "Custom Artwork"
+msgstr "Poljubna naslovnica"
+
+#: .././sonata/preferences.py:547
+msgid "Artwork filename"
+msgstr "Ime datoteke naslovnice"
+
+#: .././sonata/streams.py:109
+msgid "Edit Stream"
+msgstr "Uredi pretok"
+
+#: .././sonata/streams.py:111
+#: .././sonata/streams.py:142
+msgid "New Stream"
+msgstr "Nov pretok"
+
+#: .././sonata/streams.py:120
+msgid "Stream URL"
+msgstr "URL pretoka"
+
+#: .././sonata/streams.py:142
+msgid "A stream with this name already exists. Would you like to replace it?"
+msgstr "Pretok s tem imenom že obstaja. Bi ga želeli zamenjati?"
+
+#: .././sonata/tagedit.py:52
+msgid "Taglib and/or tagpy not found, tag editing support disabled."
+msgstr "Taglib in/ali tagpy nista bila najdena. Podpora za urejanje oznak izključena."
+
+#: .././sonata/tagedit.py:52
+#: .././sonata/tagedit.py:56
+#: .././sonata/tagedit.py:80
+#: .././sonata/tagedit.py:84
+#: .././sonata/tagedit.py:310
+#: .././sonata/tagedit.py:425
+msgid "Edit Tags"
+msgstr "Uredi oznake"
+
+#: .././sonata/tagedit.py:56
+msgid "The path"
+msgstr "Pot"
+
+#: .././sonata/tagedit.py:56
+msgid "does not exist. Please specify a valid music directory in preferences."
+msgstr "ne obstaja. Prosim, v nastavitvah določite veljaven glasbeni imenik."
+
+#: .././sonata/tagedit.py:80
+msgid "File "
+msgstr "Datoteka"
+
+#: .././sonata/tagedit.py:80
+msgid " not found. Please specify a valid music directory in preferences."
+msgstr " ni najden. Prosim, v nastavitvah določite veljaven glasbeni imenik."
+
+#: .././sonata/tagedit.py:84
+msgid "No music files with editable tags found."
+msgstr "Najdena ni bila nobena glasbena datoteka z možnostjo urejanja oznak."
+
+#: .././sonata/tagedit.py:163
+msgid "Comment"
+msgstr "Komentar"
+
+#. Only show save all button if more than one song being edited.
+#: .././sonata/tagedit.py:181
+msgid "Save _All"
+msgstr "Shrani _vse"
+
+#: .././sonata/tagedit.py:229
+msgid "Increment each selected music file, starting at track 1 for this file."
+msgstr ""
+
+#: .././sonata/tagedit.py:231
+msgid "Apply to all selected music files."
+msgstr "Uveljavi vsem izbranim glasbenim datotekam."
+
+#: .././sonata/tagedit.py:310
+msgid "of"
+msgstr "od"
+
+#. FIXME: was (save_success and self.conn and self.status):
+#: .././sonata/tagedit.py:425
+msgid "Unable to save tag to music file."
+msgstr "Nisem mogel shraniti oznak v glasbeno datoteko."
+
+#: .././sonata/tagedit.py:491
+msgid "Hide file path"
+msgstr "Skrij pot do datoteke"
+
+#: .././sonata/tagedit.py:494
+msgid "Show file path"
+msgstr "Pokaži pot do datoteke"
+
+#, fuzzy
+#~ msgid "The toggle argument requires D-Bus. Aborting."
+#~ msgstr "Argument toggle zahteva D-Bus. Prekinjam."
+
+#, fuzzy
+#~ msgid "The popup argument requires D-Bus. Aborting."
+#~ msgstr "Argument popup zahteva D-Bus. Prekinjam."
+#~ msgid ""
+#~ "PyGTK+ 2.10 or gnome-python-extras not found, system tray support "
+#~ "disabled."
+#~ msgstr ""
+#~ "PyGTK+ 2.10 ali gnome-python-extras nista bila najdena. Podpora za "
+#~ "sistemski pult izključena."
+#~ msgid "Starting Sonata with profile"
+#~ msgstr "Zaganjanje Sonate s profilom"
+#~ msgid "Not a valid profile number. Profile number must be between 1 and"
+#~ msgstr "Neveljavna številka profila. Številka profila mora biti med 1 in"
+#~ msgid "Reset to Default"
+#~ msgstr "Vrni na privzeto"
+#~ msgid "_New Playlist..."
+#~ msgstr "_Nov seznam predvajanja ..."
+#~ msgid "_Update Library"
+#~ msgstr "_Posodobi zbirko"
+#~ msgid "_Shuffle"
+#~ msgstr "_Premešaj"
+#~ msgid "Version: Sonata"
+#~ msgstr "Različica: Sonata"
+#~ msgid "Website: http://sonata.berlios.de/"
+#~ msgstr "Spletna stran: http://sonata.berlios.de/"
+#~ msgid "Usage: sonata [OPTION]"
+#~ msgstr "Uporaba: sonata [OPTION]"
+#~ msgid "Options"
+#~ msgstr "Možnosti"
+#~ msgid "Show this help and exit"
+#~ msgstr "Pokaži pomoč in končaj z delom"
+#~ msgid "Popup song notification (requires DBus)"
+#~ msgstr "Popup obvestilo o skladbi (zahteva DBus)"
+#~ msgid "to tray or visible (requires D-Bus)"
+#~ msgstr "v pult ali vidno (zahteva D-Bus)"
+#~ msgid "Show version information and exit"
+#~ msgstr "Pokaži podatke o različici in končaj z delom"
+#~ msgid "Start app hidden (requires systray)"
+#~ msgstr "Zaženi aplikacijo skrito (zahteva systray)"
+#~ msgid "Start app visible (requires systray)"
+#~ msgstr "Zaženi aplikacijo vidno (zahteva systray)"
+#~ msgid "Start with profile [NUM]"
+#~ msgstr "Začni s profilom [NUM]"
+#~ msgid "Play song in playlist"
+#~ msgstr "Predvajaj skladbo v seznamu predvajanja"
+#~ msgid "Pause currently playing song"
+#~ msgstr "Premor trenutno predvajane skladbe"
+#~ msgid "Stop currently playing song"
+#~ msgstr "Ustavi trenutno predvajano skladbo"
+#~ msgid "Play next song in playlist"
+#~ msgstr "Predvajaj naslednjo skladbo na seznamu"
+#~ msgid "Play previous song in playlist"
+#~ msgstr "Predvajaj prejšnjo skladbo na seznamu"
+#~ msgid "Toggle repeat mode"
+#~ msgstr "Nastavi ponavljajoče predvajanje"
+#~ msgid "Toggle shuffle mode"
+#~ msgstr "Nastavi premešano predvajanje"
+#~ msgid "Display current song info"
+#~ msgstr "Prikaži informacije o trenutni skladbi"
+#~ msgid "Display MPD status"
+#~ msgstr "Prikaži stanje MPD-ja"
+#~ msgid "Time"
+#~ msgstr "Čas"
+#~ msgid "MPD stopped"
+#~ msgstr "MPD je ustavljen"
+#~ msgid "State"
+#~ msgstr "Stanje"
+#~ msgid "Playing"
+#~ msgstr "Predvajanje"
+#~ msgid "Paused"
+#~ msgstr "Premor"
+#~ msgid "Repeat"
+#~ msgstr "Ponovi"
+#~ msgid "Off"
+#~ msgstr "Izključeno"
+#~ msgid "On"
+#~ msgstr "Vključeno"
+#~ msgid "Volume"
+#~ msgstr "Glasnost"
+#~ msgid "Crossfade"
+#~ msgstr "Prelivanje"
+#~ msgid ""
+#~ "Unable to connect to MPD.\n"
+#~ "Please check your Sonata preferences or MPD_HOST/MPD_PORT environment "
+#~ "variables."
+#~ msgstr ""
+#~ "Ne morem se povezati z MPD-jem.\n"
+#~ "Prosim, preverite vaše nastavitve Sonate ali spremenljivke okolja "
+#~ "MPD_HOST/MPD_PORT."
+#~ msgid "Notification"
+#~ msgstr "Obvestilo"
+#~ msgid ""
+#~ "Python 2.5 or python-elementtree not found, audioscrobbler support "
+#~ "disabled."
+#~ msgstr ""
+#~ "Python 2.5 ali python-elementtree nista bila najdena. Podpora za "
+#~ "audioscrobbler izključena."
+#~ msgid "Audioscrobbler Verification"
+#~ msgstr "Preverjanje verodostojnosti audioscrobblerja"
+#~ msgid "Update library for selected item(s)"
+#~ msgstr "Posodobi zbirko za izbrane predmete"
+#~ msgid "An instance of Sonata is already running."
+#~ msgstr "Sonata je že zagnana."
+#~ msgid ""
+#~ "Sonata failed to connect to the D-BUS session bus: Unable to determine "
+#~ "the address of the message bus (try 'man dbus-launch' and 'man dbus-"
+#~ "daemon' for help)"
+#~ msgstr ""
+#~ "Sonata ni mogla vzpostaviti povezave z D-BUS bus sejo: nemogoče je "
+#~ "določiti naslov bus sporočil (za pomoč poskusite 'man dbus-launch' in "
+#~ "'man dbus-daemon')"
+

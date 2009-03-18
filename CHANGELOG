@@ -19,6 +19,7 @@ v1.6 - Pending
 	+ Look for <artist> - <title>.txt lyrics files by other clients
 	+ Add Traditional Chinese translation (b4283)
 	+ Add Japanese translation (Masato)
+	+ Add Slovenian translation (Alan)
 	+ Code modernisation, modularisation, overall cleanup, documentation
 	+ A prototype of a plug-in system
 	+ Unicode fixes

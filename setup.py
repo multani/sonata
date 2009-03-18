@@ -36,7 +36,7 @@ if not os.path.exists("mo/"):
     os.mkdir("mo/")
 for lang in ('de', 'pl', 'ru', 'fr', 'zh_CN', 'sv', 'es', 'fi', 'uk', 'it', 'cs', \
              'nl', 'pt_BR', 'da', 'be@latin', 'et', 'ca', 'ar', 'tr', 'el_GR', 'sk', \
-             'zh_TW', 'ja'):
+             'zh_TW', 'ja', 'sl'):
     pofile = "po/" + lang + ".po"
     mofile = "mo/" + lang + "/sonata.mo"
     if not os.path.exists("mo/" + lang + "/"):
@@ -102,6 +102,7 @@ setup(name='Sonata',
                     ('share/locale/el_GR/LC_MESSAGES', ['mo/el_GR/sonata.mo']),
                     ('share/locale/sk/LC_MESSAGES', ['mo/sk/sonata.mo']),
                     ('share/locale/ja/LC_MESSAGES', ['mo/ja/sonata.mo']),
+                    ('share/locale/sl/LC_MESSAGES', ['mo/sl/sonata.mo']),
                     ('share/locale/zh_TW/LC_MESSAGES', ['mo/zh_TW/sonata.mo']),
                     ('share/locale/uk/LC_MESSAGES', ['mo/uk/sonata.mo'])],
         )

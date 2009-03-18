@@ -23,6 +23,7 @@ pl - Tomasz Dominikowski <dominikowski@gmail.com>
 pt_BR - Alex Tercete Matos <alextercete@gmail.com>
 ru - Ivan <bkb.box@bk.ru>
 sk - Robert Hartl <hartl.robert@gmail.com>
+sl - Alan Pepelko <alan.pepelko@gmail.com>
 sv - Daniel Nylander <po@danielnylander.se>
 tr - Gökmen Görgen <gkmngrgn@gmail.com>
 uk - Господарисько Тарас <dogmaton@gmail.com>
