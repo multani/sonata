@@ -34,12 +34,6 @@ class Preferences():
         # Constants:
         self.popuplocations = [_('System tray'), _('Top Left'), _('Top Right'), _('Bottom Left'), _('Bottom Right'), _('Screen Center')]
 
-        # These mirror the audioscrobbler module in Main
-        self.as_imported = None
-        self.as_import = None
-        self.as_init = None
-        self.as_reauth = None
-
         # These are callbacks to Main
         self.reconnect = None
         self.renotify = None
@@ -54,13 +48,10 @@ class Preferences():
 
         self.window = None
 
-    def on_prefs_real(self, parent_window, popuptimes, as_imported, as_import, as_init, as_reauth, trayicon_available, trayicon_in_use, reconnect, renotify, reinfofile, prefs_notif_toggled, prefs_stylized_toggled, prefs_art_toggled, prefs_playback_toggled, prefs_progress_toggled, prefs_statusbar_toggled, prefs_lyrics_toggled, prefs_trayicon_toggled, prefs_window_response):
+    def on_prefs_real(self, parent_window, popuptimes, scrobbler, trayicon_available, trayicon_in_use, reconnect, renotify, reinfofile, prefs_notif_toggled, prefs_stylized_toggled, prefs_art_toggled, prefs_playback_toggled, prefs_progress_toggled, prefs_statusbar_toggled, prefs_lyrics_toggled, prefs_trayicon_toggled, prefs_window_response):
         """Display the preferences dialog"""
         self.window = parent_window
-        self.as_imported = as_imported
-        self.as_import = as_import
-        self.as_init = as_init
-        self.as_reauth = as_reauth
+        self.scrobbler = scrobbler
         self.reconnect = reconnect
         self.renotify = renotify
         self.reinfofile = reinfofile
@@ -160,7 +151,7 @@ class Preferences():
         mpd_table.attach(ui.label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         mpd_table.attach(ui.label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         # Extras tab
-        if not as_imported:
+        if not self.scrobbler.imported():
             self.config.as_enabled = False
         as_label = ui.label(markup='<b>' + _('Extras') + '</b>')
         as_frame = gtk.Frame()
@@ -240,7 +231,7 @@ class Preferences():
         as_vbox.pack_start(as_table, False)
         as_frame.add(as_vbox)
         as_checkbox.connect('toggled', self.prefs_as_enabled_toggled, as_user_entry, as_pass_entry, as_user_label, as_pass_label)
-        if not self.config.as_enabled or not as_imported:
+        if not self.config.as_enabled or not self.scrobbler.imported():
             as_user_entry.set_sensitive(False)
             as_pass_entry.set_sensitive(False)
             as_user_label.set_sensitive(False)
@@ -519,25 +510,24 @@ class Preferences():
 
     def prefs_as_enabled_toggled(self, checkbox, *widgets):
         if checkbox.get_active():
-            self.as_import(True)
-            self.as_imported = True
-        if self.as_imported:
+            self.scrobbler.import_module(True)
+        if self.scrobbler.imported():
             self.config.as_enabled = checkbox.get_active()
-            self.as_init()
+            self.scrobbler.init()
             for widget in widgets:
                 widget.set_sensitive(self.config.as_enabled)
         elif checkbox.get_active():
             checkbox.set_active(False)
 
     def prefs_as_username_changed(self, entry):
-        if self.as_imported:
+        if self.scrobbler.imported():
             self.config.as_username = entry.get_text()
-            self.as_reauth()
+            self.scrobbler.auth_changed()
 
     def prefs_as_password_changed(self, entry):
-        if self.as_imported:
+        if self.scrobbler.imported():
             self.config.as_password_md5 = hashlib.md5(entry.get_text()).hexdigest()
-            self.as_reauth()
+            self.scrobbler.auth_changed()
 
     def prefs_nameentry_changed(self, entry, profile_combo, remove_profiles):
         if not self.updating_nameentry:
