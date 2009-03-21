@@ -3082,7 +3082,7 @@ class Base(object):
 
     def on_tab_click(self, _widget, event):
         if event.button == 3:
-            self.notebookmenu.popup(None, None, None, 1, 0)
+            self.notebookmenu.popup(None, None, None, event.button, event.time)
             return True
 
     def on_notebook_click(self, _widget, event):
