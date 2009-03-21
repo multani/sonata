@@ -3070,7 +3070,7 @@ class Base(object):
             self.config.show_trayicon = True
             if HAVE_STATUS_ICON:
                 self.statusicon.set_visible(True)
-                if self.statusicon.is_embedded() and self.statusicon.get_visible():
+                if self.statusicon.is_embedded() or self.statusicon.get_visible():
                     minimize.set_sensitive(True)
             elif HAVE_EGG:
                 self.trayicon.show_all()
