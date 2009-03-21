@@ -517,14 +517,14 @@ class Preferences():
         self.prev_port = self.config.port[self.config.profile_num]
         self.prev_password = self.config.password[self.config.profile_num]
 
-    def prefs_as_enabled_toggled(self, checkbox, userentry, passentry, userlabel, passlabel):
+    def prefs_as_enabled_toggled(self, checkbox, *widgets):
         if checkbox.get_active():
             self.as_import(True)
             self.as_imported = True
         if self.as_imported:
             self.config.as_enabled = checkbox.get_active()
             self.as_init()
-            for widget in [userlabel, passlabel, userentry, passentry]:
+            for widget in widgets:
                 widget.set_sensitive(self.config.as_enabled)
         elif checkbox.get_active():
             checkbox.set_active(False)
@@ -638,9 +638,9 @@ class Preferences():
             dialog.destroy()
         self.config.art_location = combobox.get_active()
 
-    def prefs_crossfadecheck_toggled(self, button, combobox, label1, label2):
+    def prefs_crossfadecheck_toggled(self, button, *widgets):
         button_active = button.get_active()
-        for widget in [combobox, label1, label2]:
+        for widget in widgets:
             widget.set_sensitive(button_active)
 
     def prefs_notiflocation_changed(self, combobox):
