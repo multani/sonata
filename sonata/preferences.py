@@ -100,6 +100,7 @@ class Preferences():
         ui.set_widths_equal(mpd_labels)
         autoconnect = gtk.CheckButton(_("Autoconnect on start"))
         autoconnect.set_active(self.config.autoconnect)
+        autoconnect.connect('toggled', self.prefs_config_widget_active, 'autoconnect')
         # Fill in entries with current profile:
         self.prefs_profile_chosen(profiles, nameentry, hostentry, portentry, passwordentry, direntry)
         # Update display if $MPD_HOST or $MPD_PORT is set:
@@ -248,6 +249,7 @@ class Preferences():
         display_stylized_hbox.pack_start(display_stylized_combo, False, False, 5)
         display_stylized_hbox.set_sensitive(self.config.show_covers)
         display_art_combo = ui.combo(items=[_("Local only"), _("Local and remote")], active=self.config.covers_pref)
+        display_art_combo.connect('changed', self.prefs_config_widget_active, 'covers_pref')
         orderart_label = ui.label(text=_("Search locations:"), x=1)
         display_art_hbox.pack_start(orderart_label)
         display_art_hbox.pack_start(display_art_combo, False, False, 5)
@@ -303,19 +305,27 @@ class Preferences():
         behaviorlabel = ui.label(markup='<b>' + _('Window Behavior') + '</b>', y=1)
         win_sticky = gtk.CheckButton(_("Show window on all workspaces"))
         win_sticky.set_active(self.config.sticky)
+        win_sticky.connect('toggled', self.prefs_config_widget_active, 'sticky')
         win_ontop = gtk.CheckButton(_("Keep window above other windows"))
         win_ontop.set_active(self.config.ontop)
+        win_ontop.connect('toggled', self.prefs_config_widget_active, 'ontop')
         win_decor = gtk.CheckButton(_("Hide window titlebar"))
         win_decor.set_active(not self.config.decorated)
+        win_decor.connect('toggled',
+            lambda w: setattr(self.config, 'decorated',
+                not w.get_active()))
         update_start = gtk.CheckButton(_("Update MPD library on start"))
         update_start.set_active(self.config.update_on_start)
         update_start.set_tooltip_text(_("If enabled, Sonata will automatically update your MPD library when it starts up."))
+        update_start.connect('toggled', self.prefs_config_widget_active, 'update_on_start')
         exit_stop = gtk.CheckButton(_("Stop playback on exit"))
         exit_stop.set_active(self.config.stop_on_exit)
         exit_stop.set_tooltip_text(_("MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit."))
+        exit_stop.connect('toggled', self.prefs_config_widget_active, 'stop_on_exit')
         minimize = gtk.CheckButton(_("Minimize to system tray on close/escape"))
         minimize.set_active(self.config.minimize_to_systray)
         minimize.set_tooltip_text(_("If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."))
+        minimize.connect('toggled', self.prefs_config_widget_active, 'minimize_to_systray')
         display_trayicon.connect('toggled', prefs_trayicon_toggled, minimize)
         minimize.set_sensitive(trayicon_in_use)
         infofilebox = gtk.HBox()
@@ -501,12 +511,16 @@ class Preferences():
         close_button = self.prefswindow.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
         self.prefswindow.show_all()
         close_button.grab_focus()
-        self.prefswindow.connect('response', prefs_window_response, prefsnotebook, exit_stop, win_ontop, win_decor, display_art_combo, win_sticky, direntry, minimize, update_start, autoconnect, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, using_mpd_env_vars, self.prev_host, self.prev_port, self.prev_password)
+        self.prefswindow.connect('response', prefs_window_response, prefsnotebook, direntry, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, using_mpd_env_vars, self.prev_host, self.prev_port, self.prev_password)
         # Save previous connection properties to determine if we should try to
         # connect to MPD after prefs are closed:
         self.prev_host = self.config.host[self.config.profile_num]
         self.prev_port = self.config.port[self.config.profile_num]
         self.prev_password = self.config.password[self.config.profile_num]
+
+    def prefs_config_widget_active(self, widget, member):
+        """Sets a config attribute to the widget's active value"""
+        setattr(self.config, member, widget.get_active())
 
     def prefs_as_enabled_toggled(self, checkbox, *widgets):
         if checkbox.get_active():
