@@ -129,9 +129,6 @@ class Preferences():
                 widget.set_sensitive(False)
         else:
             using_mpd_env_vars = False
-            # remove_profile is properly set in populate_profile_combo:
-            for widget in [hostentry, portentry, passwordentry, nameentry, profiles, add_profile]:
-                widget.set_sensitive(True)
             nameentry.connect('changed', self.prefs_nameentry_changed, profiles, remove_profile)
             hostentry.connect('changed', self.prefs_hostentry_changed, profiles)
             portentry.connect('changed', self.prefs_portentry_changed, profiles)
@@ -499,15 +496,15 @@ class Preferences():
             plugindata.append((enabled, pb, plugin_text))
 
         # Set up table
-        table_names = [[_("_MPD"), mpd_table],
-                       [_("_Display"), table2],
-                       [_("_Behavior"), table3],
-                       [_("_Format"), table4],
-                       [_("_Extras"), as_frame],
-                       [_("_Plugins"), pluginwindow]]
-        for table_name in table_names:
-            tmplabel = ui.label(textmn=table_name[0])
-            prefsnotebook.append_page(table_name[1], tmplabel)
+        tables = [(_("_MPD"), mpd_table),
+                       (_("_Display"), table2),
+                       (_("_Behavior"), table3),
+                       (_("_Format"), table4),
+                       (_("_Extras"), as_frame),
+                       (_("_Plugins"), pluginwindow)]
+        for table_name, table in tables:
+            tmplabel = ui.label(textmn=table_name)
+            prefsnotebook.append_page(table, tmplabel)
         hbox.pack_start(prefsnotebook, False, False, 10)
         self.prefswindow.vbox.pack_start(hbox, False, False, 10)
         close_button = self.prefswindow.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
@@ -519,7 +516,6 @@ class Preferences():
         self.prev_host = self.config.host[self.config.profile_num]
         self.prev_port = self.config.port[self.config.profile_num]
         self.prev_password = self.config.password[self.config.profile_num]
-        self.prefswindow.show()
 
     def prefs_as_enabled_toggled(self, checkbox, userentry, passentry, userlabel, passlabel):
         if checkbox.get_active():
@@ -572,7 +568,7 @@ class Preferences():
         self.updating_nameentry = True
         prefs_profile_num = profile_combo.get_active()
         self.config.profile_names.append(_("New Profile"))
-        nameentry.set_text(self.config.profile_names[len(self.config.profile_names)-1])
+        nameentry.set_text(self.config.profile_names[-1])
         self.updating_nameentry = False
         self.config.host.append(self.config.host[prefs_profile_num])
         self.config.port.append(self.config.port[prefs_profile_num])
@@ -610,16 +606,14 @@ class Preferences():
         new_model = gtk.ListStore(str)
         new_model.clear()
         profile_combo.set_model(new_model)
-        for i in range(len(self.config.profile_names)):
-            if len(self.config.profile_names[i]) > 15:
-                profile_combo.append_text("[" + str(i+1) + "] " + self.config.profile_names[i][:15] + "...")
-            else:
-                profile_combo.append_text("[" + str(i+1) + "] " + self.config.profile_names[i])
+        for i, profile_name in enumerate(self.config.profile_names):
+            combo_text = "[%s] %s" % (i+1, profile_name[:15])
+            if len(profile_name) > 15:
+                combo_text += "..."
+            profile_combo.append_text(combo_text)
         profile_combo.set_active(active_index)
-        if len(self.config.profile_names) == 1:
-            remove_profiles.set_sensitive(False)
-        else:
-            remove_profiles.set_sensitive(True)
+        # Enable remove button if there is more than one profile
+        remove_profiles.set_sensitive(len(self.config.profile_names) > 1)
 
     def prefs_lyrics_location_changed(self, combobox):
         self.config.lyrics_location = combobox.get_active()
