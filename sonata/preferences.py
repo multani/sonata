@@ -48,13 +48,14 @@ class Preferences():
 
         self.window = None
 
-    def on_prefs_real(self, parent_window, popuptimes, scrobbler, trayicon_available, trayicon_in_use, reconnect, renotify, reinfofile, prefs_notif_toggled, prefs_stylized_toggled, prefs_art_toggled, prefs_playback_toggled, prefs_progress_toggled, prefs_statusbar_toggled, prefs_lyrics_toggled, prefs_trayicon_toggled, prefs_window_response):
+    def on_prefs_real(self, parent_window, popuptimes, scrobbler, trayicon_available, trayicon_in_use, reconnect, renotify, reinfofile, prefs_notif_toggled, prefs_stylized_toggled, prefs_art_toggled, prefs_playback_toggled, prefs_progress_toggled, prefs_statusbar_toggled, prefs_lyrics_toggled, prefs_trayicon_toggled, prefs_window_response, prefs_last_tab):
         """Display the preferences dialog"""
         self.window = parent_window
         self.scrobbler = scrobbler
         self.reconnect = reconnect
         self.renotify = renotify
         self.reinfofile = reinfofile
+        self.last_tab = prefs_last_tab
 
         self.prefswindow = ui.dialog(title=_("Preferences"), parent=self.window, flags=gtk.DIALOG_DESTROY_WITH_PARENT, role='preferences', resizable=False, separator=False)
         hbox = gtk.HBox()
@@ -510,6 +511,7 @@ class Preferences():
         self.prefswindow.vbox.pack_start(hbox, False, False, 10)
         close_button = self.prefswindow.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
         self.prefswindow.show_all()
+        prefsnotebook.set_current_page(self.last_tab)
         close_button.grab_focus()
         self.prefswindow.connect('response', prefs_window_response, prefsnotebook, direntry, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, using_mpd_env_vars, self.prev_host, self.prev_port, self.prev_password)
         # Save previous connection properties to determine if we should try to

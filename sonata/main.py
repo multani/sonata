@@ -167,6 +167,8 @@ class Base(object):
 
         self.mpd_update_queued = False
 
+        self.prefs_last_tab = 0
+
         # XXX get rid of all of these:
         self.all_tab_names = [self.TAB_CURRENT, self.TAB_LIBRARY, self.TAB_PLAYLISTS, self.TAB_STREAMS, self.TAB_INFO]
         all_tab_ids = "current library playlists streams info".split()
@@ -2894,11 +2896,12 @@ class Base(object):
         trayicon_in_use = ((HAVE_STATUS_ICON and self.statusicon.is_embedded() and
                     self.statusicon.get_visible())
                    or (HAVE_EGG and self.trayicon.get_property('visible')))
-        self.preferences.on_prefs_real(self.window, self.popuptimes, self.scrobbler, trayicon_available, trayicon_in_use, self.on_connectkey_pressed, self.on_currsong_notify, self.update_infofile, self.prefs_notif_toggled, self.prefs_stylized_toggled, self.prefs_art_toggled, self.prefs_playback_toggled, self.prefs_progress_toggled, self.prefs_statusbar_toggled, self.prefs_lyrics_toggled, self.prefs_trayicon_toggled, self.prefs_window_response)
+        self.preferences.on_prefs_real(self.window, self.popuptimes, self.scrobbler, trayicon_available, trayicon_in_use, self.on_connectkey_pressed, self.on_currsong_notify, self.update_infofile, self.prefs_notif_toggled, self.prefs_stylized_toggled, self.prefs_art_toggled, self.prefs_playback_toggled, self.prefs_progress_toggled, self.prefs_statusbar_toggled, self.prefs_lyrics_toggled, self.prefs_trayicon_toggled, self.prefs_window_response, self.prefs_last_tab)
 
     # XXX move the prefs handling parts of prefs_* to preferences.py
     def prefs_window_response(self, window, response, prefsnotebook, direntry, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, using_mpd_env_vars, prev_host, prev_port, prev_password):
         if response == gtk.RESPONSE_CLOSE:
+            self.prefs_last_tab = prefsnotebook.get_current_page()
             if self.config.show_lyrics and self.config.lyrics_location != consts.LYRICS_LOCATION_HOME:
                 if not os.path.isdir(misc.file_from_utf8(self.config.musicdir[self.config.profile_num])):
                     ui.show_msg(self.window, _("To save lyrics to the music file's directory, you must specify a valid music directory."), _("Music Dir Verification"), 'musicdirVerificationError', gtk.BUTTONS_CLOSE)
