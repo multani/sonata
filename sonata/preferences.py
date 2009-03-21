@@ -652,13 +652,10 @@ class Preferences():
         self.renotify()
 
     def prefs_infofile_toggled(self, button, infofileformatbox):
-        if button.get_active():
-            infofileformatbox.set_sensitive(True)
-            self.config.use_infofile = True
+        self.config.use_infofile = button.get_active()
+        infofileformatbox.set_sensitive(self.config.use_infofile)
+        if self.config.use_infofile:
             self.reinfofile()
-        else:
-            infofileformatbox.set_sensitive(False)
-            self.config.use_infofile = False
 
     def plugin_click(self, _widget, event):
         if event.button == 3:

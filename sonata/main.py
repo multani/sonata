@@ -2975,24 +2975,16 @@ class Base(object):
         window.destroy()
 
     def prefs_playback_toggled(self, button):
-        if button.get_active():
-            self.config.show_playback = True
-            for widget in [self.prevbutton, self.ppbutton, self.stopbutton, self.nextbutton, self.volumebutton]:
-                ui.show(widget)
-        else:
-            self.config.show_playback = False
-            for widget in [self.prevbutton, self.ppbutton, self.stopbutton, self.nextbutton, self.volumebutton]:
-                ui.hide(widget)
+        self.config.show_playback = button.get_active()
+        func = 'show' if self.config.show_playback else 'hide'
+        for widget in [self.prevbutton, self.ppbutton, self.stopbutton, self.nextbutton, self.volumebutton]:
+            getattr(ui, func)(widget)
 
     def prefs_progress_toggled(self, button):
-        if button.get_active():
-            self.config.show_progress = True
-            for widget in [self.progressbox, self.trayprogressbar]:
-                ui.show(widget)
-        else:
-            self.config.show_progress = False
-            for widget in [self.progressbox, self.trayprogressbar]:
-                ui.hide(widget)
+        self.config.show_progress = button.get_active()
+        func = 'show' if self.config.show_progress else 'hide'
+        for widget in [self.progressbox, self.trayprogressbar]:
+            getattr(ui,func)(widget)
 
     def prefs_art_toggled(self, button, art_hbox1, art_hbox2, art_stylized):
         button_active = button.get_active()
@@ -3027,36 +3019,28 @@ class Base(object):
         self.artwork.artwork_update(True)
 
     def prefs_lyrics_toggled(self, button, lyrics_hbox):
-        if button.get_active():
-            lyrics_hbox.set_sensitive(True)
-            self.config.show_lyrics = True
-        else:
-            lyrics_hbox.set_sensitive(False)
-            self.config.show_lyrics = False
+        self.config.show_lyrics = button.get_active()
+        lyrics_hbox.set_sensitive(self.config.show_lyrics)
         self.info.show_lyrics_updated()
         if self.config.show_lyrics:
             self.info_update(True)
 
     def prefs_statusbar_toggled(self, button):
-        if button.get_active():
+        self.config.show_statusbar = button.get_active()
+        if self.config.show_statusbar:
             self.statusbar.set_no_show_all(False)
             if self.config.expanded:
                 self.statusbar.show_all()
-            self.config.show_statusbar = True
-            self.update_statusbar()
         else:
             ui.hide(self.statusbar)
-            self.config.show_statusbar = False
-            self.update_statusbar()
+        self.update_statusbar()
 
     def prefs_notif_toggled(self, button, notifhbox):
-        if button.get_active():
-            notifhbox.set_sensitive(True)
-            self.config.show_notification = True
+        self.config.show_notification = button.get_active()
+        notifhbox.set_sensitive(self.config.show_notification)
+        if self.config.show_notification:
             self.on_currsong_notify()
         else:
-            notifhbox.set_sensitive(False)
-            self.config.show_notification = False
             try:
                 gobject.source_remove(self.traytips.notif_handler)
             except:
