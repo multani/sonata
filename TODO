@@ -2,7 +2,6 @@ v1.6
 	disconnect/connect/reconnect ui weirdness
 	sonata freezes with gail/accessibility enabled during new library searching
 	right-click on tab bar (michael email)
-	tab right-click menu (michael email)
 
 v1.6.1
 	#3992: enabling/disabling outputs
