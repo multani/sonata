@@ -46,8 +46,8 @@ def pixbuf_pad(pix, w, h):
     return transpbox
 
 def extension_is_valid(extension):
-    for format in gtk.gdk.pixbuf_get_formats():
-        if extension.lower() in format['extensions']:
+    for imgformat in gtk.gdk.pixbuf_get_formats():
+        if extension.lower() in imgformat['extensions']:
             return True
     return False
 

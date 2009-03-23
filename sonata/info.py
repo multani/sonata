@@ -235,7 +235,7 @@ class Info(object):
         elif infotype == "album":
             self.config.info_album_expanded = expanded
 
-    def info_update(self, playing_or_paused, newbitrate, songinfo, album_current_artist, update_all, blank_window=False, skip_lyrics=False):
+    def info_update(self, playing_or_paused, newbitrate, songinfo, update_all, blank_window=False, skip_lyrics=False):
         # update_all = True means that every tag should update. This is
         # only the case on song and status changes. Otherwise we only
         # want to update the minimum number of widgets so the user can

@@ -696,7 +696,7 @@ class Preferences():
         if event.button == 3:
             self.plugin_UIManager.get_widget('/pluginmenu').popup(None, None, None, event.button, event.time)
 
-    def plugin_toggled(self, renderer, path, user_data):
+    def plugin_toggled(self, _renderer, path, user_data):
         model, column = user_data
         model[path][column] = not model[path][column]
         return
@@ -704,7 +704,6 @@ class Preferences():
     def plugin_about(self, _widget):
         plugin = self.plugin_get_selected()
         iconpb = self.plugin_get_icon_pixbuf(plugin)
-        model = self.pluginview.get_model()
 
         about_text = plugin.longname + "\n" + plugin.author + "\n"
         if len(plugin.author_email) > 0:
@@ -742,14 +741,14 @@ class Preferences():
         ui.show_msg(self.prefswindow, "Nothing yet implemented.", "Configure", "pluginConfigure", gtk.BUTTONS_CLOSE)
 
     def plugin_get_selected(self):
-        model, iter = self.pluginselection.get_selected()
-        plugin_num = model.get_path(iter)[0]
+        model, i = self.pluginselection.get_selected()
+        plugin_num = model.get_path(i)[0]
         return pluginsystem.get_info()[plugin_num]
 
     def plugin_get_icon_pixbuf(self, plugin):
         pb = plugin.iconurl
         try:
-            pb = gtk.gdk.pixbuf_new_from_file(iconurl)
+            pb = gtk.gdk.pixbuf_new_from_file(pb)
         except:
             pb = self.pluginview.render_icon(gtk.STOCK_EXECUTE, gtk.ICON_SIZE_LARGE_TOOLBAR)
         return pb

@@ -1323,7 +1323,7 @@ class Base(object):
             newbitrate = self.status['bitrate'] + " kbps"
         except:
             newbitrate = ''
-        self.info.info_update(playing_or_paused, newbitrate, self.songinfo, self.album_current_artist, update_all, blank_window, skip_lyrics)
+        self.info.info_update(playing_or_paused, newbitrate, self.songinfo, update_all, blank_window, skip_lyrics)
 
     def on_treeview_selection_changed(self, treeselection):
         self.update_menu_visibility()

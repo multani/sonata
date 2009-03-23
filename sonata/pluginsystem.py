@@ -120,7 +120,7 @@ class PluginSystem(object):
         if not info.options('capabilities'):
             print "Warning: No capabilities in plugin %s." % name
 
-    def load_plugin(self, path, name):
+    def load_plugin(self, _path, name):
         # XXX load from a .py file - no .pyc etc.
         plugin = self.import_plugin(name)
         self.loaded_plugins[name] = plugin

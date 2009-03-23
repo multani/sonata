@@ -462,7 +462,6 @@ class Library(object):
                 playtime, num_songs = self.library_return_count(artist=artist, album=album, year=year)
                 if num_songs > 0:
                     data = self.library_set_data(artist=artist, album=album, year=year, path=path)
-                    cache_data = self.library_set_data(artist=artist, album=album, path=path)
                     display = misc.escape_html(album)
                     if artist and year and len(artist) > 0 and len(year) > 0 and artist != self.NOTAG and year != self.NOTAG:
                         display += " <span weight='light'>(" + misc.escape_html(artist) + ", " + misc.escape_html(year) + ")</span>"
