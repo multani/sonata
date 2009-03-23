@@ -264,7 +264,7 @@ class Preferences():
         display_art_hbox.set_sensitive(self.config.show_covers)
 
         art_paths = ["~/.covers/"]
-        art_paths += ("../%s/%s" % (_("file_path"), item)
+        art_paths += ("%s/%s" % (_("SONG_DIR"), item)
             for item in ("cover.jpg", "album.jpg", "folder.jpg",
                 _("custom")))
         display_art_location = ui.combo(items=art_paths, active=self.config.art_location, changed_cb=self.prefs_art_location_changed)
@@ -286,7 +286,7 @@ class Preferences():
         display_lyrics = gtk.CheckButton(_("Song Ly_rics"))
         display_lyrics.set_active(self.config.show_lyrics)
         savelyrics_label = ui.label(text=_("Save lyrics to:"), x=1)
-        display_lyrics_location = ui.combo(items=["~/.lyrics/", "../" + _("file_path") + "/"], active=self.config.lyrics_location, changed_cb=self.prefs_lyrics_location_changed)
+        display_lyrics_location = ui.combo(items=["~/.lyrics/", _("SONG_DIR") + "/"], active=self.config.lyrics_location, changed_cb=self.prefs_lyrics_location_changed)
         display_lyrics_location_hbox = gtk.HBox(spacing=12)
         display_lyrics_location_hbox.pack_end(display_lyrics_location,
             False, False)
