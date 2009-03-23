@@ -89,8 +89,9 @@ class Preferences():
         dirbox = gtk.HBox()
         dirlabel = ui.label(text=_("Music dir") + ":")
         dirbox.pack_start(dirlabel, False, False, 0)
-        direntry = ui.entry()
-        direntry.connect('changed', self.prefs_direntry_changed, profiles)
+        direntry = gtk.FileChooserButton(_('Select a Music Directory'))
+        direntry.set_action(gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
+        direntry.connect('selection-changed', self.prefs_direntry_changed, profiles)
         dirbox.pack_start(direntry, True, True, 10)
         passwordbox = gtk.HBox()
         passwordlabel = ui.label(text=_("Password") + ":")
@@ -560,7 +561,7 @@ class Preferences():
 
     def prefs_direntry_changed(self, entry, profile_combo):
         prefs_profile_num = profile_combo.get_active()
-        self.config.musicdir[prefs_profile_num] = misc.sanitize_musicdir(entry.get_text())
+        self.config.musicdir[prefs_profile_num] = misc.sanitize_musicdir(entry.get_filename())
 
     def prefs_add_profile(self, _button, nameentry, profile_combo, remove_profiles):
         self.updating_nameentry = True
@@ -598,7 +599,7 @@ class Preferences():
         hostentry.set_text(str(self.config.host[prefs_profile_num]))
         portentry.set_value(self.config.port[prefs_profile_num])
         passwordentry.set_text(str(self.config.password[prefs_profile_num]))
-        direntry.set_text(str(self.config.musicdir[prefs_profile_num]))
+        direntry.set_filename(str(self.config.musicdir[prefs_profile_num]))
 
     def prefs_populate_profile_combo(self, profile_combo, active_index, remove_profiles):
         new_model = gtk.ListStore(str)
