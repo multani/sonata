@@ -369,39 +369,33 @@ class Preferences():
         behavior_tab.add(behavior_table)
 
         # Format tab
-        table4 = gtk.Table(9, 2, False)
-        table4.set_col_spacings(3)
-        formatlabel = ui.label(markup='<b>' + _('Song Formatting') + '</b>', y=1)
-        currentformatbox = gtk.HBox()
-        currentlabel = ui.label(text=_("Current playlist:"))
-        currentoptions = ui.entry(text=self.config.currentformat)
-        currentformatbox.pack_start(currentlabel, False, False, 0)
-        currentformatbox.pack_start(currentoptions, False, False, 10)
-        libraryformatbox = gtk.HBox()
-        librarylabel = ui.label(text=_("Library:"))
-        libraryoptions = ui.entry(text=self.config.libraryformat)
-        libraryformatbox.pack_start(librarylabel, False, False, 0)
-        libraryformatbox.pack_start(libraryoptions, False, False, 10)
-        titleformatbox = gtk.HBox()
-        titlelabel = ui.label(text=_("Window title:"))
-        titleoptions = ui.entry(text=self.config.titleformat)
-        titleoptions.set_text(self.config.titleformat)
-        titleformatbox.pack_start(titlelabel, False, False, 0)
-        titleformatbox.pack_start(titleoptions, False, False, 10)
-        currsongformatbox1 = gtk.HBox()
-        currsonglabel1 = ui.label(text=_("Current song line 1:"))
-        currsongoptions1 = ui.entry(text=self.config.currsongformat1)
-        currsongformatbox1.pack_start(currsonglabel1, False, False, 0)
-        currsongformatbox1.pack_start(currsongoptions1, False, False, 10)
-        currsongformatbox2 = gtk.HBox()
-        currsonglabel2 = ui.label(text=_("Current song line 2:"))
-        currsongoptions2 = ui.entry(text=self.config.currsongformat2)
-        currsongformatbox2.pack_start(currsonglabel2, False, False, 0)
-        currsongformatbox2.pack_start(currsongoptions2, False, False, 10)
-        formatlabels = [currentlabel, librarylabel, titlelabel, currsonglabel1, currsonglabel2]
-        for label in formatlabels:
-            label.set_alignment(0, 0.5)
-        ui.set_widths_equal(formatlabels)
+        formatlabel = ui.label(markup='<b>'+_('Song Formatting')+'</b>')
+        format_frame = gtk.Frame()
+        format_frame.set_label_widget(formatlabel)
+        format_frame.set_shadow_type(gtk.SHADOW_NONE)
+
+        rows = [(_("Current playlist:"), self.config.currentformat),
+            (_("Library:"), self.config.libraryformat),
+            (_("Window title:"), self.config.titleformat),
+            (_("Current song line 1:"),
+                self.config.currsongformat1),
+            (_("Current song line 2:"),
+                self.config.currsongformat2)]
+
+        format_labels = []
+        format_entries = []
+        for label_text, entry_text in rows:
+            label = ui.label(textmn=label_text)
+            entry = ui.entry(text=entry_text)
+
+            format_labels.append(label)
+            format_entries.append(entry)
+
+        currentoptions = format_entries[0]
+        libraryoptions = format_entries[1]
+        titleoptions = format_entries[2]
+        currsongoptions1 = format_entries[3]
+        currsongoptions2 = format_entries[4]
 
         availableheading = ui.label(markup='<small>' + _('Available options') + ':</small>', y=0)
         availablevbox = gtk.VBox()
@@ -432,18 +426,24 @@ class Preferences():
         additionalinfo = ui.label(markup='<small><tt>{ }</tt> - ' + _('Info displayed only if all enclosed tags are defined') + '\n' + '<tt>|</tt> - ' + _('Creates columns in the current playlist') + '</small>', y=0)
         availablevbox.pack_start(additionalinfo, False, False, 4)
 
-        table4.attach(ui.label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table4.attach(formatlabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table4.attach(ui.label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table4.attach(currentformatbox, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table4.attach(libraryformatbox, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table4.attach(titleformatbox, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table4.attach(currsongformatbox1, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table4.attach(currsongformatbox2, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table4.attach(ui.label(), 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table4.attach(availableheading, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table4.attach(availablevbox, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 45, 0)
-        table4.attach(ui.label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        num_rows = len(rows) + 2
+        format_table = gtk.Table(num_rows, 2)
+        format_table.set_col_spacings(12)
+        label_entries = enumerate(zip(format_labels, format_entries))
+        for i, (label, entry) in label_entries:
+            format_table.attach(label, 0, 1, i, i+1, gtk.FILL)
+            format_table.attach(entry, 1, 2, i, i+1)
+        format_table.attach(availableheading, 0, 2, num_rows-2,
+            num_rows-1, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND,
+            0, 6)
+        format_table.attach(availablevbox, 0, 2, num_rows-1, num_rows)
+        format_alignment = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
+        format_alignment.set_padding(12, 0, 12, 0)
+        format_alignment.add(format_table)
+        format_frame.add(format_alignment)
+        format_tab = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
+        format_tab.set_padding(12, 12, 12, 12)
+        format_tab.add(format_frame)
 
         # Plugins tab
 
@@ -510,7 +510,7 @@ class Preferences():
         tables = [(_("_MPD"), mpd_tab),
                        (_("_Display"), table2),
                        (_("_Behavior"), behavior_tab),
-                       (_("_Format"), table4),
+                       (_("_Format"), format_tab),
                        (_("_Extras"), as_frame),
                        (_("_Plugins"), pluginwindow)]
         for table_name, table in tables:
