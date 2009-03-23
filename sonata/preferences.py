@@ -62,6 +62,9 @@ class Preferences():
         prefsnotebook = gtk.Notebook()
         # MPD tab
         mpdlabel = ui.label(markup='<b>' + _('MPD Connection') + '</b>', y=1)
+        mpd_frame = gtk.Frame()
+        mpd_frame.set_label_widget(mpdlabel)
+        mpd_frame.set_shadow_type(gtk.SHADOW_NONE)
         controlbox = gtk.HBox()
         profiles = ui.combo()
         add_profile = ui.button(img=ui.image(stock=gtk.STOCK_ADD))
@@ -70,37 +73,20 @@ class Preferences():
         controlbox.pack_start(profiles, False, False, 2)
         controlbox.pack_start(remove_profile, False, False, 2)
         controlbox.pack_start(add_profile, False, False, 2)
-        namebox = gtk.HBox()
         namelabel = ui.label(text=_("Name") + ":")
-        namebox.pack_start(namelabel, False, False, 0)
         nameentry = ui.entry()
-        namebox.pack_start(nameentry, True, True, 10)
-        hostbox = gtk.HBox()
         hostlabel = ui.label(text=_("Host") + ":")
-        hostbox.pack_start(hostlabel, False, False, 0)
         hostentry = ui.entry()
-        hostbox.pack_start(hostentry, True, True, 10)
-        portbox = gtk.HBox()
         portlabel = ui.label(text=_("Port") + ":")
-        portbox.pack_start(portlabel, False, False, 0)
         portentry = gtk.SpinButton(gtk.Adjustment(0 ,0 ,65535, 1),1)
         portentry.set_numeric(True)
-        portbox.pack_start(portentry, True, True, 10)
-        dirbox = gtk.HBox()
         dirlabel = ui.label(text=_("Music dir") + ":")
-        dirbox.pack_start(dirlabel, False, False, 0)
         direntry = gtk.FileChooserButton(_('Select a Music Directory'))
         direntry.set_action(gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
         direntry.connect('selection-changed', self.prefs_direntry_changed, profiles)
-        dirbox.pack_start(direntry, True, True, 10)
-        passwordbox = gtk.HBox()
         passwordlabel = ui.label(text=_("Password") + ":")
-        passwordbox.pack_start(passwordlabel, False, False, 0)
         passwordentry = ui.entry(password=True)
         passwordentry.set_tooltip_text(_("Leave blank if no password is required."))
-        passwordbox.pack_start(passwordentry, True, True, 10)
-        mpd_labels = [namelabel, hostlabel, portlabel, passwordlabel, dirlabel]
-        ui.set_widths_equal(mpd_labels)
         autoconnect = gtk.CheckButton(_("Autoconnect on start"))
         autoconnect.set_active(self.config.autoconnect)
         autoconnect.connect('toggled', self.prefs_config_widget_active, 'autoconnect')
@@ -131,29 +117,41 @@ class Preferences():
             profiles.connect('changed', self.prefs_profile_chosen, nameentry, hostentry, portentry, passwordentry, direntry)
             add_profile.connect('clicked', self.prefs_add_profile, nameentry, profiles, remove_profile)
             remove_profile.connect('clicked', self.prefs_remove_profile, profiles, remove_profile)
-        mpd_frame = gtk.Frame()
-        table = gtk.Table(6, 2, False)
-        table.set_col_spacings(3)
-        table.attach(ui.label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(namebox, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(hostbox, 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(portbox, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(passwordbox, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(dirbox, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        table.attach(ui.label(), 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        mpd_frame.add(table)
-        mpd_frame.set_label_widget(controlbox)
-        mpd_table = gtk.Table(9, 2, False)
-        mpd_table.set_col_spacings(3)
-        mpd_table.attach(ui.label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        mpd_table.attach(mpdlabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        mpd_table.attach(ui.label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 10, 0)
-        mpd_table.attach(mpd_frame, 1, 3, 4, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        mpd_table.attach(ui.label(), 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        mpd_table.attach(autoconnect, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        mpd_table.attach(ui.label(), 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        mpd_table.attach(ui.label(), 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        mpd_table.attach(ui.label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+
+        rows = [(namelabel, nameentry),
+            (hostlabel, hostentry),
+            (portlabel, portentry),
+            (passwordlabel, passwordentry),
+            (dirlabel, direntry)]
+
+        connection_table = gtk.Table(len(rows), 2)
+        connection_table.set_col_spacings(12)
+        for i, (label, entry) in enumerate(rows):
+            connection_table.attach(label, 0, 1, i, i+1, gtk.FILL,
+                gtk.FILL)
+            connection_table.attach(entry, 1, 2, i, i+1,
+                gtk.FILL|gtk.EXPAND, gtk.FILL)
+
+        connection_alignment = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
+        connection_alignment.set_padding(12, 12, 12, 12)
+        connection_alignment.add(connection_table)
+        connection_frame = gtk.Frame()
+        connection_frame.set_label_widget(controlbox)
+        connection_frame.add(connection_alignment)
+        mpd_table = gtk.Table(2, 1)
+        mpd_table.set_row_spacings(12)
+        mpd_table.attach(connection_frame, 0, 1, 0, 1,
+            gtk.FILL|gtk.EXPAND, gtk.FILL)
+        mpd_table.attach(autoconnect, 0, 1, 1, 2, gtk.FILL|gtk.EXPAND,
+            gtk.FILL)
+        mpd_alignment = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
+        mpd_alignment.set_padding(12, 0, 12, 0)
+        mpd_alignment.add(mpd_table)
+        mpd_frame.add(mpd_alignment)
+        mpd_tab = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
+        mpd_tab.set_padding(12, 12, 12, 12)
+        mpd_tab.add(mpd_frame)
+
         # Extras tab
         if not self.scrobbler.imported():
             self.config.as_enabled = False
@@ -494,7 +492,7 @@ class Preferences():
             plugindata.append((enabled, pb, plugin_text))
 
         # Set up table
-        tables = [(_("_MPD"), mpd_table),
+        tables = [(_("_MPD"), mpd_tab),
                        (_("_Display"), table2),
                        (_("_Behavior"), table3),
                        (_("_Format"), table4),
