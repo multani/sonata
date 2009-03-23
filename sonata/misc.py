@@ -1,5 +1,5 @@
 
-import os, subprocess, re, locale, sys
+import os, subprocess, re, locale, sys, ui, gtk
 
 
 def convert_time(raw):
@@ -171,8 +171,7 @@ def browser_load(docslink, browser, window):
         except OSError:
             pass  # try next
     else: # none worked
-        # FIXME no function ui.show_error_msg defined
-        ui.show_error_msg(window, _('Unable to launch a suitable browser.'), _('Launch Browser'), 'browserLoadError')
+        ui.show_msg(window, _('Unable to launch a suitable browser.'), _('Launch Browser'), 'browserLoadError', gtk.BUTTONS_CLOSE)
 
 def file_from_utf8(filename):
     import gobject
