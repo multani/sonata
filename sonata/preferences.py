@@ -83,7 +83,8 @@ class Preferences():
         portbox = gtk.HBox()
         portlabel = ui.label(text=_("Port") + ":")
         portbox.pack_start(portlabel, False, False, 0)
-        portentry = ui.entry()
+        portentry = gtk.SpinButton(gtk.Adjustment(0 ,0 ,65535, 1),1)
+        portentry.set_numeric(True)
         portbox.pack_start(portentry, True, True, 10)
         dirbox = gtk.HBox()
         dirlabel = ui.label(text=_("Music dir") + ":")
@@ -111,11 +112,11 @@ class Preferences():
             if not host:
                 host = ""
             if not port:
-                port = ""
+                port = 0
             if not password:
                 password = ""
             hostentry.set_text(str(host))
-            portentry.set_text(str(port))
+            portentry.set_value(port)
             passwordentry.set_text(str(password))
             nameentry.set_text(_("Using MPD_HOST/PORT"))
             for widget in [hostentry, portentry, passwordentry, nameentry, profiles, add_profile, remove_profile]:
@@ -124,7 +125,7 @@ class Preferences():
             using_mpd_env_vars = False
             nameentry.connect('changed', self.prefs_nameentry_changed, profiles, remove_profile)
             hostentry.connect('changed', self.prefs_hostentry_changed, profiles)
-            portentry.connect('changed', self.prefs_portentry_changed, profiles)
+            portentry.connect('value-changed', self.prefs_portentry_changed, profiles)
             passwordentry.connect('changed', self.prefs_passwordentry_changed, profiles)
             profiles.connect('changed', self.prefs_profile_chosen, nameentry, hostentry, portentry, passwordentry, direntry)
             add_profile.connect('clicked', self.prefs_add_profile, nameentry, profiles, remove_profile)
@@ -551,10 +552,7 @@ class Preferences():
 
     def prefs_portentry_changed(self, entry, profile_combo):
         prefs_profile_num = profile_combo.get_active()
-        try:
-            self.config.port[prefs_profile_num] = int(entry.get_text())
-        except:
-            pass
+        self.config.port[prefs_profile_num] = entry.get_value_as_int()
 
     def prefs_passwordentry_changed(self, entry, profile_combo):
         prefs_profile_num = profile_combo.get_active()
@@ -598,7 +596,7 @@ class Preferences():
         nameentry.set_text(str(self.config.profile_names[prefs_profile_num]))
         self.updating_nameentry = False
         hostentry.set_text(str(self.config.host[prefs_profile_num]))
-        portentry.set_text(str(self.config.port[prefs_profile_num]))
+        portentry.set_value(self.config.port[prefs_profile_num])
         passwordentry.set_text(str(self.config.password[prefs_profile_num]))
         direntry.set_text(str(self.config.musicdir[prefs_profile_num]))
 
