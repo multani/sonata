@@ -296,8 +296,10 @@ class Preferences():
         table2.attach(display_art_location_hbox, 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
         table2.attach(ui.label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 75, 0)
         # Behavior tab
-        table3 = gtk.Table()
-        behaviorlabel = ui.label(markup='<b>' + _('Window Behavior') + '</b>', y=1)
+        windowlabel = ui.label(markup='<b>'+_('Window Behavior')+'</b>')
+        window_frame = gtk.Frame()
+        window_frame.set_label_widget(windowlabel)
+        window_frame.set_shadow_type(gtk.SHADOW_NONE)
         win_sticky = gtk.CheckButton(_("Show window on all workspaces"))
         win_sticky.set_active(self.config.sticky)
         win_sticky.connect('toggled', self.prefs_config_widget_active, 'sticky')
@@ -309,6 +311,26 @@ class Preferences():
         win_decor.connect('toggled',
             lambda w: setattr(self.config, 'decorated',
                 not w.get_active()))
+        minimize = gtk.CheckButton(_("Minimize to system tray on close/escape"))
+        minimize.set_active(self.config.minimize_to_systray)
+        minimize.set_tooltip_text(_("If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."))
+        minimize.connect('toggled', self.prefs_config_widget_active, 'minimize_to_systray')
+        display_trayicon.connect('toggled', prefs_trayicon_toggled, minimize)
+        minimize.set_sensitive(trayicon_in_use)
+        widgets = (win_sticky, win_ontop, win_decor, minimize)
+        window_table = gtk.Table(len(widgets), 1)
+        for i, widget in enumerate(widgets):
+            window_table.attach(widget, 0, 1, i, i+1,
+                gtk.FILL|gtk.EXPAND, gtk.FILL)
+        window_alignment = gtk.Alignment()
+        window_alignment.set_padding(12, 0, 12, 0)
+        window_alignment.add(window_table)
+        window_frame.add(window_alignment)
+
+        misclabel = ui.label(markup='<b>' + _('Miscellaneous') + '</b>')
+        misc_frame = gtk.Frame()
+        misc_frame.set_label_widget(misclabel)
+        misc_frame.set_shadow_type(gtk.SHADOW_NONE)
         update_start = gtk.CheckButton(_("Update MPD library on start"))
         update_start.set_active(self.config.update_on_start)
         update_start.set_tooltip_text(_("If enabled, Sonata will automatically update your MPD library when it starts up."))
@@ -317,13 +339,6 @@ class Preferences():
         exit_stop.set_active(self.config.stop_on_exit)
         exit_stop.set_tooltip_text(_("MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit."))
         exit_stop.connect('toggled', self.prefs_config_widget_active, 'stop_on_exit')
-        minimize = gtk.CheckButton(_("Minimize to system tray on close/escape"))
-        minimize.set_active(self.config.minimize_to_systray)
-        minimize.set_tooltip_text(_("If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."))
-        minimize.connect('toggled', self.prefs_config_widget_active, 'minimize_to_systray')
-        display_trayicon.connect('toggled', prefs_trayicon_toggled, minimize)
-        minimize.set_sensitive(trayicon_in_use)
-        infofilebox = gtk.HBox()
         infofile_usage = gtk.CheckButton(_("Write status file:"))
         infofile_usage.set_active(self.config.use_infofile)
         infofile_usage.set_tooltip_text(_("If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)"))
@@ -332,27 +347,27 @@ class Preferences():
         if not self.config.use_infofile:
             infopath_options.set_sensitive(False)
         infofile_usage.connect('toggled', self.prefs_infofile_toggled, infopath_options)
-        infofilebox.pack_start(infofile_usage, False, False, 0)
-        infofilebox.pack_start(infopath_options, True, True, 5)
-        behaviorlabel2 = ui.label(markup='<b>' + _('Miscellaneous') + '</b>', y=1)
-        table3.attach(ui.label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table3.attach(behaviorlabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table3.attach(ui.label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table3.attach(win_sticky, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(win_ontop, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(win_decor, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(minimize, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(ui.label(), 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table3.attach(behaviorlabel2, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table3.attach(ui.label(), 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table3.attach(update_start, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(exit_stop, 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(infofilebox, 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(ui.label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(ui.label(), 1, 3, 15, 16, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(ui.label(), 1, 3, 16, 17, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(ui.label(), 1, 3, 17, 18, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table3.attach(ui.label(), 1, 3, 18, 19, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
+        infofilebox = gtk.HBox(spacing=6)
+        infofilebox.pack_start(infofile_usage, False, False)
+        infofilebox.pack_start(infopath_options, True, True)
+        widgets = (update_start, exit_stop, infofilebox)
+        misc_table = gtk.Table(len(widgets), 1)
+        for i, widget in enumerate(widgets):
+            misc_table.attach(widget, 0, 1, i, i+1,
+                gtk.FILL|gtk.EXPAND, gtk.FILL)
+        misc_alignment = gtk.Alignment()
+        misc_alignment.set_padding(12, 0, 12, 0)
+        misc_alignment.add(misc_table)
+        misc_frame.add(misc_alignment)
+
+        behavior_table = gtk.Table(2, 1)
+        behavior_table.set_row_spacings(12)
+        behavior_table.attach(window_frame, 0, 1, 0, 1, gtk.FILL|gtk.EXPAND, gtk.FILL)
+        behavior_table.attach(misc_frame, 0, 1, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL)
+        behavior_tab = gtk.Alignment()
+        behavior_tab.set_padding(12, 12, 12, 12)
+        behavior_tab.add(behavior_table)
+
         # Format tab
         table4 = gtk.Table(9, 2, False)
         table4.set_col_spacings(3)
@@ -494,7 +509,7 @@ class Preferences():
         # Set up table
         tables = [(_("_MPD"), mpd_tab),
                        (_("_Display"), table2),
-                       (_("_Behavior"), table3),
+                       (_("_Behavior"), behavior_tab),
                        (_("_Format"), table4),
                        (_("_Extras"), as_frame),
                        (_("_Plugins"), pluginwindow)]
