@@ -173,4 +173,5 @@ class About(object):
         self.about_dialog.show_all()
 
     def show_website(self, _dialog, link):
-        misc.browser_load(link, self.config.url_browser, self.parent_window)
+        if not misc.browser_load(link, self.config.url_browser, self.parent_window):
+            ui.show_msg(self.about_dialog, _('Unable to launch a suitable browser.'), _('Launch Browser'), 'browserLoadError', gtk.BUTTONS_CLOSE)

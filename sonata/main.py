@@ -3072,17 +3072,20 @@ class Base(object):
         self.iterate_now()
 
     def on_link_click(self, type):
+        browser_not_loaded = False
         if type == 'artist':
-            misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + urllib.quote(mpdh.get(self.songinfo, 'artist')), self.config.url_browser, self.window)
+            browser_not_loaded = not misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + urllib.quote(mpdh.get(self.songinfo, 'artist')), self.config.url_browser, self.window)
         elif type == 'album':
-            misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + urllib.quote(mpdh.get(self.songinfo, 'album')), self.config.url_browser, self.window)
+            browser_not_loaded = not misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + urllib.quote(mpdh.get(self.songinfo, 'album')), self.config.url_browser, self.window)
         elif type == 'edit':
             if self.songinfo:
                 self.on_tags_edit(None)
         elif type == 'search':
             self.on_lyrics_search(None)
         elif type == 'editlyrics':
-            misc.browser_load(self.info.lyricwiki_editlink(self.songinfo), self.config.url_browser, self.window)
+            browser_not_loaded = not misc.browser_load(self.info.lyricwiki_editlink(self.songinfo), self.config.url_browser, self.window)
+        if browser_not_loaded:
+            ui.show_msg(self.window, _('Unable to launch a suitable browser.'), _('Launch Browser'), 'browserLoadError', gtk.BUTTONS_CLOSE)
 
     def on_tab_click(self, _widget, event):
         if event.button == 3:

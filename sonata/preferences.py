@@ -734,7 +734,8 @@ class Preferences():
         return True
 
     def plugin_show_website(self, _dialog, link):
-        misc.browser_load(link, self.config.url_browser, self.window)
+        if not misc.browser_load(link, self.config.url_browser, self.window):
+            ui.show_msg(self.window, _('Unable to launch a suitable browser.'), _('Launch Browser'), 'browserLoadError', gtk.BUTTONS_CLOSE)
 
     def plugin_configure(self, _widget):
         plugin = self.plugin_get_selected()
