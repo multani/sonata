@@ -2896,10 +2896,10 @@ class Base(object):
         trayicon_in_use = ((HAVE_STATUS_ICON and self.statusicon.is_embedded() and
                     self.statusicon.get_visible())
                    or (HAVE_EGG and self.trayicon.get_property('visible')))
-        self.preferences.on_prefs_real(self.window, self.popuptimes, self.scrobbler, trayicon_available, trayicon_in_use, self.on_connectkey_pressed, self.on_currsong_notify, self.update_infofile, self.prefs_notif_toggled, self.prefs_stylized_toggled, self.prefs_art_toggled, self.prefs_playback_toggled, self.prefs_progress_toggled, self.prefs_statusbar_toggled, self.prefs_lyrics_toggled, self.prefs_trayicon_toggled, self.prefs_window_response, self.prefs_last_tab)
+        self.preferences.on_prefs_real(self.window, self.popuptimes, self.scrobbler, trayicon_available, trayicon_in_use, self.on_connectkey_pressed, self.on_currsong_notify, self.update_infofile, self.prefs_notif_toggled, self.prefs_stylized_toggled, self.prefs_art_toggled, self.prefs_playback_toggled, self.prefs_progress_toggled, self.prefs_statusbar_toggled, self.prefs_lyrics_toggled, self.prefs_trayicon_toggled, self.prefs_crossfade_toggled, self.prefs_crossfade_changed, self.prefs_window_response, self.prefs_last_tab)
 
     # XXX move the prefs handling parts of prefs_* to preferences.py
-    def prefs_window_response(self, window, response, prefsnotebook, direntry, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, using_mpd_env_vars, prev_host, prev_port, prev_password):
+    def prefs_window_response(self, window, response, prefsnotebook, direntry, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, infopath_options, using_mpd_env_vars, prev_host, prev_port, prev_password):
         if response == gtk.RESPONSE_CLOSE:
             self.prefs_last_tab = prefsnotebook.get_current_page()
             if self.config.show_lyrics and self.config.lyrics_location != consts.LYRICS_LOCATION_HOME:
@@ -2945,15 +2945,6 @@ class Base(object):
                     self.withdraw_app()
                     self.window.set_decorated(self.config.decorated)
                     self.withdraw_app_undo()
-            self.config.xfade = crossfadespin.get_value_as_int()
-            if crossfadecheck.get_active():
-                self.config.xfade_enabled = True
-                if self.conn:
-                    mpdh.call(self.client, 'crossfade', self.config.xfade)
-            else:
-                self.config.xfade_enabled = False
-                if self.conn:
-                    mpdh.call(self.client, 'crossfade', 0)
             if self.config.infofile_path != infopath_options.get_text():
                 self.config.infofile_path = os.path.expanduser(infopath_options.get_text())
                 if self.config.use_infofile: self.update_infofile()
@@ -2968,6 +2959,17 @@ class Base(object):
             self.populate_profiles_for_menu()
             ui.change_cursor(None)
         window.destroy()
+
+    def prefs_crossfade_changed(self, crossfade_spin):
+        crossfade_value = crossfade_spin.get_value_as_int()
+        mpdh.call(self.client, 'crossfade', crossfade_value)
+
+    def prefs_crossfade_toggled(self, button, crossfade_spin):
+        crossfade_value = crossfade_spin.get_value_as_int()
+        if button.get_active():
+            mpdh.call(self.client, 'crossfade', crossfade_value)
+        else:
+            mpdh.call(self.client, 'crossfade', 0)
 
     def prefs_playback_toggled(self, button):
         self.config.show_playback = button.get_active()

@@ -48,7 +48,7 @@ class Preferences():
 
         self.window = None
 
-    def on_prefs_real(self, parent_window, popuptimes, scrobbler, trayicon_available, trayicon_in_use, reconnect, renotify, reinfofile, prefs_notif_toggled, prefs_stylized_toggled, prefs_art_toggled, prefs_playback_toggled, prefs_progress_toggled, prefs_statusbar_toggled, prefs_lyrics_toggled, prefs_trayicon_toggled, prefs_window_response, prefs_last_tab):
+    def on_prefs_real(self, parent_window, popuptimes, scrobbler, trayicon_available, trayicon_in_use, reconnect, renotify, reinfofile, prefs_notif_toggled, prefs_stylized_toggled, prefs_art_toggled, prefs_playback_toggled, prefs_progress_toggled, prefs_statusbar_toggled, prefs_lyrics_toggled, prefs_trayicon_toggled, prefs_crossfade_toggled, prefs_crossfade_changed, prefs_window_response, prefs_last_tab):
         """Display the preferences dialog"""
         self.window = parent_window
         self.scrobbler = scrobbler
@@ -202,23 +202,17 @@ class Preferences():
         crossfadespin.set_numeric(True)
         crossfadespin.set_increments(1, 5)
         crossfadespin.set_size_request(70, -1)
+        crossfadespin.connect('value-changed', prefs_crossfade_changed)
         crossfadelabel2 = ui.label(text=_("Fade length") + ":", x=1)
         crossfadelabel3 = ui.label(text=_("sec"))
-        if not self.config.xfade_enabled:
-            crossfadespin.set_sensitive(False)
-            crossfadelabel2.set_sensitive(False)
-            crossfadelabel3.set_sensitive(False)
-            crossfadecheck.set_active(False)
-        else:
-            crossfadespin.set_sensitive(True)
-            crossfadelabel2.set_sensitive(True)
-            crossfadelabel3.set_sensitive(True)
-            crossfadecheck.set_active(True)
         crossfadebox = gtk.HBox()
         crossfadebox.pack_start(crossfadelabel2)
         crossfadebox.pack_start(crossfadespin, False, False, 5)
         crossfadebox.pack_start(crossfadelabel3, False, False, 0)
         crossfadecheck.connect('toggled', self.prefs_crossfadecheck_toggled, crossfadespin, crossfadelabel2, crossfadelabel3)
+        crossfadecheck.connect('toggled', prefs_crossfade_toggled, crossfadespin)
+        crossfadecheck.set_active(self.config.xfade_enabled)
+        crossfadecheck.toggled() # Force the toggled callback
         as_table.attach(as_user_label, 0, 1, 0, 1)
         as_table.attach(as_user_entry, 1, 2, 0, 1)
         as_table.attach(as_pass_label, 0, 1, 1, 2)
@@ -513,7 +507,7 @@ class Preferences():
         self.prefswindow.show_all()
         prefsnotebook.set_current_page(self.last_tab)
         close_button.grab_focus()
-        self.prefswindow.connect('response', prefs_window_response, prefsnotebook, direntry, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, crossfadecheck, crossfadespin, infopath_options, using_mpd_env_vars, self.prev_host, self.prev_port, self.prev_password)
+        self.prefswindow.connect('response', prefs_window_response, prefsnotebook, direntry, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, infopath_options, using_mpd_env_vars, self.prev_host, self.prev_port, self.prev_password)
         # Save previous connection properties to determine if we should try to
         # connect to MPD after prefs are closed:
         self.prev_host = self.config.host[self.config.profile_num]
