@@ -784,8 +784,9 @@ class Base(object):
 
         gobject.idle_add(self.header_save_column_widths)
 
-        for tabs in pluginsystem.get('tabs'):
-            self.new_tab(*tabs())
+        # XXX Plugins temporarily disabled
+        #for tabs in pluginsystem.get('tabs'):
+        #	self.new_tab(*tabs())
 
         self.notebook_show_first_tab = not self.config.tabs_expanded or self.config.withdrawn
 

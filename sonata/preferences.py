@@ -533,8 +533,9 @@ class Preferences():
                        (_("Display"), display_tab),
                        (_("Behavior"), behavior_tab),
                        (_("Format"), format_tab),
-                       (_("Extras"), extras_tab),
-                       (_("Plugins"), pluginwindow)]
+                       (_("Extras"), extras_tab)]
+                       # XXX Plugins temporarily disabled
+                       #(_("Plugins"), pluginwindow)]
         for table_name, table in tables:
             tmplabel = ui.label(text=table_name)
             prefsnotebook.append_page(table, tmplabel)
