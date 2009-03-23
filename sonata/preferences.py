@@ -233,31 +233,35 @@ class Preferences():
             as_user_label.set_sensitive(False)
             as_pass_label.set_sensitive(False)
         # Display tab
-        table2 = gtk.Table(7, 2, False)
-        displaylabel = ui.label(markup='<b>' + _('Display') + '</b>', y=1)
-        display_art_hbox = gtk.HBox()
+        displaylabel = ui.label(markup='<b>' + _('Display') + '</b>')
+        display_frame = gtk.Frame()
+        display_frame.set_label_widget(displaylabel)
+        display_frame.set_shadow_type(gtk.SHADOW_NONE)
+
         display_art = gtk.CheckButton(_("Enable album art"))
         display_art.set_active(self.config.show_covers)
         display_stylized_combo = ui.combo(items=[_("Standard"), _("Stylized")], active=self.config.covers_type, changed_cb=prefs_stylized_toggled)
-        display_stylized_hbox = gtk.HBox()
-        display_stylized_hbox.pack_start(ui.label(text=_("Artwork style:"), x=1))
-        display_stylized_hbox.pack_start(display_stylized_combo, False, False, 5)
+        display_stylized_hbox = gtk.HBox(spacing=12)
+        display_stylized_hbox.pack_end(display_stylized_combo, False, False)
+        display_stylized_hbox.pack_end(ui.label(text=_("Artwork style:")), False, False)
         display_stylized_hbox.set_sensitive(self.config.show_covers)
         display_art_combo = ui.combo(items=[_("Local only"), _("Local and remote")], active=self.config.covers_pref)
         display_art_combo.connect('changed', self.prefs_config_widget_active, 'covers_pref')
-        orderart_label = ui.label(text=_("Search locations:"), x=1)
-        display_art_hbox.pack_start(orderart_label)
-        display_art_hbox.pack_start(display_art_combo, False, False, 5)
+        orderart_label = ui.label(text=_("Search locations:"))
+        display_art_hbox = gtk.HBox(spacing=12)
+        display_art_hbox.pack_end(display_art_combo, False, False)
+        display_art_hbox.pack_end(orderart_label, False, False)
         display_art_hbox.set_sensitive(self.config.show_covers)
-        display_art_location_hbox = gtk.HBox()
-        display_art_location_hbox.pack_start(ui.label(text=_("Save art to:"), x=1))
 
         art_paths = ["~/.covers/"]
-        for item in ["/cover.jpg", "/album.jpg", "/folder.jpg", "/" + _("custom")]:
-            art_paths.append("../" + _("file_path") + item)
+        art_paths += ("../%s/%s" % (_("file_path"), item)
+            for item in ("cover.jpg", "album.jpg", "folder.jpg",
+                _("custom")))
         display_art_location = ui.combo(items=art_paths, active=self.config.art_location, changed_cb=self.prefs_art_location_changed)
 
-        display_art_location_hbox.pack_start(display_art_location, False, False, 5)
+        display_art_location_hbox = gtk.HBox(spacing=12)
+        display_art_location_hbox.pack_end(display_art_location, False, False)
+        display_art_location_hbox.pack_end(ui.label(text=_("Save art to:")), False, False)
         display_art_location_hbox.set_sensitive(self.config.show_covers)
         display_art.connect('toggled', prefs_art_toggled, display_art_hbox, display_art_location_hbox, display_stylized_hbox)
         display_playback = gtk.CheckButton(_("Enable playback/volume buttons"))
@@ -271,30 +275,36 @@ class Preferences():
         display_statusbar.connect('toggled', prefs_statusbar_toggled)
         display_lyrics = gtk.CheckButton(_("Enable lyrics"))
         display_lyrics.set_active(self.config.show_lyrics)
-        display_lyrics_location_hbox = gtk.HBox()
         savelyrics_label = ui.label(text=_("Save lyrics to:"), x=1)
-        display_lyrics_location_hbox.pack_start(savelyrics_label)
         display_lyrics_location = ui.combo(items=["~/.lyrics/", "../" + _("file_path") + "/"], active=self.config.lyrics_location, changed_cb=self.prefs_lyrics_location_changed)
-        display_lyrics_location_hbox.pack_start(display_lyrics_location, False, False, 5)
+        display_lyrics_location_hbox = gtk.HBox(spacing=12)
+        display_lyrics_location_hbox.pack_end(display_lyrics_location,
+            False, False)
+        display_lyrics_location_hbox.pack_end(savelyrics_label, False,
+            False)
         display_lyrics_location_hbox.set_sensitive(self.config.show_lyrics)
         display_lyrics.connect('toggled', prefs_lyrics_toggled, display_lyrics_location_hbox)
         display_trayicon = gtk.CheckButton(_("Enable system tray icon"))
         display_trayicon.set_active(self.config.show_trayicon)
         display_trayicon.set_sensitive(trayicon_available)
-        table2.attach(ui.label(), 1, 3, 1, 2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(displaylabel, 1, 3, 2, 3, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(ui.label(), 1, 3, 3, 4, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 15, 0)
-        table2.attach(display_playback, 1, 3, 4, 5, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_progress, 1, 3, 5, 6, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_statusbar, 1, 3, 6, 7, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_trayicon, 1, 3, 7, 8, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_lyrics, 1, 3, 8, 9, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_lyrics_location_hbox, 1, 3, 9, 10, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_art, 1, 3, 10, 11, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_stylized_hbox, 1, 3, 11, 12, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_art_hbox, 1, 3, 12, 13, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(display_art_location_hbox, 1, 3, 13, 14, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 30, 0)
-        table2.attach(ui.label(), 1, 3, 14, 15, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 75, 0)
+
+        display_widgets = (display_playback, display_progress,
+            display_statusbar, display_trayicon, display_lyrics,
+            display_lyrics_location_hbox, display_art,
+            display_stylized_hbox, display_art_hbox,
+            display_art_location_hbox)
+        display_table = gtk.Table(len(display_widgets), 1, False)
+        for i, widget in enumerate(display_widgets):
+            display_table.attach(widget, 0, 1, i, i+1,
+                gtk.FILL|gtk.EXPAND, gtk.FILL)
+        display_alignment = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
+        display_alignment.set_padding(12, 0, 12, 0)
+        display_alignment.add(display_table)
+        display_frame.add(display_alignment)
+        display_tab = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
+        display_tab.set_padding(12, 12, 12, 12)
+        display_tab.add(display_frame)
+
         # Behavior tab
         windowlabel = ui.label(markup='<b>'+_('Window Behavior')+'</b>')
         window_frame = gtk.Frame()
@@ -508,7 +518,7 @@ class Preferences():
 
         # Set up table
         tables = [(_("_MPD"), mpd_tab),
-                       (_("_Display"), table2),
+                       (_("_Display"), display_tab),
                        (_("_Behavior"), behavior_tab),
                        (_("_Format"), format_tab),
                        (_("_Extras"), as_frame),
