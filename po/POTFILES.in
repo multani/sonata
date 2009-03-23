@@ -3,9 +3,11 @@
 ./sonata/about.py
 ./sonata/artwork.py
 ./sonata/audioscrobbler.py
+./sonata/cli.py
 ./sonata/config.py
 ./sonata/consts.py
 ./sonata/current.py
+./sonata/dbus_plugin.py
 ./sonata/img.py
 ./sonata/info.py
 ./sonata/library.py
@@ -13,9 +15,11 @@
 ./sonata/misc.py
 ./sonata/mpdhelper.py
 ./sonata/playlists.py
+./sonata/pluginsystem.py
 ./sonata/preferences.py
 ./sonata/scrobbler.py
 ./sonata/streams.py
+./sonata/svnversion.py
 ./sonata/tagedit.py
 ./sonata/tray.py
 ./sonata/ui.py
