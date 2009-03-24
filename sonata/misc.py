@@ -187,6 +187,8 @@ def is_lang_rtl(window):
     return window.get_pango_context().get_base_dir() == pango.DIRECTION_RTL
 
 def sanitize_musicdir(mdir):
+    if mdir is None:
+        return ''
     mdir = os.path.expanduser(mdir)
     if mdir and not mdir.endswith("/"):
         mdir = mdir + "/"
