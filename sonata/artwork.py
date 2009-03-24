@@ -53,6 +53,7 @@ class Artwork(object):
         self.fullscreenalbumlabel = ui.label(x=0.5)
         self.fullscreenalbumlabel2 = ui.label(x=0.5)
         self.fullscreen_cover_art_reset_image()
+        self.fullscreen_cover_art_reset_text()
 
         self.info_image = ui.image(y=0)
         self.info_image.set_from_file(self.sonatacd_large)
@@ -314,6 +315,8 @@ class Artwork(object):
         else:
             self.artwork_set_default_icon()
 
+        self.fullscreen_cover_art_set_text()
+
     def _artwork_update(self):
         if 'name' in self.songinfo:
             # Stream
@@ -322,7 +325,6 @@ class Artwork(object):
                 gobject.idle_add(self.artwork_set_image, streamfile, None, None, None)
             else:
                 self.artwork_set_default_icon()
-                return
         else:
             # Normal song:
             artist = mpdh.get(self.songinfo, 'artist', "")
@@ -598,25 +600,32 @@ class Artwork(object):
         if self.fullscreenalbumimage.get_property('visible') or force_update:
             if self.currentpb is None:
                 self.fullscreen_cover_art_reset_image()
-                return
-            # Artwork for fullscreen cover mode
-            (pix3, w, h) = img.get_pixbuf_of_size(self.currentpb, consts.FULLSCREEN_COVER_SIZE)
-            pix3 = self.artwork_apply_composite_case(pix3, w, h)
-            pix3 = img.pixbuf_pad(pix3, consts.FULLSCREEN_COVER_SIZE, consts.FULLSCREEN_COVER_SIZE)
-            self.fullscreenalbumimage.set_from_pixbuf(pix3)
-            del pix3
-            # Text below
-            line1, line2 = self.get_current_song_text()
-            self.fullscreenalbumlabel.set_markup("<span size='20000' color='white'>" + line1 + "</span>")
-            self.fullscreenalbumlabel2.set_markup("<span size='12000' color='white'>" + line2 + "</span>")
+            else:
+                # Artwork for fullscreen cover mode
+                (pix3, w, h) = img.get_pixbuf_of_size(self.currentpb, consts.FULLSCREEN_COVER_SIZE)
+                pix3 = self.artwork_apply_composite_case(pix3, w, h)
+                pix3 = img.pixbuf_pad(pix3, consts.FULLSCREEN_COVER_SIZE, consts.FULLSCREEN_COVER_SIZE)
+                self.fullscreenalbumimage.set_from_pixbuf(pix3)
+                del pix3
+        self.fullscreen_cover_art_set_text()
 
     def fullscreen_cover_art_reset_image(self):
         pix = gtk.gdk.pixbuf_new_from_file(self.sonatacd_large)
         pix = img.pixbuf_pad(pix, consts.FULLSCREEN_COVER_SIZE, consts.FULLSCREEN_COVER_SIZE)
         self.fullscreenalbumimage.set_from_pixbuf(pix)
-        self.fullscreenalbumlabel.set_markup(" ")
-        self.fullscreenalbumlabel2.set_markup(" ")
         self.currentpb = None
+
+    def fullscreen_cover_art_set_text(self):
+        if self.status_is_play_or_pause():
+            line1, line2 = self.get_current_song_text()
+            self.fullscreenalbumlabel.set_markup("<span size='20000' color='white'>" + misc.escape_html(line1) + "</span>")
+            self.fullscreenalbumlabel2.set_markup("<span size='12000' color='white'>" + misc.escape_html(line2) + "</span>")
+        else:
+            self.fullscreen_cover_art_reset_text()
+
+    def fullscreen_cover_art_reset_text(self):
+        self.fullscreenalbumlabel.set_markup("<span size='20000' color='white'> </span>")
+        self.fullscreenalbumlabel2.set_markup("<span size='12000' color='white'> </span>")
 
     def have_last(self):
         if self.lastalbumart is not None:
