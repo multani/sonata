@@ -86,7 +86,7 @@ class Streams(object):
     def on_streams_edit(self, action):
         model, selected = self.streams_selection.get_selected_rows()
         try:
-            streamname = model.get_value(model.get_iter(selected[0]), 1)
+            streamname = misc.unescape_html(model.get_value(model.get_iter(selected[0]), 1))
             for i in range(len(self.config.stream_names)):
                 if self.config.stream_names[i] == streamname:
                     self.on_streams_new(action, i)
