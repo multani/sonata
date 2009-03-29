@@ -562,7 +562,8 @@ class Artwork(object):
                 return False
 
         imgs = misc.iunique(url.text for img in largeimgs for url in img.getiterator(AMAZON_NS + "URL"))
-        imglist = list(imgs)
+        # Prevent duplicate images in remote art window:
+        imglist = list(set(list(imgs)))
 
         if not all_images:
             urllib.urlretrieve(imglist[0], dest_filename)
