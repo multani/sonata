@@ -1,8 +1,12 @@
 Sonata, an elegant GTK+ client for the Music Player Daemon (MPD)
-Copyright 2006-2008 Scott Horowitz <stonecrest@gmail.com>
+Copyright 2006-2009 Scott Horowitz <stonecrest@gmail.com>
 
 Thanks to Andrew Conkling et al, for all their hard work on Pygmy!
 Sonata started as a fork of the Pygmy project and is licensed under the GPLv3.
+
+DEVELOPERS:
+	Scott Horowitz <stonecrest@gmail.com>
+	Tuukka Hastrup <Tuukka.Hastrup@iki.fi>
 
 REQUIREMENTS:
 	(Required) PyGTK 2.12 or newer

@@ -155,7 +155,7 @@ class About(object):
         if stats:
             self.about_dialog.set_copyright(stats)
         self.about_dialog.set_license(self.license)
-        self.about_dialog.set_authors(['Scott Horowitz <stonecrest@gmail.com>'])
+        self.about_dialog.set_authors(['Scott Horowitz <stonecrest@gmail.com>', 'Tuukka Hastrup <Tuukka.Hastrup@iki.fi>'])
         self.about_dialog.set_artists(['Adrian Chromenko <adrian@rest0re.org>\nhttp://oss.rest0re.org/'])
         self.about_dialog.set_translator_credits(translators)
         gtk.about_dialog_set_url_hook(self.show_website)
