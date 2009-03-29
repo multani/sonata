@@ -2427,8 +2427,9 @@ class Base(object):
         chooseimage = ui.image(stock=gtk.STOCK_CONVERT, stocksize=gtk.ICON_SIZE_BUTTON)
         choosebutton.set_image(chooseimage)
         self.imagelist = gtk.ListStore(int, gtk.gdk.Pixbuf)
-        imagewidget = ui.iconview(col=2, space=5, margin=10, itemw=150, selmode=gtk.SELECTION_SINGLE)
-        scroll = ui.scrollwindow(policy_x=gtk.POLICY_NEVER, policy_y=gtk.POLICY_ALWAYS, w=350, h=325, add=imagewidget)
+        # Setting col=2 only shows 1 column with gtk 2.16 while col=-1 shows 2
+        imagewidget = ui.iconview(col=2, space=0, margin=0, itemw=75, selmode=gtk.SELECTION_SINGLE)
+        scroll = ui.scrollwindow(policy_x=gtk.POLICY_NEVER, policy_y=gtk.POLICY_ALWAYS, w=360, h=325, add=imagewidget)
         self.choose_dialog.vbox.pack_start(scroll, False, False, 0)
         hbox = gtk.HBox()
         vbox = gtk.VBox()
