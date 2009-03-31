@@ -1271,7 +1271,7 @@ class Base(object):
         if "%Y" in text:
             date = mpdh.get(item, 'date', flag)
             if date != flag:
-                text = text.replace("%Y", item['date'])
+                text = text.replace("%Y", date)
             else:
                 if not has_brackets: text = text.replace("%Y", "?")
                 else: return ""

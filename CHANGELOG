@@ -1,3 +1,6 @@
+v.1.6.1 - Pending
+	+ Bug: Traceback if track has multiple date tags
+
 v1.6 - March 29, 2009
 	+ Album browsing mode, additional details in library views
 	+ Real-time searching of library (search as you type)
