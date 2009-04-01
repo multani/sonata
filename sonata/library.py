@@ -49,10 +49,17 @@ class Library(object):
         self.search_terms = [_('Artist'), _('Title'), _('Album'), _('Genre'), _('Filename'), _('Everything')]
         self.search_terms_mpd = ['artist', 'title', 'album', 'genre', 'file', 'any']
 
-        self.VIEW_FILESYSTEM_STR = _("Filesystem")
-        self.VIEW_ARTIST_STR = _("Artists")
-        self.VIEW_ALBUM_STR = _("Albums")
-        self.VIEW_GENRE_STR = _("Genres")
+        # list of the library views: (id, name, icon name, label)
+        self.VIEWS = [
+            (consts.VIEW_FILESYSTEM, 'filesystem',
+             gtk.STOCK_HARDDISK, _("Filesystem")),
+            (consts.VIEW_ALBUM, 'album',
+             'album', _("Albums")),
+            (consts.VIEW_ARTIST, 'artist',
+             'artist', _("Artists")),
+            (consts.VIEW_GENRE, 'genre',
+             gtk.STOCK_ORIENTATION_PORTRAIT, _("Genres")),
+            ]
 
         self.libfilterbox_cmd_buf = None
         self.libfilterbox_cond = None
@@ -146,12 +153,9 @@ class Library(object):
         self.library_selection.set_mode(gtk.SELECTION_MULTIPLE)
 
     def get_libraryactions(self):
-        return [
-            ('filesystemview', gtk.STOCK_HARDDISK, self.VIEW_FILESYSTEM_STR, None, None, self.on_libraryview_chosen),
-            ('artistview', 'artist', self.VIEW_ARTIST_STR, None, None, self.on_libraryview_chosen),
-            ('genreview', gtk.STOCK_ORIENTATION_PORTRAIT, self.VIEW_GENRE_STR, None, None, self.on_libraryview_chosen),
-            ('albumview', 'album', self.VIEW_ALBUM_STR, None, None, self.on_libraryview_chosen),
-            ]
+        return [(name+'view', icon, label,
+             None, None, self.on_libraryview_chosen)
+            for _view, name, icon, label in self.VIEWS]
 
     def get_model(self):
         return self.librarydata
@@ -200,15 +204,10 @@ class Library(object):
         gobject.idle_add(self.library.scroll_to_point, 0, 0)
 
     def library_view_assign_image(self):
-        info = [(self.VIEW_FILESYSTEM_STR, gtk.STOCK_HARDDISK, consts.VIEW_FILESYSTEM), \
-                (self.VIEW_ARTIST_STR, 'artist', consts.VIEW_ARTIST), \
-                (self.VIEW_GENRE_STR, 'gtk-orientation-portrait', consts.VIEW_GENRE), \
-                (self.VIEW_ALBUM_STR, 'album', consts.VIEW_ALBUM)]
-        for i, txt in enumerate(info):
-            if self.config.lib_view == txt[2]:
-                self.libraryview.set_image(ui.image(stock=txt[1]))
-                self.libraryview.set_label(" " + txt[0])
-                break
+        _view, _name, icon, label = [v for v in self.VIEWS
+                         if v[0] == self.config.lib_view][0]
+        self.libraryview.set_image(ui.image(stock=icon))
+        self.libraryview.set_label(" " + label)
 
     def view_caches_reset(self):
         # We should call this on first load and whenever mpd is
