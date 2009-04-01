@@ -49,6 +49,12 @@ class Library(object):
         self.search_terms = [_('Artist'), _('Title'), _('Album'), _('Genre'), _('Filename'), _('Everything')]
         self.search_terms_mpd = ['artist', 'title', 'album', 'genre', 'file', 'any']
 
+        # dict of library object icons: name -> icon name
+        self.ICONS = {'album': 'album',
+                  'artist': 'artist',
+                  'genre': gtk.STOCK_ORIENTATION_PORTRAIT,
+                  }
+
         # list of the library views: (id, name, icon name, label)
         self.VIEWS = [
             (consts.VIEW_FILESYSTEM, 'filesystem',
@@ -85,6 +91,8 @@ class Library(object):
         self.libraryvbox = gtk.VBox()
         self.library = ui.treeview()
         self.library_selection = self.library.get_selection()
+        self.breadcrumbs = gtk.HBox()
+        self.breadcrumbs.props.spacing = 2
         expanderwindow2 = ui.scrollwindow(add=self.library)
         self.searchbox = gtk.HBox()
         self.searchcombo = ui.combo(items=self.search_terms)
@@ -98,12 +106,14 @@ class Library(object):
         self.libraryview = ui.button(relief=gtk.RELIEF_NONE)
         self.libraryview.set_tooltip_text(_("Library browsing view"))
         self.library_view_assign_image()
-        self.searchbox.pack_start(self.libraryview, False, False, 1)
-        self.searchbox.pack_start(gtk.VSeparator(), False, False, 2)
+        # disabled as breadcrumbs replace this:
+#		self.searchbox.pack_start(self.libraryview, False, False, 1)
+#		self.searchbox.pack_start(gtk.VSeparator(), False, False, 2)
         self.searchbox.pack_start(ui.label(_("Search") + ":"), False, False, 3)
         self.searchbox.pack_start(self.searchtext, True, True, 2)
         self.searchbox.pack_start(self.searchcombo, False, False, 2)
         self.searchbox.pack_start(self.searchbutton, False, False, 2)
+        self.libraryvbox.pack_start(self.breadcrumbs, False, False)
         self.libraryvbox.pack_start(expanderwindow2, True, True)
         self.libraryvbox.pack_start(self.searchbox, False, False, 2)
 
@@ -173,11 +183,11 @@ class Library(object):
         self.librarymenu = librarymenu
         self.librarymenu.attach_to_widget(self.libraryview, None)
 
-    def library_view_popup(self, _button):
-        self.librarymenu.popup(None, None, self.library_view_position_menu, 1, 0)
+    def library_view_popup(self, button):
+        self.librarymenu.popup(None, None, self.library_view_position_menu, 1, 0, button)
 
-    def library_view_position_menu(self, _menu):
-        x, y, _width, height = self.libraryview.get_allocation()
+    def library_view_position_menu(self, _menu, button):
+        x, y, _width, height = button.get_allocation()
         return (self.config.x + x, self.config.y + y + height, True)
 
     def on_libraryview_chosen(self, action):
@@ -364,7 +374,63 @@ class Library(object):
         # Update library artwork as necessary
         self.on_library_scrolled(None, None)
 
+        self.update_breadcrumbs()
+
+    def update_breadcrumbs(self):
+        # remove previous buttons
+        for b in self.breadcrumbs:
+            self.breadcrumbs.remove(b)
+
+        # add the views button first
+        b = ui.button(text=_("Views"))
+        b.connect('clicked', self.library_view_popup)
+        self.breadcrumbs.pack_start(b, False, False)
+        b.show()
+
+        # find info for current view
+        view, _name, icon, label = [v for v in self.VIEWS
+                        if v[0] == self.config.lib_view][0]
+
+        # the first crumb is the root of the current view
+        crumbs = [(label, icon, self.library_set_data(path='/'))]
+
+        # rest of the crumbs are specific to the view
+        if view == consts.VIEW_FILESYSTEM:
+            path = self.library_get_data(self.config.wd, 'path')
+
+            if path and path != '/':
+                parts = path.split('/')
+            else:
+                parts = [] # no crumbs for /
+            # append a crumb for each part
+            for i, part in enumerate(parts):
+                partpath = '/'.join(parts[:i+1])
+                target = self.library_set_data(path=partpath)
+                crumbs.append((part, None, target))
+        else:
+            keys = 'genre', 'artist', 'album'
+            parts = self.library_get_data(self.config.wd, *keys)
+            # append a crumb for each part
+            for i, key, part in zip(range(3), keys, parts):
+                if part is None:
+                    continue
+                partdata = dict(zip(keys, parts)[:i+1])
+                target = self.library_set_data(**partdata)
+                crumbs.append((part, self.ICONS[key], target))
+
+        # add a button for each crumb
+        for i, (text, icon, target) in enumerate(crumbs):
+            b = gtk.ToggleButton(label=text)
+            if i == len(crumbs)-1:
+                b.props.active = True
+            b.connect('toggled', self.library_browse, target)
+            if icon:
+                b.set_image(ui.image(stock=icon, stocksize=gtk.ICON_SIZE_BUTTON))
+            self.breadcrumbs.pack_start(b, False, False)
+            b.show()
+
     def library_populate_add_parent_rows(self):
+        return [] # disabled as breadcrumbs replace these
         bd = [('0', [self.harddiskpb, self.library_set_data(path='/'), '/'])]
         bd += [('1', [self.openpb, self.library_set_data(path='..'), '..'])]
         return bd
