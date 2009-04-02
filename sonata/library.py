@@ -420,7 +420,7 @@ class Library(object):
 
         # add a button for each crumb
         for i, (text, icon, target) in enumerate(crumbs):
-            b = gtk.ToggleButton(label=text)
+            b = ui.togglebutton(text=text)
             if i == len(crumbs)-1:
                 b.props.active = True
             b.connect('toggled', self.library_browse, target)

@@ -4,7 +4,7 @@ v1.6.1
 	translations - bold, commas for arabic (ahmad farghal email)
 	#3992: enabling/disabling outputs
 	#4370: number in playlist
-	contextual statusbar depending on tab opened (michael email)
+	contextual statusbar depending on tab opened? (michael email)
 	save to playlist.. default to selected files? pref?
 	tag editing - support for composer, disc
 	song queue (mpd-git will be bringing it back)
