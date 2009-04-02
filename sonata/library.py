@@ -842,9 +842,9 @@ class Library(object):
             self.library_selection.unselect_range((0,), (len(self.librarydata)-1,))
         # Now attempt to retain the selection from before the update:
         for value in prev_selection:
-            for rownum in range(len(self.librarydata)):
-                if value == self.librarydata.get_value(self.librarydata.get_iter((rownum,)), 1):
-                    self.library_selection.select_path((rownum,))
+            for row in self.librarydata:
+                if value == row[1]:
+                    self.library_selection.select_path(row.path)
                     break
         if prev_selection_root:
             self.library_selection.select_path((0,))

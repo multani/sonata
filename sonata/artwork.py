@@ -228,14 +228,12 @@ class Artwork(object):
         # Search through the rows in the library to see
         # if we match the currently playing song:
         play_artist, play_album = library_get_data(cache_key, 'artist', 'album')
-        for row in range(len(self.lib_model)):
-            i = self.lib_model.get_iter((row,))
-            data = self.lib_model.get_value(i, 1)
-            artist, album, path = library_get_data(data, 'artist', 'album', 'path')
+        for row in self.lib_model:
+            artist, album, path = library_get_data(row[1], 'artist', 'album', 'path')
             if unicode(play_artist).lower() == unicode(artist).lower() \
             and unicode(play_album).lower() == unicode(album).lower():
                 pb = self.get_library_artwork_cached_pb(cache_key, None)
-                self.lib_model.set_value(i, 0, pb)
+                self.lib_model.set_value(row.iter, 0, pb)
 
     def library_set_cover(self, i, pb, data):
         if self.lib_model.iter_is_valid(i):
