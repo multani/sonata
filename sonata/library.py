@@ -1196,7 +1196,7 @@ class Library(object):
                          True)]
               for item in matches if 'file' in item]
         bd.sort(locale.strcoll, key=operator.itemgetter(2))
-        for i, item in enumerate(newlist):
+        for i, item in enumerate(bd):
             if i < currlen:
                 j = self.librarydata.get_iter((i, ))
                 for index in range(len(item)):

@@ -12,6 +12,7 @@ v1.6.1
 	window positioning weirdness when unwithdrawing app from systray
 	preferences apply button? more auto applying? (michael email)
 	right-click on tab bar (michael email)
+	0.15 has input support for last.fm radio
 
 v1.7
 	remove libegg? statusicon provides everything in gtk 2.16, not yet in pygtk
@@ -26,7 +27,7 @@ v1.7
 		- tag editing
 		- #2419 dynamic playlist (patch)
 		- #2454 Add as Next Track (patch)
-		- #4007 stop after track
+		- #4007 stop after track ('single' command in 0.15)
 		- #Zeroconf/avahi (patch)
 
 Future:
