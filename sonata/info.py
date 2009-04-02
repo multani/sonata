@@ -475,19 +475,16 @@ class Info(object):
 
     def target_lyrics_filename(self, artist, title, song_dir, force_location=None):
         # FIXME Why did we have this condition here: if self.conn:
-            if force_location is not None:
-                lyrics_loc = force_location
-            else:
-                lyrics_loc = self.config.lyrics_location
-            # Note: *_ALT searching is for compatibility with other mpd clients (like ncmpcpp):
-            if lyrics_loc == consts.LYRICS_LOCATION_HOME:
-                targetfile = os.path.expanduser("~/.lyrics/" + artist + "-" + title + ".txt")
-            elif lyrics_loc == consts.LYRICS_LOCATION_PATH:
-                targetfile = self.config.musicdir[self.config.profile_num] + song_dir + "/" + artist + "-" + title + ".txt"
-            elif lyrics_loc == consts.LYRICS_LOCATION_HOME_ALT:
-                targetfile = os.path.expanduser("~/.lyrics/" + artist + " - " + title + ".txt")
-            elif lyrics_loc == consts.LYRICS_LOCATION_PATH_ALT:
-                targetfile = self.config.musicdir[self.config.profile_num] + song_dir + "/" + artist + " - " + title + ".txt"
-            targetfile = misc.file_exists_insensitive(targetfile)
-            return misc.file_from_utf8(targetfile)
+        lyrics_loc = force_location if force_location else self.config.lyrics_location
+        # Note: *_ALT searching is for compatibility with other mpd clients (like ncmpcpp):
+        if lyrics_loc == consts.LYRICS_LOCATION_HOME:
+            targetfile = os.path.expanduser("~/.lyrics/" + artist + "-" + title + ".txt")
+        elif lyrics_loc == consts.LYRICS_LOCATION_PATH:
+            targetfile = self.config.musicdir[self.config.profile_num] + song_dir + "/" + artist + "-" + title + ".txt"
+        elif lyrics_loc == consts.LYRICS_LOCATION_HOME_ALT:
+            targetfile = os.path.expanduser("~/.lyrics/" + artist + " - " + title + ".txt")
+        elif lyrics_loc == consts.LYRICS_LOCATION_PATH_ALT:
+            targetfile = self.config.musicdir[self.config.profile_num] + song_dir + "/" + artist + " - " + title + ".txt"
+        targetfile = misc.file_exists_insensitive(targetfile)
+        return misc.file_from_utf8(targetfile)
 
