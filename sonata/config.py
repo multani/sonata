@@ -72,7 +72,6 @@ class Config:
         self.currsongformat2 = currsongformat2
         # this mirrors Main.columns widths
         self.columnwidths = [325,10]
-        self.colwidthpercents = []
         self.autoconnect = True
 
         self.stream_names = []
@@ -232,10 +231,7 @@ class Config:
         if conf.has_option('player', 'info_song_more'):
             self.info_song_more = conf.getboolean('player', 'info_song_more')
         if conf.has_option('player', 'columnwidths'):
-            self.columnwidths = conf.get('player', 'columnwidths').split(",")
-            for col in range(len(self.columnwidths)):
-                self.columnwidths[col] = int(self.columnwidths[col])
-            self.colwidthpercents = [0] * len(self.columnwidths)
+            self.columnwidths = [int(col) for col in conf.get('player', 'columnwidths').split(",")]
         if conf.has_option('player', 'show_header'):
             self.show_header = conf.getboolean('player', 'show_header')
         if conf.has_option('player', 'tabs_expanded'):
@@ -345,8 +341,7 @@ class Config:
                 self.password.append(conf.get('profiles', 'passwords[' + str(i) + ']'))
                 self.musicdir.append(misc.sanitize_musicdir(conf.get('profiles', 'musicdirs[' + str(i) + ']')))
             # Ensure we have a valid profile number:
-            if self.profile_num < 0 or self.profile_num > num_profiles-1:
-                self.profile_num = 0
+            self.profile_num = max(0, min(self.profile_num, num_profiles-1))
 
     def settings_save_real(self, library_get_data):
         """Save configuration in file"""
@@ -354,79 +349,84 @@ class Config:
 
         conf.add_section('profiles')
         conf.set('profiles', 'num_profiles', len(self.profile_names))
-        for i in range(len(self.profile_names)):
-            conf.set('profiles', 'names[' + str(i) + ']', self.profile_names[i])
-            conf.set('profiles', 'hosts[' + str(i) + ']', self.host[i])
-            conf.set('profiles', 'ports[' + str(i) + ']', self.port[i])
-            conf.set('profiles', 'passwords[' + str(i) + ']', self.password[i])
-            conf.set('profiles', 'musicdirs[' + str(i) + ']', self.musicdir[i])
+        for (i, (name, host, port, password, musicdir)) in enumerate(zip(self.profile_names, self.host, self.port, self.password, self.musicdir)):
+            conf.set('profiles', 'names[%s]' % i, name)
+            conf.set('profiles', 'hosts[%s]' % i, host)
+            conf.set('profiles', 'ports[%s]' % i, port)
+            conf.set('profiles', 'passwords[%s]' %i, password)
+            conf.set('profiles', 'musicdirs[%s]' % i, musicdir)
         conf.add_section('connection')
         conf.set('connection', 'auto', self.autoconnect)
         conf.set('connection', 'profile_num', self.profile_num)
 
         conf.add_section('player')
-        conf.set('player', 'w', self.w)
-        conf.set('player', 'h', self.h)
-        conf.set('player', 'x', self.x)
-        conf.set('player', 'y', self.y)
-        conf.set('player', 'expanded', self.expanded)
-        conf.set('player', 'withdrawn', self.withdrawn)
-        conf.set('player', 'screen', self.screen)
+        attributes =   ['w',
+                'h',
+                'x',
+                'y',
+                'expanded',
+                'withdrawn',
+                'screen',
+                'covers_type',
+                'stop_on_exit',
+                'initial_run',
+                'sticky',
+                'ontop',
+                'decorated',
+                'update_on_start',
+                'xfade',
+                'xfade_enabled',
+                'covers_pref',
+                'use_infofile',
+                'infofile_path',
+                'infofile_path',
+                'art_location',
+                'art_location_custom_filename',
+                'lyrics_location',
+                'info_song_expanded',
+                'info_lyrics_expanded',
+                'info_album_expanded',
+                'info_song_more',
+                'info_art_enlarged',
+                'show_header',
+                'tabs_expanded']
+
+        for attribute in attributes:
+            conf.set('player', attribute, getattr(self, attribute))
+
         conf.set('player', 'covers', self.show_covers)
-        conf.set('player', 'covers_type', self.covers_type)
-        conf.set('player', 'stop_on_exit', self.stop_on_exit)
         conf.set('player', 'minimize', self.minimize_to_systray)
-        conf.set('player', 'initial_run', self.initial_run)
         conf.set('player', 'statusbar', self.show_statusbar)
         conf.set('player', 'lyrics', self.show_lyrics)
-        conf.set('player', 'sticky', self.sticky)
-        conf.set('player', 'ontop', self.ontop)
-        conf.set('player', 'decorated', self.decorated)
         conf.set('player', 'notification', self.show_notification)
         conf.set('player', 'popup_time', self.popup_option)
-        conf.set('player', 'update_on_start', self.update_on_start)
         conf.set('player', 'notif_location', self.traytips_notifications_location)
         conf.set('player', 'playback', self.show_playback)
         conf.set('player', 'progressbar', self.show_progress)
-        conf.set('player', 'xfade', self.xfade)
-        conf.set('player', 'xfade_enabled', self.xfade_enabled)
-        conf.set('player', 'covers_pref', self.covers_pref)
-        conf.set('player', 'use_infofile', self.use_infofile)
-        conf.set('player', 'infofile_path', self.infofile_path)
         conf.set('player', 'trayicon', self.show_trayicon)
         conf.set('player', 'search_num', self.last_search_num)
-        conf.set('player', 'art_location', self.art_location)
-        conf.set('player', 'art_location_custom_filename', self.art_location_custom_filename)
-        conf.set('player', 'lyrics_location', self.lyrics_location)
-        conf.set('player', 'info_song_expanded', self.info_song_expanded)
-        conf.set('player', 'info_lyrics_expanded', self.info_lyrics_expanded)
-        conf.set('player', 'info_album_expanded', self.info_album_expanded)
-        conf.set('player', 'info_song_more', self.info_song_more)
-        conf.set('player', 'info_art_enlarged', self.info_art_enlarged)
         conf.set('player', 'existing_playlist', self.existing_playlist_option)
-
-        tmp = ""
-        for i in range(len(self.columnwidths)-1):
-            tmp += str(self.columnwidths[i]) + ","
-        tmp += str(self.columnwidths[-1])
-        conf.set('player', 'columnwidths', tmp)
-
-        conf.set('player', 'show_header', self.show_header)
-        conf.set('player', 'tabs_expanded', self.tabs_expanded)
         conf.set('player', 'browser', self.url_browser)
+
+        columnwidths = ",".join(str(w) for w in self.columnwidths)
+        conf.set('player', 'columnwidths', columnwidths)
+
 
         # Save tab positions and visibility:
         conf.add_section('notebook')
-        conf.set('notebook', 'current_tab_visible', self.current_tab_visible)
-        conf.set('notebook', 'library_tab_visible', self.library_tab_visible)
-        conf.set('notebook', 'playlists_tab_visible', self.playlists_tab_visible)
-        conf.set('notebook', 'streams_tab_visible', self.streams_tab_visible)
-        conf.set('notebook', 'info_tab_visible', self.info_tab_visible)
-        conf.set('notebook', 'current_tab_pos', self.current_tab_pos)
-        conf.set('notebook', 'library_tab_pos', self.library_tab_pos)
-        conf.set('notebook', 'playlists_tab_pos', self.playlists_tab_pos)
-        conf.set('notebook', 'streams_tab_pos', self.streams_tab_pos)
-        conf.set('notebook', 'info_tab_pos', self.info_tab_pos)
+        attributes =   ['current_tab_visible',
+                'library_tab_visible',
+                'playlists_tab_visible',
+                'streams_tab_visible',
+                'info_tab_visible',
+                'current_tab_pos',
+                'library_tab_pos',
+                'playlists_tab_pos',
+                'streams_tab_pos',
+                'info_tab_pos']
+
+        for attribute in attributes:
+            conf.set('notebook', attribute, getattr(self,attribute))
 
         # Save current library browsing state:
         album = library_get_data(self.wd, 'album')
@@ -458,9 +458,10 @@ class Config:
         # Save streams:
         conf.add_section('streams')
         conf.set('streams', 'num_streams', len(self.stream_names))
-        for i in range(len(self.stream_names)):
-            conf.set('streams', 'names[' + str(i) + ']', self.stream_names[i])
-            conf.set('streams', 'uris[' + str(i) + ']', self.stream_uris[i])
+        for (i, (stream, stream_uri)) in enumerate(zip(self.stream_names,self.stream_uris)):
+            conf.set('streams', 'names[%s]' % i, stream)
+            conf.set('streams', 'uris[%s]' % i , stream_uri)
+
         conf.add_section('audioscrobbler')
         conf.set('audioscrobbler', 'use_audioscrobbler', self.as_enabled)
         conf.set('audioscrobbler', 'username', self.as_username)
