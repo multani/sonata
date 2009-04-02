@@ -572,9 +572,9 @@ class Artwork(object):
         else:
             try:
                 imgfound = False
-                for i in range(len(imglist)):
+                for i, image in enumerate(imglist):
                     dest_filename_curr = dest_filename.replace("<imagenum>", str(i+1))
-                    urllib.urlretrieve(imglist[i], dest_filename_curr)
+                    urllib.urlretrieve(image, dest_filename_curr)
                     # This populates Main.imagelist for the remote image window
                     if os.path.exists(dest_filename_curr):
                         pix = gtk.gdk.pixbuf_new_from_file(dest_filename_curr)

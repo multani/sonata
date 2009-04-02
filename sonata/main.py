@@ -1289,13 +1289,10 @@ class Base(object):
 
     def parse_formatting(self, format, item, use_escape_html, wintitle=False):
         substrings = self._parse_formatting_return_substrings(format)
-        text = ""
-        for sub in substrings:
-            text = text + str(self._parse_formatting_substrings(sub, item, wintitle))
-        if use_escape_html:
-            return misc.escape_html(text)
-        else:
-            return text
+        text = "".join(self._parse_formatting_substrings(sub, item,
+                                 wintitle)
+                for sub in substrings)
+        return misc.escape_html(text) if use_escape_html else text
 
     def info_update(self, update_all, blank_window=False, skip_lyrics=False):
         playing_or_paused = self.conn and self.status and self.status['state'] in ['play', 'pause']
@@ -2415,16 +2412,14 @@ class Base(object):
         vbox.pack_start(ui.label(markup='<small> </small>'), False, False, 0)
         self.remote_artistentry = ui.entry()
         self.remote_albumentry = ui.entry()
-        entries = [self.remote_artistentry, self.remote_albumentry]
         text = [("Artist"), _("Album")]
-        labels = []
-        for i in range(len(entries)):
+        labels = [ui.label(text=labelname + ": ") for labelname in text]
+        entries = [self.remote_artistentry, self.remote_albumentry]
+        for entry, label in zip(entries, labels):
             tmphbox = gtk.HBox()
-            tmplabel = ui.label(text=text[i] + ": ")
-            labels.append(tmplabel)
-            tmphbox.pack_start(tmplabel, False, False, 5)
-            entries[i].connect('activate', self.image_remote_refresh, imagewidget)
-            tmphbox.pack_start(entries[i], True, True, 5)
+            tmphbox.pack_start(label, False, False, 5)
+            entry.connect('activate', self.image_remote_refresh, imagewidget)
+            tmphbox.pack_start(entry, True, True, 5)
             vbox.pack_start(tmphbox)
         ui.set_widths_equal(labels)
         vbox.pack_start(ui.label(markup='<small> </small>'), False, False, 0)

@@ -78,20 +78,20 @@ class Playlists(object):
             self.actionGroupPlaylists = None
         self.actionGroupPlaylists = gtk.ActionGroup('MPDPlaylists')
         self.UIManager().ensure_update()
-        actions = []
-        for i in range(len(playlistinfo)):
-            action_name = "Playlist: " + playlistinfo[i].replace("&", "")
-            actions.append((action_name, gtk.STOCK_JUSTIFY_CENTER, misc.unescape_html(playlistinfo[i]), None, None, self.on_playlist_menu_click))
+        actions = [("Playlist: %s" % playlist.replace("&", ""),
+                gtk.STOCK_JUSTIFY_CENTER,
+                misc.unescape_html(playlist), None, None,
+                self.on_playlist_menu_click)
+                for playlist in playlistinfo]
         self.actionGroupPlaylists.add_actions(actions)
         uiDescription = """
             <ui>
               <popup name="mainmenu">
                   <menu action="plmenu">
             """
-        for i in range(len(playlistinfo)):
-            action_name = "Playlist: " + playlistinfo[i].replace("&", "")
-            uiDescription = uiDescription + """<menuitem action=\"""" + action_name + """\" position="bottom"/>"""
-        uiDescription = uiDescription + """</menu></popup></ui>"""
+        uiDescription += "".join('<menuitem action=\"%s\"/>' % action[0]
+                        for action in actions)
+        uiDescription += '</menu></popup></ui>'
         self.mergepl_id = self.UIManager().add_ui_from_string(uiDescription)
         self.UIManager().insert_action_group(self.actionGroupPlaylists, 0)
         self.UIManager().get_widget('/hidden').set_property('visible', False)

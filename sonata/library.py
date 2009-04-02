@@ -16,12 +16,7 @@ def library_get_data(data, *args):
     name_to_index = {'album':0, 'artist':1, 'genre':2, 'year':3, 'path':4}
     # Data retrieved from the gtktreeview model is not in
     # unicode anymore, so convert it.
-    retlist = []
-    for arg in list(args):
-        ret = data[name_to_index[arg]]
-        if ret is not None:
-            ret = unicode(ret)
-        retlist.append(ret)
+    retlist = [unicode(data[name_to_index[arg]]) if data[name_to_index[arg]] else None for arg in args]
     if len(retlist) == 1:
         return retlist[0]
     else:
@@ -579,6 +574,7 @@ class Library(object):
                 while i+j <= len(albums)-1:
                     if unicode(self.library_get_data(albums[i], 'album')).lower() == unicode(self.library_get_data(albums[i+j], 'album')).lower() \
                     and self.library_get_data(albums[i], 'year') == self.library_get_data(albums[i+j], 'year'):
+
                         albums.pop(i+j)
                     else:
                         break
@@ -1012,9 +1008,7 @@ class Library(object):
             model, rows = self.library_selection.get_selected_rows()
         else:
             model = self.librarydata
-            rows = []
-            for i in range(len(model)):
-                rows.append((i,))
+            rows = [(i,) for i in range(len(model))]
         for path in rows:
             i = model.get_iter(path)
             pb = model.get_value(i, 0)
@@ -1190,13 +1184,13 @@ class Library(object):
             return
         self.library.freeze_child_notify()
         currlen = len(self.librarydata)
-        bd = []
-        for item in matches:
-            if 'file' in item:
-                bd += [(self.parse_formatting(self.config.libraryformat, item, True), [self.sonatapb, self.library_set_data(path=mpdh.get(item, 'file')), self.parse_formatting(self.config.libraryformat, item, True)])]
-        bd.sort(locale.strcoll, key=operator.itemgetter(0))
-        i = 0
-        for _sort, item in bd:
+        bd = [[self.sonatapb,
+               self.library_set_data(path=mpdh.get(item, 'file')),
+               self.parse_formatting(self.config.libraryformat, item,
+                         True)]
+              for item in matches if 'file' in item]
+        bd.sort(locale.strcoll, key=operator.itemgetter(2))
+        for i, item in enumerate(newlist):
             if i < currlen:
                 j = self.librarydata.get_iter((i, ))
                 for index in range(len(item)):
@@ -1204,7 +1198,6 @@ class Library(object):
                         self.librarydata.set_value(j, index, item[index])
             else:
                 self.librarydata.append(item)
-            i += 1
         # Remove excess items...
         newlen = len(bd)
         if newlen == 0:

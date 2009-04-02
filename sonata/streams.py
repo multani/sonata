@@ -65,12 +65,10 @@ class Streams(object):
 
     def populate(self):
         self.streamsdata.clear()
-        streamsinfo = []
-        for i in range(len(self.config.stream_names)):
-            record = {}
-            record["name"] = misc.escape_html(self.config.stream_names[i])
-            record["uri"] = misc.escape_html(self.config.stream_uris[i])
-            streamsinfo.append(record)
+        streamsinfo = [{'name' : misc.escape_html(name),
+                'uri' : misc.escape_html(uri)}
+                for name, uri in zip(self.config.stream_names,
+                             self.config.stream_uris)]
         streamsinfo.sort(key=lambda x: x["name"].lower()) # Remove case sensitivity
         for item in streamsinfo:
             self.streamsdata.append([gtk.STOCK_NETWORK, item["name"], item["uri"]])
@@ -87,8 +85,8 @@ class Streams(object):
         model, selected = self.streams_selection.get_selected_rows()
         try:
             streamname = misc.unescape_html(model.get_value(model.get_iter(selected[0]), 1))
-            for i in range(len(self.config.stream_names)):
-                if self.config.stream_names[i] == streamname:
+            for i, name in enumerate(self.config.stream_names):
+                if name == streamname:
                     self.on_streams_new(action, i)
                     return
         except:

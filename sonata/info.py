@@ -87,35 +87,36 @@ class Info(object):
         self.info_type = {}
         self.info_labels = []
         self.info_boxes_in_more = []
-        labels_type = ['title', 'artist', 'album', 'date', 'track', 'genre', 'file', 'bitrate']
-        labels_text = [_("Title"), _("Artist"), _("Album"), _("Date"), _("Track"), _("Genre"), _("File"), _("Bitrate")]
-        labels_link = [False, True, True, False, False, False, False, False]
-        labels_tooltip = ["", _("Launch artist in Wikipedia"), _("Launch album in Wikipedia"), "", "", "", "", ""]
-        labels_in_more = [False, False, False, False, False, False, True, True]
-        for i in range(len(labels_text)):
-            self.info_type[labels_text[i]] = i
+        labels = [(_("Title"), 'title', False, "", False),
+            (_("Artist"), 'artist', True,
+                _("Launch artist in Wikipedia"), False),
+            (_("Album"), 'album', True,
+                 _("Launch album in Wikipedia"), False),
+            (_("Date"), 'date', False, "", False),
+            (_("Track"), 'track', False, "", False),
+            (_("Genre"), 'genre', False, "", False),
+            (_("File"), 'file', False, "", True),
+            (_("Bitrate"), 'bitrate', False, "", True)]
+
+        for i,(text, name, link, tooltip, in_more) in enumerate(labels):
+            self.info_type[name] = i
             tmphbox = gtk.HBox()
-            if labels_in_more[i]:
+            if in_more:
                 self.info_boxes_in_more += [tmphbox]
-            tmplabel = ui.label(markup="<b>" + labels_text[i] + ":</b>", y=0)
+            tmplabel = ui.label(markup="<b>%s:</b>" % text, y=0)
             if i == 0:
                 self.info_left_label = tmplabel
-            if not labels_link[i]:
-                tmplabel2 = ui.label(wrap=True, y=0, select=True)
-            else:
-                # Using set_selectable overrides the hover cursor that sonata
-                # tries to set for the links, and I can't figure out how to
-                # stop that. So we'll disable set_selectable for these two
-                # labels until it's figured out.
-                tmplabel2 = ui.label(wrap=True, y=0, select=False)
-            if labels_link[i]:
+            # Using set_selectable overrides the hover cursor that
+            # sonata tries to set for the links, and I can't figure
+            # out how to stop that. So we'll disable set_selectable
+            # for those labels until it's figured out.
+            tmplabel2 = ui.label(wrap=True, y=0, select=not link)
+            if link:
                 tmpevbox = ui.eventbox(add=tmplabel2)
-                self.info_apply_link_signals(tmpevbox, labels_type[i], labels_tooltip[i])
+                self.info_apply_link_signals(tmpevbox, name, tooltip)
             tmphbox.pack_start(tmplabel, False, False, horiz_spacing)
-            if labels_link[i]:
-                tmphbox.pack_start(tmpevbox, False, False, horiz_spacing)
-            else:
-                tmphbox.pack_start(tmplabel2, False, False, horiz_spacing)
+            to_pack = tmpevbox if link else tmplabel2
+            tmphbox.pack_start(to_pack, False, False, horiz_spacing)
             self.info_labels += [tmplabel2]
             labels_left += [tmplabel]
             self.info_tagbox.pack_start(tmphbox, False, False, vert_spacing)
@@ -241,14 +242,14 @@ class Info(object):
         # want to update the minimum number of widgets so the user can
         # do things like select label text.
         if playing_or_paused:
-            bitratelabel = self.info_labels[self.info_type[_("Bitrate")]]
-            titlelabel = self.info_labels[self.info_type[_("Title")]]
-            artistlabel = self.info_labels[self.info_type[_("Artist")]]
-            albumlabel = self.info_labels[self.info_type[_("Album")]]
-            datelabel = self.info_labels[self.info_type[_("Date")]]
-            genrelabel = self.info_labels[self.info_type[_("Genre")]]
-            tracklabel = self.info_labels[self.info_type[_("Track")]]
-            filelabel = self.info_labels[self.info_type[_("File")]]
+            bitratelabel = self.info_labels[self.info_type['bitrate']]
+            titlelabel = self.info_labels[self.info_type['title']]
+            artistlabel = self.info_labels[self.info_type['artist']]
+            albumlabel = self.info_labels[self.info_type['album']]
+            datelabel = self.info_labels[self.info_type['date']]
+            genrelabel = self.info_labels[self.info_type['genre']]
+            tracklabel = self.info_labels[self.info_type['track']]
+            filelabel = self.info_labels[self.info_type['file']]
             if not self.last_info_bitrate or self.last_info_bitrate != newbitrate:
                 bitratelabel.set_text(newbitrate)
             self.last_info_bitrate = newbitrate
@@ -341,15 +342,15 @@ class Info(object):
             self.last_info_bitrate = ""
 
     def info_check_for_local_lyrics(self, artist, title, song_dir):
-        if os.path.exists(self.target_lyrics_filename(artist, title, song_dir, consts.LYRICS_LOCATION_HOME)):
-            return self.target_lyrics_filename(artist, title, song_dir, consts.LYRICS_LOCATION_HOME)
-        elif os.path.exists(self.target_lyrics_filename(artist, title, song_dir, consts.LYRICS_LOCATION_PATH)):
-            return self.target_lyrics_filename(artist, title, song_dir, consts.LYRICS_LOCATION_PATH)
-        elif os.path.exists(self.target_lyrics_filename(artist, title, song_dir, consts.LYRICS_LOCATION_HOME_ALT)):
-            return self.target_lyrics_filename(artist, title, song_dir, consts.LYRICS_LOCATION_HOME_ALT)
-        elif os.path.exists(self.target_lyrics_filename(artist, title, song_dir, consts.LYRICS_LOCATION_PATH_ALT)):
-            return self.target_lyrics_filename(artist, title, song_dir, consts.LYRICS_LOCATION_PATH_ALT)
-        return None
+        locations = [consts.LYRICS_LOCATION_HOME,
+                consts.LYRICS_LOCATION_PATH,
+                consts.LYRICS_LOCATION_HOME_ALT,
+                consts.LYRICS_LOCATION_PATH_ALT]
+        for location in locations:
+            filename = self.target_lyrics_filename(artist, title,
+                                song_dir, location)
+            if os.path.exists(filename):
+                return filename
 
     def get_lyrics_start(self, *args):
         lyricThread = threading.Thread(target=self.get_lyrics_thread, args=args)

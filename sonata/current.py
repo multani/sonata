@@ -116,29 +116,32 @@ class Current(object):
         self.current.set_model(self.currentdata)
         cellrenderer = gtk.CellRendererText()
         cellrenderer.set_property("ellipsize", pango.ELLIPSIZE_END)
-        self.columns = []
-        colnames = self.parse_formatting_colnames(self.config.currentformat)
-        if len(self.columnformat) != len(self.config.columnwidths):
+
+        num_columns = len(self.columnformat)
+        if num_columns != len(self.config.columnwidths):
             # Number of columns changed, set columns equally spaced:
-            self.config.columnwidths = []
-            for i in range(len(self.columnformat)):
-                self.config.columnwidths.append(int(self.current.allocation.width/len(self.columnformat)))
-        for i in range(len(self.columnformat)):
-            column = gtk.TreeViewColumn(colnames[i], cellrenderer, markup=(i+1))
-            self.columns += [column]
+            self.config.columnwidths = [self.current.allocation.width/num_columns] * num_columns
+
+        colnames = self.parse_formatting_colnames(self.config.currentformat)
+        self.columns = [gtk.TreeViewColumn(name, cellrenderer,
+                markup=(i+1))
+                for i, name in enumerate(colnames)]
+
+        for column, width in zip(self.columns,self.config.columnwidths):
             column.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
             # If just one column, we want it to expand with the tree, so don't set a
             # fixed_width; if multiple columns, size accordingly:
-            if len(self.columnformat) > 1:
+            if num_columns > 1:
                 column.set_resizable(True)
                 try:
-                    column.set_fixed_width(max(self.config.columnwidths[i], 10))
+                    column.set_fixed_width(max(width, 10))
                 except:
                     column.set_fixed_width(150)
             column.connect('clicked', self.on_current_column_click)
             self.current.append_column(column)
+
         self.current.set_fixed_height_mode(True)
-        self.current.set_headers_visible(len(self.columnformat) > 1 and self.config.show_header)
+        self.current.set_headers_visible(num_columns > 1 and self.config.show_header)
         self.current.set_headers_clickable(not self.filterbox_visible)
 
     def get_current_songs(self):
@@ -154,13 +157,10 @@ class Current(object):
         context.drag_status(gtk.gdk.ACTION_COPY, context.start_time)
 
         filenames = self.get_selected_filenames(True)
-
-        uris = []
-        for filename in filenames:
-            uris.append("file://" + urllib.quote(filename))
+        uris = ["file://%s" % urllib.quote(filename)
+            for filename in filenames]
 
         selection.set_uris(uris)
-        return
 
     def get_selected_filenames(self, return_abs_paths):
         _model, selected = self.current_selection.get_selected_rows()
@@ -179,9 +179,8 @@ class Current(object):
 
     def update_format(self):
         for track in self.current_songs:
-            items = []
-            for part in self.columnformat:
-                items += [self.parse_formatting(part, track, True)]
+            items = [self.parse_formatting(part, track, True)
+                for part in self.columnformat]
 
             self.currentdata.append([int(mpdh.get(track, 'id'))] + items)
 
@@ -210,9 +209,9 @@ class Current(object):
                 for track in changed_songs:
                     pos = int(mpdh.get(track, 'pos'))
 
-                    items = []
-                    for part in self.columnformat:
-                        items += [self.parse_formatting(part, track, True)]
+                    items = [self.parse_formatting(part,
+                            track, True)
+                        for part in self.columnformat]
 
                     if pos < currlen:
                         # Update attributes for item:
@@ -438,22 +437,21 @@ class Current(object):
         # includes tag_letter and the position of the tag in the string:
         formats = format.split('|')
         format = formats[colnum-1]
-        for pos in range(len(format)-1):
-            if format[pos] == '%':
-                if format[pos+1] == tag_letter:
-                    return (True, pos)
-                else:
-                    break
+        prev_letter = None
+        for letter in format:
+            if letter == tag_letter and prev_letter == '%':
+                return (True, pos)
+            else:
+                break
+            prev_letter = letter
         return (False, 0)
 
     def sanitize_songlen_for_sorting(self, songlength, pos_of_string):
         songlength = songlength[pos_of_string:]
-        items = songlength.split(':')
-        for i in range(len(items)):
-            items[i] = items[i].zfill(2)
+        items = [item.zfill(2) for item in songlength.split(':')]
         for i in range(3-len(items)):
             items.insert(0, "00")
-        return items[0] + ":" + items[1] + ":" + items[2]
+        return ":".join(item for item in items[:3])
 
     def on_sort_reverse(self, _action):
         if self.connected():
@@ -698,16 +696,12 @@ class Current(object):
             matches.clear()
             filterposition = self.current.get_visible_rect()[1]
             _model, selected = self.current_selection.get_selected_rows()
-            filterselected = []
-            for path in selected:
-                filterselected.append(path)
+            filterselected = [path for path in selected]
             rownum = 0
             # Store previous rownums in temporary list, in case we are
             # about to populate the songfilter with a subset of the
             # current filter. This will allow us to preserve the mapping.
-            prev_rownums = []
-            for song in self.filter_row_mapping:
-                prev_rownums.append(song)
+            prev_rownums = [song for song in self.filter_row_mapping]
             self.filter_row_mapping = []
             if todo == '$$$QUIT###':
                 gobject.idle_add(self.searchfilter_revert_model)
