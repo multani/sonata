@@ -430,8 +430,9 @@ class Library(object):
 
         # add a button for each crumb
         for i, (text, pb, target) in enumerate(crumbs):
+            text = misc.escape_html(text)
             if i == len(crumbs)-1:
-                text = "<b>" + misc.escape_html(text) + "</b>"
+                text = "<b>" + text + "</b>"
             b = ui.togglebutton(text=text, can_focus=False)
             if i == len(crumbs)-1:
                 b.props.active = True
