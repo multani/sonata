@@ -82,7 +82,7 @@ def _combo_common(combobox, items, active, changed_cb, wrap):
     combobox.set_wrap_width(wrap)
     return combobox
 
-def togglebutton(text=None, underline=False, relief=False, \
+def togglebutton(text=None, underline=False, relief=gtk.RELIEF_NORMAL, \
                  can_focus=True):
     tmptbut = gtk.ToggleButton()
     if text:

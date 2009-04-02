@@ -113,7 +113,7 @@ class Library(object):
         self.searchbox.pack_start(self.searchtext, True, True, 2)
         self.searchbox.pack_start(self.searchcombo, False, False, 2)
         self.searchbox.pack_start(self.searchbutton, False, False, 2)
-        self.libraryvbox.pack_start(self.breadcrumbs, False, False)
+        self.libraryvbox.pack_start(self.breadcrumbs, False, False, 2)
         self.libraryvbox.pack_start(expanderwindow2, True, True)
         self.libraryvbox.pack_start(self.searchbox, False, False, 2)
 
@@ -420,7 +420,7 @@ class Library(object):
 
         # add a button for each crumb
         for i, (text, icon, target) in enumerate(crumbs):
-            b = ui.togglebutton(text=text)
+            b = ui.togglebutton(text=text, can_focus=False)
             if i == len(crumbs)-1:
                 b.props.active = True
             b.connect('toggled', self.library_browse, target)
