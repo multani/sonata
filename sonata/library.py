@@ -430,12 +430,18 @@ class Library(object):
 
         # add a button for each crumb
         for i, (text, pb, target) in enumerate(crumbs):
+            if i == len(crumbs)-1:
+                text = "<b>" + misc.escape_html(text) + "</b>"
             b = ui.togglebutton(text=text, can_focus=False)
             if i == len(crumbs)-1:
                 b.props.active = True
             b.connect('toggled', self.library_browse, target)
             if pb:
                 b.set_image(ui.image(pb=pb))
+            if b.get_image() is not None:
+                b.get_child().get_child().get_children()[-1].set_use_markup(True)
+            else:
+                b.get_child().set_use_markup(True)
             self.breadcrumbs.pack_start(b, False, False)
             b.show()
 
