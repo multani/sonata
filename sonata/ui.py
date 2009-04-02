@@ -93,9 +93,11 @@ def togglebutton(text=None, underline=False, relief=gtk.RELIEF_NORMAL, \
     return tmptbut
 
 def image(stock=None, stocksize=gtk.ICON_SIZE_MENU, w=-1, h=-1, \
-          x=0.5, y=0.5):
+          x=0.5, y=0.5, pb=None):
     if stock:
         tmpimg = gtk.image_new_from_stock(stock, stocksize)
+    elif pb:
+        tmpimg = gtk.image_new_from_pixbuf(pb)
     else:
         tmpimg = gtk.Image()
     tmpimg.set_size_request(w, h)
