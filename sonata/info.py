@@ -317,8 +317,9 @@ class Info(object):
                         try:
                             from ZSI import ServiceProxy
                             # Make sure we have the right version..
-                            _test = ServiceProxy.ServiceProxy
-                        except:
+                            if not hasattr(ServiceProxy, 'ServiceProxy'):
+                                ServiceProxy = None
+                        except ImportError:
                             ServiceProxy = None
                     if ServiceProxy is None:
                         self.info_searchlabel.set_text("")
