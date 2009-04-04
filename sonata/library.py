@@ -8,6 +8,7 @@ import gtk, gobject, pango
 import ui, misc
 import mpdhelper as mpdh
 from consts import consts
+import breadcrumbs
 
 def library_set_data(album=None, artist=None, genre=None, year=None, path=None):
     return (album, artist, genre, year, path)
@@ -68,7 +69,7 @@ class Library(object):
         self.libraryvbox = gtk.VBox()
         self.library = ui.treeview()
         self.library_selection = self.library.get_selection()
-        self.breadcrumbs = gtk.HBox()
+        self.breadcrumbs = breadcrumbs.CrumbBox()
         self.breadcrumbs.props.spacing = 2
         expanderwindow2 = ui.scrollwindow(add=self.library)
         self.searchbox = gtk.HBox()
@@ -376,14 +377,19 @@ class Library(object):
             self.breadcrumbs.remove(b)
 
         # add the views button first
-        b = ui.button(text=_(" v "), can_focus=False)
+        b = ui.button(text=_(" v Views"), can_focus=False)
         b.connect('clicked', self.library_view_popup)
         self.breadcrumbs.pack_start(b, False, False)
         b.show()
 
+        # add the ellipsis explicitly XXX make this unnecessary
+        b = ui.label("...")
+        self.breadcrumbs.pack_start(b, False, False)
+        b.show()
+
         # find info for current view
-        view, _name, icon, label, pb = [v for v in self.VIEWS
-                        if v[0] == self.config.lib_view][0]
+        view, _name, _icon, label, _pb = [v for v in self.VIEWS
+                          if v[0] == self.config.lib_view][0]
 
         # the first crumb is the root of the current view
         crumbs = [(label, None, self.library_set_data(path='/'))]
@@ -400,7 +406,7 @@ class Library(object):
             for i, part in enumerate(parts):
                 partpath = '/'.join(parts[:i+1])
                 target = self.library_set_data(path=partpath)
-                crumbs.append((part, None, target))
+                crumbs.append((part, self.openpb, target))
         else:
             if view == consts.VIEW_ALBUM:
                 # We don't want to show an artist button in album view
@@ -425,26 +431,33 @@ class Library(object):
                     pb = self.artistpb
                 else:
                     pb = self.genrepb
-                pb = pb.scale_simple(16, 16, gtk.gdk.INTERP_HYPER)
                 crumbs.append((part, pb, target))
 
         # add a button for each crumb
-        for i, (text, pb, target) in enumerate(crumbs):
+        for crumb in crumbs:
+            text, pb, target = crumb
             text = misc.escape_html(text)
-            if i == len(crumbs)-1:
-                text = "<b>" + text + "</b>"
-            b = ui.togglebutton(text=text, can_focus=False)
-            if i == len(crumbs)-1:
+            if crumb is crumbs[-1]:
+                text = "<b>%s</b>" % text
+            label = ui.label(markup=text)
+            b = ui.togglebutton(can_focus=False)
+            # adapt gtk.Button internal layout code:
+            hbox = gtk.HBox(spacing=2)
+            align = gtk.Alignment(xalign=0.5, yalign=0.5)
+            align.add(hbox)
+            b.add(align)
+            if pb:
+                pb = pb.scale_simple(16, 16,
+                             gtk.gdk.INTERP_HYPER)
+                hbox.pack_start(ui.image(pb=pb), False, False)
+            hbox.pack_start(label, True, True)
+            if crumb is crumbs[-1]:
+                # FIXME makes the button request minimal space:
+                # label.props.ellipsize = pango.ELLIPSIZE_END
                 b.props.active = True
             b.connect('toggled', self.library_browse, target)
-            if pb:
-                b.set_image(ui.image(pb=pb))
-            if b.get_image() is not None:
-                b.get_child().get_child().get_children()[-1].set_use_markup(True)
-            else:
-                b.get_child().set_use_markup(True)
             self.breadcrumbs.pack_start(b, False, False)
-            b.show()
+            b.show_all()
 
     def library_populate_add_parent_rows(self):
         return [] # disabled as breadcrumbs replace these
