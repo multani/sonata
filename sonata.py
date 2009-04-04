@@ -90,9 +90,8 @@ gettext.textdomain('sonata')
 
 ## Check initial dependencies:
 
-# Test python version (note that python 2.5 returns a list of
-# strings while python 2.6 returns a tuple of ints):
-if tuple(map(int, platform.python_version_tuple())) < (2, 5, 0):
+# Test python version:
+if sys.version_info < (2,5):
     sys.stderr.write("Sonata requires Python 2.5 or newer. Aborting...\n")
     sys.exit(1)
 
