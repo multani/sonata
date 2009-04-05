@@ -1,5 +1,7 @@
 # coding=utf-8
 
+import gettext
+
 import gtk
 
 import misc, ui
@@ -140,6 +142,23 @@ class About(object):
         dialog.run()
         dialog.destroy()
 
+    def statstext(self, stats):
+        # XXX translate expressions, not words
+        statslabel = stats['songs'] + ' ' + gettext.ngettext('song', 'songs', int(stats['songs'])) + '.\n'
+        statslabel = statslabel + stats['albums'] + ' ' + gettext.ngettext('album', 'albums', int(stats['albums'])) + '.\n'
+        statslabel = statslabel + stats['artists'] + ' ' + gettext.ngettext('artist', 'artists', int(stats['artists'])) + '.\n'
+        try:
+            hours_of_playtime = misc.convert_time(float(stats['db_playtime'])).split(':')[-3]
+        except:
+            hours_of_playtime = '0'
+        if int(hours_of_playtime) >= 24:
+            days_of_playtime = str(int(hours_of_playtime)/24)
+            statslabel = statslabel + days_of_playtime + ' ' + gettext.ngettext('day of bliss', 'days of bliss', int(days_of_playtime)) + '.'
+        else:
+            statslabel = statslabel + hours_of_playtime + ' ' + gettext.ngettext('hour of bliss', 'hours of bliss', int(hours_of_playtime)) + '.'
+
+        return statslabel
+
     def about_load(self, stats):
         self.about_dialog = gtk.AboutDialog()
         try:
@@ -153,7 +172,7 @@ class About(object):
         commentlabel = _('An elegant music client for MPD.')
         self.about_dialog.set_comments(commentlabel)
         if stats:
-            self.about_dialog.set_copyright(stats)
+            self.about_dialog.set_copyright(self.statstext(stats))
         self.about_dialog.set_license(self.license)
         self.about_dialog.set_authors(['Scott Horowitz <stonecrest@gmail.com>', 'Tuukka Hastrup <Tuukka.Hastrup@iki.fi>'])
         self.about_dialog.set_artists(['Adrian Chromenko <adrian@rest0re.org>\nhttp://oss.rest0re.org/'])

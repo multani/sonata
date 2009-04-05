@@ -3299,24 +3299,17 @@ class Base(object):
     def on_about(self, _action):
         about_dialog = about.About(self.window, self.config, version.VERSION, __license__, self.find_path('sonata_large.png'))
 
-        statslabel = None
+        stats = None
         if self.conn:
-            # Include MPD stats:
-            stats = mpdh.call(self.client, 'stats')
-            statslabel = stats['songs'] + ' ' + gettext.ngettext('song', 'songs', int(stats['songs'])) + '.\n'
-            statslabel = statslabel + stats['albums'] + ' ' + gettext.ngettext('album', 'albums', int(stats['albums'])) + '.\n'
-            statslabel = statslabel + stats['artists'] + ' ' + gettext.ngettext('artist', 'artists', int(stats['artists'])) + '.\n'
-            try:
-                hours_of_playtime = misc.convert_time(float(stats['db_playtime'])).split(':')[-3]
-            except:
-                hours_of_playtime = '0'
-            if int(hours_of_playtime) >= 24:
-                days_of_playtime = str(int(hours_of_playtime)/24)
-                statslabel = statslabel + days_of_playtime + ' ' + gettext.ngettext('day of bliss', 'days of bliss', int(days_of_playtime)) + '.'
-            else:
-                statslabel = statslabel + hours_of_playtime + ' ' + gettext.ngettext('hour of bliss', 'hours of bliss', int(hours_of_playtime)) + '.'
+            # Extract some MPD stats:
+            mpdstats = mpdh.call(self.client, 'stats')
+            stats = {'artists': mpdstats['artists'],
+                 'albums': mpdstats['albums'],
+                 'songs': mpdstats['songs'],
+                 'db_playtime': mpdstats['db_playtime'],
+                 }
 
-        about_dialog.about_load(statslabel)
+        about_dialog.about_load(stats)
 
     def systemtray_initialize(self):
         # Make system tray 'icon' to sit in the system tray
