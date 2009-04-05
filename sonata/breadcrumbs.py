@@ -47,6 +47,10 @@ class CrumbBox(gtk.Box):
         w0, h0 = allocation.width, allocation.height
 
         crumbs = self.get_children()
+
+        if len(crumbs) < 2:
+            return
+
         # FIXME:
         self.ellipsis = crumbs.pop(1)
         hidden = [self.ellipsis]
