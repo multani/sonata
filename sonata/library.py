@@ -107,17 +107,13 @@ class Library(object):
         # list of the library views: (id, name, icon name, label)
         self.VIEWS = [
             (consts.VIEW_FILESYSTEM, 'filesystem',
-             gtk.STOCK_HARDDISK, _("Filesystem"),
-             self.harddiskpb),
+             gtk.STOCK_HARDDISK, _("Filesystem")),
             (consts.VIEW_ALBUM, 'album',
-             'album', _("Albums"),
-             self.albumpb),
+             'album', _("Albums")),
             (consts.VIEW_ARTIST, 'artist',
-             'artist', _("Artists"),
-             self.artistpb),
+             'artist', _("Artists")),
             (consts.VIEW_GENRE, 'genre',
-             gtk.STOCK_ORIENTATION_PORTRAIT, _("Genres"),
-             self.genrepb),
+             gtk.STOCK_ORIENTATION_PORTRAIT, _("Genres")),
             ]
 
         self.library_view_assign_image()
@@ -160,7 +156,7 @@ class Library(object):
     def get_libraryactions(self):
         return [(name+'view', icon, label,
              None, None, self.on_libraryview_chosen)
-            for _view, name, icon, label, pb in self.VIEWS]
+            for _view, name, icon, label in self.VIEWS]
 
     def get_model(self):
         return self.librarydata
@@ -209,7 +205,7 @@ class Library(object):
         gobject.idle_add(self.library.scroll_to_point, 0, 0)
 
     def library_view_assign_image(self):
-        _view, _name, icon, label, pb = [v for v in self.VIEWS
+        _view, _name, icon, label = [v for v in self.VIEWS
                          if v[0] == self.config.lib_view][0]
         self.libraryview.set_image(ui.image(stock=icon))
         self.libraryview.set_label(" " + label)
@@ -377,7 +373,7 @@ class Library(object):
             self.breadcrumbs.remove(b)
 
         # add the views button first
-        b = ui.button(text=_(" v Views"), can_focus=False)
+        b = ui.button(text=_(" v "), can_focus=False, relief=gtk.RELIEF_NONE)
         b.connect('clicked', self.library_view_popup)
         self.breadcrumbs.pack_start(b, False, False)
         b.show()
@@ -388,11 +384,11 @@ class Library(object):
         b.show()
 
         # find info for current view
-        view, _name, _icon, label, _pb = [v for v in self.VIEWS
+        view, _name, icon, label = [v for v in self.VIEWS
                           if v[0] == self.config.lib_view][0]
 
         # the first crumb is the root of the current view
-        crumbs = [(label, None, self.library_set_data(path='/'))]
+        crumbs = [(label, icon, None, self.library_set_data(path='/'))]
 
         # rest of the crumbs are specific to the view
         if view == consts.VIEW_FILESYSTEM:
@@ -406,7 +402,7 @@ class Library(object):
             for i, part in enumerate(parts):
                 partpath = '/'.join(parts[:i+1])
                 target = self.library_set_data(path=partpath)
-                crumbs.append((part, self.openpb, target))
+                crumbs.append((part, gtk.STOCK_OPEN, None, target))
         else:
             if view == consts.VIEW_ALBUM:
                 # We don't want to show an artist button in album view
@@ -422,39 +418,45 @@ class Library(object):
                     continue
                 partdata = dict(zip(keys, parts)[:i+1])
                 target = self.library_set_data(**partdata)
+                pb, icon = None, None
                 if key == 'album':
                     # Album artwork, with self.alumbpb as a backup:
                     artist, album, path = self.library_get_data(self.config.wd, 'artist', 'album', 'path')
                     cache_data = self.library_set_data(artist=artist, album=album, path=path)
-                    pb = self.artwork.get_library_artwork_cached_pb(cache_data, self.albumpb)
+                    pb = self.artwork.get_library_artwork_cached_pb(cache_data, None)
+                    if pb is None:
+                        icon = 'album'
                 elif key == 'artist':
-                    pb = self.artistpb
+                    icon = 'artist'
                 else:
-                    pb = self.genrepb
-                crumbs.append((part, pb, target))
+                    icon = gtk.STOCK_ORIENTATION_PORTRAIT
+                crumbs.append((part, icon, pb, target))
 
         # add a button for each crumb
         for crumb in crumbs:
-            text, pb, target = crumb
+            text, icon, pb, target = crumb
             text = misc.escape_html(text)
             if crumb is crumbs[-1]:
                 text = "<b>%s</b>" % text
             label = ui.label(markup=text)
-            b = ui.togglebutton(can_focus=False)
+            b = ui.togglebutton(can_focus=False, relief=gtk.RELIEF_NONE)
             # adapt gtk.Button internal layout code:
             hbox = gtk.HBox(spacing=2)
             align = gtk.Alignment(xalign=0.5, yalign=0.5)
             align.add(hbox)
             b.add(align)
-            if pb:
-                pb = pb.scale_simple(16, 16,
-                             gtk.gdk.INTERP_HYPER)
+            if icon:
+                hbox.pack_start(ui.image(stock=icon), False, False)
+            elif pb:
+                pb = pb.scale_simple(16, 16, gtk.gdk.INTERP_HYPER)
                 hbox.pack_start(ui.image(pb=pb), False, False)
             hbox.pack_start(label, True, True)
             if crumb is crumbs[-1]:
                 # FIXME makes the button request minimal space:
                 # label.props.ellipsize = pango.ELLIPSIZE_END
                 b.props.active = True
+            # FIXME why doesn't the tooltip show?
+            b.set_tooltip_text(label.get_label())
             b.connect('toggled', self.library_browse, target)
             self.breadcrumbs.pack_start(b, False, False)
             b.show_all()

@@ -1,4 +1,5 @@
 v.1.6.1 - Pending
+	+ Bug: Fix python version check for Ubuntu Jaunty
 	+ Bug: Traceback if track has multiple date tags
 
 v1.6 - March 29, 2009
