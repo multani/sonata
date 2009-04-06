@@ -64,14 +64,14 @@ class Preferences():
     Many changes are applied instantly with respective
     callbacks. Closing the dialog causes a response callback.
     """
-    def __init__(self, config):
+    def __init__(self, config, reconnect, renotify, reinfofile):
 
         self.config = config
 
         # These are callbacks to Main
-        self.reconnect = None
-        self.renotify = None
-        self.reinfofile = None
+        self.reconnect = reconnect
+        self.renotify = renotify
+        self.reinfofile = reinfofile
 
         # Temporary flag:
         self.updating_nameentry = False
@@ -85,13 +85,8 @@ class Preferences():
         self.direntry = None
         self.using_mpd_env_vars = False
 
-    def on_prefs_real(self, parent_window, scrobbler, reconnect, renotify, reinfofile, prefs_window_response, last_tab, extras_cbs, display_cbs, behavior_cbs, format_cbs):
+    def on_prefs_real(self, prefs_window_response, last_tab, extras_cbs, display_cbs, behavior_cbs, format_cbs):
         """Display the preferences dialog"""
-        self.window = parent_window
-        self.scrobbler = scrobbler
-        self.reconnect = reconnect
-        self.renotify = renotify
-        self.reinfofile = reinfofile
         self.last_tab = last_tab
 
         self.prefswindow = ui.dialog(title=_("Preferences"), parent=self.window, flags=gtk.DIALOG_DESTROY_WITH_PARENT, role='preferences', resizable=False, separator=False)

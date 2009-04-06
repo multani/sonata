@@ -177,7 +177,9 @@ class Base(object):
         self.tabname2focus = dict()
 
         self.config = Config(_('Default Profile'), _("by") + " %A " + _("from") + " %B", library.library_set_data)
-        self.preferences = Preferences(self.config)
+        self.preferences = Preferences(self.config,
+            self.on_connectkey_pressed, self.on_currsong_notify,
+            self.update_infofile)
         self.settings_load()
 
         if args.start_visibility is not None:
@@ -212,7 +214,6 @@ class Base(object):
         else:
             self.window = window
             self.window_owner = False
-
         if self.window_owner:
             self.window.set_title('Sonata')
             self.window.set_role('mainWindow')
@@ -223,6 +224,7 @@ class Base(object):
                 self.window.stick()
             if not self.config.decorated:
                 self.window.set_decorated(False)
+        self.preferences.window = self.window
 
         self.notebook = gtk.Notebook()
 
@@ -416,6 +418,7 @@ class Base(object):
         self.scrobbler = scrobbler.Scrobbler(self.config)
         self.scrobbler.import_module()
         self.scrobbler.init()
+        self.preferences.scrobbler = self.scrobbler
 
         # Current tab
         self.current = current.Current(self.config, self.client, self.TAB_CURRENT, self.on_current_button_press, self.parse_formatting_colnames, self.parse_formatting, self.connected, lambda:self.sonata_loaded, lambda:self.songinfo, self.update_statusbar, self.iterate_now, lambda:self.library.libsearchfilter_get_style(), self.new_tab)
@@ -2903,7 +2906,7 @@ class Base(object):
         format.currsongoptions1_changed = self.prefs_currsongoptions1_changed
         format.currsongoptions2_changed =  self.prefs_currsongoptions2_changed
 
-        self.preferences.on_prefs_real(self.window, self.scrobbler, self.on_connectkey_pressed, self.on_currsong_notify, self.update_infofile, self.prefs_window_response, self.prefs_last_tab, extras, display, behavior, format)
+        self.preferences.on_prefs_real(self.prefs_window_response, self.prefs_last_tab, extras, display, behavior, format)
 
     def prefs_currentoptions_changed(self, entry, _event):
         if self.config.currentformat != entry.get_text():
