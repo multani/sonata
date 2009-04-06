@@ -2873,7 +2873,7 @@ class Base(object):
         trayicon_in_use = ((HAVE_STATUS_ICON and self.statusicon.is_embedded() and
                     self.statusicon.get_visible())
                    or (HAVE_EGG and self.trayicon.get_property('visible')))
-        self.preferences.on_prefs_real(self.window, self.popuptimes, self.scrobbler, trayicon_available, trayicon_in_use, self.on_connectkey_pressed, self.on_currsong_notify, self.update_infofile, self.prefs_notif_toggled, self.prefs_stylized_toggled, self.prefs_art_toggled, self.prefs_playback_toggled, self.prefs_progress_toggled, self.prefs_statusbar_toggled, self.prefs_lyrics_toggled, self.prefs_trayicon_toggled, self.prefs_crossfade_toggled, self.prefs_crossfade_changed, self.prefs_window_response, self.prefs_last_tab, self.prefs_currentoptions_changed, self.prefs_libraryoptions_changed, self.prefs_titleoptions_changed, self.prefs_currsongoptions1_changed, self.prefs_currsongoptions2_changed)
+        self.preferences.on_prefs_real(self.window, self.popuptimes, self.scrobbler, trayicon_available, trayicon_in_use, self.on_connectkey_pressed, self.on_currsong_notify, self.update_infofile, self.prefs_notif_toggled, self.prefs_stylized_toggled, self.prefs_art_toggled, self.prefs_playback_toggled, self.prefs_progress_toggled, self.prefs_statusbar_toggled, self.prefs_lyrics_toggled, self.prefs_trayicon_toggled, self.prefs_crossfade_toggled, self.prefs_crossfade_changed, self.prefs_window_response, self.prefs_last_tab, self.prefs_currentoptions_changed, self.prefs_libraryoptions_changed, self.prefs_titleoptions_changed, self.prefs_currsongoptions1_changed, self.prefs_currsongoptions2_changed, self.prefs_ontop_toggled, self.prefs_sticky_toggled, self.prefs_decorated_toggled)
 
     def prefs_currentoptions_changed(self, entry, _event):
         if self.config.currentformat != entry.get_text():
@@ -2903,6 +2903,27 @@ class Base(object):
             self.config.currsongformat2 = entry.get_text()
             self.update_cursong()
 
+    def prefs_ontop_toggled(self, button):
+        self.config.ontop = button.get_active()
+        if self.window_owner:
+            self.window.set_keep_above(self.config.ontop)
+
+    def prefs_sticky_toggled(self, button):
+        self.config.sticky = button.get_active()
+        if self.window_owner:
+            if self.config.sticky:
+                self.window.stick()
+            else:
+                self.window.unstick()
+
+    def prefs_decorated_toggled(self, button):
+        self.config.decorated = not button.get_active()
+        if self.window_owner:
+            if self.config.decorated != self.window.get_decorated():
+                self.withdraw_app()
+                self.window.set_decorated(self.config.decorated)
+                self.withdraw_app_undo()
+
     # XXX move the prefs handling parts of prefs_* to preferences.py
     def prefs_window_response(self, window, response, prefsnotebook, direntry, infopath_options, using_mpd_env_vars, prev_host, prev_port, prev_password):
         if response == gtk.RESPONSE_CLOSE:
@@ -2921,19 +2942,6 @@ class Base(object):
                     prefsnotebook.set_current_page(0)
                     direntry.grab_focus()
                     return
-            if self.window_owner:
-                if self.config.ontop:
-                    self.window.set_keep_above(True)
-                else:
-                    self.window.set_keep_above(False)
-                if self.config.sticky:
-                    self.window.stick()
-                else:
-                    self.window.unstick()
-                if self.config.decorated != self.window.get_decorated():
-                    self.withdraw_app()
-                    self.window.set_decorated(self.config.decorated)
-                    self.withdraw_app_undo()
             if self.config.infofile_path != infopath_options.get_text():
                 self.config.infofile_path = os.path.expanduser(infopath_options.get_text())
                 if self.config.use_infofile: self.update_infofile()

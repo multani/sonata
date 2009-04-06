@@ -48,7 +48,7 @@ class Preferences():
 
         self.window = None
 
-    def on_prefs_real(self, parent_window, popuptimes, scrobbler, trayicon_available, trayicon_in_use, reconnect, renotify, reinfofile, prefs_notif_toggled, prefs_stylized_toggled, prefs_art_toggled, prefs_playback_toggled, prefs_progress_toggled, prefs_statusbar_toggled, prefs_lyrics_toggled, prefs_trayicon_toggled, prefs_crossfade_toggled, prefs_crossfade_changed, prefs_window_response, prefs_last_tab, currentoptions_changed, libraryoptions_changed, titleoptions_changed, currsongoptions1_changed, currsongoptions2_changed):
+    def on_prefs_real(self, parent_window, popuptimes, scrobbler, trayicon_available, trayicon_in_use, reconnect, renotify, reinfofile, prefs_notif_toggled, prefs_stylized_toggled, prefs_art_toggled, prefs_playback_toggled, prefs_progress_toggled, prefs_statusbar_toggled, prefs_lyrics_toggled, prefs_trayicon_toggled, prefs_crossfade_toggled, prefs_crossfade_changed, prefs_window_response, prefs_last_tab, currentoptions_changed, libraryoptions_changed, titleoptions_changed, currsongoptions1_changed, currsongoptions2_changed, ontop_toggled, sticky_toggled, decorated_toggled):
         """Display the preferences dialog"""
         self.window = parent_window
         self.scrobbler = scrobbler
@@ -322,15 +322,13 @@ class Preferences():
         window_frame.set_shadow_type(gtk.SHADOW_NONE)
         win_sticky = gtk.CheckButton(_("_Show window on all workspaces"))
         win_sticky.set_active(self.config.sticky)
-        win_sticky.connect('toggled', self.prefs_config_widget_active, 'sticky')
+        win_sticky.connect('toggled', sticky_toggled)
         win_ontop = gtk.CheckButton(_("_Keep window above other windows"))
         win_ontop.set_active(self.config.ontop)
-        win_ontop.connect('toggled', self.prefs_config_widget_active, 'ontop')
+        win_ontop.connect('toggled', ontop_toggled)
         win_decor = gtk.CheckButton(_("_Hide window titlebar"))
         win_decor.set_active(not self.config.decorated)
-        win_decor.connect('toggled',
-            lambda w: setattr(self.config, 'decorated',
-                not w.get_active()))
+        win_decor.connect('toggled', decorated_toggled)
         minimize = gtk.CheckButton(_("_Minimize to system tray on close/escape"))
         minimize.set_active(self.config.minimize_to_systray)
         minimize.set_tooltip_text(_("If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."))
