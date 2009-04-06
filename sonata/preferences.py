@@ -48,7 +48,7 @@ class Preferences():
 
         self.window = None
 
-    def on_prefs_real(self, parent_window, popuptimes, scrobbler, trayicon_available, trayicon_in_use, reconnect, renotify, reinfofile, prefs_notif_toggled, prefs_stylized_toggled, prefs_art_toggled, prefs_playback_toggled, prefs_progress_toggled, prefs_statusbar_toggled, prefs_lyrics_toggled, prefs_trayicon_toggled, prefs_crossfade_toggled, prefs_crossfade_changed, prefs_window_response, prefs_last_tab):
+    def on_prefs_real(self, parent_window, popuptimes, scrobbler, trayicon_available, trayicon_in_use, reconnect, renotify, reinfofile, prefs_notif_toggled, prefs_stylized_toggled, prefs_art_toggled, prefs_playback_toggled, prefs_progress_toggled, prefs_statusbar_toggled, prefs_lyrics_toggled, prefs_trayicon_toggled, prefs_crossfade_toggled, prefs_crossfade_changed, prefs_window_response, prefs_last_tab, currentoptions_changed, libraryoptions_changed, titleoptions_changed, currsongoptions1_changed, currsongoptions2_changed):
         """Display the preferences dialog"""
         self.window = parent_window
         self.scrobbler = scrobbler
@@ -413,11 +413,11 @@ class Preferences():
             format_labels.append(label)
             format_entries.append(entry)
 
-        currentoptions = format_entries[0]
-        libraryoptions = format_entries[1]
-        titleoptions = format_entries[2]
-        currsongoptions1 = format_entries[3]
-        currsongoptions2 = format_entries[4]
+        cbs = (currentoptions_changed, libraryoptions_changed,
+                 titleoptions_changed, currsongoptions1_changed,
+                 currsongoptions2_changed)
+        for entry, cb in zip(format_entries, cbs):
+            entry.connect('focus_out_event', cb)
 
         availableheading = ui.label(markup='<small>' + _('Available options') + ':</small>', y=0)
         availablevbox = gtk.VBox()
@@ -545,7 +545,7 @@ class Preferences():
         self.prefswindow.show_all()
         prefsnotebook.set_current_page(self.last_tab)
         close_button.grab_focus()
-        self.prefswindow.connect('response', prefs_window_response, prefsnotebook, direntry, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, infopath_options, using_mpd_env_vars, self.prev_host, self.prev_port, self.prev_password)
+        self.prefswindow.connect('response', prefs_window_response, prefsnotebook, direntry, infopath_options, using_mpd_env_vars, self.prev_host, self.prev_port, self.prev_password)
         # Save previous connection properties to determine if we should try to
         # connect to MPD after prefs are closed:
         self.prev_host = self.config.host[self.config.profile_num]

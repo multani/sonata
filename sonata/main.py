@@ -2873,10 +2873,38 @@ class Base(object):
         trayicon_in_use = ((HAVE_STATUS_ICON and self.statusicon.is_embedded() and
                     self.statusicon.get_visible())
                    or (HAVE_EGG and self.trayicon.get_property('visible')))
-        self.preferences.on_prefs_real(self.window, self.popuptimes, self.scrobbler, trayicon_available, trayicon_in_use, self.on_connectkey_pressed, self.on_currsong_notify, self.update_infofile, self.prefs_notif_toggled, self.prefs_stylized_toggled, self.prefs_art_toggled, self.prefs_playback_toggled, self.prefs_progress_toggled, self.prefs_statusbar_toggled, self.prefs_lyrics_toggled, self.prefs_trayicon_toggled, self.prefs_crossfade_toggled, self.prefs_crossfade_changed, self.prefs_window_response, self.prefs_last_tab)
+        self.preferences.on_prefs_real(self.window, self.popuptimes, self.scrobbler, trayicon_available, trayicon_in_use, self.on_connectkey_pressed, self.on_currsong_notify, self.update_infofile, self.prefs_notif_toggled, self.prefs_stylized_toggled, self.prefs_art_toggled, self.prefs_playback_toggled, self.prefs_progress_toggled, self.prefs_statusbar_toggled, self.prefs_lyrics_toggled, self.prefs_trayicon_toggled, self.prefs_crossfade_toggled, self.prefs_crossfade_changed, self.prefs_window_response, self.prefs_last_tab, self.prefs_currentoptions_changed, self.prefs_libraryoptions_changed, self.prefs_titleoptions_changed, self.prefs_currsongoptions1_changed, self.prefs_currsongoptions2_changed)
+
+    def prefs_currentoptions_changed(self, entry, _event):
+        if self.config.currentformat != entry.get_text():
+            self.config.currentformat = entry.get_text()
+            for column in self.current_treeview.get_columns():
+                self.current_treeview.remove_column(column)
+            self.current.initialize_columns()
+            self.current.update_format()
+
+    def prefs_libraryoptions_changed(self, entry, _event):
+        if self.config.libraryformat != entry.get_text():
+            self.config.libraryformat = entry.get_text()
+            self.library.library_browse(root=self.config.wd)
+
+    def prefs_titleoptions_changed(self, entry, _event):
+        if self.config.titleformat != entry.get_text():
+            self.config.titleformat = entry.get_text()
+            self.update_wintitle()
+
+    def prefs_currsongoptions1_changed(self, entry, _event):
+        if self.config.currsongformat1 != entry.get_text():
+            self.config.currsongformat1 = entry.get_text()
+            self.update_cursong()
+
+    def prefs_currsongoptions2_changed(self, entry, _event):
+        if self.config.currsongformat2 != entry.get_text():
+            self.config.currsongformat2 = entry.get_text()
+            self.update_cursong()
 
     # XXX move the prefs handling parts of prefs_* to preferences.py
-    def prefs_window_response(self, window, response, prefsnotebook, direntry, currentoptions, libraryoptions, titleoptions, currsongoptions1, currsongoptions2, infopath_options, using_mpd_env_vars, prev_host, prev_port, prev_password):
+    def prefs_window_response(self, window, response, prefsnotebook, direntry, infopath_options, using_mpd_env_vars, prev_host, prev_port, prev_password):
         if response == gtk.RESPONSE_CLOSE:
             self.prefs_last_tab = prefsnotebook.get_current_page()
             if self.config.show_lyrics and self.config.lyrics_location != consts.LYRICS_LOCATION_HOME:
@@ -2893,22 +2921,6 @@ class Base(object):
                     prefsnotebook.set_current_page(0)
                     direntry.grab_focus()
                     return
-            if self.config.currentformat != currentoptions.get_text():
-                self.config.currentformat = currentoptions.get_text()
-                for column in self.current_treeview.get_columns():
-                    self.current_treeview.remove_column(column)
-                self.current.initialize_columns()
-                self.current.update_format()
-            if self.config.libraryformat != libraryoptions.get_text():
-                self.config.libraryformat = libraryoptions.get_text()
-                self.library.library_browse(root=self.config.wd)
-            if self.config.titleformat != titleoptions.get_text():
-                self.config.titleformat = titleoptions.get_text()
-                self.update_wintitle()
-            if (self.config.currsongformat1 != currsongoptions1.get_text()) or (self.config.currsongformat2 != currsongoptions2.get_text()):
-                self.config.currsongformat1 = currsongoptions1.get_text()
-                self.config.currsongformat2 = currsongoptions2.get_text()
-                self.update_cursong()
             if self.window_owner:
                 if self.config.ontop:
                     self.window.set_keep_above(True)
