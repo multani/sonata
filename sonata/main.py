@@ -167,8 +167,6 @@ class Base(object):
 
         self.mpd_update_queued = False
 
-        self.prefs_last_tab = 0
-
         # XXX get rid of all of these:
         self.all_tab_names = [self.TAB_CURRENT, self.TAB_LIBRARY, self.TAB_PLAYLISTS, self.TAB_STREAMS, self.TAB_INFO]
         all_tab_ids = "current library playlists streams info".split()
@@ -179,7 +177,8 @@ class Base(object):
         self.config = Config(_('Default Profile'), _("by") + " %A " + _("from") + " %B", library.library_set_data)
         self.preferences = Preferences(self.config,
             self.on_connectkey_pressed, self.on_currsong_notify,
-            self.update_infofile)
+            self.update_infofile, self.settings_save,
+            self.populate_profiles_for_menu)
         self.settings_load()
 
         if args.start_visibility is not None:
@@ -941,7 +940,7 @@ class Base(object):
             mpdh.call(self.client, 'disconnect')
             self.conn = False
 
-    def on_connectkey_pressed(self, _event):
+    def on_connectkey_pressed(self, _event=None):
         self.user_connect = True
         # Update selected radio button in menu:
         self.skip_on_profiles_click = True
@@ -2906,7 +2905,7 @@ class Base(object):
         format.currsongoptions1_changed = self.prefs_currsongoptions1_changed
         format.currsongoptions2_changed =  self.prefs_currsongoptions2_changed
 
-        self.preferences.on_prefs_real(self.prefs_window_response, self.prefs_last_tab, extras, display, behavior, format)
+        self.preferences.on_prefs_real(extras, display, behavior, format)
 
     def prefs_currentoptions_changed(self, entry, _event):
         if self.config.currentformat != entry.get_text():
@@ -2962,34 +2961,6 @@ class Base(object):
             self.config.infofile_path = os.path.expanduser(entry.get_text())
             if self.config.use_infofile:
                 self.update_infofile()
-
-    # XXX move the prefs handling parts of prefs_* to preferences.py
-    def prefs_window_response(self, window, response, prefsnotebook, direntry, using_mpd_env_vars, prev_host, prev_port, prev_password):
-        if response == gtk.RESPONSE_CLOSE:
-            self.prefs_last_tab = prefsnotebook.get_current_page()
-            if self.config.show_lyrics and self.config.lyrics_location != consts.LYRICS_LOCATION_HOME:
-                if not os.path.isdir(misc.file_from_utf8(self.config.musicdir[self.config.profile_num])):
-                    ui.show_msg(self.window, _("To save lyrics to the music file's directory, you must specify a valid music directory."), _("Music Dir Verification"), 'musicdirVerificationError', gtk.BUTTONS_CLOSE)
-                    # Set music_dir entry focused:
-                    prefsnotebook.set_current_page(0)
-                    direntry.grab_focus()
-                    return
-            if self.config.show_covers and self.config.art_location != consts.ART_LOCATION_HOMECOVERS:
-                if not os.path.isdir(misc.file_from_utf8(self.config.musicdir[self.config.profile_num])):
-                    ui.show_msg(self.window, _("To save artwork to the music file's directory, you must specify a valid music directory."), _("Music Dir Verification"), 'musicdirVerificationError', gtk.BUTTONS_CLOSE)
-                    # Set music_dir entry focused:
-                    prefsnotebook.set_current_page(0)
-                    direntry.grab_focus()
-                    return
-            if not using_mpd_env_vars:
-                if prev_host != self.config.host[self.config.profile_num] or prev_port != self.config.port[self.config.profile_num] or prev_password != self.config.password[self.config.profile_num]:
-                    # Try to connect if mpd connection info has been updated:
-                    ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
-                    self.mpd_connect(force=True)
-            self.settings_save()
-            self.populate_profiles_for_menu()
-            ui.change_cursor(None)
-        window.destroy()
 
     def prefs_crossfade_changed(self, crossfade_spin):
         crossfade_value = crossfade_spin.get_value_as_int()

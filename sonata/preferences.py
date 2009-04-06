@@ -19,6 +19,7 @@ from config import Config
 from pluginsystem import pluginsystem
 import ui
 import misc
+import os
 
 class Extras_cbs(object):
     """Callbacks and data specific to the extras tab"""
@@ -64,7 +65,8 @@ class Preferences():
     Many changes are applied instantly with respective
     callbacks. Closing the dialog causes a response callback.
     """
-    def __init__(self, config, reconnect, renotify, reinfofile):
+    def __init__(self, config, reconnect, renotify, reinfofile,
+             settings_save, populate_profiles_for_menu):
 
         self.config = config
 
@@ -72,6 +74,8 @@ class Preferences():
         self.reconnect = reconnect
         self.renotify = renotify
         self.reinfofile = reinfofile
+        self.settings_save = settings_save
+        self.populate_profiles_for_menu = populate_profiles_for_menu
 
         # Temporary flag:
         self.updating_nameentry = False
@@ -81,16 +85,16 @@ class Preferences():
         self.prev_port = None
 
         self.window = None
+        self.last_tab = 0
         self.display_trayicon = None
         self.direntry = None
         self.using_mpd_env_vars = False
 
-    def on_prefs_real(self, prefs_window_response, last_tab, extras_cbs, display_cbs, behavior_cbs, format_cbs):
+    def on_prefs_real(self, extras_cbs, display_cbs, behavior_cbs, format_cbs):
         """Display the preferences dialog"""
-        self.last_tab = last_tab
 
         self.prefswindow = ui.dialog(title=_("Preferences"), parent=self.window, flags=gtk.DIALOG_DESTROY_WITH_PARENT, role='preferences', resizable=False, separator=False)
-        prefsnotebook = gtk.Notebook()
+        self.prefsnotebook = gtk.Notebook()
 
         tabs = ((_("MPD"), 'mpd'),
                 (_("Display"), 'display'),
@@ -104,15 +108,15 @@ class Preferences():
             label = ui.label(text=display_name)
             func = getattr(self, '%s_tab' % name)
             tab = func(locals().get('%s_cbs' % name))
-            prefsnotebook.append_page(tab, label)
+            self.prefsnotebook.append_page(tab, label)
         hbox = gtk.HBox()
-        hbox.pack_start(prefsnotebook, False, False, 10)
+        hbox.pack_start(self.prefsnotebook, False, False, 10)
         self.prefswindow.vbox.pack_start(hbox, False, False, 10)
         close_button = self.prefswindow.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
         self.prefswindow.show_all()
-        prefsnotebook.set_current_page(self.last_tab)
+        self.prefsnotebook.set_current_page(self.last_tab)
         close_button.grab_focus()
-        self.prefswindow.connect('response', prefs_window_response, prefsnotebook, self.direntry, self.using_mpd_env_vars, self.prev_host, self.prev_port, self.prev_password)
+        self.prefswindow.connect('response', self._window_response)
         # Save previous connection properties to determine if we should try to
         # connect to MPD after prefs are closed:
         self.prev_host = self.config.host[self.config.profile_num]
@@ -652,6 +656,34 @@ class Preferences():
             enabled = True
             plugindata.append((enabled, pb, plugin_text))
         return pluginwindow
+
+    def _window_response(self, window, response):
+        if response == gtk.RESPONSE_CLOSE:
+            self.last_tab = self.prefsnotebook.get_current_page()
+            #XXX: These two are probably never triggered
+            if self.config.show_lyrics and self.config.lyrics_location != consts.LYRICS_LOCATION_HOME:
+                if not os.path.isdir(misc.file_from_utf8(self.config.musicdir[self.config.profile_num])):
+                    ui.show_msg(self.window, _("To save lyrics to the music file's directory, you must specify a valid music directory."), _("Music Dir Verification"), 'musicdirVerificationError', gtk.BUTTONS_CLOSE)
+                    # Set music_dir entry focused:
+                    self.prefsnotebook.set_current_page(0)
+                    self.direntry.grab_focus()
+                    return
+            if self.config.show_covers and self.config.art_location != consts.ART_LOCATION_HOMECOVERS:
+                if not os.path.isdir(misc.file_from_utf8(self.config.musicdir[self.config.profile_num])):
+                    ui.show_msg(self.window, _("To save artwork to the music file's directory, you must specify a valid music directory."), _("Music Dir Verification"), 'musicdirVerificationError', gtk.BUTTONS_CLOSE)
+                    # Set music_dir entry focused:
+                    self.prefsnotebook.set_current_page(0)
+                    self.direntry.grab_focus()
+                    return
+            if not self.using_mpd_env_vars:
+                if self.prev_host != self.config.host[self.config.profile_num] or self.prev_port != self.config.port[self.config.profile_num] or self.prev_password != self.config.password[self.config.profile_num]:
+                    # Try to connect if mpd connection info has been updated:
+                    ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
+                    self.reconnect()
+            self.settings_save()
+            self.populate_profiles_for_menu()
+            ui.change_cursor(None)
+        window.destroy()
 
     def _config_widget_active(self, widget, member):
         """Sets a config attribute to the widget's active value"""
