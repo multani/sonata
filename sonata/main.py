@@ -2986,8 +2986,6 @@ class Base(object):
                     # Try to connect if mpd connection info has been updated:
                     ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
                     self.mpd_connect(force=True)
-            if self.config.as_enabled:
-                gobject.idle_add(self.scrobbler.init)
             self.settings_save()
             self.populate_profiles_for_menu()
             ui.change_cursor(None)
