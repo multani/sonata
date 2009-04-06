@@ -81,6 +81,9 @@ class Preferences():
         self.prev_port = None
 
         self.window = None
+        self.display_trayicon = None
+        self.direntry = None
+        self.using_mpd_env_vars = False
 
     def on_prefs_real(self, parent_window, scrobbler, reconnect, renotify, reinfofile, prefs_window_response, last_tab, extras_cbs, display_cbs, behavior_cbs, format_cbs):
         """Display the preferences dialog"""
@@ -93,10 +96,10 @@ class Preferences():
 
         self.prefswindow = ui.dialog(title=_("Preferences"), parent=self.window, flags=gtk.DIALOG_DESTROY_WITH_PARENT, role='preferences', resizable=False, separator=False)
         prefsnotebook = gtk.Notebook()
-        mpd_tab, direntry, using_mpd_env_vars = self.mpd_tab()
+        mpd_tab = self.mpd_tab()
         extras_tab = self.extras_tab(extras_cbs)
-        display_tab, display_trayicon = self.display_tab(display_cbs)
-        behavior_tab = self.behavior_tab(display_trayicon, behavior_cbs)
+        display_tab = self.display_tab(display_cbs)
+        behavior_tab = self.behavior_tab(behavior_cbs)
         format_tab = self.format_tab(format_cbs)
         pluginwindow = self.plugins_tab()
 
@@ -118,7 +121,7 @@ class Preferences():
         self.prefswindow.show_all()
         prefsnotebook.set_current_page(self.last_tab)
         close_button.grab_focus()
-        self.prefswindow.connect('response', prefs_window_response, prefsnotebook, direntry, using_mpd_env_vars, self.prev_host, self.prev_port, self.prev_password)
+        self.prefswindow.connect('response', prefs_window_response, prefsnotebook, self.direntry, self.using_mpd_env_vars, self.prev_host, self.prev_port, self.prev_password)
         # Save previous connection properties to determine if we should try to
         # connect to MPD after prefs are closed:
         self.prev_host = self.config.host[self.config.profile_num]
@@ -152,6 +155,7 @@ class Preferences():
         portlabel.set_mnemonic_widget(portentry)
         dirlabel = ui.label(textmn=_("_Music dir") + ":")
         direntry = gtk.FileChooserButton(_('Select a Music Directory'))
+        self.direntry = direntry
         direntry.set_action(gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
         direntry.connect('selection-changed', self._direntry_changed,
             profiles)
@@ -170,7 +174,7 @@ class Preferences():
         # Update display if $MPD_HOST or $MPD_PORT is set:
         host, port, password = misc.mpd_env_vars()
         if host or port:
-            using_env_vars = True
+            self.using_mpd_env_vars = True
             if not host:
                 host = ""
             if not port:
@@ -186,7 +190,7 @@ class Preferences():
                        remove_profile]:
                 widget.set_sensitive(False)
         else:
-            using_env_vars = False
+            self.using_mpd_env_vars = False
             nameentry.connect('changed', self._nameentry_changed,
                 profiles, remove_profile)
             hostentry.connect('changed', self._hostentry_changed,
@@ -237,7 +241,7 @@ class Preferences():
         tab.set_padding(12, 12, 12, 12)
         tab.add(frame)
 
-        return tab, direntry, using_env_vars
+        return tab
 
     def extras_tab(self, cbs):
         """Construct and layout the extras tab"""
@@ -404,6 +408,7 @@ class Preferences():
         lyrics.connect('toggled', cbs.lyrics_toggled,
             lyrics_location_hbox)
         trayicon = gtk.CheckButton(_("System _tray icon"))
+        self.display_trayicon = trayicon
         trayicon.set_active(self.config.show_trayicon)
         trayicon.set_sensitive(cbs.trayicon_available)
 
@@ -422,9 +427,9 @@ class Preferences():
         tab.set_padding(12, 12, 12, 12)
         tab.add(frame)
 
-        return tab, trayicon
+        return tab
 
-    def behavior_tab(self, display_trayicon, cbs):
+    def behavior_tab(self, cbs):
         """Construct and layout the behavior tab"""
         windowlabel = ui.label(markup='<b>'+_('Window Behavior')+'</b>')
         frame = gtk.Frame()
@@ -444,7 +449,7 @@ class Preferences():
         minimize.set_tooltip_text(_("If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."))
         minimize.connect('toggled', self._config_widget_active,
             'minimize_to_systray')
-        display_trayicon.connect('toggled', cbs.trayicon_toggled,
+        self.display_trayicon.connect('toggled', cbs.trayicon_toggled,
             minimize)
         minimize.set_sensitive(cbs.trayicon_in_use)
         widgets = (sticky, ontop, decor, minimize)
