@@ -48,7 +48,7 @@ class Preferences():
 
         self.window = None
 
-    def on_prefs_real(self, parent_window, popuptimes, scrobbler, trayicon_available, trayicon_in_use, reconnect, renotify, reinfofile, prefs_notif_toggled, prefs_stylized_toggled, prefs_art_toggled, prefs_playback_toggled, prefs_progress_toggled, prefs_statusbar_toggled, prefs_lyrics_toggled, prefs_trayicon_toggled, prefs_crossfade_toggled, prefs_crossfade_changed, prefs_window_response, prefs_last_tab, currentoptions_changed, libraryoptions_changed, titleoptions_changed, currsongoptions1_changed, currsongoptions2_changed, ontop_toggled, sticky_toggled, decorated_toggled):
+    def on_prefs_real(self, parent_window, popuptimes, scrobbler, trayicon_available, trayicon_in_use, reconnect, renotify, reinfofile, prefs_notif_toggled, prefs_stylized_toggled, prefs_art_toggled, prefs_playback_toggled, prefs_progress_toggled, prefs_statusbar_toggled, prefs_lyrics_toggled, prefs_trayicon_toggled, prefs_crossfade_toggled, prefs_crossfade_changed, prefs_window_response, prefs_last_tab, currentoptions_changed, libraryoptions_changed, titleoptions_changed, currsongoptions1_changed, currsongoptions2_changed, ontop_toggled, sticky_toggled, decorated_toggled, infofile_changed):
         """Display the preferences dialog"""
         self.window = parent_window
         self.scrobbler = scrobbler
@@ -362,6 +362,8 @@ class Preferences():
         infofile_usage.set_tooltip_text(_("If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)"))
         infopath_options = ui.entry(text=self.config.infofile_path)
         infopath_options.set_tooltip_text(_("If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)"))
+        infopath_options.connect('focus_out_event', infofile_changed)
+        infopath_options.connect('activate', infofile_changed, None)
         if not self.config.use_infofile:
             infopath_options.set_sensitive(False)
         infofile_usage.connect('toggled', self.prefs_infofile_toggled, infopath_options)
@@ -546,7 +548,7 @@ class Preferences():
         self.prefswindow.show_all()
         prefsnotebook.set_current_page(self.last_tab)
         close_button.grab_focus()
-        self.prefswindow.connect('response', prefs_window_response, prefsnotebook, direntry, infopath_options, using_mpd_env_vars, self.prev_host, self.prev_port, self.prev_password)
+        self.prefswindow.connect('response', prefs_window_response, prefsnotebook, direntry, using_mpd_env_vars, self.prev_host, self.prev_port, self.prev_password)
         # Save previous connection properties to determine if we should try to
         # connect to MPD after prefs are closed:
         self.prev_host = self.config.host[self.config.profile_num]
