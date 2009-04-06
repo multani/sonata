@@ -63,10 +63,12 @@ def single_image_in_dir(dirname):
     except:
         pass
 
-    if not os.path.exists(dirname):
+    try:
+        files = os.listdir(dirname)
+    except OSError:
         return None
 
-    imgfiles = [f for f in os.listdir(dirname) if is_imgfile(f)]
+    imgfiles = [f for f in files if is_imgfile(f)]
     if len(imgfiles) != 1:
         return None
     return os.path.join(dirname, imgfiles[0])

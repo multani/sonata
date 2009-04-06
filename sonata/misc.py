@@ -142,9 +142,11 @@ def file_exists_insensitive(filename):
     regexp = re.compile(re.escape(filename), re.IGNORECASE)
 
     path = os.path.dirname(filename)
-    if not os.path.exists(path):
+
+    try:
+        files = os.listdir(path)
+    except OSError:
         return filename
-    files = os.listdir(path)
 
     for x in files:
         fullpath = os.path.join(path, x)
