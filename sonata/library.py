@@ -97,7 +97,7 @@ class Library(object):
         self.tab = new_tab(self.libraryvbox, gtk.STOCK_HARDDISK, TAB_LIBRARY, self.library)
 
         # Assign some pixbufs for use in self.library
-        self.openpb = self.library.render_icon(gtk.STOCK_OPEN, gtk.ICON_SIZE_LARGE_TOOLBAR)
+        self.openpb = self.library.render_icon(gtk.STOCK_OPEN, gtk.ICON_SIZE_MENU)
         self.harddiskpb = self.library.render_icon(gtk.STOCK_HARDDISK, gtk.ICON_SIZE_LARGE_TOOLBAR)
         self.albumpb = gtk.gdk.pixbuf_new_from_file_at_size(album_filename, consts.LIB_COVER_SIZE, consts.LIB_COVER_SIZE)
         self.genrepb = self.library.render_icon('gtk-orientation-portrait', gtk.ICON_SIZE_LARGE_TOOLBAR)
