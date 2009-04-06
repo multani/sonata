@@ -519,7 +519,7 @@ class Preferences():
             entry.connect('activate', lambda _, n: n.grab_focus(),
                     next)
 
-        availableheading = ui.label(markup='<small>' + _('Available options') + ':</small>', y=0)
+        availableheading = ui.label(markup='<small>' + _('Available options') + ':</small>')
         availablevbox = gtk.VBox()
         availableformatbox = gtk.HBox()
         # XXX get these directly from the formatting function:
@@ -540,11 +540,11 @@ class Preferences():
             rows = '\n'.join('<tt>%' + code + '</tt> - ' + help
                      for code, help in codes)
             markup = '<small>' + rows + '</small>'
-            formattinghelp = ui.label(markup=markup, y=0)
+            formattinghelp = ui.label(markup=markup)
             availableformatbox.pack_start(formattinghelp)
 
         availablevbox.pack_start(availableformatbox, False, False, 0)
-        additionalinfo = ui.label(markup='<small><tt>{ }</tt> - ' + _('Info displayed only if all enclosed tags are defined') + '\n<tt>|</tt> - ' + _('Creates columns in the current playlist') + '</small>', y=0)
+        additionalinfo = ui.label(markup='<small><tt>{ }</tt> - ' + _('Info displayed only if all enclosed tags are defined') + '\n<tt>|</tt> - ' + _('Creates columns in the current playlist') + '</small>')
         availablevbox.pack_start(additionalinfo, False, False, 4)
 
         num_rows = len(rows) + 2
