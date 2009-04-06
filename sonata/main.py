@@ -1147,16 +1147,19 @@ class Base(object):
             self.on_notebook_page_change(self.notebook, 0, self.notebook.get_current_page())
 
     def _parse_formatting_return_substrings(self, format):
+        """Split format along the { and } characters.
+
+        For example: %A{-%T} {%L} -> ['%A', '{-%T} ', '{%L}']"""
         substrings = []
-        begin_pos = format.find("{")
-        end_pos = -1
-        while begin_pos > -1:
-            if begin_pos > end_pos + 1:
-                substrings.append(format[end_pos+1:begin_pos])
-            end_pos = format.find("}", begin_pos)
-            substrings.append(format[begin_pos:end_pos+1])
-            begin_pos = format.find("{", end_pos)
-        substrings.append(format[end_pos+1:])
+        end = format
+        while len(end) > 0:
+            begin, sep1, end = end.partition('{')
+            substrings.append(begin)
+            if len(end) == 0:
+                substrings.append(sep1)
+                break
+            begin, sep2, end = end.partition('}')
+            substrings.append(sep1 + begin + sep2)
         return substrings
 
     def parse_formatting_colnames(self, format):
