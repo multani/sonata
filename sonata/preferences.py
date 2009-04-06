@@ -48,28 +48,26 @@ class Preferences():
 
         self.window = None
 
-    def on_prefs_real(self, parent_window, popuptimes, scrobbler, trayicon_available, trayicon_in_use, reconnect, renotify, reinfofile, prefs_notif_toggled, prefs_stylized_toggled, prefs_art_toggled, prefs_playback_toggled, prefs_progress_toggled, prefs_statusbar_toggled, prefs_lyrics_toggled, prefs_trayicon_toggled, prefs_crossfade_toggled, prefs_crossfade_changed, prefs_window_response, prefs_last_tab, currentoptions_changed, libraryoptions_changed, titleoptions_changed, currsongoptions1_changed, currsongoptions2_changed, ontop_toggled, sticky_toggled, decorated_toggled, infofile_changed):
+    def on_prefs_real(self, parent_window, popuptimes, scrobbler, trayicon_available, trayicon_in_use, reconnect, renotify, reinfofile, notif_toggled, stylized_toggled, art_toggled, playback_toggled, progress_toggled, statusbar_toggled, lyrics_toggled, trayicon_toggled, crossfade_toggled, crossfade_changed, prefs_window_response, last_tab, currentoptions_changed, libraryoptions_changed, titleoptions_changed, currsongoptions1_changed, currsongoptions2_changed, ontop_toggled, sticky_toggled, decorated_toggled, infofile_changed):
         """Display the preferences dialog"""
         self.window = parent_window
         self.scrobbler = scrobbler
         self.reconnect = reconnect
         self.renotify = renotify
         self.reinfofile = reinfofile
-        self.last_tab = prefs_last_tab
+        self.last_tab = last_tab
 
         self.prefswindow = ui.dialog(title=_("Preferences"), parent=self.window, flags=gtk.DIALOG_DESTROY_WITH_PARENT, role='preferences', resizable=False, separator=False)
         prefsnotebook = gtk.Notebook()
         mpd_tab, direntry, using_mpd_env_vars = self.mpd_tab()
-        extras_tab = self.extras_tab(popuptimes, prefs_notif_toggled,
-                prefs_crossfade_changed,
-                prefs_crossfade_toggled)
+        extras_tab = self.extras_tab(popuptimes, notif_toggled,
+                crossfade_changed, crossfade_toggled)
         display_tab, display_trayicon = self.display_tab(
-                prefs_stylized_toggled, prefs_art_toggled,
-                prefs_playback_toggled, prefs_progress_toggled,
-                prefs_statusbar_toggled, prefs_lyrics_toggled,
-                trayicon_available)
+                stylized_toggled, art_toggled, playback_toggled,
+                progress_toggled, statusbar_toggled,
+                lyrics_toggled, trayicon_available)
         behavior_tab = self.behavior_tab(display_trayicon,
-                prefs_trayicon_toggled, trayicon_in_use,
+                trayicon_toggled, trayicon_in_use,
                 sticky_toggled, ontop_toggled,
                 decorated_toggled, infofile_changed)
         format_tab = self.format_tab(currentoptions_changed,
@@ -105,16 +103,16 @@ class Preferences():
 
     def mpd_tab(self):
         """Construct and layout the MPD tab"""
-        mpdlabel = ui.label(markup='<b>' + _('MPD Connection') + '</b>', y=1)
-        mpd_frame = gtk.Frame()
-        mpd_frame.set_label_widget(mpdlabel)
-        mpd_frame.set_shadow_type(gtk.SHADOW_NONE)
+        mpdlabel = ui.label(markup='<b>' + _('MPD Connection') + '</b>')
+        frame = gtk.Frame()
+        frame.set_label_widget(mpdlabel)
+        frame.set_shadow_type(gtk.SHADOW_NONE)
         controlbox = gtk.HBox()
         profiles = ui.combo()
         add_profile = ui.button(img=ui.image(stock=gtk.STOCK_ADD))
         remove_profile = ui.button(img=ui.image(stock=gtk.STOCK_REMOVE))
-        self.prefs_populate_profile_combo(profiles,
-            self.config.profile_num, remove_profile)
+        self._populate_profile_combo(profiles, self.config.profile_num,
+            remove_profile)
         controlbox.pack_start(profiles, False, False, 2)
         controlbox.pack_start(remove_profile, False, False, 2)
         controlbox.pack_start(add_profile, False, False, 2)
@@ -131,7 +129,8 @@ class Preferences():
         dirlabel = ui.label(textmn=_("_Music dir") + ":")
         direntry = gtk.FileChooserButton(_('Select a Music Directory'))
         direntry.set_action(gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
-        direntry.connect('selection-changed', self.prefs_direntry_changed, profiles)
+        direntry.connect('selection-changed', self._direntry_changed,
+            profiles)
         dirlabel.set_mnemonic_widget(direntry)
         passwordlabel = ui.label(textmn=_("Pa_ssword") + ":")
         passwordentry = ui.entry(password=True)
@@ -139,15 +138,15 @@ class Preferences():
         passwordentry.set_tooltip_text(_("Leave blank if no password is required."))
         autoconnect = gtk.CheckButton(_("_Autoconnect on start"))
         autoconnect.set_active(self.config.autoconnect)
-        autoconnect.connect('toggled', self.prefs_config_widget_active,
+        autoconnect.connect('toggled', self._config_widget_active,
             'autoconnect')
         # Fill in entries with current profile:
-        self.prefs_profile_chosen(profiles, nameentry, hostentry,
+        self._profile_chosen(profiles, nameentry, hostentry,
             portentry, passwordentry, direntry)
         # Update display if $MPD_HOST or $MPD_PORT is set:
         host, port, password = misc.mpd_env_vars()
         if host or port:
-            using_mpd_env_vars = True
+            using_env_vars = True
             if not host:
                 host = ""
             if not port:
@@ -163,25 +162,22 @@ class Preferences():
                        remove_profile]:
                 widget.set_sensitive(False)
         else:
-            using_mpd_env_vars = False
-            nameentry.connect('changed',
-                self.prefs_nameentry_changed, profiles,
-                remove_profile)
-            hostentry.connect('changed',
-                self.prefs_hostentry_changed, profiles)
+            using_env_vars = False
+            nameentry.connect('changed', self._nameentry_changed,
+                profiles, remove_profile)
+            hostentry.connect('changed', self._hostentry_changed,
+                profiles)
             portentry.connect('value-changed',
-                self.prefs_portentry_changed, profiles)
+                self._portentry_changed, profiles)
             passwordentry.connect('changed',
-                self.prefs_passwordentry_changed, profiles)
+                self._passwordentry_changed, profiles)
             profiles.connect('changed',
-                self.prefs_profile_chosen, nameentry,
-                hostentry, portentry, passwordentry, direntry)
-            add_profile.connect('clicked',
-                self.prefs_add_profile, nameentry, profiles,
-                remove_profile)
-            remove_profile.connect('clicked',
-                self.prefs_remove_profile, profiles,
-                remove_profile)
+                self._profile_chosen, nameentry, hostentry,
+                portentry, passwordentry, direntry)
+            add_profile.connect('clicked', self._add_profile,
+                nameentry, profiles, remove_profile)
+            remove_profile.connect('clicked', self._remove_profile,
+                profiles, remove_profile)
 
         rows = [(namelabel, nameentry),
             (hostlabel, hostentry),
@@ -203,44 +199,44 @@ class Preferences():
         connection_frame = gtk.Frame()
         connection_frame.set_label_widget(controlbox)
         connection_frame.add(connection_alignment)
-        mpd_table = gtk.Table(2, 1)
-        mpd_table.set_row_spacings(12)
-        mpd_table.attach(connection_frame, 0, 1, 0, 1,
+        table = gtk.Table(2, 1)
+        table.set_row_spacings(12)
+        table.attach(connection_frame, 0, 1, 0, 1,
             gtk.FILL|gtk.EXPAND, gtk.FILL)
-        mpd_table.attach(autoconnect, 0, 1, 1, 2, gtk.FILL|gtk.EXPAND,
+        table.attach(autoconnect, 0, 1, 1, 2, gtk.FILL|gtk.EXPAND,
             gtk.FILL)
-        mpd_alignment = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
-        mpd_alignment.set_padding(12, 0, 12, 0)
-        mpd_alignment.add(mpd_table)
-        mpd_frame.add(mpd_alignment)
-        mpd_tab = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
-        mpd_tab.set_padding(12, 12, 12, 12)
-        mpd_tab.add(mpd_frame)
+        alignment = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
+        alignment.set_padding(12, 0, 12, 0)
+        alignment.add(table)
+        frame.add(alignment)
+        tab = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
+        tab.set_padding(12, 12, 12, 12)
+        tab.add(frame)
 
-        return mpd_tab, direntry, using_mpd_env_vars
+        return tab, direntry, using_env_vars
 
-    def extras_tab(self, popuptimes, prefs_notif_toggled, prefs_crossfade_changed, prefs_crossfade_toggled):
+    def extras_tab(self, popuptimes, notif_toggled, crossfade_changed, crossfade_toggled):
         """Construct and layout the extras tab"""
         if not self.scrobbler.imported():
             self.config.as_enabled = False
-        as_label = ui.label(markup='<b>' + _('Extras') + '</b>')
-        extras_frame = gtk.Frame()
-        extras_frame.set_label_widget(as_label)
-        extras_frame.set_shadow_type(gtk.SHADOW_NONE)
+        extraslabel = ui.label(markup='<b>' + _('Extras') + '</b>')
+        frame = gtk.Frame()
+        frame.set_label_widget(extraslabel)
+        frame.set_shadow_type(gtk.SHADOW_NONE)
 
         as_checkbox = gtk.CheckButton(_("_Audioscrobbling (Last.fm)"))
         as_checkbox.set_active(self.config.as_enabled)
         as_user_label = ui.label(textmn=_("_Username:"))
         as_pass_label = ui.label(textmn=_("_Password:"))
         as_user_entry = ui.entry(text=self.config.as_username,
-            changed_cb=self.prefs_as_username_changed)
+            changed_cb=self._as_username_changed)
         as_user_label.set_mnemonic_widget(as_user_entry)
         if len(self.config.as_password_md5) > 0:
             as_pass_entry = ui.entry(text='1234', password=True,
-                changed_cb=self.prefs_as_password_changed)
+                changed_cb=self._as_password_changed)
         else:
             as_pass_entry = ui.entry(text='', password=True,
-                changed_cb=self.prefs_as_password_changed)
+                changed_cb=self._as_password_changed)
         as_pass_label.set_mnemonic_widget(as_pass_entry)
         as_user_box = gtk.HBox(spacing=12)
         as_user_box.pack_end(as_user_entry, False, False)
@@ -260,14 +256,14 @@ class Preferences():
         time_names.append(_('Entire song'))
         notification_options = ui.combo(items=time_names,
             active=self.config.popup_option,
-            changed_cb=self.prefs_notiftime_changed)
+            changed_cb=self._notiftime_changed)
         notification_locs = ui.combo(items=self.popuplocations,
             active=self.config.traytips_notifications_location,
-            changed_cb=self.prefs_notiflocation_changed)
+            changed_cb=self._notiflocation_changed)
         notifhbox = gtk.HBox(spacing=6)
         notifhbox.pack_end(notification_locs, False, False)
         notifhbox.pack_end(notification_options, False, False)
-        display_notification.connect('toggled', prefs_notif_toggled,
+        display_notification.connect('toggled', notif_toggled,
             notifhbox)
         if not self.config.show_notification:
             notifhbox.set_sensitive(False)
@@ -276,7 +272,7 @@ class Preferences():
         crossfadespin.set_value(self.config.xfade)
         crossfadespin.set_numeric(True)
         crossfadespin.set_increments(1, 5)
-        crossfadespin.connect('value-changed', prefs_crossfade_changed)
+        crossfadespin.connect('value-changed', crossfade_changed)
         crossfadelabel2 = ui.label(text=_("Fade length") + ":")
         crossfadelabel2 = ui.label(textmn=_("_Fade length") + ":")
         crossfadelabel2.set_mnemonic_widget(crossfadespin)
@@ -287,161 +283,155 @@ class Preferences():
         crossfadebox.pack_end(crossfadelabel2, False, False)
         crossfadecheck = gtk.CheckButton(_("C_rossfade"))
         crossfadecheck.connect('toggled',
-            self.prefs_crossfadecheck_toggled, crossfadespin,
+            self._crossfadecheck_toggled, crossfadespin,
             crossfadelabel2, crossfadelabel3)
-        crossfadecheck.connect('toggled', prefs_crossfade_toggled,
+        crossfadecheck.connect('toggled', crossfade_toggled,
             crossfadespin)
         crossfadecheck.set_active(self.config.xfade_enabled)
         crossfadecheck.toggled() # Force the toggled callback
 
-        extras_widgets = (as_checkbox, as_entries, display_notification,
+        widgets = (as_checkbox, as_entries, display_notification,
             notifhbox, crossfadecheck, crossfadebox)
-        extras_table = gtk.Table(len(extras_widgets), 1)
-        extras_table.set_col_spacings(12)
-        extras_table.set_row_spacings(6)
-        for i, widget in enumerate(extras_widgets):
-            extras_table.attach(widget, 0, 1, i, i+1,
+        table = gtk.Table(len(widgets), 1)
+        table.set_col_spacings(12)
+        table.set_row_spacings(6)
+        for i, widget in enumerate(widgets):
+            table.attach(widget, 0, 1, i, i+1,
                 gtk.FILL|gtk.EXPAND, gtk.FILL)
-        extras_alignment = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
-        extras_alignment.set_padding(12, 0, 12, 0)
-        extras_alignment.add(extras_table)
-        extras_frame.add(extras_alignment)
-        extras_tab = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
-        extras_tab.set_padding(12, 12, 12, 12)
-        extras_tab.add(extras_frame)
+        alignment = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
+        alignment.set_padding(12, 0, 12, 0)
+        alignment.add(table)
+        frame.add(alignment)
+        tab = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
+        tab.set_padding(12, 12, 12, 12)
+        tab.add(frame)
 
-        as_checkbox.connect('toggled', self.prefs_as_enabled_toggled,
+        as_checkbox.connect('toggled', self._as_enabled_toggled,
             as_user_entry, as_pass_entry, as_user_label,
             as_pass_label)
         if not self.config.as_enabled or not self.scrobbler.imported():
             for widget in (as_user_entry, as_pass_entry,
                     as_user_label, as_pass_label):
                 widget.set_sensitive(False)
-        return extras_tab
+        return tab
 
-    def display_tab(self, prefs_stylized_toggled, prefs_art_toggled, prefs_playback_toggled, prefs_progress_toggled, prefs_statusbar_toggled, prefs_lyrics_toggled, trayicon_available):
+    def display_tab(self, stylized_toggled, art_toggled, playback_toggled, progress_toggled, statusbar_toggled, lyrics_toggled, trayicon_available):
         """Construct and layout the display tab"""
         displaylabel = ui.label(markup='<b>' + _('Display') + '</b>')
-        display_frame = gtk.Frame()
-        display_frame.set_label_widget(displaylabel)
-        display_frame.set_shadow_type(gtk.SHADOW_NONE)
+        frame = gtk.Frame()
+        frame.set_label_widget(displaylabel)
+        frame.set_shadow_type(gtk.SHADOW_NONE)
 
-        display_art = gtk.CheckButton(_("_Album art"))
-        display_art.set_active(self.config.show_covers)
-        display_stylized_combo = ui.combo(items=[_("Standard"),
+        art = gtk.CheckButton(_("_Album art"))
+        art.set_active(self.config.show_covers)
+        stylized_combo = ui.combo(items=[_("Standard"),
             _("Stylized")], active=self.config.covers_type,
-            changed_cb=prefs_stylized_toggled)
-        display_stylized_hbox = gtk.HBox(spacing=12)
-        display_stylized_hbox.pack_end(display_stylized_combo, False,
-            False)
-        display_stylized_hbox.pack_end(ui.label(
+            changed_cb=stylized_toggled)
+        stylized_hbox = gtk.HBox(spacing=12)
+        stylized_hbox.pack_end(stylized_combo, False, False)
+        stylized_hbox.pack_end(ui.label(
             text=_("Artwork style:")), False, False)
-        display_stylized_hbox.set_sensitive(self.config.show_covers)
-        display_art_combo = ui.combo(items=[_("Local only"),
+        stylized_hbox.set_sensitive(self.config.show_covers)
+        art_combo = ui.combo(items=[_("Local only"),
             _("Local and remote")], active=self.config.covers_pref)
-        display_art_combo.connect('changed',
-            self.prefs_config_widget_active, 'covers_pref')
+        art_combo.connect('changed',
+            self._config_widget_active, 'covers_pref')
         orderart_label = ui.label(text=_("Search locations:"))
-        display_art_hbox = gtk.HBox(spacing=12)
-        display_art_hbox.pack_end(display_art_combo, False, False)
-        display_art_hbox.pack_end(orderart_label, False, False)
-        display_art_hbox.set_sensitive(self.config.show_covers)
+        art_hbox = gtk.HBox(spacing=12)
+        art_hbox.pack_end(art_combo, False, False)
+        art_hbox.pack_end(orderart_label, False, False)
+        art_hbox.set_sensitive(self.config.show_covers)
 
         art_paths = ["~/.covers/"]
         art_paths += ("%s/%s" % (_("SONG_DIR"), item)
             for item in ("cover.jpg", "album.jpg", "folder.jpg",
                 _("custom")))
-        display_art_location = ui.combo(items=art_paths,
+        art_location = ui.combo(items=art_paths,
             active=self.config.art_location,
-            changed_cb=self.prefs_art_location_changed)
+            changed_cb=self._art_location_changed)
 
-        display_art_location_hbox = gtk.HBox(spacing=12)
-        display_art_location_hbox.pack_end(display_art_location, False, False)
-        display_art_location_hbox.pack_end(ui.label(
-            text=_("Save art to:")), False, False)
-        display_art_location_hbox.set_sensitive(self.config.show_covers)
-        display_art.connect('toggled', prefs_art_toggled,
-            display_art_hbox, display_art_location_hbox,
-            display_stylized_hbox)
-        display_playback = gtk.CheckButton(_("_Playback/volume buttons"))
-        display_playback.set_active(self.config.show_playback)
-        display_playback.connect('toggled', prefs_playback_toggled)
-        display_progress = gtk.CheckButton(_("Pr_ogressbar"))
-        display_progress.set_active(self.config.show_progress)
-        display_progress.connect('toggled', prefs_progress_toggled)
-        display_statusbar = gtk.CheckButton(_("_Statusbar"))
-        display_statusbar.set_active(self.config.show_statusbar)
-        display_statusbar.connect('toggled', prefs_statusbar_toggled)
-        display_lyrics = gtk.CheckButton(_("Song Ly_rics"))
-        display_lyrics.set_active(self.config.show_lyrics)
+        art_location_hbox = gtk.HBox(spacing=12)
+        art_location_hbox.pack_end(art_location, False, False)
+        art_location_hbox.pack_end(ui.label(text=_("Save art to:")),
+            False, False)
+        art_location_hbox.set_sensitive(self.config.show_covers)
+        art.connect('toggled', art_toggled, art_hbox,
+            art_location_hbox, stylized_hbox)
+        playback = gtk.CheckButton(_("_Playback/volume buttons"))
+        playback.set_active(self.config.show_playback)
+        playback.connect('toggled', playback_toggled)
+        progress = gtk.CheckButton(_("Pr_ogressbar"))
+        progress.set_active(self.config.show_progress)
+        progress.connect('toggled', progress_toggled)
+        statusbar = gtk.CheckButton(_("_Statusbar"))
+        statusbar.set_active(self.config.show_statusbar)
+        statusbar.connect('toggled', statusbar_toggled)
+        lyrics = gtk.CheckButton(_("Song Ly_rics"))
+        lyrics.set_active(self.config.show_lyrics)
         savelyrics_label = ui.label(text=_("Save lyrics to:"), x=1)
-        display_lyrics_location = ui.combo(
+        lyrics_location = ui.combo(
             items=["~/.lyrics/", _("SONG_DIR") + "/"],
             active=self.config.lyrics_location,
-            changed_cb=self.prefs_lyrics_location_changed)
-        display_lyrics_location_hbox = gtk.HBox(spacing=12)
-        display_lyrics_location_hbox.pack_end(display_lyrics_location,
-            False, False)
-        display_lyrics_location_hbox.pack_end(savelyrics_label, False,
-            False)
-        display_lyrics_location_hbox.set_sensitive(self.config.show_lyrics)
-        display_lyrics.connect('toggled', prefs_lyrics_toggled,
-            display_lyrics_location_hbox)
-        display_trayicon = gtk.CheckButton(_("System _tray icon"))
-        display_trayicon.set_active(self.config.show_trayicon)
-        display_trayicon.set_sensitive(trayicon_available)
+            changed_cb=self._lyrics_location_changed)
+        lyrics_location_hbox = gtk.HBox(spacing=12)
+        lyrics_location_hbox.pack_end(lyrics_location, False, False)
+        lyrics_location_hbox.pack_end(savelyrics_label, False, False)
+        lyrics_location_hbox.set_sensitive(self.config.show_lyrics)
+        lyrics.connect('toggled', lyrics_toggled,
+            lyrics_location_hbox)
+        trayicon = gtk.CheckButton(_("System _tray icon"))
+        trayicon.set_active(self.config.show_trayicon)
+        trayicon.set_sensitive(trayicon_available)
 
-        display_widgets = (display_playback, display_progress,
-            display_statusbar, display_trayicon, display_lyrics,
-            display_lyrics_location_hbox, display_art,
-            display_stylized_hbox, display_art_hbox,
-            display_art_location_hbox)
-        display_table = gtk.Table(len(display_widgets), 1, False)
-        for i, widget in enumerate(display_widgets):
-            display_table.attach(widget, 0, 1, i, i+1,
-                gtk.FILL|gtk.EXPAND, gtk.FILL)
-        display_alignment = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
-        display_alignment.set_padding(12, 0, 12, 0)
-        display_alignment.add(display_table)
-        display_frame.add(display_alignment)
-        display_tab = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
-        display_tab.set_padding(12, 12, 12, 12)
-        display_tab.add(display_frame)
+        widgets = (playback, progress, statusbar, trayicon, lyrics,
+               lyrics_location_hbox, art, stylized_hbox, art_hbox,
+               art_location_hbox)
+        table = gtk.Table(len(widgets), 1, False)
+        for i, widget in enumerate(widgets):
+            table.attach(widget, 0, 1, i, i+1, gtk.FILL|gtk.EXPAND,
+                gtk.FILL)
+        alignment = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
+        alignment.set_padding(12, 0, 12, 0)
+        alignment.add(table)
+        frame.add(alignment)
+        tab = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
+        tab.set_padding(12, 12, 12, 12)
+        tab.add(frame)
 
-        return display_tab, display_trayicon
+        return tab, trayicon
 
-    def behavior_tab(self, display_trayicon, prefs_trayicon_toggled, trayicon_in_use, sticky_toggled, ontop_toggled, decorated_toggled, infofile_changed):
+    def behavior_tab(self, display_trayicon, trayicon_toggled, trayicon_in_use, sticky_toggled, ontop_toggled, decorated_toggled, infofile_changed):
         """Construct and layout the behavior tab"""
         windowlabel = ui.label(markup='<b>'+_('Window Behavior')+'</b>')
-        window_frame = gtk.Frame()
-        window_frame.set_label_widget(windowlabel)
-        window_frame.set_shadow_type(gtk.SHADOW_NONE)
-        win_sticky = gtk.CheckButton(_("_Show window on all workspaces"))
-        win_sticky.set_active(self.config.sticky)
-        win_sticky.connect('toggled', sticky_toggled)
-        win_ontop = gtk.CheckButton(_("_Keep window above other windows"))
-        win_ontop.set_active(self.config.ontop)
-        win_ontop.connect('toggled', ontop_toggled)
-        win_decor = gtk.CheckButton(_("_Hide window titlebar"))
-        win_decor.set_active(not self.config.decorated)
-        win_decor.connect('toggled', decorated_toggled)
+        frame = gtk.Frame()
+        frame.set_label_widget(windowlabel)
+        frame.set_shadow_type(gtk.SHADOW_NONE)
+        sticky = gtk.CheckButton(_("_Show window on all workspaces"))
+        sticky.set_active(self.config.sticky)
+        sticky.connect('toggled', sticky_toggled)
+        ontop = gtk.CheckButton(_("_Keep window above other windows"))
+        ontop.set_active(self.config.ontop)
+        ontop.connect('toggled', ontop_toggled)
+        decor = gtk.CheckButton(_("_Hide window titlebar"))
+        decor.set_active(not self.config.decorated)
+        decor.connect('toggled', decorated_toggled)
         minimize = gtk.CheckButton(_("_Minimize to system tray on close/escape"))
         minimize.set_active(self.config.minimize_to_systray)
         minimize.set_tooltip_text(_("If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."))
-        minimize.connect('toggled', self.prefs_config_widget_active,
+        minimize.connect('toggled', self._config_widget_active,
             'minimize_to_systray')
-        display_trayicon.connect('toggled', prefs_trayicon_toggled,
+        display_trayicon.connect('toggled', trayicon_toggled,
             minimize)
         minimize.set_sensitive(trayicon_in_use)
-        widgets = (win_sticky, win_ontop, win_decor, minimize)
-        window_table = gtk.Table(len(widgets), 1)
+        widgets = (sticky, ontop, decor, minimize)
+        table = gtk.Table(len(widgets), 1)
         for i, widget in enumerate(widgets):
-            window_table.attach(widget, 0, 1, i, i+1,
+            table.attach(widget, 0, 1, i, i+1,
                 gtk.FILL|gtk.EXPAND, gtk.FILL)
-        window_alignment = gtk.Alignment()
-        window_alignment.set_padding(12, 0, 12, 0)
-        window_alignment.add(window_table)
-        window_frame.add(window_alignment)
+        alignment = gtk.Alignment()
+        alignment.set_padding(12, 0, 12, 0)
+        alignment.add(table)
+        frame.add(alignment)
 
         misclabel = ui.label(markup='<b>' + _('Miscellaneous') + '</b>')
         misc_frame = gtk.Frame()
@@ -450,12 +440,12 @@ class Preferences():
         update_start = gtk.CheckButton(_("_Update MPD library on start"))
         update_start.set_active(self.config.update_on_start)
         update_start.set_tooltip_text(_("If enabled, Sonata will automatically update your MPD library when it starts up."))
-        update_start.connect('toggled', self.prefs_config_widget_active,
+        update_start.connect('toggled', self._config_widget_active,
             'update_on_start')
         exit_stop = gtk.CheckButton(_("S_top playback on exit"))
         exit_stop.set_active(self.config.stop_on_exit)
         exit_stop.set_tooltip_text(_("MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit."))
-        exit_stop.connect('toggled', self.prefs_config_widget_active,
+        exit_stop.connect('toggled', self._config_widget_active,
             'stop_on_exit')
         infofile_usage = gtk.CheckButton(_("_Write status file:"))
         infofile_usage.set_active(self.config.use_infofile)
@@ -466,7 +456,7 @@ class Preferences():
         infopath_options.connect('activate', infofile_changed, None)
         if not self.config.use_infofile:
             infopath_options.set_sensitive(False)
-        infofile_usage.connect('toggled', self.prefs_infofile_toggled,
+        infofile_usage.connect('toggled', self._infofile_toggled,
             infopath_options)
         infofilebox = gtk.HBox(spacing=6)
         infofilebox.pack_start(infofile_usage, False, False)
@@ -481,25 +471,25 @@ class Preferences():
         misc_alignment.add(misc_table)
         misc_frame.add(misc_alignment)
 
-        behavior_table = gtk.Table(2, 1)
-        behavior_table.set_row_spacings(12)
-        behavior_table.attach(window_frame, 0, 1, 0, 1,
+        table = gtk.Table(2, 1)
+        table.set_row_spacings(12)
+        table.attach(frame, 0, 1, 0, 1,
             gtk.FILL|gtk.EXPAND, gtk.FILL)
-        behavior_table.attach(misc_frame, 0, 1, 1, 2,
+        table.attach(misc_frame, 0, 1, 1, 2,
             gtk.FILL|gtk.EXPAND, gtk.FILL)
-        behavior_tab = gtk.Alignment()
-        behavior_tab.set_padding(12, 12, 12, 12)
-        behavior_tab.add(behavior_table)
-        return behavior_tab
+        tab = gtk.Alignment()
+        tab.set_padding(12, 12, 12, 12)
+        tab.add(table)
+        return tab
 
     def format_tab(self, currentoptions_changed, libraryoptions_changed,
             titleoptions_changed, currsongoptions1_changed,
             currsongoptions2_changed):
         """Construct and layout the format tab"""
         formatlabel = ui.label(markup='<b>'+_('Song Formatting')+'</b>')
-        format_frame = gtk.Frame()
-        format_frame.set_label_widget(formatlabel)
-        format_frame.set_shadow_type(gtk.SHADOW_NONE)
+        frame = gtk.Frame()
+        frame.set_label_widget(formatlabel)
+        frame.set_shadow_type(gtk.SHADOW_NONE)
 
         rows = [(_("C_urrent playlist:"), self.config.currentformat),
             (_("_Library:"), self.config.libraryformat),
@@ -509,22 +499,22 @@ class Preferences():
             (_("Current s_ong line 2:"),
                 self.config.currsongformat2)]
 
-        format_labels = []
-        format_entries = []
+        labels = []
+        entries = []
         for label_text, entry_text in rows:
             label = ui.label(textmn=label_text)
             entry = ui.entry(text=entry_text)
 
             label.set_mnemonic_widget(entry)
 
-            format_labels.append(label)
-            format_entries.append(entry)
+            labels.append(label)
+            entries.append(entry)
 
         cbs = (currentoptions_changed, libraryoptions_changed,
                  titleoptions_changed, currsongoptions1_changed,
                  currsongoptions2_changed)
-        for entry, cb, next in zip(format_entries, cbs,
-                format_entries[1:] + format_entries[:1]):
+        for entry, cb, next in zip(entries, cbs,
+                entries[1:] + entries[:1]):
             entry.connect('focus_out_event', cb)
             entry.connect('activate', lambda _, n: n.grab_focus(),
                     next)
@@ -558,24 +548,24 @@ class Preferences():
         availablevbox.pack_start(additionalinfo, False, False, 4)
 
         num_rows = len(rows) + 2
-        format_table = gtk.Table(num_rows, 2)
-        format_table.set_col_spacings(12)
-        label_entries = enumerate(zip(format_labels, format_entries))
+        table = gtk.Table(num_rows, 2)
+        table.set_col_spacings(12)
+        label_entries = enumerate(zip(labels, entries))
         for i, (label, entry) in label_entries:
-            format_table.attach(label, 0, 1, i, i+1, gtk.FILL)
-            format_table.attach(entry, 1, 2, i, i+1)
-        format_table.attach(availableheading, 0, 2, num_rows-2,
+            table.attach(label, 0, 1, i, i+1, gtk.FILL)
+            table.attach(entry, 1, 2, i, i+1)
+        table.attach(availableheading, 0, 2, num_rows-2,
             num_rows-1, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND,
             0, 6)
-        format_table.attach(availablevbox, 0, 2, num_rows-1, num_rows)
-        format_alignment = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
-        format_alignment.set_padding(12, 0, 12, 0)
-        format_alignment.add(format_table)
-        format_frame.add(format_alignment)
-        format_tab = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
-        format_tab.set_padding(12, 12, 12, 12)
-        format_tab.add(format_frame)
-        return format_tab
+        table.attach(availablevbox, 0, 2, num_rows-1, num_rows)
+        alignment = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
+        alignment.set_padding(12, 0, 12, 0)
+        alignment.add(table)
+        frame.add(alignment)
+        tab = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
+        tab.set_padding(12, 12, 12, 12)
+        tab.add(frame)
+        return tab
 
     def plugins_tab(self):
         """Construct and layout the plugins tab"""
@@ -642,11 +632,11 @@ class Preferences():
             plugindata.append((enabled, pb, plugin_text))
         return pluginwindow
 
-    def prefs_config_widget_active(self, widget, member):
+    def _config_widget_active(self, widget, member):
         """Sets a config attribute to the widget's active value"""
         setattr(self.config, member, widget.get_active())
 
-    def prefs_as_enabled_toggled(self, checkbox, *widgets):
+    def _as_enabled_toggled(self, checkbox, *widgets):
         if checkbox.get_active():
             self.scrobbler.import_module(True)
         if self.scrobbler.imported():
@@ -657,77 +647,77 @@ class Preferences():
         elif checkbox.get_active():
             checkbox.set_active(False)
 
-    def prefs_as_username_changed(self, entry):
+    def _as_username_changed(self, entry):
         if self.scrobbler.imported():
             self.config.as_username = entry.get_text()
             self.scrobbler.auth_changed()
 
-    def prefs_as_password_changed(self, entry):
+    def _as_password_changed(self, entry):
         if self.scrobbler.imported():
             self.config.as_password_md5 = hashlib.md5(entry.get_text()).hexdigest()
             self.scrobbler.auth_changed()
 
-    def prefs_nameentry_changed(self, entry, profile_combo, remove_profiles):
+    def _nameentry_changed(self, entry, profile_combo, remove_profiles):
         if not self.updating_nameentry:
-            prefs_profile_num = profile_combo.get_active()
-            self.config.profile_names[prefs_profile_num] = entry.get_text()
-            self.prefs_populate_profile_combo(profile_combo, prefs_profile_num, remove_profiles)
+            profile_num = profile_combo.get_active()
+            self.config.profile_names[profile_num] = entry.get_text()
+            self._populate_profile_combo(profile_combo, profile_num, remove_profiles)
 
-    def prefs_hostentry_changed(self, entry, profile_combo):
-        prefs_profile_num = profile_combo.get_active()
-        self.config.host[prefs_profile_num] = entry.get_text()
+    def _hostentry_changed(self, entry, profile_combo):
+        profile_num = profile_combo.get_active()
+        self.config.host[profile_num] = entry.get_text()
 
-    def prefs_portentry_changed(self, entry, profile_combo):
-        prefs_profile_num = profile_combo.get_active()
-        self.config.port[prefs_profile_num] = entry.get_value_as_int()
+    def _portentry_changed(self, entry, profile_combo):
+        profile_num = profile_combo.get_active()
+        self.config.port[profile_num] = entry.get_value_as_int()
 
-    def prefs_passwordentry_changed(self, entry, profile_combo):
-        prefs_profile_num = profile_combo.get_active()
-        self.config.password[prefs_profile_num] = entry.get_text()
+    def _passwordentry_changed(self, entry, profile_combo):
+        profile_num = profile_combo.get_active()
+        self.config.password[profile_num] = entry.get_text()
 
-    def prefs_direntry_changed(self, entry, profile_combo):
-        prefs_profile_num = profile_combo.get_active()
-        self.config.musicdir[prefs_profile_num] = misc.sanitize_musicdir(entry.get_filename())
+    def _direntry_changed(self, entry, profile_combo):
+        profile_num = profile_combo.get_active()
+        self.config.musicdir[profile_num] = misc.sanitize_musicdir(entry.get_filename())
 
-    def prefs_add_profile(self, _button, nameentry, profile_combo, remove_profiles):
+    def _add_profile(self, _button, nameentry, profile_combo, remove_profiles):
         self.updating_nameentry = True
-        prefs_profile_num = profile_combo.get_active()
+        profile_num = profile_combo.get_active()
         self.config.profile_names.append(_("New Profile"))
         nameentry.set_text(self.config.profile_names[-1])
         self.updating_nameentry = False
-        self.config.host.append(self.config.host[prefs_profile_num])
-        self.config.port.append(self.config.port[prefs_profile_num])
-        self.config.password.append(self.config.password[prefs_profile_num])
-        self.config.musicdir.append(self.config.musicdir[prefs_profile_num])
-        self.prefs_populate_profile_combo(profile_combo, len(self.config.profile_names)-1, remove_profiles)
+        self.config.host.append(self.config.host[profile_num])
+        self.config.port.append(self.config.port[profile_num])
+        self.config.password.append(self.config.password[profile_num])
+        self.config.musicdir.append(self.config.musicdir[profile_num])
+        self._populate_profile_combo(profile_combo, len(self.config.profile_names)-1, remove_profiles)
 
-    def prefs_remove_profile(self, _button, profile_combo, remove_profiles):
-        prefs_profile_num = profile_combo.get_active()
-        if prefs_profile_num == self.config.profile_num:
+    def _remove_profile(self, _button, profile_combo, remove_profiles):
+        profile_num = profile_combo.get_active()
+        if profile_num == self.config.profile_num:
             # Profile deleted, revert to first profile:
             self.config.profile_num = 0
             self.reconnect(None)
-        self.config.profile_names.pop(prefs_profile_num)
-        self.config.host.pop(prefs_profile_num)
-        self.config.port.pop(prefs_profile_num)
-        self.config.password.pop(prefs_profile_num)
-        self.config.musicdir.pop(prefs_profile_num)
-        if prefs_profile_num > 0:
-            self.prefs_populate_profile_combo(profile_combo, prefs_profile_num-1, remove_profiles)
+        self.config.profile_names.pop(profile_num)
+        self.config.host.pop(profile_num)
+        self.config.port.pop(profile_num)
+        self.config.password.pop(profile_num)
+        self.config.musicdir.pop(profile_num)
+        if profile_num > 0:
+            self._populate_profile_combo(profile_combo, profile_num-1, remove_profiles)
         else:
-            self.prefs_populate_profile_combo(profile_combo, 0, remove_profiles)
+            self._populate_profile_combo(profile_combo, 0, remove_profiles)
 
-    def prefs_profile_chosen(self, profile_combo, nameentry, hostentry, portentry, passwordentry, direntry):
-        prefs_profile_num = profile_combo.get_active()
+    def _profile_chosen(self, profile_combo, nameentry, hostentry, portentry, passwordentry, direntry):
+        profile_num = profile_combo.get_active()
         self.updating_nameentry = True
-        nameentry.set_text(str(self.config.profile_names[prefs_profile_num]))
+        nameentry.set_text(str(self.config.profile_names[profile_num]))
         self.updating_nameentry = False
-        hostentry.set_text(str(self.config.host[prefs_profile_num]))
-        portentry.set_value(self.config.port[prefs_profile_num])
-        passwordentry.set_text(str(self.config.password[prefs_profile_num]))
-        direntry.set_filename(str(self.config.musicdir[prefs_profile_num]))
+        hostentry.set_text(str(self.config.host[profile_num]))
+        portentry.set_value(self.config.port[profile_num])
+        passwordentry.set_text(str(self.config.password[profile_num]))
+        direntry.set_filename(str(self.config.musicdir[profile_num]))
 
-    def prefs_populate_profile_combo(self, profile_combo, active_index, remove_profiles):
+    def _populate_profile_combo(self, profile_combo, active_index, remove_profiles):
         new_model = gtk.ListStore(str)
         new_model.clear()
         profile_combo.set_model(new_model)
@@ -740,10 +730,10 @@ class Preferences():
         # Enable remove button if there is more than one profile
         remove_profiles.set_sensitive(len(self.config.profile_names) > 1)
 
-    def prefs_lyrics_location_changed(self, combobox):
+    def _lyrics_location_changed(self, combobox):
         self.config.lyrics_location = combobox.get_active()
 
-    def prefs_art_location_changed(self, combobox):
+    def _art_location_changed(self, combobox):
         if combobox.get_active() == consts.ART_LOCATION_CUSTOM:
             # Prompt user for playlist name:
             dialog = ui.dialog(title=_("Custom Artwork"), parent=self.window, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_OK, gtk.RESPONSE_ACCEPT), role='customArtwork', default=gtk.RESPONSE_ACCEPT)
@@ -763,20 +753,20 @@ class Preferences():
             dialog.destroy()
         self.config.art_location = combobox.get_active()
 
-    def prefs_crossfadecheck_toggled(self, button, *widgets):
+    def _crossfadecheck_toggled(self, button, *widgets):
         button_active = button.get_active()
         for widget in widgets:
             widget.set_sensitive(button_active)
 
-    def prefs_notiflocation_changed(self, combobox):
+    def _notiflocation_changed(self, combobox):
         self.config.traytips_notifications_location = combobox.get_active()
         self.renotify()
 
-    def prefs_notiftime_changed(self, combobox):
+    def _notiftime_changed(self, combobox):
         self.config.popup_option = combobox.get_active()
         self.renotify()
 
-    def prefs_infofile_toggled(self, button, infofileformatbox):
+    def _infofile_toggled(self, button, infofileformatbox):
         self.config.use_infofile = button.get_active()
         infofileformatbox.set_sensitive(self.config.use_infofile)
         if self.config.use_infofile:
