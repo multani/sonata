@@ -416,8 +416,11 @@ class Preferences():
         cbs = (currentoptions_changed, libraryoptions_changed,
                  titleoptions_changed, currsongoptions1_changed,
                  currsongoptions2_changed)
-        for entry, cb in zip(format_entries, cbs):
+        for entry, cb, next in zip(format_entries, cbs,
+                format_entries[1:] + format_entries[:1]):
             entry.connect('focus_out_event', cb)
+            entry.connect('activate', lambda _, n: n.grab_focus(),
+                    next)
 
         availableheading = ui.label(markup='<small>' + _('Available options') + ':</small>', y=0)
         availablevbox = gtk.VBox()
