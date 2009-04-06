@@ -7,7 +7,7 @@ Example usage:
 import preferences
 ...
 prefs = preferences.Preferences()
-prefs.on_prefs_real(self.window, ...a huge list of callbacks..., self.prefs_window_response)
+prefs.on_prefs_real(self.window, self.prefs_window_response, tab callbacks...)
 """
 
 import gettext, hashlib
@@ -20,6 +20,43 @@ from pluginsystem import pluginsystem
 import ui
 import misc
 
+class Extras_cbs(object):
+    """Callbacks and data specific to the extras tab"""
+    popuptimes = []
+    popuplocations = [_('System tray'), _('Top Left'), _('Top Right'),
+              _('Bottom Left'), _('Bottom Right'),
+              _('Screen Center')]
+    notif_toggled = None
+    crossfade_changed = None
+    crossfade_toggled = None
+
+class Display_cbs(object):
+    """Callbacks specific to the display tab"""
+    stylized_toggled = None
+    art_toggled = None
+    playback_toggled = None
+    progress_toggled = None
+    statusbar_toggled = None
+    lyrics_toggled = None
+    trayicon_available = None
+
+class Behavior_cbs(object):
+    """Callbacks and data specific to the behavior tab"""
+    trayicon_toggled = None
+    trayicon_in_use = None
+    sticky_toggled = None
+    ontop_toggled = None
+    decorated_toggled = None
+    infofile_changed = None
+
+class Format_cbs(object):
+    """Callbacks specific to the format tab"""
+    currentoptions_changed = None
+    libraryoptions_changed = None
+    titleoptions_changed = None
+    currsongoptions1_changed = None
+    currsongoptions2_changed = None
+
 class Preferences():
     """This class implements a preferences dialog for changing
     configuration variables.
@@ -30,9 +67,6 @@ class Preferences():
     def __init__(self, config):
 
         self.config = config
-
-        # Constants:
-        self.popuplocations = [_('System tray'), _('Top Left'), _('Top Right'), _('Bottom Left'), _('Bottom Right'), _('Screen Center')]
 
         # These are callbacks to Main
         self.reconnect = None
@@ -48,7 +82,7 @@ class Preferences():
 
         self.window = None
 
-    def on_prefs_real(self, parent_window, popuptimes, scrobbler, trayicon_available, trayicon_in_use, reconnect, renotify, reinfofile, notif_toggled, stylized_toggled, art_toggled, playback_toggled, progress_toggled, statusbar_toggled, lyrics_toggled, trayicon_toggled, crossfade_toggled, crossfade_changed, prefs_window_response, last_tab, currentoptions_changed, libraryoptions_changed, titleoptions_changed, currsongoptions1_changed, currsongoptions2_changed, ontop_toggled, sticky_toggled, decorated_toggled, infofile_changed):
+    def on_prefs_real(self, parent_window, scrobbler, reconnect, renotify, reinfofile, prefs_window_response, last_tab, extras_cbs, display_cbs, behavior_cbs, format_cbs):
         """Display the preferences dialog"""
         self.window = parent_window
         self.scrobbler = scrobbler
@@ -60,20 +94,10 @@ class Preferences():
         self.prefswindow = ui.dialog(title=_("Preferences"), parent=self.window, flags=gtk.DIALOG_DESTROY_WITH_PARENT, role='preferences', resizable=False, separator=False)
         prefsnotebook = gtk.Notebook()
         mpd_tab, direntry, using_mpd_env_vars = self.mpd_tab()
-        extras_tab = self.extras_tab(popuptimes, notif_toggled,
-                crossfade_changed, crossfade_toggled)
-        display_tab, display_trayicon = self.display_tab(
-                stylized_toggled, art_toggled, playback_toggled,
-                progress_toggled, statusbar_toggled,
-                lyrics_toggled, trayicon_available)
-        behavior_tab = self.behavior_tab(display_trayicon,
-                trayicon_toggled, trayicon_in_use,
-                sticky_toggled, ontop_toggled,
-                decorated_toggled, infofile_changed)
-        format_tab = self.format_tab(currentoptions_changed,
-                libraryoptions_changed, titleoptions_changed,
-                currsongoptions1_changed,
-                currsongoptions2_changed)
+        extras_tab = self.extras_tab(extras_cbs)
+        display_tab, display_trayicon = self.display_tab(display_cbs)
+        behavior_tab = self.behavior_tab(display_trayicon, behavior_cbs)
+        format_tab = self.format_tab(format_cbs)
         pluginwindow = self.plugins_tab()
 
         # Set up table
@@ -215,7 +239,7 @@ class Preferences():
 
         return tab, direntry, using_env_vars
 
-    def extras_tab(self, popuptimes, notif_toggled, crossfade_changed, crossfade_toggled):
+    def extras_tab(self, cbs):
         """Construct and layout the extras tab"""
         if not self.scrobbler.imported():
             self.config.as_enabled = False
@@ -252,18 +276,18 @@ class Preferences():
 
         time_names = ["%s %s" %
             (i , gettext.ngettext('second', 'seconds', int(i)))
-            for i in popuptimes if i != _('Entire song')]
+            for i in cbs.popuptimes if i != _('Entire song')]
         time_names.append(_('Entire song'))
         notification_options = ui.combo(items=time_names,
             active=self.config.popup_option,
             changed_cb=self._notiftime_changed)
-        notification_locs = ui.combo(items=self.popuplocations,
+        notification_locs = ui.combo(items=cbs.popuplocations,
             active=self.config.traytips_notifications_location,
             changed_cb=self._notiflocation_changed)
         notifhbox = gtk.HBox(spacing=6)
         notifhbox.pack_end(notification_locs, False, False)
         notifhbox.pack_end(notification_options, False, False)
-        display_notification.connect('toggled', notif_toggled,
+        display_notification.connect('toggled', cbs.notif_toggled,
             notifhbox)
         if not self.config.show_notification:
             notifhbox.set_sensitive(False)
@@ -272,7 +296,7 @@ class Preferences():
         crossfadespin.set_value(self.config.xfade)
         crossfadespin.set_numeric(True)
         crossfadespin.set_increments(1, 5)
-        crossfadespin.connect('value-changed', crossfade_changed)
+        crossfadespin.connect('value-changed', cbs.crossfade_changed)
         crossfadelabel2 = ui.label(text=_("Fade length") + ":")
         crossfadelabel2 = ui.label(textmn=_("_Fade length") + ":")
         crossfadelabel2.set_mnemonic_widget(crossfadespin)
@@ -285,7 +309,7 @@ class Preferences():
         crossfadecheck.connect('toggled',
             self._crossfadecheck_toggled, crossfadespin,
             crossfadelabel2, crossfadelabel3)
-        crossfadecheck.connect('toggled', crossfade_toggled,
+        crossfadecheck.connect('toggled', cbs.crossfade_toggled,
             crossfadespin)
         crossfadecheck.set_active(self.config.xfade_enabled)
         crossfadecheck.toggled() # Force the toggled callback
@@ -315,7 +339,7 @@ class Preferences():
                 widget.set_sensitive(False)
         return tab
 
-    def display_tab(self, stylized_toggled, art_toggled, playback_toggled, progress_toggled, statusbar_toggled, lyrics_toggled, trayicon_available):
+    def display_tab(self, cbs):
         """Construct and layout the display tab"""
         displaylabel = ui.label(markup='<b>' + _('Display') + '</b>')
         frame = gtk.Frame()
@@ -326,7 +350,7 @@ class Preferences():
         art.set_active(self.config.show_covers)
         stylized_combo = ui.combo(items=[_("Standard"),
             _("Stylized")], active=self.config.covers_type,
-            changed_cb=stylized_toggled)
+            changed_cb=cbs.stylized_toggled)
         stylized_hbox = gtk.HBox(spacing=12)
         stylized_hbox.pack_end(stylized_combo, False, False)
         stylized_hbox.pack_end(ui.label(
@@ -355,17 +379,17 @@ class Preferences():
         art_location_hbox.pack_end(ui.label(text=_("Save art to:")),
             False, False)
         art_location_hbox.set_sensitive(self.config.show_covers)
-        art.connect('toggled', art_toggled, art_hbox,
+        art.connect('toggled', cbs.art_toggled, art_hbox,
             art_location_hbox, stylized_hbox)
         playback = gtk.CheckButton(_("_Playback/volume buttons"))
         playback.set_active(self.config.show_playback)
-        playback.connect('toggled', playback_toggled)
+        playback.connect('toggled', cbs.playback_toggled)
         progress = gtk.CheckButton(_("Pr_ogressbar"))
         progress.set_active(self.config.show_progress)
-        progress.connect('toggled', progress_toggled)
+        progress.connect('toggled', cbs.progress_toggled)
         statusbar = gtk.CheckButton(_("_Statusbar"))
         statusbar.set_active(self.config.show_statusbar)
-        statusbar.connect('toggled', statusbar_toggled)
+        statusbar.connect('toggled', cbs.statusbar_toggled)
         lyrics = gtk.CheckButton(_("Song Ly_rics"))
         lyrics.set_active(self.config.show_lyrics)
         savelyrics_label = ui.label(text=_("Save lyrics to:"), x=1)
@@ -377,11 +401,11 @@ class Preferences():
         lyrics_location_hbox.pack_end(lyrics_location, False, False)
         lyrics_location_hbox.pack_end(savelyrics_label, False, False)
         lyrics_location_hbox.set_sensitive(self.config.show_lyrics)
-        lyrics.connect('toggled', lyrics_toggled,
+        lyrics.connect('toggled', cbs.lyrics_toggled,
             lyrics_location_hbox)
         trayicon = gtk.CheckButton(_("System _tray icon"))
         trayicon.set_active(self.config.show_trayicon)
-        trayicon.set_sensitive(trayicon_available)
+        trayicon.set_sensitive(cbs.trayicon_available)
 
         widgets = (playback, progress, statusbar, trayicon, lyrics,
                lyrics_location_hbox, art, stylized_hbox, art_hbox,
@@ -400,7 +424,7 @@ class Preferences():
 
         return tab, trayicon
 
-    def behavior_tab(self, display_trayicon, trayicon_toggled, trayicon_in_use, sticky_toggled, ontop_toggled, decorated_toggled, infofile_changed):
+    def behavior_tab(self, display_trayicon, cbs):
         """Construct and layout the behavior tab"""
         windowlabel = ui.label(markup='<b>'+_('Window Behavior')+'</b>')
         frame = gtk.Frame()
@@ -408,21 +432,21 @@ class Preferences():
         frame.set_shadow_type(gtk.SHADOW_NONE)
         sticky = gtk.CheckButton(_("_Show window on all workspaces"))
         sticky.set_active(self.config.sticky)
-        sticky.connect('toggled', sticky_toggled)
+        sticky.connect('toggled', cbs.sticky_toggled)
         ontop = gtk.CheckButton(_("_Keep window above other windows"))
         ontop.set_active(self.config.ontop)
-        ontop.connect('toggled', ontop_toggled)
+        ontop.connect('toggled', cbs.ontop_toggled)
         decor = gtk.CheckButton(_("_Hide window titlebar"))
         decor.set_active(not self.config.decorated)
-        decor.connect('toggled', decorated_toggled)
+        decor.connect('toggled', cbs.decorated_toggled)
         minimize = gtk.CheckButton(_("_Minimize to system tray on close/escape"))
         minimize.set_active(self.config.minimize_to_systray)
         minimize.set_tooltip_text(_("If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."))
         minimize.connect('toggled', self._config_widget_active,
             'minimize_to_systray')
-        display_trayicon.connect('toggled', trayicon_toggled,
+        display_trayicon.connect('toggled', cbs.trayicon_toggled,
             minimize)
-        minimize.set_sensitive(trayicon_in_use)
+        minimize.set_sensitive(cbs.trayicon_in_use)
         widgets = (sticky, ontop, decor, minimize)
         table = gtk.Table(len(widgets), 1)
         for i, widget in enumerate(widgets):
@@ -452,8 +476,9 @@ class Preferences():
         infofile_usage.set_tooltip_text(_("If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)"))
         infopath_options = ui.entry(text=self.config.infofile_path)
         infopath_options.set_tooltip_text(_("If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)"))
-        infopath_options.connect('focus_out_event', infofile_changed)
-        infopath_options.connect('activate', infofile_changed, None)
+        infopath_options.connect('focus_out_event',
+                    cbs.infofile_changed)
+        infopath_options.connect('activate', cbs.infofile_changed, None)
         if not self.config.use_infofile:
             infopath_options.set_sensitive(False)
         infofile_usage.connect('toggled', self._infofile_toggled,
@@ -482,9 +507,7 @@ class Preferences():
         tab.add(table)
         return tab
 
-    def format_tab(self, currentoptions_changed, libraryoptions_changed,
-            titleoptions_changed, currsongoptions1_changed,
-            currsongoptions2_changed):
+    def format_tab(self, cbs):
         """Construct and layout the format tab"""
         formatlabel = ui.label(markup='<b>'+_('Song Formatting')+'</b>')
         frame = gtk.Frame()
@@ -510,10 +533,12 @@ class Preferences():
             labels.append(label)
             entries.append(entry)
 
-        cbs = (currentoptions_changed, libraryoptions_changed,
-                 titleoptions_changed, currsongoptions1_changed,
-                 currsongoptions2_changed)
-        for entry, cb, next in zip(entries, cbs,
+        entry_cbs = (cbs.currentoptions_changed,
+                 cbs.libraryoptions_changed,
+                 cbs.titleoptions_changed,
+                 cbs.currsongoptions1_changed,
+                 cbs.currsongoptions2_changed)
+        for entry, cb, next in zip(entries, entry_cbs,
                 entries[1:] + entries[:1]):
             entry.connect('focus_out_event', cb)
             entry.connect('activate', lambda _, n: n.grab_focus(),

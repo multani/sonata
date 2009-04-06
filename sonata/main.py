@@ -57,7 +57,7 @@ import misc, ui, img, tray
 
 from consts import consts
 from pluginsystem import pluginsystem
-from preferences import Preferences
+from preferences import *
 from config import Config
 
 import tagedit, artwork, about, scrobbler, info, library, streams, playlists, current
@@ -2873,7 +2873,37 @@ class Base(object):
         trayicon_in_use = ((HAVE_STATUS_ICON and self.statusicon.is_embedded() and
                     self.statusicon.get_visible())
                    or (HAVE_EGG and self.trayicon.get_property('visible')))
-        self.preferences.on_prefs_real(self.window, self.popuptimes, self.scrobbler, trayicon_available, trayicon_in_use, self.on_connectkey_pressed, self.on_currsong_notify, self.update_infofile, self.prefs_notif_toggled, self.prefs_stylized_toggled, self.prefs_art_toggled, self.prefs_playback_toggled, self.prefs_progress_toggled, self.prefs_statusbar_toggled, self.prefs_lyrics_toggled, self.prefs_trayicon_toggled, self.prefs_crossfade_toggled, self.prefs_crossfade_changed, self.prefs_window_response, self.prefs_last_tab, self.prefs_currentoptions_changed, self.prefs_libraryoptions_changed, self.prefs_titleoptions_changed, self.prefs_currsongoptions1_changed, self.prefs_currsongoptions2_changed, self.prefs_ontop_toggled, self.prefs_sticky_toggled, self.prefs_decorated_toggled, self.prefs_infofile_changed)
+        extras = Extras_cbs()
+        extras.popuptimes = self.popuptimes
+        extras.notif_toggled = self.prefs_notif_toggled
+        extras.crossfade_toggled = self.prefs_crossfade_toggled
+        extras.crossfade_changed = self.prefs_crossfade_changed
+
+        display = Display_cbs()
+        display.stylized_toggled = self.prefs_stylized_toggled
+        display.art_toggled = self.prefs_art_toggled
+        display.playback_toggled = self.prefs_playback_toggled
+        display.progress_toggled = self.prefs_progress_toggled
+        display.statusbar_toggled = self.prefs_statusbar_toggled
+        display.lyrics_toggled = self.prefs_lyrics_toggled
+        display.trayicon_available = trayicon_available
+
+        behavior = Behavior_cbs()
+        behavior.trayicon_toggled = self.prefs_trayicon_toggled
+        behavior.trayicon_in_use = trayicon_in_use
+        behavior.sticky_toggled = self.prefs_sticky_toggled
+        behavior.ontop_toggled = self.prefs_ontop_toggled
+        behavior.decorated_toggled = self.prefs_decorated_toggled
+        behavior.infofile_changed = self.prefs_infofile_changed
+
+        format = Format_cbs()
+        format.currentoptions_changed = self.prefs_currentoptions_changed
+        format.libraryoptions_changed = self.prefs_libraryoptions_changed
+        format.titleoptions_changed = self.prefs_titleoptions_changed
+        format.currsongoptions1_changed = self.prefs_currsongoptions1_changed
+        format.currsongoptions2_changed =  self.prefs_currsongoptions2_changed
+
+        self.preferences.on_prefs_real(self.window, self.scrobbler, self.on_connectkey_pressed, self.on_currsong_notify, self.update_infofile, self.prefs_window_response, self.prefs_last_tab, extras, display, behavior, format)
 
     def prefs_currentoptions_changed(self, entry, _event):
         if self.config.currentformat != entry.get_text():
