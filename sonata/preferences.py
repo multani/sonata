@@ -91,24 +91,20 @@ class Preferences():
 
         self.prefswindow = ui.dialog(title=_("Preferences"), parent=self.window, flags=gtk.DIALOG_DESTROY_WITH_PARENT, role='preferences', resizable=False, separator=False)
         prefsnotebook = gtk.Notebook()
-        mpd_tab = self.mpd_tab()
-        extras_tab = self.extras_tab(extras_cbs)
-        display_tab = self.display_tab(display_cbs)
-        behavior_tab = self.behavior_tab(behavior_cbs)
-        format_tab = self.format_tab(format_cbs)
-        pluginwindow = self.plugins_tab()
 
-        # Set up table
-        tables = [(_("MPD"), mpd_tab),
-                       (_("Display"), display_tab),
-                       (_("Behavior"), behavior_tab),
-                       (_("Format"), format_tab),
-                       (_("Extras"), extras_tab)]
-                       # XXX Plugins temporarily disabled
-                       #(_("Plugins"), pluginwindow)]
-        for table_name, table in tables:
-            tmplabel = ui.label(text=table_name)
-            prefsnotebook.append_page(table, tmplabel)
+        tabs = ((_("MPD"), 'mpd'),
+                (_("Display"), 'display'),
+                (_("Behavior"), 'behavior'),
+                (_("Format"), 'format'),
+                (_("Extras"), 'extras'))
+               # XXX Plugins temporarily disabled
+               #(_("Plugins"), 'plugins')]
+
+        for display_name, name in tabs:
+            label = ui.label(text=display_name)
+            func = getattr(self, '%s_tab' % name)
+            tab = func(locals().get('%s_cbs' % name))
+            prefsnotebook.append_page(tab, label)
         hbox = gtk.HBox()
         hbox.pack_start(prefsnotebook, False, False, 10)
         self.prefswindow.vbox.pack_start(hbox, False, False, 10)
@@ -123,7 +119,7 @@ class Preferences():
         self.prev_port = self.config.port[self.config.profile_num]
         self.prev_password = self.config.password[self.config.profile_num]
 
-    def mpd_tab(self):
+    def mpd_tab(self, cbs=None):
         """Construct and layout the MPD tab"""
         mpdlabel = ui.label(markup='<b>' + _('MPD Connection') + '</b>')
         frame = gtk.Frame()
@@ -592,7 +588,7 @@ class Preferences():
         tab.add(frame)
         return tab
 
-    def plugins_tab(self):
+    def plugins_tab(self, cbs=None):
         """Construct and layout the plugins tab"""
         plugin_actions = (
             ('plugin_about', gtk.STOCK_ABOUT, _('_About'), None,
