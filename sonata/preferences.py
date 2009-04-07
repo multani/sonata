@@ -768,7 +768,7 @@ class Preferences():
         hostentry.set_text(str(self.config.host[profile_num]))
         portentry.set_value(self.config.port[profile_num])
         passwordentry.set_text(str(self.config.password[profile_num]))
-        direntry.set_filename(str(self.config.musicdir[profile_num]))
+        direntry.set_current_folder(misc.sanitize_musicdir(self.config.musicdir[profile_num]))
 
     def _populate_profile_combo(self, profile_combo, active_index, remove_profiles):
         new_model = gtk.ListStore(str)

@@ -2,6 +2,7 @@ v.1.6.1 - Pending
 	+ Bug: Fix python version check for Ubuntu Jaunty
 	+ Bug: Traceback if track has multiple date tags
 	+ Bug: Fix infinite loop when format strings end in '{'
+	+ Bug: Fix music directory chooser selecting the wrong folder sometimes
 
 v1.6 - March 29, 2009
 	+ Album browsing mode, additional details in library views
