@@ -439,18 +439,15 @@ class Library(object):
             if crumb is crumbs[-1]:
                 text = "<b>%s</b>" % text
             label = ui.label(markup=text)
-            b = ui.togglebutton(can_focus=False, relief=gtk.RELIEF_NONE)
-            # adapt gtk.Button internal layout code:
-            hbox = gtk.HBox(spacing=2)
-            align = gtk.Alignment(xalign=0.5, yalign=0.5)
-            align.add(hbox)
-            b.add(align)
+
             if icon:
-                hbox.pack_start(ui.image(stock=icon), False, False)
+                image = ui.image(stock=icon)
             elif pb:
                 pb = pb.scale_simple(16, 16, gtk.gdk.INTERP_HYPER)
-                hbox.pack_start(ui.image(pb=pb), False, False)
-            hbox.pack_start(label, True, True)
+                image = ui.image(pb=pb)
+
+            b = breadcrumbs.CrumbButton(image, label)
+
             if crumb is crumbs[-1]:
                 # FIXME makes the button request minimal space:
                 # label.props.ellipsize = pango.ELLIPSIZE_END
