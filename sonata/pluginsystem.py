@@ -92,7 +92,7 @@ class PluginSystem(object):
     def __init__(self):
         self.plugin_infos = []
         self.loaded_plugins = {}
-        self.notifys = {}
+        self.notifys = []
 
     def get_info(self):
         return self.plugin_infos
@@ -103,8 +103,7 @@ class PluginSystem(object):
             for feature in plugin.get_features(capability)]
 
     def notify_of(self, capability, enable_cb, disable_cb):
-        self.notifys.setdefault(capability, []).append((enable_cb,
-                                disable_cb))
+        self.notifys.append((capability, enable_cb, disable_cb))
         for plugin, feature in self.get(capability):
             enable_cb(plugin, feature)
 
@@ -112,13 +111,12 @@ class PluginSystem(object):
         if plugin._enabled != state:
             # make notify callbacks for each feature of the plugin:
             plugin._enabled = True # XXX for plugin.get_features
-            for c in plugin._capabilities:
-                for n in self.notifys[c]:
-                    for feature in plugin.get_features(c):
-                        if state:
-                            n[0](plugin, feature)
-                        else:
-                            n[1](plugin, feature)
+
+            # process the notifys in the order they were registered:
+            for capability, enable, disable in self.notifys:
+                callback = enable if state else disable
+                for feature in plugin.get_features(capability):
+                    callback(plugin, feature)
             plugin._enabled = state
 
     def find_plugins(self):

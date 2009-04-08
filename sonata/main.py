@@ -789,9 +789,6 @@ class Base(object):
 
         gobject.idle_add(self.header_save_column_widths)
 
-        for plugin, tab in pluginsystem.get('tabs'):
-            self.new_tab(*tab())
-
         pluginsystem.notify_of('tabs',
                        self.on_enable_tab,
                        self.on_disable_tab)
@@ -833,6 +830,12 @@ class Base(object):
         if self.status and self.status['state'] in ['play', 'pause'] and self.songinfo:
             return self.songinfo
         return None
+
+    def playing_song_change(self):
+        self.artwork.artwork_update()
+        print
+        for _plugin, cb in pluginsystem.get('playing_song_observers'):
+            cb(self.get_playing_song())
 
     def gnome_session_management(self):
         try:
@@ -1529,7 +1532,7 @@ class Base(object):
             self.update_progressbar()
             self.update_cursong()
             self.update_wintitle()
-            self.artwork.artwork_update()
+            self.playing_song_change()
             self.update_statusbar()
             if not self.conn:
                 self.librarydata.clear()
@@ -1597,7 +1600,7 @@ class Base(object):
                     self.eggtrayfile = self.find_path('sonata_play.png')
                     self.trayimage.set_from_pixbuf(img.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
 
-            self.artwork.artwork_update()
+            self.playing_song_change()
             if self.status['state'] in ['play', 'pause']:
                 self.current.center_song_in_list()
 
@@ -1691,7 +1694,7 @@ class Base(object):
 
         self.update_cursong()
         self.update_wintitle()
-        self.artwork.artwork_update()
+        self.playing_song_change()
         self.info_update(True)
 
     def update_progressbar(self):

@@ -106,6 +106,9 @@ except:
 
 from sonata.pluginsystem import pluginsystem
 pluginsystem.find_plugins()
+pluginsystem.notify_of('enablables',
+               lambda plugin, cb: cb(True),
+               lambda plugin, cb: cb(False))
 
 
 ## Load the command line interface:
