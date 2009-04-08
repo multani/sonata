@@ -16,10 +16,11 @@ sonata.plugins.__path__ = find_plugin_dirs() + sonata.plugins.__path__
 
 
 class Plugin(object):
-    def __init__(self, path, name, info):
+    def __init__(self, path, name, info, load):
         self.path = path
         self.name = name
         self._info = info
+        self._load = load
         # obligatory plugin info:
         format_value = info.get('plugin', 'plugin_format')
         self.plugin_format = tuple(map(int, format_value.split(',')))
@@ -28,6 +29,7 @@ class Plugin(object):
         self.version = tuple(map(int, versionvalue.split(',')))
         self.version_string = '.'.join(map(str, self.version))
         self._capabilities =  dict(info.items('capabilities'))
+        # optional plugin info:
         try:
             self.description = info.get('plugin', 'description')
         except ConfigParser.NoOptionError:
@@ -48,46 +50,76 @@ class Plugin(object):
             self.url = info.get('plugin', 'url')
         except:
             self.url = ""
+        # state:
+        self._module = None # lazy loading
+        self._enabled = False
+
+    def get_enabled(self):
+        return self._enabled
+
+    def get_features(self, capability):
+        if not self._enabled or not capability in self._capabilities:
+            return []
+
+        module = self._get_module()
+        if not module:
+            return []
+
+        features = self._capabilities[capability]
+        try:
+            return [getattr(module, f)
+                for f in features.split(', ')]
+        except KeyboardInterrupt:
+            raise
+        except "Exception":
+            print ("Failed to access features in plugin %s." %
+                   self.name)
+            return []
+
+    def _get_module(self):
+        if not self._module:
+            try:
+                self._module = self._load()
+            except Exception:
+                print "Failed to load plugin %s." % self.name
+                return None
+        return self._module
+
+    def force_loaded(self):
+        return bool(self._get_module())
 
 class PluginSystem(object):
     def __init__(self):
         self.plugin_infos = []
         self.loaded_plugins = {}
+        self.notifys = {}
 
     def get_info(self):
         return self.plugin_infos
 
     def get(self, capability):
-        ret = []
-        for plugin in self.plugin_infos:
-            if capability in plugin._capabilities:
-                features = plugin._capabilities[capability]
-                ret += self.get_features(plugin.path,
-                             plugin.name, features)
-        return ret
+        return [(plugin, feature)
+            for plugin in self.plugin_infos
+            for feature in plugin.get_features(capability)]
 
-    def get_features(self, path, name, features):
-        plugin = self.get_plugin(path, name)
-        if not plugin:
-            return []
+    def notify_of(self, capability, enable_cb, disable_cb):
+        self.notifys.setdefault(capability, []).append((enable_cb,
+                                disable_cb))
+        for plugin, feature in self.get(capability):
+            enable_cb(plugin, feature)
 
-        try:
-            return [getattr(plugin, f)
-                for f in features.split(', ')]
-        except KeyboardInterrupt:
-            raise
-        except Exception:
-            print "Failed to access features in plugin %s." % name
-            return []
-
-    def get_plugin(self, path, name):
-        if name not in self.loaded_plugins:
-            try:
-                self.load_plugin(path, name)
-            except Exception:
-                print "Failed to load plugin %s." % name
-                return None
-        return self.loaded_plugins[name]
+    def set_enabled(self, plugin, state):
+        if plugin._enabled != state:
+            # make notify callbacks for each feature of the plugin:
+            plugin._enabled = True # XXX for plugin.get_features
+            for c in plugin._capabilities:
+                for n in self.notifys[c]:
+                    for feature in plugin.get_features(c):
+                        if state:
+                            n[0](plugin, feature)
+                        else:
+                            n[1](plugin, feature)
+            plugin._enabled = state
 
     def find_plugins(self):
         for path in sonata.plugins.__path__:
@@ -116,7 +148,11 @@ class PluginSystem(object):
         info.readfp(StringIO.StringIO(uncommented))
 
         # XXX add only newest version of each name
-        self.plugin_infos.append(Plugin(path, name, info))
+        plugin = Plugin(path, name, info,
+                lambda:self.import_plugin(name))
+
+        self.plugin_infos.append(plugin)
+
         if not info.options('capabilities'):
             print "Warning: No capabilities in plugin %s." % name
 
@@ -124,6 +160,7 @@ class PluginSystem(object):
         # XXX load from a .py file - no .pyc etc.
         plugin = self.import_plugin(name)
         self.loaded_plugins[name] = plugin
+        return plugin
 
     def import_plugin(self, name):
         __import__('sonata.plugins', {}, {}, [name], 0)

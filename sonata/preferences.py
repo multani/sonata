@@ -638,7 +638,7 @@ class Preferences():
         self.pluginview.append_column(plugincol0)
         plugincol0.pack_start(plugincheckcell, True)
         plugincol0.set_attributes(plugincheckcell, active=0)
-        plugincol0.set_title("  " + _("Loaded") + "  ")
+        plugincol0.set_title("  " + _("Enabled") + "  ")
 
         plugincol1 = gtk.TreeViewColumn()
         self.pluginview.append_column(plugincol1)
@@ -653,7 +653,7 @@ class Preferences():
             pb = self.plugin_get_icon_pixbuf(plugin)
             plugin_text = "<b> " + plugin.longname + "</b>   " + plugin.version_string
             plugin_text += "\n " + plugin.description
-            enabled = True
+            enabled = plugin.get_enabled()
             plugindata.append((enabled, pb, plugin_text))
         return pluginwindow
 
@@ -831,8 +831,17 @@ class Preferences():
 
     def plugin_toggled(self, _renderer, path, user_data):
         model, column = user_data
-        model[path][column] = not model[path][column]
-        return
+        enabled = not model[path][column]
+        plugin = pluginsystem.get_info()[int(path)]
+        pluginsystem.set_enabled(plugin, enabled)
+
+        if enabled:
+            # test that the plugin loads or already was loaded
+            if not plugin.force_loaded():
+                enabled = False
+                pluginsystem.set_enabled(plugin, enabled)
+
+        model[path][column] = enabled
 
     def plugin_about(self, _widget):
         plugin = self.plugin_get_selected()

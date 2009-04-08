@@ -172,6 +172,7 @@ class Base(object):
         all_tab_ids = "current library playlists streams info".split()
         self.tabname2id = dict(zip(self.all_tab_names, all_tab_ids))
         self.tabid2name = dict(zip(all_tab_ids, self.all_tab_names))
+        self.tabname2tab = dict()
         self.tabname2focus = dict()
 
         self.config = Config(_('Default Profile'), _("by") + " %A " + _("from") + " %B", library.library_set_data)
@@ -788,9 +789,18 @@ class Base(object):
 
         gobject.idle_add(self.header_save_column_widths)
 
-        for tabs in pluginsystem.get('tabs'):
-            self.new_tab(*tabs())
+        for plugin, tab in pluginsystem.get('tabs'):
+            self.new_tab(*tab())
 
+        pluginsystem.notify_of('tabs',
+                       self.on_enable_tab,
+                       self.on_disable_tab)
+
+    def on_enable_tab(self, plugin, tab):
+        self.new_tab(*tab())
+
+    def on_disable_tab(self, plugin, tab):
+        self.notebook.remove(self.tabname2tab[tab()[2]])
 
     def new_tab(self, page, stock, text, focus):
         # create the "ear" of the tab:
@@ -814,6 +824,7 @@ class Base(object):
         if self.config.tabs_expanded:
             self.notebook.set_tab_label_packing(page, True, True, gtk.PACK_START)
 
+        self.tabname2tab[text] = page
         self.tabname2focus[text] = focus
 
         return page
