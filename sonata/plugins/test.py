@@ -16,11 +16,14 @@
 
 import gtk
 
-# nothing magical here, this constructs a tab as arguments to Base.new_tab:
+# nothing magical here, this constructs the parts of the tab when called:
 def construct_tab():
     vbox = gtk.VBox()
     vbox.pack_start(gtk.Label("Hello world!"))
-    vbox.pack_start(gtk.Label("(You can remove me at %s)" %
+    vbox.pack_start(gtk.Label("(You can modify me at %s)" %
                   __file__.rstrip("c")))
     vbox.show_all()
+
+    # the return value goes off to Base.new_tab(page, stock, text, focus):
+    # (tab content, icon name, tab name, the widget to focus on tab switch)
     return (vbox, None, "Test plugin", None)
