@@ -96,13 +96,13 @@ class Preferences():
         self.prefswindow = ui.dialog(title=_("Preferences"), parent=self.window, flags=gtk.DIALOG_DESTROY_WITH_PARENT, role='preferences', resizable=False, separator=False)
         self.prefsnotebook = gtk.Notebook()
 
-        tabs = ((_("MPD"), 'mpd'),
+        tabs = [(_("MPD"), 'mpd'),
                 (_("Display"), 'display'),
                 (_("Behavior"), 'behavior'),
                 (_("Format"), 'format'),
-                (_("Extras"), 'extras'))
-               # XXX Plugins temporarily disabled
-               #(_("Plugins"), 'plugins')]
+                (_("Extras"), 'extras'),
+                (_("Plugins"), 'plugins'),
+                ]
 
         for display_name, name in tabs:
             label = ui.label(text=display_name)

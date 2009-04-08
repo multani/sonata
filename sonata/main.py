@@ -788,9 +788,8 @@ class Base(object):
 
         gobject.idle_add(self.header_save_column_widths)
 
-        # XXX Plugins temporarily disabled
-        #for tabs in pluginsystem.get('tabs'):
-        #	self.new_tab(*tabs())
+        for tabs in pluginsystem.get('tabs'):
+            self.new_tab(*tabs())
 
 
     def new_tab(self, page, stock, text, focus):
