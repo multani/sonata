@@ -833,7 +833,6 @@ class Base(object):
 
     def playing_song_change(self):
         self.artwork.artwork_update()
-        print
         for _plugin, cb in pluginsystem.get('playing_song_observers'):
             cb(self.get_playing_song())
 

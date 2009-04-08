@@ -18,7 +18,9 @@
 
 # nothing magical from here on
 
-import gtk
+import gtk, pango
+
+from sonata.misc import escape_html
 
 songlabel = None
 
@@ -26,7 +28,8 @@ songlabel = None
 def on_enable(state):
     global songlabel
     if state:
-        songlabel = gtk.Label()
+        songlabel = gtk.Label("No song info received yet.")
+        songlabel.props.ellipsize = pango.ELLIPSIZE_END
     else:
         songlabel = None
 
@@ -46,8 +49,8 @@ def construct_tab():
 # this gets called when a new song is playing:
 def on_song_change(songinfo):
     if songinfo:
-        songlabel.set_text("Info for currently playing song is %s" %
-                   repr(songinfo))
+        songlabel.set_markup("<b>Info for currently playing song:</b>"+
+                     "\n%s" % escape_html(repr(songinfo)))
     else:
         songlabel.set_text("Currently not playing any song.")
     songlabel.show()

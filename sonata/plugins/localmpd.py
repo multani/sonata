@@ -18,6 +18,8 @@ import subprocess, locale
 
 import gobject, gtk
 
+from sonata.misc import escape_html
+
 def update(label):
     # schedule next update
     gobject.timeout_add(1000, update, label)
@@ -36,7 +38,7 @@ def update(label):
                         ).communicate())
            for title, command in commands]
     text = '\n'.join(["<b>%s</b>\n<tt>%s</tt><i>%s</i>\n" %
-              (title, stdout, stderr)
+              (title, escape_html(stdout), escape_html(stderr))
               for title, (stdout, stderr) in outputs])
     label.set_markup(text.decode(locale.getpreferredencoding(),
                      'replace'))
