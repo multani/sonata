@@ -186,7 +186,7 @@ class Base(object):
             self.config.withdrawn = not args.start_visibility
         if self.config.autoconnect:
             self.user_connect = True
-        args.apply_profile_arg(self)
+        args.apply_profile_arg(self.config)
 
         self.notebook_show_first_tab = not self.config.tabs_expanded or self.config.withdrawn
 
