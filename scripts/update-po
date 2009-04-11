@@ -14,7 +14,6 @@ cd $(dirname "$0")
 
 echo
 echo Updating POTFILES.in...
-echo
 
 rm ../po/POTFILES.in
 touch ../po/POTFILES.in
@@ -23,6 +22,12 @@ writelines po/POTFILES.in ./
 cd sonata
 writelines ../po/POTFILES.in ./sonata/
 cd ../po
+
+echo Update messages.po...
+echo
+
+intltool-update -p
+mv untitled.pot messages.po
 
 for i in *.po 
   do

@@ -3,6 +3,7 @@
 ./sonata/about.py
 ./sonata/artwork.py
 ./sonata/audioscrobbler.py
+./sonata/breadcrumbs.py
 ./sonata/cli.py
 ./sonata/config.py
 ./sonata/consts.py
