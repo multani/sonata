@@ -5,7 +5,7 @@ streams.
 
 Example usage:
 import streams
-self.streams = streams.Streams(self.config, self.window, self.on_streams_button_press, self.on_add_item, self.settings_save, self.iterate_now, self.TAB_STREAMS)
+self.streams = streams.Streams(self.config, self.window, self.on_streams_button_press, self.on_add_item, self.settings_save, self.TAB_STREAMS)
 streamswindow, streamsevbox = self.streams.get_widgets()
 ...
 self.streams.populate()
@@ -17,13 +17,12 @@ import gtk, pango
 import misc, ui
 
 class Streams(object):
-    def __init__(self, config, window, on_streams_button_press, on_add_item, settings_save, iterate_now, TAB_STREAMS, new_tab):
+    def __init__(self, config, window, on_streams_button_press, on_add_item, settings_save, TAB_STREAMS, new_tab):
         self.config = config
         self.window = window
         self.on_streams_button_press = on_streams_button_press
         self.on_add_item = on_add_item
         self.settings_save = settings_save
-        self.iterate_now = iterate_now # XXX Do we really need this?
 
         # Streams tab
         self.streams = ui.treeview()
@@ -148,4 +147,3 @@ class Streams(object):
                 self.populate()
                 self.settings_save()
         dialog.destroy()
-        self.iterate_now()

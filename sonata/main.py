@@ -450,7 +450,7 @@ class Base(object):
         self.info_imagebox = self.info.get_info_imagebox()
 
         # Streams tab
-        self.streams = streams.Streams(self.config, self.window, self.on_streams_button_press, self.on_add_item, self.settings_save, self.iterate_now, self.TAB_STREAMS, self.new_tab)
+        self.streams = streams.Streams(self.config, self.window, self.on_streams_button_press, self.on_add_item, self.settings_save, self.TAB_STREAMS, self.new_tab)
 
         self.streams_treeview = self.streams.get_treeview()
         self.streams_selection = self.streams.get_selection()
@@ -1275,7 +1275,7 @@ class Base(object):
         pathname = mpdh.get(item, 'file')
         try:
             dirname, filename = pathname.rsplit('/', 1)
-        except ValueError: # XXX is file without '/' ever possible?
+        except ValueError: # Occurs for a file in the music_dir root
             dirname, filename = "", pathname
         if "%P" in text:
             text = text.replace("%P", dirname)
