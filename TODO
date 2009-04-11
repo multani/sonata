@@ -1,4 +1,4 @@
-v1.6.1
+v1.6.2
 	disconnect/connect/reconnect ui weirdness
 	sonata freezes with gail/accessibility enabled during new library searching
 	translations - bold, commas for arabic (ahmad farghal email)
@@ -10,7 +10,6 @@ v1.6.1
 	song queue (mpd-git will be bringing it back)
 	search results - show albums, artists, genres that match
 	window positioning weirdness when unwithdrawing app from systray
-	preferences apply button? more auto applying? (michael email)
 	right-click on tab bar (michael email)
 	0.15 has input support for last.fm radio
 
