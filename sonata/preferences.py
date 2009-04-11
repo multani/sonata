@@ -104,7 +104,7 @@ class Preferences():
                 (_("Plugins"), 'plugins'),
                 ]
 
-        for display_name, name in tabs:
+        for display_name, name in tabs[:-1]:
             label = ui.label(text=display_name)
             func = getattr(self, '%s_tab' % name)
             tab = func(locals().get('%s_cbs' % name))
