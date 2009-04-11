@@ -1,4 +1,4 @@
-v.1.6.1 - April 11, 2009
+v1.6.1 - April 11, 2009
 	+ Reduce library's filesystem view row height
 	+ More auto-applying of preferences (e.g. format tab)
 	+ Bug: Fix python version check for Ubuntu Jaunty
