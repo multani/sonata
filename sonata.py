@@ -133,7 +133,7 @@ else:
     class FakeModule(object):
         pass
     # make sure the ui modules aren't imported
-    for m in 'gtk', 'pango', 'sonata.ui':
+    for m in 'gtk', 'pango', 'sonata.ui', 'sonata.breadcrumbs':
         if m in sys.modules:
             print "Warning: module %s imported in CLI mode" % m
         else:
