@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys, locale, gettext, os, warnings
+import sys, gettext, os, warnings
 import urllib, urllib2, re, gc, shutil
 import threading
 
@@ -57,10 +57,9 @@ import misc, ui, img, tray, formatting
 
 from consts import consts
 from pluginsystem import pluginsystem
-from preferences import *
 from config import Config
 
-import tagedit, artwork, about, scrobbler, info, library, streams, playlists, current
+import preferences, tagedit, artwork, about, scrobbler, info, library, streams, playlists, current
 import dbus_plugin as dbus
 
 try:
@@ -69,7 +68,7 @@ except ImportError:
     import svnversion as version
 
 class Base(object):
-    def __init__(self, args, window=None, sugar=False):
+    def __init__(self, args, window=None, _sugar=False):
         # The following attributes were used but not defined here before:
         self.album_current_artist = None
 
@@ -176,7 +175,7 @@ class Base(object):
         self.tabname2focus = dict()
 
         self.config = Config(_('Default Profile'), _("by") + " %A " + _("from") + " %B", library.library_set_data)
-        self.preferences = Preferences(self.config,
+        self.preferences = preferences.Preferences(self.config,
             self.on_connectkey_pressed, self.on_currsong_notify,
             self.update_infofile, self.settings_save,
             self.populate_profiles_for_menu)
@@ -793,10 +792,10 @@ class Base(object):
                        self.on_enable_tab,
                        self.on_disable_tab)
 
-    def on_enable_tab(self, plugin, tab):
+    def on_enable_tab(self, _plugin, tab):
         self.new_tab(*tab())
 
-    def on_disable_tab(self, plugin, tab):
+    def on_disable_tab(self, _plugin, tab):
         self.notebook.remove(self.tabname2tab[tab()[2]])
 
     def new_tab(self, page, stock, text, focus):
@@ -1200,7 +1199,7 @@ class Base(object):
             # then we revert to the single selected row. This is similar to the
             # behavior found in thunar.
             try:
-                path, col, x, y = widget.get_path_at_pos(int(event.x), int(event.y))
+                path, _col, _x, _y = widget.get_path_at_pos(int(event.x), int(event.y))
                 if widget.get_selection().path_is_selected(path):
                     self.current.sel_rows = widget.get_selection().get_selected_rows()[1]
             except:
@@ -1340,7 +1339,7 @@ class Base(object):
 
     def menu_position(self, _menu):
         if self.config.expanded:
-            x, y, width, height = self.current_treeview.get_allocation()
+            _x, y, width, _height = self.current_treeview.get_allocation()
             # Find first selected visible row and popup the menu
             # from there
             if self.current_tab == self.TAB_CURRENT:
@@ -1721,7 +1720,7 @@ class Base(object):
 
     def tooltip_set_window_width(self):
         screen = self.window.get_screen()
-        pointer_screen, px, py, _ = screen.get_display().get_pointer()
+        _pscreen, px, py, _mods = screen.get_display().get_pointer()
         monitor_num = screen.get_monitor_at_point(px, py)
         monitor = screen.get_monitor_geometry(monitor_num)
         self.notification_width = int(monitor.width * 0.30)
@@ -1909,7 +1908,7 @@ class Base(object):
                 self.window.resize(self.config.w, 1)
         if window_about_to_be_expanded:
             self.config.expanded = True
-            if self.status and self.status['state'] in ['play','pause']:
+            if self.status and self.status['state'] in ['play', 'pause']:
                 gobject.idle_add(self.current.center_song_in_list)
             self.window.set_geometry_hints(self.window)
         if self.notebook_show_first_tab:
@@ -1946,15 +1945,13 @@ class Base(object):
         return True
 
     def _seek_when_idle(self, direction):
-        at, length = [int(c) for c in self.status['time'].split(':')]
+        at, _length = [int(c) for c in self.status['time'].split(':')]
         try:
             if direction == gtk.gdk.SCROLL_UP:
-                seektime = int(self.status['time'].split(":")[0]) + 5
-                if seektime < 0: seektime = 0
+                seektime = max(0, at + 5)
             elif direction == gtk.gdk.SCROLL_DOWN:
-                seektime = int(self.status['time'].split(":")[0]) - 5
-                if seektime > mpdh.get(self.songinfo, 'time'):
-                    seektime = mpdh.get(self.songinfo, 'time')
+                seektime = min(mpdh.get(self.songinfo, 'time'),
+                           at - 5)
             self.seek(int(self.status['song']), seektime)
         except:
             pass
@@ -2031,7 +2028,7 @@ class Base(object):
         self.window.handler_block(self.mainwinhandler)
         if event.button == 1 and widget == self.info_imagebox and self.artwork.have_last():
             if not self.config.info_art_enlarged:
-                self.info_imagebox.set_size_request(-1,-1)
+                self.info_imagebox.set_size_request(-1, -1)
                 self.artwork.artwork_set_image_last()
                 self.config.info_art_enlarged = True
             else:
@@ -2157,7 +2154,7 @@ class Base(object):
         # the tracks.
         datalist = []
         album = mpdh.get(self.songinfo, 'album')
-        songs, playtime, num_songs = self.library.library_return_search_items(album=album)
+        songs, _playtime, _num_songs = self.library.library_return_search_items(album=album)
         for song in songs:
             year = mpdh.get(song, 'date', '')
             artist = mpdh.get(song, 'artist', '')
@@ -2183,7 +2180,7 @@ class Base(object):
         # Determine if album_name is a various artists album.
         if self.album_current_artist[0] == self.songinfo:
             return
-        artist, tracks = self.album_return_artist_and_tracks()
+        artist, _tracks = self.album_return_artist_and_tracks()
         if artist is not None:
             self.album_current_artist = [self.songinfo, artist]
         else:
@@ -2223,7 +2220,11 @@ class Base(object):
         self.call_gc_collect = True
 
     def image_local(self, _widget):
-        dialog = gtk.FileChooserDialog(title=_("Open Image"),action=gtk.FILE_CHOOSER_ACTION_OPEN,buttons=(gtk.STOCK_CANCEL,gtk.RESPONSE_CANCEL,gtk.STOCK_OPEN,gtk.RESPONSE_OK))
+        dialog = gtk.FileChooserDialog(
+            title=_("Open Image"),
+            action=gtk.FILE_CHOOSER_ACTION_OPEN,
+            buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+                 gtk.STOCK_OPEN,gtk.RESPONSE_OK))
         filefilter = gtk.FileFilter()
         filefilter.set_name(_("Images"))
         filefilter.add_pixbuf_formats()
@@ -2384,7 +2385,6 @@ class Base(object):
                 gobject.idle_add(self.on_notebook_resize, self.notebook, None)
             except:
                 dialog.destroy()
-                pass
         else:
             dialog.destroy()
         ui.change_cursor(None)
@@ -2482,8 +2482,8 @@ class Base(object):
         if self.traymenu.get_property('visible') and self.traytips.notif_handler != -1:
             self.traytips._remove_timer()
         elif not self.traytips.notif_handler:
-            pointer_screen, px, py, _ = self.window.get_screen().get_display().get_pointer()
-            icon_screen, icon_rect, icon_orient = self.statusicon.get_geometry()
+            _pscreen, px, py, _mods = self.window.get_screen().get_display().get_pointer()
+            _icon_screen, icon_rect, _icon_orient = self.statusicon.get_geometry()
             x = icon_rect[0]
             y = icon_rect[1]
             width = icon_rect[2]
@@ -2746,13 +2746,13 @@ class Base(object):
         trayicon_in_use = ((HAVE_STATUS_ICON and self.statusicon.is_embedded() and
                     self.statusicon.get_visible())
                    or (HAVE_EGG and self.trayicon.get_property('visible')))
-        extras = Extras_cbs()
+        extras = preferences.Extras_cbs()
         extras.popuptimes = self.popuptimes
         extras.notif_toggled = self.prefs_notif_toggled
         extras.crossfade_toggled = self.prefs_crossfade_toggled
         extras.crossfade_changed = self.prefs_crossfade_changed
 
-        display = Display_cbs()
+        display = preferences.Display_cbs()
         display.stylized_toggled = self.prefs_stylized_toggled
         display.art_toggled = self.prefs_art_toggled
         display.playback_toggled = self.prefs_playback_toggled
@@ -2761,7 +2761,7 @@ class Base(object):
         display.lyrics_toggled = self.prefs_lyrics_toggled
         display.trayicon_available = trayicon_available
 
-        behavior = Behavior_cbs()
+        behavior = preferences.Behavior_cbs()
         behavior.trayicon_toggled = self.prefs_trayicon_toggled
         behavior.trayicon_in_use = trayicon_in_use
         behavior.sticky_toggled = self.prefs_sticky_toggled
@@ -2769,7 +2769,7 @@ class Base(object):
         behavior.decorated_toggled = self.prefs_decorated_toggled
         behavior.infofile_changed = self.prefs_infofile_changed
 
-        format = Format_cbs()
+        format = preferences.Format_cbs()
         format.currentoptions_changed = self.prefs_currentoptions_changed
         format.libraryoptions_changed = self.prefs_libraryoptions_changed
         format.titleoptions_changed = self.prefs_titleoptions_changed
@@ -2852,9 +2852,9 @@ class Base(object):
 
     def prefs_progress_toggled(self, button):
         self.config.show_progress = button.get_active()
-        func = 'show' if self.config.show_progress else 'hide'
+        func = ui.show if self.config.show_progress else ui.hide
         for widget in [self.progressbox, self.trayprogressbar]:
-            getattr(ui,func)(widget)
+            func(widget)
 
     def prefs_art_toggled(self, button, art_hbox1, art_hbox2, art_stylized):
         button_active = button.get_active()
@@ -2942,18 +2942,18 @@ class Base(object):
         mpdh.call(self.client, 'seek', song, seektime)
         self.iterate_now()
 
-    def on_link_click(self, type):
+    def on_link_click(self, linktype):
         browser_not_loaded = False
-        if type == 'artist':
+        if linktype == 'artist':
             browser_not_loaded = not misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + urllib.quote(mpdh.get(self.songinfo, 'artist')), self.config.url_browser, self.window)
-        elif type == 'album':
+        elif linktype == 'album':
             browser_not_loaded = not misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + urllib.quote(mpdh.get(self.songinfo, 'album')), self.config.url_browser, self.window)
-        elif type == 'edit':
+        elif linktype == 'edit':
             if self.songinfo:
                 self.on_tags_edit(None)
-        elif type == 'search':
+        elif linktype == 'search':
             self.on_lyrics_search(None)
-        elif type == 'editlyrics':
+        elif linktype == 'editlyrics':
             browser_not_loaded = not misc.browser_load(self.info.lyricwiki_editlink(self.songinfo), self.config.url_browser, self.window)
         if browser_not_loaded:
             ui.show_msg(self.window, _('Unable to launch a suitable browser.'), _('Launch Browser'), 'browserLoadError', gtk.BUTTONS_CLOSE)
