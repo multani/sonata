@@ -84,13 +84,13 @@ class Library(object):
         self.libraryview = ui.button(relief=gtk.RELIEF_NONE)
         self.libraryview.set_tooltip_text(_("Library browsing view"))
         # disabled as breadcrumbs replace this:
-        self.searchbox.pack_start(self.libraryview, False, False, 1)
-        self.searchbox.pack_start(gtk.VSeparator(), False, False, 2)
+#		self.searchbox.pack_start(self.libraryview, False, False, 1)
+#		self.searchbox.pack_start(gtk.VSeparator(), False, False, 2)
         self.searchbox.pack_start(ui.label(_("Search") + ":"), False, False, 3)
         self.searchbox.pack_start(self.searchtext, True, True, 2)
         self.searchbox.pack_start(self.searchcombo, False, False, 2)
         self.searchbox.pack_start(self.searchbutton, False, False, 2)
-        #self.libraryvbox.pack_start(self.breadcrumbs, False, False, 2)
+        self.libraryvbox.pack_start(self.breadcrumbs, False, False, 2)
         self.libraryvbox.pack_start(expanderwindow2, True, True)
         self.libraryvbox.pack_start(self.searchbox, False, False, 2)
 
@@ -367,7 +367,7 @@ class Library(object):
         # Update library artwork as necessary
         self.on_library_scrolled(None, None)
 
-        #self.update_breadcrumbs()
+        self.update_breadcrumbs()
 
     def update_breadcrumbs(self):
         # remove previous buttons
@@ -461,7 +461,7 @@ class Library(object):
             b.show_all()
 
     def library_populate_add_parent_rows(self):
-        #return [] # disabled as breadcrumbs replace these
+        return [] # disabled as breadcrumbs replace these
         if self.config.lib_view == consts.VIEW_FILESYSTEM:
             bd = [('0', [self.harddiskpb, self.library_set_data(path='/'), '/'])]
             bd += [('1', [self.openpb, self.library_set_data(path='..'), '..'])]
