@@ -1,4 +1,4 @@
-v1.6.2
+v1.6.3
 	disconnect/connect/reconnect ui weirdness
 	sonata freezes with gail/accessibility enabled during new library searching
 	translations - bold, commas for arabic (ahmad farghal email)

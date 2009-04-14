@@ -1,3 +1,6 @@
+v1.6.2 - April 13, 2009
+	+ Bug: Fix cli options (e.g. 'sonata play')
+
 v1.6.1 - April 11, 2009
 	+ Reduce library's filesystem view row height
 	+ More auto-applying of preferences (e.g. format tab)

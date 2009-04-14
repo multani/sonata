@@ -84,19 +84,21 @@ class Library(object):
         self.libraryview = ui.button(relief=gtk.RELIEF_NONE)
         self.libraryview.set_tooltip_text(_("Library browsing view"))
         # disabled as breadcrumbs replace this:
-#		self.searchbox.pack_start(self.libraryview, False, False, 1)
-#		self.searchbox.pack_start(gtk.VSeparator(), False, False, 2)
+        self.searchbox.pack_start(self.libraryview, False, False, 1)
+        self.searchbox.pack_start(gtk.VSeparator(), False, False, 2)
         self.searchbox.pack_start(ui.label(_("Search") + ":"), False, False, 3)
         self.searchbox.pack_start(self.searchtext, True, True, 2)
         self.searchbox.pack_start(self.searchcombo, False, False, 2)
         self.searchbox.pack_start(self.searchbutton, False, False, 2)
-        self.libraryvbox.pack_start(self.breadcrumbs, False, False, 2)
+        #self.libraryvbox.pack_start(self.breadcrumbs, False, False, 2)
         self.libraryvbox.pack_start(expanderwindow2, True, True)
         self.libraryvbox.pack_start(self.searchbox, False, False, 2)
 
         self.tab = new_tab(self.libraryvbox, gtk.STOCK_HARDDISK, TAB_LIBRARY, self.library)
 
         # Assign some pixbufs for use in self.library
+        self.openpb2 = self.library.render_icon(gtk.STOCK_OPEN, gtk.ICON_SIZE_LARGE_TOOLBAR)
+        self.harddiskpb2 = self.library.render_icon(gtk.STOCK_HARDDISK, gtk.ICON_SIZE_LARGE_TOOLBAR)
         self.openpb = self.library.render_icon(gtk.STOCK_OPEN, gtk.ICON_SIZE_MENU)
         self.harddiskpb = self.library.render_icon(gtk.STOCK_HARDDISK, gtk.ICON_SIZE_MENU)
         self.albumpb = gtk.gdk.pixbuf_new_from_file_at_size(album_filename, consts.LIB_COVER_SIZE, consts.LIB_COVER_SIZE)
@@ -365,7 +367,7 @@ class Library(object):
         # Update library artwork as necessary
         self.on_library_scrolled(None, None)
 
-        self.update_breadcrumbs()
+        #self.update_breadcrumbs()
 
     def update_breadcrumbs(self):
         # remove previous buttons
@@ -459,9 +461,13 @@ class Library(object):
             b.show_all()
 
     def library_populate_add_parent_rows(self):
-        return [] # disabled as breadcrumbs replace these
-        bd = [('0', [self.harddiskpb, self.library_set_data(path='/'), '/'])]
-        bd += [('1', [self.openpb, self.library_set_data(path='..'), '..'])]
+        #return [] # disabled as breadcrumbs replace these
+        if self.config.lib_view == consts.VIEW_FILESYSTEM:
+            bd = [('0', [self.harddiskpb, self.library_set_data(path='/'), '/'])]
+            bd += [('1', [self.openpb, self.library_set_data(path='..'), '..'])]
+        else:
+            bd = [('0', [self.harddiskpb2, self.library_set_data(path='/'), '/'])]
+            bd += [('1', [self.openpb2, self.library_set_data(path='..'), '..'])]
         return bd
 
     def library_populate_filesystem_data(self, path):
