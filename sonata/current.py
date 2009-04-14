@@ -5,7 +5,7 @@ interface for it.
 
 Example usage:
 import current
-self.current = current.Current(self.config, self.client, self.TAB_CURRENT, self.on_current_button_press, self.parse_formatting_colnames, self.parse_formatting, self.connected, lambda:self.sonata_loaded, lambda:self.songinfo, self.update_statusbar, self.iterate_now, lambda:self.library.libsearchfilter_get_style())
+self.current = current.Current(self.config, self.client, self.TAB_CURRENT, self.on_current_button_press, self.connected, lambda:self.sonata_loaded, lambda:self.songinfo, self.update_statusbar, self.iterate_now, lambda:self.library.libsearchfilter_get_style())
 vbox_current, playlistevbox = self.current.get_widgets()
 ...
 self.current.current_update(prevstatus_playlist, self.status['playlistlength'])
@@ -17,16 +17,14 @@ import threading # searchfilter_toggle starts thread searchfilter_loop
 
 import gtk, pango, gobject
 
-import ui, misc
+import ui, misc, formatting
 import mpdhelper as mpdh
 
 class Current(object):
-    def __init__(self, config, client, TAB_CURRENT, on_current_button_press, parse_formatting_colnames, parse_formatting, connected, sonata_loaded, songinfo, update_statusbar, iterate_now, libsearchfilter_get_style, new_tab):
+    def __init__(self, config, client, TAB_CURRENT, on_current_button_press, connected, sonata_loaded, songinfo, update_statusbar, iterate_now, libsearchfilter_get_style, new_tab):
         self.config = config
         self.client = client
         self.on_current_button_press = on_current_button_press
-        self.parse_formatting_colnames = parse_formatting_colnames
-        self.parse_formatting = parse_formatting
         self.connected = connected
         self.sonata_loaded = sonata_loaded
         self.songinfo = songinfo
@@ -122,7 +120,8 @@ class Current(object):
             # Number of columns changed, set columns equally spaced:
             self.config.columnwidths = [self.current.allocation.width/num_columns] * num_columns
 
-        colnames = self.parse_formatting_colnames(self.config.currentformat)
+        colnames = formatting.parse_colnames(
+            self.config.currentformat)
         self.columns = [gtk.TreeViewColumn(name, cellrenderer,
                 markup=(i+1))
                 for i, name in enumerate(colnames)]
@@ -179,8 +178,8 @@ class Current(object):
 
     def update_format(self):
         for track in self.current_songs:
-            items = [self.parse_formatting(part, track, True)
-                for part in self.columnformat]
+            items = [formatting.parse(part, track, True)
+                 for part in self.columnformat]
 
             self.currentdata.append([int(mpdh.get(track, 'id'))] + items)
 
@@ -209,9 +208,9 @@ class Current(object):
                 for track in changed_songs:
                     pos = int(mpdh.get(track, 'pos'))
 
-                    items = [self.parse_formatting(part,
-                            track, True)
-                        for part in self.columnformat]
+                    items = [formatting.parse(part, track,
+                                  True)
+                         for part in self.columnformat]
 
                     if pos < currlen:
                         # Update attributes for item:

@@ -5,7 +5,7 @@ import operator
 
 import gtk, gobject, pango
 
-import ui, misc
+import ui, misc, formatting
 import mpdhelper as mpdh
 from consts import consts
 import breadcrumbs
@@ -24,7 +24,7 @@ def library_get_data(data, *args):
         return retlist
 
 class Library(object):
-    def __init__(self, config, client, artwork, TAB_LIBRARY, album_filename, settings_save, filtering_entry_make_red, filtering_entry_revert_color, filter_key_pressed, on_add_item, parse_formatting, connected, on_library_button_press, on_library_search_text_click, new_tab):
+    def __init__(self, config, client, artwork, TAB_LIBRARY, album_filename, settings_save, filtering_entry_make_red, filtering_entry_revert_color, filter_key_pressed, on_add_item, connected, on_library_button_press, on_library_search_text_click, new_tab):
         self.artwork = artwork
         self.config = config
         self.client = client
@@ -35,7 +35,6 @@ class Library(object):
         self.filtering_entry_revert_color = filtering_entry_revert_color
         self.filter_key_pressed = filter_key_pressed
         self.on_add_item = on_add_item
-        self.parse_formatting = parse_formatting
         self.connected = connected
         self.on_library_button_press = on_library_button_press
         self.on_library_search_text_click = on_library_search_text_click
@@ -484,7 +483,7 @@ class Library(object):
                     bd += [('d' + unicode(name).lower(), [self.openpb, data, misc.escape_html(name)])]
                 elif 'file' in item:
                     data = self.library_set_data(path=mpdh.get(item, 'file'))
-                    bd += [('f' + unicode(mpdh.get(item, 'file')).lower(), [self.sonatapb, data, self.parse_formatting(self.config.libraryformat, item, True)])]
+                    bd += [('f' + unicode(mpdh.get(item, 'file')).lower(), [self.sonatapb, data, formatting.parse(self.config.libraryformat, item, True)])]
             bd.sort(key=operator.itemgetter(0))
             if path != '/' and len(bd) > 0:
                 bd = self.library_populate_add_parent_rows() + bd
@@ -680,9 +679,9 @@ class Library(object):
             track = mpdh.getnum(song, 'track', '99', False, 2)
             disc = mpdh.getnum(song, 'disc', '99', False, 2)
             try:
-                bd += [('f' + disc + track + misc.lower_no_the(mpdh.get(song, 'title')), [self.sonatapb, data, self.parse_formatting(self.config.libraryformat, song, True)])]
+                bd += [('f' + disc + track + misc.lower_no_the(mpdh.get(song, 'title')), [self.sonatapb, data, formatting.parse(self.config.libraryformat, song, True)])]
             except:
-                bd += [('f' + disc + track + unicode(mpdh.get(song, 'file')).lower(), [self.sonatapb, data, self.parse_formatting(self.config.libraryformat, song, True)])]
+                bd += [('f' + disc + track + unicode(mpdh.get(song, 'file')).lower(), [self.sonatapb, data, formatting.parse(self.config.libraryformat, song, True)])]
         return bd
 
     def library_return_list_items(self, itemtype, genre=None, artist=None, album=None, year=None, ignore_case=True):
@@ -1211,8 +1210,7 @@ class Library(object):
         currlen = len(self.librarydata)
         bd = [[self.sonatapb,
                self.library_set_data(path=mpdh.get(item, 'file')),
-               self.parse_formatting(self.config.libraryformat, item,
-                         True)]
+               formatting.parse(self.config.libraryformat, item, True)]
               for item in matches if 'file' in item]
         bd.sort(locale.strcoll, key=operator.itemgetter(2))
         for i, item in enumerate(bd):

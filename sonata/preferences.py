@@ -19,6 +19,7 @@ from config import Config
 from pluginsystem import pluginsystem
 import ui
 import misc
+import formatting
 import os
 
 class Extras_cbs(object):
@@ -547,19 +548,7 @@ class Preferences():
         availableheading = ui.label(markup='<small>' + _('Available options') + ':</small>')
         availablevbox = gtk.VBox()
         availableformatbox = gtk.HBox()
-        # XXX get these directly from the formatting function:
-        formatcodes = [('A', _('Artist name')),
-                   ('B', _('Album name')),
-                   ('T', _('Track name')),
-                   ('N', _('Track number')),
-                   ('D', _('Disc number')),
-                   ('Y', _('Year')),
-                   ('G', _('Genre')),
-                   ('P', _('File path')),
-                   ('F', _('File name')),
-                   ('S', _('Stream name')),
-                   ('L', _('Song length')),
-                   ('E', _('Elapsed time (title only)'))]
+        formatcodes = formatting.formatcodes
         for codes in [formatcodes[:(len(formatcodes)+1)/2],
                   formatcodes[(len(formatcodes)+1)/2:]]:
             rows = '\n'.join('<tt>%' + code + '</tt> - ' + help
