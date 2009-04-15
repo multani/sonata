@@ -231,7 +231,7 @@ class Base(object):
         self.artwork = artwork.Artwork(self.config, self.find_path, misc.is_lang_rtl(self.window), lambda:self.info_imagebox.get_size_request(), self.schedule_gc_collect, self.target_image_filename, self.imagelist_append, self.remotefilelist_append, self.notebook.get_allocation, self.set_allow_art_search, self.status_is_play_or_pause, self.find_path('sonata-album.png'), self.get_current_song_text)
 
         # Popup menus:
-        actions = (
+        actions = [
             ('sortmenu', None, _('_Sort List')),
             ('plmenu', None, _('Sa_ve List to')),
             ('profilesmenu', None, _('_Connection')),
@@ -260,13 +260,9 @@ class Base(object):
             ('replace2menu', None, _('Replace'), '<Shift><Ctrl>r', None, self.on_replace_item_play),
             ('rmmenu', None, _('_Delete...'), None, None, self.on_remove),
             ('sortshuffle', None, _('Shuffle'), '<Alt>r', None, self.mpd_shuffle),
-            ('tab1key', None, 'Tab1 Key', '<Alt>1', None, self.on_switch_to_tab1),
-            ('tab2key', None, 'Tab2 Key', '<Alt>2', None, self.on_switch_to_tab2),
-            ('tab3key', None, 'Tab3 Key', '<Alt>3', None, self.on_switch_to_tab3),
-            ('tab4key', None, 'Tab4 Key', '<Alt>4', None, self.on_switch_to_tab4),
-            ('tab5key', None, 'Tab5 Key', '<Alt>5', None, self.on_switch_to_tab5),
-            ('nexttab', None, 'Next Tab Key', '<Alt>Right', None, self.switch_to_next_tab),
-            ('prevtab', None, 'Prev Tab Key', '<Alt>Left', None, self.switch_to_prev_tab),
+            ]
+
+        keyactions = [
             ('expandkey', None, 'Expand Key', '<Alt>Down', None, self.on_expand),
             ('collapsekey', None, 'Collapse Key', '<Alt>Up', None, self.on_collapse),
             ('ppkey', None, 'Play/Pause Key', '<Ctrl>p', None, self.mpd_pp),
@@ -281,18 +277,28 @@ class Base(object):
             ('connectkey', None, 'Connect Key', '<Alt>c', None, self.on_connectkey_pressed),
             ('disconnectkey', None, 'Disconnect Key', '<Alt>d', None, self.on_disconnectkey_pressed),
             ('searchkey', None, 'Search Key', '<Ctrl>h', None, self.on_library_search_shortcut),
-            )
+            ('nexttabkey', None, 'Next Tab Key', '<Alt>Right', None, self.switch_to_next_tab),
+            ('prevtabkey', None, 'Prev Tab Key', '<Alt>Left', None, self.switch_to_prev_tab),
+            ]
 
-        toggle_actions = (
+        tabactions = [('tab%skey' % i, None, 'Tab%s Key' % i,
+                   '<Alt>%s' % i, None,
+                   lambda _a, i=i: self.switch_to_tab_num(i-1))
+                  for i in range(1, 10)]
+
+        toggle_actions = [
             ('showmenu', None, _('S_how Sonata'), None, None, self.on_withdraw_app_toggle, not self.config.withdrawn),
             ('repeatmenu', None, _('_Repeat'), None, None, self.on_repeat_clicked, False),
             ('randommenu', None, _('Rando_m'), None, None, self.on_random_clicked, False),
+            ]
+
+        toggle_tabactions = [
             (self.TAB_CURRENT, None, self.TAB_CURRENT, None, None, self.on_tab_toggle, self.config.current_tab_visible),
             (self.TAB_LIBRARY, None, self.TAB_LIBRARY, None, None, self.on_tab_toggle, self.config.library_tab_visible),
             (self.TAB_PLAYLISTS, None, self.TAB_PLAYLISTS, None, None, self.on_tab_toggle, self.config.playlists_tab_visible),
             (self.TAB_STREAMS, None, self.TAB_STREAMS, None, None, self.on_tab_toggle, self.config.streams_tab_visible),
             (self.TAB_INFO, None, self.TAB_INFO, None, None, self.on_tab_toggle, self.config.info_tab_visible),
-            )
+            ]
 
         uiDescription = """
             <ui>
@@ -363,37 +369,19 @@ class Base(object):
                 <menuitem action="albumview"/>
               </popup>
               <popup name="hidden">
-                <menuitem action="quitkey"/>
-                <menuitem action="quitkey2"/>
-                <menuitem action="tab1key"/>
-                <menuitem action="tab2key"/>
-                <menuitem action="tab3key"/>
-                <menuitem action="tab4key"/>
-                <menuitem action="tab5key"/>
-                <menuitem action="nexttab"/>
-                <menuitem action="prevtab"/>
-                <menuitem action="nexttab"/>
-                <menuitem action="prevtab"/>
-                <menuitem action="expandkey"/>
-                <menuitem action="collapsekey"/>
-                <menuitem action="ppkey"/>
-                <menuitem action="stopkey"/>
-                <menuitem action="nextkey"/>
-                <menuitem action="prevkey"/>
-                <menuitem action="lowerkey"/>
-                <menuitem action="raisekey"/>
-                <menuitem action="raisekey2"/>
-                <menuitem action="connectkey"/>
-                <menuitem action="disconnectkey"/>
                 <menuitem action="centerplaylistkey"/>
-                <menuitem action="searchkey"/>
               </popup>
-              <popup name="notebookmenu">
             """
 
-        for tab in self.all_tab_names:
-            uiDescription = uiDescription + "<menuitem action=\"" + tab + "\"/>"
-        uiDescription = uiDescription + "</popup></ui>"
+        uiDescription += '<popup name="notebookmenu">'
+        uiDescription += ''.join('<menuitem action="%s"/>' % name
+                     for name in self.all_tab_names)
+        uiDescription += "</popup>"
+
+        uiDescription += ''.join('<accelerator action="%s"/>' % a[0]
+                     for a in keyactions + tabactions)
+
+        uiDescription += "</ui>"
 
         # Try to connect to MPD:
         self.mpd_connect(blocking=True)
@@ -474,11 +462,14 @@ class Base(object):
         self.UIManager = gtk.UIManager()
         actionGroup = gtk.ActionGroup('Actions')
         actionGroup.add_actions(actions)
+        actionGroup.add_actions(keyactions)
+        actionGroup.add_actions(tabactions)
         actionGroup.add_actions(currentactions)
         actionGroup.add_actions(libraryactions)
         actionGroup.add_actions(streamsactions)
         actionGroup.add_actions(playlistsactions)
         actionGroup.add_toggle_actions(toggle_actions)
+        actionGroup.add_toggle_actions(toggle_tabactions)
         self.UIManager.insert_action_group(actionGroup, 0)
         self.UIManager.add_ui_from_string(uiDescription)
         self.populate_profiles_for_menu()
@@ -2577,21 +2568,6 @@ class Base(object):
         vis_tabnum = self.notebook_get_visible_tab_num(self.notebook, tab_num)
         if vis_tabnum != -1:
             self.notebook.set_current_page(vis_tabnum)
-
-    def on_switch_to_tab1(self, _action):
-        self.switch_to_tab_num(0)
-
-    def on_switch_to_tab2(self, _action):
-        self.switch_to_tab_num(1)
-
-    def on_switch_to_tab3(self, _action):
-        self.switch_to_tab_num(2)
-
-    def on_switch_to_tab4(self, _action):
-        self.switch_to_tab_num(3)
-
-    def on_switch_to_tab5(self, _action):
-        self.switch_to_tab_num(4)
 
     def switch_to_next_tab(self, _action):
         self.notebook.next_page()
