@@ -68,6 +68,9 @@ except ImportError:
     import svnversion as version
 
 class Base(object):
+
+    ### XXX Warning, a long __init__ ahead:
+
     def __init__(self, args, window=None, _sugar=False):
         # The following attributes were used but not defined here before:
         self.album_current_artist = None
@@ -783,6 +786,9 @@ class Base(object):
                        self.on_enable_tab,
                        self.on_disable_tab)
 
+
+    ### Tab system:
+
     def on_enable_tab(self, _plugin, tab):
         self.new_tab(*tab())
 
@@ -816,8 +822,18 @@ class Base(object):
 
         return page
 
+
+    ### "Model, logic":
+
+    def connected(self):
+        return self.conn
+
+    def status_is_play_or_pause(self):
+        return (self.conn and self.status and
+            self.status.get('state', None) in ['play', 'pause'])
+
     def get_playing_song(self):
-        if self.status and self.status['state'] in ['play', 'pause'] and self.songinfo:
+        if self.status_is_play_or_pause() and self.songinfo:
             return self.songinfo
         return None
 
@@ -825,6 +841,16 @@ class Base(object):
         self.artwork.artwork_update()
         for _plugin, cb in pluginsystem.get('playing_song_observers'):
             cb(self.get_playing_song())
+
+    def get_current_song_text(self):
+        return (self.cursonglabel1.get_text(),
+            self.cursonglabel2.get_text())
+
+    def set_allow_art_search(self):
+        self.allow_art_search = True
+
+
+    ### XXX The rest:
 
     def gnome_session_management(self):
         try:
@@ -1149,7 +1175,7 @@ class Base(object):
             self.on_notebook_page_change(self.notebook, 0, self.notebook.get_current_page())
 
     def info_update(self, update_all, blank_window=False, skip_lyrics=False):
-        playing_or_paused = self.conn and self.status and self.status['state'] in ['play', 'pause']
+        playing_or_paused = self.status_is_play_or_pause()
         try:
             newbitrate = self.status['bitrate'] + " kbps"
         except:
@@ -1384,7 +1410,7 @@ class Base(object):
             self.current.current_update(prevstatus_playlist, self.status['playlistlength'])
 
         # Update progress frequently if we're playing
-        if self.status['state'] in ['play', 'pause']:
+        if self.status_is_play_or_pause():
             self.update_progressbar()
 
         # If elapsed time is shown in the window title, we need to update more often:
@@ -1437,7 +1463,7 @@ class Base(object):
                     self.trayimage.set_from_pixbuf(img.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
 
             self.playing_song_change()
-            if self.status['state'] in ['play', 'pause']:
+            if self.status_is_play_or_pause():
                 self.current.center_song_in_list()
 
         if self.prevstatus is None or self.status['volume'] != self.prevstatus['volume']:
@@ -1534,7 +1560,7 @@ class Base(object):
         self.info_update(True)
 
     def update_progressbar(self):
-        if self.conn and self.status and self.status['state'] in ['play', 'pause']:
+        if self.status_is_play_or_pause():
             at, length = [float(c) for c in self.status['time'].split(':')]
             try:
                 newfrac = at/length
@@ -1546,7 +1572,7 @@ class Base(object):
             if newfrac >= 0 and newfrac <= 1:
                 self.progressbar.set_fraction(newfrac)
         if self.conn:
-            if self.status and self.status['state'] in ['play', 'pause']:
+            if self.status_is_play_or_pause():
                 at, length = [int(c) for c in self.status['time'].split(':')]
                 at_time = misc.convert_time(at)
                 try:
@@ -1619,12 +1645,8 @@ class Base(object):
         if cursonglabelwidth > 0:
             self.cursonglabel1.set_size_request(cursonglabelwidth, -1)
             self.cursonglabel1.set_size_request(cursonglabelwidth, -1)
-
-    def get_current_song_text(self):
-        return self.cursonglabel1.get_text(), self.cursonglabel2.get_text()
-
     def update_cursong(self):
-        if self.conn and self.status and self.status['state'] in ['play', 'pause']:
+        if self.status_is_play_or_pause():
             # We must show the trayprogressbar and trayalbumeventbox
             # before changing self.cursonglabel (and consequently calling
             # self.on_currsong_notify()) in order to ensure that the notification
@@ -1689,7 +1711,7 @@ class Base(object):
 
     def update_wintitle(self):
         if self.window_owner:
-            if self.conn and self.status and self.status['state'] in ['play', 'pause']:
+            if self.status_is_play_or_pause():
                 newtitle = formatting.parse(
                     self.config.titleformat, self.songinfo,
                     False, True,
@@ -1699,15 +1721,6 @@ class Base(object):
             if not self.last_title or self.last_title != newtitle:
                 self.window.set_property('title', newtitle)
                 self.last_title = newtitle
-
-    def set_allow_art_search(self):
-        self.allow_art_search = True
-
-    def status_is_play_or_pause(self):
-        return self.conn and self.status and self.status['state'] in ['play', 'pause']
-
-    def connected(self):
-        return self.conn
 
     def tooltip_set_window_width(self):
         screen = self.window.get_screen()
@@ -1724,7 +1737,7 @@ class Base(object):
         if self.fullscreencoverart.get_property('visible'):
             return
         if self.sonata_loaded:
-            if self.conn and self.status and self.status['state'] in ['play', 'pause']:
+            if self.status_is_play_or_pause():
                 if self.config.show_covers:
                     self.traytips.set_size_request(self.notification_width, -1)
                 else:
@@ -1736,7 +1749,7 @@ class Base(object):
                     gobject.source_remove(self.traytips.notif_handler)
                 except:
                     pass
-                if self.conn and self.status and self.status['state'] in ['play', 'pause']:
+                if self.status_is_play_or_pause():
                     try:
                         self.traytips.notifications_location = self.config.traytips_notifications_location
                         self.traytips.use_notifications_location = True
@@ -1881,7 +1894,7 @@ class Base(object):
         else:
             ui.hide(self.statusbar)
             self.notebook.hide()
-        if not (self.conn and self.status and self.status['state'] in ['play', 'pause']):
+        if not self.status_is_play_or_pause():
             if window_about_to_be_expanded:
                 self.cursonglabel2.set_markup('<small>' + _('Click to collapse') + '</small>')
             else:
@@ -1899,7 +1912,7 @@ class Base(object):
                 self.window.resize(self.config.w, 1)
         if window_about_to_be_expanded:
             self.config.expanded = True
-            if self.status and self.status['state'] in ['play', 'pause']:
+            if self.status_is_play_or_pause():
                 gobject.idle_add(self.current.center_song_in_list)
             self.window.set_geometry_hints(self.window)
         if self.notebook_show_first_tab:
@@ -1913,7 +1926,7 @@ class Base(object):
     # This callback allows the user to seek to a specific portion of the song
     def on_progressbar_press(self, _widget, event):
         if event.button == 1:
-            if self.status and self.status['state'] in ['play', 'pause']:
+            if self.status_is_play_or_pause():
                 at, length = [int(c) for c in self.status['time'].split(':')]
                 try:
                     pbsize = self.progressbar.allocation
@@ -1927,7 +1940,7 @@ class Base(object):
             return True
 
     def on_progressbar_scroll(self, _widget, event):
-        if self.status and self.status['state'] in ['play', 'pause']:
+        if self.status_is_play_or_pause():
             try:
                 gobject.source_remove(self.seekidle)
             except:
@@ -2041,7 +2054,7 @@ class Base(object):
             artist = None
             album = None
             stream = None
-            if self.conn and self.status and self.status['state'] in ['play', 'pause']:
+            if self.status_is_play_or_pause():
                 self.UIManager.get_widget('/imagemenu/chooseimage_menu/').show()
                 self.UIManager.get_widget('/imagemenu/localimage_menu/').show()
                 artist = mpdh.get(self.songinfo, 'artist', None)
@@ -2060,7 +2073,7 @@ class Base(object):
         return True
 
     def on_image_drop_cb(self, _widget, _context, _x, _y, selection, _info, _time):
-        if self.conn and self.status and self.status['state'] in ['play', 'pause']:
+        if self.status_is_play_or_pause():
             uri = selection.data.strip()
             path = urllib.url2pathname(uri)
             paths = path.rsplit('\n')
@@ -2843,7 +2856,7 @@ class Base(object):
             for widget in [self.imageeventbox, self.info_imagebox, self.trayalbumeventbox, self.trayalbumimage2]:
                 widget.set_no_show_all(False)
                 if widget in [self.trayalbumeventbox, self.trayalbumimage2]:
-                    if self.conn and self.status and self.status['state'] in ['play', 'pause']:
+                    if self.status_is_play_or_pause():
                         widget.show_all()
                 else:
                     widget.show_all()
@@ -3140,7 +3153,7 @@ class Base(object):
         files = []
         temp_mpdpaths = []
         if self.current_tab == self.TAB_INFO:
-            if self.status and self.status['state'] in ['play', 'pause']:
+            if self.status_is_play_or_pause():
                 # Use current file in songinfo:
                 mpdpath = mpdh.get(self.songinfo, 'file')
                 fullpath = self.config.musicdir[self.config.profile_num] + mpdpath
