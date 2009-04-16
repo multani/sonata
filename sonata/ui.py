@@ -240,3 +240,27 @@ def icon(factory, icon_name, path):
 def change_cursor(cursortype):
     for i in gtk.gdk.window_get_toplevels():
         i.set_cursor(cursortype)
+
+class CellRendererTextWrap(gtk.CellRendererText):
+    """A CellRendererText which sets its wrap-width to its width."""
+
+    __gtype_name__ = 'CellRendererTextWrap'
+
+    def __init__(self):
+        self.column = None
+        gtk.CellRendererText.__init__(self)
+
+    def set_column(self, column):
+        """Set the containing gtk.TreeViewColumn to queue resizes."""
+
+        self.column = column
+
+    def do_render(self, window, widget, background_area, cell_area,
+              expose_area, flags):
+        if self.props.wrap_width != cell_area.width:
+            self.props.wrap_width = cell_area.width
+            self.column.queue_resize()
+
+        gtk.CellRendererText.do_render(
+            self, window, widget, background_area, cell_area,
+            expose_area, flags)

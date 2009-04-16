@@ -621,18 +621,22 @@ class Preferences():
         plugincheckcell.connect('toggled', self.plugin_toggled,
             (plugindata, 0))
         pluginpixbufcell = gtk.CellRendererPixbuf()
-        plugintextcell = gtk.CellRendererText()
+        plugintextcell = ui.CellRendererTextWrap()
 
         plugincol0 = gtk.TreeViewColumn()
         self.pluginview.append_column(plugincol0)
         plugincol0.pack_start(plugincheckcell, True)
         plugincol0.set_attributes(plugincheckcell, active=0)
-        plugincol0.set_title("  " + _("Enabled") + "  ")
+        plugincol0.set_title(_("Enabled"))
 
         plugincol1 = gtk.TreeViewColumn()
+        plugincol1.set_properties(
+            max_width=0, # will expand to fill view and not more
+            spacing=10) # space between icon and text
         self.pluginview.append_column(plugincol1)
         plugincol1.pack_start(pluginpixbufcell, False)
         plugincol1.pack_start(plugintextcell, True)
+        plugintextcell.set_column(plugincol1)
         plugincol1.set_attributes(pluginpixbufcell, pixbuf=1)
         plugincol1.set_attributes(plugintextcell, markup=2)
         plugincol1.set_title(_("Description"))
@@ -640,8 +644,8 @@ class Preferences():
         plugindata.clear()
         for plugin in pluginsystem.get_info():
             pb = self.plugin_get_icon_pixbuf(plugin)
-            plugin_text = "<b> " + plugin.longname + "</b>   " + plugin.version_string
-            plugin_text += "\n " + plugin.description
+            plugin_text = "<b>" + plugin.longname + "</b> " + plugin.version_string
+            plugin_text += "\n" + plugin.description
             enabled = plugin.get_enabled()
             plugindata.append((enabled, pb, plugin_text))
         return pluginwindow
