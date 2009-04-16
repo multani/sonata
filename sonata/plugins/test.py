@@ -5,11 +5,12 @@
 # [plugin]
 # plugin_format: 0, 0
 # name: Test plugin
-# version: 0, 0, 0
+# version: 0, 0, 1
 # description: A simple test plugin.
 # author: Tuukka Hastrup
 # author_email: Tuukka.Hastrup@iki.fi
 # url: http://sonata.berlios.de
+# license: GPL v3 or later
 # [capabilities]
 # enablables: on_enable
 # tabs: construct_tab

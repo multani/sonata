@@ -5,11 +5,12 @@
 # [plugin]
 # plugin_format: 0, 0
 # name: Local MPD
-# version: 0, 0, 0
-# description: A tab for controlling local MPD
+# version: 0, 0, 1
+# description: A tab for controlling local MPD.
 # author: Tuukka Hastrup
 # author_email: Tuukka.Hastrup@iki.fi
 # url: http://sonata.berlios.de
+# license: GPL v3 or later
 # [capabilities]
 # tabs: construct_tab
 ### END PLUGIN INFO
@@ -28,8 +29,9 @@ def update(label):
     if not label.window or not label.window.is_viewable():
         return
 
+    # XXX replace the shell commands with python code
     commands = [("Processes", ["sh", "-c", "ps wwu -C mpd"]),
-            ("Networking", ["sh", "-c", "netstat -Watue --numeric-hosts | egrep ':6600|^Proto'"]),
+            ("Networking", ["sh", "-c", "netstat -atue --numeric-hosts | egrep ':6600|^Proto'"]),
             ("Files", ["sh", "-c", "ls -lRh /etc/mpd.conf /var/lib/mpd"]),
             ]
     outputs = [(title, subprocess.Popen(command,

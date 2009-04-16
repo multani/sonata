@@ -3,16 +3,16 @@
 ### BEGIN PLUGIN INFO
 # [plugin]
 # plugin_format: 0, 0
-# name: Gajim tune plugin.
+# name: Gajim tune
 # version: 0, 0, 1
-# description: Updates the Gajim(or others) Tune message when the song has changed(via the MPRIS D-Bus API).
+# description: Update the MPRIS (in Gajim etc.) tune information.
 # author: Fomin Denis
 # author_email: fominde@gmail.com
 # url: http://sonata.berlios.de
+# license: GPL v3 or later
 # [capabilities]
 # enablables: on_enable
 # playing_song_observers: on_song_change
-# license: GPL v3 or later
 ### END PLUGIN INFO
 
 import gtk, pango
