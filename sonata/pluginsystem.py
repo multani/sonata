@@ -113,7 +113,8 @@ class PluginSystem(object):
             plugin._enabled = True # XXX for plugin.get_features
 
             # process the notifys in the order they were registered:
-            for capability, enable, disable in self.notifys:
+            order = (lambda x:x) if state else reversed
+            for capability, enable, disable in order(self.notifys):
                 callback = enable if state else disable
                 for feature in plugin.get_features(capability):
                     callback(plugin, feature)

@@ -176,6 +176,7 @@ class Base(object):
         self.tabid2name = dict(zip(all_tab_ids, self.all_tab_names))
         self.tabname2tab = dict()
         self.tabname2focus = dict()
+        self.plugintabs = dict()
 
         self.config = Config(_('Default Profile'), _("by") + " %A " + _("from") + " %B", library.library_set_data)
         self.preferences = preferences.Preferences(self.config,
@@ -790,10 +791,10 @@ class Base(object):
     ### Tab system:
 
     def on_enable_tab(self, _plugin, tab):
-        self.new_tab(*tab())
+        self.plugintabs[tab] = self.new_tab(*tab())
 
     def on_disable_tab(self, _plugin, tab):
-        self.notebook.remove(self.tabname2tab[tab()[2]])
+        self.notebook.remove(self.plugintabs.pop(tab))
 
     def new_tab(self, page, stock, text, focus):
         # create the "ear" of the tab:
