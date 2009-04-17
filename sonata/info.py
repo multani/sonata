@@ -228,13 +228,8 @@ class Info(object):
             self.on_link_click_cb(linktype)
 
     def info_expanded(self, expander, infotype):
-        expanded = not expander.get_expanded()
-        if infotype == "song":
-            self.config.info_song_expanded = expanded
-        elif infotype == "lyrics":
-            self.config.info_lyrics_expanded = expanded
-        elif infotype == "album":
-            self.config.info_album_expanded = expanded
+        setattr(self.config, "info_%s_expanded" % infotype,
+                not expander.get_expanded())
 
     def info_update(self, playing_or_paused, newbitrate, songinfo, update_all, blank_window=False, skip_lyrics=False):
         # update_all = True means that every tag should update. This is
