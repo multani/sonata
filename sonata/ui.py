@@ -257,7 +257,9 @@ class CellRendererTextWrap(gtk.CellRendererText):
 
     def do_render(self, window, widget, background_area, cell_area,
               expose_area, flags):
-        if self.props.wrap_width != cell_area.width:
+        # if not wrapping at or slightly before area edge:
+        if not 0 <= cell_area.width - self.props.wrap_width <= 1:
+            print cell_area.width
             self.props.wrap_width = cell_area.width
             self.column.queue_resize()
 
