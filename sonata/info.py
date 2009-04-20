@@ -271,9 +271,9 @@ class Info(object):
                     tracklabel.set_text(mpdh.getnum(songinfo, 'track', '0', False, 0))
                 else:
                     tracklabel.set_text("")
-                path = misc.file_from_utf8(self.config.musicdir[self.config.profile_num] + os.path.dirname(mpdh.get(songinfo, 'file')))
+                path = misc.file_from_utf8(os.path.join(self.config.musicdir[self.config.profile_num], os.path.dirname(mpdh.get(songinfo, 'file'))))
                 if os.path.exists(path):
-                    filelabel.set_text(self.config.musicdir[self.config.profile_num] + mpdh.get(songinfo, 'file'))
+                    filelabel.set_text(os.path.join(self.config.musicdir[self.config.profile_num], mpdh.get(songinfo, 'file')))
                     self.info_editlabel.set_markup(misc.link_markup(_("edit tags"), True, True, self.linkcolor))
                 else:
                     filelabel.set_text(mpdh.get(songinfo, 'file'))
@@ -475,13 +475,13 @@ class Info(object):
         lyrics_loc = force_location if force_location else self.config.lyrics_location
         # Note: *_ALT searching is for compatibility with other mpd clients (like ncmpcpp):
         if lyrics_loc == consts.LYRICS_LOCATION_HOME:
-            targetfile = os.path.expanduser("~/.lyrics/" + artist + "-" + title + ".txt")
+            targetfile = os.path.join(os.path.expanduser("~/.lyrics"), artist + "-" + title + ".txt")
         elif lyrics_loc == consts.LYRICS_LOCATION_PATH:
-            targetfile = self.config.musicdir[self.config.profile_num] + song_dir + "/" + artist + "-" + title + ".txt"
+            targetfile = os.path.join(self.config.musicdir[self.config.profile_num], song_dir, artist + "-" + title + ".txt")
         elif lyrics_loc == consts.LYRICS_LOCATION_HOME_ALT:
-            targetfile = os.path.expanduser("~/.lyrics/" + artist + " - " + title + ".txt")
+            targetfile = os.path.join(os.path.expanduser("~/.lyrics"), artist + " - " + title + ".txt")
         elif lyrics_loc == consts.LYRICS_LOCATION_PATH_ALT:
-            targetfile = self.config.musicdir[self.config.profile_num] + song_dir + "/" + artist + " - " + title + ".txt"
+            targetfile = os.path.join(self.config.musicdir[self.config.profile_num], song_dir, artist + " - " + title + ".txt")
         targetfile = misc.file_exists_insensitive(targetfile)
         return misc.file_from_utf8(targetfile)
 

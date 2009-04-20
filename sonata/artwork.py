@@ -393,7 +393,7 @@ class Artwork(object):
         if self.artwork_get_misc_img_in_path(songpath):
             return consts.ART_LOCATION_MISC, self.artwork_get_misc_img_in_path(songpath)
 
-        testfile = img.single_image_in_dir(self.config.musicdir[self.config.profile_num] + songpath)
+        testfile = img.single_image_in_dir(os.path.join(self.config.musicdir[self.config.profile_num], songpath))
         if testfile is not None:
             return consts.ART_LOCATION_SINGLE, testfile
 
@@ -422,10 +422,10 @@ class Artwork(object):
             gobject.idle_add(self.library_set_image_for_current_song, cache_key)
 
     def artwork_get_misc_img_in_path(self, songdir):
-        path = misc.file_from_utf8(self.config.musicdir[self.config.profile_num] + songdir)
-        if os.path.exists(path):
+        dir = misc.file_from_utf8(os.path.join(self.config.musicdir[self.config.profile_num], songdir))
+        if os.path.exists(dir):
             for name in consts.ART_LOCATIONS_MISC:
-                filename = path + "/" + name
+                filename = os.path.join(dir, name)
                 if os.path.exists(filename):
                     return filename
         return False

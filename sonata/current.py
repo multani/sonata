@@ -171,7 +171,7 @@ class Current(object):
             else:
                 item = mpdh.get(self.current_songs[self.filter_row_mapping[path[0]]], 'file')
             if return_abs_paths:
-                filenames.append(self.config.musicdir[self.config.profile_num] + item)
+                filenames.append(os.path.join(self.config.musicdir[self.config.profile_num], item))
             else:
                 filenames.append(item)
         return filenames
@@ -489,7 +489,7 @@ class Current(object):
                 elif paths[i].startswith('file:'):
                     paths[i] = paths[i][5:]
                 if paths[i].startswith(musicdir):
-                    paths[i] = paths[i][len(self.config.musicdir[self.config.profile_num]):]
+                    paths[i] = paths[i][len(musicdir):]
                     if len(paths[i]) == 0:
                         paths[i] = "/"
                     listallinfo = mpdh.call(self.client, 'listallinfo', paths[i])

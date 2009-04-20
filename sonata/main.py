@@ -2142,15 +2142,15 @@ class Base(object):
             else:
                 art_loc = self.config.art_location
             if art_loc == consts.ART_LOCATION_HOMECOVERS:
-                targetfile = os.path.expanduser("~/.covers/" + artist + "-" + album + ".jpg")
+                targetfile = os.path.join(os.path.expanduser("~/.covers"), artist + "-" + album + ".jpg")
             elif art_loc == consts.ART_LOCATION_COVER:
-                targetfile = self.config.musicdir[self.config.profile_num] + songpath + "/cover.jpg"
+                targetfile = os.path.join(self.config.musicdir[self.config.profile_num], songpath, "cover.jpg")
             elif art_loc == consts.ART_LOCATION_FOLDER:
-                targetfile = self.config.musicdir[self.config.profile_num] + songpath + "/folder.jpg"
+                targetfile = os.path.join(self.config.musicdir[self.config.profile_num], songpath, "folder.jpg")
             elif art_loc == consts.ART_LOCATION_ALBUM:
-                targetfile = self.config.musicdir[self.config.profile_num] + songpath + "/album.jpg"
+                targetfile = os.path.join(self.config.musicdir[self.config.profile_num], songpath, "album.jpg")
             elif art_loc == consts.ART_LOCATION_CUSTOM:
-                targetfile = self.config.musicdir[self.config.profile_num] + songpath + "/" + self.config.art_location_custom_filename
+                targetfile = os.path.join(self.config.musicdir[self.config.profile_num], songpath, self.config.art_location_custom_filename)
             targetfile = misc.file_exists_insensitive(targetfile)
             return misc.file_from_utf8(targetfile)
 
@@ -2248,7 +2248,7 @@ class Base(object):
         dialog.connect("response", self.image_local_response, artist, album, stream)
         dialog.set_default_response(gtk.RESPONSE_OK)
         songdir = os.path.dirname(mpdh.get(self.songinfo, 'file'))
-        currdir = misc.file_from_utf8(self.config.musicdir[self.config.profile_num] + songdir)
+        currdir = misc.file_from_utf8(os.path.join(self.config.musicdir[self.config.profile_num], songdir))
         if self.config.art_location != consts.ART_LOCATION_HOMECOVERS:
             dialog.set_current_folder(currdir)
         if stream is not None:
@@ -3157,14 +3157,14 @@ class Base(object):
             if self.status_is_play_or_pause():
                 # Use current file in songinfo:
                 mpdpath = mpdh.get(self.songinfo, 'file')
-                fullpath = self.config.musicdir[self.config.profile_num] + mpdpath
+                fullpath = os.path.join(self.config.musicdir[self.config.profile_num], mpdpath)
                 files.append(fullpath)
                 temp_mpdpaths.append(mpdpath)
         elif self.current_tab == self.TAB_LIBRARY:
             # Populates files array with selected library items:
             items = self.library.get_path_child_filenames(False)
             for item in items:
-                files.append(self.config.musicdir[self.config.profile_num] + item)
+                files.append(os.path.join(self.config.musicdir[self.config.profile_num], item))
                 temp_mpdpaths.append(item)
         elif self.current_tab == self.TAB_CURRENT:
             # Populates files array with selected current playlist items:
