@@ -59,9 +59,9 @@ def on_song_change(songinfo):
         album = songinfo['album']
     if 'name' in songinfo and artist =='':
         artist = songinfo['name']
-    if 'file' in songinfo and album =='':
+    if 'file' in songinfo and title =='':
         album = songinfo['file']
-        if album.startswith('file: '):
+        if not album.startswith('http:'):
             title = album.rpartition('/')[2]
     if tune:
         tune.TrackChange(dbus.Dictionary(
