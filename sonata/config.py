@@ -120,6 +120,9 @@ class Config:
 
         self.traytips_notifications_location = 0
 
+        # Enabled plugins
+        self.autostart_plugins = []
+
         # Local consts
         self.LIB_NODATA = "!NONE!"
 
@@ -343,6 +346,10 @@ class Config:
             # Ensure we have a valid profile number:
             self.profile_num = max(0, min(self.profile_num, num_profiles-1))
 
+        if conf.has_section('plugins'):
+            if conf.has_option('plugins', 'autostart_plugins'):
+                self.autostart_plugins = conf.get('plugins', 'autostart_plugins')
+
     def settings_save_real(self, library_get_data):
         """Save configuration in file"""
         conf = ConfigParser.ConfigParser()
@@ -470,5 +477,9 @@ class Config:
         # Tag editor
         conf.add_section('tags')
         conf.set('tags', 'use_mpdpaths', self.tags_use_mpdpath)
+
+        # Enabled plugins list
+        conf.add_section('plugins')
+        conf.set('plugins', 'autostart_plugins', self.autostart_plugins)
 
         conf.write(file(os.path.expanduser('~/.config/sonata/sonatarc'), 'w'))

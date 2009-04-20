@@ -787,6 +787,11 @@ class Base(object):
                        self.on_enable_tab,
                        self.on_disable_tab)
 
+        # Autostart plugins
+        for plugin in pluginsystem.plugin_infos:
+            if plugin.name in self.config.autostart_plugins:
+                pluginsystem.set_enabled(plugin, True)
+
 
     ### Tab system:
 
@@ -1144,6 +1149,12 @@ class Base(object):
         self.config.playlists_tab_pos = self.notebook_get_tab_num(self.notebook, self.TAB_PLAYLISTS)
         self.config.streams_tab_pos = self.notebook_get_tab_num(self.notebook, self.TAB_STREAMS)
         self.config.info_tab_pos = self.notebook_get_tab_num(self.notebook, self.TAB_INFO)
+
+        autostart_plugins = []
+        for plugin in pluginsystem.plugin_infos:
+            if plugin._enabled:
+                autostart_plugins.append(plugin.name)
+        self.config.autostart_plugins = autostart_plugins
 
         self.config.settings_save_real(library.library_get_data)
 
