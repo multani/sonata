@@ -259,7 +259,6 @@ class CellRendererTextWrap(gtk.CellRendererText):
               expose_area, flags):
         if (self.props.wrap_width == -1 or
             cell_area.width < self.props.wrap_width):
-            print cell_area.width
             self.props.wrap_width = cell_area.width
             self.column.queue_resize()
 
