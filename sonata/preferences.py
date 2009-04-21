@@ -297,7 +297,6 @@ class Preferences():
         crossfadespin.set_numeric(True)
         crossfadespin.set_increments(1, 5)
         crossfadespin.connect('value-changed', cbs.crossfade_changed)
-        crossfadelabel2 = ui.label(text=_("Fade length") + ":")
         crossfadelabel2 = ui.label(textmn=_("_Fade length") + ":")
         crossfadelabel2.set_mnemonic_widget(crossfadespin)
         crossfadelabel3 = ui.label(text=_("sec"))
