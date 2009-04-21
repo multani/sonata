@@ -208,7 +208,7 @@ class Base(object):
                 ui.icon(self.iconfactory, iconname, icon_theme.lookup_icon(iconname, img_width, gtk.ICON_LOOKUP_USE_BUILTIN).get_filename())
             except:
                 # Fallback to Sonata-included icons:
-                ui.icon(self.iconfactory, iconname, self.find_path('sonata-'+iconname+'.png'))
+                ui.icon(self.iconfactory, iconname, self.find_path('sonata-%s.png' % iconname))
 
         # Main window
         if window is None:
@@ -2153,7 +2153,7 @@ class Base(object):
             else:
                 art_loc = self.config.art_location
             if art_loc == consts.ART_LOCATION_HOMECOVERS:
-                targetfile = os.path.join(os.path.expanduser("~/.covers"), artist + "-" + album + ".jpg")
+                targetfile = os.path.join(os.path.expanduser("~/.covers"), "%s-%s.jpg" % (artist, album))
             elif art_loc == consts.ART_LOCATION_COVER:
                 targetfile = os.path.join(self.config.musicdir[self.config.profile_num], songpath, "cover.jpg")
             elif art_loc == consts.ART_LOCATION_FOLDER:

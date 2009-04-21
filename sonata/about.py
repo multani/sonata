@@ -121,14 +121,14 @@ class About(object):
         # each pair is a [ heading, shortcutlist ]
         vbox = gtk.VBox()
         for pair in shortcuts:
-            titlelabel = ui.label(markup="<b>" + pair[0] + "</b>")
+            titlelabel = ui.label(markup="<b>%s</b>" % pair[0])
             vbox.pack_start(titlelabel, False, False, 2)
 
             # print the items of [ shortcut, desc ]
             for item in pair[1]:
                 tmphbox = gtk.HBox()
 
-                tmplabel = ui.label(markup="<b>" + item[0] + ":</b>", y=0)
+                tmplabel = ui.label(markup="<b>%s:</b>" % item[0], y=0)
                 tmpdesc = ui.label(text=item[1], wrap=True, y=0)
 
                 tmphbox.pack_start(tmplabel, False, False, 2)

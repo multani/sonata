@@ -69,14 +69,14 @@ def is_binary(f):
 
 def link_markup(s, enclose_in_parentheses, small, linkcolor):
     if enclose_in_parentheses:
-        s = "(" + s + ")"
+        s = "(%s)" % s
     if small:
-        s = "<small>" + s + "</small>"
+        s = "<small>%s</small>" % s
     if linkcolor:
         color = linkcolor
     else:
         color = "blue" #no theme color, default to blue..
-    s = "<span color='" + color + "'>" + s + "</span>"
+    s = "<span color='%s'>%s</span>" % (color, s)
     return s
 
 def iunique(iterable, key=id):

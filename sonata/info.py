@@ -75,7 +75,9 @@ class Info(object):
         outter_vbox = gtk.VBox()
 
         # Song info
-        info_song = ui.expander(markup="<b>" + _("Song Info") + "</b>", expand=self.config.info_song_expanded, can_focus=False)
+        info_song = ui.expander(markup="<b>%s</b>" % _("Song Info"),
+                expand=self.config.info_song_expanded,
+                can_focus=False)
         info_song.connect("activate", self.info_expanded, "song")
         inner_hbox = gtk.HBox()
 
@@ -138,7 +140,9 @@ class Info(object):
         outter_vbox.pack_start(info_song, False, False, margin)
 
         # Lyrics
-        self.info_lyrics = ui.expander(markup="<b>" + _("Lyrics") + "</b>", expand=self.config.info_lyrics_expanded, can_focus=False)
+        self.info_lyrics = ui.expander(markup="<b>%s</b>" % _("Lyrics"),
+                    expand=self.config.info_lyrics_expanded,
+                    can_focus=False)
         self.info_lyrics.connect("activate", self.info_expanded, "lyrics")
         lyricsbox = gtk.VBox()
         lyricsbox_top = gtk.HBox()
@@ -159,7 +163,9 @@ class Info(object):
         outter_vbox.pack_start(self.info_lyrics, False, False, margin)
 
         # Album info
-        info_album = ui.expander(markup="<b>" + _("Album Info") + "</b>", expand=self.config.info_album_expanded, can_focus=False)
+        info_album = ui.expander(markup="<b>%s</b>" % _("Album Info"),
+                expand=self.config.info_album_expanded,
+                can_focus=False)
         info_album.connect("activate", self.info_expanded, "album")
         albumbox = gtk.VBox()
         albumbox_top = gtk.HBox()
@@ -211,7 +217,7 @@ class Info(object):
 
     def on_link_click(self, _widget, _event, linktype):
         if linktype == 'more':
-            previous_is_more = (self.info_morelabel.get_text() == "(" + _("more") + ")")
+            previous_is_more = (self.info_morelabel.get_text() == "(%s)" % _("more"))
             if previous_is_more:
                 self.info_morelabel.set_markup(misc.link_markup(_("hide"), True, True, self.linkcolor))
                 self.config.info_song_more = True
@@ -385,7 +391,7 @@ class Info(object):
             f.close()
             # Strip artist - title line from file if it exists, since we
             # now have that information visible elsewhere.
-            header = filename_artist + " - " + filename_title + "\n\n"
+            header = "%s - %s\n\n" % (filename_artist, filename_title)
             if lyrics[:len(header)] == header:
                 lyrics = lyrics[len(header):]
             gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
@@ -475,13 +481,13 @@ class Info(object):
         lyrics_loc = force_location if force_location else self.config.lyrics_location
         # Note: *_ALT searching is for compatibility with other mpd clients (like ncmpcpp):
         if lyrics_loc == consts.LYRICS_LOCATION_HOME:
-            targetfile = os.path.join(os.path.expanduser("~/.lyrics"), artist + "-" + title + ".txt")
+            targetfile = os.path.join(os.path.expanduser("~/.lyrics"), "%s-%s.txt" % (artist, title))
         elif lyrics_loc == consts.LYRICS_LOCATION_PATH:
-            targetfile = os.path.join(self.config.musicdir[self.config.profile_num], song_dir, artist + "-" + title + ".txt")
+            targetfile = os.path.join(self.config.musicdir[self.config.profile_num], song_dir, "%s-%s.txt" % (artist, title))
         elif lyrics_loc == consts.LYRICS_LOCATION_HOME_ALT:
-            targetfile = os.path.join(os.path.expanduser("~/.lyrics"), artist + " - " + title + ".txt")
+            targetfile = os.path.join(os.path.expanduser("~/.lyrics"), "%s - %s.txt" % (artist, title))
         elif lyrics_loc == consts.LYRICS_LOCATION_PATH_ALT:
-            targetfile = os.path.join(self.config.musicdir[self.config.profile_num], song_dir, artist + " - " + title + ".txt")
+            targetfile = os.path.join(self.config.musicdir[self.config.profile_num], song_dir, "%s - %s.txt" % (artist , title))
         targetfile = misc.file_exists_insensitive(targetfile)
         return misc.file_from_utf8(targetfile)
 

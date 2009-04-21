@@ -563,11 +563,11 @@ class Library(object):
                     data = self.library_set_data(artist=artist, album=album, year=year, path=path)
                     display = misc.escape_html(album)
                     if artist and year and len(artist) > 0 and len(year) > 0 and artist != self.NOTAG and year != self.NOTAG:
-                        display += " <span weight='light'>(" + misc.escape_html(artist) + ", " + misc.escape_html(year) + ")</span>"
+                        display += " <span weight='light'>(%s, %s)</span>" % (misc.escape_html(artist), misc.escape_html(year))
                     elif artist and len(artist) > 0 and artist != self.NOTAG:
-                        display += " <span weight='light'>(" + misc.escape_html(artist) + ")</span>"
+                        display += " <span weight='light'>(%s)</span>" % misc.escape_html(artist)
                     elif year and len(year) > 0 and year != self.NOTAG:
-                        display += " <span weight='light'>(" + misc.escape_html(year) + ")</span>"
+                        display += " <span weight='light'>(%s)</span>" % misc.escape_html(year)
                     display += self.add_display_info(num_songs, int(playtime)/60)
                     bd += [(misc.lower_no_the(album), [self.albumpb, data, display])]
         bd.sort(locale.strcoll, key=operator.itemgetter(0))
@@ -651,7 +651,7 @@ class Library(object):
                         cache_data = self.library_set_data(artist=artist, album=album, path=path)
                         display = misc.escape_html(album)
                         if year and len(year) > 0 and year != self.NOTAG:
-                            display += " <span weight='light'>(" + misc.escape_html(year) + ")</span>"
+                            display += " <span weight='light'>(%s)</span>" % misc.escape_html(year)
                         display += self.add_display_info(num_songs, int(playtime)/60)
                         ordered_year = year
                         if ordered_year == self.NOTAG:
@@ -858,7 +858,7 @@ class Library(object):
         return (results, int(playtime), num_songs)
 
     def add_display_info(self, num_songs, playtime):
-        return "\n<small><span weight='light'>" + str(num_songs) + " " + gettext.ngettext('song', 'songs', num_songs) + ", " + str(playtime) + " " + gettext.ngettext('minute', 'minutes', playtime) + "</span></small>"
+        return "\n<small><span weight='light'>%s %s, %s %s</span></small>" % (num_songs, gettext.ngettext('song', 'songs', num_songs), playtime, gettext.ngettext('minute', 'minutes', playtime))
 
     def library_retain_selection(self, prev_selection, prev_selection_root, prev_selection_parent):
         # Unselect everything:
@@ -946,7 +946,7 @@ class Library(object):
         i = self.librarydata.get_iter(treepath[0])
         path = misc.escape_html(self.library_get_data(self.librarydata.get_value(i, 1), 'path'))
         song = self.librarydata.get_value(i, 2)
-        new_tooltip = "<b>" + _("Song") + ": </b>" + song + "\n<b>" + _("Path") + ": </b>" + path
+        new_tooltip = "<b>%s:</b> %s\n<b>%s:</b> %s" % (_("Song"), song, _("Path"), path)
 
         if new_tooltip != self.libsearch_last_tooltip:
             self.libsearch_last_tooltip = new_tooltip

@@ -72,7 +72,7 @@ class TagEditor():
             return
 
         if not os.path.isdir(misc.file_from_utf8(music_dir)):
-            ui.show_msg(self.window, _("The path") + " " + music_dir + " " + _("does not exist. Please specify a valid music directory in preferences."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=ui.dialog_destroy)
+            ui.show_msg(self.window, _("The path %s does not exist. Please specify a valid music directory in preferences.") % music_dir, _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=ui.dialog_destroy)
             ui.change_cursor(None)
             return
 
@@ -96,7 +96,7 @@ class TagEditor():
 
         if not os.path.exists(tags[0]['fullpath']):
             ui.change_cursor(None)
-            ui.show_msg(self.window, _("File ") + "\"" + tags[0]['fullpath'] + "\"" + _(" not found. Please specify a valid music directory in preferences."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=ui.dialog_destroy)
+            ui.show_msg(self.window, _("File '%s' not found. Please specify a valid music directory in preferences.") % tags[0]['fullpath'], _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=ui.dialog_destroy)
             return
         if not self.tags_next_tag(tags):
             ui.change_cursor(None)
@@ -257,7 +257,8 @@ class TagEditor():
             filename = os.path.basename(filename)
         self.filelabel.set_text(filename)
         entries[0].grab_focus()
-        window.set_title(_("Edit Tags") + " - " + str(self.tagnum+1) + " " + _("of") + " " + str(len(tags)))
+        window.set_title(_("Edit Tags - %s of %s") %
+                    (self.tagnum+1, len(tags)))
         self.tags_win_set_sensitive(window.action_area)
 
     def tags_win_set_sensitive(self, action_area):

@@ -343,7 +343,8 @@ class Artwork(object):
                     imgfound = self.artwork_check_for_remote(artist, album, path, filename)
 
     def artwork_stream_filename(self, streamname):
-        return os.path.expanduser('~/.covers/') + streamname.replace("/", "") + ".jpg"
+        return os.path.join(os.path.expanduser('~/.covers'),
+                "%s.jpg" % streamname.replace("/", ""))
 
     def artwork_check_for_local(self, artist, album, path):
         self.artwork_set_default_icon(artist, album, path)
@@ -539,8 +540,8 @@ class Artwork(object):
         album = urllib.quote(album.encode('latin1', 'replace'))
 
         # Try searching urls from most specific (artist, title) to least specific (artist only)
-        urls = [AMAZON_URI % (AMAZON_KEY, artist) + "&Title=" + album,
-            AMAZON_URI % (AMAZON_KEY, artist) + "&Keywords=" + album,
+        urls = [(AMAZON_URI + "&Title=%s") % (AMAZON_KEY, artist, album),
+            (AMAZON_URI + "&Keywords=%s") % (AMAZON_KEY, artist, album),
             AMAZON_URI % (AMAZON_KEY, artist)]
 
         for url in urls:
@@ -617,8 +618,8 @@ class Artwork(object):
     def fullscreen_cover_art_set_text(self):
         if self.status_is_play_or_pause():
             line1, line2 = self.get_current_song_text()
-            self.fullscreenalbumlabel.set_markup("<span size='20000' color='white'>" + misc.escape_html(line1) + "</span>")
-            self.fullscreenalbumlabel2.set_markup("<span size='12000' color='white'>" + misc.escape_html(line2) + "</span>")
+            self.fullscreenalbumlabel.set_markup("<span size='20000' color='white'>%s</span>" % misc.escape_html(line1))
+            self.fullscreenalbumlabel2.set_markup("<span size='12000' color='white'>%s</span>" % misc.escape_html(line2))
         else:
             self.fullscreen_cover_art_reset_text()
 

@@ -342,7 +342,7 @@ class Config:
                 self.host.append(conf.get('profiles', 'hosts[' + str(i) + ']'))
                 self.port.append(conf.getint('profiles', 'ports[' + str(i) + ']'))
                 self.password.append(conf.get('profiles', 'passwords[' + str(i) + ']'))
-                self.musicdir.append(misc.sanitize_musicdir(conf.get('profiles', 'musicdirs[' + str(i) + ']')))
+                self.musicdir.append(misc.sanitize_musicdir(conf.get('profiles', 'musicdirs[%s]' % i)))
             # Ensure we have a valid profile number:
             self.profile_num = max(0, min(self.profile_num, num_profiles-1))
 
