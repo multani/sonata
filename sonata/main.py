@@ -22,7 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import sys, gettext, os, warnings
 import urllib, urllib2, re, gc, shutil
 import threading
-from pkg_resources import resource_filename
 
 import mpd
 
@@ -3139,12 +3138,22 @@ class Base(object):
                 self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
 
     def find_path(self, filename):
+        full_filename = None
         if HAVE_SUGAR:
             full_filename = os.path.join(activity.get_bundle_path(), 'share', filename)
         else:
-            full_filename = resource_filename(__name__, 'pixmaps/' + filename)
-        if not os.path.exists(full_filename):
-            print full_filename + " cannot be found. Aborting..."
+            if os.path.exists(os.path.join(os.path.split(__file__)[0], filename)):
+                full_filename = os.path.join(os.path.split(__file__)[0], filename)
+            elif os.path.exists(os.path.join(os.path.split(__file__)[0], 'pixmaps', filename)):
+                full_filename = os.path.join(os.path.split(__file__)[0], 'pixmaps', filename)
+            elif os.path.exists(os.path.join(os.path.split(__file__)[0], 'share', filename)):
+                full_filename = os.path.join(os.path.split(__file__)[0], 'share', filename)
+            elif os.path.exists(os.path.join(__file__.split('/lib')[0], 'share', 'pixmaps', filename)):
+                full_filename = os.path.join(__file__.split('/lib')[0], 'share', 'pixmaps', filename)
+            elif os.path.exists(os.path.join(sys.prefix, 'share', 'pixmaps', filename)):
+                full_filename = os.path.join(sys.prefix, 'share', 'pixmaps', filename)
+        if not full_filename:
+            print filename + " cannot be found. Aborting..."
             sys.exit(1)
         return full_filename
 
