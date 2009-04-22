@@ -91,7 +91,6 @@ class Plugin(object):
 class PluginSystem(object):
     def __init__(self):
         self.plugin_infos = []
-        self.loaded_plugins = {}
         self.notifys = []
 
     def get_info(self):
@@ -155,13 +154,8 @@ class PluginSystem(object):
         if not info.options('capabilities'):
             print "Warning: No capabilities in plugin %s." % name
 
-    def load_plugin(self, _path, name):
-        # XXX load from a .py file - no .pyc etc.
-        plugin = self.import_plugin(name)
-        self.loaded_plugins[name] = plugin
-        return plugin
-
     def import_plugin(self, name):
+        # XXX load from a .py file - no .pyc etc.
         __import__('sonata.plugins', {}, {}, [name], 0)
         plugin = getattr(sonata.plugins, name)
         return plugin
