@@ -67,7 +67,7 @@ class Plugin(object):
 
         features = self._capabilities[capability]
         try:
-            return [getattr(module, f)
+            return [self.get_feature(module, f)
                 for f in features.split(', ')]
         except KeyboardInterrupt:
             raise
@@ -75,6 +75,12 @@ class Plugin(object):
             print ("Failed to access features in plugin %s." %
                    self.name)
             return []
+
+    def get_feature(self, module, feature):
+        obj = module
+        for name in feature.split('.'):
+            obj = getattr(obj, name)
+        return obj
 
     def _get_module(self):
         if not self._module:
