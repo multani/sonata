@@ -94,6 +94,23 @@ class Plugin(object):
     def force_loaded(self):
         return bool(self._get_module())
 
+
+class BuiltinPlugin(Plugin):
+    def __init__(self, name, longname, description, capabilities, object):
+        self.name = name
+        self.longname = longname
+        self.description = description
+        self._capabilities = capabilities
+        self._module = object
+        self.version_string = "Built-in"
+        self.author = self.author_email = self.url = ""
+        self.iconurl = None
+        self._enabled = False
+
+    def _get_module(self):
+        return self._module
+
+
 class PluginSystem(object):
     def __init__(self):
         self.plugin_infos = []
