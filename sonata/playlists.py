@@ -150,7 +150,7 @@ class Playlists(object):
             # Prompt user for playlist name:
             dialog = ui.dialog(title=title, parent=self.window, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT), role=role, default=gtk.RESPONSE_ACCEPT)
             hbox = gtk.HBox()
-            hbox.pack_start(ui.label(text=_('Playlist name') + ':'), False, False, 5)
+            hbox.pack_start(ui.label(text=_('Playlist name:')), False, False, 5)
             entry = ui.entry()
             entry.set_activates_default(True)
             hbox.pack_start(entry, True, True, 5)

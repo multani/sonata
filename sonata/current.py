@@ -59,7 +59,7 @@ class Current(object):
         self.expanderwindow = ui.scrollwindow(shadow=gtk.SHADOW_IN, add=self.current)
         self.filterpattern = ui.entry()
         self.filterbox = gtk.HBox()
-        self.filterbox.pack_start(ui.label(text=_("Filter") + ":"), False, False, 5)
+        self.filterbox.pack_start(ui.label(text=_("Filter:")), False, False, 5)
         self.filterbox.pack_start(self.filterpattern, True, True, 5)
         filterclosebutton = ui.button(img=ui.image(stock=gtk.STOCK_CLOSE), relief=gtk.RELIEF_NONE)
         self.filterbox.pack_start(filterclosebutton, False, False, 0)

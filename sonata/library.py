@@ -85,7 +85,7 @@ class Library(object):
         # disabled as breadcrumbs replace this:
 #		self.searchbox.pack_start(self.libraryview, False, False, 1)
 #		self.searchbox.pack_start(gtk.VSeparator(), False, False, 2)
-        self.searchbox.pack_start(ui.label(_("Search") + ":"), False, False, 3)
+        self.searchbox.pack_start(ui.label(_("Search:")), False, False, 3)
         self.searchbox.pack_start(self.searchtext, True, True, 2)
         self.searchbox.pack_start(self.searchcombo, False, False, 2)
         self.searchbox.pack_start(self.searchbutton, False, False, 2)

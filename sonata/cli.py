@@ -102,7 +102,7 @@ class Args(object):
         print ""
         print _("Usage: sonata [OPTION]... [COMMAND]...")
         print ""
-        print _("Options") + ":"
+        print _("Options:")
         print "  -h, --help           " + _("Show this help and exit")
         print "  -p, --popup          " + _("Popup song notification (requires D-Bus)")
         print "  -t, --toggle         " + _("Toggles whether the app is minimized")
@@ -113,7 +113,7 @@ class Args(object):
         print "  --visible            " + _("Start app visible (requires systray)")
         print "  --profile=[NUM]      " + _("Start with profile [NUM]")
         print ""
-        print _("Commands") + ":"
+        print _("Commands:")
         print "  play                 " + _("Play song in playlist")
         print "  pause                " + _("Pause currently playing song")
         print "  stop                 " + _("Stop currently playing song")

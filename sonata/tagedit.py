@@ -42,7 +42,7 @@ class TagEditor():
         button = ui.button()
         buttonvbox = self.tags_win_create_apply_all_button(button, entry, track)
 
-        label = ui.label(text=label_name + ":", x=1)
+        label = ui.label(text=label_name, x=1)
         hbox = gtk.HBox()
         hbox.pack_start(label, False, False, 2)
         hbox.pack_start(entry, True, True, 2)
@@ -122,12 +122,12 @@ class TagEditor():
         filehbox.pack_start(expandvbox, False, False, 2)
         filehbox.pack_start(blanklabel, False, False, 2)
 
-        titlelabel, titleentry, titlebutton, titlehbox = self._create_label_entry_button_hbox(_("Title"))
-        artistlabel, artistentry, artistbutton, artisthbox = self._create_label_entry_button_hbox(_("Artist"))
-        albumlabel, albumentry, albumbutton, albumhbox = self._create_label_entry_button_hbox(_("Album"))
-        yearlabel, yearentry, yearbutton, yearhbox = self._create_label_entry_button_hbox(_("Year"))
+        titlelabel, titleentry, titlebutton, titlehbox = self._create_label_entry_button_hbox(_("Title:"))
+        artistlabel, artistentry, artistbutton, artisthbox = self._create_label_entry_button_hbox(_("Artist:"))
+        albumlabel, albumentry, albumbutton, albumhbox = self._create_label_entry_button_hbox(_("Album:"))
+        yearlabel, yearentry, yearbutton, yearhbox = self._create_label_entry_button_hbox(_("Year:"))
         yearentry.set_size_request(50,-1)
-        tracklabel, trackentry, trackbutton, trackhbox = self._create_label_entry_button_hbox("  " + _("Track"), True)
+        tracklabel, trackentry, trackbutton, trackhbox = self._create_label_entry_button_hbox("  " + _("Track:"), True)
         trackentry.set_size_request(50,-1)
         yearandtrackhbox = gtk.HBox()
         yearandtrackhbox.pack_start(yearhbox, True, True, 0)
@@ -136,7 +136,7 @@ class TagEditor():
         yearentry.connect("insert_text", self.tags_win_entry_constraint, True)
         trackentry.connect("insert_text", self.tags_win_entry_constraint, False)
 
-        genrelabel = ui.label(text=_("Genre") + ":", x=1)
+        genrelabel = ui.label(text=_("Genre:"), x=1)
         genrecombo = ui.comboentry(items=self.tags_win_genres(), wrap=2)
         genreentry = genrecombo.get_child()
         genrehbox = gtk.HBox()
@@ -147,7 +147,7 @@ class TagEditor():
         genrehbox.pack_start(genrecombo, True, True, 2)
         genrehbox.pack_start(genrebuttonvbox, False, False, 2)
 
-        commentlabel, commententry, commentbutton, commenthbox = self._create_label_entry_button_hbox(_("Comment"))
+        commentlabel, commententry, commentbutton, commenthbox = self._create_label_entry_button_hbox(_("Comment:"))
 
         ui.set_widths_equal([titlelabel, artistlabel, albumlabel, yearlabel, genrelabel, commentlabel, sonataicon])
         genrecombo.set_size_request(-1, titleentry.size_request()[1])

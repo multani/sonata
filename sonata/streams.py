@@ -103,14 +103,14 @@ class Streams(object):
         else:
             dialog.set_title(_("New Stream"))
         hbox = gtk.HBox()
-        namelabel = ui.label(text=_('Stream name') + ':')
+        namelabel = ui.label(text=_('Stream name:'))
         hbox.pack_start(namelabel, False, False, 5)
         nameentry = ui.entry()
         if edit_mode:
             nameentry.set_text(self.config.stream_names[stream_num])
         hbox.pack_start(nameentry, True, True, 5)
         hbox2 = gtk.HBox()
-        urllabel = ui.label(text=_('Stream URL') + ':')
+        urllabel = ui.label(text=_('Stream URL:'))
         hbox2.pack_start(urllabel, False, False, 5)
         urlentry = ui.entry()
         if edit_mode:
