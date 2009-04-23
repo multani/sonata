@@ -1,15 +1,12 @@
 
-import sys, os, locale, urllib
-import threading # get_lyrics_start starts a thread get_lyrics_thread
-from socket import getdefaulttimeout as socketgettimeout
-from socket import setdefaulttimeout as socketsettimeout
+import sys, os, locale
 
-import gtk, gobject
-ServiceProxy = None # importing tried when needed
+import gtk
 
 import ui, misc
 import mpdhelper as mpdh
 from consts import consts
+from pluginsystem import pluginsystem
 
 class Info(object):
     def __init__(self, config, info_image, linkcolor, on_link_click_cb, library_return_search_items, get_playing_song, TAB_INFO, on_image_activate, on_image_motion_cb, on_image_drop_cb, album_return_artist_and_tracks, new_tab):
@@ -30,7 +27,6 @@ class Info(object):
             print "Locale cannot be found; please set your system's locale. Aborting..."
             sys.exit(1)
 
-        self.lyricServer = None
         self.last_info_bitrate = None
 
         self.info_boxes_in_more = None
@@ -313,23 +309,10 @@ class Info(object):
                     self.albumText.set_text(_("Album name not set."))
                 # Update lyrics:
                 if self.config.show_lyrics and not skip_lyrics:
-                    global ServiceProxy
-                    if ServiceProxy is None:
-                        try:
-                            from ZSI import ServiceProxy
-                            # Make sure we have the right version..
-                            if not hasattr(ServiceProxy, 'ServiceProxy'):
-                                ServiceProxy = None
-                        except ImportError:
-                            ServiceProxy = None
-                    if ServiceProxy is None:
-                        self.info_searchlabel.set_text("")
-                        self.info_show_lyrics(_("ZSI not found, fetching lyrics support disabled."), "", "", True)
-                    elif 'artist' in songinfo and 'title' in songinfo:
+                    if 'artist' in songinfo and 'title' in songinfo:
                         self.get_lyrics_start(mpdh.get(songinfo, 'artist'), mpdh.get(songinfo, 'title'), mpdh.get(songinfo, 'artist'), mpdh.get(songinfo, 'title'), os.path.dirname(mpdh.get(songinfo, 'file')))
                     else:
-                        self.info_searchlabel.set_text("")
-                        self.info_show_lyrics(_("Artist or song title not set."), "", "", True)
+                        self.info_show_lyrics(None, None, error=_("Artist or song title not set."))
         else:
             blank_window = True
         if blank_window:
@@ -339,7 +322,7 @@ class Info(object):
             if self.config.show_lyrics:
                 self.info_searchlabel.set_text("")
                 self.info_editlyricslabel.set_text("")
-                self.info_show_lyrics("", "", "", True)
+                self.info_show_lyrics(None, None)
             self.albumText.set_text("")
             self.last_info_bitrate = ""
 
@@ -354,25 +337,10 @@ class Info(object):
             if os.path.exists(filename):
                 return filename
 
-    def get_lyrics_start(self, *args):
-        lyricThread = threading.Thread(target=self.get_lyrics_thread, args=args)
-        lyricThread.setDaemon(True)
-        lyricThread.start()
-
-    def lyricwiki_format(self, text):
-        return urllib.quote(str(unicode(text).title()))
-
-    def lyricwiki_editlink(self, songinfo):
-        artist, title = [self.lyricwiki_format(mpdh.get(songinfo, key))
-                 for key in ('artist', 'title')]
-        return "http://lyricwiki.org/index.php?title=%s:%s&action=edit" % (artist, title)
-
-    def get_lyrics_thread(self, search_artist, search_title, filename_artist, filename_title, song_dir):
+    def get_lyrics_start(self, search_artist, search_title, filename_artist, filename_title, song_dir):
         filename_artist = misc.strip_all_slashes(filename_artist)
         filename_title = misc.strip_all_slashes(filename_title)
         filename = self.info_check_for_local_lyrics(filename_artist, filename_title, song_dir)
-        search_str = misc.link_markup(_("search"), True, True, self.linkcolor)
-        edit_str = misc.link_markup(_("edit"), True, True, self.linkcolor)
         if filename:
             # If the lyrics only contain "not found", delete the file and try to
             # fetch new lyrics. If there is a bug in Sonata/SZI/LyricWiki that
@@ -394,73 +362,70 @@ class Info(object):
             header = "%s - %s\n\n" % (filename_artist, filename_title)
             if lyrics[:len(header)] == header:
                 lyrics = lyrics[len(header):]
-            gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
-            gobject.idle_add(self.info_searchlabel.set_markup, search_str)
-            gobject.idle_add(self.info_editlyricslabel.set_markup, edit_str)
+            self.info_show_lyrics(filename_artist, filename_title, lyrics=lyrics)
         else:
-            # Use default filename:
-            filename = self.target_lyrics_filename(filename_artist, filename_title, song_dir)
-            # Fetch lyrics from lyricwiki.org
-            gobject.idle_add(self.info_show_lyrics, _("Fetching lyrics..."), filename_artist, filename_title)
-            if self.lyricServer is None:
-                wsdlFile = "http://lyricwiki.org/server.php?wsdl"
-                try:
-                    self.lyricServer = True
-                    timeout = socketgettimeout()
-                    socketsettimeout(consts.LYRIC_TIMEOUT)
-                    self.lyricServer = ServiceProxy.ServiceProxy(wsdlFile, cachedir=os.path.expanduser("~/.service_proxy_dir"))
-                except:
-                    socketsettimeout(timeout)
-                    lyrics = _("Couldn't connect to LyricWiki")
-                    gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
-                    self.lyricServer = None
-                    gobject.idle_add(self.info_searchlabel.set_markup, search_str)
-                    gobject.idle_add(self.info_editlyricslabel.set_markup, edit_str)
-                    return
-            try:
-                timeout = socketgettimeout()
-                socketsettimeout(consts.LYRIC_TIMEOUT)
-                lyrics = self.lyricServer.getSong(artist=self.lyricwiki_format(search_artist), song=self.lyricwiki_format(search_title))['return']["lyrics"]
-                if lyrics.lower() != "not found":
-                    lyrics = misc.unescape_html(lyrics)
-                    lyrics = misc.wiki_to_html(lyrics)
-                    lyrics = lyrics.encode("ISO-8859-1")
-                    gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
-                    # Save lyrics to file:
-                    misc.create_dir('~/.lyrics/')
-                    f = open(filename, 'w')
-                    lyrics = misc.unescape_html(lyrics)
-                    try:
-                        f.write(lyrics.decode(self.enc).encode('utf8'))
-                    except:
-                        f.write(lyrics)
-                    f.close()
-                else:
-                    lyrics = _("Lyrics not found")
-                    gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
-            except:
-                lyrics = _("Fetching lyrics failed")
-                gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
-            gobject.idle_add(self.info_searchlabel.set_markup, search_str)
-            gobject.idle_add(self.info_editlyricslabel.set_markup, edit_str)
-            socketsettimeout(timeout)
+            # Fetch lyrics from lyricwiki.org etc.
+            lyrics_fetchers = pluginsystem.get('lyrics_fetching')
+            callback = lambda *args: self.get_lyrics_response(
+                filename_artist, filename_title, song_dir, *args)
+            if lyrics_fetchers:
+                msg = _("Fetching lyrics...")
+                for _plugin, cb in lyrics_fetchers:
+                    cb(callback, search_artist, search_title)
+            else:
+                msg = _("No lyrics plug-in enabled.")
+            self.info_show_lyrics(filename_artist, filename_title,
+                          lyrics=msg)
 
-    def info_show_lyrics(self, lyrics, artist, title, force=False):
-        if force:
-            # For error messages where there is no appropriate artist or
-            # title, we pass force=True:
-            self.lyricsText.set_text(lyrics)
-        elif self.get_playing_song():
-            # Verify that we are displaying the correct lyrics:
-            songinfo = self.get_playing_song()
+    def get_lyrics_response(self, artist_then, title_then, song_dir,
+                lyrics=None, error=None):
+        if lyrics and not error:
+            filename = self.target_lyrics_filename(artist_then, title_then, song_dir)
+            # Save lyrics to file:
+            misc.create_dir('~/.lyrics/')
+            f = open(filename, 'w')
+            lyrics = misc.unescape_html(lyrics)
             try:
-                if misc.strip_all_slashes(mpdh.get(songinfo, 'artist')) == artist and misc.strip_all_slashes(mpdh.get(songinfo, 'title')) == title:
-                    try:
-                        self.lyricsText.set_markup(misc.escape_html(lyrics))
-                    except:
-                        self.lyricsText.set_text(lyrics)
+                f.write(lyrics.decode(self.enc).encode('utf8'))
             except:
-                pass
+                f.write(lyrics)
+            f.close()
+
+        self.info_show_lyrics(artist_then, title_then, lyrics, error)
+
+    def info_show_lyrics(self, artist_then, title_then, lyrics=None, error=None):
+        search_str = misc.link_markup(_("search"), True, True, self.linkcolor)
+        edit_str = misc.link_markup(_("edit"), True, True, self.linkcolor)
+        # For error messages where there is no appropriate info:
+        if not artist_then or not title_then:
+            self.info_searchlabel.set_markup("")
+            self.info_editlyricslabel.set_markup("")
+            if error:
+                self.lyricsText.set_markup(error)
+            elif lyrics:
+                self.lyricsText.set_markup(lyrics)
+            else:
+                self.lyricsText.set_markup("")
+            return
+
+        # Verify that we are displaying the correct lyrics:
+        songinfo = self.get_playing_song()
+        if not songinfo:
+            return
+        artist_now = misc.strip_all_slashes(mpdh.get(songinfo, 'artist', None))
+        title_now = misc.strip_all_slashes(mpdh.get(songinfo, 'title', None))
+        if (artist_now == artist_then and title_now == title_then):
+            self.info_searchlabel.set_markup(search_str)
+            self.info_editlyricslabel.set_markup(edit_str)
+            if error:
+                self.lyricsText.set_markup(error)
+            elif lyrics:
+                try:
+                    self.lyricsText.set_markup(misc.escape_html(lyrics))
+                except: ### XXX why would this happen?
+                    self.lyricsText.set_text(lyrics)
+            else:
+                self.lyricsText.set_markup("")
 
     def resize_elements(self, notebook_allocation):
         # Resize labels in info tab to prevent horiz scrollbar:
