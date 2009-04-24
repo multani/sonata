@@ -120,8 +120,9 @@ class Config:
 
         self.traytips_notifications_location = 0
 
-        # Enabled plugins
+        # Plugin state
         self.autostart_plugins = []
+        self.known_plugins = []
 
         # Local consts
         self.LIB_NODATA = "!NONE!"
@@ -349,6 +350,8 @@ class Config:
         if conf.has_section('plugins'):
             if conf.has_option('plugins', 'autostart_plugins'):
                 self.autostart_plugins = conf.get('plugins', 'autostart_plugins')
+            if conf.has_option('plugins', 'known_plugins'):
+                self.known_plugins = conf.get('plugins', 'known_plugins')
 
     def settings_save_real(self, library_get_data):
         """Save configuration in file"""
@@ -481,5 +484,6 @@ class Config:
         # Enabled plugins list
         conf.add_section('plugins')
         conf.set('plugins', 'autostart_plugins', self.autostart_plugins)
+        conf.set('plugins', 'known_plugins', self.known_plugins)
 
         conf.write(file(os.path.expanduser('~/.config/sonata/sonatarc'), 'w'))

@@ -791,10 +791,21 @@ class Base(object):
                        self.on_disable_tab)
 
         # Autostart plugins
-        for plugin in pluginsystem.plugin_infos:
+        for plugin in pluginsystem.get_info():
             if plugin.name in self.config.autostart_plugins:
                 pluginsystem.set_enabled(plugin, True)
 
+        # New plugins
+        for plugin in pluginsystem.get_info():
+            if plugin.name not in self.config.known_plugins:
+                self.config.known_plugins.append(plugin.name)
+                if plugin.name in consts.DEFAULT_PLUGINS:
+                    print _("Enabling new plug-in %s..." %
+                        plugin.name)
+                    pluginsystem.set_enabled(plugin, True)
+                else:
+                    print _("Found new plug-in %s." %
+                        plugin.name)
 
     ### Tab system:
 
