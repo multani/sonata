@@ -15,30 +15,36 @@
 # enablables: on_enable
 # tabs: construct_tab
 # playing_song_observers: on_song_change
+# lyrics_fetching: on_lyrics_fetch
 ### END PLUGIN INFO
 
 # nothing magical from here on
 
-import gtk, pango
+import gobject, gtk, pango
 
 from sonata.misc import escape_html
 
 songlabel = None
+lyricslabel = None
 
 # this gets called when the plugin is loaded, enabled, or disabled:
 def on_enable(state):
-    global songlabel
+    global songlabel, lyricslabel
     if state:
         songlabel = gtk.Label("No song info received yet.")
         songlabel.props.ellipsize = pango.ELLIPSIZE_END
+        lyricslabel = gtk.Label("No lyrics requests yet.")
+        lyricslabel.props.ellipsize = pango.ELLIPSIZE_END
     else:
         songlabel = None
+        lyricslabel = None
 
 # this constructs the parts of the tab when called:
 def construct_tab():
     vbox = gtk.VBox()
     vbox.pack_start(gtk.Label("Hello world!"))
     vbox.pack_start(songlabel)
+    vbox.pack_start(lyricslabel)
     vbox.pack_start(gtk.Label("(You can modify me at %s)" %
                   __file__.rstrip("c")))
     vbox.show_all()
@@ -55,3 +61,14 @@ def on_song_change(songinfo):
     else:
         songlabel.set_text("Currently not playing any song.")
     songlabel.show()
+
+# this gets requests for lyrics:
+def on_lyrics_fetch(callback, artist, title):
+    lyricslabel.set_markup(
+        "Got request for lyrics for artist %r title %r." %
+        (artist, title))
+
+    # callback(lyrics, error)
+    gobject.timeout_add(0, callback, None,
+                "%s doesn't have lyrics for %r." %
+                (__name__, (artist, title)))
