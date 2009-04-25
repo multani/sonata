@@ -588,7 +588,7 @@ class Library(object):
                 if unicode(self.library_get_data(albums[i], 'album')).lower() != unicode(self.library_get_data(albums[i+j], 'album')).lower() \
                 or self.library_get_data(albums[i], 'year') != self.library_get_data(albums[i+j], 'year'):
                     break
-                if j == consts.NUM_ARTISTS_FOR_VA - 1:
+                if j == consts.NUM_ARTISTS_FOR_VA:
                     VA = True
             if VA:
                 album, year, path = self.library_get_data(albums[i], 'album', 'year', 'path')
