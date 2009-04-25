@@ -438,7 +438,7 @@ class Preferences():
         ontop.connect('toggled', cbs.ontop_toggled)
         decor = gtk.CheckButton(_("_Hide window titlebar"))
         decor.set_active(not self.config.decorated)
-        decor.connect('toggled', cbs.decorated_toggled)
+        decor.connect('toggled', cbs.decorated_toggled, self.prefswindow)
         minimize = gtk.CheckButton(_("_Minimize to system tray on close/escape"))
         minimize.set_active(self.config.minimize_to_systray)
         minimize.set_tooltip_text(_("If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."))

@@ -2552,7 +2552,7 @@ class Base(object):
             # first tab:
             self.notebook_show_first_tab = False
             self.notebook.set_current_page(0)
-        gobject.idle_add(self.withdraw_app_undo_present_and_focus)
+        self.withdraw_app_undo_present_and_focus()
 
     def withdraw_app_undo_present_and_focus(self):
         self.window.present() # Helps to raise the window (useful against focus stealing prevention)
@@ -2834,13 +2834,14 @@ class Base(object):
             else:
                 self.window.unstick()
 
-    def prefs_decorated_toggled(self, button):
+    def prefs_decorated_toggled(self, button, prefs_window):
         self.config.decorated = not button.get_active()
         if self.window_owner:
             if self.config.decorated != self.window.get_decorated():
                 self.withdraw_app()
                 self.window.set_decorated(self.config.decorated)
                 self.withdraw_app_undo()
+                prefs_window.present()
 
     def prefs_infofile_changed(self, entry, _event):
         if self.config.infofile_path != entry.get_text():
