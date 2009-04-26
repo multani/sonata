@@ -291,7 +291,7 @@ class Info(object):
                     playtime = 0
                     if len(tracks) > 0:
                         for track in tracks:
-                            playtime += int(mpdh.get(track, 'time', 0))
+                            playtime += mpdh.get(track, 'time', 0, True)
                             if 'title' in track:
                                 trackinfo = trackinfo + mpdh.get(track, 'track', '0', False, 2) + '. ' + mpdh.get(track, 'title') + '\n'
                             else:

@@ -215,7 +215,7 @@ class CliMain(object):
                 at, _length = [int(c) for c in self.status['time'].split(':')]
                 at_time = misc.convert_time(at)
                 try:
-                    time = misc.convert_time(int(mpdh.get(self.songinfo, 'time')))
+                    time = misc.convert_time(mpdh.get(self.songinfo, 'time', '', True))
                     print _("Time") + ": " + at_time + " / " + time
                 except:
                     print _("Time") + ": " + at_time

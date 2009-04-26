@@ -740,8 +740,8 @@ class Library(object):
             else:
 
                 count = mpdh.call(self.client, 'count', *s)
-                playtime += int(mpdh.get(count, 'playtime'))
-                num_songs += int(mpdh.get(count, 'songs'))
+                playtime += mpdh.get(count, 'playtime', 0, True)
+                num_songs += mpdh.get(count, 'songs', 0, True)
 
         return (playtime, num_songs)
 
@@ -858,7 +858,7 @@ class Library(object):
                         if match:
                             results.append(item)
                             num_songs += 1
-                            playtime += int(mpdh.get(item, 'time', '0'))
+                            playtime += mpdh.get(item, 'time', 0, True)
         return (results, int(playtime), num_songs)
 
     def add_display_info(self, num_songs, playtime):

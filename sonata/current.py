@@ -181,7 +181,7 @@ class Current(object):
             items = [formatting.parse(part, track, True)
                  for part in self.columnformat]
 
-            self.currentdata.append([int(mpdh.get(track, 'id'))] + items)
+            self.currentdata.append([mpdh.get(track, 'id', 0, True)] + items)
 
     def current_update(self, prevstatus_playlist, new_playlist_length):
         if self.connected():
@@ -206,7 +206,7 @@ class Current(object):
                 currlen = len(self.currentdata)
 
                 for track in changed_songs:
-                    pos = int(mpdh.get(track, 'pos'))
+                    pos = mpdh.get(track, 'pos', 0, True)
 
                     items = [formatting.parse(part, track,
                                   True)
@@ -215,7 +215,8 @@ class Current(object):
                     if pos < currlen:
                         # Update attributes for item:
                         i = self.currentdata.get_iter((pos, ))
-                        trackid = int(mpdh.get(track, 'id'))
+                        trackid = mpdh.get(track, 'id',
+                                    0, True)
                         if trackid != self.currentdata.get_value(i, 0):
                             self.currentdata.set_value(i, 0, trackid)
                         for index in range(len(items)):
@@ -224,7 +225,7 @@ class Current(object):
                         self.current_songs[pos] = track
                     else:
                         # Add new item:
-                        self.currentdata.append([int(mpdh.get(track, 'id'))] + items)
+                        self.currentdata.append([mpdh.get(track, 'id', 0, True)] + items)
                         self.current_songs.append(track)
 
                 if newlen == 0:
@@ -246,12 +247,13 @@ class Current(object):
             self.total_time = 0
             for track in self.current_songs:
                 try:
-                    self.total_time = self.total_time + int(mpdh.get(track, 'time'))
+                    self.total_time = self.total_time + mpdh.get(track, 'time', 0, True)
                 except:
                     pass
 
             if 'pos' in self.songinfo():
-                currsong = int(mpdh.get(self.songinfo(), 'pos'))
+                currsong = mpdh.get(self.songinfo(), 'pos', 0,
+                            True)
                 self.boldrow(currsong)
                 self.prev_boldrow = currsong
 
