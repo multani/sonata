@@ -19,23 +19,23 @@ def status(client):
 def currsong(client):
     return call(client, 'currentsong')
 
-def get(mapping, key, alt=''):
-    # Returns either the value in the dict or, currently, the
-    # first list's values. e.g. this will return 'foo' if genres
-    # is ['foo' 'bar']. This should always be used to retrieve
-    # values from a mpd song.
+def get(mapping, key, alt='', *sanitize_args):
+    """Get a value from a mpd song and sanitize appropriately.
+
+    sanitize_args: Arguments to pass to sanitize
+
+    If the value is a list, only the first element is returned.
+    Examples:
+        get({'baz':['foo', 'bar']}, 'baz', '') -> 'foo'
+        get({'baz':34}, 'baz', '', True) -> 34
+    """
+
     value = mapping.get(key, alt)
     if isinstance(value, list):
-        return value[0]
-    else:
-        return value
+        value = value[0]
+    return _sanitize(value, *sanitize_args) if sanitize_args else value
 
-def getnum(mapping, key, alt='0', return_int=False, str_padding=0):
-    # Same as get(), but sanitizes the number before returning
-    tag = get(mapping, key, alt)
-    return sanitize(tag, return_int, str_padding)
-
-def sanitize(tag, return_int, str_padding):
+def _sanitize(tag, return_int=False, str_padding=0):
     # Sanitizes a mpd tag; used for numerical tags. Known forms
     # for the mpd tag can be "4", "4/10", and "4,10".
     ret = 0

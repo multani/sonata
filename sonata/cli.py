@@ -209,7 +209,7 @@ class CliMain(object):
                 mpdh.conout (_("Artist") + ": " + mpdh.get(self.songinfo, 'artist'))
                 mpdh.conout (_("Album") + ": " + mpdh.get(self.songinfo, 'album'))
                 mpdh.conout (_("Date") + ": " + mpdh.get(self.songinfo, 'date'))
-                mpdh.conout (_("Track") + ": " + mpdh.getnum(self.songinfo, 'track', '0', False, 2))
+                mpdh.conout (_("Track") + ": " + mpdh.get(self.songinfo, 'track', '0', False, 2))
                 mpdh.conout (_("Genre") + ": " + mpdh.get(self.songinfo, 'genre'))
                 mpdh.conout (_("File") + ": " + os.path.basename(mpdh.get(self.songinfo, 'file')))
                 at, _length = [int(c) for c in self.status['time'].split(':')]

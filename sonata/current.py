@@ -399,12 +399,12 @@ class Current(object):
                 if mode == 'artist':
                     record["sortby"] =  (misc.lower_no_the(mpdh.get(track, 'artist', zzz)),
                                 mpdh.get(track, 'album', zzz).lower(),
-                                mpdh.getnum(track, 'disc', '0', True, 0),
-                                mpdh.getnum(track, 'track', '0', True, 0))
+                                mpdh.get(track, 'disc', '0', True, 0),
+                                mpdh.get(track, 'track', '0', True, 0))
                 elif mode == 'album':
                     record["sortby"] =  (mpdh.get(track, 'album', zzz).lower(),
-                                mpdh.getnum(track, 'disc', '0', True, 0),
-                                mpdh.getnum(track, 'track', '0', True, 0))
+                                mpdh.get(track, 'disc', '0', True, 0),
+                                mpdh.get(track, 'track', '0', True, 0))
                 elif mode == 'file':
                     record["sortby"] = mpdh.get(track, 'file', zzz).lower().split('/')[-1]
                 elif mode == 'dirfile':

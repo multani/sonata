@@ -270,7 +270,7 @@ class Info(object):
                 datelabel.set_text(mpdh.get(songinfo, 'date'))
                 genrelabel.set_text(mpdh.get(songinfo, 'genre'))
                 if 'track' in songinfo:
-                    tracklabel.set_text(mpdh.getnum(songinfo, 'track', '0', False, 0))
+                    tracklabel.set_text(mpdh.get(songinfo, 'track', '0', False, 0))
                 else:
                     tracklabel.set_text("")
                 path = misc.file_from_utf8(os.path.join(self.config.musicdir[self.config.profile_num], os.path.dirname(mpdh.get(songinfo, 'file'))))
@@ -293,9 +293,9 @@ class Info(object):
                         for track in tracks:
                             playtime += int(mpdh.get(track, 'time', 0))
                             if 'title' in track:
-                                trackinfo = trackinfo + mpdh.getnum(track, 'track', '0', False, 2) + '. ' + mpdh.get(track, 'title') + '\n'
+                                trackinfo = trackinfo + mpdh.get(track, 'track', '0', False, 2) + '. ' + mpdh.get(track, 'title') + '\n'
                             else:
-                                trackinfo = trackinfo + mpdh.getnum(track, 'track', '0', False, 2) + '. ' + mpdh.get(track, 'file').split('/')[-1] + '\n'
+                                trackinfo = trackinfo + mpdh.get(track, 'track', '0', False, 2) + '. ' + mpdh.get(track, 'file').split('/')[-1] + '\n'
                         if artist is not None:
                             albuminfo += artist + "\n"
                         if year is not None:

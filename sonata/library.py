@@ -680,8 +680,8 @@ class Library(object):
             songs, _playtime, _num_songs = self.library_return_search_items(artist=artist, album=album, year=year)
         for song in songs:
             data = self.library_set_data(path=mpdh.get(song, 'file'))
-            track = mpdh.getnum(song, 'track', '99', False, 2)
-            disc = mpdh.getnum(song, 'disc', '99', False, 2)
+            track = mpdh.get(song, 'track', '99', False, 2)
+            disc = mpdh.get(song, 'disc', '99', False, 2)
             try:
                 bd += [('f' + disc + track + misc.lower_no_the(mpdh.get(song, 'title')), [self.sonatapb, data, formatting.parse(self.config.libraryformat, song, True)])]
             except:
