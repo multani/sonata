@@ -1989,11 +1989,18 @@ class Base(object):
     def on_window_lost_focus(self, _widget, _event):
         self.volume_hide()
 
-    def on_window_configure(self, _widget, _event):
-        width, height = self.window.get_size()
+    def on_window_configure(self, window, _event):
+        # When withdrawing an app, extra configure events (with wrong coords)
+        # are fired (at least on Openbox). This prevents a user from moving
+        # the window, withdrawing it, then unwithdrawing it and finding it in
+        # an older position
+        if not window.props.visible:
+            return
+
+        width, height = window.get_size()
         if self.config.expanded: self.config.w, self.config.h = width, height
         else: self.config.w = width
-        self.config.x, self.config.y = self.window.get_position()
+        self.config.x, self.config.y = window.get_position()
         self.expander_ellipse_workaround()
 
     def on_notebook_resize(self, _widget, _event):

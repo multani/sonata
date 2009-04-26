@@ -9,7 +9,6 @@ v1.6.3
 	tag editing - support for composer, disc
 	song queue (mpd-git will be bringing it back)
 	search results - show albums, artists, genres that match
-	window positioning weirdness when unwithdrawing app from systray
 	right-click on tab bar (michael email)
 	0.15 has input support for last.fm radio
 
