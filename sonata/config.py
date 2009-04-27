@@ -349,9 +349,11 @@ class Config:
 
         if conf.has_section('plugins'):
             if conf.has_option('plugins', 'autostart_plugins'):
-                self.autostart_plugins = conf.get('plugins', 'autostart_plugins')
+                self.autostart_plugins = conf.get('plugins', 'autostart_plugins').split(',')
+                self.autostart_plugins = [x.strip("[]' ") for x in self.autostart_plugins]
             if conf.has_option('plugins', 'known_plugins'):
-                self.known_plugins = conf.get('plugins', 'known_plugins')
+                self.known_plugins = conf.get('plugins', 'known_plugins').split(',')
+                self.known_plugins = [x.strip("[]' ") for x in self.known_plugins]
 
     def settings_save_real(self, library_get_data):
         """Save configuration in file"""
@@ -483,7 +485,9 @@ class Config:
 
         # Enabled plugins list
         conf.add_section('plugins')
-        conf.set('plugins', 'autostart_plugins', self.autostart_plugins)
-        conf.set('plugins', 'known_plugins', self.known_plugins)
+        conf.set('plugins', 'autostart_plugins',
+             ','.join(self.autostart_plugins))
+        conf.set('plugins', 'known_plugins',
+             ','.join(self.known_plugins))
 
         conf.write(file(os.path.expanduser('~/.config/sonata/sonatarc'), 'w'))
