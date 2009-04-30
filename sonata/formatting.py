@@ -21,9 +21,11 @@ class FormatCode(object):
     Replaces all instances of %code with the value of key or default if the
     key doesn't exist.
     """
-    def __init__(self, code, description, key, default=_("Unknown")):
+    def __init__(self, code, description, column, key,
+            default=_("Unknown")):
         self.code = code
         self.description = description
+        self.column = column
         self.key = key
         self.default = default
 
@@ -36,8 +38,9 @@ class NumFormatCode(FormatCode):
 
     Used for numbers which need special padding.
     """
-    def __init__(self, code, description, key, default, padding):
-        FormatCode.__init__(self, code, description, key, default)
+    def __init__(self, code, description, column, key, default, padding):
+        FormatCode.__init__(self, code, description, column, key,
+                    default)
         self.padding = padding
 
     def format(self, item):
@@ -46,12 +49,12 @@ class NumFormatCode(FormatCode):
 
 class PathFormatCode(FormatCode):
     """Implements format code behavior for path values."""
-    def __init__(self, code, description, key, path_func):
+    def __init__(self, code, description, column, key, path_func):
         """
 
         path_func: os.path function to apply
         """
-        FormatCode.__init__(self, code, description, key)
+        FormatCode.__init__(self, code, description, column, key)
         self.func = getattr(os.path, path_func)
 
     def format(self, item):
@@ -85,19 +88,21 @@ class ElapsedFormatCode(FormatCode):
             elapsed_time = misc.convert_time(int(elapsed_time))
         return elapsed_time
 
-formatcodes = [FormatCode('A', _('Artist name'), 'artist'),
-           FormatCode('B', _('Album name'), 'album'),
-           TitleFormatCode('T', _('Track name'), 'title'),
-           NumFormatCode('N', _('Track number'), 'track', '00', 2),
-           NumFormatCode('D', _('Disc number'), 'disc', '0', 0),
-           FormatCode('Y', _('Year'), 'date', '?'),
-           FormatCode('G', _('Genre'), 'genre'),
-           PathFormatCode('P', _('File path'), 'file', 'dirname'),
-           PathFormatCode('F', _('File name'), 'file', 'basename'),
-           FormatCode('S', _('Stream name'), 'name'),
-           LenFormatCode('L', _('Song length'), 'time', '?'),
-           ElapsedFormatCode('E', _('Elapsed time (title only)'), 'songpos',
-                 '?')
+formatcodes = [FormatCode('A', _('Artist name'), _("Artist"), 'artist'),
+           FormatCode('B', _('Album name'), _("Album"), 'album'),
+           TitleFormatCode('T', _('Track name'), _("Track"), 'title'),
+           NumFormatCode('N', _('Track number'), _("#"), 'track', '00', 2),
+           NumFormatCode('D', _('Disc number'), _("#"), 'disc', '0', 0),
+           FormatCode('Y', _('Year'), _("Year"), 'date', '?'),
+           FormatCode('G', _('Genre'), _("Genre"), 'genre'),
+           PathFormatCode('P', _('File path'), _("Path"), 'file',
+                'dirname'),
+           PathFormatCode('F', _('File name'), _("File"), 'file',
+                'basename'),
+           FormatCode('S', _('Stream name'), _("Stream"), 'name'),
+           LenFormatCode('L', _('Song length'), _("Len"), 'time', '?'),
+           ElapsedFormatCode('E', _('Elapsed time (title only)'), None,
+                 'songpos', '?')
            ]
 
 replace_map = dict((code.code, code) for code in formatcodes)
@@ -120,25 +125,18 @@ def _return_substrings(format):
     return substrings
 
 def parse_colnames(format):
-    text = format.split("|")
-    for i in range(len(text)):
-        text[i] = text[i].replace("%A", _("Artist"))
-        text[i] = text[i].replace("%B", _("Album"))
-        text[i] = text[i].replace("%T", _("Track"))
-        text[i] = text[i].replace("%N", _("#"))
-        text[i] = text[i].replace("%Y", _("Year"))
-        text[i] = text[i].replace("%G", _("Genre"))
-        text[i] = text[i].replace("%P", _("Path"))
-        text[i] = text[i].replace("%F", _("File"))
-        text[i] = text[i].replace("%S", _("Stream"))
-        text[i] = text[i].replace("%L", _("Len"))
-        text[i] = text[i].replace("%D", _("#"))
-        if text[i].count("{") == text[i].count("}"):
-            text[i] = text[i].replace("{","").replace("}","")
+    def replace_format(m):
+        format_code = replace_map.get(m.group(0)[1:])
+        return format_code.column
+
+    cols = [re.sub(replace_expr, replace_format, s).
+        replace("{", "").
+        replace("}", "").
         # If the user wants the format of, e.g., "#%N", we'll
         # ensure the # doesn't show up twice in a row.
-        text[i] = text[i].replace("##", "#")
-    return text
+        replace("##", "#")
+        for s in format.split('|')]
+    return cols
 
 class EmptyBrackets(Exception):
     pass
