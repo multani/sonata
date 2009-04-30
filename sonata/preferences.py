@@ -550,8 +550,9 @@ class Preferences():
         formatcodes = formatting.formatcodes
         for codes in [formatcodes[:(len(formatcodes)+1)/2],
                   formatcodes[(len(formatcodes)+1)/2:]]:
-            rows = '\n'.join('<tt>%' + code + '</tt> - ' + help
-                     for code, help in codes)
+            rows = '\n'.join('<tt>%%%s</tt> - %s' %
+                    (code.code, code.description)
+                    for code in codes)
             markup = '<small>' + rows + '</small>'
             formattinghelp = ui.label(markup=markup)
             availableformatbox.pack_start(formattinghelp)

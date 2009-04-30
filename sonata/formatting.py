@@ -12,20 +12,96 @@ formatcodes = formatting.formatcodes
 
 import mpdhelper as mpdh
 import misc
+import re
+import os
 
-formatcodes = [('A', _('Artist name')),
-           ('B', _('Album name')),
-           ('T', _('Track name')),
-           ('N', _('Track number')),
-           ('D', _('Disc number')),
-           ('Y', _('Year')),
-           ('G', _('Genre')),
-           ('P', _('File path')),
-           ('F', _('File name')),
-           ('S', _('Stream name')),
-           ('L', _('Song length')),
-           ('E', _('Elapsed time (title only)'))
+class FormatCode(object):
+    """Implements deafult format code behavior.
+
+    Replaces all instances of %code with the value of key or default if the
+    key doesn't exist.
+    """
+    def __init__(self, code, description, key, default=_("Unknown")):
+        self.code = code
+        self.description = description
+        self.key = key
+        self.default = default
+
+    def format(self, item):
+        """Returns the value used in place of the format code"""
+        return mpdh.get(item, self.key, self.default)
+
+class NumFormatCode(FormatCode):
+    """Implements format code behavior for numeric values.
+
+    Used for numbers which need special padding.
+    """
+    def __init__(self, code, description, key, default, padding):
+        FormatCode.__init__(self, code, description, key, default)
+        self.padding = padding
+
+    def format(self, item):
+        return mpdh.get(item, self.key, self.default, False,
+                self.padding)
+
+class PathFormatCode(FormatCode):
+    """Implements format code behavior for path values."""
+    def __init__(self, code, description, key, path_func):
+        """
+
+        path_func: os.path function to apply
+        """
+        FormatCode.__init__(self, code, description, key)
+        self.func = getattr(os.path, path_func)
+
+    def format(self, item):
+        return self.func(FormatCode.format(self, item))
+
+
+class TitleFormatCode(FormatCode):
+    """Implements format code behavior for track titles."""
+    def format(self, item):
+        path = item['file']
+        full_path = re.match(r"^(http://|ftp://)", path)
+        self.default = path if full_path else os.path.basename(path)
+        self.default = misc.escape_html(self.default)
+        return FormatCode.format(self, item)
+
+class LenFormatCode(FormatCode):
+    """Implements format code behavior for song length."""
+    def format(self, item):
+        time = FormatCode.format(self, item)
+        if time.isdigit():
+            time = misc.convert_time(int(time))
+        return time
+
+class ElapsedFormatCode(FormatCode):
+    """Implements format code behavior for elapsed time."""
+    def format(self, item):
+        if item['wintitle'] is False:
+            return "%E"
+        elapsed_time = FormatCode.format(self, item).split(':')[0]
+        if elapsed_time.isdigit():
+            elapsed_time = misc.convert_time(int(elapsed_time))
+        return elapsed_time
+
+formatcodes = [FormatCode('A', _('Artist name'), 'artist'),
+           FormatCode('B', _('Album name'), 'album'),
+           TitleFormatCode('T', _('Track name'), 'title'),
+           NumFormatCode('N', _('Track number'), 'track', '00', 2),
+           NumFormatCode('D', _('Disc number'), 'disc', '0', 0),
+           FormatCode('Y', _('Year'), 'date', '?'),
+           FormatCode('G', _('Genre'), 'genre'),
+           PathFormatCode('P', _('File path'), 'file', 'dirname'),
+           PathFormatCode('F', _('File name'), 'file', 'basename'),
+           FormatCode('S', _('Stream name'), 'name'),
+           LenFormatCode('L', _('Song length'), 'time', '?'),
+           ElapsedFormatCode('E', _('Elapsed time (title only)'), 'songpos',
+                 '?')
            ]
+
+replace_map = dict((code.code, code) for code in formatcodes)
+replace_expr = r"%%[%s]" % "".join(k for k in replace_map.keys())
 
 def _return_substrings(format):
     """Split format along the { and } characters.
@@ -64,117 +140,29 @@ def parse_colnames(format):
         text[i] = text[i].replace("##", "#")
     return text
 
-def _parse_substrings(subformat, item, wintitle, songpos):
-    text = subformat
-    if subformat.startswith("{") and subformat.endswith("}"):
-        has_brackets = True
-    else:
-        has_brackets = False
-    flag = "89syufd8sdhf9hsdf"
-    if "%A" in text:
-        artist = mpdh.get(item, 'artist', flag)
-        if artist != flag:
-            text = text.replace("%A", artist)
-        else:
-            if not has_brackets: text = text.replace("%A", _('Unknown'))
-            else: return ""
-    if "%B" in text:
-        album = mpdh.get(item, 'album', flag)
-        if album != flag:
-            text = text.replace("%B", album)
-        else:
-            if not has_brackets: text = text.replace("%B", _('Unknown'))
-            else: return ""
-    if "%T" in text:
-        title = mpdh.get(item, 'title', flag)
-        if title != flag:
-            text = text.replace("%T", title)
-        else:
-            if not has_brackets:
-                if len(item['file'].split('/')[-1]) == 0 or item['file'][:7] == 'http://' or item['file'][:6] == 'ftp://':
-                    # Use path and file name:
-                    text = misc.escape_html(item['file'])
-                else:
-                    # Use file name only:
-                    text = misc.escape_html(item['file'].split('/')[-1])
-                if wintitle:
-                    return "[Sonata] " + text
-                else:
-                    return text
-            else:
-                return ""
-    if "%N" in text:
-        track = mpdh.get(item, 'track', flag)
-        if track != flag:
-            track = mpdh.get(item, 'track', flag, False, 2)
-            text = text.replace("%N", track)
-        else:
-            if not has_brackets: text = text.replace("%N", "00")
-            else: return ""
-    if "%D" in text:
-        disc = mpdh.get(item, 'disc', flag)
-        if disc != flag:
-            disc = mpdh.get(item, 'disc', flag, False, 0)
-            text = text.replace("%D", disc)
-        else:
-            if not has_brackets: text = text.replace("%D", "0")
-            else: return ""
-    if "%S" in text:
-        name = mpdh.get(item, 'name', flag)
-        if name != flag:
-            text = text.replace("%S", name)
-        else:
-            if not has_brackets: text = text.replace("%S", _('Unknown'))
-            else: return ""
-    if "%G" in text:
-        genre = mpdh.get(item, 'genre', flag)
-        if genre != flag:
-            text = text.replace("%G", genre)
-        else:
-            if not has_brackets: text = text.replace("%G", _('Unknown'))
-            else: return ""
-    if "%Y" in text:
-        date = mpdh.get(item, 'date', flag)
-        if date != flag:
-            text = text.replace("%Y", date)
-        else:
-            if not has_brackets: text = text.replace("%Y", "?")
-            else: return ""
+class EmptyBrackets(Exception):
+    pass
 
-    pathname = mpdh.get(item, 'file')
+def _format_substrings(text, item):
+    has_brackets = text.startswith("{") and text.endswith("}")
+
+    def formatter(m):
+        format_code = replace_map[m.group(0)[1:]]
+        if has_brackets and not item.has_key(format_code.key):
+            raise EmptyBrackets
+        return format_code.format(item)
+
     try:
-        dirname, filename = pathname.rsplit('/', 1)
-    except ValueError: # Occurs for a file in the music_dir root
-        dirname, filename = "", pathname
-    if "%P" in text:
-        text = text.replace("%P", dirname)
-    if "%F" in text:
-        text = text.replace("%F", filename)
+        text = re.sub(replace_expr, formatter, text)
+    except EmptyBrackets:
+        return ""
 
-    if "%L" in text:
-        time = mpdh.get(item, 'time', flag)
-        if time != flag:
-            time = misc.convert_time(int(time))
-            text = text.replace("%L", time)
-        else:
-            if not has_brackets: text = text.replace("%L", "?")
-            else: return ""
-    if wintitle:
-        if "%E" in text:
-            try:
-                at, length = [int(c) for c in songpos.split(':')]
-                at_time = misc.convert_time(at)
-                text = text.replace("%E", at_time)
-            except:
-                if not has_brackets: text = text.replace("%E", "?")
-                else: return ""
-    if text.startswith("{") and text.endswith("}"):
-        return text[1:-1]
-    else:
-        return text
+    return text[1:-1] if has_brackets else text
 
 def parse(format, item, use_escape_html, wintitle=False, songpos=None):
     substrings = _return_substrings(format)
-    text = "".join(_parse_substrings(sub, item, wintitle, songpos)
-               for sub in substrings)
+    if songpos:
+        item['songpos'] = songpos
+    item['wintitle'] = wintitle
+    text = "".join(_format_substrings(sub, item) for sub in substrings)
     return misc.escape_html(text) if use_escape_html else text
