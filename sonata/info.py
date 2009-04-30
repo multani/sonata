@@ -293,6 +293,7 @@ class Info(object):
                         albuminfo = album + "\n"
                     playtime = 0
                     if len(tracks) > 0:
+                        tracks.sort(key=lambda x: mpdh.get(x, 'track', 0, True))
                         for track in tracks:
                             playtime += int(mpdh.get(track, 'time', 0))
                             if 'title' in track:
