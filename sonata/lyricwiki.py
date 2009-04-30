@@ -21,7 +21,7 @@ class LyricWiki(object):
         pluginsystem.plugin_infos.append(BuiltinPlugin(
                 'lyricwiki', "LyricWiki",
                 "Fetch lyrics from LyricWiki.",
-                {'lyrics_fetching': 'get_lyrics_thread'}, self))
+                {'lyrics_fetching': 'get_lyrics_start'}, self))
 
     def get_lyrics_start(self, *args):
         lyricThread = threading.Thread(target=self.get_lyrics_thread, args=args)
