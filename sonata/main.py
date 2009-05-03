@@ -2205,7 +2205,7 @@ class Base(object):
             retsongs = []
             for song in songs:
                 if unicode(mpdh.get(song, 'album')).lower() == unicode(library.library_get_data(datalist[0], 'album')).lower() \
-                and mpdh.get(song, 'date', '') == library.library_get_data(datalist[0], 'year'):
+                and mpdh.get(song, 'date', None) == library.library_get_data(datalist[0], 'year'):
                     retsongs.append(song)
 
             artist = library.library_get_data(datalist[0], 'artist')
