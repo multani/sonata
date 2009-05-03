@@ -29,7 +29,7 @@ class FormatCode(object):
         self.key = key
         self.default = default
 
-    def format(self, item):
+    def format(self, item, wintitle, songpos):
         """Returns the value used in place of the format code"""
         return mpdh.get(item, self.key, self.default)
 
@@ -43,7 +43,7 @@ class NumFormatCode(FormatCode):
                     default)
         self.padding = padding
 
-    def format(self, item):
+    def format(self, item, wintitle, songpos):
         return mpdh.get(item, self.key, self.default, False,
                 self.padding)
 
@@ -57,33 +57,34 @@ class PathFormatCode(FormatCode):
         FormatCode.__init__(self, code, description, column, key)
         self.func = getattr(os.path, path_func)
 
-    def format(self, item):
-        return self.func(FormatCode.format(self, item))
+    def format(self, item, wintitle, songpos):
+        return self.func(FormatCode.format(self, item, wintitle,
+                            songpos))
 
 
 class TitleFormatCode(FormatCode):
     """Implements format code behavior for track titles."""
-    def format(self, item):
+    def format(self, item, wintitle, songpos):
         path = item['file']
         full_path = re.match(r"^(http://|ftp://)", path)
         self.default = path if full_path else os.path.basename(path)
         self.default = misc.escape_html(self.default)
-        return FormatCode.format(self, item)
+        return FormatCode.format(self, item, wintitle, songpos)
 
 class LenFormatCode(FormatCode):
     """Implements format code behavior for song length."""
-    def format(self, item):
-        time = FormatCode.format(self, item)
+    def format(self, item, wintitle, songpos):
+        time = FormatCode.format(self, item, wintitle, songpos)
         if time.isdigit():
             time = misc.convert_time(int(time))
         return time
 
 class ElapsedFormatCode(FormatCode):
     """Implements format code behavior for elapsed time."""
-    def format(self, item):
-        if item['wintitle'] is False:
+    def format(self, item, wintitle, songpos):
+        if not wintitle:
             return "%E"
-        elapsed_time = FormatCode.format(self, item).split(':')[0]
+        elapsed_time = songpos.split(':')[0] if songpos else self.default
         if elapsed_time.isdigit():
             elapsed_time = misc.convert_time(int(elapsed_time))
         return elapsed_time
@@ -141,14 +142,14 @@ def parse_colnames(format):
 class EmptyBrackets(Exception):
     pass
 
-def _format_substrings(text, item):
+def _format_substrings(text, item, wintitle, songpos):
     has_brackets = text.startswith("{") and text.endswith("}")
 
     def formatter(m):
         format_code = replace_map[m.group(0)[1:]]
         if has_brackets and not item.has_key(format_code.key):
             raise EmptyBrackets
-        return format_code.format(item)
+        return format_code.format(item, wintitle, songpos)
 
     try:
         text = re.sub(replace_expr, formatter, text)
@@ -159,8 +160,6 @@ def _format_substrings(text, item):
 
 def parse(format, item, use_escape_html, wintitle=False, songpos=None):
     substrings = _return_substrings(format)
-    if songpos:
-        item['songpos'] = songpos
-    item['wintitle'] = wintitle
-    text = "".join(_format_substrings(sub, item) for sub in substrings)
+    text = "".join(_format_substrings(sub, item, wintitle, songpos)
+            for sub in substrings)
     return misc.escape_html(text) if use_escape_html else text
