@@ -3,6 +3,7 @@ v1.7 - Pending
 	+ Bug: Fix window positioning weirdness when unwithdrawing from systray
 	+ Bug: Fix album being labeled various artists when a duplicate exists
 	+ Bug: Fix album tracks in the info tab being out of order sometimes
+	+ Bug: Show songs with a missing date in info album listing
 
 v1.6.2 - April 13, 2009
 	+ Bug: Fix cli options (e.g. 'sonata play')
