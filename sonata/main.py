@@ -59,7 +59,8 @@ from consts import consts
 from pluginsystem import pluginsystem
 from config import Config
 
-import preferences, tagedit, artwork, about, scrobbler, info, library, streams, playlists, current, lyricwiki
+import preferences, tagedit, artwork, about, scrobbler, info, library, streams, playlists, current
+import lyricwiki, amazoncovers # plug-ins
 import dbus_plugin as dbus
 
 try:
@@ -411,8 +412,9 @@ class Base(object):
         self.scrobbler.init()
         self.preferences.scrobbler = self.scrobbler
 
-        # LyricWiki
+        # Plug-ins imported as modules
         self.lyricwiki = lyricwiki.LyricWiki()
+        self.amazoncovers = amazoncovers.AmazonCovers()
 
         # Current tab
         self.current = current.Current(self.config, self.client, self.TAB_CURRENT, self.on_current_button_press, self.connected, lambda:self.sonata_loaded, lambda:self.songinfo, self.update_statusbar, self.iterate_now, lambda:self.library.libsearchfilter_get_style(), self.new_tab)

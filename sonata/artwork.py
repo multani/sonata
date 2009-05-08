@@ -1,7 +1,5 @@
 import os
 import threading # artwork_update starts a thread _artwork_update
-import urllib, urllib2
-from xml.etree import ElementTree
 
 import gtk, gobject
 
@@ -9,10 +7,7 @@ import img, ui, misc, mpdhelper as mpdh
 from library import library_set_data
 from library import library_get_data
 from consts import consts
-
-AMAZON_KEY = "12DR2PGAQT303YTEWP02"
-AMAZON_NS = "{http://webservices.amazon.com/AWSECommerceService/2005-10-05}"
-AMAZON_URI = "http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId=%s&Operation=ItemSearch&SearchIndex=Music&Artist=%s&ResponseGroup=Images"
+from pluginsystem import pluginsystem
 
 class Artwork(object):
     def __init__(self, config, find_path, is_lang_rtl, info_imagebox_get_size_request, schedule_gc_collect, target_image_filename, imagelist_append, remotefilelist_append, notebook_get_allocation, allow_art_search, status_is_play_or_pause, album_filename, get_current_song_text):
@@ -530,71 +525,38 @@ class Artwork(object):
         return False
 
     def artwork_download_img_to_file(self, artist, album, dest_filename, all_images=False):
-        # Returns False if no images found
-        if not artist and not album:
-            self.downloading_image = False
-            return False
         self.downloading_image = True
-        # Amazon currently doesn't support utf8 and suggests latin1 encoding instead:
-        artist = urllib.quote(artist.encode('latin1', 'replace'))
-        album = urllib.quote(album.encode('latin1', 'replace'))
+        # Fetch covers from amazon.com etc.
+        cover_fetchers = pluginsystem.get('cover_fetching')
+        imgfound = False
+        for _plugin, cb in cover_fetchers:
+            ret = cb(self.download_progress, artist, album, dest_filename, all_images)
+            if ret:
+                imgfound = True
+                break # XXX if all_images, merge results...
 
-        # Try searching urls from most specific (artist, title) to least specific (artist only)
-        urls = [(AMAZON_URI + "&Title=%s") % (AMAZON_KEY, artist, album),
-            (AMAZON_URI + "&Keywords=%s") % (AMAZON_KEY, artist, album),
-            AMAZON_URI % (AMAZON_KEY, artist)]
+        self.downloading_image = False
+        return imgfound
 
-        for url in urls:
-            request = urllib2.Request(url)
-            opener = urllib2.build_opener()
-            try:
-                body = opener.open(request).read()
-                xml = ElementTree.fromstring(body)
-                largeimgs = xml.getiterator(AMAZON_NS + "LargeImage")
-            except:
-                largeimgs = None
+    def download_progress(self, dest_filename_curr, i):
+        # This populates Main.imagelist for the remote image window
+        if os.path.exists(dest_filename_curr):
+            pix = gtk.gdk.pixbuf_new_from_file(dest_filename_curr)
+            pix = pix.scale_simple(148, 148, gtk.gdk.INTERP_HYPER)
+            pix = self.artwork_apply_composite_case(pix, 148, 148)
+            pix = img.pixbuf_add_border(pix)
+            if self.stop_art_update:
+                del pix
+                return False # don't continue to next image
+            self.imagelist_append([i+1, pix])
+            del pix
+            self.remotefilelist_append(dest_filename_curr)
+            if i == 0:
+                self.allow_art_search()
 
-            if largeimgs:
-                break
-            elif url == urls[-1]:
-                self.downloading_image = False
-                return False
+        ui.change_cursor(None) # XXX indented twice more?
 
-        imgs = misc.iunique(url.text for img in largeimgs for url in img.getiterator(AMAZON_NS + "URL"))
-        # Prevent duplicate images in remote art window:
-        imglist = list(set(list(imgs)))
-
-        if not all_images:
-            urllib.urlretrieve(imglist[0], dest_filename)
-            self.downloading_image = False
-            return True
-        else:
-            try:
-                imgfound = False
-                for i, image in enumerate(imglist):
-                    dest_filename_curr = dest_filename.replace("<imagenum>", str(i+1))
-                    urllib.urlretrieve(image, dest_filename_curr)
-                    # This populates Main.imagelist for the remote image window
-                    if os.path.exists(dest_filename_curr):
-                        pix = gtk.gdk.pixbuf_new_from_file(dest_filename_curr)
-                        pix = pix.scale_simple(148, 148, gtk.gdk.INTERP_HYPER)
-                        pix = self.artwork_apply_composite_case(pix, 148, 148)
-                        pix = img.pixbuf_add_border(pix)
-                        if self.stop_art_update:
-                            del pix
-                            self.downloading_image = False
-                            return imgfound
-                        self.imagelist_append([i+1, pix])
-                        del pix
-                        imgfound = True
-                        self.remotefilelist_append(dest_filename_curr)
-                        if i == 0:
-                            self.allow_art_search()
-                    ui.change_cursor(None)
-            except:
-                pass
-            self.downloading_image = False
-            return imgfound
+        return True # continue to next image
 
     def fullscreen_cover_art_set_image(self, force_update=False):
         if self.fullscreenalbumimage.get_property('visible') or force_update:
