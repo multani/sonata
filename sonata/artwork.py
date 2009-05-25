@@ -272,7 +272,8 @@ class Artwork(object):
         filename = self.get_library_artwork_cached_filename(cache_key)
         if filename is not None:
             if os.path.exists(filename):
-                return gtk.gdk.pixbuf_new_from_file_at_size(filename, self.lib_art_pb_size, self.lib_art_pb_size)
+                pb = gtk.gdk.pixbuf_new_from_file_at_size(filename, self.lib_art_pb_size, self.lib_art_pb_size)
+                return self.artwork_apply_composite_case(pb, self.lib_art_pb_size, self.lib_art_pb_size)
             else:
                 self.cache.pop(cache_key)
                 return origpb
