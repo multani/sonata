@@ -3037,6 +3037,7 @@ class Base(object):
 
     def prefs_stylized_toggled(self, button):
         self.config.covers_type = button.get_active()
+        self.library.library_browse(root=self.config.wd)
         self.artwork.artwork_update(True)
 
     def prefs_lyrics_toggled(self, button, lyrics_hbox):
