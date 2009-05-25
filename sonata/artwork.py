@@ -185,10 +185,19 @@ class Artwork(object):
                         self.lib_art_rows_local.pop(0)
 
                 cache_key = library_set_data(artist=artist, album=album, path=path)
-                filename = None
 
                 # Try to replace default icons with cover art:
                 pb = self.get_library_artwork_cached_pb(cache_key, None)
+
+                if pb is not None and not remote_art:
+                    # Continue to rescan for local artwork if we are displaying the
+                    # default album image, in case the user has added a local image
+                    # since we first scanned.
+                    filename = self.get_library_artwork_cached_filename(cache_key)
+                    if os.path.basename(filename) == os.path.basename(self.album_filename):
+                        pb = None
+
+                filename = None
 
                 # No cached pixbuf, try local/remote search:
                 if pb is None:
