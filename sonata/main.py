@@ -1417,7 +1417,7 @@ class Base(object):
         #  2. Repeat/random/xfade/volume
         #  3. Currently selected song in playlist
         #  4. Status (playing/paused/stopped)
-        if self.status == None:
+        if self.status is None:
             # clean up and bail out
             self.update_progressbar()
             self.update_cursong()
@@ -1431,7 +1431,7 @@ class Base(object):
             return
 
         # Display current playlist
-        if self.prevstatus == None or self.prevstatus['playlist'] != self.status['playlist']:
+        if self.prevstatus is None or self.prevstatus['playlist'] != self.status['playlist']:
             prevstatus_playlist = None
             if self.prevstatus:
                 prevstatus_playlist = self.prevstatus['playlist']
@@ -1446,7 +1446,7 @@ class Base(object):
             self.update_wintitle()
 
         # If state changes
-        if self.prevstatus == None or self.prevstatus['state'] != self.status['state']:
+        if self.prevstatus is None or self.prevstatus['state'] != self.status['state']:
 
             self.album_get_artist()
 
@@ -1513,7 +1513,7 @@ class Base(object):
             if mpdh.mpd_is_updating(self.status):
                 # MPD library is being updated
                 self.update_statusbar(True)
-            elif self.prevstatus == None or mpdh.mpd_is_updating(self.prevstatus) != mpdh.mpd_is_updating(self.status):
+            elif self.prevstatus is None or mpdh.mpd_is_updating(self.prevstatus) != mpdh.mpd_is_updating(self.status):
                 if not mpdh.mpd_is_updating(self.status):
                     # Done updating, refresh interface
                     self.mpd_updated_db()
@@ -2238,7 +2238,7 @@ class Base(object):
             pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(filename, 128, 128)
         except:
             pass
-        if pixbuf == None:
+        if pixbuf is None:
             try:
                 pixbuf = gtk.gdk.PixbufAnimation(filename).get_static_image()
                 width = pixbuf.get_width()
@@ -2249,7 +2249,7 @@ class Base(object):
                     pixbuf = pixbuf.scale_simple(int(float(width)/height*128), 128, gtk.gdk.INTERP_HYPER)
             except:
                 pass
-        if pixbuf == None:
+        if pixbuf is None:
             pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, 1, 8, 128, 128)
             pixbuf.fill(0x00000000)
         preview.set_from_pixbuf(pixbuf)
@@ -2506,7 +2506,7 @@ class Base(object):
                 self.withdraw_app_undo()
             # This prevents the tooltip from popping up again until the user
             # leaves and enters the trayicon again
-            #if self.traytips.notif_handler == None and self.traytips.notif_handler != -1:
+            #if self.traytips.notif_handler is None and self.traytips.notif_handler != -1:
                 #self.traytips._remove_timer()
             gobject.timeout_add(100, self.tooltip_set_ignore_toggle_signal_false)
 
