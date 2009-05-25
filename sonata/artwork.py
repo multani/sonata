@@ -232,6 +232,8 @@ class Artwork(object):
         # Search through the rows in the library to see
         # if we match the currently playing song:
         play_artist, play_album = library_get_data(cache_key, 'artist', 'album')
+        if play_artist is None and play_album is None:
+            return
         for row in self.lib_model:
             artist, album, path = library_get_data(row[1], 'artist', 'album', 'path')
             if unicode(play_artist).lower() == unicode(artist).lower() \
