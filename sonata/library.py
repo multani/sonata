@@ -11,6 +11,11 @@ from consts import consts
 import breadcrumbs
 
 def library_set_data(album=None, artist=None, genre=None, year=None, path=None):
+    if album is not None: album = unicode(album)
+    if artist is not None: artist = unicode(artist)
+    if genre is not None: genre = unicode(genre)
+    if year is not None: year = unicode(year)
+    if path is not None: path = unicode(path)
     return (album, artist, genre, year, path)
 
 def library_get_data(data, *args):
