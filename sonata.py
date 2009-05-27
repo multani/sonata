@@ -119,7 +119,7 @@ args.parse(sys.argv)
 
 ## Deal with GTK:
 
-if not args.should_skip_gui():
+if not args.skip_gui:
     # importing gtk does sys.setdefaultencoding("utf-8"), sets locale etc.
     import gtk
     if gtk.pygtk_version < (2, 12, 0):
@@ -146,7 +146,7 @@ else:
 from socket import setdefaulttimeout as socketsettimeout
 socketsettimeout(5)
 
-if not args.should_skip_gui():
+if not args.skip_gui:
     gtk.gdk.threads_init()
 
     # we don't use gtk.LinkButton, but gtk.AboutDialog does;

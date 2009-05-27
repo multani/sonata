@@ -1,5 +1,6 @@
 
 import sys
+import gettext
 from optparse import OptionParser
 
 try:
@@ -15,9 +16,6 @@ class Args(object):
     def __init__(self):
         self.skip_gui = False
         self.start_visibility = None
-
-    def should_skip_gui(self):
-        return self.skip_gui
 
     def parse(self, argv):
         """Parse the command line arguments.
@@ -136,7 +134,7 @@ class CliMain(object):
             password = self.config.password[self.config.profile_num]
 
         mpdh.call(self.client, 'connect', host, port)
-        if len(password) > 0:
+        if password:
             mpdh.call(self.client, 'password', password)
 
     def execute_cmd(self, cmd):
@@ -146,68 +144,76 @@ class CliMain(object):
             sys.exit(1)
 
         self.songinfo = mpdh.currsong(self.client)
+        getattr(self, "_execute_%s" % cmd)()
 
-        if cmd == "play":
-            mpdh.call(self.client, 'play')
-        elif cmd == "pause":
+    def _execute_play(self):
+        mpdh.call(self.client, 'play')
+
+    def _execute_pause(self):
+        mpdh.call(self.client, 'pause', 1)
+
+    def _execute_stop(self):
+        mpdh.call(self.client, 'stop')
+
+    def _execute_next(self):
+        mpdh.call(self.client, 'next')
+
+    def _execute_prev(self):
+        mpdh.call(self.client, 'previous')
+
+    def _execute_bool(self, cmd):
+        """Set the reverse the value of cmd"""
+        mpdh.call(self.client, cmd, int(not int(self.status[cmd])))
+
+    def _execute_random(self):
+        self._execute_bool('random')
+
+    def _execute_repeat(self):
+        self._execute_bool('repeat')
+
+    def _execute_pp(self):
+        if self.status['state'] in ['play']:
             mpdh.call(self.client, 'pause', 1)
-        elif cmd == "stop":
-            mpdh.call(self.client, 'stop')
-        elif cmd == "next":
-            mpdh.call(self.client, 'next')
-        elif cmd == "prev":
-            mpdh.call(self.client, 'previous')
-        elif cmd == "random":
-            if self.status['random'] == '0':
-                mpdh.call(self.client, 'random', 1)
-            else:
-                mpdh.call(self.client, 'random', 0)
-        elif cmd == "repeat":
-            if self.status['repeat'] == '0':
-                mpdh.call(self.client, 'repeat', 1)
-            else:
-                mpdh.call(self.client, 'repeat', 0)
-        elif cmd == "pp":
-            if self.status['state'] in ['play']:
-                mpdh.call(self.client, 'pause', 1)
-            elif self.status['state'] in ['pause', 'stop']:
-                mpdh.call(self.client, 'play')
-        elif cmd == "info":
-            if self.status['state'] in ['play', 'pause']:
-                mpdh.conout (_("Title") + ": " + mpdh.get(self.songinfo, 'title'))
-                mpdh.conout (_("Artist") + ": " + mpdh.get(self.songinfo, 'artist'))
-                mpdh.conout (_("Album") + ": " + mpdh.get(self.songinfo, 'album'))
-                mpdh.conout (_("Date") + ": " + mpdh.get(self.songinfo, 'date'))
-                mpdh.conout (_("Track") + ": " + mpdh.get(self.songinfo, 'track', '0', False, 2))
-                mpdh.conout (_("Genre") + ": " + mpdh.get(self.songinfo, 'genre'))
-                mpdh.conout (_("File") + ": " + os.path.basename(mpdh.get(self.songinfo, 'file')))
-                at, _length = [int(c) for c in self.status['time'].split(':')]
-                at_time = misc.convert_time(at)
-                try:
-                    time = misc.convert_time(mpdh.get(self.songinfo, 'time', '', True))
-                    print _("Time") + ": " + at_time + " / " + time
-                except:
-                    print _("Time") + ": " + at_time
-                print _("Bitrate") + ": " + self.status.get('bitrate', '')
-            else:
-                print _("MPD stopped")
-        elif cmd == "status":
+        elif self.status['state'] in ['pause', 'stop']:
+            mpdh.call(self.client, 'play')
+
+    def _execute_info(self):
+        if self.status['state'] in ['play', 'pause']:
+            cmds = [(_("Title"), ('title',)),
+                (_("Artist"), ('artist',)),
+                (_("Album"), ('album',)),
+                (_("Date"), ('date',)),
+                (_("Track"), ('track', '0', False, 2)),
+                (_("Genre"), ('genre',)),
+                (_("File"), ('file',)),
+                   ]
+            for pretty, cmd in cmds:
+                mpdh.conout("%s: %s" % (pretty,
+                        mpdh.get(self.songinfo, *cmd)))
+            at, _length = [int(c) for c in self.status['time'].split(':')]
+            at_time = misc.convert_time(at)
             try:
-                if self.status['state'] == 'play':
-                    print _("State") + ": " + _("Playing")
-                elif self.status['state'] == 'pause':
-                    print _("State") + ": " + _("Paused")
-                elif self.status['state'] == 'stop':
-                    print _("State") + ": " + _("Stopped")
-                if self.status['repeat'] == '0':
-                    print _("Repeat") + ": " + _("Off")
-                else:
-                    print _("Repeat") + ": " + _("On")
-                if self.status['random'] == '0':
-                    print _("Random") + ": " + _("Off")
-                else:
-                    print _("Random") + ": " + _("On")
-                print _("Volume") + ": " + self.status['volume'] + "/100"
-                print _('Crossfade') + ": " + self.status['xfade'] + ' ' + gettext.ngettext('second', 'seconds', int(self.status['xfade']))
+                time = misc.convert_time(mpdh.get(self.songinfo, 'time', '', True))
+                print "%s: %s/%s" % (_("Time"), at_time, time)
             except:
-                pass
+                print "%s: %s" % (_("Time"), at_time)
+            print "%s: %s" % (_("Bitrate"),
+                      self.status.get('bitrate', ''))
+        else:
+            print _("MPD stopped")
+
+    def _execute_status(self):
+        state_map = {
+                'play': _("Playing"),
+                'pause': _("Paused"),
+                'stop': _("Stopped")
+                }
+        print "%s: %s" % (_("State"),
+                state_map[self.status['state']])
+
+        print "%s %s" % (_("Repeat:"), _("On") if self.status['repeat'] == '1' else _("Off"))
+        print "%s %s" % (_("Random:"), _("On") if self.status['random'] == '1' else _("Off"))
+        print "%s: %s/100" % (_("Volume"), self.status['volume'])
+        print "%s: %s %s" % (_('Crossfade'), self.status['xfade'],
+                    gettext.ngettext('second', 'seconds',
+                             int(self.status['xfade'])))
