@@ -116,8 +116,6 @@ pluginsystem.notify_of('enablables',
 from sonata import cli
 args = cli.Args()
 args.parse(sys.argv)
-args.process_options()
-
 
 ## Deal with GTK:
 

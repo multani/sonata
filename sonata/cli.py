@@ -1,5 +1,6 @@
 
-import sys, getopt
+import sys
+from optparse import OptionParser
 
 try:
     import version
@@ -9,25 +10,11 @@ except ImportError:
 # the mpd commands need a connection to server and exit without gui
 mpd_cmds = ["play", "pause", "stop", "next", "prev", "pp", "info",
             "status", "repeat", "random"]
-# toggle and popup need d-bus and don't always need gui
-# version and help don't need anything and exit without gui
-# hidden and visible are only applicable when gui is launched
-# profile and no-start don't need anything
-short_opts = "tpnvh"
-long_opts = ["toggle", "popup", "no-start", "version", "help", "hidden", "visible", "profile="]
 
 class Args(object):
     def __init__(self):
         self.skip_gui = False
-
-        self.opts = []
-        self.args = []
-
-        self.toggle_arg = None
-        self.popup_arg = None
-        self.start_arg = None
         self.start_visibility = None
-        self.arg_profile = None
 
     def should_skip_gui(self):
         return self.skip_gui
@@ -37,107 +24,89 @@ class Args(object):
 
         Separates options and arguments from the given argument list,
         checks their validity."""
-        try:
-            self.opts, self.args = getopt.getopt(argv[1:], short_opts, long_opts)
-            for a in self.args:
-                if a in mpd_cmds:
-                    self.skip_gui = True
-                else:
-                    self.print_usage()
-                    sys.exit(1)
-        except getopt.GetoptError:
-            # print help information and exit:
-            self.print_usage()
-            sys.exit(1)
 
-    def process_options(self):
-        """If options were passed, perform action on them."""
-        for o, a in self.opts:
-            if o in ("-t", "--toggle"):
-                self.toggle_arg = True
-                self.start_visibility = True
-            elif o in ("-p", "--popup"):
-                self.popup_arg = True
-                if self.start_visibility is None:
-                    self.start_visibility = False
-            elif o in ("-n", "--no-start"):
-                self.start_arg = False
-            elif o in ("-v", "--version"):
-                self.print_version()
-                sys.exit()
-            elif o in ("-h", "--help"):
-                self.print_usage()
-                sys.exit()
-            elif o in ("--visible"):
-                self.start_visibility = True
-            elif o in ("--hidden"):
-                self.start_visibility = False
-            elif o in ("--profile"):
-                self.arg_profile = a
+        # toggle and popup need d-bus and don't always need gui
+        # version and help don't need anything and exit without gui
+        # hidden and visible are only applicable when gui is launched
+        # profile and no-start don't need anything
+        _usage = "\n".join((_("%prog [OPTION]... [COMMAND]...")+"\n",
+         _("Commands:"),
+        "  play            %s" % _("play song in playlist"),
+        "  pause           %s" % _("pause currently playing song"),
+        "  stop            %s" % _("stop currently playing song"),
+        "  next            %s" % _("play next song in playlist"),
+        "  prev            %s" % _("play previous song in playlist"),
+        "  pp              %s" % _("toggle play/pause; plays if stopped"),
+        "  repeat          %s" % _("toggle repeat mode"),
+        "  random          %s" % _("toggle random mode"),
+        "  info            %s" % _("display current song info"),
+        "  status          %s" % _("display MPD status"),
+        ))
+        _version = "%prog " + version.VERSION
 
-        if self.toggle_arg or self.popup_arg:
+        parser = OptionParser(usage=_usage, version=_version)
+        parser.add_option("-p", "--popup", dest="popup",
+                  action="store_true",
+                  help=_("popup song notification (requires D-Bus)"))
+        parser.add_option("-t", "--toggle", dest="toggle",
+                  action="store_true",
+                  help=_("toggles whether the app is minimized to the tray or visible (requires D-Bus)"))
+        parser.add_option("-n", "--no-start", dest="start",
+                  action="store_false",
+                  help=_("don't start app if D-Bus commands fail"))
+        parser.add_option("--hidden", dest="start_visibility",
+                  action="store_false",
+                  help=_("start app hidden (requires systray)"))
+        parser.add_option("--visible", dest="start_visibility",
+                  action="store_true",
+                  help=_("start app visible (requires systray)"))
+        parser.add_option("--profile", dest="profile", metavar="NUM",
+                  help=_("start with profile NUM"), type=int)
+
+        options, self.cmds = parser.parse_args(argv[1:])
+
+        if options.toggle:
+            options.start_visibility = True
+        if options.popup and options.start_visibility is None:
+            options.start_visibility = False
+        self.start_visibility = options.start_visibility
+        self.arg_profile = options.profile
+
+        for cmd in self.cmds:
+            if cmd in mpd_cmds:
+                self.skip_gui = True
+            else:
+                parser.error(_("unknown command %s") % cmd)
+
+        if options.toggle or options.popup:
             import dbus_plugin as dbus
             if not dbus.using_dbus():
-                print _("The toggle and popup arguments require D-Bus. Aborting.")
+                print _("toggle and popup options require D-Bus. Aborting.")
                 sys.exit(1)
 
-            dbus.execute_remote_commands(self.toggle_arg, self.popup_arg, self.start_arg)
+            dbus.execute_remote_commands(options.toggle,
+                             options.popup,
+                             options.start)
+
 
     def execute_cmds(self):
         """If arguments were passed, perform action on them."""
-        if self.args:
+        if self.cmds:
             main = CliMain(self)
             mpdh.suppress_mpd_errors(True)
             main.mpd_connect()
-            for a in self.args:
-                main.execute_cmd(a)
+            for cmd in self.cmds:
+                main.execute_cmd(cmd)
             sys.exit()
-
-    def print_version(self):
-        print _("Version") + ": Sonata", (version.VERSION)
-        print _("Website") + ": http://sonata.berlios.de/"
-
-    def print_usage(self):
-        self.print_version()
-        print ""
-        print _("Usage: sonata [OPTION]... [COMMAND]...")
-        print ""
-        print _("Options:")
-        print "  -h, --help           " + _("Show this help and exit")
-        print "  -p, --popup          " + _("Popup song notification (requires D-Bus)")
-        print "  -t, --toggle         " + _("Toggles whether the app is minimized")
-        print "                       " + _("to tray or visible (requires D-Bus)")
-        print "  -n, --no-start       " + _("Don't start app if D-Bus commands fail")
-        print "  -v, --version        " + _("Show version information and exit")
-        print "  --hidden             " + _("Start app hidden (requires systray)")
-        print "  --visible            " + _("Start app visible (requires systray)")
-        print "  --profile=[NUM]      " + _("Start with profile [NUM]")
-        print ""
-        print _("Commands:")
-        print "  play                 " + _("Play song in playlist")
-        print "  pause                " + _("Pause currently playing song")
-        print "  stop                 " + _("Stop currently playing song")
-        print "  next                 " + _("Play next song in playlist")
-        print "  prev                 " + _("Play previous song in playlist")
-        print "  pp                   " + _("Toggle play/pause; plays if stopped")
-        print "  repeat               " + _("Toggle repeat mode")
-        print "  random               " + _("Toggle random mode")
-        print "  info                 " + _("Display current song info")
-        print "  status               " + _("Display MPD status")
 
     def apply_profile_arg(self, config):
         if self.arg_profile:
-            try:
-                a = int(self.arg_profile)
-                if a > 0 and a <= len(config.profile_names):
-                    config.profile_num = a-1
-                    print _("Starting Sonata with profile %s...") % config.profile_names[config.profile_num]
-                else:
-                    print _("%d is not an available profile number.") % a
-                    print _("Profile numbers must be between 1 and %d.") % len(config.profile_names)
-                    sys.exit(1)
-            except ValueError:
-                print _("Python is unable to interpret %s as a number.") % self.arg_profile
+            a = self.arg_profile
+            if a > 0 and a <= len(config.profile_names):
+                config.profile_num = a-1
+                print _("Starting Sonata with profile %s...") % config.profile_names[config.profile_num]
+            else:
+                print _("%d is not an available profile number.") % a
                 print _("Profile numbers must be between 1 and %d.") % len(config.profile_names)
                 sys.exit(1)
 
