@@ -185,6 +185,7 @@ class Base(object):
             self.update_infofile, self.settings_save,
             self.populate_profiles_for_menu)
         self.settings_load()
+        self.setup_prefs_callbacks()
 
         if args.start_visibility is not None:
             self.config.withdrawn = not args.start_visibility
@@ -2655,18 +2656,15 @@ class Base(object):
         if self.conn:
             self._toggle_clicked('random', widget)
 
-    def on_prefs(self, _widget):
+    def setup_prefs_callbacks(self):
         trayicon_available = HAVE_EGG or HAVE_STATUS_ICON
-        trayicon_in_use = ((HAVE_STATUS_ICON and self.statusicon.is_embedded() and
-                    self.statusicon.get_visible())
-                   or (HAVE_EGG and self.trayicon.get_property('visible')))
-        extras = preferences.Extras_cbs()
+        extras = preferences.Extras_cbs
         extras.popuptimes = self.popuptimes
         extras.notif_toggled = self.prefs_notif_toggled
         extras.crossfade_toggled = self.prefs_crossfade_toggled
         extras.crossfade_changed = self.prefs_crossfade_changed
 
-        display = preferences.Display_cbs()
+        display = preferences.Display_cbs
         display.stylized_toggled = self.prefs_stylized_toggled
         display.art_toggled = self.prefs_art_toggled
         display.playback_toggled = self.prefs_playback_toggled
@@ -2675,22 +2673,30 @@ class Base(object):
         display.lyrics_toggled = self.prefs_lyrics_toggled
         display.trayicon_available = trayicon_available
 
-        behavior = preferences.Behavior_cbs()
+        behavior = preferences.Behavior_cbs
         behavior.trayicon_toggled = self.prefs_trayicon_toggled
-        behavior.trayicon_in_use = trayicon_in_use
         behavior.sticky_toggled = self.prefs_sticky_toggled
         behavior.ontop_toggled = self.prefs_ontop_toggled
         behavior.decorated_toggled = self.prefs_decorated_toggled
         behavior.infofile_changed = self.prefs_infofile_changed
 
-        format = preferences.Format_cbs()
+        format = preferences.Format_cbs
         format.currentoptions_changed = self.prefs_currentoptions_changed
         format.libraryoptions_changed = self.prefs_libraryoptions_changed
         format.titleoptions_changed = self.prefs_titleoptions_changed
         format.currsongoptions1_changed = self.prefs_currsongoptions1_changed
         format.currsongoptions2_changed =  self.prefs_currsongoptions2_changed
 
-        self.preferences.on_prefs_real(extras, display, behavior, format)
+    def on_prefs(self, _widget):
+        trayicon_in_use = ((HAVE_STATUS_ICON and
+                   self.statusicon.is_embedded() and
+                   self.statusicon.get_visible())
+                   or
+                   (HAVE_EGG and
+                    self.trayicon.get_property('visible')))
+
+        preferences.Behavior_cbs.trayicon_in_use = trayicon_in_use
+        self.preferences.on_prefs_real()
 
     def prefs_currentoptions_changed(self, entry, _event):
         if self.config.currentformat != entry.get_text():

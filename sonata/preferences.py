@@ -91,7 +91,7 @@ class Preferences():
         self.direntry = None
         self.using_mpd_env_vars = False
 
-    def on_prefs_real(self, extras_cbs, display_cbs, behavior_cbs, format_cbs):
+    def on_prefs_real(self):
         """Display the preferences dialog"""
 
         self.prefswindow = ui.dialog(title=_("Preferences"), parent=self.window, flags=gtk.DIALOG_DESTROY_WITH_PARENT, role='preferences', resizable=False, separator=False)
@@ -108,7 +108,8 @@ class Preferences():
         for display_name, name in tabs:
             label = ui.label(text=display_name)
             func = getattr(self, '%s_tab' % name)
-            tab = func(locals().get('%s_cbs' % name))
+            cbs = globals().get('%s_cbs' % name.capitalize())
+            tab = func(cbs)
             self.prefsnotebook.append_page(tab, label)
         hbox = gtk.HBox()
         hbox.pack_start(self.prefsnotebook, False, False, 10)
