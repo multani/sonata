@@ -433,7 +433,7 @@ class Base(object):
             ]
 
         # Library tab
-        self.library = library.Library(self.config, self.client, self.artwork, self.TAB_LIBRARY, self.find_path('sonata-album.png'), self.settings_save, self.current.filtering_entry_make_red, self.current.filtering_entry_revert_color, self.current.filter_key_pressed, self.on_add_item, self.connected, self.on_library_button_press, self.on_library_search_text_click, self.new_tab)
+        self.library = library.Library(self.config, self.client, self.artwork, self.TAB_LIBRARY, self.find_path('sonata-album.png'), self.settings_save, self.current.filtering_entry_make_red, self.current.filtering_entry_revert_color, self.current.filter_key_pressed, self.on_add_item, self.connected, self.on_library_button_press, self.new_tab)
 
         self.library_treeview = self.library.get_treeview()
         self.library_selection = self.library.get_selection()
@@ -523,8 +523,8 @@ class Base(object):
         toptophbox.pack_start(self.progressbox, True, True, 0)
         if not self.config.show_progress:
             ui.hide(self.progressbox)
-        self.volumebutton = ui.togglebutton(relief=gtk.RELIEF_NONE, can_focus=False)
-        self.volume_set_image("stock_volume-med")
+        self.volumebutton = gtk.VolumeButton()
+        self.volumebutton.set_adjustment(gtk.Adjustment(0, 0, 100, 5, 5,))
         if not self.config.show_playback:
             ui.hide(self.volumebutton)
         toptophbox.pack_start(self.volumebutton, False, False, 0)
@@ -616,32 +616,6 @@ class Base(object):
         self.traytips.add_widget(outtertipbox)
         self.tooltip_set_window_width()
 
-        # Volumescale window
-        self.volumewindow = gtk.Window(gtk.WINDOW_POPUP)
-        self.volumewindow.set_skip_taskbar_hint(True)
-        self.volumewindow.set_skip_pager_hint(True)
-        self.volumewindow.set_decorated(False)
-        frame = gtk.Frame()
-        frame.set_shadow_type(gtk.SHADOW_ETCHED_IN)
-        self.volumewindow.add(frame)
-        volbox = gtk.VBox()
-        volbox.pack_start(ui.label(text="+"), False, False, 0)
-        self.volumescale = gtk.VScale()
-        self.volumescale.set_draw_value(True)
-        self.volumescale.set_value_pos(gtk.POS_TOP)
-        self.volumescale.set_digits(0)
-        self.volumescale.set_update_policy(gtk.UPDATE_CONTINUOUS)
-        self.volumescale.set_inverted(True)
-        self.volumescale.set_adjustment(gtk.Adjustment(0, 0, 100, 0, 0, 0))
-        if HAVE_SUGAR:
-            self.volumescale.set_size_request(-1, 203)
-        else:
-            self.volumescale.set_size_request(-1, 103)
-        volbox.pack_start(self.volumescale, True, True, 0)
-        volbox.pack_start(ui.label(text="-"), False, False, 0)
-        frame.add(volbox)
-        ui.show(frame)
-
         # Fullscreen cover art window
         self.fullscreencoverart = gtk.Window()
         self.fullscreencoverart.set_title(_("Cover Art"))
@@ -671,10 +645,8 @@ class Base(object):
         self.traytips.add_events(gtk.gdk.BUTTON_PRESS_MASK)
         self.traytips.connect('button_press_event', self.on_traytips_press)
         self.window.connect('delete_event', self.on_delete_event)
-        self.window.connect('window_state_event', self.on_window_state_change)
         self.window.connect('configure_event', self.on_window_configure)
         self.window.connect('key-press-event', self.on_topwindow_keypress)
-        self.window.connect('focus-out-event', self.on_window_lost_focus)
         self.imageeventbox.connect('button_press_event', self.on_image_activate)
         self.imageeventbox.connect('drag_motion', self.on_image_motion_cb)
         self.imageeventbox.connect('drag_data_received', self.on_image_drop_cb)
@@ -684,18 +656,14 @@ class Base(object):
         self.nextbutton.connect('clicked', self.mpd_next)
         self.progresseventbox.connect('button_press_event', self.on_progressbar_press)
         self.progresseventbox.connect('scroll_event', self.on_progressbar_scroll)
-        self.volumebutton.connect('clicked', self.on_volumebutton_clicked)
-        self.volumebutton.connect('scroll-event', self.on_volumebutton_scroll)
+        self.volumebutton.connect('value-changed', self.on_volume_change)
         self.expander.connect('activate', self.on_expander_activate)
         self.randommenu.connect('toggled', self.on_random_clicked)
         self.repeatmenu.connect('toggled', self.on_repeat_clicked)
-        self.volumescale.connect('change_value', self.on_volumescale_change)
-        self.volumescale.connect('scroll-event', self.on_volumescale_scroll)
         self.cursonglabel1.connect('notify::label', self.on_currsong_notify)
         self.progressbar.connect('notify::fraction', self.on_progressbar_notify_fraction)
         self.progressbar.connect('notify::text', self.on_progressbar_notify_text)
         self.mainwinhandler = self.window.connect('button_press_event', self.on_window_click)
-        self.notebook.connect('button_press_event', self.on_notebook_click)
         self.notebook.connect('size-allocate', self.on_notebook_resize)
         self.notebook.connect('switch-page', self.on_notebook_page_change)
 
@@ -706,7 +674,7 @@ class Base(object):
             treeview.connect('popup_menu', self.on_menu_popup)
         for treeviewsel in [self.current_selection, self.library_selection, self.playlists_selection, self.streams_selection]:
             treeviewsel.connect('changed', self.on_treeview_selection_changed)
-        for widget in [self.ppbutton, self.prevbutton, self.stopbutton, self.nextbutton, self.progresseventbox, self.expander, self.volumebutton]:
+        for widget in [self.ppbutton, self.prevbutton, self.stopbutton, self.nextbutton, self.progresseventbox, self.expander]:
             widget.connect('button_press_event', self.menu_popup)
 
         self.systemtray_initialize()
@@ -1118,9 +1086,7 @@ class Base(object):
         if shortcut == 'BackSpace' and self.current_tab == self.TAB_LIBRARY:
             return self.library.library_browse_parent(None)
         elif shortcut == 'Escape':
-            if self.volumewindow.get_property('visible'):
-                self.volume_hide()
-            elif self.current_tab == self.TAB_LIBRARY and self.library.search_visible():
+            if self.current_tab == self.TAB_LIBRARY and self.library.search_visible():
                 self.library.on_search_end(None)
             elif self.current_tab == self.TAB_CURRENT and self.current.filterbox_visible:
                 self.current.searchfilter_toggle(None)
@@ -1132,12 +1098,6 @@ class Base(object):
             return
         elif shortcut == 'Delete':
             self.on_remove(None)
-        elif self.volumewindow.get_property('visible') and (shortcut == 'Up' or shortcut == 'Down'):
-            if shortcut == 'Up':
-                self.on_volume_raise(None)
-            else:
-                self.on_volume_lower(None)
-            return True
         if self.current_tab == self.TAB_CURRENT:
             if event.state & (gtk.gdk.CONTROL_MASK | gtk.gdk.MOD1_MASK):
                 return
@@ -1235,7 +1195,6 @@ class Base(object):
 
     def on_button_press(self, widget, event, widget_is_current):
         ctrl_press = (event.state & gtk.gdk.CONTROL_MASK)
-        self.volume_hide()
         self.current.sel_rows = None
         if event.button == 1 and widget_is_current and not ctrl_press:
             # If the user clicked inside a group of rows that were already selected,
@@ -1495,19 +1454,7 @@ class Base(object):
                 self.current.center_song_in_list()
 
         if self.prevstatus is None or self.status['volume'] != self.prevstatus['volume']:
-            try:
-                self.volumescale.get_adjustment().set_value(int(self.status['volume']))
-                if int(self.status['volume']) == 0:
-                    self.volume_set_image("stock_volume-mute")
-                elif int(self.status['volume']) < 30:
-                    self.volume_set_image("stock_volume-min")
-                elif int(self.status['volume']) <= 70:
-                    self.volume_set_image("stock_volume-med")
-                else:
-                    self.volume_set_image("stock_volume-max")
-                self.volumebutton.set_tooltip_text(self.status['volume'] + "%")
-            except:
-                pass
+            self.volumebutton.set_value(int(self.status['volume']))
 
         if self.conn:
             if mpdh.mpd_is_updating(self.status):
@@ -1558,10 +1505,6 @@ class Base(object):
             self.album_current_artist = [self.songinfo, mpdh.get(self.songinfo, 'artist')]
         else:
             self.album_current_artist = [self.songinfo, ""]
-
-    def volume_set_image(self, stock_icon):
-        image = ui.image(stock=stock_icon, stocksize=VOLUME_ICON_SIZE)
-        self.volumebutton.set_image(image)
 
     def handle_change_song(self):
         # Called when one of the following items are changed for the current
@@ -1870,12 +1813,6 @@ class Base(object):
             self.mpd_stop(None)
         sys.exit()
 
-    def on_window_state_change(self, _widget, _event):
-        self.volume_hide()
-
-    def on_window_lost_focus(self, _widget, _event):
-        self.volume_hide()
-
     def on_window_configure(self, window, _event):
         # When withdrawing an app, extra configure events (with wrong coords)
         # are fired (at least on Openbox). This prevents a user from moving
@@ -2074,7 +2011,6 @@ class Base(object):
                 self.info_imagebox.set_size_request(152, -1)
                 self.artwork.artwork_set_image_last()
                 self.config.info_art_enlarged = False
-            self.volume_hide()
             # Force a resize of the info labels, if needed:
             gobject.idle_add(self.on_notebook_resize, self.notebook, None)
         elif event.button == 1 and widget != self.info_imagebox:
@@ -2596,7 +2532,8 @@ class Base(object):
 
     # Change volume on mousewheel over systray icon:
     def systemtray_scroll(self, widget, event):
-        self.on_volumebutton_scroll(widget, event)
+        if self.conn:
+            self.volumebutton.emit("scroll-event", event)
 
     def systemtray_size(self, widget, _allocation):
         if widget.allocation.height <= 5:
@@ -2623,61 +2560,17 @@ class Base(object):
     def switch_to_prev_tab(self, _action):
         self.notebook.prev_page()
 
+    # Volume control
     def on_volume_lower(self, _action):
-        new_volume = int(self.volumescale.get_adjustment().get_value()) - 5
-        if new_volume < 0:
-            new_volume = 0
-        self.volumescale.get_adjustment().set_value(new_volume)
-        self.on_volumescale_change(self.volumescale, 0, 0)
+        new_volume = int(self.volumebutton.get_value()) - 5
+        self.volumebutton.set_value(new_volume)
 
     def on_volume_raise(self, _action):
-        new_volume = int(self.volumescale.get_adjustment().get_value()) + 5
-        if new_volume > 100:
-            new_volume = 100
-        self.volumescale.get_adjustment().set_value(new_volume)
-        self.on_volumescale_change(self.volumescale, 0, 0)
+        new_volume = int(self.volumebutton.get_value()) + 5
+        self.volumebutton.set_value(new_volume)
 
-    # Volume control
-    def on_volumebutton_clicked(self, _widget):
-        if not self.volumewindow.get_property('visible'):
-            x_win, y_win = self.volumebutton.window.get_origin()
-            button_rect = self.volumebutton.get_allocation()
-            x_coord, y_coord = button_rect.x + x_win, button_rect.y+y_win
-            width, height = button_rect.width, button_rect.height
-            self.volumewindow.set_size_request(width, -1)
-            self.volumewindow.move(x_coord, y_coord+height)
-            self.volumewindow.present()
-        else:
-            self.volume_hide()
-
-    def on_volumebutton_scroll(self, _widget, event):
-        if self.conn:
-            if event.direction == gtk.gdk.SCROLL_UP:
-                self.on_volume_raise(None)
-            elif event.direction == gtk.gdk.SCROLL_DOWN:
-                self.on_volume_lower(None)
-
-    def on_volumescale_scroll(self, _widget, event):
-        if event.direction == gtk.gdk.SCROLL_UP:
-            new_volume = int(self.volumescale.get_adjustment().get_value()) + 5
-            if new_volume > 100:
-                new_volume = 100
-            self.volumescale.get_adjustment().set_value(new_volume)
-        elif event.direction == gtk.gdk.SCROLL_DOWN:
-            new_volume = int(self.volumescale.get_adjustment().get_value()) - 5
-            if new_volume < 0:
-                new_volume = 0
-            self.volumescale.get_adjustment().set_value(new_volume)
-
-    def on_volumescale_change(self, obj, _value, _data):
-        new_volume = int(obj.get_adjustment().get_value())
-        mpdh.call(self.client, 'setvol', new_volume)
-        self.iterate_now()
-
-    def volume_hide(self):
-        self.volumebutton.set_active(False)
-        if self.volumewindow.get_property('visible'):
-            self.volumewindow.hide()
+    def on_volume_change(self, _button, new_volume):
+        mpdh.call(self.client, 'setvol', int(new_volume))
 
     def mpd_pp(self, _widget, _key=None):
         if self.conn and self.status:
@@ -2986,10 +2879,6 @@ class Base(object):
             self.notebookmenu.popup(None, None, None, event.button, event.time)
             return True
 
-    def on_notebook_click(self, _widget, event):
-        if event.button == 1:
-            self.volume_hide()
-
     def notebook_get_tab_num(self, notebook, tabname):
         for tab in range(notebook.get_n_pages()):
             if self.notebook_get_tab_text(self.notebook, tab) == tabname:
@@ -3024,14 +2913,8 @@ class Base(object):
         if not self.img_clicked:
             self.last_tab = self.current_tab
 
-    def on_library_search_text_click(self, _widget, event):
-        if event.button == 1:
-            self.volume_hide()
-
     def on_window_click(self, _widget, event):
-        if event.button == 1:
-            self.volume_hide()
-        elif event.button == 3:
+        if event.button == 3:
             self.menu_popup(self.window, event)
 
     def menu_popup(self, widget, event):

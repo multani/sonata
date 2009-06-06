@@ -29,7 +29,7 @@ def library_get_data(data, *args):
         return retlist
 
 class Library(object):
-    def __init__(self, config, client, artwork, TAB_LIBRARY, album_filename, settings_save, filtering_entry_make_red, filtering_entry_revert_color, filter_key_pressed, on_add_item, connected, on_library_button_press, on_library_search_text_click, new_tab):
+    def __init__(self, config, client, artwork, TAB_LIBRARY, album_filename, settings_save, filtering_entry_make_red, filtering_entry_revert_color, filter_key_pressed, on_add_item, connected, on_library_button_press, new_tab):
         self.artwork = artwork
         self.config = config
         self.client = client
@@ -42,7 +42,6 @@ class Library(object):
         self.on_add_item = on_add_item
         self.connected = connected
         self.on_library_button_press = on_library_button_press
-        self.on_library_search_text_click = on_library_search_text_click
 
         self.NOTAG = _("Untagged")
         self.VAstr = _("Various Artists")
@@ -130,7 +129,6 @@ class Library(object):
         self.library.connect('query-tooltip', self.on_library_query_tooltip)
         expanderwindow2.connect('scroll-event', self.on_library_scrolled)
         self.libraryview.connect('clicked', self.library_view_popup)
-        self.searchtext.connect('button_press_event', self.on_library_search_text_click)
         self.searchtext.connect('key-press-event', self.libsearchfilter_key_pressed)
         self.searchtext.connect('activate', self.libsearchfilter_on_enter)
         self.searchbutton.connect('clicked', self.on_search_end)
