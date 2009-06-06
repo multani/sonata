@@ -2751,19 +2751,16 @@ class Base(object):
             mpdh.call(self.client, 'clear')
             self.iterate_now()
 
+    def _toggle_clicked(self, command, widget):
+        mpdh.call(self.client, command, int(widget.get_active()))
+
     def on_repeat_clicked(self, widget):
         if self.conn:
-            if widget.get_active():
-                mpdh.call(self.client, 'repeat', 1)
-            else:
-                mpdh.call(self.client, 'repeat', 0)
+            self._toggle_clicked('repeat', widget)
 
     def on_random_clicked(self, widget):
         if self.conn:
-            if widget.get_active():
-                mpdh.call(self.client, 'random', 1)
-            else:
-                mpdh.call(self.client, 'random', 0)
+            self._toggle_clicked('random', widget)
 
     def on_prefs(self, _widget):
         trayicon_available = HAVE_EGG or HAVE_STATUS_ICON
@@ -3000,10 +2997,7 @@ class Base(object):
 
     def notebook_tab_is_visible(self, notebook, tabname):
         tab = self.notebook.get_children()[self.notebook_get_tab_num(notebook, tabname)]
-        if tab.get_property('visible'):
-            return True
-        else:
-            return False
+        return tab.get_property('visible')
 
     def notebook_get_visible_tab_num(self, notebook, tab_num):
         # Get actual tab number for visible tab_num. If there is not
