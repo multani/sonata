@@ -11,13 +11,9 @@ from pluginsystem import pluginsystem
 class Info(object):
     def __init__(self, config, info_image, linkcolor, on_link_click_cb, get_playing_song, TAB_INFO, on_image_activate, on_image_motion_cb, on_image_drop_cb, album_return_artist_and_tracks, new_tab):
         self.config = config
-        self.info_image = info_image
         self.linkcolor = linkcolor
         self.on_link_click_cb = on_link_click_cb
         self.get_playing_song = get_playing_song
-        self.on_image_activate = on_image_activate
-        self.on_image_motion_cb = on_image_motion_cb
-        self.on_image_drop_cb = on_image_drop_cb
         self.album_return_artist_and_tracks = album_return_artist_and_tracks
 
         try:
@@ -46,12 +42,15 @@ class Info(object):
         self.tab = new_tab(self.info_area, gtk.STOCK_JUSTIFY_FILL, TAB_INFO, self.info_area)
 
         image_width = -1 if self.config.info_art_enlarged else 152
-        self._imagebox = ui.eventbox(w=image_width,
-                         add=self.info_image)
-        self._imagebox.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT | gtk.DEST_DEFAULT_DROP, [("text/uri-list", 0, 80), ("text/plain", 0, 80)], gtk.gdk.ACTION_DEFAULT)
-        self._imagebox.connect('button_press_event', self.on_image_activate)
-        self._imagebox.connect('drag_motion', self.on_image_motion_cb)
-        self._imagebox.connect('drag_data_received', self.on_image_drop_cb)
+        imagebox = ui.eventbox(w=image_width, add=info_image)
+        imagebox.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT |
+                gtk.DEST_DEFAULT_DROP,
+                [("text/uri-list", 0, 80),
+                 ("text/plain", 0, 80)], gtk.gdk.ACTION_DEFAULT)
+        imagebox.connect('button_press_event', on_image_activate)
+        imagebox.connect('drag_motion', on_image_motion_cb)
+        imagebox.connect('drag_data_received', on_image_drop_cb)
+        self._imagebox = imagebox
 
         self.widgets_initialize(self.info_area)
 
