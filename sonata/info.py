@@ -27,7 +27,6 @@ class Info(object):
         self.info_boxes_in_more = None
         self._editlabel = None
         self._editlyricslabel = None
-        self.info_labels = None
         self.info_left_label = None
         self.info_lyrics = None
         self._morelabel = None
@@ -74,8 +73,7 @@ class Info(object):
         self.info_tagbox = gtk.VBox()
 
         labels_left = []
-        self.info_type = {}
-        self.info_labels = []
+        self.info_labels = {}
         self.info_boxes_in_more = []
         labels = [(_("Title"), 'title', False, "", False),
             (_("Artist"), 'artist', True,
@@ -89,7 +87,6 @@ class Info(object):
             (_("Bitrate"), 'bitrate', False, "", True)]
 
         for i,(text, name, link, tooltip, in_more) in enumerate(labels):
-            self.info_type[name] = i
             tmphbox = gtk.HBox()
             if in_more:
                 self.info_boxes_in_more += [tmphbox]
@@ -107,7 +104,7 @@ class Info(object):
             tmphbox.pack_start(tmplabel, False, False, horiz_spacing)
             to_pack = tmpevbox if link else tmplabel2
             tmphbox.pack_start(to_pack, False, False, horiz_spacing)
-            self.info_labels += [tmplabel2]
+            self.info_labels[name] = tmplabel2
             labels_left += [tmplabel]
             self.info_tagbox.pack_start(tmphbox, False, False, vert_spacing)
         ui.set_widths_equal(labels_left)
@@ -229,7 +226,7 @@ class Info(object):
         # want to update the minimum number of widgets so the user can
         # do things like select label text.
         if not playing_or_paused:
-            for label in self.info_labels:
+            for label in self.info_labels.values():
                 label.set_text("")
             self._editlabel.set_text("")
             if self.config.show_lyrics:
@@ -240,7 +237,7 @@ class Info(object):
             self.last_bitrate = ""
             return
 
-        bitratelabel = self.info_labels[self.info_type['bitrate']]
+        bitratelabel = self.info_labels['bitrate']
         if self.last_bitrate != newbitrate:
             bitratelabel.set_text(newbitrate)
             self.last_bitrate = newbitrate
@@ -248,13 +245,13 @@ class Info(object):
         if not update_all:
             return
 
-        artistlabel = self.info_labels[self.info_type['artist']]
-        tracklabel = self.info_labels[self.info_type['track']]
-        albumlabel = self.info_labels[self.info_type['album']]
-        filelabel = self.info_labels[self.info_type['file']]
+        artistlabel = self.info_labels['artist']
+        tracklabel = self.info_labels['track']
+        albumlabel = self.info_labels['album']
+        filelabel = self.info_labels['file']
 
         for name in ['title', 'date', 'genre']:
-            label = self.info_labels[self.info_type[name]]
+            label = self.info_labels[name]
             label.set_text(mpdh.get(songinfo, name))
 
         tracklabel.set_text(mpdh.get(songinfo, 'track', '', False))
@@ -415,7 +412,7 @@ class Info(object):
         else:
             labelwidth = notebook_allocation.width - self.info_left_label.allocation.width - 60 # 60 accounts for vert scrollbar, box paddings, etc..
         if labelwidth > 100:
-            for label in self.info_labels:
+            for label in self.info_labels.values():
                 label.set_size_request(labelwidth, -1)
         # Resize lyrics/album gtk labels:
         labelwidth = notebook_allocation.width - 45 # 45 accounts for vert scrollbar, box paddings, etc..
