@@ -49,14 +49,25 @@ class Info(object):
         imagebox.connect('drag_data_received', on_image_drop_cb)
         self._imagebox = imagebox
 
-        self.widgets_initialize(self.info_area)
+        self._widgets_initialize()
 
-    def widgets_initialize(self, info_scrollwindow):
+    def _widgets_initialize(self):
+        margin = 5
+        outter_vbox = gtk.VBox()
+        setupfuncs = (getattr(self, "_widgets_%s" % func)
+                for func in ['song', 'lyrics', 'album'])
+        for setup in setupfuncs:
+            widget = setup()
+            outter_vbox.pack_start(widget, False, False, margin)
 
-        vert_spacing = 1
-        horiz_spacing = 2
+        # Finish..
+        if not self.config.show_lyrics:
+            ui.hide(self.info_lyrics)
+        if not self.config.show_covers:
+            ui.hide(self._imagebox)
+        self.info_area.add_with_viewport(outter_vbox)
 
-        # Song info
+    def _widgets_song(self):
         info_song = ui.expander(markup="<b>%s</b>" % _("Song Info"),
                 expand=self.config.info_song_expanded,
                 can_focus=False)
@@ -113,8 +124,11 @@ class Info(object):
         inner_hbox.pack_start(self._imagebox, False, False, 6)
         inner_hbox.pack_start(tagtable, False, False, 6)
         info_song.add(inner_hbox)
+        return info_song
 
-        # Lyrics
+    def _widgets_lyrics(self):
+        horiz_spacing = 2
+        vert_spacing = 1
         self.info_lyrics = ui.expander(markup="<b>%s</b>" % _("Lyrics"),
                     expand=self.config.info_lyrics_expanded,
                     can_focus=False)
@@ -133,31 +147,16 @@ class Info(object):
         lyricsbox_bottom.pack_start(editlyricsevbox, False, False, horiz_spacing)
         lyricsbox.pack_start(lyricsbox_bottom, False, False, vert_spacing)
         self.info_lyrics.add(lyricsbox)
+        return self.info_lyrics
 
-        # Album info
+    def _widgets_album(self):
         info_album = ui.expander(markup="<b>%s</b>" % _("Album Info"),
                 expand=self.config.info_album_expanded,
                 can_focus=False)
         info_album.connect("activate", self._expanded, "album")
-        albumbox = gtk.VBox()
-        albumbox_top = gtk.HBox()
         self.albumText = ui.label(markup=" ", y=0, select=True, wrap=True)
-        albumbox_top.pack_start(self.albumText, False, False, horiz_spacing)
-        albumbox.pack_start(albumbox_top, False, False, vert_spacing)
-        info_album.add(albumbox)
-
-        margin = 5
-        outter_vbox = gtk.VBox()
-        outter_vbox.pack_start(info_song, False, False, margin)
-        outter_vbox.pack_start(self.info_lyrics, False, False, margin)
-        outter_vbox.pack_start(info_album, False, False, margin)
-
-        # Finish..
-        if not self.config.show_lyrics:
-            ui.hide(self.info_lyrics)
-        if not self.config.show_covers:
-            ui.hide(self._imagebox)
-        info_scrollwindow.add_with_viewport(outter_vbox)
+        info_album.add(self.albumText)
+        return info_album
 
     def get_widgets(self):
         return self.info_area
