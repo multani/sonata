@@ -437,14 +437,13 @@ class Info(object):
         # FIXME Why did we have this condition here: if self.conn:
         lyrics_loc = force_location if force_location else self.config.lyrics_location
         # Note: *_ALT searching is for compatibility with other mpd clients (like ncmpcpp):
-        if lyrics_loc == consts.LYRICS_LOCATION_HOME:
-            targetfile = os.path.join(os.path.expanduser("~/.lyrics"), "%s-%s.txt" % (artist, title))
-        elif lyrics_loc == consts.LYRICS_LOCATION_PATH:
-            targetfile = os.path.join(self.config.musicdir[self.config.profile_num], song_dir, "%s-%s.txt" % (artist, title))
-        elif lyrics_loc == consts.LYRICS_LOCATION_HOME_ALT:
-            targetfile = os.path.join(os.path.expanduser("~/.lyrics"), "%s - %s.txt" % (artist, title))
-        elif lyrics_loc == consts.LYRICS_LOCATION_PATH_ALT:
-            targetfile = os.path.join(self.config.musicdir[self.config.profile_num], song_dir, "%s - %s.txt" % (artist , title))
-        targetfile = misc.file_exists_insensitive(targetfile)
-        return misc.file_from_utf8(targetfile)
-
+        file_map = {
+            consts.LYRICS_LOCATION_HOME : ("~/.lyrics", "%s-%s.txt"),
+            consts.LYRICS_LOCATION_PATH : (self.config.musicdir[self.config.profile_num], song_dir, "%s-%s.txt"),
+            consts.LYRICS_LOCATION_HOME_ALT : ("~/.lyrics", "%s - %s.txt"),
+            consts.LYRICS_LOCATION_PATH_ALT : (self.config.musicdir[self.config.profile_num], song_dir, "%s - %s.txt"),
+               }
+        return misc.file_from_utf8(misc.file_exists_insensitive(
+                    os.path.expanduser(
+                    os.path.join(*file_map[lyrics_loc]))
+                         % (artist, title)))
