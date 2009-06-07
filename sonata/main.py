@@ -1170,7 +1170,7 @@ class Base(object):
             newbitrate = self.status.get('bitrate', '')
         if newbitrate:
             newbitrate += " kbps"
-        self.info.info_update(playing_or_paused, newbitrate, self.songinfo,
+        self.info.update(playing_or_paused, newbitrate, self.songinfo,
                  update_all)
 
     def on_treeview_selection_changed(self, treeselection):
