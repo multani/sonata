@@ -220,21 +220,24 @@ class Info(object):
         setattr(self.config, "info_%s_expanded" % infotype,
                 not expander.get_expanded())
 
+    def clear_info(self):
+        """Clear the info widgets of any information"""
+        for label in self.info_labels.values():
+            label.set_text("")
+        self._editlabel.set_text("")
+        self._searchlabel.set_text("")
+        self._editlyricslabel.set_text("")
+        self._show_lyrics(None, None)
+        self.albumText.set_text("")
+        self.last_bitrate = ""
+
     def update(self, playing_or_paused, newbitrate, songinfo, update_all):
         # update_all = True means that every tag should update. This is
         # only the case on song and status changes. Otherwise we only
         # want to update the minimum number of widgets so the user can
         # do things like select label text.
         if not playing_or_paused:
-            for label in self.info_labels.values():
-                label.set_text("")
-            self._editlabel.set_text("")
-            if self.config.show_lyrics:
-                self._searchlabel.set_text("")
-                self._editlyricslabel.set_text("")
-                self._show_lyrics(None, None)
-            self.albumText.set_text("")
-            self.last_bitrate = ""
+            self.clear_info()
             return
 
         bitratelabel = self.info_labels['bitrate']
@@ -242,9 +245,11 @@ class Info(object):
             bitratelabel.set_text(newbitrate)
             self.last_bitrate = newbitrate
 
-        if not update_all:
-            return
+        if update_all:
+            for func in ["song", "album", "lyrics"]:
+                getattr(self, "_update_%s" % func)(songinfo)
 
+    def _update_song(self, songinfo):
         artistlabel = self.info_labels['artist']
         tracklabel = self.info_labels['track']
         albumlabel = self.info_labels['album']
@@ -270,6 +275,7 @@ class Info(object):
             filelabel.set_text(mpdh.get(songinfo, 'file'))
             self._editlabel.set_text("")
 
+    def _update_album(self, songinfo):
         albuminfo = _("Album name not set.")
         if 'album' in songinfo:
             # Update album info:
@@ -297,7 +303,8 @@ class Info(object):
             if len(albuminfo) == 0:
                 albuminfo = _("Album info not found.")
         self.albumText.set_text(albuminfo)
-        # Update lyrics:
+
+    def _update_lyrics(self, songinfo):
         if self.config.show_lyrics:
             if 'artist' in songinfo and 'title' in songinfo:
                 self.get_lyrics_start(mpdh.get(songinfo, 'artist'), mpdh.get(songinfo, 'title'), mpdh.get(songinfo, 'artist'), mpdh.get(songinfo, 'title'), os.path.dirname(mpdh.get(songinfo, 'file')))
