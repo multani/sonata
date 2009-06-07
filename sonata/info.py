@@ -224,90 +224,13 @@ class Info(object):
         setattr(self.config, "info_%s_expanded" % infotype,
                 not expander.get_expanded())
 
-    def info_update(self, playing_or_paused, newbitrate, songinfo, update_all, blank_window=False, skip_lyrics=False):
+    def info_update(self, playing_or_paused, newbitrate, songinfo,
+            update_all):
         # update_all = True means that every tag should update. This is
         # only the case on song and status changes. Otherwise we only
         # want to update the minimum number of widgets so the user can
         # do things like select label text.
-        if playing_or_paused:
-            bitratelabel = self.info_labels[self.info_type['bitrate']]
-            titlelabel = self.info_labels[self.info_type['title']]
-            artistlabel = self.info_labels[self.info_type['artist']]
-            albumlabel = self.info_labels[self.info_type['album']]
-            datelabel = self.info_labels[self.info_type['date']]
-            genrelabel = self.info_labels[self.info_type['genre']]
-            tracklabel = self.info_labels[self.info_type['track']]
-            filelabel = self.info_labels[self.info_type['file']]
-            if not self.last_info_bitrate or self.last_info_bitrate != newbitrate:
-                bitratelabel.set_text(newbitrate)
-            self.last_info_bitrate = newbitrate
-            if update_all:
-                # Use artist/album Wikipedia links?
-                artist_use_link = False
-                if 'artist' in songinfo:
-                    artist_use_link = True
-                album_use_link = False
-                if 'album' in songinfo:
-                    album_use_link = True
-                titlelabel.set_text(mpdh.get(songinfo, 'title'))
-                if artist_use_link:
-                    artistlabel.set_markup(misc.link_markup(misc.escape_html(mpdh.get(songinfo, 'artist')), False, False, self.linkcolor))
-                else:
-                    artistlabel.set_text(mpdh.get(songinfo, 'artist'))
-                if album_use_link:
-                    albumlabel.set_markup(misc.link_markup(misc.escape_html(mpdh.get(songinfo, 'album')), False, False, self.linkcolor))
-                else:
-                    albumlabel.set_text(mpdh.get(songinfo, 'album'))
-                datelabel.set_text(mpdh.get(songinfo, 'date'))
-                genrelabel.set_text(mpdh.get(songinfo, 'genre'))
-                if 'track' in songinfo:
-                    tracklabel.set_text(mpdh.get(songinfo, 'track', '0', False, 0))
-                else:
-                    tracklabel.set_text("")
-                path = misc.file_from_utf8(os.path.join(self.config.musicdir[self.config.profile_num], os.path.dirname(mpdh.get(songinfo, 'file'))))
-                if os.path.exists(path):
-                    filelabel.set_text(os.path.join(self.config.musicdir[self.config.profile_num], mpdh.get(songinfo, 'file')))
-                    self.info_editlabel.set_markup(misc.link_markup(_("edit tags"), True, True, self.linkcolor))
-                else:
-                    filelabel.set_text(mpdh.get(songinfo, 'file'))
-                    self.info_editlabel.set_text("")
-                if 'album' in songinfo:
-                    # Update album info:
-                    artist, tracks = self.album_return_artist_and_tracks()
-                    trackinfo = ""
-                    album = mpdh.get(songinfo, 'album')
-                    year = mpdh.get(songinfo, 'date', None)
-                    if album is not None:
-                        albuminfo = album + "\n"
-                    playtime = 0
-                    if len(tracks) > 0:
-                        tracks.sort(key=lambda x: mpdh.get(x, 'track', 0, True))
-                        for track in tracks:
-                            playtime += mpdh.get(track, 'time', 0, True)
-                            if 'title' in track:
-                                trackinfo = trackinfo + mpdh.get(track, 'track', '0', False, 2) + '. ' + mpdh.get(track, 'title') + '\n'
-                            else:
-                                trackinfo = trackinfo + mpdh.get(track, 'track', '0', False, 2) + '. ' + mpdh.get(track, 'file').split('/')[-1] + '\n'
-                        if artist is not None:
-                            albuminfo += artist + "\n"
-                        if year is not None:
-                            albuminfo += year + "\n"
-                        albuminfo += misc.convert_time(playtime) + "\n"
-                        albuminfo += "\n" + trackinfo
-                    else:
-                        albuminfo = _("Album info not found.")
-                    self.albumText.set_markup(misc.escape_html(albuminfo))
-                else:
-                    self.albumText.set_text(_("Album name not set."))
-                # Update lyrics:
-                if self.config.show_lyrics and not skip_lyrics:
-                    if 'artist' in songinfo and 'title' in songinfo:
-                        self.get_lyrics_start(mpdh.get(songinfo, 'artist'), mpdh.get(songinfo, 'title'), mpdh.get(songinfo, 'artist'), mpdh.get(songinfo, 'title'), os.path.dirname(mpdh.get(songinfo, 'file')))
-                    else:
-                        self.info_show_lyrics(None, None, error=_("Artist or song title not set."))
-        else:
-            blank_window = True
-        if blank_window:
+        if not playing_or_paused:
             for label in self.info_labels:
                 label.set_text("")
             self.info_editlabel.set_text("")
@@ -317,6 +240,73 @@ class Info(object):
                 self.info_show_lyrics(None, None)
             self.albumText.set_text("")
             self.last_info_bitrate = ""
+            return
+
+        bitratelabel = self.info_labels[self.info_type['bitrate']]
+        if self.last_info_bitrate != newbitrate:
+            bitratelabel.set_text(newbitrate)
+            self.last_info_bitrate = newbitrate
+
+        if not update_all:
+            return
+
+        artistlabel = self.info_labels[self.info_type['artist']]
+        tracklabel = self.info_labels[self.info_type['track']]
+        albumlabel = self.info_labels[self.info_type['album']]
+        filelabel = self.info_labels[self.info_type['file']]
+
+        for name in ['title', 'date', 'genre']:
+            label = self.info_labels[self.info_type[name]]
+            label.set_text(mpdh.get(songinfo, name))
+
+        tracklabel.set_text(mpdh.get(songinfo, 'track', '', False))
+        artistlabel.set_markup(misc.link_markup(misc.escape_html(
+            mpdh.get(songinfo, 'artist')), False, False,
+            self.linkcolor))
+        albumlabel.set_markup(misc.link_markup(misc.escape_html(
+            mpdh.get(songinfo, 'album')), False, False,
+            self.linkcolor))
+
+        path = misc.file_from_utf8(os.path.join(self.config.musicdir[self.config.profile_num], mpdh.get(songinfo, 'file')))
+        if os.path.exists(path):
+            filelabel.set_text(os.path.join(self.config.musicdir[self.config.profile_num], mpdh.get(songinfo, 'file')))
+            self.info_editlabel.set_markup(misc.link_markup(_("edit tags"), True, True, self.linkcolor))
+        else:
+            filelabel.set_text(mpdh.get(songinfo, 'file'))
+
+        albuminfo = _("Album name not set.")
+        if 'album' in songinfo:
+            # Update album info:
+            album = mpdh.get(songinfo, 'album')
+            year = mpdh.get(songinfo, 'date', None)
+            artist, tracks = self.album_return_artist_and_tracks()
+
+            tracks.sort(key=lambda x: mpdh.get(x, 'track', 0, True))
+            playtime = 0
+            tracklist = []
+            for t in tracks:
+                playtime += mpdh.get(t, 'time', 0, True)
+                tracklist.append("%s. %s" %
+                        (mpdh.get(t, 'track', '0',
+                            False, 2),
+                        mpdh.get(t, 'title',
+                            os.path.basename(
+                                t['file']))))
+
+            playtime = misc.convert_time(playtime)
+            albuminfo = "\n".join(i for i in (album, artist, year,
+                              playtime) if i)
+            albuminfo += "\n\n"
+            albuminfo += "\n".join(t for t in tracklist)
+            if len(albuminfo) == 0:
+                albuminfo = _("Album info not found.")
+        self.albumText.set_text(albuminfo)
+        # Update lyrics:
+        if self.config.show_lyrics:
+            if 'artist' in songinfo and 'title' in songinfo:
+                self.get_lyrics_start(mpdh.get(songinfo, 'artist'), mpdh.get(songinfo, 'title'), mpdh.get(songinfo, 'artist'), mpdh.get(songinfo, 'title'), os.path.dirname(mpdh.get(songinfo, 'file')))
+            else:
+                self.info_show_lyrics(None, None, error=_("Artist or song title not set."))
 
     def info_check_for_local_lyrics(self, artist, title, song_dir):
         locations = [consts.LYRICS_LOCATION_HOME,

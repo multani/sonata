@@ -1163,13 +1163,15 @@ class Base(object):
             self.streams.populate()
             self.on_notebook_page_change(self.notebook, 0, self.notebook.get_current_page())
 
-    def info_update(self, update_all, blank_window=False, skip_lyrics=False):
+    def info_update(self, update_all):
         playing_or_paused = self.status_is_play_or_pause()
-        try:
-            newbitrate = self.status['bitrate'] + " kbps"
-        except:
-            newbitrate = ''
-        self.info.info_update(playing_or_paused, newbitrate, self.songinfo, update_all, blank_window, skip_lyrics)
+        newbitrate = None
+        if self.status:
+            newbitrate = self.status.get('bitrate', '')
+        if newbitrate:
+            newbitrate += " kbps"
+        self.info.info_update(playing_or_paused, newbitrate, self.songinfo,
+                 update_all)
 
     def on_treeview_selection_changed(self, treeselection):
         self.update_menu_visibility()
