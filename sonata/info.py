@@ -98,6 +98,7 @@ class Info(object):
                 self.info_boxes_in_more.append(to_pack)
 
         self._morelabel = ui.label(y=0)
+        self.toggle_more()
         moreevbox = ui.eventbox(add=self._morelabel)
         self._apply_link_signals(moreevbox, 'more', _("Toggle extra tags"))
         self._editlabel = ui.label(y=0)
@@ -156,13 +157,6 @@ class Info(object):
             ui.hide(self.info_lyrics)
         if not self.config.show_covers:
             ui.hide(self._imagebox)
-        # self.config.info_song_more will be overridden on on_link_click, so
-        # store it in a temporary var..
-        temp = self.config.info_song_more
-        self.on_link_click(moreevbox, None, 'more')
-        self.config.info_song_more = temp
-        if self.config.info_song_more:
-            self.on_link_click(moreevbox, None, 'more')
         info_scrollwindow.add_with_viewport(outter_vbox)
 
     def get_widgets(self):
@@ -188,21 +182,19 @@ class Info(object):
     def on_link_leave(self, _widget, _event):
         ui.change_cursor(None)
 
+    def toggle_more(self):
+        text = _("hide") if self.config.info_song_more else _("more")
+        func = "show" if self.config.info_song_more else "hide"
+        func = getattr(ui, func)
+        self._morelabel.set_markup(misc.link_markup(text, True, True,
+                                self.linkcolor))
+        for hbox in self.info_boxes_in_more:
+            func(hbox)
+
     def on_link_click(self, _widget, _event, linktype):
         if linktype == 'more':
-            previous_is_more = (self._morelabel.get_text() == "(%s)" % _("more"))
-            if previous_is_more:
-                self._morelabel.set_markup(misc.link_markup(_("hide"), True, True, self.linkcolor))
-                self.config.info_song_more = True
-            else:
-                self._morelabel.set_markup(misc.link_markup(_("more"), True, True, self.linkcolor))
-                self.config.info_song_more = False
-            if self.config.info_song_more:
-                for hbox in self.info_boxes_in_more:
-                    ui.show(hbox)
-            else:
-                for hbox in self.info_boxes_in_more:
-                    ui.hide(hbox)
+            self.config.info_song_more = not self.config.info_song_more
+            self.toggle_more()
         else:
             self.on_link_click_cb(linktype)
 
