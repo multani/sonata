@@ -9,12 +9,11 @@ from consts import consts
 from pluginsystem import pluginsystem
 
 class Info(object):
-    def __init__(self, config, info_image, linkcolor, on_link_click_cb, library_return_search_items, get_playing_song, TAB_INFO, on_image_activate, on_image_motion_cb, on_image_drop_cb, album_return_artist_and_tracks, new_tab):
+    def __init__(self, config, info_image, linkcolor, on_link_click_cb, get_playing_song, TAB_INFO, on_image_activate, on_image_motion_cb, on_image_drop_cb, album_return_artist_and_tracks, new_tab):
         self.config = config
         self.info_image = info_image
         self.linkcolor = linkcolor
         self.on_link_click_cb = on_link_click_cb
-        self.library_return_search_items = library_return_search_items
         self.get_playing_song = get_playing_song
         self.on_image_activate = on_image_activate
         self.on_image_motion_cb = on_image_motion_cb
@@ -43,18 +42,12 @@ class Info(object):
         self.lyricsText = None
         self.albumText = None
 
-        # Info tab
         self.info_area = ui.scrollwindow(shadow=gtk.SHADOW_NONE)
-
-        if self.config.info_art_enlarged:
-            self.info_imagebox = ui.eventbox()
-        else:
-            self.info_imagebox = ui.eventbox(w=152)
-
-        self.info_imagebox.add(self.info_image)
-
         self.tab = new_tab(self.info_area, gtk.STOCK_JUSTIFY_FILL, TAB_INFO, self.info_area)
 
+        image_width = -1 if self.config.info_art_enlarged else 152
+        self.info_imagebox = ui.eventbox(w=image_width,
+                         add=self.info_image)
         self.info_imagebox.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT | gtk.DEST_DEFAULT_DROP, [("text/uri-list", 0, 80), ("text/plain", 0, 80)], gtk.gdk.ACTION_DEFAULT)
         self.info_imagebox.connect('button_press_event', self.on_image_activate)
         self.info_imagebox.connect('drag_motion', self.on_image_motion_cb)
@@ -193,10 +186,8 @@ class Info(object):
         return self.info_imagebox
 
     def show_lyrics_updated(self):
-        if self.config.show_lyrics:
-            ui.show(self.info_lyrics)
-        else:
-            ui.hide(self.info_lyrics)
+        func = "show" if self.config.show_lyrics else "hide"
+        getattr(ui, func)(self.info_lyrics)
 
     def info_apply_link_signals(self, widget, linktype, tooltip):
         widget.connect("enter-notify-event", self.on_link_enter)
@@ -395,8 +386,6 @@ class Info(object):
         self.info_show_lyrics(artist_then, title_then, lyrics, error)
 
     def info_show_lyrics(self, artist_then, title_then, lyrics=None, error=None):
-        search_str = misc.link_markup(_("search"), True, True, self.linkcolor)
-        edit_str = misc.link_markup(_("edit"), True, True, self.linkcolor)
         # For error messages where there is no appropriate info:
         if not artist_then or not title_then:
             self.info_searchlabel.set_markup("")
@@ -415,9 +404,11 @@ class Info(object):
             return
         artist_now = misc.strip_all_slashes(mpdh.get(songinfo, 'artist', None))
         title_now = misc.strip_all_slashes(mpdh.get(songinfo, 'title', None))
-        if (artist_now == artist_then and title_now == title_then):
-            self.info_searchlabel.set_markup(search_str)
-            self.info_editlyricslabel.set_markup(edit_str)
+        if artist_now == artist_then and title_now == title_then:
+            self.info_searchlabel.set_markup(misc.link_markup(
+                _("search"), True, True, self.linkcolor))
+            self.info_editlyricslabel.set_markup(misc.link_markup(
+                _("edit"), True, True, self.linkcolor))
             if error:
                 self.lyricsText.set_markup(error)
             elif lyrics:

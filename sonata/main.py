@@ -442,7 +442,7 @@ class Base(object):
         libraryactions = self.library.get_libraryactions()
 
         # Info tab
-        self.info = info.Info(self.config, self.artwork.get_info_image(), linkcolor, self.on_link_click, self.library.library_return_search_items, self.get_playing_song, self.TAB_INFO, self.on_image_activate, self.on_image_motion_cb, self.on_image_drop_cb, self.album_return_artist_and_tracks, self.new_tab)
+        self.info = info.Info(self.config, self.artwork.get_info_image(), linkcolor, self.on_link_click, self.get_playing_song, self.TAB_INFO, self.on_image_activate, self.on_image_motion_cb, self.on_image_drop_cb, self.album_return_artist_and_tracks, self.new_tab)
 
         self.info_imagebox = self.info.get_info_imagebox()
 
