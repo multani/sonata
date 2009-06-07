@@ -31,8 +31,6 @@ class Info(object):
         self.info_lyrics = None
         self._morelabel = None
         self._searchlabel = None
-        self.info_tagbox = None
-        self.info_type = None
 
         self.lyricsText = None
         self.albumText = None
@@ -57,22 +55,13 @@ class Info(object):
 
         vert_spacing = 1
         horiz_spacing = 2
-        margin = 5
-        outter_hbox = gtk.HBox()
-        outter_vbox = gtk.VBox()
 
         # Song info
         info_song = ui.expander(markup="<b>%s</b>" % _("Song Info"),
                 expand=self.config.info_song_expanded,
                 can_focus=False)
         info_song.connect("activate", self._expanded, "song")
-        inner_hbox = gtk.HBox()
 
-        inner_hbox.pack_start(self._imagebox, False, False, horiz_spacing)
-
-        self.info_tagbox = gtk.VBox()
-
-        labels_left = []
         self.info_labels = {}
         self.info_boxes_in_more = []
         labels = [(_("Title"), 'title', False, "", False),
@@ -86,13 +75,13 @@ class Info(object):
             (_("File"), 'file', False, "", True),
             (_("Bitrate"), 'bitrate', False, "", True)]
 
+        tagtable = gtk.Table(len(labels), 2)
+        tagtable.set_col_spacings(12)
         for i,(text, name, link, tooltip, in_more) in enumerate(labels):
-            tmphbox = gtk.HBox()
-            if in_more:
-                self.info_boxes_in_more += [tmphbox]
-            tmplabel = ui.label(markup="<b>%s:</b>" % text, y=0)
+            label = ui.label(markup="<b>%s:</b>" % text, y=0)
+            tagtable.attach(label, 0, 1, i, i+1)
             if i == 0:
-                self.info_left_label = tmplabel
+                self.info_left_label = label
             # Using set_selectable overrides the hover cursor that
             # sonata tries to set for the links, and I can't figure
             # out how to stop that. So we'll disable set_selectable
@@ -101,28 +90,28 @@ class Info(object):
             if link:
                 tmpevbox = ui.eventbox(add=tmplabel2)
                 self._apply_link_signals(tmpevbox, name, tooltip)
-            tmphbox.pack_start(tmplabel, False, False, horiz_spacing)
             to_pack = tmpevbox if link else tmplabel2
-            tmphbox.pack_start(to_pack, False, False, horiz_spacing)
+            tagtable.attach(to_pack, 1, 2, i, i+1)
             self.info_labels[name] = tmplabel2
-            labels_left += [tmplabel]
-            self.info_tagbox.pack_start(tmphbox, False, False, vert_spacing)
-        ui.set_widths_equal(labels_left)
+            if in_more:
+                self.info_boxes_in_more.append(label)
+                self.info_boxes_in_more.append(to_pack)
 
-        mischbox = gtk.HBox()
         self._morelabel = ui.label(y=0)
         moreevbox = ui.eventbox(add=self._morelabel)
         self._apply_link_signals(moreevbox, 'more', _("Toggle extra tags"))
         self._editlabel = ui.label(y=0)
         editevbox = ui.eventbox(add=self._editlabel)
         self._apply_link_signals(editevbox, 'edit', _("Edit song tags"))
-        mischbox.pack_start(moreevbox, False, False, horiz_spacing)
-        mischbox.pack_start(editevbox, False, False, horiz_spacing)
+        mischbox = gtk.HBox()
+        mischbox.pack_start(moreevbox, False, False, 3)
+        mischbox.pack_start(editevbox, False, False, 3)
 
-        self.info_tagbox.pack_start(mischbox, False, False, vert_spacing)
-        inner_hbox.pack_start(self.info_tagbox, False, False, horiz_spacing)
+        tagtable.attach(mischbox, 0, 2, len(labels), len(labels) + 1)
+        inner_hbox = gtk.HBox()
+        inner_hbox.pack_start(self._imagebox, False, False, 6)
+        inner_hbox.pack_start(tagtable, False, False, 6)
         info_song.add(inner_hbox)
-        outter_vbox.pack_start(info_song, False, False, margin)
 
         # Lyrics
         self.info_lyrics = ui.expander(markup="<b>%s</b>" % _("Lyrics"),
@@ -130,10 +119,8 @@ class Info(object):
                     can_focus=False)
         self.info_lyrics.connect("activate", self._expanded, "lyrics")
         lyricsbox = gtk.VBox()
-        lyricsbox_top = gtk.HBox()
         self.lyricsText = ui.label(markup=" ", y=0, select=True, wrap=True)
-        lyricsbox_top.pack_start(self.lyricsText, True, True, horiz_spacing)
-        lyricsbox.pack_start(lyricsbox_top, True, True, vert_spacing)
+        lyricsbox.pack_start(self.lyricsText, True, True, vert_spacing)
         lyricsbox_bottom = gtk.HBox()
         self._searchlabel = ui.label(y=0)
         self._editlyricslabel = ui.label(y=0)
@@ -145,7 +132,6 @@ class Info(object):
         lyricsbox_bottom.pack_start(editlyricsevbox, False, False, horiz_spacing)
         lyricsbox.pack_start(lyricsbox_bottom, False, False, vert_spacing)
         self.info_lyrics.add(lyricsbox)
-        outter_vbox.pack_start(self.info_lyrics, False, False, margin)
 
         # Album info
         info_album = ui.expander(markup="<b>%s</b>" % _("Album Info"),
@@ -158,6 +144,11 @@ class Info(object):
         albumbox_top.pack_start(self.albumText, False, False, horiz_spacing)
         albumbox.pack_start(albumbox_top, False, False, vert_spacing)
         info_album.add(albumbox)
+
+        margin = 5
+        outter_vbox = gtk.VBox()
+        outter_vbox.pack_start(info_song, False, False, margin)
+        outter_vbox.pack_start(self.info_lyrics, False, False, margin)
         outter_vbox.pack_start(info_album, False, False, margin)
 
         # Finish..
@@ -172,8 +163,7 @@ class Info(object):
         self.config.info_song_more = temp
         if self.config.info_song_more:
             self.on_link_click(moreevbox, None, 'more')
-        outter_hbox.pack_start(outter_vbox, False, False, margin)
-        info_scrollwindow.add_with_viewport(outter_hbox)
+        info_scrollwindow.add_with_viewport(outter_vbox)
 
     def get_widgets(self):
         return self.info_area
