@@ -37,7 +37,6 @@ Future:
 		  remember: no tags and implications for remote mpd users.
 	crop songs in current playlist?
 	mpd statistics
-	use GtkVolumeButton?
 	better playlist support (mpd 0.13+ only):
 		ability to view songs, reorder songs, remove songs, etc
 	lazy loading of the treeview
