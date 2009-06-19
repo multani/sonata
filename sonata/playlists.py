@@ -19,7 +19,7 @@ import mpdhelper as mpdh
 from pluginsystem import pluginsystem, BuiltinPlugin
 
 class Playlists(object):
-    def __init__(self, config, window, client, UIManager, update_menu_visibility, iterate_now, on_add_item, on_playlists_button_press, get_current_songs, connected, TAB_PLAYLISTS):
+    def __init__(self, config, window, client, UIManager, update_menu_visibility, iterate_now, on_add_item, on_playlists_button_press, get_current_songs, connected, add_selected_to_playlist, TAB_PLAYLISTS):
         self.config = config
         self.window = window
         self.client = client
@@ -29,6 +29,7 @@ class Playlists(object):
         self.on_add_item = on_add_item
         self.on_playlists_button_press = on_playlists_button_press
         self.get_current_songs = get_current_songs
+        self.add_selected_to_playlist = add_selected_to_playlist
         self.connected = connected
 
         self.mergepl_id = None
@@ -115,6 +116,8 @@ class Playlists(object):
             if self.playlist_name_exists(_("Save Playlist"), 'savePlaylistError', plname):
                 return
             self.playlist_create(plname)
+            mpdh.call(self.client, 'playlistclear', plname)
+            self.add_selected_to_playlist(plname)
 
     def playlist_create(self, playlistname, oldname=None):
         mpdh.call(self.client, 'rm', playlistname)
@@ -130,14 +133,11 @@ class Playlists(object):
         response = ui.show_msg(self.window, _("Would you like to replace the existing playlist or append these songs?"), _("Existing Playlist"), "existingPlaylist", (_("Replace playlist"), 1, _("Append songs"), 2), default=self.config.existing_playlist_option)
         if response == 1: # Overwrite
             self.config.existing_playlist_option = response
-            self.playlist_create(plname)
+            mpdh.call(self.client, 'playlistclear', plname)
+            self.add_selected_to_playlist(plname)
         elif response == 2: # Append songs:
             self.config.existing_playlist_option = response
-            mpdh.call(self.client, 'command_list_ok_begin')
-            for song in self.get_current_songs():
-                mpdh.call(self.client, 'playlistadd', plname, mpdh.get(song, 'file'))
-            mpdh.call(self.client, 'command_list_end')
-        return
+            self.add_selected_to_playlist(plname)
 
     def playlist_name_exists(self, title, role, plname, skip_plname=""):
         # If the playlist already exists, and the user does not want to replace it, return True; In

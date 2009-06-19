@@ -239,7 +239,7 @@ class Base(object):
         # Popup menus:
         actions = [
             ('sortmenu', None, _('_Sort List')),
-            ('plmenu', None, _('Sa_ve List to')),
+            ('plmenu', None, _('Sa_ve Selected to')),
             ('profilesmenu', None, _('_Connection')),
             ('playaftermenu', None, _('P_lay after')),
             ('updatemenu', None, _('_Update')),
@@ -458,7 +458,7 @@ class Base(object):
             ]
 
         # Playlists tab
-        self.playlists = playlists.Playlists(self.config, self.window, self.client, lambda:self.UIManager, self.update_menu_visibility, self.iterate_now, self.on_add_item, self.on_playlists_button_press, self.current.get_current_songs, self.connected, self.TAB_PLAYLISTS)
+        self.playlists = playlists.Playlists(self.config, self.window, self.client, lambda:self.UIManager, self.update_menu_visibility, self.iterate_now, self.on_add_item, self.on_playlists_button_press, self.current.get_current_songs, self.connected, self.add_selected_to_playlist, self.TAB_PLAYLISTS)
 
         self.playlists_treeview = self.playlists.get_treeview()
         self.playlists_selection = self.playlists.get_selection()
@@ -1255,6 +1255,18 @@ class Base(object):
                     mpdh.call(self.client, 'play')
                 else:
                     mpdh.call(self.client, 'play', int(playid))
+    def add_selected_to_playlist(self, plname):
+        if self.current_tab == self.TAB_LIBRARY:
+            songs = self.library.get_path_child_filenames(True)
+        elif self.current_tab == self.TAB_CURRENT:
+            songs = self.current.get_selected_filenames(0)
+        else:
+            raise Exception("This tab doesn't support playlists")
+
+        mpdh.call(self.client, 'command_list_ok_begin')
+        for song in songs:
+            mpdh.call(self.client, 'playlistadd', plname, song)
+        mpdh.call(self.client, 'command_list_end')
 
     def stream_parse_and_add(self, item):
         # We need to do different things depending on if this is
@@ -3002,17 +3014,17 @@ class Base(object):
         elif self.current_tab == self.TAB_LIBRARY:
             if len(self.librarydata) > 0:
                 if self.library_selection.count_selected_rows() > 0:
-                    for menu in ['add', 'replace', 'playafter', 'tag']:
+                    for menu in ['add', 'replace', 'playafter', 'tag', 'pl']:
                         self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').show()
                     self.UIManager.get_widget('/mainmenu/updatemenu/updateselectedmenu/').show()
                 else:
-                    for menu in ['add', 'replace', 'playafter', 'tag']:
+                    for menu in ['add', 'replace', 'playafter', 'tag', 'pl']:
                         self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
                     self.UIManager.get_widget('/mainmenu/updatemenu/updateselectedmenu/').hide()
             else:
-                for menu in ['add', 'replace', 'playafter', 'tag', 'update']:
+                for menu in ['add', 'replace', 'playafter', 'tag', 'update', 'pl']:
                     self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
-            for menu in ['remove', 'clear', 'pl', 'rename', 'rm', 'new', 'edit', 'sort']:
+            for menu in ['remove', 'clear', 'rename', 'rm', 'new', 'edit', 'sort']:
                 self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
             if self.library.search_visible():
                 self.UIManager.get_widget('/mainmenu/updatemenu/').hide()
