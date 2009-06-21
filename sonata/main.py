@@ -467,7 +467,7 @@ class Base(object):
         self.playlists_selection = self.playlists.get_selection()
 
         playlistsactions = [
-            ('savemenu', None, _('_New...'), '<Ctrl><Shift>s', None, self.playlists.on_playlist_save),
+            ('savemenu', None, _('_New Playlist...'), '<Ctrl><Shift>s', None, self.playlists.on_playlist_save),
             ('renamemenu', None, _('_Rename...'), None, None, self.playlists.on_playlist_rename),
             ]
 

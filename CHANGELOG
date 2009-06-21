@@ -6,6 +6,7 @@ v1.6.3 - Pending
 	+ Bug: Fix album tracks in the info tab being out of order sometimes
 	+ Bug: Show songs with a missing date in info album listing
 	+ Bug: Library icons change after adding stream to playlist
+	+ Bug: Cpu spike, tooltips missing in library search results with gtk 2.16.2
 
 v1.6.2 - April 13, 2009
 	+ Bug: Fix cli options (e.g. 'sonata play')

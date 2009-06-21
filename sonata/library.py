@@ -957,9 +957,9 @@ class Library(object):
             self.libsearch_last_tooltip = new_tooltip
             self.library.set_property('has-tooltip', False)
             gobject.idle_add(self.library_search_tooltips_enable, widget, x, y, keyboard_mode, tooltip)
+            gobject.idle_add(widget.set_tooltip_markup, new_tooltip)
             return
 
-        gobject.idle_add(widget.set_tooltip_markup, new_tooltip)
         self.libsearch_last_tooltip = new_tooltip
 
         return False #api says we should return True, but this doesn't work?
