@@ -2154,12 +2154,22 @@ class Base(object):
         if len(datalist) > 0:
             datalist = misc.remove_list_duplicates(datalist, case=False)
             datalist = self.library.list_identify_VA_albums(datalist)
+            if len(datalist) > 0:
+                # Multiple albums with same name and year, choose the right one. If we have
+                # a VA album, compare paths. Otherwise, compare artists.
+                for dataitem in datalist:
+                    if unicode(library.library_get_data(dataitem, 'artist')).lower() == unicode(mpdh.get(self.songinfo, 'artist')).lower() \
+                    or (library.library_get_data(dataitem, 'artist') == self.library.get_VAstr() and library.library_get_data(dataitem, 'path') == os.path.dirname(mpdh.get(self.songinfo, 'file'))):
+                        datalist = [dataitem]
+                        break
             # Find all songs in album:
             retsongs = []
             for song in songs:
                 if unicode(mpdh.get(song, 'album')).lower() == unicode(library.library_get_data(datalist[0], 'album')).lower() \
                 and mpdh.get(song, 'date', None) == library.library_get_data(datalist[0], 'year'):
-                    retsongs.append(song)
+                    if library.library_get_data(datalist[0], 'artist') == self.library.get_VAstr() \
+                    or unicode(library.library_get_data(datalist[0], 'artist')).lower() == unicode(mpdh.get(song, 'artist')).lower():
+                        retsongs.append(song)
 
             artist = library.library_get_data(datalist[0], 'artist')
             return artist, retsongs

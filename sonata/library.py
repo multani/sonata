@@ -589,7 +589,8 @@ class Library(object):
             VA = False
             for j in range(1, consts.NUM_ARTISTS_FOR_VA):
                 if unicode(self.library_get_data(albums[i], 'album')).lower() != unicode(self.library_get_data(albums[i+j], 'album')).lower() \
-                or self.library_get_data(albums[i], 'year') != self.library_get_data(albums[i+j], 'year'):
+                or self.library_get_data(albums[i], 'year') != self.library_get_data(albums[i+j], 'year') \
+                or self.library_get_data(albums[i], 'path') != self.library_get_data(albums[i+j], 'path'):
                     break
                 if unicode(self.library_get_data(albums[i], 'artist')) == unicode(self.library_get_data(albums[i+j], 'artist')):
                     albums.pop(i+j)
@@ -610,6 +611,9 @@ class Library(object):
                     else:
                         break
         return albums
+
+    def get_VAstr(self):
+        return self.VAstr
 
     def library_populate_data(self, genre=None, artist=None, album=None, year=None):
         # Create treeview model info
