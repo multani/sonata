@@ -90,7 +90,7 @@ class Info(object):
         tagtable.set_col_spacings(12)
         for i,(text, name, link, tooltip, in_more) in enumerate(labels):
             label = ui.label(markup="<b>%s:</b>" % text, y=0)
-            tagtable.attach(label, 0, 1, i, i+1)
+            tagtable.attach(label, 0, 1, i, i+1, yoptions=gtk.SHRINK)
             if i == 0:
                 self.info_left_label = label
             # Using set_selectable overrides the hover cursor that
@@ -102,7 +102,7 @@ class Info(object):
                 tmpevbox = ui.eventbox(add=tmplabel2)
                 self._apply_link_signals(tmpevbox, name, tooltip)
             to_pack = tmpevbox if link else tmplabel2
-            tagtable.attach(to_pack, 1, 2, i, i+1)
+            tagtable.attach(to_pack, 1, 2, i, i+1, yoptions=gtk.SHRINK)
             self.info_labels[name] = tmplabel2
             if in_more:
                 self.info_boxes_in_more.append(label)
