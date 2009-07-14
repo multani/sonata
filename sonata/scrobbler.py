@@ -160,8 +160,7 @@ class Scrobbler(object):
                                                 mpdh.get(songinfo, 'title'),
                                                 mpdh.get(songinfo, 'time'),
                                                 tracknumber,
-                                                album,
-                                                self.scrob_start_time)
+                                                album)
                 except:
                     print sys.exc_info()[1]
         time.sleep(10)
