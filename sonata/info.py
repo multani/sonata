@@ -257,13 +257,14 @@ class Info(object):
             self._editlabel.set_text("")
 
     def _update_album(self, songinfo):
-        albuminfo = _("Album name not set.")
-        if 'album' in songinfo:
-            # Update album info:
-            album = mpdh.get(songinfo, 'album')
-            year = mpdh.get(songinfo, 'date', None)
-            artist, tracks = self.album_return_artist_and_tracks()
+        if 'album' not in songinfo:
+            self.albumText.set_text(_("Album name not set."))
+            return
 
+        artist, tracks = self.album_return_artist_and_tracks()
+        albuminfo = _("Album info not found.")
+
+        if tracks:
             tracks.sort(key=lambda x: mpdh.get(x, 'track', 0, True))
             playtime = 0
             tracklist = []
@@ -276,13 +277,14 @@ class Info(object):
                             os.path.basename(
                                 t['file']))))
 
+            album = mpdh.get(songinfo, 'album')
+            year = mpdh.get(songinfo, 'date', None)
             playtime = misc.convert_time(playtime)
             albuminfo = "\n".join(i for i in (album, artist, year,
                               playtime) if i)
             albuminfo += "\n\n"
             albuminfo += "\n".join(t for t in tracklist)
-            if len(albuminfo) == 0:
-                albuminfo = _("Album info not found.")
+
         self.albumText.set_text(albuminfo)
 
     def _update_lyrics(self, songinfo):
