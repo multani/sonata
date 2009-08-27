@@ -60,7 +60,8 @@ from pluginsystem import pluginsystem
 from config import Config
 
 import preferences, tagedit, artwork, about, scrobbler, info, library, streams, playlists, current
-import lyricwiki, amazoncovers # plug-ins
+import lyricwiki # plug-ins
+import rhapsodycovers
 import dbus_plugin as dbus
 
 try:
@@ -415,7 +416,7 @@ class Base(object):
 
         # Plug-ins imported as modules
         self.lyricwiki = lyricwiki.LyricWiki()
-        self.amazoncovers = amazoncovers.AmazonCovers()
+        self.rhapsodycovers = rhapsodycovers.RhapsodyCovers()
 
         # Current tab
         self.current = current.Current(self.config, self.client, self.TAB_CURRENT, self.on_current_button_press, self.connected, lambda:self.sonata_loaded, lambda:self.songinfo, self.update_statusbar, self.iterate_now, lambda:self.library.libsearchfilter_get_style(), self.new_tab)
@@ -2345,7 +2346,7 @@ class Base(object):
 
     def _image_remote_refresh(self, imagewidget, _ignore):
         self.artwork.stop_art_update = False
-        # Retrieve all images from amazon:
+        # Retrieve all images from rhapsody:
         artist_search = self.remote_artistentry.get_text()
         album_search = self.remote_albumentry.get_text()
         if len(artist_search) == 0 and len(album_search) == 0:
