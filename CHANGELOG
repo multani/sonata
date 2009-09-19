@@ -1,5 +1,6 @@
 v1.6.3 - Pending
 	+ Library artwork caching/displaying improvements
+	+ Lyricwiki screen scraping workaround
 	+ Bug: Fix library sorting when adding, e.g., albums to playlist
 	+ Bug: Fix window positioning weirdness when unwithdrawing from systray
 	+ Bug: Fix album being labeled various artists when a duplicate exists

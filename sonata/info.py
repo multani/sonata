@@ -1,15 +1,13 @@
 
 import sys, os, locale, urllib
 import threading # get_lyrics_start starts a thread get_lyrics_thread
-from socket import getdefaulttimeout as socketgettimeout
-from socket import setdefaulttimeout as socketsettimeout
 
 import gtk, gobject
-ServiceProxy = None # importing tried when needed
 
 import ui, misc
 import mpdhelper as mpdh
 from consts import consts
+import re
 
 class Info(object):
     def __init__(self, config, info_image, linkcolor, on_link_click_cb, library_return_search_items, get_playing_song, TAB_INFO, on_image_activate, on_image_motion_cb, on_image_drop_cb, album_return_artist_and_tracks, new_tab):
@@ -30,7 +28,6 @@ class Info(object):
             print "Locale cannot be found; please set your system's locale. Aborting..."
             sys.exit(1)
 
-        self.lyricServer = None
         self.last_info_bitrate = None
 
         self.info_boxes_in_more = None
@@ -313,19 +310,7 @@ class Info(object):
                     self.albumText.set_text(_("Album name not set."))
                 # Update lyrics:
                 if self.config.show_lyrics and not skip_lyrics:
-                    global ServiceProxy
-                    if ServiceProxy is None:
-                        try:
-                            from ZSI import ServiceProxy
-                            # Make sure we have the right version..
-                            if not hasattr(ServiceProxy, 'ServiceProxy'):
-                                ServiceProxy = None
-                        except ImportError:
-                            ServiceProxy = None
-                    if ServiceProxy is None:
-                        self.info_searchlabel.set_text("")
-                        self.info_show_lyrics(_("ZSI not found, fetching lyrics support disabled."), "", "", True)
-                    elif 'artist' in songinfo and 'title' in songinfo:
+                    if 'artist' in songinfo and 'title' in songinfo:
                         self.get_lyrics_start(mpdh.get(songinfo, 'artist'), mpdh.get(songinfo, 'title'), mpdh.get(songinfo, 'artist'), mpdh.get(songinfo, 'title'), os.path.dirname(mpdh.get(songinfo, 'file')))
                     else:
                         self.info_searchlabel.set_text("")
@@ -402,48 +387,29 @@ class Info(object):
             filename = self.target_lyrics_filename(filename_artist, filename_title, song_dir)
             # Fetch lyrics from lyricwiki.org
             gobject.idle_add(self.info_show_lyrics, _("Fetching lyrics..."), filename_artist, filename_title)
-            if self.lyricServer is None:
-                wsdlFile = "http://lyricwiki.org/server.php?wsdl"
-                try:
-                    self.lyricServer = True
-                    timeout = socketgettimeout()
-                    socketsettimeout(consts.LYRIC_TIMEOUT)
-                    self.lyricServer = ServiceProxy.ServiceProxy(wsdlFile, cachedir=os.path.expanduser("~/.service_proxy_dir"))
-                except:
-                    socketsettimeout(timeout)
-                    lyrics = _("Couldn't connect to LyricWiki")
-                    gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
-                    self.lyricServer = None
-                    gobject.idle_add(self.info_searchlabel.set_markup, search_str)
-                    gobject.idle_add(self.info_editlyricslabel.set_markup, edit_str)
-                    return
             try:
-                timeout = socketgettimeout()
-                socketsettimeout(consts.LYRIC_TIMEOUT)
-                lyrics = self.lyricServer.getSong(artist=self.lyricwiki_format(search_artist), song=self.lyricwiki_format(search_title))['return']["lyrics"]
-                if lyrics.lower() != "not found":
+                lyricpage = urllib.urlopen("http://lyricwiki.org/index.php?title=%s:%s&action=edit" % (self.lyricwiki_format(search_artist), self.lyricwiki_format(search_title))).read()
+                content = re.split("<textarea[^>]*>", lyricpage)[1].split("</textarea>")[0]
+                if content.startswith("#REDIRECT [["):
+                    addr = "http://lyricwiki.org/index.php?title=%s&action=edit" % urllib.quote(content.split("[[")[1].split("]]")[0])
+                    content = urllib.urlopen(addr).read()
+                    lyrics = content.split("&lt;lyrics&gt;")[1].split("&lt;/lyrics&gt;")[0]
+                    if lyrics.strip() != "&lt;!-- PUT LYRICS HERE (and delete this entire line) --&gt;":
+
                     lyrics = misc.unescape_html(lyrics)
                     lyrics = misc.wiki_to_html(lyrics)
-                    lyrics = lyrics.encode("ISO-8859-1")
-                    gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
-                    # Save lyrics to file:
                     misc.create_dir('~/.lyrics/')
                     f = open(filename, 'w')
-                    lyrics = misc.unescape_html(lyrics)
-                    try:
-                        f.write(lyrics.decode(self.enc).encode('utf8'))
-                    except:
-                        f.write(lyrics)
+                    f.write(lyrics)
                     f.close()
                 else:
                     lyrics = _("Lyrics not found")
-                    gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
+                gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
             except:
                 lyrics = _("Fetching lyrics failed")
                 gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
             gobject.idle_add(self.info_searchlabel.set_markup, search_str)
             gobject.idle_add(self.info_editlyricslabel.set_markup, edit_str)
-            socketsettimeout(timeout)
 
     def info_show_lyrics(self, lyrics, artist, title, force=False):
         if force:
