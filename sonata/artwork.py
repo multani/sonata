@@ -537,34 +537,25 @@ class Artwork(object):
             self.downloading_image = False
             return False
         self.downloading_image = True
-        # Amazon currently doesn't support utf8 and suggests latin1 encoding instead:
-        artist = urllib.quote(artist.encode('latin1', 'replace'))
-        album = urllib.quote(album.encode('latin1', 'replace'))
 
-        # Try searching urls from most specific (artist, title) to least specific (artist only)
-        urls = [AMAZON_URI % (AMAZON_KEY, artist) + "&Title=" + album,
-            AMAZON_URI % (AMAZON_KEY, artist) + "&Keywords=" + album,
-            AMAZON_URI % (AMAZON_KEY, artist)]
+        rhapsody_uri = "http://feeds.rhapsody.com"
+        url = "%s/%s/%s/data.xml" % (rhapsody_uri, artist, album)
+        url = url.replace(" ", "").replace("'", "").replace("&","")
+        request = urllib2.Request(url)
+        opener = urllib2.build_opener()
+        try:
+            body = opener.open(request).read()
+            xml = ElementTree.fromstring(body)
+            imgs = xml.getiterator("img")
+        except:
+            self.downloading_image = False
+            return False
 
-        for url in urls:
-            request = urllib2.Request(url)
-            opener = urllib2.build_opener()
-            try:
-                body = opener.open(request).read()
-                xml = ElementTree.fromstring(body)
-                largeimgs = xml.getiterator(AMAZON_NS + "LargeImage")
-            except:
-                largeimgs = None
-
-            if largeimgs:
-                break
-            elif url == urls[-1]:
-                self.downloading_image = False
-                return False
-
-        imgs = misc.iunique(url.text for img in largeimgs for url in img.getiterator(AMAZON_NS + "URL"))
-        # Prevent duplicate images in remote art window:
-        imglist = list(set(list(imgs)))
+        imglist = [im.attrib['src'] for im in imgs if im.attrib['src']]
+        # Couldn't find any images
+        if not imglist:
+            self.downloading_image = False
+            return False
 
         if not all_images:
             urllib.urlretrieve(imglist[0], dest_filename)
