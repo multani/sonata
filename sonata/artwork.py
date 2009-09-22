@@ -538,7 +538,7 @@ class Artwork(object):
 
     def artwork_download_img_to_file(self, artist, album, dest_filename, all_images=False):
         self.downloading_image = True
-        # Fetch covers from amazon.com etc.
+        # Fetch covers from rhapsody.com etc.
         cover_fetchers = pluginsystem.get('cover_fetching')
         imgfound = False
         for _plugin, cb in cover_fetchers:
