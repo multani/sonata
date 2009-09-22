@@ -1,0 +1,7 @@
+*.py[co]
+*.swp
+mmkeys.so
+sonata/sonata
+tags
+TAGS
+cscope*
