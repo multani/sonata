@@ -165,7 +165,8 @@ def browser_load(docslink, browser, window):
                 "kfmclient openURL",
                 "firefox",
                 "mozilla",
-                "opera"]
+                "opera",
+                "chromium-browser"]
     for browser in browsers:
         try:
             subprocess.Popen(browser.split()+[docslink])
