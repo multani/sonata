@@ -290,7 +290,7 @@ class Info(object):
                         albuminfo = album + "\n"
                     playtime = 0
                     if len(tracks) > 0:
-                        tracks.sort(key=lambda x: mpdh.get(x, 'track', 0, True))
+                        tracks.sort(key=lambda x: int(mpdh.getnum(x, 'track', '0', True, 0)))
                         for track in tracks:
                             playtime += int(mpdh.get(track, 'time', 0))
                             if 'title' in track:
@@ -393,8 +393,8 @@ class Info(object):
                 if content.startswith("#REDIRECT [["):
                     addr = "http://lyricwiki.org/index.php?title=%s&action=edit" % urllib.quote(content.split("[[")[1].split("]]")[0])
                     content = urllib.urlopen(addr).read()
-                    lyrics = content.split("&lt;lyrics&gt;")[1].split("&lt;/lyrics&gt;")[0]
-                    if lyrics.strip() != "&lt;!-- PUT LYRICS HERE (and delete this entire line) --&gt;":
+                lyrics = content.split("&lt;lyrics&gt;")[1].split("&lt;/lyrics&gt;")[0]
+                if lyrics.strip() != "&lt;!-- PUT LYRICS HERE (and delete this entire line) --&gt;":
 
                     lyrics = misc.unescape_html(lyrics)
                     lyrics = misc.wiki_to_html(lyrics)
