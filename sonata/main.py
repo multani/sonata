@@ -63,10 +63,7 @@ from config import Config
 import tagedit, artwork, about, scrobbler, info, library, streams, playlists, current
 import dbus_plugin as dbus
 
-try:
-    import version
-except ImportError:
-    import svnversion as version
+from version import version
 
 class Base(object):
     def __init__(self, args, window=None, sugar=False):
@@ -842,7 +839,7 @@ class Base(object):
             # Code thanks to quodlibet:
 
             # XXX gnome.init sets process name, locale...
-            gnome.init("sonata", version.VERSION)
+            gnome.init("sonata", version)
 
             misc.setlocale()
 
@@ -3345,7 +3342,7 @@ class Base(object):
         self.mpd_update_queued = True
 
     def on_about(self, _action):
-        about_dialog = about.About(self.window, self.config, version.VERSION, __license__, self.find_path('sonata_large.png'))
+        about_dialog = about.About(self.window, self.config, version, __license__, self.find_path('sonata_large.png'))
 
         stats = None
         if self.conn:

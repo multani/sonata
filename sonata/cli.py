@@ -1,10 +1,7 @@
 
 import sys, getopt
 
-try:
-    import version
-except ImportError:
-    import svnversion as version
+from version import version
 
 # the mpd commands need a connection to server and exit without gui
 mpd_cmds = ["play", "pause", "stop", "next", "prev", "pp", "info",
@@ -94,7 +91,7 @@ class Args(object):
             sys.exit()
 
     def print_version(self):
-        print _("Version") + ": Sonata", (version.VERSION)
+        print _("Version") + ": Sonata", (version)
         print _("Website") + ": http://sonata.berlios.de/"
 
     def print_usage(self):
