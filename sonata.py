@@ -38,17 +38,14 @@ except ImportError:
     sys.exit(1)
 
 try:
-    import sonata.version as version
+    from sonata.version import version
 except ImportError:
-    try:
-        import sonata.svnversion as version
-    except ImportError:
-        sys.stderr.write("Python failed to find the sonata modules.\n")
-        sys.stderr.write("\nAn old or incomplete installation was " +
-                 "found in the following directory:\n" +
-                 os.path.dirname(sonata.__file__) + "\n")
-        sys.stderr.write("\nPerhaps you want to delete it?\n")
-        sys.exit(1)
+    sys.stderr.write("Python failed to find the sonata modules.\n")
+    sys.stderr.write("\nAn old or incomplete installation was " +
+             "found in the following directory:\n" +
+             os.path.dirname(sonata.__file__) + "\n")
+    sys.stderr.write("\nPerhaps you want to delete it?\n")
+    sys.exit(1)
 
 # XXX check that version.VERSION is what this script was installed for
 

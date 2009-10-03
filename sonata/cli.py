@@ -3,10 +3,7 @@ import sys
 import gettext
 from optparse import OptionParser
 
-try:
-    import version
-except ImportError:
-    import svnversion as version
+from version import version
 
 # the mpd commands need a connection to server and exit without gui
 mpd_cmds = ["play", "pause", "stop", "next", "prev", "pp", "info",
@@ -40,7 +37,7 @@ class Args(object):
         "  info            %s" % _("display current song info"),
         "  status          %s" % _("display MPD status"),
         ))
-        _version = "%prog " + version.VERSION
+        _version = "%prog " + version
 
         parser = OptionParser(usage=_usage, version=_version)
         parser.add_option("-p", "--popup", dest="popup",

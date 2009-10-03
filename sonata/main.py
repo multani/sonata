@@ -64,10 +64,7 @@ import lyricwiki # plug-ins
 import rhapsodycovers
 import dbus_plugin as dbus
 
-try:
-    import version
-except ImportError:
-    import svnversion as version
+from version import version
 
 class Base(object):
 
@@ -850,7 +847,7 @@ class Base(object):
             # Code thanks to quodlibet:
 
             # XXX gnome.init sets process name, locale...
-            gnome.init("sonata", version.VERSION)
+            gnome.init("sonata", version)
 
             misc.setlocale()
 
@@ -1535,7 +1532,7 @@ class Base(object):
             row = int(self.status['song'])
             self.current.boldrow(row)
             if self.songinfo:
-                if not self.prevsonginfo or mpdh.get(self.songinfo, 'file') != mpdh.get(self.prevsonginfo, 'file'):
+                if not self.prevsonginfo or mpdh.get(self.songinfo, 'id') != mpdh.get(self.prevsonginfo, 'id'):
                     self.current.center_song_in_list()
             self.current.prev_boldrow = row
 
@@ -3127,7 +3124,7 @@ class Base(object):
         self.mpd_update_queued = True
 
     def on_about(self, _action):
-        about_dialog = about.About(self.window, self.config, version.VERSION, __license__, self.find_path('sonata_large.png'))
+        about_dialog = about.About(self.window, self.config, version, __license__, self.find_path('sonata_large.png'))
 
         stats = None
         if self.conn:
