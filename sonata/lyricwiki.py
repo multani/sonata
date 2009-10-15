@@ -37,9 +37,13 @@ class LyricWiki(object):
         try:
             lyricpage = urllib.urlopen("http://lyricwiki.org/index.php?title=%s:%s&action=edit" % (self.lyricwiki_format(artist), self.lyricwiki_format(title))).read()
             content = re.split("<textarea[^>]*>", lyricpage)[1].split("</textarea>")[0]
-            if content.startswith("#REDIRECT [["):
+            content = content.strip()
+            redir_tag = "#redirect"
+            if content[:len(redir_tag)].lower() == redir_tag:
                 addr = "http://lyricwiki.org/index.php?title=%s&action=edit" % urllib.quote(content.split("[[")[1].split("]]")[0])
-                content = urllib.urlopen(addr).read()
+                lyricpage = urllib.urlopen(addr).read()
+                content = re.split("<textarea[^>]*>", lyricpage)[1].split("</textarea>")[0]
+                content = content.strip()
             lyrics = content.split("&lt;lyrics&gt;")[1].split("&lt;/lyrics&gt;")[0]
             if lyrics.strip() != "&lt;!-- PUT LYRICS HERE (and delete this entire line) --&gt;":
                 lyrics = misc.unescape_html(lyrics)

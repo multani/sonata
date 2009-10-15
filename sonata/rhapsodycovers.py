@@ -41,7 +41,7 @@ class RhapsodyCovers(object):
             return False
 
         if not all_images:
-            urllib.urlretrieve(imglist[0], dest_filename)
+            urllib.urlretrieve(imglist[-1], dest_filename)
             return True
         else:
             try:
