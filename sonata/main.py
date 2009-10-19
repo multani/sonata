@@ -275,7 +275,7 @@ class Base(object):
             ('raisekey', None, 'Raise Volume Key', '<Ctrl>plus', None, self.on_volume_raise),
             ('raisekey2', None, 'Raise Volume Key 2', '<Ctrl>equal', None, self.on_volume_raise),
             ('quitkey', None, 'Quit Key', '<Ctrl>q', None, self.on_delete_event_yes),
-            ('quitkey2', None, 'Quit Key 2', '<Ctrl>w', None, self.on_delete_event_yes),
+            ('quitkey2', None, 'Quit Key 2', '<Ctrl>w', None, self.on_delete_event),
             ('connectkey', None, 'Connect Key', '<Alt>c', None, self.on_connectkey_pressed),
             ('disconnectkey', None, 'Disconnect Key', '<Alt>d', None, self.on_disconnectkey_pressed),
             ('searchkey', None, 'Search Key', '<Ctrl>h', None, self.on_library_search_shortcut),
