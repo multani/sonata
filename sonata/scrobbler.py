@@ -8,8 +8,6 @@ self.scrobbler = scrobbler.Scrobbler(self.config)
 self.scrobbler.import_module()
 self.scrobbler.init()
 ...
-self.scrobbler.iterate()
-...
 self.scrobbler.handle_change_status(False, self.prevsonginfo)
 """
 
@@ -29,7 +27,6 @@ class Scrobbler(object):
         self.scrob_start_time = ""
         self.scrob_playing_duration = 0
         self.scrob_last_prepared = ""
-        self.scrob_time_now = None
 
         self.elapsed_now = None
 
@@ -70,22 +67,18 @@ class Scrobbler(object):
         if self.scrob_post:
             self.retrieve_cache()
 
-    def iterate(self):
-        """Update the running time"""
-        self.scrob_time_now = time.time()
-
-    def handle_change_status(self, playing, prevsonginfo, songinfo=None, switched_from_stop_to_play=None, mpd_time_now=None):
+    def handle_change_status(self, state, prevstate, prevsonginfo, songinfo=None, mpd_time_now=None):
         """Handle changes to play status, submitting info as appropriate"""
         if prevsonginfo and 'time' in prevsonginfo:
             prevsong_time = mpdh.get(prevsonginfo, 'time')
         else:
             prevsong_time = None
 
-        if playing:
+        if state in ('play', 'pause'):
             elapsed_prev = self.elapsed_now
             self.elapsed_now, length = [float(c) for c in mpd_time_now.split(':')]
             current_file = mpdh.get(songinfo, 'file')
-            if switched_from_stop_to_play:
+            if prevstate == 'stop':
                 # Switched from stop to play, prepare current track:
                 self.prepare(songinfo)
             elif (prevsong_time and
@@ -102,10 +95,12 @@ class Scrobbler(object):
                         self.post(prevsonginfo)
                 # Prepare current track:
                 self.prepare(songinfo)
-            elif self.scrob_time_now:
-                # Keep track of the total amount of time that the current song
-                # has been playing:
-                self.scrob_playing_duration += time.time() - self.scrob_time_now
+            # Keep track of the total amount of time that the current song
+            # has been playing:
+            now = time.time()
+            if prevstate != 'pause':
+                self.scrob_playing_duration += now - self.scrob_prev_time
+            self.scrob_prev_time = now
         else: # stopped:
             self.elapsed_now = 0
             if prevsong_time:
@@ -126,6 +121,7 @@ class Scrobbler(object):
             self.scrob_start_time = ""
             self.scrob_last_prepared = ""
             self.scrob_playing_duration = 0
+            self.scrob_prev_time = time.time()
 
             if self.config.as_enabled and songinfo:
                 # No need to check if the song is 30 seconds or longer,

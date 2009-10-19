@@ -1014,10 +1014,6 @@ class Base(object):
             self.handle_change_conn()
         if self.status != self.prevstatus:
             self.handle_change_status()
-        if self.config.as_enabled:
-            # We update this here because self.handle_change_status() won't be
-            # called while the client is paused.
-            self.scrobbler.iterate()
         if self.songinfo != self.prevsonginfo:
             self.handle_change_song()
 
@@ -1630,16 +1626,20 @@ class Base(object):
         self.mpd_update_queued = False
 
         if self.config.as_enabled:
-            playing = self.status and self.status['state'] == 'play'
-            stopped = self.status and self.status['state'] == 'stop'
+            if self.prevstatus:
+                prevstate = self.prevstatus['state']
+            else:
+                prevstate = 'stop'
+            if self.status:
+                state = self.status['state']
+            else:
+                state = 'stop'
 
-            if playing:
+            if state in ('play', 'pause'):
                 mpd_time_now = self.status['time']
-                switched_from_stop_to_play = not self.prevstatus or (self.prevstatus and self.prevstatus['state'] == 'stop')
-
-                self.scrobbler.handle_change_status(True, self.prevsonginfo, self.songinfo, switched_from_stop_to_play, mpd_time_now)
-            elif stopped:
-                self.scrobbler.handle_change_status(False, self.prevsonginfo)
+                self.scrobbler.handle_change_status(state, prevstate, self.prevsonginfo, self.songinfo,  mpd_time_now)
+            elif state == 'stop':
+                self.scrobbler.handle_change_status(state, prevstate, self.prevsonginfo)
 
     def mpd_updated_db(self):
         self.library.view_caches_reset()
