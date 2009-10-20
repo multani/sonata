@@ -1,1537 +1,1592 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Korean translation for Sonata package.
+# Copyright (C) 2009 Sonata's COPYRIGHT HOLDER
+# This file is distributed under the same license as the Sonata package.
+# BANG, Jaesung <jaesung@liberotown.com>, 2009.
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
+"Project-Id-Version: Sonata 1.6.2\n"
+"Report-Msgid-Bugs-To: https://developer.berlios.de/bugs/?group_id=7323\n"
 "POT-Creation-Date: 2009-04-11 13:21-0600\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2009-10-13 16:27+0900\n"
+"Last-Translator: Jaesung <jaesung@liberotown.com>\n"
+"Language-Team: Ubuntu Korea <admin@ubuntu.or.kr>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. define the shortcuts and their descriptions
 #. these are all gettextable
 #: .././sonata/about.py:54
 msgid "About Sonata"
-msgstr ""
+msgstr "소나타 정보"
 
-#: .././sonata/about.py:55 .././sonata/preferences.py:96
+#: .././sonata/about.py:55
+#: .././sonata/preferences.py:96
 msgid "Preferences"
-msgstr ""
+msgstr "기본 설정"
 
 #: .././sonata/about.py:56
 msgid "Fullscreen Artwork Mode"
-msgstr ""
+msgstr "전체 화면 모드"
 
 #: .././sonata/about.py:57
 msgid "Switch to [1st-5th] tab"
-msgstr ""
+msgstr "1-5 탭 이동"
 
 #: .././sonata/about.py:58
 msgid "Connect to MPD"
-msgstr ""
+msgstr "MPD에 연결"
 
 #: .././sonata/about.py:59
 msgid "Disconnect from MPD"
-msgstr ""
+msgstr "MPD와 연결 끊기"
 
 #: .././sonata/about.py:60
 msgid "Randomize current playlist"
-msgstr ""
+msgstr "현재 재생 목록 순서 섞기"
 
 #: .././sonata/about.py:61
 msgid "Expand player"
-msgstr ""
+msgstr "재생기 확장하기"
 
 #: .././sonata/about.py:62
 msgid "Switch to previous tab"
-msgstr ""
+msgstr "이전 탭으로 이동"
 
 #: .././sonata/about.py:63
 msgid "Switch to next tab"
-msgstr ""
+msgstr "다음 탭으로 이동"
 
 #: .././sonata/about.py:64
 msgid "Collapse player"
-msgstr ""
+msgstr "재생기 접기"
 
-#: .././sonata/about.py:65 .././sonata/library.py:79
+#: .././sonata/about.py:65
+#: .././sonata/library.py:79
 msgid "Search library"
-msgstr ""
+msgstr "보관함 검색"
 
 #: .././sonata/about.py:66
 msgid "Quit"
-msgstr ""
+msgstr "끝내기"
 
 #: .././sonata/about.py:67
 msgid "Update entire library"
-msgstr ""
+msgstr "보관함 전체 업데이트"
 
 #: .././sonata/about.py:68
 msgid "Display popup menu"
-msgstr ""
+msgstr "팝업 메뉴 표시"
 
 #: .././sonata/about.py:69
 msgid "Minimize to system tray (if enabled)"
-msgstr ""
+msgstr "가능하다면 시스템 트레이로 최소화"
 
 #: .././sonata/about.py:71
 msgid "Previous track"
-msgstr ""
+msgstr "이전 트랙"
 
 #: .././sonata/about.py:72
 msgid "Next track"
-msgstr ""
+msgstr "다음 트랙"
 
 #: .././sonata/about.py:73
 msgid "Play/Pause"
-msgstr ""
+msgstr "재생/일시 정지"
 
 #: .././sonata/about.py:74
 msgid "Stop"
-msgstr ""
+msgstr "멈춤"
 
 #: .././sonata/about.py:75
 msgid "Lower the volume"
-msgstr ""
+msgstr "음량 낮게"
 
 #: .././sonata/about.py:76
 msgid "Raise the volume"
-msgstr ""
+msgstr "음량 높게"
 
 #: .././sonata/about.py:78
 msgid "Play selected song"
-msgstr ""
+msgstr "선택한 노래 재생"
 
 #: .././sonata/about.py:79
 msgid "Remove selected song(s)"
-msgstr ""
+msgstr "선택한 노래 삭제"
 
 #: .././sonata/about.py:80
 msgid "Center currently playing song"
-msgstr ""
+msgstr "현재 재생 중인 노래를 가운데로"
 
-#: .././sonata/about.py:81 .././sonata/about.py:90
+#: .././sonata/about.py:81
+#: .././sonata/about.py:90
 msgid "Edit selected song's tags"
-msgstr ""
+msgstr "선택한 노래의 태그 편집"
 
 #: .././sonata/about.py:82
 msgid "Save to new playlist"
-msgstr ""
+msgstr "새로운 재생 목록으로 저장"
 
 #: .././sonata/about.py:83
 msgid "Clear list"
-msgstr ""
+msgstr "목록 비우기"
 
 #: .././sonata/about.py:84
 msgid "Randomize list"
-msgstr ""
+msgstr "목록 순서 섞기"
 
 #: .././sonata/about.py:86
 msgid "Add selected song(s) or enter directory"
-msgstr ""
+msgstr "선택한 노래를 추가하거나 디렉터리로 이동"
 
 #: .././sonata/about.py:87
 msgid "Go to parent directory"
-msgstr ""
+msgstr "부모 디렉터리로 이동"
 
 #: .././sonata/about.py:88
 msgid "Add selected item(s)"
-msgstr ""
+msgstr "선택한 항목 추가"
 
 #: .././sonata/about.py:89
 msgid "Replace with selected item(s)"
-msgstr ""
+msgstr "선택한 항목으로 대체"
 
 #: .././sonata/about.py:91
 msgid "Add selected item(s) and play"
-msgstr ""
+msgstr "선택한 항목을 추가하고 재생"
 
 #: .././sonata/about.py:92
 msgid "Replace with selected item(s) and play"
-msgstr ""
+msgstr "선택한 항목으로 대체하고 재생"
 
 #: .././sonata/about.py:93
 msgid "Update selected item(s)/path(s)"
-msgstr ""
+msgstr "선택한 항목/경로 업데이트"
 
-#: .././sonata/about.py:95 .././sonata/about.py:97
+#: .././sonata/about.py:95
+#: .././sonata/about.py:97
 msgid "Add selected playlist(s)"
-msgstr ""
+msgstr "선택한 재생 목록 추가"
 
 #: .././sonata/about.py:96
 msgid "Remove selected playlist(s)"
-msgstr ""
+msgstr "선택한 재생 목록 삭제"
 
 #: .././sonata/about.py:98
 msgid "Replace with selected playlist(s)"
-msgstr ""
+msgstr "선택한 재생 목록으로 대체"
 
 #: .././sonata/about.py:99
 msgid "Add selected playlist(s) and play"
-msgstr ""
+msgstr "선택한 재생 목록을 추가하고 재생"
 
 #: .././sonata/about.py:100
 msgid "Replace with selected playlist(s) and play"
-msgstr ""
+msgstr "선택한 재생 목록으로 대체하고 재생"
 
-#: .././sonata/about.py:102 .././sonata/about.py:104
+#: .././sonata/about.py:102
+#: .././sonata/about.py:104
 msgid "Add selected stream(s)"
-msgstr ""
+msgstr "선택한 스트림 추가"
 
 #: .././sonata/about.py:103
 msgid "Remove selected stream(s)"
-msgstr ""
+msgstr "선택한 스트림 삭제"
 
 #: .././sonata/about.py:105
 msgid "Replace with selected stream(s)"
-msgstr ""
+msgstr "선택한 스트림으로 대체"
 
 #: .././sonata/about.py:106
 msgid "Add selected stream(s) and play"
-msgstr ""
+msgstr "선택한 스트림을 추가하고 재생"
 
 #: .././sonata/about.py:107
 msgid "Replace with selected stream(s) and play"
-msgstr ""
+msgstr "선택한 스트림으로 대체하고 재생"
 
 #: .././sonata/about.py:109
 msgid "Edit playing song's tags"
-msgstr ""
+msgstr "재생 중인 노래의 태그 편집"
 
 #. define the main array- this adds headings to each section of
 #. shortcuts that will be displayed
 #: .././sonata/about.py:112
 msgid "Main Shortcuts"
-msgstr ""
+msgstr "주 단축키"
 
 #: .././sonata/about.py:113
 msgid "Playback Shortcuts"
-msgstr ""
+msgstr "재생 관련 단축키"
 
 #: .././sonata/about.py:114
 msgid "Current Shortcuts"
-msgstr ""
+msgstr "현재 목록 단축키"
 
 #: .././sonata/about.py:115
 msgid "Library Shortcuts"
-msgstr ""
+msgstr "보관함 단축키"
 
 #: .././sonata/about.py:116
 msgid "Playlist Shortcuts"
-msgstr ""
+msgstr "재생 목록 단축키"
 
 #: .././sonata/about.py:117
 msgid "Stream Shortcuts"
-msgstr ""
+msgstr "스트림 단축키"
 
 #: .././sonata/about.py:118
 msgid "Info Shortcuts"
-msgstr ""
+msgstr "정보 단축키"
 
 #: .././sonata/about.py:119
 msgid "Shortcuts"
-msgstr ""
+msgstr "단축키"
 
 #. XXX translate expressions, not words
 #. Show text:
-#: .././sonata/about.py:147 .././sonata/library.py:862
+#: .././sonata/about.py:147
+#: .././sonata/library.py:862
 #: .././sonata/main.py:1756
 msgid "song"
 msgid_plural "songs"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "곡"
+msgstr[1] "곡"
 
 #: .././sonata/about.py:148
 msgid "album"
 msgid_plural "albums"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "앨범"
+msgstr[1] "앨범"
 
 #: .././sonata/about.py:149
 msgid "artist"
 msgid_plural "artists"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "음악가"
+msgstr[1] "음악가"
 
 #: .././sonata/about.py:156
 msgid "day of bliss"
 msgid_plural "days of bliss"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "일의 행복"
+msgstr[1] "일의 행복"
 
 #: .././sonata/about.py:158
 msgid "hour of bliss"
 msgid_plural "hours of bliss"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "시간의 행복"
+msgstr[1] "시간의 행복"
 
 #: .././sonata/about.py:172
 msgid "An elegant music client for MPD."
-msgstr ""
+msgstr "고품격 MPD 음악 클라이언트."
 
 #. Add button to show keybindings:
 #: .././sonata/about.py:185
 msgid "_Shortcuts"
-msgstr ""
+msgstr "단축키(_S)"
 
-#: .././sonata/about.py:196 .././sonata/main.py:3103
+#: .././sonata/about.py:196
+#: .././sonata/main.py:3103
 #: .././sonata/preferences.py:880
 msgid "Unable to launch a suitable browser."
-msgstr ""
+msgstr "해당 브라우저를 실행할 수 없음."
 
-#: .././sonata/about.py:196 .././sonata/main.py:3103
+#: .././sonata/about.py:196
+#: .././sonata/main.py:3103
 #: .././sonata/preferences.py:880
 msgid "Launch Browser"
-msgstr ""
+msgstr "브라우저 실행"
 
 #: .././sonata/cli.py:81
 msgid "The toggle and popup arguments require D-Bus. Aborting."
-msgstr ""
+msgstr "--toggle과 --popup 옵션은 D-Bus가 필요합니다. 중단합니다."
 
 #: .././sonata/cli.py:97
 msgid "Version"
-msgstr ""
+msgstr "버전"
 
 #: .././sonata/cli.py:98
 msgid "Website"
-msgstr ""
+msgstr "웹사이트"
 
 #: .././sonata/cli.py:103
 msgid "Usage: sonata [OPTION]... [COMMAND]..."
-msgstr ""
+msgstr "사용 방법: sonata [옵션]... [명령어]..."
 
 #: .././sonata/cli.py:105
 msgid "Options"
-msgstr ""
+msgstr "옵션"
 
 #: .././sonata/cli.py:106
 msgid "Show this help and exit"
-msgstr ""
+msgstr "이 도움말을 표시하고 나가기"
 
 #: .././sonata/cli.py:107
 msgid "Popup song notification (requires D-Bus)"
-msgstr ""
+msgstr "노래 알림 팝업(D-Bus 필요)"
 
 #: .././sonata/cli.py:108
 msgid "Toggles whether the app is minimized"
-msgstr ""
+msgstr "응용 프로그램을 시스템 트레이로 최소화"
 
 #: .././sonata/cli.py:109
 msgid "to tray or visible (requires D-Bus)"
-msgstr ""
+msgstr "화면에 표시 여부(D-Bus 필요)"
 
 #: .././sonata/cli.py:110
 msgid "Don't start app if D-Bus commands fail"
-msgstr ""
+msgstr "D-Bus 명령에 실패하면 응용 프로그램을 실행하지 않음"
 
 #: .././sonata/cli.py:111
 msgid "Show version information and exit"
-msgstr ""
+msgstr "버전 정보를 표시하고 나가기"
 
 #: .././sonata/cli.py:112
 msgid "Start app hidden (requires systray)"
-msgstr ""
+msgstr "응용 프로그램을 숨김 상태로 실행(시스템 트레이 필요)"
 
 #: .././sonata/cli.py:113
 msgid "Start app visible (requires systray)"
-msgstr ""
+msgstr "응용 프로그램을 보이는 상태로 실행(시스템 트레이 필요)"
 
 #: .././sonata/cli.py:114
 msgid "Start with profile [NUM]"
-msgstr ""
+msgstr "프로파일 [NUM](으)로 실행"
 
 #: .././sonata/cli.py:116
 msgid "Commands"
-msgstr ""
+msgstr "명령어"
 
 #: .././sonata/cli.py:117
 msgid "Play song in playlist"
-msgstr ""
+msgstr "재생 목록에 있는 노래 재생"
 
 #: .././sonata/cli.py:118
 msgid "Pause currently playing song"
-msgstr ""
+msgstr "현재 재생 중인 노래 일시 정지"
 
 #: .././sonata/cli.py:119
 msgid "Stop currently playing song"
-msgstr ""
+msgstr "현재 재생 중인 노래 멈춤"
 
 #: .././sonata/cli.py:120
 msgid "Play next song in playlist"
-msgstr ""
+msgstr "재생 목록에 있는 다음 노래 재생"
 
 #: .././sonata/cli.py:121
 msgid "Play previous song in playlist"
-msgstr ""
+msgstr "재생 목록에 있는 이전 노래 재생"
 
 #: .././sonata/cli.py:122
 msgid "Toggle play/pause; plays if stopped"
-msgstr ""
+msgstr "재생/일시 정지 전환"
 
 #: .././sonata/cli.py:123
 msgid "Toggle repeat mode"
-msgstr ""
+msgstr "반복 재생 모드 전환"
 
 #: .././sonata/cli.py:124
 msgid "Toggle random mode"
-msgstr ""
+msgstr "임의 재생 모드 전환"
 
 #: .././sonata/cli.py:125
 msgid "Display current song info"
-msgstr ""
+msgstr "현재 노래 정보 표시"
 
 #: .././sonata/cli.py:126
 msgid "Display MPD status"
-msgstr ""
+msgstr "MPD 상태 표시"
 
 #: .././sonata/cli.py:134
 #, python-format
 msgid "Starting Sonata with profile %s..."
-msgstr ""
+msgstr "%s 프로파일로 소나타 시작..."
 
 #: .././sonata/cli.py:136
 #, python-format
 msgid "%d is not an available profile number."
-msgstr ""
+msgstr "%d는 유효한 프로파일 번호가 아닙니다."
 
-#: .././sonata/cli.py:137 .././sonata/cli.py:141
+#: .././sonata/cli.py:137
+#: .././sonata/cli.py:141
 #, python-format
 msgid "Profile numbers must be between 1 and %d."
-msgstr ""
+msgstr "프로파일 번호는 1과 %d 사이의 숫자이어야 합니다."
 
 #: .././sonata/cli.py:140
 #, python-format
 msgid "Python is unable to interpret %s as a number."
-msgstr ""
+msgstr "파이썬은 %s(을)를 숫자로 인식할 수 없습니다."
 
-#: .././sonata/cli.py:154 .././sonata/main.py:178
+#: .././sonata/cli.py:154
+#: .././sonata/main.py:178
 msgid "Default Profile"
-msgstr ""
+msgstr "기본 프로파일"
 
-#: .././sonata/cli.py:154 .././sonata/main.py:178
+#: .././sonata/cli.py:154
+#: .././sonata/main.py:178
 msgid "by"
-msgstr ""
+msgstr "음악가:"
 
-#: .././sonata/cli.py:154 .././sonata/main.py:178
+#: .././sonata/cli.py:154
+#: .././sonata/main.py:178
 msgid "from"
-msgstr ""
+msgstr "앨범:"
 
 #: .././sonata/cli.py:176
 msgid ""
 "Unable to connect to MPD.\n"
-"Please check your Sonata preferences or MPD_HOST/MPD_PORT environment "
-"variables."
+"Please check your Sonata preferences or MPD_HOST/MPD_PORT environment variables."
 msgstr ""
+"MPD에 연결할 수 없습니다.\n"
+"소나타 기본 설정이나 환경 변수 MPD_HOST/MPD_PORT를 확인하십시오."
 
-#: .././sonata/cli.py:208 .././sonata/info.py:90 .././sonata/library.py:45
+#: .././sonata/cli.py:208
+#: .././sonata/info.py:90
+#: .././sonata/library.py:45
 #: .././sonata/tagedit.py:125
 msgid "Title"
-msgstr ""
+msgstr "제목"
 
-#: .././sonata/cli.py:209 .././sonata/info.py:91 .././sonata/library.py:45
-#: .././sonata/main.py:1180 .././sonata/tagedit.py:126
+#: .././sonata/cli.py:209
+#: .././sonata/info.py:91
+#: .././sonata/library.py:45
+#: .././sonata/main.py:1180
+#: .././sonata/tagedit.py:126
 msgid "Artist"
-msgstr ""
+msgstr "음악가"
 
-#: .././sonata/cli.py:210 .././sonata/info.py:93 .././sonata/library.py:45
-#: .././sonata/main.py:1181 .././sonata/main.py:2432
+#: .././sonata/cli.py:210
+#: .././sonata/info.py:93
+#: .././sonata/library.py:45
+#: .././sonata/main.py:1181
+#: .././sonata/main.py:2432
 #: .././sonata/tagedit.py:127
 msgid "Album"
-msgstr ""
+msgstr "앨범"
 
-#: .././sonata/cli.py:211 .././sonata/info.py:95
+#: .././sonata/cli.py:211
+#: .././sonata/info.py:95
 msgid "Date"
-msgstr ""
+msgstr "연도"
 
-#: .././sonata/cli.py:212 .././sonata/info.py:96 .././sonata/main.py:1182
+#: .././sonata/cli.py:212
+#: .././sonata/info.py:96
+#: .././sonata/main.py:1182
 #: .././sonata/tagedit.py:130
 msgid "Track"
-msgstr ""
+msgstr "제목"
 
-#: .././sonata/cli.py:213 .././sonata/info.py:97 .././sonata/library.py:45
-#: .././sonata/main.py:1185 .././sonata/preferences.py:557
+#: .././sonata/cli.py:213
+#: .././sonata/info.py:97
+#: .././sonata/library.py:45
+#: .././sonata/main.py:1185
+#: .././sonata/preferences.py:557
 #: .././sonata/tagedit.py:139
 msgid "Genre"
-msgstr ""
+msgstr "장르"
 
-#: .././sonata/cli.py:214 .././sonata/info.py:98 .././sonata/main.py:1187
+#: .././sonata/cli.py:214
+#: .././sonata/info.py:98
+#: .././sonata/main.py:1187
 msgid "File"
-msgstr ""
+msgstr "파일"
 
-#: .././sonata/cli.py:219 .././sonata/cli.py:221
+#: .././sonata/cli.py:219
+#: .././sonata/cli.py:221
 msgid "Time"
-msgstr ""
+msgstr "시간"
 
-#: .././sonata/cli.py:222 .././sonata/info.py:99
+#: .././sonata/cli.py:222
+#: .././sonata/info.py:99
 msgid "Bitrate"
-msgstr ""
+msgstr "비트율"
 
 #: .././sonata/cli.py:224
 msgid "MPD stopped"
-msgstr ""
+msgstr "MPD 멈춤"
 
-#: .././sonata/cli.py:228 .././sonata/cli.py:230 .././sonata/cli.py:232
+#: .././sonata/cli.py:228
+#: .././sonata/cli.py:230
+#: .././sonata/cli.py:232
 msgid "State"
-msgstr ""
+msgstr "상태"
 
 #: .././sonata/cli.py:228
 msgid "Playing"
-msgstr ""
+msgstr "재생 중"
 
 #: .././sonata/cli.py:230
 msgid "Paused"
-msgstr ""
+msgstr "일시 정지"
 
-#: .././sonata/cli.py:232 .././sonata/main.py:562 .././sonata/main.py:567
-#: .././sonata/main.py:1829 .././sonata/main.py:1840
+#: .././sonata/cli.py:232
+#: .././sonata/main.py:562
+#: .././sonata/main.py:567
+#: .././sonata/main.py:1829
+#: .././sonata/main.py:1840
 msgid "Stopped"
-msgstr ""
+msgstr "멈춤"
 
-#: .././sonata/cli.py:234 .././sonata/cli.py:236
+#: .././sonata/cli.py:234
+#: .././sonata/cli.py:236
 msgid "Repeat"
-msgstr ""
+msgstr "반복 재생"
 
-#: .././sonata/cli.py:234 .././sonata/cli.py:238
+#: .././sonata/cli.py:234
+#: .././sonata/cli.py:238
 msgid "Off"
-msgstr ""
+msgstr "꺼짐"
 
-#: .././sonata/cli.py:236 .././sonata/cli.py:240
+#: .././sonata/cli.py:236
+#: .././sonata/cli.py:240
 msgid "On"
-msgstr ""
+msgstr "켜짐"
 
-#: .././sonata/cli.py:238 .././sonata/cli.py:240
+#: .././sonata/cli.py:238
+#: .././sonata/cli.py:240
 msgid "Random"
-msgstr ""
+msgstr "임의 재생"
 
 #: .././sonata/cli.py:241
 msgid "Volume"
-msgstr ""
+msgstr "음량"
 
 #: .././sonata/cli.py:242
 msgid "Crossfade"
-msgstr ""
+msgstr "크로스페이드"
 
-#: .././sonata/cli.py:242 .././sonata/preferences.py:277
+#: .././sonata/cli.py:242
+#: .././sonata/preferences.py:277
 msgid "second"
 msgid_plural "seconds"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "초"
+msgstr[1] "초"
 
 #: .././sonata/current.py:64
 msgid "Filter"
-msgstr ""
+msgstr "필터"
 
 #: .././sonata/dbus_plugin.py:83
-msgid ""
-"Sonata failed to connect to the D-BUS session bus: Unable to determine the "
-"address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for "
-"help)"
-msgstr ""
+msgid "Sonata failed to connect to the D-BUS session bus: Unable to determine the address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for help)"
+msgstr "소나타 D-BUS 세션 연결에 실패: 메시지 버스 주소 확인 불가('man dbus-launch'나 'man dbus-daemon'로 확인)."
 
 #: .././sonata/dbus_plugin.py:96
 msgid "Failed to execute remote commands."
-msgstr ""
+msgstr "원격 명령을 실행하지 못했습니다."
 
 #: .././sonata/dbus_plugin.py:98
 msgid "Starting Sonata instead..."
-msgstr ""
+msgstr "다음 프로그램 대신 소나타를 실행:"
 
 #: .././sonata/dbus_plugin.py:100
 msgid "Maybe Sonata is not running?"
-msgstr ""
+msgstr "혹시 소나타가 실행되지 않고 있습니까?"
 
 #: .././sonata/dbus_plugin.py:114
 msgid "An instance of Sonata is already running. Showing it..."
-msgstr ""
+msgstr "소나타 인스턴스가 이미 실행 중입니다. 실행 중인 소나타 인스턴스를 표시하고 있습니다..."
 
 #: .././sonata/dbus_plugin.py:120
 msgid "Failed to execute remote command."
-msgstr ""
+msgstr "원격 명령을 실행하지 못했습니다."
 
 #. Song info
 #: .././sonata/info.py:78
 msgid "Song Info"
-msgstr ""
+msgstr "노래 정보"
 
 #: .././sonata/info.py:92
 msgid "Launch artist in Wikipedia"
-msgstr ""
+msgstr "위키백과에서 음악가 확인"
 
 #: .././sonata/info.py:94
 msgid "Launch album in Wikipedia"
-msgstr ""
+msgstr "위키백과에서 앨범 확인"
 
 #: .././sonata/info.py:128
 msgid "Toggle extra tags"
-msgstr ""
+msgstr "기타 태그 보기 전환"
 
 #: .././sonata/info.py:131
 msgid "Edit song tags"
-msgstr ""
+msgstr "노래 태그 편집"
 
 #. Lyrics
 #: .././sonata/info.py:141
 msgid "Lyrics"
-msgstr ""
+msgstr "가사"
 
 #: .././sonata/info.py:153
 msgid "Search Lyricwiki.org for lyrics"
-msgstr ""
+msgstr "Lyricwiki.org에서 가사 검색"
 
 #: .././sonata/info.py:154
 msgid "Edit lyrics at Lyricwiki.org"
-msgstr ""
+msgstr "Lyricwiki.org에서 가사 편집"
 
 #. Album info
 #: .././sonata/info.py:162
 msgid "Album Info"
-msgstr ""
+msgstr "앨범 정보"
 
-#: .././sonata/info.py:214 .././sonata/info.py:219
+#: .././sonata/info.py:214
+#: .././sonata/info.py:219
 msgid "more"
-msgstr ""
+msgstr "더 보기"
 
 #: .././sonata/info.py:216
 msgid "hide"
-msgstr ""
+msgstr "감추기"
 
 #: .././sonata/info.py:282
 msgid "edit tags"
-msgstr ""
+msgstr "태그 편집"
 
 #: .././sonata/info.py:309
 msgid "Album info not found."
-msgstr ""
+msgstr "앨범 정보를 찾을 수 없음."
 
 #: .././sonata/info.py:312
 msgid "Album name not set."
-msgstr ""
+msgstr "앨범 제목이 설정되지 않음."
 
 #: .././sonata/info.py:326
 msgid "ZSI not found, fetching lyrics support disabled."
-msgstr ""
+msgstr "ZSI를 찾을 수 없으므로 가사 검색 기능을 사용할 수 없음."
 
 #: .././sonata/info.py:331
 msgid "Artist or song title not set."
-msgstr ""
+msgstr "음악가나 노래 제목이 설정되지 않음."
 
 #: .././sonata/info.py:373
 msgid "search"
-msgstr ""
+msgstr "검색"
 
 #: .././sonata/info.py:374
 msgid "edit"
-msgstr ""
+msgstr "편집"
 
-#: .././sonata/info.py:383 .././sonata/info.py:438
+#: .././sonata/info.py:383
+#: .././sonata/info.py:438
 msgid "Lyrics not found"
-msgstr ""
+msgstr "가사를 찾을 수 없음"
 
 #. Fetch lyrics from lyricwiki.org
 #: .././sonata/info.py:403
 msgid "Fetching lyrics..."
-msgstr ""
+msgstr "가사 검색 중 ..."
 
 #: .././sonata/info.py:413
 msgid "Couldn't connect to LyricWiki"
-msgstr ""
+msgstr "LyricWiki에 연결할 수 없음"
 
 #: .././sonata/info.py:441
 msgid "Fetching lyrics failed"
-msgstr ""
+msgstr "가사 검색 실패"
 
 #: .././sonata/library.py:43
 msgid "Untagged"
-msgstr ""
+msgstr "태그 없음"
 
 #: .././sonata/library.py:44
 msgid "Various Artists"
-msgstr ""
+msgstr "여러 음악가"
 
 #: .././sonata/library.py:45
 msgid "Filename"
-msgstr ""
+msgstr "파일 이름"
 
 #: .././sonata/library.py:45
 msgid "Everything"
-msgstr ""
+msgstr "모두"
 
 #: .././sonata/library.py:77
 msgid "Search terms"
-msgstr ""
+msgstr "검색어"
 
 #: .././sonata/library.py:83
 msgid "End Search"
-msgstr ""
+msgstr "검색 끝내기"
 
 #: .././sonata/library.py:85
 msgid "Library browsing view"
-msgstr ""
+msgstr "보관함 표시"
 
 #: .././sonata/library.py:89
 msgid "Search"
-msgstr ""
+msgstr "검색"
 
 #: .././sonata/library.py:112
 msgid "Filesystem"
-msgstr ""
+msgstr "파일 시스템"
 
 #: .././sonata/library.py:114
 msgid "Albums"
-msgstr ""
+msgstr "앨범"
 
 #: .././sonata/library.py:116
 msgid "Artists"
-msgstr ""
+msgstr "음악가"
 
 #: .././sonata/library.py:118
 msgid "Genres"
-msgstr ""
+msgstr "장르"
 
 #. add the views button first
 #: .././sonata/library.py:378
 msgid " v "
-msgstr ""
+msgstr " v "
 
-#: .././sonata/library.py:862 .././sonata/main.py:1750
+#: .././sonata/library.py:862
+#: .././sonata/main.py:1750
 msgid "minute"
 msgid_plural "minutes"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "분"
+msgstr[1] "분"
 
 #: .././sonata/library.py:950
 msgid "Song"
-msgstr ""
+msgstr "노래"
 
-#: .././sonata/library.py:950 .././sonata/main.py:1186
+#: .././sonata/library.py:950
+#: .././sonata/main.py:1186
 msgid "Path"
-msgstr ""
+msgstr "경로"
 
 #. Constants
 #: .././sonata/main.py:102
 msgid "Current"
-msgstr ""
+msgstr "현재 목록"
 
 #: .././sonata/main.py:103
 msgid "Library"
-msgstr ""
+msgstr "보관함"
 
 #: .././sonata/main.py:104
 msgid "Playlists"
-msgstr ""
+msgstr "재생 목록"
 
 #: .././sonata/main.py:105
 msgid "Streams"
-msgstr ""
+msgstr "스트림"
 
 #: .././sonata/main.py:106
 msgid "Info"
-msgstr ""
+msgstr "정보"
 
-#: .././sonata/main.py:137 .././sonata/preferences.py:278
+#: .././sonata/main.py:137
+#: .././sonata/preferences.py:278
 #: .././sonata/preferences.py:279
 msgid "Entire song"
-msgstr ""
+msgstr "노래 전체"
 
 #: .././sonata/main.py:236
 msgid "_Sort List"
-msgstr ""
+msgstr "목록 정렬(_S)"
 
 #: .././sonata/main.py:237
 msgid "Sa_ve List to"
-msgstr ""
+msgstr "목록 저장(_V)"
 
 #: .././sonata/main.py:238
 msgid "_Connection"
-msgstr ""
+msgstr "연결(_C)"
 
 #: .././sonata/main.py:239
 msgid "P_lay after"
-msgstr ""
+msgstr "바로 재생(_L)"
 
-#: .././sonata/main.py:240 .././sonata/main.py:2446
+#: .././sonata/main.py:240
+#: .././sonata/main.py:2446
 msgid "_Update"
-msgstr ""
+msgstr "업데이트(_U)"
 
 #: .././sonata/main.py:241
 msgid "Use _Remote Image..."
-msgstr ""
+msgstr "원격 이미지 사용(_R)..."
 
 #: .././sonata/main.py:242
 msgid "Use _Local Image..."
-msgstr ""
+msgstr "로컬 이미지 사용(_L)..."
 
 #: .././sonata/main.py:243
 msgid "_Fullscreen Mode"
-msgstr ""
+msgstr "전체 화면 모드(_F)"
 
 #: .././sonata/main.py:244
 msgid "Reset Image"
-msgstr ""
+msgstr "이미지 초기화"
 
 #: .././sonata/main.py:245
 msgid "_Play"
-msgstr ""
+msgstr "재생(_P)"
 
 #: .././sonata/main.py:246
 msgid "Pa_use"
-msgstr ""
+msgstr "일시 정지(_U)"
 
 #: .././sonata/main.py:247
 msgid "_Stop"
-msgstr ""
+msgstr "멈춤(_S)"
 
 #: .././sonata/main.py:248
 msgid "Pre_vious"
-msgstr ""
+msgstr "이전(_V)"
 
 #: .././sonata/main.py:249
 msgid "_Next"
-msgstr ""
+msgstr "다음(_N)"
 
 #: .././sonata/main.py:250
 msgid "_Quit"
-msgstr ""
+msgstr "끝내기(_Q)"
 
 #: .././sonata/main.py:251
 msgid "_Remove"
-msgstr ""
+msgstr "삭제(_R)"
 
 #: .././sonata/main.py:252
 msgid "_Clear"
-msgstr ""
+msgstr "비우기(_C)"
 
 #: .././sonata/main.py:253
 msgid "_Entire Library"
-msgstr ""
+msgstr "보관함 전체(_E)"
 
 #: .././sonata/main.py:254
 msgid "_Selected Items"
-msgstr ""
+msgstr "선택한 항목(_S)"
 
 #: .././sonata/main.py:255
 msgid "_Preferences..."
-msgstr ""
+msgstr "기본 설정(_P)..."
 
 #: .././sonata/main.py:256
 msgid "_About..."
-msgstr ""
+msgstr "정보(_A)..."
 
 #: .././sonata/main.py:257
 msgid "_Edit Tags..."
-msgstr ""
+msgstr "태그 편집(_E)..."
 
 #: .././sonata/main.py:258
 msgid "_Add"
-msgstr ""
+msgstr "추가(_A)"
 
 #: .././sonata/main.py:259
 msgid "_Replace"
-msgstr ""
+msgstr "대체(_R)"
 
 #: .././sonata/main.py:260
 msgid "Add"
-msgstr ""
+msgstr "추가"
 
 #: .././sonata/main.py:261
 msgid "Replace"
-msgstr ""
+msgstr "대체"
 
 #: .././sonata/main.py:262
 msgid "_Delete..."
-msgstr ""
+msgstr "삭제(_D)..."
 
 #: .././sonata/main.py:263
 msgid "Shuffle"
-msgstr ""
+msgstr "순서 섞기"
 
 #: .././sonata/main.py:288
 msgid "S_how Sonata"
-msgstr ""
+msgstr "소나타 보이기(_H)"
 
 #: .././sonata/main.py:289
 msgid "_Repeat"
-msgstr ""
+msgstr "반복 재생(_R)"
 
 #: .././sonata/main.py:290
 msgid "Rando_m"
-msgstr ""
+msgstr "임의 재생(_M)"
 
 #: .././sonata/main.py:431
 msgid "By Artist"
-msgstr ""
+msgstr "음악가"
 
 #: .././sonata/main.py:432
 msgid "By Album"
-msgstr ""
+msgstr "앨범"
 
 #: .././sonata/main.py:433
 msgid "By Song Title"
-msgstr ""
+msgstr "노래 제목"
 
 #: .././sonata/main.py:434
 msgid "By File Name"
-msgstr ""
+msgstr "파일 이름"
 
 #: .././sonata/main.py:435
 msgid "By Dir & File Name"
-msgstr ""
+msgstr "디렉터리와 파일 이름"
 
 #: .././sonata/main.py:436
 msgid "Reverse List"
-msgstr ""
+msgstr "목록 뒤집기"
 
-#: .././sonata/main.py:459 .././sonata/main.py:470
+#: .././sonata/main.py:459
+#: .././sonata/main.py:470
 msgid "_New..."
-msgstr ""
+msgstr "새로운 파일(_N)..."
 
 #: .././sonata/main.py:460
 msgid "_Edit..."
-msgstr ""
+msgstr "편집(_E)..."
 
 #: .././sonata/main.py:471
 msgid "_Rename..."
-msgstr ""
+msgstr "이름 바꾸기(_R)..."
 
-#: .././sonata/main.py:533 .././sonata/main.py:600 .././sonata/main.py:601
+#: .././sonata/main.py:533
+#: .././sonata/main.py:600
+#: .././sonata/main.py:601
 msgid "Playlist"
-msgstr ""
+msgstr "재생 목록"
 
-#: .././sonata/main.py:563 .././sonata/main.py:1833 .././sonata/main.py:2042
+#: .././sonata/main.py:563
+#: .././sonata/main.py:1833
+#: .././sonata/main.py:2042
 msgid "Click to expand"
-msgstr ""
+msgstr "재생기 확장하기"
 
-#: .././sonata/main.py:568 .././sonata/main.py:1831 .././sonata/main.py:2040
+#: .././sonata/main.py:568
+#: .././sonata/main.py:1831
+#: .././sonata/main.py:2040
 msgid "Click to collapse"
-msgstr ""
+msgstr "재생기 접기"
 
-#: .././sonata/main.py:573 .././sonata/main.py:1725 .././sonata/main.py:1836
+#: .././sonata/main.py:573
+#: .././sonata/main.py:1725
+#: .././sonata/main.py:1836
 msgid "Not Connected"
-msgstr ""
+msgstr "연결되지 않음"
 
-#: .././sonata/main.py:575 .././sonata/main.py:1723 .././sonata/main.py:1838
+#: .././sonata/main.py:575
+#: .././sonata/main.py:1723
+#: .././sonata/main.py:1838
 msgid "No Read Permission"
-msgstr ""
+msgstr "읽기 권한 없음"
 
 #: .././sonata/main.py:648
 msgid "Cover Art"
-msgstr ""
+msgstr "앨범 아트"
 
 #: .././sonata/main.py:872
 msgid "MPD_HOST/PORT"
-msgstr ""
+msgstr "MPD_HOST/PORT"
 
 #: .././sonata/main.py:877
 msgid "Disconnect"
-msgstr ""
+msgstr "연결 끊기"
 
-#: .././sonata/main.py:1183 .././sonata/main.py:1190
+#: .././sonata/main.py:1183
+#: .././sonata/main.py:1190
 msgid "#"
-msgstr ""
+msgstr "#"
 
-#: .././sonata/main.py:1184 .././sonata/preferences.py:556
+#: .././sonata/main.py:1184
+#: .././sonata/preferences.py:556
 #: .././sonata/tagedit.py:128
 msgid "Year"
-msgstr ""
+msgstr "연도"
 
 #: .././sonata/main.py:1188
 msgid "Stream"
-msgstr ""
+msgstr "스트림"
 
 #: .././sonata/main.py:1189
 msgid "Len"
-msgstr ""
+msgstr "시간"
 
-#: .././sonata/main.py:1210 .././sonata/main.py:1217 .././sonata/main.py:1258
+#: .././sonata/main.py:1210
+#: .././sonata/main.py:1217
+#: .././sonata/main.py:1258
 #: .././sonata/main.py:1265
 msgid "Unknown"
-msgstr ""
+msgstr "알 수 없음"
 
 #: .././sonata/main.py:1746
 msgid "day"
 msgid_plural "days"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "일"
+msgstr[1] "일"
 
 #: .././sonata/main.py:1754
 msgid "hour"
 msgid_plural "hours"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "시간"
+msgstr[1] "시간"
 
-#: .././sonata/main.py:1759 .././sonata/main.py:1761
+#: .././sonata/main.py:1759
+#: .././sonata/main.py:1761
 msgid "and"
-msgstr ""
+msgstr " "
 
 #: .././sonata/main.py:1769
 msgid "(updating mpd)"
-msgstr ""
+msgstr "(MPD 업데이트 중)"
 
 #: .././sonata/main.py:2109
 msgid "Lyrics Search"
-msgstr ""
+msgstr "가사 검색"
 
 #: .././sonata/main.py:2110
 msgid "_Search"
-msgstr ""
+msgstr "검색(_S)"
 
 #: .././sonata/main.py:2113
 msgid "Artist Name"
-msgstr ""
+msgstr "음악가 이름"
 
 #: .././sonata/main.py:2118
 msgid "Song Title"
-msgstr ""
+msgstr "노래 제목"
 
 #: .././sonata/main.py:2370
 msgid "Open Image"
-msgstr ""
+msgstr "이미지 열기"
 
 #: .././sonata/main.py:2372
 msgid "Images"
-msgstr ""
+msgstr "이미지"
 
 #: .././sonata/main.py:2376
 msgid "All files"
-msgstr ""
+msgstr "모든 파일"
 
 #: .././sonata/main.py:2418
 msgid "Choose Cover Art"
-msgstr ""
+msgstr "앨범 아트 선택"
 
 #: .././sonata/main.py:2419
 msgid "C_hoose"
-msgstr ""
+msgstr "선택(_H)"
 
 #: .././sonata/main.py:2451
 msgid "Edit search terms"
-msgstr ""
+msgstr "검색어 편집"
 
 #: .././sonata/main.py:2508
 msgid "No artist or album name found."
-msgstr ""
+msgstr "음악가 이름이나 앨범 제목을 찾을 수 없음."
 
 #: .././sonata/main.py:2511
 msgid "No cover art found."
-msgstr ""
+msgstr "앨범 아트를 찾을 수 없음."
 
 #: .././sonata/main.py:2835
 msgid "Delete the selected playlist?"
 msgid_plural "Delete the selected playlists?"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "선택한 재생 목록을 삭제할까요?"
+msgstr[1] "선택한 재생 목록을 삭제할까요?"
 
 #: .././sonata/main.py:2835
 msgid "Delete Playlist"
 msgid_plural "Delete Playlists"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "재생 목록 삭제"
+msgstr[1] "재생 목록 삭제"
 
 #: .././sonata/main.py:2843
 msgid "Delete the selected stream?"
 msgid_plural "Delete the selected streams?"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "선택한 스트림을 삭제할까요?"
+msgstr[1] "선택한 스트림을 삭제할까요?"
 
 #: .././sonata/main.py:2843
 msgid "Delete Stream"
 msgid_plural "Delete Streams"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "스트림 삭제"
+msgstr[1] "스트림 삭제"
 
-#: .././sonata/playlists.py:103 .././sonata/playlists.py:105
+#: .././sonata/playlists.py:103
+#: .././sonata/playlists.py:105
 msgid "Save Playlist"
-msgstr ""
+msgstr "재생 목록 저장"
 
 #: .././sonata/playlists.py:120
 msgid "Would you like to replace the existing playlist or append these songs?"
-msgstr ""
+msgstr "이 노래로 기존 재생 목록을 대체할까요, 아니면 추가할까요?"
 
 #: .././sonata/playlists.py:120
 msgid "Existing Playlist"
-msgstr ""
+msgstr "기존 재생 목록"
 
 #: .././sonata/playlists.py:120
 msgid "Replace playlist"
-msgstr ""
+msgstr "재생 목록 대체"
 
 #: .././sonata/playlists.py:120
 msgid "Append songs"
-msgstr ""
+msgstr "노래 추가"
 
 #: .././sonata/playlists.py:141
 msgid "A playlist with this name already exists. Would you like to replace it?"
-msgstr ""
+msgstr "이미 같은 이름의 재생 목록이 있습니다. 바꾸시겠습니까?"
 
 #: .././sonata/playlists.py:153
 msgid "Playlist name"
-msgstr ""
+msgstr "재생 목록 이름"
 
-#: .././sonata/playlists.py:182 .././sonata/playlists.py:186
+#: .././sonata/playlists.py:182
+#: .././sonata/playlists.py:186
 msgid "Rename Playlist"
-msgstr ""
+msgstr "재생 목록 이름 바꾸기"
 
 #: .././sonata/preferences.py:27
 msgid "System tray"
-msgstr ""
+msgstr "시스템 트레이"
 
 #: .././sonata/preferences.py:27
 msgid "Top Left"
-msgstr ""
+msgstr "위-왼쪽"
 
 #: .././sonata/preferences.py:27
 msgid "Top Right"
-msgstr ""
+msgstr "위-오른쪽"
 
 #: .././sonata/preferences.py:28
 msgid "Bottom Left"
-msgstr ""
+msgstr "아래-왼쪽"
 
 #: .././sonata/preferences.py:28
 msgid "Bottom Right"
-msgstr ""
+msgstr "아래-오른쪽"
 
 #: .././sonata/preferences.py:29
 msgid "Screen Center"
-msgstr ""
+msgstr "스크린 가운데"
 
 #: .././sonata/preferences.py:99
 msgid "MPD"
-msgstr ""
+msgstr "MPD"
 
-#: .././sonata/preferences.py:100 .././sonata/preferences.py:343
+#: .././sonata/preferences.py:100
+#: .././sonata/preferences.py:343
 msgid "Display"
-msgstr ""
+msgstr "화면 표시"
 
 #: .././sonata/preferences.py:101
 msgid "Behavior"
-msgstr ""
+msgstr "동작"
 
 #: .././sonata/preferences.py:102
 msgid "Format"
-msgstr ""
+msgstr "표시 형식"
 
-#: .././sonata/preferences.py:103 .././sonata/preferences.py:245
+#: .././sonata/preferences.py:103
+#: .././sonata/preferences.py:245
 msgid "Extras"
-msgstr ""
+msgstr "기타"
 
 #: .././sonata/preferences.py:104
 msgid "Plugins"
-msgstr ""
+msgstr "플러그인"
 
 #: .././sonata/preferences.py:128
 msgid "MPD Connection"
-msgstr ""
+msgstr "MPD 연결"
 
 #: .././sonata/preferences.py:141
 msgid "_Name"
-msgstr ""
+msgstr "이름(_N)"
 
 #: .././sonata/preferences.py:144
 msgid "_Host"
-msgstr ""
+msgstr "호스트(_H)"
 
 #: .././sonata/preferences.py:147
 msgid "_Port"
-msgstr ""
+msgstr "포트(_P)"
 
 #: .././sonata/preferences.py:151
 msgid "_Music dir"
-msgstr ""
+msgstr "음악 디렉터리(_M)"
 
 #: .././sonata/preferences.py:152
 msgid "Select a Music Directory"
-msgstr ""
+msgstr "음악 디렉터리를 선택"
 
 #: .././sonata/preferences.py:158
 msgid "Pa_ssword"
-msgstr ""
+msgstr "비밀번호(_S)"
 
 #: .././sonata/preferences.py:161
 msgid "Leave blank if no password is required."
-msgstr ""
+msgstr "비밀번호가 필요없다면 공란으로 비워두십시오."
 
 #: .././sonata/preferences.py:162
 msgid "_Autoconnect on start"
-msgstr ""
+msgstr "시작할 때 자동 연결(_A)"
 
 #: .././sonata/preferences.py:182
 msgid "Using MPD_HOST/PORT"
-msgstr ""
+msgstr "MPD_HOST/PORT 사용"
 
 #: .././sonata/preferences.py:250
 msgid "_Audioscrobbling (Last.fm)"
-msgstr ""
+msgstr "Audioscrobbling(Last.fm) 사용(_A)"
 
 #: .././sonata/preferences.py:252
 msgid "_Username:"
-msgstr ""
+msgstr "사용자 이름(_U):"
 
 #: .././sonata/preferences.py:253
 msgid "_Password:"
-msgstr ""
+msgstr "비밀번호(_P):"
 
 #: .././sonata/preferences.py:273
 msgid "Popup _notification on song changes"
-msgstr ""
+msgstr "노래가 바뀔 때 팝업 알림(_N)"
 
 #: .././sonata/preferences.py:299
 msgid "Fade length"
-msgstr ""
+msgstr "페이드 길이"
 
 #: .././sonata/preferences.py:300
 msgid "_Fade length"
-msgstr ""
+msgstr "페이드 길이(_F)"
 
 #: .././sonata/preferences.py:302
 msgid "sec"
-msgstr ""
+msgstr "초"
 
 #: .././sonata/preferences.py:307
 msgid "C_rossfade"
-msgstr ""
+msgstr "크로스페이드(_R)"
 
 #: .././sonata/preferences.py:348
 msgid "_Album art"
-msgstr ""
+msgstr "앨범 아트(_A)"
 
 #: .././sonata/preferences.py:350
 msgid "Standard"
-msgstr ""
+msgstr "표준"
 
 #: .././sonata/preferences.py:351
 msgid "Stylized"
-msgstr ""
+msgstr "꾸밈"
 
 #: .././sonata/preferences.py:356
 msgid "Artwork style:"
-msgstr ""
+msgstr "앨범 아트 스타일:"
 
 #: .././sonata/preferences.py:358
 msgid "Local only"
-msgstr ""
+msgstr "로컬 전용"
 
 #: .././sonata/preferences.py:359
 msgid "Local and remote"
-msgstr ""
+msgstr "로컬 및 원격"
 
 #: .././sonata/preferences.py:362
 msgid "Search locations:"
-msgstr ""
+msgstr "검색 위치:"
 
-#: .././sonata/preferences.py:369 .././sonata/preferences.py:396
+#: .././sonata/preferences.py:369
+#: .././sonata/preferences.py:396
 msgid "SONG_DIR"
-msgstr ""
+msgstr "노래 디렉터리"
 
 #: .././sonata/preferences.py:371
 msgid "custom"
-msgstr ""
+msgstr "사용자 지정"
 
 #: .././sonata/preferences.py:378
 msgid "Save art to:"
-msgstr ""
+msgstr "앨범 아트 저장 위치:"
 
 #: .././sonata/preferences.py:383
 msgid "_Playback/volume buttons"
-msgstr ""
+msgstr "재생 관련 버튼 및 음량 버튼(_P)"
 
 #: .././sonata/preferences.py:386
 msgid "Pr_ogressbar"
-msgstr ""
+msgstr "진행 상태바(_O)"
 
 #: .././sonata/preferences.py:389
 msgid "_Statusbar"
-msgstr ""
+msgstr "상태바(_S)"
 
 #: .././sonata/preferences.py:392
 msgid "Song Ly_rics"
-msgstr ""
+msgstr "노래 가사"
 
 #: .././sonata/preferences.py:394
 msgid "Save lyrics to:"
-msgstr ""
+msgstr "가사 저장 위치:"
 
 #: .././sonata/preferences.py:405
 msgid "System _tray icon"
-msgstr ""
+msgstr "시스템 트레이 아이콘(_T)"
 
 #: .././sonata/preferences.py:429
 msgid "Window Behavior"
-msgstr ""
+msgstr "창 동작"
 
 #: .././sonata/preferences.py:433
 msgid "_Show window on all workspaces"
-msgstr ""
+msgstr "모든 작업 공간에 창 표시(_S)"
 
 #: .././sonata/preferences.py:436
 msgid "_Keep window above other windows"
-msgstr ""
+msgstr "항상 다른 창 위에 표시(_K)"
 
 #: .././sonata/preferences.py:439
 msgid "_Hide window titlebar"
-msgstr ""
+msgstr "창 타이틀바 숨기기(_H)"
 
 #: .././sonata/preferences.py:442
 msgid "_Minimize to system tray on close/escape"
-msgstr ""
+msgstr "닫거나 ESC 키를 누르면 시스템 트레이로 최소화(_M)"
 
 #: .././sonata/preferences.py:444
-msgid ""
-"If enabled, closing Sonata will minimize it to the system tray. Note that "
-"it's currently impossible to detect if there actually is a system tray, so "
-"only check this if you have one."
-msgstr ""
+msgid "If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."
+msgstr "이 항목을 활성화하면, 소나타를 닫을 때 시스템 트레이로 최소화합니다. 하지만 현재 실제 시스템 트레이가 있는 지를 알아낼 수 없습니다. 따라서, 시스템 트레이가 있을 때만 선택하십시오."
 
 #: .././sonata/preferences.py:460
 msgid "Miscellaneous"
-msgstr ""
+msgstr "기타"
 
 #: .././sonata/preferences.py:464
 msgid "_Update MPD library on start"
-msgstr ""
+msgstr "실행할 때 MPD 보관함을 업데이트(_U)"
 
 #: .././sonata/preferences.py:466
-msgid ""
-"If enabled, Sonata will automatically update your MPD library when it starts "
-"up."
-msgstr ""
+msgid "If enabled, Sonata will automatically update your MPD library when it starts up."
+msgstr "이 항목을 활성화하면, 소나타를 실행할 때 MPD 보관함을 자동으로 업데이트합니다."
 
 #: .././sonata/preferences.py:469
 msgid "S_top playback on exit"
-msgstr ""
+msgstr "끝낼 때 재생 멈춤(_T)"
 
 #: .././sonata/preferences.py:471
-msgid ""
-"MPD allows playback even when the client is not open. If enabled, Sonata "
-"will behave like a more conventional music player and, instead, stop "
-"playback upon exit."
-msgstr ""
+msgid "MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit."
+msgstr "MPD는 클라이언트가 열려있지 않아도 재생을 허가합니다. 이 항목을 활성화하면, 소나타는 일반적인 음악 재생기와 같이 끝낼 때 재생을 멈춥니다."
 
 #: .././sonata/preferences.py:474
 msgid "_Write status file:"
-msgstr ""
+msgstr "상태 파일 기록(_W):"
 
-#: .././sonata/preferences.py:476 .././sonata/preferences.py:478
-msgid ""
-"If enabled, Sonata will create a xmms-infopipe like file containing "
-"information about the current song. Many applications support the xmms-info "
-"file (Instant Messengers, IRC Clients...)"
-msgstr ""
+#: .././sonata/preferences.py:476
+#: .././sonata/preferences.py:478
+msgid "If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)"
+msgstr "이 항목을 활성화하면, 현재 노래에 대한 정보를 담은 xmms-infopipe 파일을 생성합니다. 인스턴트 메신저나 IRC 클라이언트 등의 응용 프로그램은 xmms-info 파일을 지원합니다."
 
 #: .././sonata/preferences.py:512
 msgid "Song Formatting"
-msgstr ""
+msgstr "노래 표시 형식"
 
 #: .././sonata/preferences.py:517
 msgid "C_urrent playlist:"
-msgstr ""
+msgstr "현재 재생 목록(_U):"
 
 #: .././sonata/preferences.py:518
 msgid "_Library:"
-msgstr ""
+msgstr "보관함(_L):"
 
 #: .././sonata/preferences.py:519
 msgid "_Window title:"
-msgstr ""
+msgstr "창 타이틀(_W):"
 
 #: .././sonata/preferences.py:520
 msgid "Current _song line 1:"
-msgstr ""
+msgstr "현재 노래의 1행(_S):"
 
 #: .././sonata/preferences.py:522
 msgid "Current s_ong line 2:"
-msgstr ""
+msgstr "현재 노래의 2행(_O):"
 
 #: .././sonata/preferences.py:547
 msgid "Available options"
-msgstr ""
+msgstr "사용가능한 옵션"
 
 #. XXX get these directly from the formatting function:
 #: .././sonata/preferences.py:551
 msgid "Artist name"
-msgstr ""
+msgstr "음악가 이름"
 
 #: .././sonata/preferences.py:552
 msgid "Album name"
-msgstr ""
+msgstr "앨범 제목"
 
 #: .././sonata/preferences.py:553
 msgid "Track name"
-msgstr ""
+msgstr "트랙 제목"
 
 #: .././sonata/preferences.py:554
 msgid "Track number"
-msgstr ""
+msgstr "트랙 번호"
 
 #: .././sonata/preferences.py:555
 msgid "Disc number"
-msgstr ""
+msgstr "디스크 번호"
 
 #: .././sonata/preferences.py:558
 msgid "File path"
-msgstr ""
+msgstr "파일 경로"
 
 #: .././sonata/preferences.py:559
 msgid "File name"
-msgstr ""
+msgstr "파일 이름"
 
-#: .././sonata/preferences.py:560 .././sonata/streams.py:107
+#: .././sonata/preferences.py:560
+#: .././sonata/streams.py:107
 msgid "Stream name"
-msgstr ""
+msgstr "스트림 제목"
 
 #: .././sonata/preferences.py:561
 msgid "Song length"
-msgstr ""
+msgstr "노래 길이"
 
 #: .././sonata/preferences.py:562
 msgid "Elapsed time (title only)"
-msgstr ""
+msgstr "경과 시간(타이틀에만)"
 
 #: .././sonata/preferences.py:572
 msgid "Info displayed only if all enclosed tags are defined"
-msgstr ""
+msgstr "사용되는 모든 태그가 정의되었을 때 정보 표시"
 
 #: .././sonata/preferences.py:572
 msgid "Creates columns in the current playlist"
-msgstr ""
+msgstr "현재 재생 목록에 열 생성"
 
 #: .././sonata/preferences.py:598
 msgid "_About"
-msgstr ""
+msgstr "정보(_A)"
 
 #: .././sonata/preferences.py:601
 msgid "_Configure..."
-msgstr ""
+msgstr "설정(_C)..."
 
 #: .././sonata/preferences.py:641
 msgid "Enabled"
-msgstr ""
+msgstr "활성화"
 
 #: .././sonata/preferences.py:649
 msgid "Description"
-msgstr ""
+msgstr "설명"
 
 #: .././sonata/preferences.py:666
-msgid ""
-"To save lyrics to the music file's directory, you must specify a valid music "
-"directory."
-msgstr ""
+msgid "To save lyrics to the music file's directory, you must specify a valid music directory."
+msgstr "음악 파일 디렉터리에 가사를 저장하려면 올바른 음악 디렉터리를 지정하십시오."
 
-#: .././sonata/preferences.py:666 .././sonata/preferences.py:673
+#: .././sonata/preferences.py:666
+#: .././sonata/preferences.py:673
 msgid "Music Dir Verification"
-msgstr ""
+msgstr "음악 디렉터리 확인"
 
 #: .././sonata/preferences.py:673
-msgid ""
-"To save artwork to the music file's directory, you must specify a valid "
-"music directory."
-msgstr ""
+msgid "To save artwork to the music file's directory, you must specify a valid music directory."
+msgstr "음악 파일 디렉터리에 앨범 아트를 저장하려면 올바른 음악 디렉터리를 지정하십시오."
 
 #: .././sonata/preferences.py:738
 msgid "New Profile"
-msgstr ""
+msgstr "새로운 프로파일"
 
 #. Prompt user for playlist name:
 #: .././sonata/preferences.py:792
 msgid "Custom Artwork"
-msgstr ""
+msgstr "사용자 지정 앨범 아트"
 
 #: .././sonata/preferences.py:794
 msgid "Artwork filename"
-msgstr ""
+msgstr "앨범 아트 파일 이름"
 
 #: .././sonata/streams.py:103
 msgid "Edit Stream"
-msgstr ""
+msgstr "스트림 편집"
 
-#: .././sonata/streams.py:105 .././sonata/streams.py:136
+#: .././sonata/streams.py:105
+#: .././sonata/streams.py:136
 msgid "New Stream"
-msgstr ""
+msgstr "새로운 스트림"
 
 #: .././sonata/streams.py:114
 msgid "Stream URL"
-msgstr ""
+msgstr "스트림 URL"
 
 #: .././sonata/streams.py:136
 msgid "A stream with this name already exists. Would you like to replace it?"
-msgstr ""
+msgstr "이미 같은 이름의 스트림이 있습니다. 바꾸시겠습니까?"
 
 #: .././sonata/tagedit.py:61
 msgid "Taglib and/or tagpy not found, tag editing support disabled."
-msgstr ""
+msgstr "taglib 또는 tagpy를 찾을 수 없으므로 태그 편집 기능을 사용할 수 없음."
 
-#: .././sonata/tagedit.py:61 .././sonata/tagedit.py:70
-#: .././sonata/tagedit.py:75 .././sonata/tagedit.py:99
-#: .././sonata/tagedit.py:103 .././sonata/tagedit.py:260
+#: .././sonata/tagedit.py:61
+#: .././sonata/tagedit.py:70
+#: .././sonata/tagedit.py:75
+#: .././sonata/tagedit.py:99
+#: .././sonata/tagedit.py:103
+#: .././sonata/tagedit.py:260
 #: .././sonata/tagedit.py:299
 msgid "Edit Tags"
-msgstr ""
+msgstr "태그 편집"
 
 #: .././sonata/tagedit.py:70
-msgid ""
-"Tagpy version < 0.91. Please upgrade to a newer version, tag editing support "
-"disabled."
-msgstr ""
+msgid "Tagpy version < 0.91. Please upgrade to a newer version, tag editing support disabled."
+msgstr "tagpy가 0.91 이전 버전이므로 태그 편집 기능은 사용할 수 없음. 새로운 버전으로 업그레이드하십시오."
 
 #: .././sonata/tagedit.py:75
 msgid "The path"
-msgstr ""
+msgstr "경로"
 
 #: .././sonata/tagedit.py:75
 msgid "does not exist. Please specify a valid music directory in preferences."
-msgstr ""
+msgstr "이(가) 없습니다. 기본 설정에서 올바른 음악 디렉터리를 지정하십시오."
 
 #: .././sonata/tagedit.py:99
 msgid "File "
-msgstr ""
+msgstr "파일 "
 
 #: .././sonata/tagedit.py:99
 msgid " not found. Please specify a valid music directory in preferences."
-msgstr ""
+msgstr "을(를) 찾을 수 없습니다. 기본 설정에서 올바른 음악 디렉터리를 지정하십시오."
 
 #: .././sonata/tagedit.py:103
 msgid "No music files with editable tags found."
-msgstr ""
+msgstr "태그를 편집할 수 있는 음악 파일을 찾을 수 없습니다."
 
 #: .././sonata/tagedit.py:150
 msgid "Comment"
-msgstr ""
+msgstr "메모"
 
 #. Only show save all button if more than one song being edited.
 #: .././sonata/tagedit.py:161
 msgid "Save _All"
-msgstr ""
+msgstr "모두 저장(_A)"
 
 #: .././sonata/tagedit.py:207
 msgid "Increment each selected music file, starting at track 1 for this file."
-msgstr ""
+msgstr "이 파일을 트랙 1번으로 하여 선택한 각 음악 파일의 트랙 번호를 순서대로 지정."
 
 #: .././sonata/tagedit.py:209
 msgid "Apply to all selected music files."
-msgstr ""
+msgstr "선택한 모든 음악 파일에 적용."
 
 #: .././sonata/tagedit.py:260
 msgid "of"
-msgstr ""
+msgstr "/"
 
 #. FIXME: was (save_success and self.conn and self.status):
 #: .././sonata/tagedit.py:299
 msgid "Unable to save tag to music file."
-msgstr ""
+msgstr "음악 파일에 태그를 저장할 수 없음."
 
 #: .././sonata/tagedit.py:366
 msgid "Hide file path"
-msgstr ""
+msgstr "파일 경로 숨김"
 
 #: .././sonata/tagedit.py:369
 msgid "Show file path"
-msgstr ""
+msgstr "파일 경로 표시"
+
