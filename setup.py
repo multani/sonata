@@ -34,13 +34,15 @@ def rmgeneric(path, __func__):
 # Create mo files:
 if not os.path.exists("mo/"):
     os.mkdir("mo/")
-for lang in ('de', 'pl', 'ru', 'fr', 'zh_CN', 'sv', 'es', 'fi', 'uk', 'it', 'cs', \
-             'nl', 'pt_BR', 'da', 'be@latin', 'et', 'ca', 'ar', 'tr', 'el_GR', 'sk', \
-             'zh_TW', 'ja', 'sl'):
-    pofile = "po/" + lang + ".po"
-    mofile = "mo/" + lang + "/sonata.mo"
-    if not os.path.exists("mo/" + lang + "/"):
-        os.mkdir("mo/" + lang + "/")
+
+langs = (l[:-3] for l in os.listdir('po') if l.endswith('po')
+                                          and l != "messages.po")
+for lang in langs:
+    pofile = os.path.join("po", "%s.po" % lang)
+    modir = os.path.join("mo", lang)
+    mofile = os.path.join(modir, "sonata.mo")
+    if not os.path.exists(modir):
+        os.mkdir(modir)
     print "generating", mofile
     os.system("msgfmt %s -o %s" % (pofile, mofile))
 

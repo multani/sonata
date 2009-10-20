@@ -2,6 +2,7 @@
 *.swp
 mmkeys.so
 sonata/sonata
+mo/
 tags
 TAGS
 cscope*
