@@ -1,3 +1,4 @@
+from __future__ import with_statement
 
 import sys, os, locale, urllib
 import threading # get_lyrics_start starts a thread get_lyrics_thread
@@ -358,22 +359,27 @@ class Info(object):
         filename = self.info_check_for_local_lyrics(filename_artist, filename_title, song_dir)
         search_str = misc.link_markup(_("search"), True, True, self.linkcolor)
         edit_str = misc.link_markup(_("edit"), True, True, self.linkcolor)
+        lyrics = ""
         if filename:
             # If the lyrics only contain "not found", delete the file and try to
             # fetch new lyrics. If there is a bug in Sonata/SZI/LyricWiki that
             # prevents lyrics from being found, storing the "not found" will
             # prevent a future release from correctly fetching the lyrics.
-            f = open(filename, 'r')
-            lyrics = f.read()
-            f.close()
+            try:
+                with open(filename, 'r') as f:
+                    lyrics = f.read()
+            except IOError:
+                pass
             if lyrics == _("Lyrics not found"):
                 misc.remove_file(filename)
                 filename = self.info_check_for_local_lyrics(filename_artist, filename_title, song_dir)
         if filename:
             # Re-use lyrics from file:
-            f = open(filename, 'r')
-            lyrics = f.read()
-            f.close()
+            try:
+                with open(filename, 'r') as f:
+                    lyrics = f.read()
+            except IOError:
+                pass
             # Strip artist - title line from file if it exists, since we
             # now have that information visible elsewhere.
             header = filename_artist + " - " + filename_title + "\n\n"
@@ -403,9 +409,11 @@ class Info(object):
                     lyrics = misc.unescape_html(lyrics)
                     lyrics = misc.wiki_to_html(lyrics)
                     misc.create_dir('~/.lyrics/')
-                    f = open(filename, 'w')
-                    f.write(lyrics)
-                    f.close()
+                    try:
+                        with open(filename, 'w') as f:
+                            f.write(lyrics)
+                    except IOError:
+                        pass
                 else:
                     lyrics = _("Lyrics not found")
                 gobject.idle_add(self.info_show_lyrics, lyrics, filename_artist, filename_title)
