@@ -134,5 +134,6 @@ except:
     pass
 try:
     os.remove("sonata/genversion.py")
+    os.remove("sonata/genversion.pyc")
 except:
     pass

@@ -900,7 +900,10 @@ class AudioScrobblerPost:
                 conf.set('Track ' + str(count), k, track[k])
             count += 1
 
-        conf.write(file(filename, 'w'))
+        try:
+            conf.write(file(filename, 'w'))
+        except IOError:
+            pass
 
     def retrievecache(self, filename):
 
@@ -913,7 +916,10 @@ class AudioScrobblerPost:
             return
 
         conf = ConfigParser.ConfigParser()
-        conf.read(filename)
+        try:
+            conf.read(filename)
+        except IOError:
+            return
 
         # Retrieve each cached track from file:
         count = 0

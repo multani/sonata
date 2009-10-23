@@ -107,7 +107,10 @@ def lower_no_the(s):
 
 def create_dir(dirname):
     if not os.path.exists(os.path.expanduser(dirname)):
-        os.makedirs(os.path.expanduser(dirname))
+        try:
+            os.makedirs(os.path.expanduser(dirname))
+        except (IOError, OSError):
+            pass
 
 def remove_file(filename):
     if os.path.exists(filename):

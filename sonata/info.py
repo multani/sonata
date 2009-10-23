@@ -1,3 +1,4 @@
+from __future__ import with_statement
 
 import sys, os, locale
 
@@ -309,22 +310,27 @@ class Info(object):
         filename_artist = misc.strip_all_slashes(filename_artist)
         filename_title = misc.strip_all_slashes(filename_title)
         filename = self._check_for_local_lyrics(filename_artist, filename_title, song_dir)
+        lyrics = ""
         if filename:
             # If the lyrics only contain "not found", delete the file and try to
             # fetch new lyrics. If there is a bug in Sonata/SZI/LyricWiki that
             # prevents lyrics from being found, storing the "not found" will
             # prevent a future release from correctly fetching the lyrics.
-            f = open(filename, 'r')
-            lyrics = f.read()
-            f.close()
+            try:
+                with open(filename, 'r') as f:
+                    lyrics = f.read()
+            except IOError:
+                pass
             if lyrics == _("Lyrics not found"):
                 misc.remove_file(filename)
                 filename = self._check_for_local_lyrics(filename_artist, filename_title, song_dir)
         if filename:
             # Re-use lyrics from file:
-            f = open(filename, 'r')
-            lyrics = f.read()
-            f.close()
+            try:
+                with open(filename, 'r') as f:
+                    lyrics = f.read()
+            except IOError:
+                pass
             # Strip artist - title line from file if it exists, since we
             # now have that information visible elsewhere.
             header = "%s - %s\n\n" % (filename_artist, filename_title)
@@ -351,13 +357,15 @@ class Info(object):
             filename = self.target_lyrics_filename(artist_then, title_then, song_dir)
             # Save lyrics to file:
             misc.create_dir('~/.lyrics/')
-            f = open(filename, 'w')
-            lyrics = misc.unescape_html(lyrics)
             try:
-                f.write(lyrics.decode(self.enc).encode('utf8'))
-            except:
-                f.write(lyrics)
-            f.close()
+                with open(filename, 'w') as f:
+                    lyrics = misc.unescape_html(lyrics)
+                    try:
+                        f.write(lyrics.decode(self.enc).encode('utf8'))
+                    except:
+                        f.write(lyrics)
+            except IOError:
+                pass
 
         self._show_lyrics(artist_then, title_then, lyrics, error)
 
