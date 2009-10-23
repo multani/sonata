@@ -1,3 +1,4 @@
+from __future__ import with_statement
 import os
 import threading # artwork_update starts a thread _artwork_update
 import urllib, urllib2
@@ -107,8 +108,11 @@ class Artwork(object):
                 misc.remove_file(self.target_image_filename(consts.ART_LOCATION_HOMECOVERS))
                 # Use blank cover as the artwork
                 dest_filename = self.target_image_filename(consts.ART_LOCATION_HOMECOVERS)
-                emptyfile = open(dest_filename, 'w')
-                emptyfile.close()
+                try:
+                    emptyfile = open(dest_filename, 'w')
+                    emptyfile.close()
+                except IOError:
+                    pass
             self.artwork_update(True)
 
     def artwork_set_tooltip_art(self, pix):
@@ -281,19 +285,19 @@ class Artwork(object):
     def artwork_save_cache(self):
         misc.create_dir('~/.config/sonata/')
         filename = os.path.expanduser("~/.config/sonata/art_cache")
-        f = open(filename, 'w')
-        f.write(repr(self.cache))
-        f.close()
+        try:
+            with open(filename, 'w') as f:
+                f.write(repr(self.cache))
+        except IOError:
+            pass
 
     def artwork_load_cache(self):
         filename = os.path.expanduser("~/.config/sonata/art_cache")
         if os.path.exists(filename):
             try:
-                f = open(filename, 'r')
-                r = f.read()
-                self.cache = eval(r)
-                f.close()
-            except:
+                with open(filename, 'r') as f:
+                        self.cache = eval(f.read())
+            except (IOError, SyntaxError):
                 self.cache = {}
         else:
             self.cache = {}
@@ -558,7 +562,12 @@ class Artwork(object):
             return False
 
         if not all_images:
-            urllib.urlretrieve(imglist[-1], dest_filename)
+            try:
+                urllib.urlretrieve(imglist[-1], dest_filename)
+            except IOError:
+                self.downloading_image = False
+                return False
+
             self.downloading_image = False
             return True
         else:

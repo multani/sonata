@@ -8,6 +8,7 @@ import config
 # XXX We shouldn't have the default values contain localised parts:
 self.config = config.Config(_('Default Profile'), _("by") + " %A " + _("from") + " %B")
 """
+from __future__ import with_statement
 
 import os, hashlib
 import ConfigParser
@@ -471,4 +472,8 @@ class Config:
         conf.add_section('tags')
         conf.set('tags', 'use_mpdpaths', self.tags_use_mpdpath)
 
-        conf.write(file(os.path.expanduser('~/.config/sonata/sonatarc'), 'w'))
+        try:
+            with open(os.path.expanduser('~/.config/sonata/sonatarc'), 'w') as rc:
+                conf.write(rc)
+        except IOError:
+            pass
