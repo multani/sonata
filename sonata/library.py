@@ -550,8 +550,7 @@ class Library(object):
                     album = mpdh.get(item, 'album')
                     artist = mpdh.get(item, 'artist', self.NOTAG)
                     year = mpdh.get(item, 'date', self.NOTAG)
-                    filepath = os.path.dirname(mpdh.get(item, 'file'))
-                    data = self.library_set_data(album=album, artist=artist, year=year, path=filepath)
+                    data = self.library_set_data(album=album, artist=artist, year=year)
                     albums.append(data)
                     if album == self.NOTAG:
                         untagged_found = True
@@ -560,10 +559,10 @@ class Library(object):
             albums = misc.remove_list_duplicates(albums, case=False)
             albums = self.list_identify_VA_albums(albums)
             for item in albums:
-                album, artist, year, path = self.library_get_data(item, 'album', 'artist', 'year', 'path')
+                album, artist, year = self.library_get_data(item, 'album', 'artist', 'year')
                 playtime, num_songs = self.library_return_count(artist=artist, album=album, year=year)
                 if num_songs > 0:
-                    data = self.library_set_data(artist=artist, album=album, year=year, path=path)
+                    data = self.library_set_data(artist=artist, album=album, year=year)
                     display = misc.escape_html(album)
                     if artist and year and len(artist) > 0 and len(year) > 0 and artist != self.NOTAG and year != self.NOTAG:
                         display += " <span weight='light'>(%s, %s)</span>" % (misc.escape_html(artist), misc.escape_html(year))
