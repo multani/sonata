@@ -27,17 +27,6 @@ import mpd
 
 import gobject, gtk, pango
 
-# Prevent deprecation warning for egg:
-warnings.simplefilter('ignore', DeprecationWarning)
-try:
-    import egg.trayicon
-    HAVE_EGG = True
-    HAVE_STATUS_ICON = False
-except ImportError:
-    HAVE_EGG = False
-    HAVE_STATUS_ICON = True
-# Reset so that we can see any other deprecation warnings
-warnings.simplefilter('default', DeprecationWarning)
 
 # Default to no sugar, then test...
 HAVE_SUGAR = False
@@ -90,10 +79,6 @@ class Base(object):
         self.remote_dest_filename = None
         self.remotefilelist = None
         self.seekidle = None
-        self.statusicon = None
-        self.trayeventbox = None
-        self.trayicon = None
-        self.trayimage = None
         self.artwork = None
 
         self.client = mpd.MPDClient()
@@ -160,9 +145,6 @@ class Base(object):
         self.last_progress_text = None
 
         self.last_status_text = ""
-
-        self.eggtrayfile = None
-        self.eggtrayheight = None
 
         self.img_clicked = False
 
@@ -494,6 +476,9 @@ class Base(object):
         mainvbox = gtk.VBox()
         tophbox = gtk.HBox()
 
+        TrayFactory = tray.get_tray_icon_factory()
+        self.tray_icon = TrayFactory(self.window, self.traymenu, self.traytips)
+
         self.albumimage = self.artwork.get_albumimage()
 
         self.imageeventbox = ui.eventbox(add=self.albumimage)
@@ -725,7 +710,7 @@ class Base(object):
         self.iterate_now()
         if self.window_owner:
             if self.config.withdrawn:
-                if (HAVE_EGG and self.trayicon.get_property('visible')) or (HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible()):
+                if self.tray_icon.is_visible():
                     ui.hide(self.window)
         self.window.show_all()
 
@@ -747,9 +732,6 @@ class Base(object):
         self.sonata_loaded = True
         self.on_currsong_notify()
         self.current.center_song_in_list()
-
-        if HAVE_STATUS_ICON:
-            gobject.timeout_add(250, self.iterate_status_icon)
 
         gc.disable()
 
@@ -1032,17 +1014,12 @@ class Base(object):
         self.iterate_handler = gobject.timeout_add(self.iterate_time, self.iterate) # Repeat ad infitum..
 
         if self.config.show_trayicon:
-            if HAVE_STATUS_ICON:
-                if self.statusicon.is_embedded() and not self.statusicon.get_visible():
-                    # Systemtray appears, add icon:
-                    self.systemtray_initialize()
-                elif not self.statusicon.is_embedded() and self.config.withdrawn:
-                    # Systemtray gone, unwithdraw app:
-                    self.withdraw_app_undo()
-            elif HAVE_EGG:
-                if not self.trayicon.get_property('visible'):
-                    # Systemtray appears, add icon:
-                    self.systemtray_initialize()
+            if self.tray_icon.is_available() and not self.tray_icon.is_visible():
+                # Systemtray appears, add icon
+                self.systemtray_initialize()
+            elif not self.tray_icon.is_available() and self.config.withdrawn:
+                # Systemtray gone, unwithdraw app
+                self.withdraw_app_undo()
 
         if self.call_gc_collect:
             gc.collect()
@@ -1065,15 +1042,6 @@ class Base(object):
         self.iterate_stop()
         self.iterate()
 
-    def iterate_status_icon(self):
-        # Polls for the users' cursor position to display the custom tooltip window when over the
-        # gtk.StatusIcon. We use this instead of self.iterate() in order to poll more often and
-        # increase responsiveness.
-        if self.config.show_trayicon:
-            if self.statusicon.is_embedded() and self.statusicon.get_visible():
-                self.tooltip_show_manually()
-        gobject.timeout_add(250, self.iterate_status_icon)
-
     def on_topwindow_keypress(self, _widget, event):
         shortcut = gtk.accelerator_name(event.keyval, event.state)
         shortcut = shortcut.replace("<Mod2>", "")
@@ -1085,11 +1053,9 @@ class Base(object):
                 self.library.on_search_end(None)
             elif self.current_tab == self.TAB_CURRENT and self.current.filterbox_visible:
                 self.current.searchfilter_toggle(None)
-            elif self.config.minimize_to_systray:
-                if HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible():
-                    self.withdraw_app()
-                elif HAVE_EGG and self.trayicon.get_property('visible'):
-                    self.withdraw_app()
+            elif self.config.minimize_to_systray and \
+                    self.tray_icon.is_visible():
+                self.withdraw_app()
             return
         elif shortcut == 'Delete':
             self.on_remove(None)
@@ -1136,11 +1102,7 @@ class Base(object):
             self.currentdata.clear()
             if self.current_treeview.get_model():
                 self.current_treeview.get_model().clear()
-            if HAVE_STATUS_ICON:
-                self.statusicon.set_from_file(self.find_path('sonata_disconnect.png'))
-            elif HAVE_EGG and self.eggtrayheight:
-                self.eggtrayfile = self.find_path('sonata_disconnect.png')
-                self.trayimage.set_from_pixbuf(img.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
+            self.tray_icon.update_icon(self.find_path('sonata_disconnect.png'))
             self.info_update(True)
             if self.current.filterbox_visible:
                 gobject.idle_add(self.current.searchfilter_toggle, None)
@@ -1428,21 +1390,13 @@ class Base(object):
                 self.ppbutton.get_child().get_child().get_children()[1].set_text('')
                 self.UIManager.get_widget('/traymenu/playmenu').show()
                 self.UIManager.get_widget('/traymenu/pausemenu').hide()
-                if HAVE_STATUS_ICON:
-                    self.statusicon.set_from_file(self.find_path('sonata.png'))
-                elif HAVE_EGG and self.eggtrayheight:
-                    self.eggtrayfile = self.find_path('sonata.png')
-                    self.trayimage.set_from_pixbuf(img.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
+                self.tray_icon.update_icon(self.find_path('sonata.png'))
             elif self.status['state'] == 'pause':
                 self.ppbutton.set_image(ui.image(stock=gtk.STOCK_MEDIA_PLAY, stocksize=gtk.ICON_SIZE_BUTTON))
                 self.ppbutton.get_child().get_child().get_children()[1].set_text('')
                 self.UIManager.get_widget('/traymenu/playmenu').show()
                 self.UIManager.get_widget('/traymenu/pausemenu').hide()
-                if HAVE_STATUS_ICON:
-                    self.statusicon.set_from_file(self.find_path('sonata_pause.png'))
-                elif HAVE_EGG and self.eggtrayheight:
-                    self.eggtrayfile = self.find_path('sonata_pause.png')
-                    self.trayimage.set_from_pixbuf(img.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
+                self.tray_icon.update_icon(self.find_path('sonata_pause.png'))
             elif self.status['state'] == 'play':
                 self.ppbutton.set_image(ui.image(stock=gtk.STOCK_MEDIA_PAUSE, stocksize=gtk.ICON_SIZE_BUTTON))
                 self.ppbutton.get_child().get_child().get_children()[1].set_text('')
@@ -1452,11 +1406,7 @@ class Base(object):
                     if self.prevstatus['state'] == 'pause':
                         # Forces the notification to popup if specified
                         self.on_currsong_notify()
-                if HAVE_STATUS_ICON:
-                    self.statusicon.set_from_file(self.find_path('sonata_play.png'))
-                elif HAVE_EGG and self.eggtrayheight:
-                    self.eggtrayfile = self.find_path('sonata_play.png')
-                    self.trayimage.set_from_pixbuf(img.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
+                self.tray_icon.update_icon(self.find_path('sonata_play.png'))
 
             self.playing_song_change()
             if self.status_is_play_or_pause():
@@ -1737,10 +1687,8 @@ class Base(object):
                     try:
                         self.traytips.notifications_location = self.config.traytips_notifications_location
                         self.traytips.use_notifications_location = True
-                        if HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible():
-                            self.traytips._real_display(self.statusicon)
-                        elif HAVE_EGG and self.trayicon.get_property('visible'):
-                            self.traytips._real_display(self.trayeventbox)
+                        if self.tray_icon.is_visible():
+                            self.traytips._real_display(self.tray_icon)
                         else:
                             self.traytips._real_display(None)
                         if self.config.popup_option != len(self.popuptimes)-1:
@@ -1761,10 +1709,7 @@ class Base(object):
                 else:
                     self.traytips.hide()
             elif self.traytips.get_property('visible'):
-                try:
-                    self.traytips._real_display(self.trayeventbox)
-                except:
-                    pass
+                self.traytips._real_display(self.tray_icon)
 
     def on_progressbar_notify_fraction(self, *_args):
         self.trayprogressbar.set_fraction(self.progressbar.get_fraction())
@@ -1812,11 +1757,7 @@ class Base(object):
     # This one makes sure the program exits when the window is closed
     def on_delete_event(self, _widget, _data=None):
         if not self.exit_now and self.config.minimize_to_systray:
-            if HAVE_STATUS_ICON and self.statusicon.is_embedded() and self.statusicon.get_visible():
-                self.withdraw_app()
-                return True
-            elif HAVE_EGG and self.trayicon.get_property('visible'):
-                self.withdraw_app()
+            if self.tray_icon.is_visible():
                 return True
         self.settings_save()
         self.artwork.artwork_save_cache()
@@ -2469,35 +2410,13 @@ class Base(object):
                 #self.traytips._remove_timer()
             gobject.timeout_add(100, self.tooltip_set_ignore_toggle_signal_false)
 
-    def tooltip_show_manually(self):
-        # Since there is no signal to connect to when the user puts their
-        # mouse over the trayicon, we will check the mouse position
-        # manually and show/hide the window as appropriate. This is called
-        # every iteration. Note: This should not occur if self.traytips.notif_
-        # handler has a value, because that means that the tooltip is already
-        # visible, and we don't want to override that setting simply because
-        # the user's cursor is not over the tooltip.
-        if self.traymenu.get_property('visible') and self.traytips.notif_handler != -1:
-            self.traytips._remove_timer()
-        elif not self.traytips.notif_handler:
-            _pscreen, px, py, _mods = self.window.get_screen().get_display().get_pointer()
-            _icon_screen, icon_rect, _icon_orient = self.statusicon.get_geometry()
-            x = icon_rect[0]
-            y = icon_rect[1]
-            width = icon_rect[2]
-            height = icon_rect[3]
-            if px >= x and px <= x+width and py >= y and py <= y+height:
-                self.traytips._start_delay(self.statusicon)
-            else:
-                self.traytips._remove_timer()
-
     def systemtray_click(self, _widget, event):
         # Clicking on an egg system tray icon:
         if event.button == 1 and not self.ignore_toggle_signal: # Left button shows/hides window(s)
             self.systemtray_activate(None)
         elif event.button == 2: # Middle button will play/pause
             if self.conn:
-                self.mpd_pp(self.trayeventbox)
+                self.mpd_pp(None)
         elif event.button == 3: # Right button pops up menu
             self.traymenu.popup(None, None, None, event.button, event.time)
         return False
@@ -2531,7 +2450,7 @@ class Base(object):
             self.window.set_keep_above(True)
 
     def withdraw_app(self):
-        if HAVE_EGG or HAVE_STATUS_ICON:
+        if self.tray_icon.is_available():
             # Save the playlist column widths before withdrawing the app.
             # Otherwise we will not be able to correctly save the column
             # widths if the user quits sonata while it is withdrawn.
@@ -2557,17 +2476,6 @@ class Base(object):
     def systemtray_scroll(self, widget, event):
         if self.conn:
             self.volumebutton.emit("scroll-event", event)
-
-    def systemtray_size(self, widget, _allocation):
-        if widget.allocation.height <= 5:
-            # For vertical panels, height can be 1px, so use width
-            size = widget.allocation.width
-        else:
-            size = widget.allocation.height
-        if not self.eggtrayheight or self.eggtrayheight != size:
-            self.eggtrayheight = size
-            if size > 5 and self.eggtrayfile:
-                self.trayimage.set_from_pixbuf(img.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
 
     def switch_to_tab_name(self, tab_name):
         self.notebook.set_current_page(self.notebook_get_tab_num(self.notebook, tab_name))
@@ -2679,7 +2587,6 @@ class Base(object):
             self._toggle_clicked('random', widget)
 
     def setup_prefs_callbacks(self):
-        trayicon_available = HAVE_EGG or HAVE_STATUS_ICON
         extras = preferences.Extras_cbs
         extras.popuptimes = self.popuptimes
         extras.notif_toggled = self.prefs_notif_toggled
@@ -2693,7 +2600,11 @@ class Base(object):
         display.progress_toggled = self.prefs_progress_toggled
         display.statusbar_toggled = self.prefs_statusbar_toggled
         display.lyrics_toggled = self.prefs_lyrics_toggled
-        display.trayicon_available = trayicon_available
+        # TODO: the tray icon object has not been build yet, so we don't know if
+        # the tray icon will be available at this time.
+        # We should find a way to update this when the tray icon will be
+        # initialized.
+        display.trayicon_available = True
 
         behavior = preferences.Behavior_cbs
         behavior.trayicon_toggled = self.prefs_trayicon_toggled
@@ -2710,14 +2621,7 @@ class Base(object):
         format.currsongoptions2_changed =  self.prefs_currsongoptions2_changed
 
     def on_prefs(self, _widget):
-        trayicon_in_use = ((HAVE_STATUS_ICON and
-                   self.statusicon.is_embedded() and
-                   self.statusicon.get_visible())
-                   or
-                   (HAVE_EGG and
-                    self.trayicon.get_property('visible')))
-
-        preferences.Behavior_cbs.trayicon_in_use = trayicon_in_use
+        preferences.Behavior_cbs.trayicon_in_use = self.tray_icon.is_visible()
         self.preferences.on_prefs_real()
 
     def prefs_currentoptions_changed(self, entry, _event):
@@ -2866,21 +2770,12 @@ class Base(object):
         # CheckButton to reflect if the trayicon is visible.
         if button.get_active():
             self.config.show_trayicon = True
-            if HAVE_STATUS_ICON:
-                self.statusicon.set_visible(True)
-                if self.statusicon.is_embedded() or self.statusicon.get_visible():
-                    minimize.set_sensitive(True)
-            elif HAVE_EGG:
-                self.trayicon.show_all()
-                if self.trayicon.get_property('visible'):
-                    minimize.set_sensitive(True)
+            self.tray_icon.show()
+            minimize.set_sensitive(True)
         else:
             self.config.show_trayicon = False
             minimize.set_sensitive(False)
-            if HAVE_STATUS_ICON:
-                self.statusicon.set_visible(False)
-            elif HAVE_EGG:
-                self.trayicon.hide_all()
+            self.tray_icon.hide()
 
     def seek(self, song, seektime):
         mpdh.call(self.client, 'seek', song, seektime)
@@ -3140,30 +3035,18 @@ class Base(object):
 
     def systemtray_initialize(self):
         # Make system tray 'icon' to sit in the system tray
-        if HAVE_STATUS_ICON:
-            self.statusicon = gtk.StatusIcon()
-            self.statusicon.set_from_file(self.find_path('sonata.png'))
-            self.statusicon.set_visible(self.config.show_trayicon)
-            self.statusicon.connect('popup_menu', self.systemtray_menu)
-            self.statusicon.connect('activate', self.systemtray_activate)
-        elif HAVE_EGG:
-            self.trayimage = ui.image()
-            self.trayeventbox = ui.eventbox(add=self.trayimage)
-            self.trayeventbox.connect('button_press_event', self.systemtray_click)
-            self.trayeventbox.connect('scroll-event', self.systemtray_scroll)
-            self.trayeventbox.connect('size-allocate', self.systemtray_size)
-            self.traytips.set_tip(self.trayeventbox)
-            try:
-                self.trayicon = egg.trayicon.TrayIcon("TrayIcon")
-                self.trayicon.add(self.trayeventbox)
-                if self.config.show_trayicon:
-                    self.trayicon.show_all()
-                    self.eggtrayfile = self.find_path('sonata.png')
-                    self.trayimage.set_from_pixbuf(img.get_pixbuf_of_size(gtk.gdk.pixbuf_new_from_file(self.eggtrayfile), self.eggtrayheight)[0])
-                else:
-                    self.trayicon.hide_all()
-            except:
-                pass
+        self.tray_icon.initialize(
+            self.systemtray_menu,
+            self.systemtray_click,
+            self.systemtray_scroll,
+            self.systemtray_activate,
+        )
+
+        if self.config.show_trayicon:
+            self.tray_icon.show()
+        else:
+            self.tray_icon.hide()
+        self.tray_icon.update_icon(self.find_path('sonata.png'))
 
     def dbus_show(self):
         self.window.hide()
