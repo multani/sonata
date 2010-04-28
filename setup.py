@@ -6,9 +6,6 @@ from distutils.core import setup, Extension
 
 from sonata.version import version
 
-def capture(cmd):
-    return os.popen(cmd).read().strip()
-
 def removeall(path):
     if not os.path.isdir(path):
         return
@@ -73,11 +70,6 @@ setup(name='Sonata',
             ],
         packages=["sonata", "sonata.plugins"],
         package_dir={"sonata": "sonata/"},
-        ext_modules=[Extension(
-        "mmkeys", ["mmkeys/mmkeyspy.c", "mmkeys/mmkeys.c", "mmkeys/mmkeysmodule.c"],
-        extra_compile_args=capture("pkg-config --cflags gtk+-2.0 pygtk-2.0").split(),
-        extra_link_args=capture("pkg-config --libs gtk+-2.0 pygtk-2.0").split()
-         ),],
         scripts = ['sonata/sonata'],
         data_files=[('share/sonata', ['README', 'CHANGELOG', 'TODO', 'TRANSLATORS']),
                     ('share/applications', ['sonata.desktop']),

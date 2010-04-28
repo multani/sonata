@@ -6,3 +6,6 @@ mo/
 tags
 TAGS
 cscope*
+mmkeys/MANIFEST
+mmkeys/build/
+mmkeys/dist/
