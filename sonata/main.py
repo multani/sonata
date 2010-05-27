@@ -131,7 +131,7 @@ class Base(object):
         # Initialize vars for GUI
         self.current_tab = self.TAB_CURRENT
 
-        self.prevconn = []
+        self.prevconn = self.conn
         self.prevstatus = None
         self.prevsonginfo = None
 
@@ -1006,7 +1006,6 @@ class Base(object):
                     return
         except:
             pass
-        self.prevconn = self.client
         self.prevstatus = self.status
         self.prevsonginfo = self.songinfo
         self.conn = False
