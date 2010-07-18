@@ -45,11 +45,11 @@ def library_get_data(data, *args):
 
 
 class Library(object):
-
     def __init__(self, config, client, artwork, TAB_LIBRARY, album_filename,
                  settings_save, filtering_entry_make_red,
                  filtering_entry_revert_color, filter_key_pressed,
-                 on_add_item, connected, on_library_button_press, new_tab):
+                 on_add_item, connected, on_library_button_press, new_tab,
+                 get_multicd_album_root_dir):
         self.artwork = artwork
         self.config = config
         self.client = client
@@ -62,6 +62,7 @@ class Library(object):
         self.on_add_item = on_add_item
         self.connected = connected
         self.on_library_button_press = on_library_button_press
+        self.get_multicd_album_root_dir = get_multicd_album_root_dir
 
         self.NOTAG = _("Untagged")
         self.VAstr = _("Various Artists")
@@ -630,8 +631,10 @@ class Library(object):
                     album = mpdh.get(item, 'album')
                     artist = mpdh.get(item, 'artist', self.NOTAG)
                     year = mpdh.get(item, 'date', self.NOTAG)
+                    path = self.get_multicd_album_root_dir(
+                        os.path.dirname(mpdh.get(item, 'file')))
                     data = self.library_set_data(album=album, artist=artist,
-                                                 year=year)
+                                                 year=year, path=path)
                     albums.append(data)
                     if album == self.NOTAG:
                         untagged_found = True
@@ -640,14 +643,17 @@ class Library(object):
             albums = misc.remove_list_duplicates(albums, case=False)
             albums = self.list_identify_VA_albums(albums)
             for item in albums:
-                album, artist, year = self.library_get_data(item, 'album',
-                                                            'artist', 'year')
+                album, artist, year, path = self.library_get_data(item,
+                                                                  'album',
+                                                                  'artist',
+                                                                  'year',
+                                                                  'path')
                 playtime, num_songs = self.library_return_count(artist=artist,
                                                                 album=album,
                                                                 year=year)
                 if num_songs > 0:
                     data = self.library_set_data(artist=artist, album=album,
-                                                 year=year)
+                                                 year=year, path=path)
                     display = misc.escape_html(album)
                     if artist and year and len(artist) > 0 and len(year) > 0 \
                        and artist != self.NOTAG and year != self.NOTAG:
