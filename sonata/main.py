@@ -785,7 +785,7 @@ class Base(object):
         fscalbl, fscalbl2 = self.artwork.get_fullscreenalbumlabels()
         fscahbox.pack_start(self.fullscreenalbumimage, True, False, 0)
         fscavbox.pack_start(ui.label(), True, False, 0)
-        fscavbox.pack_start(fscahbox, False, False, 0)
+        fscavbox.pack_start(fscahbox, False, False, 12)
         fscavbox.pack_start(fscalbl, False, False, 5)
         fscavbox.pack_start(fscalbl2, False, False, 5)
         fscavbox.pack_start(ui.label(), True, False, 0)
@@ -2727,6 +2727,18 @@ class Base(object):
             self.traytips.hide()
             self.artwork.fullscreen_cover_art_set_image(force_update=True)
             self.fullscreencoverart.show_all()
+            # setting up invisible cursor
+            window = self.fullscreencoverart.window
+            pix_data = '''/* XPM */
+                static char * invisible_xpm[] = {
+                "1 1 1 1",
+                " c None",
+                " "};'''
+            color = gtk.gdk.Color()
+            pix = gtk.gdk.pixmap_create_from_data(window, pix_data, 1, 1, 1,
+                                                  color, color)
+            invisible_cursor = gtk.gdk.Cursor(pix, pix, color, color, 0, 0)
+            window.set_cursor(invisible_cursor)
 
     def fullscreen_cover_art_close(self, _widget, event, key_press):
         if key_press:
