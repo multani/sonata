@@ -1,16 +1,24 @@
 from __future__ import with_statement
 
-import sys, os, locale
+import sys
+import os
+import locale
 
 import gtk
 
-import ui, misc
+import ui
+import misc
 import mpdhelper as mpdh
 from consts import consts
 from pluginsystem import pluginsystem
 
+
 class Info(object):
-    def __init__(self, config, info_image, linkcolor, on_link_click_cb, get_playing_song, TAB_INFO, on_image_activate, on_image_motion_cb, on_image_drop_cb, album_return_artist_and_tracks, new_tab):
+
+    def __init__(self, config, info_image, linkcolor, on_link_click_cb,
+                 get_playing_song, TAB_INFO, on_image_activate,
+                 on_image_motion_cb, on_image_drop_cb,
+                 album_return_artist_and_tracks, new_tab):
         self.config = config
         self.linkcolor = linkcolor
         self.on_link_click_cb = on_link_click_cb
@@ -20,7 +28,8 @@ class Info(object):
         try:
             self.enc = locale.getpreferredencoding()
         except:
-            print "Locale cannot be found; please set your system's locale. Aborting..."
+            print ('Locale cannot be found; please set your system\'s locale. '
+                   'Aborting...')
             sys.exit(1)
 
         self.last_bitrate = None
@@ -37,7 +46,8 @@ class Info(object):
         self.albumText = None
 
         self.info_area = ui.scrollwindow(shadow=gtk.SHADOW_NONE)
-        self.tab = new_tab(self.info_area, gtk.STOCK_JUSTIFY_FILL, TAB_INFO, self.info_area)
+        self.tab = new_tab(self.info_area, gtk.STOCK_JUSTIFY_FILL,
+                           TAB_INFO, self.info_area)
 
         image_width = -1 if self.config.info_art_enlarged else 152
         imagebox = ui.eventbox(w=image_width, add=info_image)
@@ -89,9 +99,9 @@ class Info(object):
 
         tagtable = gtk.Table(len(labels), 2)
         tagtable.set_col_spacings(12)
-        for i,(text, name, link, tooltip, in_more) in enumerate(labels):
+        for i, (text, name, link, tooltip, in_more) in enumerate(labels):
             label = ui.label(markup="<b>%s:</b>" % text, y=0)
-            tagtable.attach(label, 0, 1, i, i+1, yoptions=gtk.SHRINK)
+            tagtable.attach(label, 0, 1, i, i + 1, yoptions=gtk.SHRINK)
             if i == 0:
                 self.info_left_label = label
             # Using set_selectable overrides the hover cursor that
@@ -103,7 +113,7 @@ class Info(object):
                 tmpevbox = ui.eventbox(add=tmplabel2)
                 self._apply_link_signals(tmpevbox, name, tooltip)
             to_pack = tmpevbox if link else tmplabel2
-            tagtable.attach(to_pack, 1, 2, i, i+1, yoptions=gtk.SHRINK)
+            tagtable.attach(to_pack, 1, 2, i, i + 1, yoptions=gtk.SHRINK)
             self.info_labels[name] = tmplabel2
             if in_more:
                 self.info_boxes_in_more.append(label)
@@ -145,10 +155,13 @@ class Info(object):
         self._editlyricslabel = ui.label(y=0)
         searchevbox = ui.eventbox(add=self._searchlabel)
         editlyricsevbox = ui.eventbox(add=self._editlyricslabel)
-        self._apply_link_signals(searchevbox, 'search', _("Search Lyricwiki.org for lyrics"))
-        self._apply_link_signals(editlyricsevbox, 'editlyrics', _("Edit lyrics at Lyricwiki.org"))
+        self._apply_link_signals(searchevbox, 'search',
+                                 _("Search Lyricwiki.org for lyrics"))
+        self._apply_link_signals(editlyricsevbox, 'editlyrics',
+                                 _("Edit lyrics at Lyricwiki.org"))
         lyricsbox_bottom.pack_start(searchevbox, False, False, horiz_spacing)
-        lyricsbox_bottom.pack_start(editlyricsevbox, False, False, horiz_spacing)
+        lyricsbox_bottom.pack_start(editlyricsevbox, False, False,
+                                    horiz_spacing)
         lyricsbox.pack_start(lyricsbox_bottom, False, False, vert_spacing)
         self.info_lyrics.add(lyricsbox)
         return self.info_lyrics
@@ -255,10 +268,15 @@ class Info(object):
             mpdh.get(songinfo, 'album')), False, False,
             self.linkcolor))
 
-        path = misc.file_from_utf8(os.path.join(self.config.musicdir[self.config.profile_num], mpdh.get(songinfo, 'file')))
+        path = misc.file_from_utf8(os.path.join(
+            self.config.musicdir[self.config.profile_num], mpdh.get(songinfo,
+                                                                    'file')))
         if os.path.exists(path):
-            filelabel.set_text(os.path.join(self.config.musicdir[self.config.profile_num], mpdh.get(songinfo, 'file')))
-            self._editlabel.set_markup(misc.link_markup(_("edit tags"), True, True, self.linkcolor))
+            filelabel.set_text(os.path.join(
+                self.config.musicdir[self.config.profile_num],
+                mpdh.get(songinfo, 'file')))
+            self._editlabel.set_markup(misc.link_markup(_("edit tags"), True,
+                                                        True, self.linkcolor))
         else:
             filelabel.set_text(mpdh.get(songinfo, 'file'))
             self._editlabel.set_text("")
@@ -297,9 +315,15 @@ class Info(object):
     def _update_lyrics(self, songinfo):
         if self.config.show_lyrics:
             if 'artist' in songinfo and 'title' in songinfo:
-                self.get_lyrics_start(mpdh.get(songinfo, 'artist'), mpdh.get(songinfo, 'title'), mpdh.get(songinfo, 'artist'), mpdh.get(songinfo, 'title'), os.path.dirname(mpdh.get(songinfo, 'file')))
+                self.get_lyrics_start(mpdh.get(songinfo, 'artist'),
+                                      mpdh.get(songinfo, 'title'),
+                                      mpdh.get(songinfo, 'artist'),
+                                      mpdh.get(songinfo, 'title'),
+                                      os.path.dirname(mpdh.get(songinfo,
+                                                               'file')))
             else:
-                self._show_lyrics(None, None, error=_("Artist or song title not set."))
+                self._show_lyrics(None, None, error=_(('Artist or song title '
+                                                       'not set.')))
 
     def _check_for_local_lyrics(self, artist, title, song_dir):
         locations = [consts.LYRICS_LOCATION_HOME,
@@ -312,16 +336,18 @@ class Info(object):
             if os.path.exists(filename):
                 return filename
 
-    def get_lyrics_start(self, search_artist, search_title, filename_artist, filename_title, song_dir):
+    def get_lyrics_start(self, search_artist, search_title, filename_artist,
+                         filename_title, song_dir):
         filename_artist = misc.strip_all_slashes(filename_artist)
         filename_title = misc.strip_all_slashes(filename_title)
-        filename = self._check_for_local_lyrics(filename_artist, filename_title, song_dir)
+        filename = self._check_for_local_lyrics(filename_artist,
+                                                filename_title, song_dir)
         lyrics = ""
         if filename:
-            # If the lyrics only contain "not found", delete the file and try to
-            # fetch new lyrics. If there is a bug in Sonata/SZI/LyricWiki that
-            # prevents lyrics from being found, storing the "not found" will
-            # prevent a future release from correctly fetching the lyrics.
+            # If the lyrics only contain "not found", delete the file and try
+            # to fetch new lyrics. If there is a bug in Sonata/SZI/LyricWiki
+            # that prevents lyrics from being found, storing the "not found"
+            # will prevent a future release from correctly fetching the lyrics.
             try:
                 with open(filename, 'r') as f:
                     lyrics = f.read()
@@ -329,7 +355,9 @@ class Info(object):
                 pass
             if lyrics == _("Lyrics not found"):
                 misc.remove_file(filename)
-                filename = self._check_for_local_lyrics(filename_artist, filename_title, song_dir)
+                filename = self._check_for_local_lyrics(filename_artist,
+                                                        filename_title,
+                                                        song_dir)
         if filename:
             # Re-use lyrics from file:
             try:
@@ -346,7 +374,7 @@ class Info(object):
         else:
             # Fetch lyrics from lyricwiki.org etc.
             lyrics_fetchers = pluginsystem.get('lyrics_fetching')
-            callback = lambda *args: self.get_lyrics_response(
+            callback = lambda * args: self.get_lyrics_response(
                 filename_artist, filename_title, song_dir, *args)
             if lyrics_fetchers:
                 msg = _("Fetching lyrics...")
@@ -360,7 +388,8 @@ class Info(object):
     def get_lyrics_response(self, artist_then, title_then, song_dir,
                 lyrics=None, error=None):
         if lyrics and not error:
-            filename = self.target_lyrics_filename(artist_then, title_then, song_dir)
+            filename = self.target_lyrics_filename(artist_then, title_then,
+                                                   song_dir)
             # Save lyrics to file:
             misc.create_dir('~/.lyrics/')
             try:
@@ -413,26 +442,39 @@ class Info(object):
     def resize_elements(self, notebook_allocation):
         # Resize labels in info tab to prevent horiz scrollbar:
         if self.config.show_covers:
-            labelwidth = notebook_allocation.width - self.info_left_label.allocation.width - self._imagebox.allocation.width - 60 # 60 accounts for vert scrollbar, box paddings, etc..
+            # 60 accounts for vert scrollbar, box paddings, etc..
+            labelwidth = notebook_allocation.width - \
+                    self.info_left_label.allocation.width - \
+                    self._imagebox.allocation.width - 60
         else:
-            labelwidth = notebook_allocation.width - self.info_left_label.allocation.width - 60 # 60 accounts for vert scrollbar, box paddings, etc..
+            # 60 accounts for vert scrollbar, box paddings, etc..
+            labelwidth = notebook_allocation.width - \
+                    self.info_left_label.allocation.width - 60
         if labelwidth > 100:
             for label in self.info_labels.values():
                 label.set_size_request(labelwidth, -1)
         # Resize lyrics/album gtk labels:
-        labelwidth = notebook_allocation.width - 45 # 45 accounts for vert scrollbar, box paddings, etc..
+        # 45 accounts for vert scrollbar, box paddings, etc..
+        labelwidth = notebook_allocation.width - 45
         self.lyricsSw.set_size_request(labelwidth, -1)
         self.albumSw.set_size_request(labelwidth, -1)
 
-    def target_lyrics_filename(self, artist, title, song_dir, force_location=None):
+    def target_lyrics_filename(self, artist, title, song_dir,
+                               force_location=None):
         # FIXME Why did we have this condition here: if self.conn:
-        lyrics_loc = force_location if force_location else self.config.lyrics_location
-        # Note: *_ALT searching is for compatibility with other mpd clients (like ncmpcpp):
+        lyrics_loc = force_location if force_location elsea\
+                self.config.lyrics_location
+        # Note: *_ALT searching is for compatibility with other mpd clients
+        # (like ncmpcpp):
         file_map = {
-            consts.LYRICS_LOCATION_HOME : ("~/.lyrics", "%s-%s.txt"),
-            consts.LYRICS_LOCATION_PATH : (self.config.musicdir[self.config.profile_num].replace('%', '%%'), song_dir.replace('%', '%%'), "%s-%s.txt"),
-            consts.LYRICS_LOCATION_HOME_ALT : ("~/.lyrics", "%s - %s.txt"),
-            consts.LYRICS_LOCATION_PATH_ALT : (self.config.musicdir[self.config.profile_num].replace('%', '%%'), song_dir.replace('%', '%%'), "%s - %s.txt"),
+            consts.LYRICS_LOCATION_HOME: ("~/.lyrics", "%s-%s.txt"),
+            consts.LYRICS_LOCATION_PATH:
+            (self.config.musicdir[self.config.profile_num].replace('%', '%%'),
+             song_dir.replace('%', '%%'), "%s-%s.txt"),
+            consts.LYRICS_LOCATION_HOME_ALT: ("~/.lyrics", "%s - %s.txt"),
+            consts.LYRICS_LOCATION_PATH_ALT:
+            (self.config.musicdir[self.config.profile_num].replace('%', '%%'),
+             song_dir.replace('%', '%%'), "%s - %s.txt"),
                }
         return misc.file_from_utf8(misc.file_exists_insensitive(
                     os.path.expanduser(
