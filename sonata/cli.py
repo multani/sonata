@@ -9,7 +9,9 @@ from version import version
 mpd_cmds = ["play", "pause", "stop", "next", "prev", "pp", "info",
             "status", "repeat", "random"]
 
+
 class Args(object):
+
     def __init__(self):
         self.skip_gui = False
         self.start_visibility = None
@@ -24,7 +26,7 @@ class Args(object):
         # version and help don't need anything and exit without gui
         # hidden and visible are only applicable when gui is launched
         # profile and no-start don't need anything
-        _usage = "\n".join((_("%prog [OPTION]... [COMMAND]...")+"\n",
+        _usage = "\n".join((_("%prog [OPTION]... [COMMAND]...") + "\n",
          _("Commands:"),
         "  play            %s" % _("play song in playlist"),
         "  pause           %s" % _("pause currently playing song"),
@@ -45,7 +47,8 @@ class Args(object):
                   help=_("popup song notification (requires D-Bus)"))
         parser.add_option("-t", "--toggle", dest="toggle",
                   action="store_true",
-                  help=_("toggles whether the app is minimized to the tray or visible (requires D-Bus)"))
+                  help=_(('toggles whether the app is minimized to the '
+                          'tray or visible (requires D-Bus)')))
         parser.add_option("-n", "--no-start", dest="start",
                   action="store_false",
                   help=_("don't start app if D-Bus commands fail"))
@@ -83,7 +86,6 @@ class Args(object):
                              options.popup,
                              options.start)
 
-
     def execute_cmds(self):
         """If arguments were passed, perform action on them."""
         if self.cmds:
@@ -99,13 +101,17 @@ class Args(object):
             a = self.arg_profile
             if a > 0 and a <= len(config.profile_names):
                 config.profile_num = a-1
-                print _("Starting Sonata with profile %s...") % config.profile_names[config.profile_num]
+                print _("Starting Sonata with profile %s...") % \
+                        config.profile_names[config.profile_num]
             else:
                 print _("%d is not an available profile number.") % a
-                print _("Profile numbers must be between 1 and %d.") % len(config.profile_names)
+                print _("Profile numbers must be between 1 and %d.") % \
+                        len(config.profile_names)
                 sys.exit(1)
 
+
 class CliMain(object):
+
     def __init__(self, args):
         global os, mpd, config, library, mpdh, misc
         import os
@@ -115,7 +121,8 @@ class CliMain(object):
         import mpdhelper as mpdh
         import misc
 
-        self.config = config.Config(_('Default Profile'), _("by") + " %A " + _("from") + " %B", library.library_set_data)
+        self.config = config.Config(_('Default Profile'), _("by") + " %A " + \
+                                _("from") + " %B", library.library_set_data)
         self.config.settings_load_real(library.library_set_data)
         args.apply_profile_arg(self.config)
 
@@ -137,7 +144,8 @@ class CliMain(object):
     def execute_cmd(self, cmd):
         self.status = mpdh.status(self.client)
         if not self.status:
-            print _("Unable to connect to MPD.\nPlease check your Sonata preferences or MPD_HOST/MPD_PORT environment variables.")
+            print _(('Unable to connect to MPD.\nPlease check your Sonata '
+                    'preferences or MPD_HOST/MPD_PORT environment variables.'))
             sys.exit(1)
 
         self.songinfo = mpdh.currsong(self.client)
@@ -190,7 +198,8 @@ class CliMain(object):
             at, _length = [int(c) for c in self.status['time'].split(':')]
             at_time = misc.convert_time(at)
             try:
-                time = misc.convert_time(mpdh.get(self.songinfo, 'time', '', True))
+                time = misc.convert_time(mpdh.get(self.songinfo, 'time',
+                                                  '', True))
                 print "%s: %s/%s" % (_("Time"), at_time, time)
             except:
                 print "%s: %s" % (_("Time"), at_time)
@@ -203,14 +212,15 @@ class CliMain(object):
         state_map = {
                 'play': _("Playing"),
                 'pause': _("Paused"),
-                'stop': _("Stopped")
-                }
+                'stop': _("Stopped")}
         print "%s: %s" % (_("State"),
                 state_map[self.status['state']])
 
-        print "%s %s" % (_("Repeat:"), _("On") if self.status['repeat'] == '1' else _("Off"))
-        print "%s %s" % (_("Random:"), _("On") if self.status['random'] == '1' else _("Off"))
+        print "%s %s" % (_("Repeat:"), _("On") \
+                         if self.status['repeat'] == '1' else _("Off"))
+        print "%s %s" % (_("Random:"), _("On") \
+                         if self.status['random'] == '1' else _("Off"))
         print "%s: %s/100" % (_("Volume"), self.status['volume'])
         print "%s: %s %s" % (_('Crossfade'), self.status['xfade'],
-                    gettext.ngettext('second', 'seconds',
-                             int(self.status['xfade'])))
+                             gettext.ngettext('second', 'seconds',
+                                              int(self.status['xfade'])))
