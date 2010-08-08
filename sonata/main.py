@@ -1757,6 +1757,7 @@ class Base(object):
     def on_delete_event(self, _widget, _data=None):
         if not self.exit_now and self.config.minimize_to_systray:
             if self.tray_icon.is_visible():
+                self.withdraw_app()
                 return True
         self.settings_save()
         self.artwork.artwork_save_cache()
