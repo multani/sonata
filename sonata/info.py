@@ -135,8 +135,11 @@ class Info(object):
                     can_focus=False)
         self.info_lyrics.connect("activate", self._expanded, "lyrics")
         lyricsbox = gtk.VBox()
-        self.lyricsText = ui.label(markup=" ", y=0, select=True, wrap=True)
-        lyricsbox.pack_start(self.lyricsText, True, True, vert_spacing)
+        self.lyricsText = ui.textview(text="", edit=False, wrap=True)
+        self.lyricsSw = ui.scrollwindow(policy_x=gtk.POLICY_NEVER,
+                                        policy_y=gtk.POLICY_NEVER,
+                                        add=self.lyricsText)
+        lyricsbox.pack_start(self.lyricsSw, True, True, vert_spacing)
         lyricsbox_bottom = gtk.HBox()
         self._searchlabel = ui.label(y=0)
         self._editlyricslabel = ui.label(y=0)
@@ -155,8 +158,11 @@ class Info(object):
                 expand=self.config.info_album_expanded,
                 can_focus=False)
         info_album.connect("activate", self._expanded, "album")
-        self.albumText = ui.label(markup=" ", y=0, select=True, wrap=True)
-        info_album.add(self.albumText)
+        self.albumText = ui.textview(text="", edit=False, wrap=True)
+        self.albumSw = ui.scrollwindow(policy_x=gtk.POLICY_NEVER,
+                                       policy_y=gtk.POLICY_NEVER,
+                                       add=self.albumText)
+        info_album.add(self.albumSw)
         return info_album
 
     def get_widgets(self):
@@ -210,7 +216,7 @@ class Info(object):
         self._searchlabel.set_text("")
         self._editlyricslabel.set_text("")
         self._show_lyrics(None, None)
-        self.albumText.set_text("")
+        self.albumText.get_buffer().set_text("")
         self.last_bitrate = ""
 
     def update(self, playing_or_paused, newbitrate, songinfo, update_all):
@@ -259,7 +265,7 @@ class Info(object):
 
     def _update_album(self, songinfo):
         if 'album' not in songinfo:
-            self.albumText.set_text(_("Album name not set."))
+            self.albumText.get_buffer().set_text(_("Album name not set."))
             return
 
         artist, tracks = self.album_return_artist_and_tracks()
@@ -286,7 +292,7 @@ class Info(object):
             albuminfo += "\n\n"
             albuminfo += "\n".join(t for t in tracklist)
 
-        self.albumText.set_text(albuminfo)
+        self.albumText.get_buffer().set_text(albuminfo)
 
     def _update_lyrics(self, songinfo):
         if self.config.show_lyrics:
@@ -375,11 +381,11 @@ class Info(object):
             self._searchlabel.set_markup("")
             self._editlyricslabel.set_markup("")
             if error:
-                self.lyricsText.set_markup(error)
+                self.lyricsText.get_buffer().set_text(error)
             elif lyrics:
-                self.lyricsText.set_markup(lyrics)
+                self.lyricsText.get_buffer().set_text(lyrics)
             else:
-                self.lyricsText.set_markup("")
+                self.lyricsText.get_buffer().set_text("")
             return
 
         # Verify that we are displaying the correct lyrics:
@@ -394,14 +400,15 @@ class Info(object):
             self._editlyricslabel.set_markup(misc.link_markup(
                 _("edit"), True, True, self.linkcolor))
             if error:
-                self.lyricsText.set_markup(error)
+                self.lyricsText.get_buffer().set_text(error)
             elif lyrics:
                 try:
-                    self.lyricsText.set_markup(misc.escape_html(lyrics))
+                    self.lyricsText.get_buffer().set_text(misc.escape_html(
+                        lyrics))
                 except: ### XXX why would this happen?
-                    self.lyricsText.set_text(lyrics)
+                    self.lyricsText.get_buffer().set_text(lyrics)
             else:
-                self.lyricsText.set_markup("")
+                self.lyricsText.get_buffer().set_text("")
 
     def resize_elements(self, notebook_allocation):
         # Resize labels in info tab to prevent horiz scrollbar:
@@ -414,8 +421,8 @@ class Info(object):
                 label.set_size_request(labelwidth, -1)
         # Resize lyrics/album gtk labels:
         labelwidth = notebook_allocation.width - 45 # 45 accounts for vert scrollbar, box paddings, etc..
-        self.lyricsText.set_size_request(labelwidth, -1)
-        self.albumText.set_size_request(labelwidth, -1)
+        self.lyricsSw.set_size_request(labelwidth, -1)
+        self.albumSw.set_size_request(labelwidth, -1)
 
     def target_lyrics_filename(self, artist, title, song_dir, force_location=None):
         # FIXME Why did we have this condition here: if self.conn:

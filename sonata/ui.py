@@ -21,6 +21,16 @@ def label(text=None, textmn=None, markup=None, x=0, y=0.5, \
     tmplabel.set_selectable(select)
     return tmplabel
 
+def textview(text=None, edit=True, wrap=False):
+    buf = gtk.TextBuffer()
+    tmptv = gtk.TextView(buf)
+    if text:
+        buf.set_text(text)
+    if wrap:
+        tmptv.set_wrap_mode(gtk.WRAP_WORD_CHAR)
+    tmptv.set_editable(edit)
+    return tmptv
+
 def expander(text=None, markup=None, expand=False, can_focus=True):
     tmpexp = gtk.Expander()
     if text:
