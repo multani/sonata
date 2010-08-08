@@ -1,35 +1,55 @@
 import os
-import re, gettext, locale
+import re
+import gettext
+import locale
 import threading # libsearchfilter_toggle starts thread libsearchfilter_loop
 import operator
 
-import gtk, gobject, pango
+import gtk
+import gobject
+import pango
 
-import ui, misc, formatting
+import ui
+import misc
+import formatting
 import mpdhelper as mpdh
 from consts import consts
 import breadcrumbs
 
-def library_set_data(album=None, artist=None, genre=None, year=None, path=None):
-    if album is not None: album = unicode(album)
-    if artist is not None: artist = unicode(artist)
-    if genre is not None: genre = unicode(genre)
-    if year is not None: year = unicode(year)
-    if path is not None: path = unicode(path)
+
+def library_set_data(album=None, artist=None, genre=None, year=None,
+                     path=None):
+    if album is not None:
+        album = unicode(album)
+    if artist is not None:
+        artist = unicode(artist)
+    if genre is not None:
+        genre = unicode(genre)
+    if year is not None:
+        year = unicode(year)
+    if path is not None:
+        path = unicode(path)
     return (album, artist, genre, year, path)
 
+
 def library_get_data(data, *args):
-    name_to_index = {'album':0, 'artist':1, 'genre':2, 'year':3, 'path':4}
+    name_to_index = {'album': 0, 'artist': 1, 'genre': 2, 'year': 3, 'path': 4}
     # Data retrieved from the gtktreeview model is not in
     # unicode anymore, so convert it.
-    retlist = [unicode(data[name_to_index[arg]]) if data[name_to_index[arg]] else None for arg in args]
+    retlist = [unicode(data[name_to_index[arg]]) if data[name_to_index[arg]] \
+               else None for arg in args]
     if len(retlist) == 1:
         return retlist[0]
     else:
         return retlist
 
+
 class Library(object):
-    def __init__(self, config, client, artwork, TAB_LIBRARY, album_filename, settings_save, filtering_entry_make_red, filtering_entry_revert_color, filter_key_pressed, on_add_item, connected, on_library_button_press, new_tab):
+
+    def __init__(self, config, client, artwork, TAB_LIBRARY, album_filename,
+                 settings_save, filtering_entry_make_red,
+                 filtering_entry_revert_color, filter_key_pressed,
+                 on_add_item, connected, on_library_button_press, new_tab):
         self.artwork = artwork
         self.config = config
         self.client = client
@@ -45,8 +65,10 @@ class Library(object):
 
         self.NOTAG = _("Untagged")
         self.VAstr = _("Various Artists")
-        self.search_terms = [_('Artist'), _('Title'), _('Album'), _('Genre'), _('Filename'), _('Everything')]
-        self.search_terms_mpd = ['artist', 'title', 'album', 'genre', 'file', 'any']
+        self.search_terms = [_('Artist'), _('Title'), _('Album'), _('Genre'),
+                             _('Filename'), _('Everything')]
+        self.search_terms_mpd = ['artist', 'title', 'album', 'genre', 'file',
+                                 'any']
 
         self.libfilterbox_cmd_buf = None
         self.libfilterbox_cond = None
@@ -80,7 +102,8 @@ class Library(object):
         self.searchcombo.set_tooltip_text(_("Search terms"))
         self.searchtext = ui.entry()
         self.searchtext.set_tooltip_text(_("Search library"))
-        self.searchbutton = ui.button(img=ui.image(stock=gtk.STOCK_CANCEL), h=self.searchcombo.size_request()[1])
+        self.searchbutton = ui.button(img=ui.image(stock=gtk.STOCK_CANCEL),
+                                      h=self.searchcombo.size_request()[1])
         self.searchbutton.set_no_show_all(True)
         self.searchbutton.hide()
         self.searchbutton.set_tooltip_text(_("End Search"))
@@ -97,16 +120,24 @@ class Library(object):
         self.libraryvbox.pack_start(expanderwindow2, True, True)
         self.libraryvbox.pack_start(self.searchbox, False, False, 2)
 
-        self.tab = new_tab(self.libraryvbox, gtk.STOCK_HARDDISK, TAB_LIBRARY, self.library)
+        self.tab = new_tab(self.libraryvbox, gtk.STOCK_HARDDISK, TAB_LIBRARY,
+                           self.library)
 
         # Assign some pixbufs for use in self.library
-        self.openpb2 = self.library.render_icon(gtk.STOCK_OPEN, gtk.ICON_SIZE_LARGE_TOOLBAR)
-        self.harddiskpb2 = self.library.render_icon(gtk.STOCK_HARDDISK, gtk.ICON_SIZE_LARGE_TOOLBAR)
-        self.openpb = self.library.render_icon(gtk.STOCK_OPEN, gtk.ICON_SIZE_MENU)
-        self.harddiskpb = self.library.render_icon(gtk.STOCK_HARDDISK, gtk.ICON_SIZE_MENU)
-        self.albumpb = gtk.gdk.pixbuf_new_from_file_at_size(album_filename, consts.LIB_COVER_SIZE, consts.LIB_COVER_SIZE)
-        self.genrepb = self.library.render_icon('gtk-orientation-portrait', gtk.ICON_SIZE_LARGE_TOOLBAR)
-        self.artistpb = self.library.render_icon('artist', gtk.ICON_SIZE_LARGE_TOOLBAR)
+        self.openpb2 = self.library.render_icon(gtk.STOCK_OPEN,
+                                                gtk.ICON_SIZE_LARGE_TOOLBAR)
+        self.harddiskpb2 = self.library.render_icon(gtk.STOCK_HARDDISK,
+                                                   gtk.ICON_SIZE_LARGE_TOOLBAR)
+        self.openpb = self.library.render_icon(gtk.STOCK_OPEN,
+                                               gtk.ICON_SIZE_MENU)
+        self.harddiskpb = self.library.render_icon(gtk.STOCK_HARDDISK,
+                                                   gtk.ICON_SIZE_MENU)
+        self.albumpb = gtk.gdk.pixbuf_new_from_file_at_size(
+            album_filename, consts.LIB_COVER_SIZE, consts.LIB_COVER_SIZE)
+        self.genrepb = self.library.render_icon('gtk-orientation-portrait',
+                                                gtk.ICON_SIZE_LARGE_TOOLBAR)
+        self.artistpb = self.library.render_icon('artist',
+                                                 gtk.ICON_SIZE_LARGE_TOOLBAR)
         self.sonatapb = self.library.render_icon('sonata', gtk.ICON_SIZE_MENU)
 
         # list of the library views: (id, name, icon name, label)
@@ -124,17 +155,21 @@ class Library(object):
         self.library_view_assign_image()
 
         self.library.connect('row_activated', self.on_library_row_activated)
-        self.library.connect('button_press_event', self.on_library_button_press)
+        self.library.connect('button_press_event',
+                             self.on_library_button_press)
         self.library.connect('key-press-event', self.on_library_key_press)
         self.library.connect('query-tooltip', self.on_library_query_tooltip)
         expanderwindow2.connect('scroll-event', self.on_library_scrolled)
         self.libraryview.connect('clicked', self.library_view_popup)
-        self.searchtext.connect('key-press-event', self.libsearchfilter_key_pressed)
+        self.searchtext.connect('key-press-event',
+                                self.libsearchfilter_key_pressed)
         self.searchtext.connect('activate', self.libsearchfilter_on_enter)
         self.searchbutton.connect('clicked', self.on_search_end)
 
-        self.libfilter_changed_handler = self.searchtext.connect('changed', self.libsearchfilter_feed_loop)
-        searchcombo_changed_handler = self.searchcombo.connect('changed', self.on_library_search_combo_change)
+        self.libfilter_changed_handler = self.searchtext.connect(
+            'changed', self.libsearchfilter_feed_loop)
+        searchcombo_changed_handler = self.searchcombo.connect(
+            'changed', self.on_library_search_combo_change)
 
         # Initialize library data and widget
         self.libraryposition = {}
@@ -142,7 +177,8 @@ class Library(object):
         self.searchcombo.handler_block(searchcombo_changed_handler)
         self.searchcombo.set_active(self.config.last_search_num)
         self.searchcombo.handler_unblock(searchcombo_changed_handler)
-        self.librarydata = gtk.ListStore(gtk.gdk.Pixbuf, gobject.TYPE_PYOBJECT, str)
+        self.librarydata = gtk.ListStore(gtk.gdk.Pixbuf, gobject.TYPE_PYOBJECT,
+                                         str)
         self.library.set_model(self.librarydata)
         self.library.set_search_column(2)
         self.librarycell = gtk.CellRendererText()
@@ -158,7 +194,7 @@ class Library(object):
         self.library_selection.set_mode(gtk.SELECTION_MULTIPLE)
 
     def get_libraryactions(self):
-        return [(name+'view', icon, label,
+        return [(name + 'view', icon, label,
              None, None, self.on_libraryview_chosen)
             for _view, name, icon, label in self.VIEWS]
 
@@ -179,7 +215,8 @@ class Library(object):
         self.librarymenu.attach_to_widget(self.libraryview, None)
 
     def library_view_popup(self, button):
-        self.librarymenu.popup(None, None, self.library_view_position_menu, 1, 0, button)
+        self.librarymenu.popup(None, None, self.library_view_position_menu, 1,
+                               0, button)
 
     def library_view_position_menu(self, _menu, button):
         x, y, _width, height = button.get_allocation()
@@ -203,7 +240,8 @@ class Library(object):
         self.library_browse(self.library_set_data(path="/"))
         try:
             if len(self.librarydata) > 0:
-                self.library_selection.unselect_range((0,), (len(self.librarydata)-1,))
+                self.library_selection.unselect_range((0,),
+                                                    (len(self.librarydata)-1,))
         except:
             pass
         gobject.idle_add(self.library.scroll_to_point, 0, 0)
@@ -228,7 +266,8 @@ class Library(object):
 
     def on_library_scrolled(self, _widget, _event):
         try:
-            # Use gobject.idle_add so that we can get the visible state of the treeview
+            # Use gobject.idle_add so that we can get the visible
+            # state of the treeview
             gobject.idle_add(self._on_library_scrolled)
         except:
             pass
@@ -251,16 +290,21 @@ class Library(object):
             # get_visible_range failed
             return
 
-        self.artwork.library_artwork_update(self.librarydata, start_row, end_row, self.albumpb)
+        self.artwork.library_artwork_update(self.librarydata, start_row,
+                                            end_row, self.albumpb)
 
     def library_browse(self, _widget=None, root=None):
         # Populates the library list with entries
         if not self.connected():
             return
 
-        if root is None or (self.config.lib_view == consts.VIEW_FILESYSTEM and self.library_get_data(root, 'path') is None):
+        if root is None or (self.config.lib_view == consts.VIEW_FILESYSTEM \
+                            and self.library_get_data(root, 'path') is None):
             root = self.library_set_data(path="/")
-        if self.config.wd is None or (self.config.lib_view == consts.VIEW_FILESYSTEM and self.library_get_data(self.config.wd, 'path') is None):
+        if self.config.wd is None or (self.config.lib_view == \
+                                      consts.VIEW_FILESYSTEM and \
+                                      self.library_get_data(self.config.wd,
+                                                            'path') is None):
             self.config.wd = self.library_set_data(path="/")
 
         prev_selection = []
@@ -277,8 +321,10 @@ class Library(object):
                 elif model.get_value(model.get_iter(path), 2) == "..":
                     prev_selection_parent = True
                 else:
-                    prev_selection.append(model.get_value(model.get_iter(path), 1))
-            self.libraryposition[self.config.wd] = self.library.get_visible_rect()[1]
+                    prev_selection.append(model.get_value(model.get_iter(path),
+                                                          1))
+            self.libraryposition[self.config.wd] = \
+                    self.library.get_visible_rect()[1]
             path_updated = True
         else:
             path_updated = False
@@ -289,14 +335,18 @@ class Library(object):
         if new_level > curr_level:
             # Save position and row for where we just were if we've
             # navigated into a sub-directory:
-            self.libraryposition[self.config.wd] = self.library.get_visible_rect()[1]
+            self.libraryposition[self.config.wd] = \
+                    self.library.get_visible_rect()[1]
             model, rows = self.library_selection.get_selected_rows()
             if len(rows) > 0:
-                data = self.librarydata.get_value(self.librarydata.get_iter(rows[0]), 2)
+                data = self.librarydata.get_value(
+                    self.librarydata.get_iter(rows[0]), 2)
                 if not data in ("..", "/"):
                     self.libraryselectedpath[self.config.wd] = rows[0]
-        elif (self.config.lib_view == consts.VIEW_FILESYSTEM and root != self.config.wd) \
-        or (self.config.lib_view != consts.VIEW_FILESYSTEM and new_level != curr_level):
+        elif (self.config.lib_view == consts.VIEW_FILESYSTEM and \
+              root != self.config.wd) \
+        or (self.config.lib_view != consts.VIEW_FILESYSTEM and new_level != \
+            curr_level):
             # If we've navigated to a parent directory, don't save
             # anything so that the user will enter that subdirectory
             # again at the top position with nothing selected
@@ -320,25 +370,35 @@ class Library(object):
         bd = []
         while len(bd) == 0:
             if self.config.lib_view == consts.VIEW_FILESYSTEM:
-                bd = self.library_populate_filesystem_data(self.library_get_data(self.config.wd, 'path'))
+                bd = self.library_populate_filesystem_data(
+                    self.library_get_data(self.config.wd, 'path'))
             elif self.config.lib_view == consts.VIEW_ALBUM:
-                album, artist, year = self.library_get_data(self.config.wd, 'album', 'artist', 'year')
+                album, artist, year = self.library_get_data(self.config.wd,
+                                                            'album', 'artist',
+                                                            'year')
                 if album is not None:
-                    bd = self.library_populate_data(artist=artist, album=album, year=year)
+                    bd = self.library_populate_data(artist=artist, album=album,
+                                                    year=year)
                 else:
                     bd = self.library_populate_toplevel_data(albumview=True)
             elif self.config.lib_view == consts.VIEW_ARTIST:
-                artist, album, year = self.library_get_data(self.config.wd, 'artist', 'album', 'year')
+                artist, album, year = self.library_get_data(self.config.wd,
+                                                            'artist', 'album',
+                                                            'year')
                 if artist is not None and album is not None:
-                    bd = self.library_populate_data(artist=artist, album=album, year=year)
+                    bd = self.library_populate_data(artist=artist, album=album,
+                                                    year=year)
                 elif artist is not None:
                     bd = self.library_populate_data(artist=artist)
                 else:
                     bd = self.library_populate_toplevel_data(artistview=True)
             elif self.config.lib_view == consts.VIEW_GENRE:
-                genre, artist, album, year = self.library_get_data(self.config.wd, 'genre', 'artist', 'album', 'year')
-                if genre is not None and artist is not None and album is not None:
-                    bd = self.library_populate_data(genre=genre, artist=artist, album=album, year=year)
+                genre, artist, album, year = self.library_get_data(
+                    self.config.wd, 'genre', 'artist', 'album', 'year')
+                if genre is not None and artist is not None and album is \
+                   not None:
+                    bd = self.library_populate_data(genre=genre, artist=artist,
+                                                    album=album, year=year)
                 elif genre is not None and artist is not None:
                     bd = self.library_populate_data(genre=genre, artist=artist)
                 elif genre is not None:
@@ -362,9 +422,11 @@ class Library(object):
         # Scroll back to set view for current dir:
         self.library.realize()
         gobject.idle_add(self.library_set_view, not path_updated)
-        if len(prev_selection) > 0 or prev_selection_root or prev_selection_parent:
+        if len(prev_selection) > 0 or prev_selection_root or \
+           prev_selection_parent:
             # Retain pre-update selection:
-            self.library_retain_selection(prev_selection, prev_selection_root, prev_selection_parent)
+            self.library_retain_selection(prev_selection, prev_selection_root,
+                                          prev_selection_parent)
 
         # Update library artwork as necessary
         self.on_library_scrolled(None, None)
@@ -404,7 +466,7 @@ class Library(object):
                 parts = [] # no crumbs for /
             # append a crumb for each part
             for i, part in enumerate(parts):
-                partpath = '/'.join(parts[:i+1])
+                partpath = '/'.join(parts[:i + 1])
                 target = self.library_set_data(path=partpath)
                 crumbs.append((part, gtk.STOCK_OPEN, None, target))
         else:
@@ -420,14 +482,17 @@ class Library(object):
             for i, key, part in zip(range(nkeys), keys, parts):
                 if part is None:
                     continue
-                partdata = dict(zip(keys, parts)[:i+1])
+                partdata = dict(zip(keys, parts)[:i + 1])
                 target = self.library_set_data(**partdata)
                 pb, icon = None, None
                 if key == 'album':
                     # Album artwork, with self.alumbpb as a backup:
-                    artist, album, path = self.library_get_data(self.config.wd, 'artist', 'album', 'path')
-                    cache_data = self.library_set_data(artist=artist, album=album, path=path)
-                    pb = self.artwork.get_library_artwork_cached_pb(cache_data, None)
+                    artist, album, path = self.library_get_data(self.config.wd,
+                                                    'artist', 'album', 'path')
+                    cache_data = self.library_set_data(artist=artist,
+                                                       album=album, path=path)
+                    pb = self.artwork.get_library_artwork_cached_pb(cache_data,
+                                                                    None)
                     if pb is None:
                         icon = 'album'
                 elif key == 'artist':
@@ -465,11 +530,15 @@ class Library(object):
     def library_populate_add_parent_rows(self):
         return [] # disabled as breadcrumbs replace these
         if self.config.lib_view == consts.VIEW_FILESYSTEM:
-            bd = [('0', [self.harddiskpb, self.library_set_data(path='/'), '/'])]
-            bd += [('1', [self.openpb, self.library_set_data(path='..'), '..'])]
+            bd = [('0', [self.harddiskpb, self.library_set_data(path='/'),
+                         '/'])]
+            bd += [('1', [self.openpb, self.library_set_data(path='..'),
+                          '..'])]
         else:
-            bd = [('0', [self.harddiskpb2, self.library_set_data(path='/'), '/'])]
-            bd += [('1', [self.openpb2, self.library_set_data(path='..'), '..'])]
+            bd = [('0', [self.harddiskpb2, self.library_set_data(path='/'),
+                         '/'])]
+            bd += [('1', [self.openpb2, self.library_set_data(path='..'),
+                          '..'])]
         return bd
 
     def library_populate_filesystem_data(self, path):
@@ -482,11 +551,16 @@ class Library(object):
             for item in mpdh.call(self.client, 'lsinfo', path):
                 if 'directory' in item:
                     name = mpdh.get(item, 'directory').split('/')[-1]
-                    data = self.library_set_data(path=mpdh.get(item, 'directory'))
-                    bd += [('d' + unicode(name).lower(), [self.openpb, data, misc.escape_html(name)])]
+                    data = self.library_set_data(path=mpdh.get(item,
+                                                               'directory'))
+                    bd += [('d' + unicode(name).lower(), [self.openpb, data,
+                                                      misc.escape_html(name)])]
                 elif 'file' in item:
                     data = self.library_set_data(path=mpdh.get(item, 'file'))
-                    bd += [('f' + unicode(mpdh.get(item, 'file')).lower(), [self.sonatapb, data, formatting.parse(self.config.libraryformat, item, True)])]
+                    bd += [('f' + unicode(mpdh.get(item, 'file')).lower(),
+                            [self.sonatapb, data,
+                             formatting.parse(self.config.libraryformat, item,
+                                              True)])]
             bd.sort(key=operator.itemgetter(0))
             if path != '/' and len(bd) > 0:
                 bd = self.library_populate_add_parent_rows() + bd
@@ -494,7 +568,8 @@ class Library(object):
                 self.lib_view_filesystem_cache = bd
         return bd
 
-    def library_get_toplevel_cache(self, genreview=False, artistview=False, albumview=False):
+    def library_get_toplevel_cache(self, genreview=False, artistview=False,
+                                   albumview=False):
         if genreview and self.lib_view_genre_cache is not None:
             bd = self.lib_view_genre_cache
         elif artistview and self.lib_view_artist_cache is not None:
@@ -507,14 +582,17 @@ class Library(object):
         for _sort, info in bd:
             pb = info[0]
             if pb == self.albumpb:
-                artist, album, path = self.library_get_data(info[1], 'artist', 'album', 'path')
-                key = self.library_set_data(path=path, artist=artist, album=album)
+                artist, album, path = self.library_get_data(info[1], 'artist',
+                                                            'album', 'path')
+                key = self.library_set_data(path=path, artist=artist,
+                                            album=album)
                 pb2 = self.artwork.get_library_artwork_cached_pb(key, None)
                 if pb2 is not None:
                     info[0] = pb2
         return bd
 
-    def library_populate_toplevel_data(self, genreview=False, artistview=False, albumview=False):
+    def library_populate_toplevel_data(self, genreview=False, artistview=False,
+                                       albumview=False):
         bd = self.library_get_toplevel_cache(genreview, artistview, albumview)
         if bd is not None:
             # We have our cached data, woot.
@@ -536,11 +614,13 @@ class Library(object):
                     playtime, num_songs = self.library_return_count(genre=item)
                     data = self.library_set_data(genre=item)
                 else:
-                    playtime, num_songs = self.library_return_count(artist=item)
+                    playtime, num_songs = self.library_return_count(
+                        artist=item)
                     data = self.library_set_data(artist=item)
                 if num_songs > 0:
                     display = misc.escape_html(item)
-                    display += self.add_display_info(num_songs, int(playtime)/60)
+                    display += self.add_display_info(num_songs,
+                                                     int(playtime) / 60)
                     bd += [(misc.lower_no_the(item), [pb, data, display])]
         elif albumview:
             albums = []
@@ -550,7 +630,8 @@ class Library(object):
                     album = mpdh.get(item, 'album')
                     artist = mpdh.get(item, 'artist', self.NOTAG)
                     year = mpdh.get(item, 'date', self.NOTAG)
-                    data = self.library_set_data(album=album, artist=artist, year=year)
+                    data = self.library_set_data(album=album, artist=artist,
+                                                 year=year)
                     albums.append(data)
                     if album == self.NOTAG:
                         untagged_found = True
@@ -559,19 +640,30 @@ class Library(object):
             albums = misc.remove_list_duplicates(albums, case=False)
             albums = self.list_identify_VA_albums(albums)
             for item in albums:
-                album, artist, year = self.library_get_data(item, 'album', 'artist', 'year')
-                playtime, num_songs = self.library_return_count(artist=artist, album=album, year=year)
+                album, artist, year = self.library_get_data(item, 'album',
+                                                            'artist', 'year')
+                playtime, num_songs = self.library_return_count(artist=artist,
+                                                                album=album,
+                                                                year=year)
                 if num_songs > 0:
-                    data = self.library_set_data(artist=artist, album=album, year=year)
+                    data = self.library_set_data(artist=artist, album=album,
+                                                 year=year)
                     display = misc.escape_html(album)
-                    if artist and year and len(artist) > 0 and len(year) > 0 and artist != self.NOTAG and year != self.NOTAG:
-                        display += " <span weight='light'>(%s, %s)</span>" % (misc.escape_html(artist), misc.escape_html(year))
+                    if artist and year and len(artist) > 0 and len(year) > 0 \
+                       and artist != self.NOTAG and year != self.NOTAG:
+                        display += " <span weight='light'>(%s, %s)</span>" \
+                                % (misc.escape_html(artist),
+                                   misc.escape_html(year))
                     elif artist and len(artist) > 0 and artist != self.NOTAG:
-                        display += " <span weight='light'>(%s)</span>" % misc.escape_html(artist)
+                        display += " <span weight='light'>(%s)</span>" \
+                                % misc.escape_html(artist)
                     elif year and len(year) > 0 and year != self.NOTAG:
-                        display += " <span weight='light'>(%s)</span>" % misc.escape_html(year)
-                    display += self.add_display_info(num_songs, int(playtime)/60)
-                    bd += [(misc.lower_no_the(album), [self.albumpb, data, display])]
+                        display += " <span weight='light'>(%s)</span>" \
+                                % misc.escape_html(year)
+                    display += self.add_display_info(num_songs,
+                                                     int(playtime) / 60)
+                    bd += [(misc.lower_no_the(album), [self.albumpb, data,
+                                                       display])]
         bd.sort(locale.strcoll, key=operator.itemgetter(0))
         if genreview:
             self.lib_view_genre_cache = bd
@@ -587,26 +679,37 @@ class Library(object):
                 break
             VA = False
             for j in range(1, consts.NUM_ARTISTS_FOR_VA):
-                if unicode(self.library_get_data(albums[i], 'album')).lower() != unicode(self.library_get_data(albums[i+j], 'album')).lower() \
-                or self.library_get_data(albums[i], 'year') != self.library_get_data(albums[i+j], 'year') \
-                or self.library_get_data(albums[i], 'path') != self.library_get_data(albums[i+j], 'path'):
+                if unicode(self.library_get_data(albums[i], 'album')).lower() \
+                   != unicode(self.library_get_data(albums[i + j],
+                                                    'album')).lower() or \
+                   self.library_get_data(albums[i], 'year') != \
+                   self.library_get_data(albums[i + j], 'year') \ or \
+                   self.library_get_data(albums[i], 'path') != \
+                   self.library_get_data(albums[i + j], 'path'):
                     break
-                if unicode(self.library_get_data(albums[i], 'artist')) == unicode(self.library_get_data(albums[i+j], 'artist')):
-                    albums.pop(i+j)
+                if unicode(self.library_get_data(albums[i], 'artist')) == \
+                   unicode(self.library_get_data(albums[i + j], 'artist')):
+                    albums.pop(i + j)
                     break
 
                 if j == consts.NUM_ARTISTS_FOR_VA - 1:
                     VA = True
             if VA:
-                album, year, path = self.library_get_data(albums[i], 'album', 'year', 'path')
+                album, year, path = self.library_get_data(albums[i], 'album',
+                                                          'year', 'path')
                 artist = self.VAstr
-                albums[i] = self.library_set_data(album=album, artist=artist, year=year, path=path)
+                albums[i] = self.library_set_data(album=album, artist=artist,
+                                                  year=year, path=path)
                 j = 1
-                while i+j <= len(albums)-1:
-                    if unicode(self.library_get_data(albums[i], 'album')).lower() == unicode(self.library_get_data(albums[i+j], 'album')).lower() \
-                    and self.library_get_data(albums[i], 'year') == self.library_get_data(albums[i+j], 'year'):
+                while i + j <= len(albums) - 1:
+                    if unicode(self.library_get_data(albums[i],
+                                                     'album')).lower() == \
+                       unicode(self.library_get_data(albums[i + j],
+                                                     'album')).lower() \
+                    and self.library_get_data(albums[i], 'year') == \
+                       self.library_get_data(albums[i + j], 'year'):
 
-                        albums.pop(i+j)
+                        albums.pop(i + j)
                     else:
                         break
         return albums
@@ -614,7 +717,8 @@ class Library(object):
     def get_VAstr(self):
         return self.VAstr
 
-    def library_populate_data(self, genre=None, artist=None, album=None, year=None):
+    def library_populate_data(self, genre=None, artist=None, album=None,
+                              year=None):
         # Create treeview model info
         bd = []
         if genre is not None and artist is None and album is None:
@@ -624,52 +728,78 @@ class Library(object):
                 if not self.NOTAG in artists:
                     artists.append(self.NOTAG)
                 for artist in artists:
-                    playtime, num_songs = self.library_return_count(genre=genre, artist=artist)
+                    playtime, num_songs = self.library_return_count(
+                        genre=genre, artist=artist)
                     if num_songs > 0:
                         display = misc.escape_html(artist)
-                        display += self.add_display_info(num_songs, int(playtime)/60)
-                        data = self.library_set_data(genre=genre, artist=artist)
-                        bd += [(misc.lower_no_the(artist), [self.artistpb, data, display])]
+                        display += self.add_display_info(num_songs,
+                                                         int(playtime) / 60)
+                        data = self.library_set_data(genre=genre,
+                                                     artist=artist)
+                        bd += [(misc.lower_no_the(artist),
+                                [self.artistpb, data, display])]
         elif artist is not None and album is None:
             # Albums/songs within an artist and possibly genre
             # Albums first:
             if genre is not None:
-                albums = self.library_return_list_items('album', genre=genre, artist=artist)
+                albums = self.library_return_list_items('album', genre=genre,
+                                                        artist=artist)
             else:
                 albums = self.library_return_list_items('album', artist=artist)
             for album in albums:
                 if genre is not None:
-                    years = self.library_return_list_items('date', genre=genre, artist=artist, album=album)
+                    years = self.library_return_list_items('date', genre=genre,
+                                                           artist=artist,
+                                                           album=album)
                 else:
-                    years = self.library_return_list_items('date', artist=artist, album=album)
+                    years = self.library_return_list_items('date',
+                                                           artist=artist,
+                                                           album=album)
                 if not self.NOTAG in years:
                     years.append(self.NOTAG)
                 for year in years:
                     if genre is not None:
-                        playtime, num_songs = self.library_return_count(genre=genre, artist=artist, album=album, year=year)
+                        playtime, num_songs = self.library_return_count(
+                            genre=genre, artist=artist, album=album, year=year)
                         if num_songs > 0:
-                            files = self.library_return_list_items('file', genre=genre, artist=artist, album=album, year=year)
+                            files = self.library_return_list_items(
+                                'file', genre=genre, artist=artist,
+                                album=album, year=year)
                             path = os.path.dirname(files[0])
-                            data = self.library_set_data(genre=genre, artist=artist, album=album, year=year, path=path)
+                            data = self.library_set_data(genre=genre,
+                                                         artist=artist,
+                                                         album=album,
+                                                         year=year, path=path)
                     else:
-                        playtime, num_songs = self.library_return_count(artist=artist, album=album, year=year)
+                        playtime, num_songs = self.library_return_count(
+                            artist=artist, album=album, year=year)
                         if num_songs > 0:
-                            files = self.library_return_list_items('file', artist=artist, album=album, year=year)
+                            files = self.library_return_list_items(
+                                'file', artist=artist, album=album, year=year)
                             path = os.path.dirname(files[0])
-                            data = self.library_set_data(artist=artist, album=album, year=year, path=path)
+                            data = self.library_set_data(artist=artist,
+                                                         album=album,
+                                                         year=year, path=path)
                     if num_songs > 0:
-                        cache_data = self.library_set_data(artist=artist, album=album, path=path)
+                        cache_data = self.library_set_data(artist=artist,
+                                                           album=album,
+                                                           path=path)
                         display = misc.escape_html(album)
                         if year and len(year) > 0 and year != self.NOTAG:
-                            display += " <span weight='light'>(%s)</span>" % misc.escape_html(year)
-                        display += self.add_display_info(num_songs, int(playtime)/60)
+                            display += " <span weight='light'>(%s)</span>" \
+                                    % misc.escape_html(year)
+                        display += self.add_display_info(num_songs,
+                                                         int(playtime) / 60)
                         ordered_year = year
                         if ordered_year == self.NOTAG:
                             ordered_year = '9999'
-                        pb = self.artwork.get_library_artwork_cached_pb(cache_data, self.albumpb)
-                        bd += [(ordered_year + misc.lower_no_the(album), [pb, data, display])]
+                        pb = self.artwork.get_library_artwork_cached_pb(
+                            cache_data, self.albumpb)
+                        bd += [(ordered_year + misc.lower_no_the(album),
+                                [pb, data, display])]
             # Now, songs not in albums:
-            bd += self.library_populate_data_songs(genre, artist, self.NOTAG, None)
+            bd += self.library_populate_data_songs(genre, artist, self.NOTAG,
+                                                   None)
         else:
             # Songs within an album, artist, year, and possibly genre
             bd += self.library_populate_data_songs(genre, artist, album, year)
@@ -681,34 +811,49 @@ class Library(object):
     def library_populate_data_songs(self, genre, artist, album, year):
         bd = []
         if genre is not None:
-            songs, _playtime, _num_songs = self.library_return_search_items(genre=genre, artist=artist, album=album, year=year)
+            songs, _playtime, _num_songs =
+            self.library_return_search_items(genre=genre, artist=artist,
+                                             album=album, year=year)
         else:
-            songs, _playtime, _num_songs = self.library_return_search_items(artist=artist, album=album, year=year)
+            songs, _playtime, _num_songs = self.library_return_search_items(
+                artist=artist, album=album, year=year)
         for song in songs:
             data = self.library_set_data(path=mpdh.get(song, 'file'))
             track = mpdh.get(song, 'track', '99', False, 2)
             disc = mpdh.get(song, 'disc', '99', False, 2)
             try:
-                bd += [('f' + disc + track + misc.lower_no_the(mpdh.get(song, 'title')), [self.sonatapb, data, formatting.parse(self.config.libraryformat, song, True)])]
+                bd += [('f' + disc + track + misc.lower_no_the(
+                    mpdh.get(song, 'title')), [self.sonatapb, data,
+                                               formatting.parse(
+                                                   self.config.libraryformat,
+                                                   song, True)])]
             except:
-                bd += [('f' + disc + track + unicode(mpdh.get(song, 'file')).lower(), [self.sonatapb, data, formatting.parse(self.config.libraryformat, song, True)])]
+                bd += [('f' + disc + track + \
+                        unicode(mpdh.get(song, 'file')).lower(),
+                        [self.sonatapb, data,
+                         formatting.parse(self.config.libraryformat, song,
+                                          True)])]
         return bd
 
-    def library_return_list_items(self, itemtype, genre=None, artist=None, album=None, year=None, ignore_case=True):
+    def library_return_list_items(self, itemtype, genre=None, artist=None,
+                                  album=None, year=None, ignore_case=True):
         # Returns all items of tag 'itemtype', in alphabetical order,
         # using mpd's 'list'. If searchtype is passed, use
         # a case insensitive search, via additional 'list'
         # queries, since using a single 'list' call will be
         # case sensitive.
         results = []
-        searches = self.library_compose_list_count_searchlist(genre, artist, album, year)
+        searches = self.library_compose_list_count_searchlist(genre, artist,
+                                                              album, year)
         if len(searches) > 0:
             for s in searches:
                 # If we have untagged tags (''), use search instead
                 # of list because list will not return anything.
                 if '' in s:
                     items = []
-                    songs, playtime, num_songs = self.library_return_search_items(genre, artist, album, year)
+                    songs, playtime, num_songs = \
+                            self.library_return_search_items(genre, artist,
+                                                             album, year)
                     for song in songs:
                         items.append(mpdh.get(song, itemtype))
                 else:
@@ -717,7 +862,8 @@ class Library(object):
                     if len(item) > 0:
                         results.append(item)
         else:
-            if genre is None and artist is None and album is None and year is None:
+            if genre is None and artist is None and album is None and year \
+               is None:
                 for item in mpdh.call(self.client, 'list', itemtype):
                     if len(item) > 0:
                         results.append(item)
@@ -726,13 +872,15 @@ class Library(object):
         results.sort(locale.strcoll)
         return results
 
-    def library_return_count(self, genre=None, artist=None, album=None, year=None):
+    def library_return_count(self, genre=None, artist=None, album=None,
+                             year=None):
         # Because mpd's 'count' is case sensitive, we have to
         # determine all equivalent items (case insensitive) and
         # call 'count' for each of them. Using 'list' + 'count'
         # involves much less data to be transferred back and
         # forth than to use 'search' and count manually.
-        searches = self.library_compose_list_count_searchlist(genre, artist, album, year)
+        searches = self.library_compose_list_count_searchlist(genre, artist,
+                                                              album, year)
         playtime = 0
         num_songs = 0
         for s in searches:
@@ -741,7 +889,9 @@ class Library(object):
 
                 # Can't return count for empty tags, use search instead:
 
-                _results, playtime, num_songs = self.library_return_search_items(genre=genre, artist=artist, album=album, year=year)
+                _results, playtime, num_songs = \
+                        self.library_return_search_items(
+                            genre=genre, artist=artist, album=album, year=year)
 
             else:
 
@@ -751,7 +901,8 @@ class Library(object):
 
         return (playtime, num_songs)
 
-    def library_compose_list_count_searchlist_single(self, search, typename, cached_list, searchlist):
+    def library_compose_list_count_searchlist_single(self, search, typename,
+                                                     cached_list, searchlist):
         s = []
         skip_type = (typename == 'artist' and search == self.VAstr)
         if search is not None and not skip_type:
@@ -760,8 +911,10 @@ class Library(object):
             else:
                 itemlist = []
                 if cached_list is None:
-                    cached_list = self.library_return_list_items(typename, ignore_case=False)
-                    cached_list.append('') # This allows us to match untagged items
+                    cached_list = self.library_return_list_items(typename,
+                                                             ignore_case=False)
+                    # This allows us to match untagged items
+                    cached_list.append('')
                 for item in cached_list:
                     if unicode(item).lower() == unicode(search).lower():
                         itemlist.append(item)
@@ -778,23 +931,33 @@ class Library(object):
             s = searchlist
         return s, cached_list
 
-    def library_compose_list_count_searchlist(self, genre=None, artist=None, album=None, year=None):
+    def library_compose_list_count_searchlist(self, genre=None, artist=None,
+                                              album=None, year=None):
         s = []
-        s, self.lib_list_genres = self.library_compose_list_count_searchlist_single(genre, 'genre', self.lib_list_genres, s)
+        s, self.lib_list_genres = \
+                self.library_compose_list_count_searchlist_single(
+                    genre, 'genre', self.lib_list_genres, s)
         if s is None:
             return []
-        s, self.lib_list_artists = self.library_compose_list_count_searchlist_single(artist, 'artist', self.lib_list_artists, s)
+        s, self.lib_list_artists = \
+                self.library_compose_list_count_searchlist_single(
+                    artist, 'artist', self.lib_list_artists, s)
         if s is None:
             return []
-        s, self.lib_list_albums = self.library_compose_list_count_searchlist_single(album, 'album', self.lib_list_albums, s)
+        s, self.lib_list_albums = \
+                self.library_compose_list_count_searchlist_single(
+                    album, 'album', self.lib_list_albums, s)
         if s is None:
             return []
-        s, self.lib_list_years = self.library_compose_list_count_searchlist_single(year, 'date', self.lib_list_years, s)
+        s, self.lib_list_years = \
+                self.library_compose_list_count_searchlist_single(
+                    year, 'date', self.lib_list_years, s)
         if s is None:
             return []
         return s
 
-    def library_compose_search_searchlist_single(self, search, typename, searchlist):
+    def library_compose_search_searchlist_single(self, search, typename,
+                                                 searchlist):
         s = []
         skip_type = (typename == 'artist' and search == self.VAstr)
         if search is not None and not skip_type:
@@ -812,7 +975,8 @@ class Library(object):
             s = searchlist
         return s
 
-    def library_compose_search_searchlist(self, genre=None, artist=None, album=None, year=None):
+    def library_compose_search_searchlist(self, genre=None, artist=None,
+                                          album=None, year=None):
         s = []
         s = self.library_compose_search_searchlist_single(genre, 'genre', s)
         s = self.library_compose_search_searchlist_single(album, 'album', s)
@@ -820,10 +984,12 @@ class Library(object):
         s = self.library_compose_search_searchlist_single(year, 'date', s)
         return s
 
-    def library_return_search_items(self, genre=None, artist=None, album=None, year=None):
+    def library_return_search_items(self, genre=None, artist=None, album=None,
+                                    year=None):
         # Returns all mpd items, using mpd's 'search', along with
         # playtime and num_songs.
-        searches = self.library_compose_search_searchlist(genre, artist, album, year)
+        searches = self.library_compose_search_searchlist(genre, artist, album,
+                                                          year)
         for s in searches:
             args_tuple = tuple(map(str, s))
             playtime = 0
@@ -832,7 +998,8 @@ class Library(object):
 
             if '' in s and mpdh.mpd_major_version(self.client) <= 0.13:
 
-                # Can't search for empty tags, search broader and filter instead:
+                # Can't search for empty tags, search broader and
+                # filter instead:
 
                 # Strip empty tag args from tuple:
                 pos = list(args_tuple).index('')
@@ -852,12 +1019,16 @@ class Library(object):
             items = mpdh.call(self.client, 'search', *args_tuple)
             if items is not None:
                 for item in items:
-                    if strip_type is None or (strip_type is not None and not strip_type in item.keys()):
+                    if strip_type is None or (strip_type is not None and not \
+                                              strip_type in item.keys()):
                         match = True
                         pos = 0
-                        # Ensure that if, e.g., "foo" is searched, "foobar" isn't returned too
+                        # Ensure that if, e.g., "foo" is searched,
+                        # "foobar" isn't returned too
                         for arg in args_tuple[::2]:
-                            if arg in item and unicode(mpdh.get(item, arg)).upper() != unicode(args_tuple[pos+1]).upper():
+                            if arg in item and \
+                               unicode(mpdh.get(item, arg)).upper() != \
+                               unicode(args_tuple[pos + 1]).upper():
                                 match = False
                                 break
                             pos += 2
@@ -868,12 +1039,16 @@ class Library(object):
         return (results, int(playtime), num_songs)
 
     def add_display_info(self, num_songs, playtime):
-        return "\n<small><span weight='light'>%s %s, %s %s</span></small>" % (num_songs, gettext.ngettext('song', 'songs', num_songs), playtime, gettext.ngettext('minute', 'minutes', playtime))
+        return "\n<small><span weight='light'>%s %s, %s %s</span></small>" \
+                % (num_songs, gettext.ngettext('song', 'songs', num_songs),
+                   playtime, gettext.ngettext('minute', 'minutes', playtime))
 
-    def library_retain_selection(self, prev_selection, prev_selection_root, prev_selection_parent):
+    def library_retain_selection(self, prev_selection, prev_selection_root,
+                                 prev_selection_parent):
         # Unselect everything:
         if len(self.librarydata) > 0:
-            self.library_selection.unselect_range((0,), (len(self.librarydata)-1,))
+            self.library_selection.unselect_range((0,),
+                                                  (len(self.librarydata) - 1,))
         # Now attempt to retain the selection from before the update:
         for value in prev_selection:
             for row in self.librarydata:
@@ -890,7 +1065,8 @@ class Library(object):
         # been refreshed (updated)
         try:
             if self.config.wd in self.libraryposition:
-                self.library.scroll_to_point(-1, self.libraryposition[self.config.wd])
+                self.library.scroll_to_point(
+                    -1, self.libraryposition[self.config.wd])
             else:
                 self.library.scroll_to_point(0, 0)
         except:
@@ -901,7 +1077,8 @@ class Library(object):
             if self.config.wd in self.libraryselectedpath:
                 try:
                     if self.libraryselectedpath[self.config.wd]:
-                        self.library_selection.select_path(self.libraryselectedpath[self.config.wd])
+                        self.library_selection.select_path(
+                            self.libraryselectedpath[self.config.wd])
                         self.library.grab_focus()
                 except:
                     pass
@@ -925,7 +1102,8 @@ class Library(object):
             # Returns the number of items stored in data, excluding
             # the path:
             level = 0
-            album, artist, genre, year = library_get_data(data, 'album', 'artist', 'genre', 'year')
+            album, artist, genre, year = library_get_data(
+                data, 'album', 'artist', 'genre', 'year')
             for item in [album, artist, genre, year]:
                 if item is not None:
                     level += 1
@@ -949,19 +1127,23 @@ class Library(object):
             # If the user hovers over an empty row and then back to
             # a row with a search result, this will ensure the tooltip
             # shows up again:
-            gobject.idle_add(self.library_search_tooltips_enable, widget, x, y, keyboard_mode, None)
+            gobject.idle_add(self.library_search_tooltips_enable, widget, x, y,
+                             keyboard_mode, None)
             return False
         treepath, _col, _x2, _y2 = pathinfo
 
         i = self.librarydata.get_iter(treepath[0])
-        path = misc.escape_html(self.library_get_data(self.librarydata.get_value(i, 1), 'path'))
+        path = misc.escape_html(self.library_get_data(
+            self.librarydata.get_value(i, 1), 'path'))
         song = self.librarydata.get_value(i, 2)
-        new_tooltip = "<b>%s:</b> %s\n<b>%s:</b> %s" % (_("Song"), song, _("Path"), path)
+        new_tooltip = "<b>%s:</b> %s\n<b>%s:</b> %s" \
+                % (_("Song"), song, _("Path"), path)
 
         if new_tooltip != self.libsearch_last_tooltip:
             self.libsearch_last_tooltip = new_tooltip
             self.library.set_property('has-tooltip', False)
-            gobject.idle_add(self.library_search_tooltips_enable, widget, x, y, keyboard_mode, tooltip)
+            gobject.idle_add(self.library_search_tooltips_enable, widget, x, y,
+                             keyboard_mode, tooltip)
             gobject.idle_add(widget.set_tooltip_markup, new_tooltip)
             return
 
@@ -969,7 +1151,8 @@ class Library(object):
 
         return False #api says we should return True, but this doesn't work?
 
-    def library_search_tooltips_enable(self, widget, x, y, keyboard_mode, tooltip):
+    def library_search_tooltips_enable(self, widget, x, y, keyboard_mode,
+                                       tooltip):
         self.library.set_property('has-tooltip', True)
         if tooltip is not None:
             self.on_library_query_tooltip(widget, x, y, keyboard_mode, tooltip)
@@ -996,13 +1179,15 @@ class Library(object):
         if self.config.lib_view == consts.VIEW_ALBUM:
             value = self.library_set_data(path="/")
         elif self.config.lib_view == consts.VIEW_ARTIST:
-            album, artist = self.library_get_data(self.config.wd, 'album', 'artist')
+            album, artist = self.library_get_data(self.config.wd, 'album',
+                                                  'artist')
             if album is not None:
                 value = self.library_set_data(artist=artist)
             else:
                 value = self.library_set_data(path="/")
         elif self.config.lib_view == consts.VIEW_GENRE:
-            album, artist, genre = self.library_get_data(self.config.wd, 'album', 'artist', 'genre')
+            album, artist, genre = self.library_get_data(
+                self.config.wd, 'album', 'artist', 'genre')
             if album is not None:
                 value = self.library_set_data(genre=genre, artist=artist)
             elif artist is not None:
@@ -1010,7 +1195,9 @@ class Library(object):
             else:
                 value = self.library_set_data(path="/")
         else:
-            newvalue = '/'.join(self.library_get_data(self.config.wd, 'path').split('/')[:-1]) or '/'
+            newvalue = '/'.join(
+                self.library_get_data(self.config.wd, 'path').split('/')[:-1])\
+                    or '/'
             value = self.library_set_data(path=newvalue)
         return value
 
@@ -1049,19 +1236,25 @@ class Library(object):
             data = model.get_value(i, 1)
             value = model.get_value(i, 2)
             if value != ".." and value != "/":
-                album, artist, year, genre, path = self.library_get_data(data, 'album', 'artist', 'year', 'genre', 'path')
-                if path is not None and album is None and artist is None and year is None and genre is None:
+                album, artist, year, genre, path = self.library_get_data(
+                    data, 'album', 'artist', 'year', 'genre', 'path')
+                if path is not None and album is None and artist is None and \
+                   year is None and genre is None:
                     if pb == self.sonatapb:
                         # File
                         items.append(path)
                     else:
                         # Directory
                         if not return_root:
-                            items = items + self.library_get_path_files_recursive(path)
+                            items += self.library_get_path_files_recursive(
+                                path)
                         else:
                             items.append(path)
                 else:
-                    results, _playtime, _num_songs = self.library_return_search_items(genre=genre, artist=artist, album=album, year=year)
+                    results, _playtime, _num_songs = \
+                            self.library_return_search_items(
+                                genre=genre, artist=artist, album=album,
+                                year=year)
                     for item in results:
                         items.append(mpdh.get(item, 'file'))
         # Make sure we don't have any EXACT duplicates:
@@ -1072,7 +1265,8 @@ class Library(object):
         results = []
         for item in mpdh.call(self.client, 'lsinfo', path):
             if 'directory' in item:
-                results = results + self.library_get_path_files_recursive(mpdh.get(item, 'directory'))
+                results = results + self.library_get_path_files_recursive(
+                    mpdh.get(item, 'directory'))
             elif 'file' in item:
                 results.append(mpdh.get(item, 'file'))
         return results
@@ -1099,7 +1293,8 @@ class Library(object):
             self.prevlibtodo = 'foo'
             self.prevlibtodo_base = "__"
             self.prevlibtodo_base_results = []
-            # extra thread for background search work, synchronized with a condition and its internal mutex
+            # extra thread for background search work,
+            # synchronized with a condition and its internal mutex
             self.libfilterbox_cond = threading.Condition()
             self.libfilterbox_cmd_buf = self.searchtext.get_text()
             qsearch_thread = threading.Thread(target=self.libsearchfilter_loop)
@@ -1118,13 +1313,14 @@ class Library(object):
     def libsearchfilter_feed_loop(self, editable):
         if not self.search_visible():
             self.libsearchfilter_toggle(None)
-        # Lets only trigger the searchfilter_loop if 200ms pass without a change
-        # in gtk.Entry
+        # Lets only trigger the searchfilter_loop if 200ms pass
+        # without a change in gtk.Entry
         try:
             gobject.source_remove(self.libfilterbox_source)
         except:
             pass
-        self.libfilterbox_source = gobject.timeout_add(300, self.libsearchfilter_start_loop, editable)
+        self.libfilterbox_source = gobject.timeout_add(
+            300, self.libsearchfilter_start_loop, editable)
 
     def libsearchfilter_start_loop(self, editable):
         self.libfilterbox_cond.acquire()
@@ -1152,15 +1348,19 @@ class Library(object):
             searchby = self.search_terms_mpd[self.config.last_search_num]
             if self.prevlibtodo != todo:
                 if todo == '$$$QUIT###':
-                    gobject.idle_add(self.filtering_entry_revert_color, self.searchtext)
+                    gobject.idle_add(self.filtering_entry_revert_color,
+                                     self.searchtext)
                     return
                 elif len(todo) > 1:
-                    gobject.idle_add(self.libsearchfilter_do_search, searchby, todo)
+                    gobject.idle_add(self.libsearchfilter_do_search,
+                                     searchby, todo)
                 elif len(todo) == 0:
-                    gobject.idle_add(self.filtering_entry_revert_color, self.searchtext)
+                    gobject.idle_add(self.filtering_entry_revert_color,
+                                     self.searchtext)
                     self.libsearchfilter_toggle(False)
                 else:
-                    gobject.idle_add(self.filtering_entry_revert_color, self.searchtext)
+                    gobject.idle_add(self.filtering_entry_revert_color,
+                                     self.searchtext)
             self.libfilterbox_cond.acquire()
             self.libfilterbox_cmd_buf = '$$$DONE###'
             try:
@@ -1173,14 +1373,15 @@ class Library(object):
         if not self.prevlibtodo_base in todo:
             # Do library search based on first two letters:
             self.prevlibtodo_base = todo[:2]
-            self.prevlibtodo_base_results = mpdh.call(self.client, 'search', searchby, self.prevlibtodo_base)
+            self.prevlibtodo_base_results = mpdh.call(
+                self.client, 'search', searchby, self.prevlibtodo_base)
             subsearch = False
         else:
             subsearch = True
 
         # Now, use filtering similar to playlist filtering:
-        # this make take some seconds... and we'll escape the search text because
-        # we'll be searching for a match in items that are also escaped.
+        # this make take some seconds... and we'll escape the search text
+        # because we'll be searching for a match in items that are also escaped
         #
         # Note that the searching is not order specific. That is, "foo bar"
         # will match on "fools bar" and "barstool foo".
@@ -1197,7 +1398,8 @@ class Library(object):
             for row in self.prevlibtodo_base_results:
                 is_match = True
                 for regexp in regexps:
-                    if not regexp.match(unicode(mpdh.get(row, searchby)).lower()):
+                    if not regexp.match(unicode(mpdh.get(row,
+                                                         searchby)).lower()):
                         is_match = False
                         break
                 if is_match:
@@ -1235,15 +1437,16 @@ class Library(object):
         if newlen == 0:
             self.librarydata.clear()
         else:
-            for i in range(currlen-newlen):
-                j = self.librarydata.get_iter((currlen-1-i,))
+            for i in range(currlen - newlen):
+                j = self.librarydata.get_iter((currlen - 1 - i,))
                 self.librarydata.remove(j)
         self.library.thaw_child_notify()
         if len(matches) == 0:
             gobject.idle_add(self.filtering_entry_make_red, self.searchtext)
         else:
-            gobject.idle_add(self.library.set_cursor,'0')
-            gobject.idle_add(self.filtering_entry_revert_color, self.searchtext)
+            gobject.idle_add(self.library.set_cursor, '0')
+            gobject.idle_add(self.filtering_entry_revert_color,
+                             self.searchtext)
 
     def libsearchfilter_key_pressed(self, widget, event):
         self.filter_key_pressed(widget, event, self.library)
