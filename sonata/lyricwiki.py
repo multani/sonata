@@ -10,7 +10,9 @@ import mpdhelper as mpdh
 from consts import consts
 from pluginsystem import pluginsystem, BuiltinPlugin
 
+
 class LyricWiki(object):
+
     def __init__(self):
         self.lyricServer = None
 
@@ -20,7 +22,8 @@ class LyricWiki(object):
                 {'lyrics_fetching': 'get_lyrics_start'}, self))
 
     def get_lyrics_start(self, *args):
-        lyricThread = threading.Thread(target=self.get_lyrics_thread, args=args)
+        lyricThread = threading.Thread(target=self.get_lyrics_thread,
+                                       args=args)
         lyricThread.setDaemon(True)
         lyricThread.start()
 
@@ -35,17 +38,25 @@ class LyricWiki(object):
 
     def get_lyrics_thread(self, callback, artist, title):
         try:
-            lyricpage = urllib.urlopen("http://lyricwiki.org/index.php?title=%s:%s&action=edit" % (self.lyricwiki_format(artist), self.lyricwiki_format(title))).read()
-            content = re.split("<textarea[^>]*>", lyricpage)[1].split("</textarea>")[0]
+            lyricpage = urllib.urlopen(('http://lyricwiki.org/index.php?'
+                                        'title=%s:%s&action=edit') \
+                                       % (self.lyricwiki_format(artist),
+                                          self.lyricwiki_format(title))).read()
+            content = re.split("<textarea[^>]*>",
+                               lyricpage)[1].split("</textarea>")[0]
             content = content.strip()
             redir_tag = "#redirect"
             if content[:len(redir_tag)].lower() == redir_tag:
-                addr = "http://lyricwiki.org/index.php?title=%s&action=edit" % urllib.quote(content.split("[[")[1].split("]]")[0])
+                addr = "http://lyricwiki.org/index.php?title=%s&action=edit" \
+                        % urllib.quote(content.split("[[")[1].split("]]")[0])
                 lyricpage = urllib.urlopen(addr).read()
-                content = re.split("<textarea[^>]*>", lyricpage)[1].split("</textarea>")[0]
+                content = re.split("<textarea[^>]*>",
+                                   lyricpage)[1].split("</textarea>")[0]
                 content = content.strip()
-            lyrics = content.split("&lt;lyrics&gt;")[1].split("&lt;/lyrics&gt;")[0]
-            if lyrics.strip() != "&lt;!-- PUT LYRICS HERE (and delete this entire line) --&gt;":
+            lyrics = content.split(
+                "&lt;lyrics&gt;")[1].split("&lt;/lyrics&gt;")[0]
+            if lyrics.strip() != ('&lt;!-- PUT LYRICS HERE '
+                                  '(and delete this entire line) --&gt;'):
                 lyrics = misc.unescape_html(lyrics)
                 lyrics = misc.wiki_to_html(lyrics)
                 lyrics = lyrics.decode("utf-8")
