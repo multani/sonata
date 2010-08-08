@@ -51,6 +51,8 @@ def wiki_to_html(s):
     return s
 
 def strip_all_slashes(s):
+    if s is None:
+        return ""
     s = s.replace("\\", "")
     s = s.replace("/", "")
     s = s.replace("\"", "")
