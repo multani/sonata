@@ -124,6 +124,12 @@ class PluginSystem(object):
             for plugin in self.plugin_infos
             for feature in plugin.get_features(capability)]
 
+    def get_from_name(self, name):
+        for plugin in self.plugin_infos:
+            if plugin.longname == name:
+                return plugin
+        return None
+
     def notify_of(self, capability, enable_cb, disable_cb):
         self.notifys.append((capability, enable_cb, disable_cb))
         for plugin, feature in self.get(capability):
@@ -168,11 +174,17 @@ class PluginSystem(object):
         info = ConfigParser.SafeConfigParser()
         info.readfp(StringIO.StringIO(uncommented))
 
-        # XXX add only newest version of each name
         plugin = Plugin(path, name, info,
                 lambda:self.import_plugin(name))
 
-        self.plugin_infos.append(plugin)
+        # add only newest version of each name
+        old_plugin = self.get_from_name(plugin.longname)
+        if old_plugin:
+            if plugin.version > old_plugin.version:
+                self.plugin_infos.remove(old_plugin)
+                self.plugin_infos.append(plugin)
+        else:
+            self.plugin_infos.append(plugin)
 
         if not info.options('capabilities'):
             print "Warning: No capabilities in plugin %s." % name
