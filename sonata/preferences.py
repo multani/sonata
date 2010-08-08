@@ -369,7 +369,7 @@ class Preferences():
         art_paths = ["~/.covers/"]
         art_paths += ("%s/%s" % (_("SONG_DIR"), item)
             for item in ("cover.jpg", "album.jpg", "folder.jpg",
-                _("custom")))
+                self.config.art_location_custom_filename or _("custom")))
         art_location = ui.combo(items=art_paths,
             active=self.config.art_location,
             changed_cb=self._art_location_changed)
@@ -786,7 +786,7 @@ class Preferences():
             dialog = ui.dialog(title=_("Custom Artwork"), parent=self.window, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_OK, gtk.RESPONSE_ACCEPT), role='customArtwork', default=gtk.RESPONSE_ACCEPT)
             hbox = gtk.HBox()
             hbox.pack_start(ui.label(text=_('Artwork filename:')), False, False, 5)
-            entry = ui.entry()
+            entry = ui.entry(self.config.art_location_custom_filename)
             entry.set_activates_default(True)
             hbox.pack_start(entry, True, True, 5)
             dialog.vbox.pack_start(hbox)
@@ -794,6 +794,9 @@ class Preferences():
             response = dialog.run()
             if response == gtk.RESPONSE_ACCEPT:
                 self.config.art_location_custom_filename = entry.get_text().replace("/", "")
+                iter = combobox.get_active_iter()
+                model = combobox.get_model()
+                model.set(iter, 0, "SONG_DIR/" + (self.config.art_location_custom_filename or _("custom")))
             else:
                 # Revert to non-custom item in combobox:
                 combobox.set_active(self.config.art_location)
