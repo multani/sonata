@@ -15,8 +15,10 @@ from consts import consts
 if view == consts.VIEW_ALBUM: ...
 """
 
+
 class Constants:
     """This class contains the constant definitions as attributes."""
+
     def __init__(self):
         self.ART_LOCAL = 0
         self.ART_LOCAL_REMOTE = 1
@@ -35,7 +37,9 @@ class Constants:
         self.ART_LOCATION_CUSTOM = 4          # file_dir/[custom]
         self.ART_LOCATION_SINGLE = 6
         self.ART_LOCATION_MISC = 7
-        self.ART_LOCATIONS_MISC = ['front.jpg', '.folder.jpg', '.folder.png', 'AlbumArt.jpg', 'AlbumArtSmall.jpg']
+        self.ART_LOCATIONS_MISC = ['front.jpg', '.folder.jpg',
+                               '.folder.png', 'AlbumArt.jpg',
+                                   'AlbumArtSmall.jpg']
         self.LYRICS_LOCATION_HOME = 0         # ~/.lyrics/[artist]-[song].txt
         self.LYRICS_LOCATION_PATH = 1         # file_dir/[artist]-[song].txt
         self.LYRICS_LOCATION_HOME_ALT = 2     # ~/.lyrics/[artist] - [song].txt
@@ -50,6 +54,7 @@ class Constants:
         self.NUM_ARTISTS_FOR_VA = 2
 
         # the names of the plug-ins that will be enabled by default
-        self.DEFAULT_PLUGINS = "playlists streams lyricwiki rhapsodycovers localmpd".split()
+        self.DEFAULT_PLUGINS = ('playlists streams lyricwiki '
+                                'rhapsodycovers localmpd').split()
 
 consts = Constants()
