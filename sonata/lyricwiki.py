@@ -33,12 +33,12 @@ class LyricWiki(object):
     def lyricwiki_editlink(self, songinfo):
         artist, title = [self.lyricwiki_format(mpdh.get(songinfo, key))
                  for key in ('artist', 'title')]
-        return ("http://lyricwiki.org/index.php?title=%s:%s&action=edit" %
+        return ("http://lyrics.wikia.com/index.php?title=%s:%s&action=edit" %
             (artist, title))
 
     def get_lyrics_thread(self, callback, artist, title):
         try:
-            lyricpage = urllib.urlopen(('http://lyricwiki.org/index.php?'
+            lyricpage = urllib.urlopen(('http://lyrics.wikia.com/index.php?'
                                         'title=%s:%s&action=edit') \
                                        % (self.lyricwiki_format(artist),
                                           self.lyricwiki_format(title))).read()
@@ -47,7 +47,7 @@ class LyricWiki(object):
             content = content.strip()
             redir_tag = "#redirect"
             if content[:len(redir_tag)].lower() == redir_tag:
-                addr = "http://lyricwiki.org/index.php?title=%s&action=edit" \
+                addr = "http://lyrics.wikia.com/index.php?title=%s&action=edit" \
                         % urllib.quote(content.split("[[")[1].split("]]")[0])
                 lyricpage = urllib.urlopen(addr).read()
                 content = re.split("<textarea[^>]*>",
