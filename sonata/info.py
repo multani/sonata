@@ -462,7 +462,7 @@ class Info(object):
     def target_lyrics_filename(self, artist, title, song_dir,
                                force_location=None):
         # FIXME Why did we have this condition here: if self.conn:
-        lyrics_loc = force_location if force_location elsea\
+        lyrics_loc = force_location if force_location else \
                 self.config.lyrics_location
         # Note: *_ALT searching is for compatibility with other mpd clients
         # (like ncmpcpp):

@@ -683,7 +683,7 @@ class Library(object):
                    != unicode(self.library_get_data(albums[i + j],
                                                     'album')).lower() or \
                    self.library_get_data(albums[i], 'year') != \
-                   self.library_get_data(albums[i + j], 'year') \ or \
+                   self.library_get_data(albums[i + j], 'year') or \
                    self.library_get_data(albums[i], 'path') != \
                    self.library_get_data(albums[i + j], 'path'):
                     break
@@ -811,7 +811,7 @@ class Library(object):
     def library_populate_data_songs(self, genre, artist, album, year):
         bd = []
         if genre is not None:
-            songs, _playtime, _num_songs =
+            songs, _playtime, _num_songs = \
             self.library_return_search_items(genre=genre, artist=artist,
                                              album=album, year=year)
         else:

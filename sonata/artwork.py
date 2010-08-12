@@ -677,7 +677,7 @@ class Artwork(object):
             self.fullscreenalbumlabel.set_markup(('<span size=\'20000\' '
                                                   'color=\'white\'>%s</span>')
                                                  % (misc.escape_html(line1)))
-            self.fullscreenalbumlabel2.set_markup(('<span size\='12000\'
+            self.fullscreenalbumlabel2.set_markup(('<span size=\'12000\' '
                                                    'color=\'white\'>%s</span>')
                                                   % (misc.escape_html(line2)))
         else:
