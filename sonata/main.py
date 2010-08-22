@@ -98,6 +98,8 @@ class Base(object):
 
         self.client = mpd.MPDClient()
         self.conn = False
+        # Anything != than self.conn, to actually refresh the UI at startup.
+        self.prevconn = not self.conn
 
         # Constants
         self.TAB_CURRENT = _("Current")
@@ -131,7 +133,6 @@ class Base(object):
         # Initialize vars for GUI
         self.current_tab = self.TAB_CURRENT
 
-        self.prevconn = self.conn
         self.prevstatus = None
         self.prevsonginfo = None
 
