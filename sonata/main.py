@@ -1018,6 +1018,13 @@ class Base(object):
         self.update_status()
         self.info_update(False)
 
+        # XXX: this is subject to race condition, since self.conn can be changed
+        # in another thread:
+        # 1. self.conn == self.prevconn (stable state)
+        # 2. This if is tested and self.handle_change_conn is not called
+        # 3. The connection thread updates self.conn
+        # 4. self.prevconn = self.conn and we never get into the connected state
+        # (or maybe throught another way, but well).
         if self.conn != self.prevconn:
             self.handle_change_conn()
         if self.status != self.prevstatus:
