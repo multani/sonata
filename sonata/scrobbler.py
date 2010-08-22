@@ -96,15 +96,13 @@ class Scrobbler(object):
             elif (prevsong_time and
                   (self.scrob_last_prepared != current_file or
                    (self.scrob_last_prepared == current_file and
-                    elapsed_prev and abs(elapsed_prev - length) <= 2 and
-                    self.elapsed_now <= 2 and length > 0))):
+                    elapsed_prev and self.elapsed_now <= 1 and
+                    self.elapsed_now < elapsed_prev and length > 0))):
                 # New song is playing, post previous track if time criteria is
                 # met. In order to account for the situation where the same
-                # song is played twice in a row, we will check if the previous
-                # time was the end of the song and we're now at the beginning
-                # of the same song.. this technically isn't right in the case
-                # where a user seeks back to the beginning, but that's an edge
-                # case.
+                # song is played twice in a row, we will check if previous
+                # elapsed time was larger than current and we're at the
+                # beginning of the same song now
                 if self.scrob_playing_duration > 4 * 60 or \
                    self.scrob_playing_duration > int(prevsong_time) / 2:
                     if self.scrob_start_time != "":
