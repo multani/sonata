@@ -271,6 +271,7 @@ class Base(object):
             ('plmenu', None, _('Sa_ve Selected to')),
             ('profilesmenu', None, _('_Connection')),
             ('playaftermenu', None, _('P_lay after')),
+            ('playmodemenu', None, _('Play _Mode')),
             ('updatemenu', None, _('_Update')),
             ('chooseimage_menu', gtk.STOCK_CONVERT, _('Use _Remote Image...'),
              None, None, self.image_remote),
@@ -391,6 +392,13 @@ class Base(object):
                 <menuitem action="prevmenu"/>
                 <menuitem action="nextmenu"/>
                 <separator name="FM2"/>
+                <menu action="playmodemenu">
+                  <menuitem action="repeatmenu"/>
+                  <menuitem action="randommenu"/>
+                </menu>
+                <menuitem action="fullscreencoverart_menu"/>
+                <menuitem action="preferencemenu"/>
+                <separator name="FM3"/>
                 <menuitem action="quitmenu"/>
               </popup>
               <popup name="mainmenu">
