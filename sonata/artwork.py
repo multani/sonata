@@ -576,7 +576,7 @@ class Artwork(object):
             case = self.casepb.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
             # Scale pix and shift to the right on a transparent pixbuf:
             pix = pix.scale_simple(w - spine_width, h, gtk.gdk.INTERP_BILINEAR)
-            blank = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 9, w, h)
+            blank = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, w, h)
             blank.fill(0x00000000)
             pix.copy_area(0, 0, pix.get_width(), pix.get_height(), blank,
                           spine_width, 0)
