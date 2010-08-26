@@ -2835,6 +2835,13 @@ class Base(object):
             self.traytips._remove_timer()
 
     def withdraw_app_undo(self):
+        # get desktop size
+        ws_width, ws_height = gtk.gdk.get_default_root_window().get_size()
+        # convert window coordinates to current workspace so sonata
+        # will always appear on the current workspace with the same
+        # position as it was before (may be on the other workspace)
+        self.config.x %= ws_width
+        self.config.y %= ws_height
         self.window.move(self.config.x, self.config.y)
         if not self.config.expanded:
             self.notebook.set_no_show_all(True)
