@@ -189,8 +189,9 @@ class Base(object):
         self.tabname2focus = dict()
         self.plugintabs = dict()
 
-        self.config = Config(_('Default Profile'), _("by") + ' %A ' +
-                             _("from") + ' %B', library.library_set_data)
+        self.config = Config(_('Default Profile'), '%s %%A %s %%B' % (_("by"),
+                                                                   _("from"),),
+                             library.library_set_data)
         self.preferences = preferences.Preferences(self.config,
             self.on_connectkey_pressed, self.on_currsong_notify,
             self.update_infofile, self.settings_save,
