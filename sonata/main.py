@@ -1808,7 +1808,7 @@ class Base(object):
                     else:
                         status_text = ''
                     if updatingdb:
-                        status_text = '%s   %s' % (status_text, _(('(updating'
+                        status_text = '%s   %s' % (status_text, _(('(updating '
                                                                   'mpd)')),)
                 except:
                     status_text = ''
