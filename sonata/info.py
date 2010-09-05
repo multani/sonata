@@ -462,15 +462,17 @@ class Info(object):
                 self.config.lyrics_location
         # Note: *_ALT searching is for compatibility with other mpd clients
         # (like ncmpcpp):
+        if song_dir is not None:
+            song_dir.replace('%', '%%')
         file_map = {
             consts.LYRICS_LOCATION_HOME: ("~/.lyrics", "%s-%s.txt"),
             consts.LYRICS_LOCATION_PATH:
             (self.config.musicdir[self.config.profile_num].replace('%', '%%'),
-             song_dir.replace('%', '%%'), "%s-%s.txt"),
+             song_dir, "%s-%s.txt"),
             consts.LYRICS_LOCATION_HOME_ALT: ("~/.lyrics", "%s - %s.txt"),
             consts.LYRICS_LOCATION_PATH_ALT:
             (self.config.musicdir[self.config.profile_num].replace('%', '%%'),
-             song_dir.replace('%', '%%'), "%s - %s.txt"),
+             song_dir, "%s - %s.txt"),
                }
         return misc.file_from_utf8(misc.file_exists_insensitive(
                     os.path.expanduser(
