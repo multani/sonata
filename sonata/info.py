@@ -431,11 +431,7 @@ class Info(object):
             if error:
                 self.lyricsText.get_buffer().set_text(error)
             elif lyrics:
-                try:
-                    self.lyricsText.get_buffer().set_text(misc.escape_html(
-                        lyrics))
-                except: ### XXX why would this happen?
-                    self.lyricsText.get_buffer().set_text(lyrics)
+                self.lyricsText.get_buffer().set_text(lyrics)
             else:
                 self.lyricsText.get_buffer().set_text("")
 
