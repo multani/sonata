@@ -5,6 +5,8 @@ import os
 import locale
 
 import gtk
+import pango
+import gobject
 
 import ui
 import misc
@@ -146,6 +148,7 @@ class Info(object):
         self.info_lyrics.connect("activate", self._expanded, "lyrics")
         lyricsbox = gtk.VBox()
         self.lyricsText = ui.textview(text="", edit=False, wrap=True)
+        self._populate_lyrics_tag_table()
         self.lyricsSw = ui.scrollwindow(policy_x=gtk.POLICY_NEVER,
                                         policy_y=gtk.POLICY_NEVER,
                                         add=self.lyricsText)
@@ -431,9 +434,59 @@ class Info(object):
             if error:
                 self.lyricsText.get_buffer().set_text(error)
             elif lyrics:
-                self.lyricsText.get_buffer().set_text(lyrics)
+                self._set_lyrics(lyrics)
             else:
                 self.lyricsText.get_buffer().set_text("")
+
+    def _set_lyrics(self, lyrics):
+        if lyrics is None:
+            return
+
+        lyrics_buf = self.lyricsText.get_buffer()
+        lyrics_buf.set_text('')
+
+        # pango needs only ampersand to be escaped
+        lyrics = misc.unescape_html(lyrics).replace('&', '&amp;')
+
+        try:
+            attr_list, plain_text, accel_marker = pango.parse_markup(lyrics)
+        except:
+            # failed to parse, use lyrics as it is
+            lyrics_buf.set_text(lyrics)
+            return
+
+        attr_iter = attr_list.get_iterator()
+
+        while True:
+            range = attr_iter.range()
+            font = attr_iter.get_font()[0]
+            text = plain_text[range[0]:range[1]]
+
+            tags = []
+            if font.get_weight() == pango.WEIGHT_BOLD:
+                tags.append('bold')
+            if font.get_style() == pango.STYLE_ITALIC:
+                tags.append('italic')
+
+            if tags:
+                lyrics_buf.insert_with_tags_by_name(lyrics_buf.get_end_iter(),
+                                                    text, *tags)
+            else:
+                lyrics_buf.insert(lyrics_buf.get_end_iter(), text)
+
+            if not attr_iter.next():
+                break
+
+    def _populate_lyrics_tag_table(self):
+        tag_table = self.lyricsText.get_buffer().get_tag_table()
+
+        bold_tag = gtk.TextTag('bold')
+        bold_tag.set_property('weight', pango.WEIGHT_BOLD)
+        tag_table.add(bold_tag)
+
+        italic_tag = gtk.TextTag('italic')
+        italic_tag.set_property('style', pango.STYLE_ITALIC)
+        tag_table.add(italic_tag)
 
     def resize_elements(self, notebook_allocation):
         # Resize labels in info tab to prevent horiz scrollbar:
