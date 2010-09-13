@@ -1,11 +1,14 @@
 
 import os
-import gtk, gobject
+import gobject
+import gtk
 
 from . import ui, img
 
+
 class TrayIconTips(gtk.Window):
-    """Custom tooltips derived from gtk.Window() that allow for markup text and multiple widgets, e.g. a progress bar. ;)"""
+    """Custom tooltips derived from gtk.Window() that allow for markup text and
+    multiple widgets, e.g. a progress bar. ;)"""
     MARGIN = 4
 
     def __init__(self):
@@ -41,13 +44,13 @@ class TrayIconTips(gtk.Window):
         monitor = screen.get_monitor_geometry(monitor_num)
 
         try:
-            # If the tooltip goes off the screen horizontally, realign it so that
-            # it all displays.
+            # If the tooltip goes off the screen horizontally, realign it so
+            # that it all displays.
             if (x + w) > monitor.x + monitor.width:
                 x = monitor.x + monitor.width - w
-            # If the tooltip goes off the screen vertically (i.e. the system tray
-            # icon is on the bottom of the screen), realign the icon so that it
-            # shows above the icon.
+            # If the tooltip goes off the screen vertically (i.e. the system
+            # tray icon is on the bottom of the screen), realign the icon so
+            # that it shows above the icon.
             if ((y + h + height + self.MARGIN) >
                 monitor.y + monitor.height):
                 y = y - h - self.MARGIN
@@ -75,14 +78,17 @@ class TrayIconTips(gtk.Window):
         elif self.notifications_location == 3:
             return monitor.x, monitor.y + monitor.height - h
         elif self.notifications_location == 4:
-            return monitor.x + monitor.width - w, monitor.y + monitor.height - h
+            return monitor.x + monitor.width - w, \
+                    monitor.y + monitor.height - h
         elif self.notifications_location == 5:
-            return monitor.x + (monitor.width - w)/2, monitor.y + (monitor.height - h)/2
+            return monitor.x + (monitor.width - w) / 2, \
+                    monitor.y + (monitor.height - h) / 2
 
-    def _start_delay (self, tray_icon):
-        self.timer_tag = gobject.timeout_add(500, self._tips_timeout, tray_icon)
+    def _start_delay(self, tray_icon):
+        self.timer_tag = gobject.timeout_add(500, self._tips_timeout,
+                                             tray_icon)
 
-    def _tips_timeout (self, tray_icon):
+    def _tips_timeout(self, tray_icon):
         self.use_notifications_location = False
         self._real_display(tray_icon)
 
@@ -114,9 +120,8 @@ class TrayIconTips(gtk.Window):
         self._show_timeout_id = -1
         self.notif_handler = None
 
-    def add_widget (self, widget_to_add):
+    def add_widget(self, widget_to_add):
         self.add(widget_to_add)
-
 
 
 def get_tray_icon_factory():
@@ -230,13 +235,12 @@ class TrayIconEgg(object):
         self.trayimage.set_from_pixbuf(
             img.get_pixbuf_of_size(
                 gtk.gdk.pixbuf_new_from_file(self.eggtrayfile),
-                self.eggtrayheight
-            )[0])
+                self.eggtrayheight)[0])
 
     def _event_handler(self):
         self.trayeventbox.connect_after("event-after", self._motion_cb)
 
-    def _motion_cb (self, tray_icon, event):
+    def _motion_cb(self, tray_icon, event):
         if self.traytips.notif_handler != None:
             return
         if event.type == gtk.gdk.LEAVE_NOTIFY:
@@ -269,7 +273,7 @@ class TrayIconGtk(object):
         _icon_screen, icon_rect, _icon_orient = self.statusicon.get_geometry()
         x = icon_rect[0]
         y = icon_rect[1]
-        width  = icon_rect[3]
+        width = icon_rect[3]
         height = icon_rect[3]
         return (x, y, width, height)
 
@@ -310,12 +314,14 @@ class TrayIconGtk(object):
         # handler has a value, because that means that the tooltip is already
         # visible, and we don't want to override that setting simply because
         # the user's cursor is not over the tooltip.
-        if self.traymenu.get_property('visible') and self.traytips.notif_handler != -1:
+        if self.traymenu.get_property('visible') and \
+           self.traytips.notif_handler != -1:
             self.traytips._remove_timer()
         elif not self.traytips.notif_handler:
-            _pscreen, px, py, _mods = self.window.get_screen().get_display().get_pointer()
+            _pscreen, px, py, _mods = \
+                    self.window.get_screen().get_display().get_pointer()
             x, y, width, height = self.compute_pos()
-            if px >= x and px <= x+width and py >= y and py <= y+height:
+            if px >= x and px <= x + width and py >= y and py <= y + height:
                 self.traytips._start_delay(self)
             else:
                 self.traytips._remove_timer()
