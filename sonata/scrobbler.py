@@ -11,14 +11,18 @@ self.scrobbler.init()
 self.scrobbler.handle_change_status(False, self.prevsonginfo)
 """
 
-import os, time, sys
+import os
+import sys
 import threading # init, np, post start threads init_thread, do_np, do_post
+import time
 
 audioscrobbler = None # imported when first needed
 
 import mpdhelper as mpdh
 
+
 class Scrobbler(object):
+
     def __init__(self, config):
         self.config = config
 
@@ -32,8 +36,8 @@ class Scrobbler(object):
 
     def import_module(self, _show_error=False):
         """Import the audioscrobbler module"""
-        # We need to try to import audioscrobbler either when the app starts (if
-        # as_enabled=True) or if the user enables it in prefs.
+        # We need to try to import audioscrobbler either when the app starts
+        # (if as_enabled=True) or if the user enables it in prefs.
         global audioscrobbler
         if audioscrobbler is None:
             import audioscrobbler
@@ -44,7 +48,9 @@ class Scrobbler(object):
 
     def init(self):
         """Initialize the Audioscrobbler support if enabled and configured"""
-        if audioscrobbler is not None and self.config.as_enabled and len(self.config.as_username) > 0 and len(self.config.as_password_md5) > 0:
+        if audioscrobbler is not None and self.config.as_enabled and \
+           len(self.config.as_username) > 0 and \
+           len(self.config.as_password_md5) > 0:
             thread = threading.Thread(target=self.init_thread)
             thread.setDaemon(True)
             thread.start()
@@ -53,12 +59,16 @@ class Scrobbler(object):
         if self.scrob is None:
             self.scrob = audioscrobbler.AudioScrobbler()
         if self.scrob_post is None:
-            self.scrob_post = self.scrob.post(self.config.as_username, self.config.as_password_md5, verbose=True)
+            self.scrob_post = self.scrob.post(self.config.as_username,
+                                              self.config.as_password_md5,
+                                              verbose=True)
         else:
             if self.scrob_post.authenticated:
                 return # We are authenticated
             else:
-                self.scrob_post = self.scrob.post(self.config.as_username, self.config.as_password_md5, verbose=True)
+                self.scrob_post = self.scrob.post(self.config.as_username,
+                                                  self.config.as_password_md5,
+                                                  verbose=True)
         try:
             self.scrob_post.auth()
         except Exception, e:
@@ -67,7 +77,8 @@ class Scrobbler(object):
         if self.scrob_post:
             self.retrieve_cache()
 
-    def handle_change_status(self, state, prevstate, prevsonginfo, songinfo=None, mpd_time_now=None):
+    def handle_change_status(self, state, prevstate, prevsonginfo,
+                             songinfo=None, mpd_time_now=None):
         """Handle changes to play status, submitting info as appropriate"""
         if prevsonginfo and 'time' in prevsonginfo:
             prevsong_time = mpdh.get(prevsonginfo, 'time')
@@ -76,21 +87,26 @@ class Scrobbler(object):
 
         if state in ('play', 'pause'):
             elapsed_prev = self.elapsed_now
-            self.elapsed_now, length = [float(c) for c in mpd_time_now.split(':')]
+            self.elapsed_now, length = [float(c) for c in
+                                        mpd_time_now.split(':')]
             current_file = mpdh.get(songinfo, 'file')
             if prevstate == 'stop':
                 # Switched from stop to play, prepare current track:
                 self.prepare(songinfo)
             elif (prevsong_time and
                   (self.scrob_last_prepared != current_file or
-                   (self.scrob_last_prepared == current_file and elapsed_prev and
-                abs(elapsed_prev-length)<=2 and self.elapsed_now<=2 and length>0))):
-                # New song is playing, post previous track if time criteria is met.
-                # In order to account for the situation where the same song is played twice in
-                # a row, we will check if the previous time was the end of the song and we're
-                # now at the beginning of the same song.. this technically isn't right in
-                # the case where a user seeks back to the beginning, but that's an edge case.
-                if self.scrob_playing_duration > 4 * 60 or self.scrob_playing_duration > int(prevsong_time)/2:
+                   (self.scrob_last_prepared == current_file and
+                    elapsed_prev and abs(elapsed_prev - length) <= 2 and
+                    self.elapsed_now <= 2 and length > 0))):
+                # New song is playing, post previous track if time criteria is
+                # met. In order to account for the situation where the same
+                # song is played twice in a row, we will check if the previous
+                # time was the end of the song and we're now at the beginning
+                # of the same song.. this technically isn't right in the case
+                # where a user seeks back to the beginning, but that's an edge
+                # case.
+                if self.scrob_playing_duration > 4 * 60 or \
+                   self.scrob_playing_duration > int(prevsong_time) / 2:
                     if self.scrob_start_time != "":
                         self.post(prevsonginfo)
                 # Prepare current track:
@@ -104,7 +120,8 @@ class Scrobbler(object):
         else: # stopped:
             self.elapsed_now = 0
             if prevsong_time:
-                if self.scrob_playing_duration > 4 * 60 or self.scrob_playing_duration > int(prevsong_time)/2:
+                if self.scrob_playing_duration > 4 * 60 or \
+                   self.scrob_playing_duration > int(prevsong_time) / 2:
                     # User stopped the client, post previous track if time
                     # criteria is met:
                     if self.scrob_start_time != "":
@@ -176,12 +193,13 @@ class Scrobbler(object):
                 else:
                     tracknumber = mpdh.get(prevsonginfo, 'track')
                 try:
-                    self.scrob_post.addtrack(mpdh.get(prevsonginfo, 'artist'),
-                                                mpdh.get(prevsonginfo, 'title'),
-                                                mpdh.get(prevsonginfo, 'time'),
-                                                self.scrob_start_time,
-                                                tracknumber,
-                                                album)
+                    self.scrob_post.addtrack(
+                        mpdh.get(prevsonginfo, 'artist'),
+                        mpdh.get(prevsonginfo, 'title'),
+                        mpdh.get(prevsonginfo, 'time'),
+                        self.scrob_start_time,
+                        tracknumber,
+                        album)
                 except:
                     print sys.exc_info()[1]
 
@@ -212,4 +230,3 @@ class Scrobbler(object):
         filename = os.path.expanduser('~/.config/sonata/ascache')
         if self.scrob_post:
             self.scrob_post.retrievecache(filename)
-
