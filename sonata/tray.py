@@ -156,7 +156,7 @@ class TrayIconDummy(object):
     def compute_pos(self):
         pass
 
-    def initialize(self, on_menu, on_click, on_scroll, on_activate):
+    def initialize(self, on_click, on_scroll, on_activate):
         pass
 
     def is_visible(self):
@@ -196,7 +196,7 @@ class TrayIconEgg(object):
         width = widget.allocation.width
         return x, y, width, height
 
-    def initialize(self, on_menu, on_click, on_scroll, on_activate):
+    def initialize(self, on_click, on_scroll, on_activate):
         # Local import to not break if egg.trayicon is not available
         import egg.trayicon
         self.trayimage = ui.image()
@@ -273,9 +273,8 @@ class TrayIconGtk(object):
         height = icon_rect[3]
         return (x, y, width, height)
 
-    def initialize(self, on_menu, on_click, on_scroll, on_activate):
+    def initialize(self, on_click, on_scroll, on_activate):
         self.statusicon = gtk.StatusIcon()
-        self.statusicon.connect('popup_menu', on_menu)
         self.statusicon.connect('activate', on_activate)
         self.statusicon.connect('button_press_event', on_click)
         self.statusicon.connect('scroll-event', on_scroll)
