@@ -341,7 +341,7 @@ class Info(object):
                 return filename
 
     def get_lyrics_start(self, search_artist, search_title, filename_artist,
-                         filename_title, song_dir):
+                         filename_title, song_dir, force_fetch=False):
         filename_artist = misc.strip_all_slashes(filename_artist)
         filename_title = misc.strip_all_slashes(filename_title)
         filename = self._check_for_local_lyrics(filename_artist,
@@ -357,11 +357,19 @@ class Info(object):
                     lyrics = f.read()
             except IOError:
                 pass
+
             if lyrics == _("Lyrics not found"):
-                misc.remove_file(filename)
+                force_fetch = True
+
+        if force_fetch:
+            # Remove all lyrics for this song
+            while filename is not None:
                 filename = self._check_for_local_lyrics(filename_artist,
                                                         filename_title,
                                                         song_dir)
+                if filename is not None:
+                    misc.remove_file(filename)
+
         if filename:
             # Re-use lyrics from file:
             try:
