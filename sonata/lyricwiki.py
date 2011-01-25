@@ -1,3 +1,4 @@
+from HTMLParser import HTMLParser
 import os
 import urllib
 import re
@@ -40,11 +41,14 @@ class LyricWiki(object):
     def get_lyrics_thread(self, callback, artist, title):
 
         re_textarea = re.compile(r'<textarea[^>]*>')
-        NO_LYRICS = '&lt;!-- PUT LYRICS HERE (and delete this entire line) --&gt;'
+        NO_LYRICS = '<!-- PUT LYRICS HERE (and delete this entire line) -->'
 
         def get_content(page):
             content = page.read()
             content = re_textarea.split(content)[1].split("</textarea>")[0]
+            # Transform HTML entities, like '&lt;' into '<', of the textarea
+            # content.
+            content = HTMLParser().unescape(content)
             return content.strip()
 
         try:
@@ -57,7 +61,7 @@ class LyricWiki(object):
                         % urllib.quote(content.split("[[")[1].split("]]")[0])
                 content = get_content(urllib.urlopen(addr))
 
-            lyrics = content.split("&lt;lyrics&gt;")[1].split("&lt;/lyrics&gt;")[0].strip()
+            lyrics = content.split("<lyrics>")[1].split("</lyrics>")[0].strip()
             if lyrics != NO_LYRICS:
                 lyrics = misc.unescape_html(lyrics)
                 lyrics = misc.wiki_to_html(lyrics)
