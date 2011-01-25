@@ -329,10 +329,11 @@ class Info(object):
                                                        'not set.')))
 
     def _check_for_local_lyrics(self, artist, title, song_dir):
-        locations = [consts.LYRICS_LOCATION_HOME,
-                consts.LYRICS_LOCATION_PATH,
-                consts.LYRICS_LOCATION_HOME_ALT,
-                consts.LYRICS_LOCATION_PATH_ALT]
+        locations = [
+            consts.LYRICS_LOCATION_HOME,
+            consts.LYRICS_LOCATION_PATH,
+            consts.LYRICS_LOCATION_HOME_ALT,
+            consts.LYRICS_LOCATION_PATH_ALT]
         for location in locations:
             filename = self.target_lyrics_filename(artist, title,
                                 song_dir, location)
@@ -340,7 +341,7 @@ class Info(object):
                 return filename
 
     def get_lyrics_start(self, search_artist, search_title, filename_artist,
-                         filename_title, song_dir):
+                         filename_title, song_dir, force_fetch=False):
         filename_artist = misc.strip_all_slashes(filename_artist)
         filename_title = misc.strip_all_slashes(filename_title)
         filename = self._check_for_local_lyrics(filename_artist,
@@ -356,11 +357,19 @@ class Info(object):
                     lyrics = f.read()
             except IOError:
                 pass
+
             if lyrics == _("Lyrics not found"):
-                misc.remove_file(filename)
+                force_fetch = True
+
+        if force_fetch:
+            # Remove all lyrics for this song
+            while filename is not None:
                 filename = self._check_for_local_lyrics(filename_artist,
                                                         filename_title,
                                                         song_dir)
+                if filename is not None:
+                    misc.remove_file(filename)
+
         if filename:
             # Re-use lyrics from file:
             try:
@@ -510,24 +519,31 @@ class Info(object):
 
     def target_lyrics_filename(self, artist, title, song_dir,
                                force_location=None):
+        """get the filename of the lyrics of a song"""
+
+        cfg = self.config # alias for easier access
+
         # FIXME Why did we have this condition here: if self.conn:
-        lyrics_loc = force_location if force_location else \
-                self.config.lyrics_location
-        # Note: *_ALT searching is for compatibility with other mpd clients
-        # (like ncmpcpp):
+        lyrics_loc = force_location if force_location else cfg.lyrics_location
+
         if song_dir is not None:
             song_dir.replace('%', '%%')
+
+        music_dir = cfg.musicdir[cfg.profile_num].replace('%', '%%')
+        pattern1 = "%s-%s.txt"
+        pattern2 = "%s - %s.txt"
+
+        # Note: *_ALT searching is for compatibility with other mpd clients
+        # (like ncmpcpp):
         file_map = {
-            consts.LYRICS_LOCATION_HOME: ("~/.lyrics", "%s-%s.txt"),
-            consts.LYRICS_LOCATION_PATH:
-            (self.config.musicdir[self.config.profile_num].replace('%', '%%'),
-             song_dir, "%s-%s.txt"),
-            consts.LYRICS_LOCATION_HOME_ALT: ("~/.lyrics", "%s - %s.txt"),
-            consts.LYRICS_LOCATION_PATH_ALT:
-            (self.config.musicdir[self.config.profile_num].replace('%', '%%'),
-             song_dir, "%s - %s.txt"),
-               }
-        return misc.file_from_utf8(misc.file_exists_insensitive(
-                    os.path.expanduser(
-                    os.path.join(*file_map[lyrics_loc]))
-                         % (artist, title)))
+            consts.LYRICS_LOCATION_HOME: ("~/.lyrics", pattern1),
+            consts.LYRICS_LOCATION_PATH: (music_dir, song_dir, pattern1),
+            consts.LYRICS_LOCATION_HOME_ALT: ("~/.lyrics", pattern2),
+            consts.LYRICS_LOCATION_PATH_ALT: (music_dir, song_dir, pattern2),
+        }
+
+        file_path = os.path.join(*file_map[lyrics_loc])
+        file_path = os.path.expanduser(file_path) % (artist, title)
+
+        return misc.file_from_utf8(
+            misc.file_exists_insensitive(file_path))

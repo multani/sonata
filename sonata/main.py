@@ -2209,15 +2209,15 @@ class Base(object):
         ui.show(dialog.vbox)
         response = dialog.run()
         if response == gtk.RESPONSE_ACCEPT:
-            # Delete current lyrics:
-            filename = self.info.target_lyrics_filename(artist, title, None,
-                                                   consts.LYRICS_LOCATION_HOME)
-            misc.remove_file(filename)
             # Search for new lyrics:
-            self.info.get_lyrics_start(artist_entry.get_text(),
-                                       title_entry.get_text(), artist, title,
-                                       os.path.dirname(mpdh.get(self.songinfo,
-                                                                'file')))
+            self.info.get_lyrics_start(
+                artist_entry.get_text(),
+                title_entry.get_text(),
+                artist,
+                title,
+                os.path.dirname(mpdh.get(self.songinfo, 'file')),
+                force_fetch=True)
+
         dialog.destroy()
 
     def mpd_shuffle(self, _action):
