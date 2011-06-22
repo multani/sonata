@@ -227,6 +227,11 @@ class TrayIconEgg(object):
         return True
 
     def _set_tray_image(self):
+        if self.eggtrayheight is None:
+            # The tray height has not been computed yet, so we can't display the
+            # tray icon yet.
+            return
+
         self.trayimage.set_from_pixbuf(
             img.get_pixbuf_of_size(
                 gtk.gdk.pixbuf_new_from_file(self.eggtrayfile),
