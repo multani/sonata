@@ -1,0 +1,6 @@
+#!/usr/bin/env python
+
+import sonata.launcher
+
+if __name__ == '__main__':
+    sonata.launcher.run()
