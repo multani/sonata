@@ -53,6 +53,12 @@ VERSION = 'v%s'
 """ % version)
 versionfile.close()
 
+
+tests_require = [
+    'unittest2',
+]
+
+
 setup(name='Sonata',
         version=version,
         description='GTK+ client for the Music Player Daemon (MPD).',
@@ -108,6 +114,11 @@ setup(name='Sonata',
               'sonata=sonata.launcher:run',
           ]
       },
+    test_suite='sonata.tests',
+    tests_require=tests_require,
+    extras_require={
+        'test': tests_require,
+    },
 )
 
 # Cleanup (remove /build, /mo, and *.pyc files:
