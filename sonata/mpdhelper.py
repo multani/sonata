@@ -5,24 +5,83 @@ import os
 from time import strftime
 from misc import remove_list_duplicates
 
-suppress_errors = False
 
+class MPDHelper(object):
+    def __init__(self, client):
+        self.client = client
+        self.suppress_error = False
 
-def suppress_mpd_errors(val):
-    global suppress_errors
-    suppress_errors = val
+    def call(self, command, *args):
+        try:
+            retval = getattr(self.client, command)(*args)
+        except:
+            # XXX make the distinction between bad getattr() call and bad MPD
+            # call?
+            if not command in ['disconnect', 'lsinfo', 'listplaylists']:
+                if not self.suppress_error:
+                    # XXX use logging instead
+                    print '%s  %s' % (strftime("%Y-%m-%d %H:%M:%S"),
+                                      # XXX sys.exc_info() ?!
+                                      str(sys.exc_info()[1]))
+            if command in ['lsinfo', 'list']:
+                return []
+            else:
+                return None
 
+        return retval
 
-def status(client):
-    result = call(client, 'status')
-    if result and 'state' in result:
-        return result
-    else:
-        return {}
+    def status(self):
+        result = self.call('status')
+        if result and 'state' in result:
+            return result
+        else:
+            return {}
 
+    def currsong(self):
+        return self.call('currentsong')
 
-def currsong(client):
-    return call(client, 'currentsong')
+    @property
+    def version(self):
+        # XXX this is not supposed to change, unless the client reconnect to
+        # another server (or the same, upgraded). We should compute this once,
+        # after the initial client connection.
+        try:
+            version = getattr(self.client, "mpd_version", "0.0")
+            return version.split(".")
+        except:
+            # XXX what exception are we expecting here!?
+            return (0, 0)
+
+    def update(self,  paths):
+        # mpd 0.14.x limits the number of paths that can be
+        # updated within a command_list at 32. If we have
+        # >32 directories, we bail and update the entire library.
+        #
+        # If we want to get trickier in the future, we can find
+        # the 32 most specific parents that cover the set of files.
+        # This would lower the possibility of resorting to a full
+        # library update.
+        #
+        # Note: If a future version of mpd relaxes this limit,
+        # we should make the version check more specific to 0.14.x
+
+        if mpd_is_updating(self.status()):
+            return
+
+        # Updating paths seems to be faster than updating files for
+        # some reason:
+        dirs = []
+        for path in paths:
+            dirs.append(os.path.dirname(path))
+        dirs = remove_list_duplicates(dirs, True)
+
+        if len(dirs) > 32 and self.version >= (0, 14):
+            self.client.update('/')
+        else:
+            self.client.command_list_ok_begin()
+            for directory in dirs:
+                self.client.update(directory)
+            self.client.command_list_end()
 
 
 def get(mapping, key, alt='', *sanitize_args):
@@ -54,69 +113,6 @@ def _sanitize(tag, return_int=False, str_padding=0):
     return tag.zfill(str_padding)
 
 
-def conout(s):
-    # A kind of 'print' which does not throw exceptions if the string
-    # to print cannot be converted to console encoding; instead it
-    # does a "readable" conversion
-    print s.encode(locale.getpreferredencoding(), "replace")
-
-
-def call(mpdclient, mpd_cmd, *mpd_args):
-    try:
-        retval = getattr(mpdclient, mpd_cmd)(*mpd_args)
-    except:
-        if not mpd_cmd in ['disconnect', 'lsinfo', 'listplaylists']:
-            if not suppress_errors:
-                print '%s  %s' % (strftime("%Y-%m-%d %H:%M:%S"),
-                                  str(sys.exc_info()[1]))
-        if mpd_cmd in ['lsinfo', 'list']:
-            return []
-        else:
-            return None
-
-    return retval
-
-
-def mpd_major_version(client):
-    try:
-        version = getattr(client, "mpd_version", 0.0)
-        parts = version.split(".")
-        return float(parts[0] + "." + parts[1])
-    except:
-        return 0.0
-
-
+# XXX to be move when we can handle status change in the main interface
 def mpd_is_updating(status):
     return status and status.get('updating_db', 0)
-
-
-def update(mpdclient, paths, status):
-    # mpd 0.14.x limits the number of paths that can be
-    # updated within a command_list at 32. If we have
-    # >32 directories, we bail and update the entire library.
-    #
-    # If we want to get trickier in the future, we can find
-    # the 32 most specific parents that cover the set of files.
-    # This would lower the possibility of resorting to a full
-    # library update.
-    #
-    # Note: If a future version of mpd relaxes this limit,
-    # we should make the version check more specific to 0.14.x
-
-    if mpd_is_updating(status):
-        return
-
-    # Updating paths seems to be faster than updating files for
-    # some reason:
-    dirs = []
-    for path in paths:
-        dirs.append(os.path.dirname(path))
-    dirs = remove_list_duplicates(dirs, True)
-
-    if len(dirs) > 32 and mpd_major_version(mpdclient) >= 0.14:
-        call(mpdclient, 'update', '/')
-    else:
-        call(mpdclient, 'command_list_ok_begin')
-        for directory in dirs:
-            call(mpdclient, 'update', directory)
-        call(mpdclient, 'command_list_end')

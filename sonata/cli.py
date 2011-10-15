@@ -90,7 +90,6 @@ class Args(object):
         """If arguments were passed, perform action on them."""
         if self.cmds:
             main = CliMain(self)
-            mpdh.suppress_mpd_errors(True)
             main.mpd_connect()
             for cmd in self.cmds:
                 main.execute_cmd(cmd)
@@ -126,7 +125,10 @@ class CliMain(object):
         self.config.settings_load_real(library.library_set_data)
         args.apply_profile_arg(self.config)
 
-        self.client = mpd.MPDClient()
+        c = mpd.MPDClient()
+        self.MPDH = mpdh.MPDHelper(c)
+        # XXX Should be configurable from the outside
+        self.MPDH.suppress_error = True
 
     def mpd_connect(self):
         host, port, password = misc.mpd_env_vars()
@@ -137,38 +139,38 @@ class CliMain(object):
         if not password:
             password = self.config.password[self.config.profile_num]
 
-        mpdh.call(self.client, 'connect', host, port)
+        self.MPDH.call('connect', host, port)
         if password:
-            mpdh.call(self.client, 'password', password)
+            self.MPDH.call('password', password)
 
     def execute_cmd(self, cmd):
-        self.status = mpdh.status(self.client)
+        self.status = self.MPDH.status()
         if not self.status:
             print _(('Unable to connect to MPD.\nPlease check your Sonata '
                     'preferences or MPD_HOST/MPD_PORT environment variables.'))
             sys.exit(1)
 
-        self.songinfo = mpdh.currsong(self.client)
+        self.songinfo = self.MPDH.currsong()
         getattr(self, "_execute_%s" % cmd)()
 
     def _execute_play(self):
-        mpdh.call(self.client, 'play')
+        self.MPDH.call('play')
 
     def _execute_pause(self):
-        mpdh.call(self.client, 'pause', 1)
+        self.MPDH.call('pause', 1)
 
     def _execute_stop(self):
-        mpdh.call(self.client, 'stop')
+        self.MPDH.call('stop')
 
     def _execute_next(self):
-        mpdh.call(self.client, 'next')
+        self.MPDH.call('next')
 
     def _execute_prev(self):
-        mpdh.call(self.client, 'previous')
+        self.MPDH.call('previous')
 
     def _execute_bool(self, cmd):
         """Set the reverse the value of cmd"""
-        mpdh.call(self.client, cmd, int(not int(self.status[cmd])))
+        self.MPDH.call(cmd, int(not int(self.status[cmd])))
 
     def _execute_random(self):
         self._execute_bool('random')
@@ -178,9 +180,9 @@ class CliMain(object):
 
     def _execute_pp(self):
         if self.status['state'] in ['play']:
-            mpdh.call(self.client, 'pause', 1)
+            self.MPDH.call('pause', 1)
         elif self.status['state'] in ['pause', 'stop']:
-            mpdh.call(self.client, 'play')
+            self.MPDH.call('play')
 
     def _execute_info(self):
         if self.status['state'] in ['play', 'pause']:
@@ -193,8 +195,9 @@ class CliMain(object):
                 (_("File"), ('file',)),
                    ]
             for pretty, cmd in cmds:
-                mpdh.conout("%s: %s" % (pretty,
-                        mpdh.get(self.songinfo, *cmd)))
+                # XXX we should know the encoding of the string instead...
+                print ("%s: %s" % (pretty, mpdh.get(self.songinfo, *cmd))
+                      ).encode(locale.getpreferredencoding(), "replace")
             at, _length = [int(c) for c in self.status['time'].split(':')]
             at_time = misc.convert_time(at)
             try:

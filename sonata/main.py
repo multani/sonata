@@ -105,7 +105,7 @@ class Base(object):
         self.seekidle = None
         self.artwork = None
 
-        self.client = mpd.MPDClient()
+        self.MPDH = mpdh.MPDHelper(mpd.MPDClient())
         self.conn = False
         # Anything != than self.conn, to actually refresh the UI at startup.
         self.prevconn = not self.conn
@@ -467,9 +467,9 @@ class Base(object):
         # Try to connect to MPD:
         self.mpd_connect(blocking=True)
         if self.conn:
-            self.status = mpdh.status(self.client)
+            self.status = self.MPDH.status()
             self.iterate_time = self.iterate_time_when_connected
-            self.songinfo = mpdh.currsong(self.client)
+            self.songinfo = self.MPDH.currsong()
             self.artwork.update_songinfo(self.songinfo)
         elif self.config.initial_run:
             show_prefs = True
@@ -495,7 +495,7 @@ class Base(object):
 
         # Current tab
         self.current = current.Current(
-            self.config, self.client, self.TAB_CURRENT,
+            self.config, self.MPDH, self.TAB_CURRENT,
             self.on_current_button_press, self.connected,
             lambda: self.sonata_loaded, lambda: self.songinfo,
             self.update_statusbar, self.iterate_now,
@@ -523,7 +523,7 @@ class Base(object):
 
         # Library tab
         self.library = library.Library(
-            self.config, self.client, self.artwork, self.TAB_LIBRARY,
+            self.config, self.MPDH, self.artwork, self.TAB_LIBRARY,
             self.find_path('sonata-album.png'), self.settings_save,
             self.current.filtering_entry_make_red,
             self.current.filtering_entry_revert_color,
@@ -563,7 +563,7 @@ class Base(object):
 
         # Playlists tab
         self.playlists = playlists.Playlists(self.config, self.window,
-                                             self.client,
+                                             self.MPDH,
                                              lambda: self.UIManager,
                                              self.update_menu_visibility,
                                              self.iterate_now,
@@ -1092,7 +1092,7 @@ class Base(object):
             return
         self.trying_connection = True
         if self.user_connect or force:
-            mpdh.call(self.client, 'disconnect')
+            self.MPDH.call('disconnect')
             host, port, password = misc.mpd_env_vars()
             if not host:
                 host = self.config.host[self.config.profile_num]
@@ -1100,10 +1100,10 @@ class Base(object):
                 port = self.config.port[self.config.profile_num]
             if not password:
                 password = self.config.password[self.config.profile_num]
-            mpdh.call(self.client, 'connect', host, port)
+            self.MPDH.call('connect', host, port)
             if len(password) > 0:
-                mpdh.call(self.client, 'password', password)
-            test = mpdh.status(self.client)
+                self.MPDH.call('password', password)
+            test = self.MPDH.status()
             if test:
                 self.conn = True
             else:
@@ -1121,8 +1121,8 @@ class Base(object):
 
     def mpd_disconnect(self):
         if self.conn:
-            mpdh.call(self.client, 'close')
-            mpdh.call(self.client, 'disconnect')
+            self.MPDH.call('close')
+            self.MPDH.call('disconnect')
             self.conn = False
 
     def on_connectkey_pressed(self, _event=None):
@@ -1152,12 +1152,12 @@ class Base(object):
                 self.mpd_connect()
             if self.conn:
                 self.iterate_time = self.iterate_time_when_connected
-                self.status = mpdh.status(self.client)
+                self.status = self.MPDH.status()
                 if self.status:
                     if self.status['state'] == 'stop':
                         self.iterate_time = \
                                 self.iterate_time_when_disconnected_or_stopped
-                    self.songinfo = mpdh.currsong(self.client)
+                    self.songinfo = self.MPDH.currsong()
                     self.artwork.update_songinfo(self.songinfo)
                     if not self.last_repeat \
                        or self.last_repeat != self.status['repeat']:
@@ -1411,14 +1411,14 @@ class Base(object):
                 playid = self.status['playlistlength']
             if self.current_tab == self.TAB_LIBRARY:
                 items = self.library.get_path_child_filenames(True)
-                mpdh.call(self.client, 'command_list_ok_begin')
+                self.MPDH.call('command_list_ok_begin')
                 for item in items:
-                    mpdh.call(self.client, 'add', item)
-                mpdh.call(self.client, 'command_list_end')
+                    self.MPDH.call('add', item)
+                self.MPDH.call('command_list_end')
             elif self.current_tab == self.TAB_PLAYLISTS:
                 model, selected = self.playlists_selection.get_selected_rows()
                 for path in selected:
-                    mpdh.call(self.client, 'load',
+                    self.MPDH.call('load',
                               misc.unescape_html(
                                   model.get_value(model.get_iter(path), 1)))
             elif self.current_tab == self.TAB_STREAMS:
@@ -1431,9 +1431,9 @@ class Base(object):
                 if self.status['random'] == '1':
                     # If we are in random mode, we want to play a random song
                     # instead:
-                    mpdh.call(self.client, 'play')
+                    self.MPDH.call('play')
                 else:
-                    mpdh.call(self.client, 'play', int(playid))
+                    self.MPDH.call('play', int(playid))
 
     def add_selected_to_playlist(self, plname):
         if self.current_tab == self.TAB_LIBRARY:
@@ -1443,10 +1443,10 @@ class Base(object):
         else:
             raise Exception("This tab doesn't support playlists")
 
-        mpdh.call(self.client, 'command_list_ok_begin')
+        self.MPDH.call('command_list_ok_begin')
         for song in songs:
-            mpdh.call(self.client, 'playlistadd', plname, song)
-        mpdh.call(self.client, 'command_list_end')
+            self.MPDH.call('playlistadd', plname, song)
+        self.MPDH.call('command_list_end')
 
     def stream_parse_and_add(self, item):
         # We need to do different things depending on if this is
@@ -1476,7 +1476,7 @@ class Base(object):
         if f:
             if misc.is_binary(f):
                 # Binary file, just add it:
-                mpdh.call(self.client, 'add', item)
+                self.MPDH.call('add', item)
             else:
                 if "[playlist]" in f:
                     # pls:
@@ -1489,10 +1489,10 @@ class Base(object):
                     self.stream_parse_m3u(f)
                 else:
                     # Something else..
-                    mpdh.call(self.client, 'add', item)
+                    self.MPDH.call('add', item)
         else:
             # Hopefully just a regular stream, try to add it:
-            mpdh.call(self.client, 'add', item)
+            self.MPDH.call('add', item)
 
     def stream_parse_pls(self, f):
         lines = f.split("\n")
@@ -1502,18 +1502,18 @@ class Base(object):
             if delim > 0:
                 line = line[delim:]
                 if len(line) > 7 and line[0:7] == 'http://':
-                    mpdh.call(self.client, 'add', line)
+                    self.MPDH.call('add', line)
                 elif len(line) > 6 and line[0:6] == 'ftp://':
-                    mpdh.call(self.client, 'add', line)
+                    self.MPDH.call('add', line)
 
     def stream_parse_m3u(self, f):
         lines = f.split("\n")
         for line in lines:
             line = line.replace('\r', '')
             if len(line) > 7 and line[0:7] == 'http://':
-                mpdh.call(self.client, 'add', line)
+                self.MPDH.call('add', line)
             elif len(line) > 6 and line[0:6] == 'ftp://':
-                mpdh.call(self.client, 'add', line)
+                self.MPDH.call('add', line)
 
     def on_replace_item_play(self, widget):
         self.on_replace_item(widget, True)
@@ -2226,7 +2226,7 @@ class Base(object):
             ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
             while gtk.events_pending():
                 gtk.main_iteration()
-            mpdh.call(self.client, 'shuffle')
+            self.MPDH.call('shuffle')
 
     def on_menu_popup(self, _widget):
         self.update_menu_visibility()
@@ -2237,7 +2237,7 @@ class Base(object):
         if self.conn:
             if self.library.search_visible():
                 self.library.on_search_end(None)
-            mpdh.update(self.client, '/', self.status)
+            self.MPDH.update('/') # XXX we should pass a list here!
             self.mpd_update_queued = True
 
     def on_updatedb_shortcut(self, _action):
@@ -2255,7 +2255,7 @@ class Base(object):
             filenames = self.library.get_path_child_filenames(True,
                                                               selected_only)
             if len(filenames) > 0:
-                mpdh.update(self.client, filenames, self.status)
+                self.MPDH.update(filenames)
                 self.mpd_update_queued = True
 
     def on_image_activate(self, widget, event):
@@ -2886,29 +2886,29 @@ class Base(object):
         self.volumebutton.set_value(new_volume)
 
     def on_volume_change(self, _button, new_volume):
-        mpdh.call(self.client, 'setvol', int(new_volume))
+        self.MPDH.call('setvol', int(new_volume))
 
     def mpd_pp(self, _widget, _key=None):
         if self.conn and self.status:
             if self.status['state'] in ('stop', 'pause'):
-                mpdh.call(self.client, 'play')
+                self.MPDH.call('play')
             elif self.status['state'] == 'play':
-                mpdh.call(self.client, 'pause', '1')
+                self.MPDH.call('pause', '1')
             self.iterate_now()
 
     def mpd_stop(self, _widget, _key=None):
         if self.conn:
-            mpdh.call(self.client, 'stop')
+            self.MPDH.call('stop')
             self.iterate_now()
 
     def mpd_prev(self, _widget, _key=None):
         if self.conn:
-            mpdh.call(self.client, 'previous')
+            self.MPDH.call('previous')
             self.iterate_now()
 
     def mpd_next(self, _widget, _key=None):
         if self.conn:
-            mpdh.call(self.client, 'next')
+            self.MPDH.call('next')
             self.iterate_now()
 
     def on_remove(self, _widget):
@@ -2932,7 +2932,7 @@ class Base(object):
                    gtk.RESPONSE_YES:
                     iters = [model.get_iter(path) for path in selected]
                     for i in iters:
-                        mpdh.call(self.client, 'rm',
+                        self.MPDH.call('rm',
                                   misc.unescape_html(
                                       self.playlistsdata.get_value(i, 1)))
                     self.playlists.populate()
@@ -2977,11 +2977,11 @@ class Base(object):
 
     def mpd_clear(self, _widget):
         if self.conn:
-            mpdh.call(self.client, 'clear')
+            self.MPDH.call('clear')
             self.iterate_now()
 
     def _toggle_clicked(self, command, widget):
-        mpdh.call(self.client, command, int(widget.get_active()))
+        self.MPDH.call(command, int(widget.get_active()))
 
     def on_repeat_clicked(self, widget):
         if self.conn:
@@ -3087,14 +3087,14 @@ class Base(object):
 
     def prefs_crossfade_changed(self, crossfade_spin):
         crossfade_value = crossfade_spin.get_value_as_int()
-        mpdh.call(self.client, 'crossfade', crossfade_value)
+        self.MPDH.call('crossfade', crossfade_value)
 
     def prefs_crossfade_toggled(self, button, crossfade_spin):
         crossfade_value = crossfade_spin.get_value_as_int()
         if button.get_active():
-            mpdh.call(self.client, 'crossfade', crossfade_value)
+            self.MPDH.call('crossfade', crossfade_value)
         else:
-            mpdh.call(self.client, 'crossfade', 0)
+            self.MPDH.call('crossfade', 0)
 
     def prefs_playback_toggled(self, button):
         self.config.show_playback = button.get_active()
@@ -3186,7 +3186,7 @@ class Base(object):
             self.tray_icon.hide()
 
     def seek(self, song, seektime):
-        mpdh.call(self.client, 'seek', song, seektime)
+        self.MPDH.call('seek', song, seektime)
         self.iterate_now()
 
     def on_link_click(self, linktype):
@@ -3381,7 +3381,7 @@ class Base(object):
                     self.UIManager.get_widget('/mainmenu/%smenu/' % \
                                              (menu,)).show()
                 if self.playlists_selection.count_selected_rows() == 1 and \
-                   mpdh.mpd_major_version(self.client) >= 0.13:
+                   self.MPDH.version >= (0, 13):
                     self.UIManager.get_widget('/mainmenu/renamemenu/').show()
                 else:
                     self.UIManager.get_widget('/mainmenu/renamemenu/').hide()
@@ -3481,7 +3481,7 @@ class Base(object):
         self.config.tags_use_mpdpath = use_mpdpath
 
     def tags_mpd_update(self, tag_paths):
-        mpdh.update(self.client, list(tag_paths), self.status)
+        self.MPDH.update(list(tag_paths))
         self.mpd_update_queued = True
 
     def on_about(self, _action):
@@ -3494,7 +3494,7 @@ class Base(object):
         stats = None
         if self.conn:
             # Extract some MPD stats:
-            mpdstats = mpdh.call(self.client, 'stats')
+            mpdstats = self.MPDH.call('stats')
             stats = {'artists': mpdstats['artists'],
                  'albums': mpdstats['albums'],
                  'songs': mpdstats['songs'],
