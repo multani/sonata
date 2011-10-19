@@ -81,7 +81,7 @@ setup(name='Sonata',
         extra_compile_args=capture("pkg-config --cflags gtk+-2.0 pygtk-2.0").split(),
         extra_link_args=capture("pkg-config --libs gtk+-2.0 pygtk-2.0").split()
          ),],
-        data_files=[('share/sonata', ['README', 'CHANGELOG', 'TODO', 'TRANSLATORS']),
+        data_files=[('share/sonata', ['README.old', 'CHANGELOG', 'TODO', 'TRANSLATORS']),
                     ('share/applications', ['sonata.desktop']),
                     ('share/pixmaps', glob.glob('sonata/pixmaps/*')),
                     ('share/man/man1', ['sonata.1']),
