@@ -130,15 +130,15 @@ class Playlists(object):
                                          'savePlaylistError', plname):
                 return
             self.playlist_create(plname)
-            self.MPDH.call('playlistclear', plname)
+            self.MPDH.playlistclear(plname)
             self.add_selected_to_playlist(plname)
 
     def playlist_create(self, playlistname, oldname=None):
-        self.MPDH.call('rm', playlistname)
+        self.MPDH.rm(playlistname)
         if oldname is not None:
-            self.MPDH.call('rename', oldname, playlistname)
+            self.MPDH.rename(oldname, playlistname)
         else:
-            self.MPDH.call('save', playlistname)
+            self.MPDH.save(playlistname)
         self.populate()
         self.iterate_now()
 
@@ -154,7 +154,7 @@ class Playlists(object):
                                default=self.config.existing_playlist_option)
         if response == 1: # Overwrite
             self.config.existing_playlist_option = response
-            self.MPDH.call('playlistclear', plname)
+            self.MPDH.playlistclear(plname)
             self.add_selected_to_playlist(plname)
         elif response == 2: # Append songs:
             self.config.existing_playlist_option = response
@@ -163,9 +163,9 @@ class Playlists(object):
     def playlist_name_exists(self, title, role, plname, skip_plname=""):
         # If the playlist already exists, and the user does not want to
         # replace it, return True; In all other cases, return False
-        playlists = self.MPDH.call('listplaylists')
+        playlists = self.MPDH.listplaylists()
         if playlists is None:
-            playlists = self.MPDH.call('lsinfo')
+            playlists = self.MPDH.lsinfo()
         for item in playlists:
             if 'playlist' in item:
                 if mpdh.get(item, 'playlist') == plname and \
@@ -210,9 +210,9 @@ class Playlists(object):
         if self.connected():
             self.playlistsdata.clear()
             playlistinfo = []
-            playlists = self.MPDH.call('listplaylists')
+            playlists = self.MPDH.listplaylists()
             if playlists is None:
-                playlists = self.MPDH.call('lsinfo')
+                playlists = self.MPDH.lsinfo()
             for item in playlists:
                 if 'playlist' in item:
                     playlistinfo.append(misc.escape_html(mpdh.get(item,

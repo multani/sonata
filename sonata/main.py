@@ -1092,7 +1092,7 @@ class Base(object):
             return
         self.trying_connection = True
         if self.user_connect or force:
-            self.MPDH.call('disconnect')
+            self.MPDH.disconnect()
             host, port, password = misc.mpd_env_vars()
             if not host:
                 host = self.config.host[self.config.profile_num]
@@ -1100,9 +1100,9 @@ class Base(object):
                 port = self.config.port[self.config.profile_num]
             if not password:
                 password = self.config.password[self.config.profile_num]
-            self.MPDH.call('connect', host, port)
+            self.MPDH.connect(host, port)
             if len(password) > 0:
-                self.MPDH.call('password', password)
+                self.MPDH.password(password)
             test = self.MPDH.status()
             if test:
                 self.conn = True
@@ -1121,8 +1121,8 @@ class Base(object):
 
     def mpd_disconnect(self):
         if self.conn:
-            self.MPDH.call('close')
-            self.MPDH.call('disconnect')
+            self.MPDH.close()
+            self.MPDH.disconnect()
             self.conn = False
 
     def on_connectkey_pressed(self, _event=None):
@@ -1411,14 +1411,14 @@ class Base(object):
                 playid = self.status['playlistlength']
             if self.current_tab == self.TAB_LIBRARY:
                 items = self.library.get_path_child_filenames(True)
-                self.MPDH.call('command_list_ok_begin')
+                self.MPDH.command_list_ok_begin()
                 for item in items:
-                    self.MPDH.call('add', item)
-                self.MPDH.call('command_list_end')
+                    self.MPDH.add(item)
+                self.MPDH.command_list_end()
             elif self.current_tab == self.TAB_PLAYLISTS:
                 model, selected = self.playlists_selection.get_selected_rows()
                 for path in selected:
-                    self.MPDH.call('load',
+                    self.MPDH.load(
                               misc.unescape_html(
                                   model.get_value(model.get_iter(path), 1)))
             elif self.current_tab == self.TAB_STREAMS:
@@ -1431,9 +1431,9 @@ class Base(object):
                 if self.status['random'] == '1':
                     # If we are in random mode, we want to play a random song
                     # instead:
-                    self.MPDH.call('play')
+                    self.MPDH.play()
                 else:
-                    self.MPDH.call('play', int(playid))
+                    self.MPDH.play(int(playid))
 
     def add_selected_to_playlist(self, plname):
         if self.current_tab == self.TAB_LIBRARY:
@@ -1443,10 +1443,10 @@ class Base(object):
         else:
             raise Exception("This tab doesn't support playlists")
 
-        self.MPDH.call('command_list_ok_begin')
+        self.MPDH.command_list_ok_begin()
         for song in songs:
-            self.MPDH.call('playlistadd', plname, song)
-        self.MPDH.call('command_list_end')
+            self.MPDH.playlistadd(plname, song)
+        self.MPDH.command_list_end()
 
     def stream_parse_and_add(self, item):
         # We need to do different things depending on if this is
@@ -1476,7 +1476,7 @@ class Base(object):
         if f:
             if misc.is_binary(f):
                 # Binary file, just add it:
-                self.MPDH.call('add', item)
+                self.MPDH.add(item)
             else:
                 if "[playlist]" in f:
                     # pls:
@@ -1489,10 +1489,10 @@ class Base(object):
                     self.stream_parse_m3u(f)
                 else:
                     # Something else..
-                    self.MPDH.call('add', item)
+                    self.MPDH.add(item)
         else:
             # Hopefully just a regular stream, try to add it:
-            self.MPDH.call('add', item)
+            self.MPDH.add(item)
 
     def stream_parse_pls(self, f):
         lines = f.split("\n")
@@ -1502,18 +1502,18 @@ class Base(object):
             if delim > 0:
                 line = line[delim:]
                 if len(line) > 7 and line[0:7] == 'http://':
-                    self.MPDH.call('add', line)
+                    self.MPDH.add(line)
                 elif len(line) > 6 and line[0:6] == 'ftp://':
-                    self.MPDH.call('add', line)
+                    self.MPDH.add(line)
 
     def stream_parse_m3u(self, f):
         lines = f.split("\n")
         for line in lines:
             line = line.replace('\r', '')
             if len(line) > 7 and line[0:7] == 'http://':
-                self.MPDH.call('add', line)
+                self.MPDH.add(line)
             elif len(line) > 6 and line[0:6] == 'ftp://':
-                self.MPDH.call('add', line)
+                self.MPDH.add(line)
 
     def on_replace_item_play(self, widget):
         self.on_replace_item(widget, True)
@@ -2226,7 +2226,7 @@ class Base(object):
             ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
             while gtk.events_pending():
                 gtk.main_iteration()
-            self.MPDH.call('shuffle')
+            self.MPDH.shuffle()
 
     def on_menu_popup(self, _widget):
         self.update_menu_visibility()
@@ -2886,29 +2886,29 @@ class Base(object):
         self.volumebutton.set_value(new_volume)
 
     def on_volume_change(self, _button, new_volume):
-        self.MPDH.call('setvol', int(new_volume))
+        self.MPDH.setvol(int(new_volume))
 
     def mpd_pp(self, _widget, _key=None):
         if self.conn and self.status:
             if self.status['state'] in ('stop', 'pause'):
-                self.MPDH.call('play')
+                self.MPDH.play()
             elif self.status['state'] == 'play':
-                self.MPDH.call('pause', '1')
+                self.MPDH.pause('1')
             self.iterate_now()
 
     def mpd_stop(self, _widget, _key=None):
         if self.conn:
-            self.MPDH.call('stop')
+            self.MPDH.stop()
             self.iterate_now()
 
     def mpd_prev(self, _widget, _key=None):
         if self.conn:
-            self.MPDH.call('previous')
+            self.MPDH.previous()
             self.iterate_now()
 
     def mpd_next(self, _widget, _key=None):
         if self.conn:
-            self.MPDH.call('next')
+            self.MPDH.next()
             self.iterate_now()
 
     def on_remove(self, _widget):
@@ -2932,9 +2932,8 @@ class Base(object):
                    gtk.RESPONSE_YES:
                     iters = [model.get_iter(path) for path in selected]
                     for i in iters:
-                        self.MPDH.call('rm',
-                                  misc.unescape_html(
-                                      self.playlistsdata.get_value(i, 1)))
+                        self.MPDH.rm(misc.unescape_html(
+                            self.playlistsdata.get_value(i, 1)))
                     self.playlists.populate()
             elif self.current_tab == self.TAB_STREAMS:
                 treeviewsel = self.streams_selection
@@ -2977,7 +2976,7 @@ class Base(object):
 
     def mpd_clear(self, _widget):
         if self.conn:
-            self.MPDH.call('clear')
+            self.MPDH.clear()
             self.iterate_now()
 
     def _toggle_clicked(self, command, widget):
@@ -3087,14 +3086,14 @@ class Base(object):
 
     def prefs_crossfade_changed(self, crossfade_spin):
         crossfade_value = crossfade_spin.get_value_as_int()
-        self.MPDH.call('crossfade', crossfade_value)
+        self.MPDH.crossfade(crossfade_value)
 
     def prefs_crossfade_toggled(self, button, crossfade_spin):
         crossfade_value = crossfade_spin.get_value_as_int()
         if button.get_active():
-            self.MPDH.call('crossfade', crossfade_value)
+            self.MPDH.crossfade(crossfade_value)
         else:
-            self.MPDH.call('crossfade', 0)
+            self.MPDH.crossfade(0)
 
     def prefs_playback_toggled(self, button):
         self.config.show_playback = button.get_active()
@@ -3186,7 +3185,7 @@ class Base(object):
             self.tray_icon.hide()
 
     def seek(self, song, seektime):
-        self.MPDH.call('seek', song, seektime)
+        self.MPDH.seek(song, seektime)
         self.iterate_now()
 
     def on_link_click(self, linktype):
@@ -3494,7 +3493,7 @@ class Base(object):
         stats = None
         if self.conn:
             # Extract some MPD stats:
-            mpdstats = self.MPDH.call('stats')
+            mpdstats = self.MPDH.stats()
             stats = {'artists': mpdstats['artists'],
                  'albums': mpdstats['albums'],
                  'songs': mpdstats['songs'],

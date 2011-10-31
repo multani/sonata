@@ -139,9 +139,9 @@ class CliMain(object):
         if not password:
             password = self.config.password[self.config.profile_num]
 
-        self.MPDH.call('connect', host, port)
+        self.MPDH.connect(host, port)
         if password:
-            self.MPDH.call('password', password)
+            self.MPDH.password(password)
 
     def execute_cmd(self, cmd):
         self.status = self.MPDH.status()
@@ -154,19 +154,19 @@ class CliMain(object):
         getattr(self, "_execute_%s" % cmd)()
 
     def _execute_play(self):
-        self.MPDH.call('play')
+        self.MPDH.play()
 
     def _execute_pause(self):
-        self.MPDH.call('pause', 1)
+        self.MPDH.pause(1)
 
     def _execute_stop(self):
-        self.MPDH.call('stop')
+        self.MPDH.stop()
 
     def _execute_next(self):
-        self.MPDH.call('next')
+        self.MPDH.next()
 
     def _execute_prev(self):
-        self.MPDH.call('previous')
+        self.MPDH.previous()
 
     def _execute_bool(self, cmd):
         """Set the reverse the value of cmd"""
@@ -180,9 +180,9 @@ class CliMain(object):
 
     def _execute_pp(self):
         if self.status['state'] in ['play']:
-            self.MPDH.call('pause', 1)
+            self.MPDH.pause(1)
         elif self.status['state'] in ['pause', 'stop']:
-            self.MPDH.call('play')
+            self.MPDH.play()
 
     def _execute_info(self):
         if self.status['state'] in ['play', 'pause']:

@@ -548,7 +548,7 @@ class Library(object):
             # Use cache if possible...
             bd = self.lib_view_filesystem_cache
         else:
-            for item in self.MPDH.call('lsinfo', path):
+            for item in self.MPDH.lsinfo(path):
                 if 'directory' in item:
                     name = mpdh.get(item, 'directory').split('/')[-1]
                     data = self.library_set_data(path=mpdh.get(item,
@@ -625,7 +625,7 @@ class Library(object):
         elif albumview:
             albums = []
             untagged_found = False
-            for item in self.MPDH.call('listallinfo', '/'):
+            for item in self.MPDH.listallinfo('/'):
                 if 'file' in item and 'album' in item:
                     album = mpdh.get(item, 'album')
                     artist = mpdh.get(item, 'artist', self.NOTAG)
@@ -857,14 +857,14 @@ class Library(object):
                     for song in songs:
                         items.append(mpdh.get(song, itemtype))
                 else:
-                    items = self.MPDH.call('list', itemtype, *s)
+                    items = self.MPDH.list(itemtype, *s)
                 for item in items:
                     if len(item) > 0:
                         results.append(item)
         else:
             if genre is None and artist is None and album is None and year \
                is None:
-                for item in self.MPDH.call('list', itemtype):
+                for item in self.MPDH.list(itemtype):
                     if len(item) > 0:
                         results.append(item)
         if ignore_case:
@@ -895,7 +895,7 @@ class Library(object):
 
             else:
 
-                count = self.MPDH.call('count', *s)
+                count = self.MPDH.count(*s)
                 playtime += mpdh.get(count, 'playtime', 0, True)
                 num_songs += mpdh.get(count, 'songs', 0, True)
 
@@ -1016,7 +1016,7 @@ class Library(object):
             if len(args_tuple) == 0:
                 return None, 0, 0
 
-            items = self.MPDH.call('search', *args_tuple)
+            items = self.MPDH.search(*args_tuple)
             if items is not None:
                 for item in items:
                     if strip_type is None or (strip_type is not None and not \
@@ -1263,7 +1263,7 @@ class Library(object):
 
     def library_get_path_files_recursive(self, path):
         results = []
-        for item in self.MPDH.call('lsinfo', path):
+        for item in self.MPDH.lsinfo(path):
             if 'directory' in item:
                 results = results + self.library_get_path_files_recursive(
                     mpdh.get(item, 'directory'))
@@ -1373,8 +1373,8 @@ class Library(object):
         if not self.prevlibtodo_base in todo:
             # Do library search based on first two letters:
             self.prevlibtodo_base = todo[:2]
-            self.prevlibtodo_base_results = self.MPDH.call('search', searchby,
-                                                           self.prevlibtodo_base)
+            self.prevlibtodo_base_results = self.MPDH.search(searchby,
+                                                             self.prevlibtodo_base)
             subsearch = False
         else:
             subsearch = True

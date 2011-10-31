@@ -1,4 +1,5 @@
 
+import functools
 import locale
 import sys
 import os
@@ -8,12 +9,20 @@ from misc import remove_list_duplicates
 
 class MPDHelper(object):
     def __init__(self, client):
-        self.client = client
+        self._client = client
         self.suppress_error = False
+
+    def __getattr__(self, attr):
+        """Catch-all for methods with no special implementation."""
+        # XXX we still pass through the .call() method, since the original code
+        # expected this, and this method does some additionnal postprocessing in
+        # case of error. If .call() is cleaned up, maybe we can somehow merge
+        # .__getattr__() and .call() together.
+        return functools.partial(self.call, attr)
 
     def call(self, command, *args):
         try:
-            retval = getattr(self.client, command)(*args)
+            retval = getattr(self._client, command)(*args)
         except:
             # XXX make the distinction between bad getattr() call and bad MPD
             # call?
@@ -32,6 +41,7 @@ class MPDHelper(object):
 
     def status(self):
         result = self.call('status')
+        # XXX why we return different things here?
         if result and 'state' in result:
             return result
         else:
@@ -46,7 +56,7 @@ class MPDHelper(object):
         # another server (or the same, upgraded). We should compute this once,
         # after the initial client connection.
         try:
-            version = getattr(self.client, "mpd_version", "0.0")
+            version = getattr(self._client, "mpd_version", "0.0")
             return version.split(".")
         except:
             # XXX what exception are we expecting here!?
@@ -76,12 +86,12 @@ class MPDHelper(object):
         dirs = remove_list_duplicates(dirs, True)
 
         if len(dirs) > 32 and self.version >= (0, 14):
-            self.client.update('/')
+            self._client.update('/')
         else:
-            self.client.command_list_ok_begin()
+            self._client.command_list_ok_begin()
             for directory in dirs:
-                self.client.update(directory)
-            self.client.command_list_end()
+                self._client.update(directory)
+            self._client.command_list_end()
 
 
 def get(mapping, key, alt='', *sanitize_args):

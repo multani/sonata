@@ -236,10 +236,9 @@ class Current(object):
                     self.current.set_model(None)
 
                 if prevstatus_playlist:
-                    changed_songs = self.MPDH.call('plchanges',
-                                              prevstatus_playlist)
+                    changed_songs = self.MPDH.plchanges(prevstatus_playlist)
                 else:
-                    changed_songs = self.MPDH.call('plchanges', 0)
+                    changed_songs = self.MPDH.plchanges(0)
                     self.current_songs = []
 
                 newlen = int(new_playlist_length)
@@ -482,11 +481,11 @@ class Current(object):
             songs.sort(key=lambda x: x["sortby"])
 
             pos = 0
-            self.MPDH.call('command_list_ok_begin')
+            self.MPDH.command_list_ok_begin()
             for item in songs:
-                self.MPDH.call('moveid', item["id"], pos)
+                self.MPDH.moveid(item["id"], pos)
                 pos += 1
-            self.MPDH.call('command_list_end')
+            self.MPDH.command_list_end()
             self.iterate_now()
 
             self.header_update_column_indicators()
@@ -520,12 +519,12 @@ class Current(object):
                 gtk.main_iteration()
             top = 0
             bot = len(self.currentdata)-1
-            self.MPDH.call('command_list_ok_begin')
+            self.MPDH.command_list_ok_begin()
             while top < bot:
-                self.MPDH.call('swap', top, bot)
+                self.MPDH.swap(top, bot)
                 top = top + 1
                 bot = bot - 1
-            self.MPDH.call('command_list_end')
+            self.MPDH.command_list_end()
             self.iterate_now()
 
     def on_dnd(self, treeview, drag_context, x, y, selection, _info,
@@ -554,8 +553,7 @@ class Current(object):
                     paths[i] = paths[i][len(musicdir):]
                     if len(paths[i]) == 0:
                         paths[i] = "/"
-                    listallinfo = self.MPDH.call('listallinfo',
-                                            paths[i])
+                    listallinfo = self.MPDH.listallinfo(paths[i])
                     for item in listallinfo:
                         if 'file' in item:
                             mpdpaths.append(mpdh.get(item, 'file'))
@@ -583,7 +581,7 @@ class Current(object):
                 else:
                     songid = len(self.currentdata)
                 for mpdpath in mpdpaths:
-                    self.MPDH.call('addid', mpdpath, songid)
+                    self.MPDH.addid(mpdpath, songid)
             self.iterate_now()
             return
 
@@ -606,7 +604,7 @@ class Current(object):
         # We will manipulate self.current_songs and model to prevent
         # the entire playlist from refreshing
         offset = 0
-        self.MPDH.call('command_list_ok_begin')
+        self.MPDH.command_list_ok_begin()
         for source in drag_sources:
             index, i, songid, text = source
             if drop_info:
@@ -619,10 +617,10 @@ class Current(object):
                     self.current_songs.insert(dest, self.current_songs[index])
                     if dest < index + 1:
                         self.current_songs.pop(index + 1)
-                        self.MPDH.call('moveid', songid, dest)
+                        self.MPDH.moveid(songid, dest)
                     else:
                         self.current_songs.pop(index)
-                        self.MPDH.call('moveid', songid, dest - 1)
+                        self.MPDH.moveid(songid, dest - 1)
                     model.insert(dest, model[index])
                     moved_iters += [model.get_iter((dest,))]
                     model.remove(i)
@@ -631,17 +629,17 @@ class Current(object):
                                               self.current_songs[index])
                     if dest < index:
                         self.current_songs.pop(index + 1)
-                        self.MPDH.call('moveid', songid, dest + 1)
+                        self.MPDH.moveid(songid, dest + 1)
                     else:
                         self.current_songs.pop(index)
-                        self.MPDH.call('moveid', songid, dest)
+                        self.MPDH.moveid(songid, dest)
                     model.insert(dest + 1, model[index])
                     moved_iters += [model.get_iter((dest + 1,))]
                     model.remove(i)
             else:
                 #dest = int(self.status['playlistlength']) - 1
                 dest = len(self.currentdata) - 1
-                self.MPDH.call('moveid', songid, dest)
+                self.MPDH.moveid(songid, dest)
                 self.current_songs.insert(dest + 1, self.current_songs[index])
                 self.current_songs.pop(index)
                 model.insert(dest + 1, model[index])
@@ -658,7 +656,7 @@ class Current(object):
                     # decreased by 1
                     if index < source[0] < dest:
                         source[0] -= 1
-        self.MPDH.call('command_list_end')
+        self.MPDH.command_list_end()
 
         # we are manipulating the model manually for speed, so...
         self.current_update_skip = True
@@ -683,7 +681,7 @@ class Current(object):
             return
         try:
             i = model.get_iter(path)
-            self.MPDH.call('playid', self.current_get_songid(i, model))
+            self.MPDH.playid(self.current_get_songid(i, model))
         except:
             pass
         self.sel_rows = False
@@ -727,7 +725,7 @@ class Current(object):
             song_id = self.current_get_songid(model.get_iter_first(), model)
         if song_id:
             self.searchfilter_toggle(None)
-            self.MPDH.call('playid', song_id)
+            self.MPDH.playid(song_id)
 
     def searchfilter_feed_loop(self, editable):
         # Lets only trigger the searchfilter_loop if 200ms pass
@@ -927,7 +925,7 @@ class Current(object):
         if len(selected) == len(self.currentdata) and \
            not self.filterbox_visible:
             # Everything is selected, clear:
-            self.MPDH.call('clear')
+            self.MPDH.clear()
         elif len(selected) > 0:
             # we are manipulating the model manually for speed, so...
             self.current_update_skip = True
@@ -936,18 +934,18 @@ class Current(object):
                 # If we remove an item from the filtered results, this
                 # causes a visual refresh in the interface.
                 self.current.set_model(None)
-            self.MPDH.call('command_list_ok_begin')
+            self.MPDH.command_list_ok_begin()
             for path in selected:
                 if not self.filterbox_visible:
                     rownum = path[0]
                 else:
                     rownum = self.filter_row_mapping[path[0]]
                 i = self.currentdata.get_iter((rownum, 0))
-                self.MPDH.call('deleteid', self.current_get_songid(i,
-                                                            self.currentdata))
+                self.MPDH.deleteid(
+                    self.current_get_songid(i, self.currentdata))
                 # Prevents the entire playlist from refreshing:
                 self.current_songs.pop(rownum)
                 self.currentdata.remove(i)
-            self.MPDH.call('command_list_end')
+            self.MPDH.command_list_end()
             if not self.filterbox_visible:
                 self.current.set_model(model)
