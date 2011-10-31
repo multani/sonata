@@ -26,13 +26,13 @@ from pluginsystem import pluginsystem, BuiltinPlugin
 
 class Playlists(object):
 
-    def __init__(self, config, window, MPDH, UIManager,
+    def __init__(self, config, window, mpd, UIManager,
                  update_menu_visibility, iterate_now, on_add_item,
                  on_playlists_button_press, get_current_songs, connected,
                  add_selected_to_playlist, TAB_PLAYLISTS):
         self.config = config
         self.window = window
-        self.MPDH = MPDH
+        self.mpd = mpd
         self.UIManager = UIManager
         self.update_menu_visibility = update_menu_visibility
         self.iterate_now = iterate_now # XXX Do we really need this?
@@ -130,15 +130,15 @@ class Playlists(object):
                                          'savePlaylistError', plname):
                 return
             self.playlist_create(plname)
-            self.MPDH.playlistclear(plname)
+            self.mpd.playlistclear(plname)
             self.add_selected_to_playlist(plname)
 
     def playlist_create(self, playlistname, oldname=None):
-        self.MPDH.rm(playlistname)
+        self.mpd.rm(playlistname)
         if oldname is not None:
-            self.MPDH.rename(oldname, playlistname)
+            self.mpd.rename(oldname, playlistname)
         else:
-            self.MPDH.save(playlistname)
+            self.mpd.save(playlistname)
         self.populate()
         self.iterate_now()
 
@@ -154,7 +154,7 @@ class Playlists(object):
                                default=self.config.existing_playlist_option)
         if response == 1: # Overwrite
             self.config.existing_playlist_option = response
-            self.MPDH.playlistclear(plname)
+            self.mpd.playlistclear(plname)
             self.add_selected_to_playlist(plname)
         elif response == 2: # Append songs:
             self.config.existing_playlist_option = response
@@ -163,9 +163,9 @@ class Playlists(object):
     def playlist_name_exists(self, title, role, plname, skip_plname=""):
         # If the playlist already exists, and the user does not want to
         # replace it, return True; In all other cases, return False
-        playlists = self.MPDH.listplaylists()
+        playlists = self.mpd.listplaylists()
         if playlists is None:
-            playlists = self.MPDH.lsinfo()
+            playlists = self.mpd.lsinfo()
         for item in playlists:
             if 'playlist' in item:
                 if mpdh.get(item, 'playlist') == plname and \
@@ -210,9 +210,9 @@ class Playlists(object):
         if self.connected():
             self.playlistsdata.clear()
             playlistinfo = []
-            playlists = self.MPDH.listplaylists()
+            playlists = self.mpd.listplaylists()
             if playlists is None:
-                playlists = self.MPDH.lsinfo()
+                playlists = self.mpd.lsinfo()
             for item in playlists:
                 if 'playlist' in item:
                     playlistinfo.append(misc.escape_html(mpdh.get(item,
@@ -222,7 +222,7 @@ class Playlists(object):
             playlistinfo.sort(key=lambda x: x.lower())
             for item in playlistinfo:
                 self.playlistsdata.append([gtk.STOCK_JUSTIFY_FILL, item])
-            if self.MPDH.version >= (0, 13):
+            if self.mpd.version >= (0, 13):
                 self.populate_playlists_for_menu(playlistinfo)
 
     def on_playlist_rename(self, _action):

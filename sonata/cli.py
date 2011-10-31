@@ -126,9 +126,9 @@ class CliMain(object):
         args.apply_profile_arg(self.config)
 
         c = mpd.MPDClient()
-        self.MPDH = mpdh.MPDHelper(c)
+        self.mpd = mpdh.MPDHelper(c)
         # XXX Should be configurable from the outside
-        self.MPDH.suppress_error = True
+        self.mpd.suppress_errors = True
 
     def mpd_connect(self):
         host, port, password = misc.mpd_env_vars()
@@ -139,38 +139,38 @@ class CliMain(object):
         if not password:
             password = self.config.password[self.config.profile_num]
 
-        self.MPDH.connect(host, port)
+        self.mpd.connect(host, port)
         if password:
-            self.MPDH.password(password)
+            self.mpd.password(password)
 
     def execute_cmd(self, cmd):
-        self.status = self.MPDH.status()
+        self.status = self.mpd.status()
         if not self.status:
             print _(('Unable to connect to MPD.\nPlease check your Sonata '
                     'preferences or MPD_HOST/MPD_PORT environment variables.'))
             sys.exit(1)
 
-        self.songinfo = self.MPDH.currentsong()
+        self.songinfo = self.mpd.currentsong()
         getattr(self, "_execute_%s" % cmd)()
 
     def _execute_play(self):
-        self.MPDH.play()
+        self.mpd.play()
 
     def _execute_pause(self):
-        self.MPDH.pause(1)
+        self.mpd.pause(1)
 
     def _execute_stop(self):
-        self.MPDH.stop()
+        self.mpd.stop()
 
     def _execute_next(self):
-        self.MPDH.next()
+        self.mpd.next()
 
     def _execute_prev(self):
-        self.MPDH.previous()
+        self.mpd.previous()
 
     def _execute_bool(self, cmd):
         """Set the reverse the value of cmd"""
-        self.MPDH.call(cmd, int(not int(self.status[cmd])))
+        self.mpd.call(cmd, int(not int(self.status[cmd])))
 
     def _execute_random(self):
         self._execute_bool('random')
@@ -180,9 +180,9 @@ class CliMain(object):
 
     def _execute_pp(self):
         if self.status['state'] in ['play']:
-            self.MPDH.pause(1)
+            self.mpd.pause(1)
         elif self.status['state'] in ['pause', 'stop']:
-            self.MPDH.play()
+            self.mpd.play()
 
     def _execute_info(self):
         if self.status['state'] in ['play', 'pause']:

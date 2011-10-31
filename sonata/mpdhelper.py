@@ -10,7 +10,7 @@ from misc import remove_list_duplicates
 class MPDHelper(object):
     def __init__(self, client):
         self._client = client
-        self.suppress_error = False
+        self.suppress_errors = False
 
     def __getattr__(self, attr):
         """Catch-all for methods with no special implementation."""
@@ -27,7 +27,7 @@ class MPDHelper(object):
             # XXX make the distinction between bad getattr() call and bad MPD
             # call?
             if not command in ['disconnect', 'lsinfo', 'listplaylists']:
-                if not self.suppress_error:
+                if not self.suppress_errors:
                     # XXX use logging instead
                     print '%s  %s' % (strftime("%Y-%m-%d %H:%M:%S"),
                                       # XXX sys.exc_info() ?!
