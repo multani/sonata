@@ -150,7 +150,7 @@ class CliMain(object):
                     'preferences or MPD_HOST/MPD_PORT environment variables.'))
             sys.exit(1)
 
-        self.songinfo = self.MPDH.currsong()
+        self.songinfo = self.MPDH.currentsong()
         getattr(self, "_execute_%s" % cmd)()
 
     def _execute_play(self):

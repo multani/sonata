@@ -295,8 +295,7 @@ class Current(object):
                     pass
 
             if 'pos' in self.songinfo():
-                currsong = mpdh.get(self.songinfo(), 'pos', 0,
-                            True)
+                currsong = mpdh.get(self.songinfo(), 'pos', 0, True)
                 self.boldrow(currsong)
                 self.prev_boldrow = currsong
 

@@ -47,9 +47,6 @@ class MPDHelper(object):
         else:
             return {}
 
-    def currsong(self):
-        return self.call('currentsong')
-
     @property
     def version(self):
         # XXX this is not supposed to change, unless the client reconnect to

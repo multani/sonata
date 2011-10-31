@@ -469,7 +469,7 @@ class Base(object):
         if self.conn:
             self.status = self.MPDH.status()
             self.iterate_time = self.iterate_time_when_connected
-            self.songinfo = self.MPDH.currsong()
+            self.songinfo = self.MPDH.currentsong()
             self.artwork.update_songinfo(self.songinfo)
         elif self.config.initial_run:
             show_prefs = True
@@ -1157,7 +1157,7 @@ class Base(object):
                     if self.status['state'] == 'stop':
                         self.iterate_time = \
                                 self.iterate_time_when_disconnected_or_stopped
-                    self.songinfo = self.MPDH.currsong()
+                    self.songinfo = self.MPDH.currentsong()
                     self.artwork.update_songinfo(self.songinfo)
                     if not self.last_repeat \
                        or self.last_repeat != self.status['repeat']:
