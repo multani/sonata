@@ -61,6 +61,9 @@ Currently, the following things have been changed since the Berlios's version:
 
   This is the `refactor-launcher` branch.
 
+* "Daniel <quite@hack.org>" added support to toggle fullscreen status from the
+  command line.
+
 
 Personal todo list
 ------------------

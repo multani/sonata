@@ -12,7 +12,7 @@ XXX Not a real plugin yet.
 Example usage:
 import dbus_plugin as dbus
 self.dbus_service = dbus.SonataDBus(self.dbus_show, self.dbus_toggle,
-                                    self.dbus_popup)
+                                    self.dbus_popup, self.dbus_fullscreen)
 dbus.start_dbus_interface(toggle_arg, popup_arg)
 dbus.init_gnome_mediakeys(self.mpd_pp, self.mpd_stop, self.mpd_prev,
                             self.mpd_next)
@@ -106,7 +106,8 @@ def get_session_bus():
         raise
 
 
-def execute_remote_commands(toggle=False, popup=False, start=False):
+def execute_remote_commands(toggle=False, popup=False, fullscreen=False,
+                            start=False):
     try:
         bus = get_session_bus()
         obj = bus.get_object('org.MPD', '/org/MPD/Sonata')
@@ -114,6 +115,8 @@ def execute_remote_commands(toggle=False, popup=False, start=False):
             obj.toggle(dbus_interface='org.MPD.SonataInterface')
         if popup:
             obj.popup(dbus_interface='org.MPD.SonataInterface')
+        if fullscreen:
+            obj.fullscreen(dbus_interface='org.MPD.SonataInterface')
         sys.exit()
     except Exception:
         print _("Failed to execute remote commands.")
@@ -158,10 +161,11 @@ if HAVE_DBUS:
 
     class SonataDBus(dbus.service.Object):
 
-        def __init__(self, dbus_show, dbus_toggle, dbus_popup):
+        def __init__(self, dbus_show, dbus_toggle, dbus_popup, dbus_fullscreen):
             self.dbus_show = dbus_show
             self.dbus_toggle = dbus_toggle
             self.dbus_popup = dbus_popup
+            self.dbus_fullscreen = dbus_fullscreen
             session_bus = get_session_bus()
             bus_name = dbus.service.BusName('org.MPD', bus=session_bus)
             object_path = '/org/MPD/Sonata'
@@ -178,3 +182,7 @@ if HAVE_DBUS:
         @dbus.service.method('org.MPD.SonataInterface')
         def popup(self):
             self.dbus_popup()
+
+        @dbus.service.method('org.MPD.SonataInterface')
+        def fullscreen(self):
+            self.dbus_fullscreen()
