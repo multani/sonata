@@ -20,7 +20,7 @@ class Args(object):
         Separates options and arguments from the given argument list,
         checks their validity."""
 
-        # toggle and popup need d-bus and don't always need gui
+        # toggle and popup and fullscreen need d-bus and don't always need gui
         # version and help don't need anything and exit without gui
         # hidden and visible are only applicable when gui is launched
         # profile and no-start don't need anything
@@ -46,6 +46,9 @@ class Args(object):
         parser.add_option("-t", "--toggle", dest="toggle",
                   action="store_true",
                   help=_("toggles whether the app is minimized to the tray or visible (requires D-Bus)"))
+        parser.add_option("-f", "--fullscreen", dest="fullscreen",
+                  action="store_true",
+                  help=_("go fullscreen (requires D-Bus)"))
         parser.add_option("-n", "--no-start", dest="start",
                   action="store_false",
                   help=_("don't start app if D-Bus commands fail"))
@@ -62,7 +65,7 @@ class Args(object):
 
         if options.toggle:
             options.start_visibility = True
-        if options.popup and options.start_visibility is None:
+        if options.popup or options.fullscreen and options.start_visibility is None:
             options.start_visibility = False
         self.start_visibility = options.start_visibility
         self.arg_profile = options.profile
@@ -73,7 +76,7 @@ class Args(object):
             else:
                 parser.error(_("unknown command %s") % cmd)
 
-        if options.toggle or options.popup:
+        if options.toggle or options.popup or options.fullscreen:
             import dbus_plugin as dbus
             if not dbus.using_dbus():
                 print _("toggle and popup options require D-Bus. Aborting.")
@@ -81,6 +84,7 @@ class Args(object):
 
             dbus.execute_remote_commands(options.toggle,
                              options.popup,
+                             options.fullscreen,
                              options.start)
 
 

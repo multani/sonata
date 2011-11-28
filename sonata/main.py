@@ -119,7 +119,7 @@ class Base(object):
 
         # better keep a reference around
         try:
-            self.dbus_service = dbus.SonataDBus(self.dbus_show, self.dbus_toggle, self.dbus_popup)
+            self.dbus_service = dbus.SonataDBus(self.dbus_show, self.dbus_toggle, self.dbus_popup, self.dbus_fullscreen)
         except Exception:
             pass
         dbus.start_dbus_interface()
@@ -3177,6 +3177,9 @@ class Base(object):
 
     def dbus_popup(self):
         self.on_currsong_notify(force_popup=True)
+
+    def dbus_fullscreen(self):
+        self.fullscreen_cover_art(None)
 
     def main(self):
         gtk.main()
