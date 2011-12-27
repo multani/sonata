@@ -20,6 +20,7 @@ if not dbus.using_gnome_mediakeys():
         # do something else instead...
 """
 
+import logging
 import sys
 
 try:
@@ -36,6 +37,9 @@ try:
     HAVE_DBUS = True
 except:
     HAVE_DBUS = False
+
+
+logger = logging.getLogger(__name__)
 
 
 def using_dbus():
@@ -99,10 +103,11 @@ def get_session_bus():
     try:
         return dbus.SessionBus()
     except Exception:
-        print _(('Sonata failed to connect to the D-BUS session bus: '
-                 'Unable to determine the address of the message bus '
-                 '(try \'man dbus-launch\' and \'man dbus-daemon\' '
-                 'for help)")'))
+        logger.error(
+            _('Sonata failed to connect to the D-BUS session bus: '
+              'Unable to determine the address of the message bus '
+              '(try \'man dbus-launch\' and \'man dbus-daemon\' '
+              'for help)")'))
         raise
 
 
@@ -119,11 +124,12 @@ def execute_remote_commands(toggle=False, popup=False, fullscreen=False,
             obj.fullscreen(dbus_interface='org.MPD.SonataInterface')
         sys.exit()
     except Exception:
-        print _("Failed to execute remote commands.")
+        logger.warning(_("Failed to execute remote commands."))
         if start is None or start:
-            print _("Starting Sonata instead...")
+            logger.info(_("Starting Sonata instead..."))
         else:
-            print _("Maybe Sonata is not running?")
+            # TODO: should we log the exception here?
+            logger.critical(_("Maybe Sonata is not running?"))
             sys.exit(1)
 
 
@@ -143,14 +149,16 @@ def start_dbus_interface():
                 pass
             elif retval in (dbus_bindings.REQUEST_NAME_REPLY_EXISTS,
                             dbus_bindings.REQUEST_NAME_REPLY_IN_QUEUE):
-                print _(('An instance of Sonata is already running. '
-                         'Showing it...'))
+                logger.info(
+                    _('An instance of Sonata is already running. '
+                      'Showing it...'))
                 try:
                     obj = bus.get_object('org.MPD', '/org/MPD/Sonata')
                     obj.show(dbus_interface='org.MPD.SonataInterface')
                     sys.exit()
                 except Exception:
-                    print _("Failed to execute remote command.")
+                    # TODO: should we log the exception here?
+                    logger.critical(_("Failed to execute remote command."))
                     sys.exit(1)
         except Exception:
             pass

@@ -1,5 +1,10 @@
+import logging
 
 import gtk, sys, pango
+
+
+logger = logging.getLogger(__name__)
+
 
 def label(text=None, textmn=None, markup=None, x=0, y=0.5, \
           wrap=False, select=False, w=-1, h=-1):
@@ -166,7 +171,7 @@ class UnicodeEntry(gtk.Entry):
         try:
             return gtk.Entry.get_text(self).decode('utf-8')
         except:
-            print sys.exc_info()[1]
+            logger.exception("Unable to get text from Gtk widget")
             return gtk.Entry.get_text(self).decode('utf-8', 'replace')
 
 def treeview(hint=True, reorder=False, search=True, headers=False):

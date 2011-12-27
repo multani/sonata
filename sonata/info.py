@@ -3,6 +3,7 @@ from __future__ import with_statement
 import sys
 import os
 import locale
+import logging
 
 import gtk
 import pango
@@ -21,6 +22,7 @@ class Info(object):
                  get_playing_song, TAB_INFO, on_image_activate,
                  on_image_motion_cb, on_image_drop_cb,
                  album_return_artist_and_tracks, new_tab):
+        self.logger = logging.getLogger(__name__)
         self.config = config
         self.linkcolor = linkcolor
         self.on_link_click_cb = on_link_click_cb
@@ -30,8 +32,8 @@ class Info(object):
         try:
             self.enc = locale.getpreferredencoding()
         except:
-            print ('Locale cannot be found; please set your system\'s locale. '
-                   'Aborting...')
+            self.logger.exception("Locale cannot be found; please set your "
+                                  "system's locale. Aborting...")
             sys.exit(1)
 
         self.last_bitrate = None

@@ -1,4 +1,5 @@
 from HTMLParser import HTMLParser
+import logging
 import os
 import urllib
 import re
@@ -16,6 +17,7 @@ from pluginsystem import pluginsystem, BuiltinPlugin
 class LyricWiki(object):
 
     def __init__(self):
+        self.logger = logging.getLogger(__name__)
         self.lyricServer = None
 
         pluginsystem.plugin_infos.append(BuiltinPlugin(
@@ -70,8 +72,8 @@ class LyricWiki(object):
             else:
                 error = _("Lyrics not found")
                 self.call_back(callback, error=error)
-        except Exception, e:
-            print >> sys.stderr, "Error while fetching the lyrics:\n%s" % e
+        except:
+            self.logger.exception("Error while fetching the lyrics")
             error = _("Fetching lyrics failed")
             self.call_back(callback, error=error)
 

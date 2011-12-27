@@ -3,7 +3,11 @@ import os
 import subprocess
 import re
 import locale
+import logging
 import sys
+
+
+logger = logging.getLogger(__name__)
 
 
 def convert_time(raw):
@@ -256,5 +260,5 @@ def setlocale():
         # keys for, e.g., playlistinfo() with a turkish locale:
         locale.setlocale(locale.LC_CTYPE, "C")
     except:
-        print "Failed to set locale"
+        logger.exception("Failed to set locale")
         sys.exit(1)

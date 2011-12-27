@@ -24,7 +24,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys, platform, locale, gettext, os
+import gettext
+import locale
+import logging
+import os
+import platform
+import sys
 
 
 def run():
@@ -32,27 +37,34 @@ def run():
 
     # XXX insert the correct sonata package dir in sys.path
 
+    logging.basicConfig(
+        level=logging.WARNING,
+        format="[%(asctime)s] %(name)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        stream=sys.stderr)
+
+    logger = logging.getLogger(__name__)
+
     try:
         import sonata
     except ImportError:
-        sys.stderr.write("Python failed to find the sonata modules.\n")
-        sys.stderr.write("\nSearched in the following directories:\n" +
-                 "\n".join(sys.path) + "\n")
-        sys.stderr.write("\nPerhaps Sonata is improperly installed?\n")
+        logger.critical("Python failed to find the sonata modules.")
+        logger.critical("Searched in the following directories:\n%s",
+                        "\n".join(sys.path))
+        logger.critical("Perhaps Sonata is improperly installed?")
         sys.exit(1)
 
     try:
         from sonata.version import version
     except ImportError:
-        sys.stderr.write("Python failed to find the sonata modules.\n")
-        sys.stderr.write("\nAn old or incomplete installation was " +
-                 "found in the following directory:\n" +
-                 os.path.dirname(sonata.__file__) + "\n")
-        sys.stderr.write("\nPerhaps you want to delete it?\n")
+        logger.critical("Python failed to find the sonata modules.")
+        logger.critical("An old or incomplete installation was "
+                        "found in the following directory: %s",
+                        os.path.dirname(sonata.__file__))
+        logger.critical("Perhaps you want to delete it?")
         sys.exit(1)
 
     # XXX check that version.VERSION is what this script was installed for
-
 
     ## Apply global fixes:
 
@@ -84,7 +96,7 @@ def run():
     try:
         gettext.install('sonata', os.path.join(sonata.__file__.split('/lib')[0], 'share', 'locale'), unicode=1)
     except:
-        print "Warning: trying to use an old translation"
+        logger.warning("Trying to use an old translation")
         gettext.install('sonata', '/usr/share/locale', unicode=1)
     gettext.textdomain('sonata')
 
@@ -93,13 +105,13 @@ def run():
 
     # Test python version:
     if sys.version_info < (2,5):
-        sys.stderr.write("Sonata requires Python 2.5 or newer. Aborting...\n")
+        logger.critical("Sonata requires Python 2.5 or newer. Aborting...")
         sys.exit(1)
 
     try:
         import mpd
     except:
-        sys.stderr.write("Sonata requires python-mpd. Aborting...\n")
+        logger.critical("Sonata requires python-mpd. Aborting...")
         sys.exit(1)
 
 
@@ -124,7 +136,7 @@ def run():
         # importing gtk does sys.setdefaultencoding("utf-8"), sets locale etc.
         import gtk
         if gtk.pygtk_version < (2, 12, 0):
-            sys.stderr.write("Sonata requires PyGTK 2.12.0 or newer. Aborting...\n")
+            logger.critical("Sonata requires PyGTK 2.12.0 or newer. Aborting...")
             sys.exit(1)
         # fix locale
         misc.setlocale()
@@ -134,7 +146,8 @@ def run():
         # make sure the ui modules aren't imported
         for m in 'gtk', 'pango', 'sonata.ui', 'sonata.breadcrumbs':
             if m in sys.modules:
-                print "Warning: module %s imported in CLI mode" % m
+                logger.warning(
+                    "Module %s imported in CLI mode (it should not)", m)
             else:
                 sys.modules[m] = FakeModule()
         # like gtk, set utf-8 encoding of str objects

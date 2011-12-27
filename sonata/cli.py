@@ -1,6 +1,7 @@
 
 import sys
 import gettext
+import logging
 from optparse import OptionParser
 
 from version import version
@@ -13,6 +14,7 @@ mpd_cmds = ["play", "pause", "stop", "next", "prev", "pp", "info",
 class Args(object):
 
     def __init__(self):
+        self.logger = logging.getLogger(__name__)
         self.skip_gui = False
         self.start_visibility = None
 
@@ -81,7 +83,8 @@ class Args(object):
         if options.toggle or options.popup or options.fullscreen:
             import dbus_plugin as dbus
             if not dbus.using_dbus():
-                print _("toggle and popup options require D-Bus. Aborting.")
+                self.logger.critical(
+                    _("toggle and popup options require D-Bus.  Aborting."))
                 sys.exit(1)
 
             dbus.execute_remote_commands(options.toggle,
@@ -104,12 +107,14 @@ class Args(object):
             a = self.arg_profile
             if a > 0 and a <= len(config.profile_names):
                 config.profile_num = a-1
-                print _("Starting Sonata with profile %s...") % \
-                        config.profile_names[config.profile_num]
+                self.logger.info(_("Starting Sonata with profile %s...") %
+                                 config.profile_names[config.profile_num])
             else:
-                print _("%d is not an available profile number.") % a
-                print _("Profile numbers must be between 1 and %d.") % \
-                        len(config.profile_names)
+                self.logger.critical(
+                    _("%d is not an available profile number.") % a)
+                self.logger.critical(
+                    _("Profile numbers must be between 1 and %d.") %
+                    len(config.profile_names))
                 sys.exit(1)
 
 
@@ -124,6 +129,7 @@ class CliMain(object):
         import mpdhelper as mpdh
         import misc
 
+        self.logger = logging.getLogger(__name__)
         self.config = config.Config(_('Default Profile'), _("by") + " %A " + \
                                 _("from") + " %B", library.library_set_data)
         self.config.settings_load_real(library.library_set_data)
@@ -147,8 +153,9 @@ class CliMain(object):
     def execute_cmd(self, cmd):
         self.status = mpdh.status(self.client)
         if not self.status:
-            print _(('Unable to connect to MPD.\nPlease check your Sonata '
-                    'preferences or MPD_HOST/MPD_PORT environment variables.'))
+            self.logger.critical(_(
+                'Unable to connect to MPD.\nPlease check your Sonata '
+                'preferences or MPD_HOST/MPD_PORT environment variables.'))
             sys.exit(1)
 
         self.songinfo = mpdh.currsong(self.client)

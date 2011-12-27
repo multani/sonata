@@ -11,6 +11,7 @@ self.scrobbler.init()
 self.scrobbler.handle_change_status(False, self.prevsonginfo)
 """
 
+import logging
 import os
 import sys
 import threading # init, np, post start threads init_thread, do_np, do_post
@@ -24,6 +25,7 @@ import mpdhelper as mpdh
 class Scrobbler(object):
 
     def __init__(self, config):
+        self.logger = logging.getLogger(__name__)
         self.config = config
 
         self.scrob = None
@@ -72,7 +74,7 @@ class Scrobbler(object):
         try:
             self.scrob_post.auth()
         except Exception, e:
-            print "Error authenticating audioscrobbler", e
+            self.logger.error("Error authenticating audioscrobbler: %r", e)
             self.scrob_post = None
         if self.scrob_post:
             self.retrieve_cache()
@@ -173,7 +175,8 @@ class Scrobbler(object):
                                                 tracknumber,
                                                 album)
                 except:
-                    print sys.exc_info()[1]
+                    self.logger.exception(
+                        "Unable to send 'now playing' data to the scrobbler")
         time.sleep(10)
 
     def post(self, prevsonginfo):
@@ -199,7 +202,7 @@ class Scrobbler(object):
                         tracknumber,
                         album)
                 except:
-                    print sys.exc_info()[1]
+                    self.logger.critical("Unable to add track to scrobbler")
 
                 thread = threading.Thread(target=self.do_post)
                 thread.setDaemon(True)
@@ -215,7 +218,8 @@ class Scrobbler(object):
             try:
                 self.scrob_post.post()
             except audioscrobbler.AudioScrobblerConnectionError, e:
-                print e
+                self.logger.exception(
+                    "Error while posting data to the scrobbler")
             time.sleep(10)
 
     def save_cache(self):
