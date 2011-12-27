@@ -64,8 +64,18 @@ class Args(object):
                   help=_("start app visible (requires systray)"))
         parser.add_option("--profile", dest="profile", metavar="NUM",
                   help=_("start with profile NUM"), type=int)
+        parser.add_option("-v", "--verbose", dest="log_level",
+                          action="append_const", const=-10,
+                          help=_("Increase log verbosity"))
+        parser.add_option("-q", "--quiet", dest="log_level",
+                          action="append_const", const=10,
+                          help=_("Decrease log verbosity"))
+        parser.set_defaults(log_level=[logging.root.level])
 
         options, self.cmds = parser.parse_args(argv[1:])
+
+        # Update default log level
+        logging.root.setLevel(sum(options.log_level))
 
         if options.toggle:
             options.start_visibility = True
