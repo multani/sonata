@@ -67,6 +67,13 @@ def conout(s):
 
 
 def call(mpdclient, mpd_cmd, *mpd_args):
+
+    # This is potentially called (too) many times. In the cas the logging is not
+    # active, just don't try to do anything at all. This is supposed to save
+    # some performance in the case it is not active.
+    if logger.isEnabledFor(logging.DEBUG):
+        logger.debug("Calling MPD %s%r", mpd_cmd, mpd_args)
+
     try:
         retval = getattr(mpdclient, mpd_cmd)(*mpd_args)
     except Exception, e:

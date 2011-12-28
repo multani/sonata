@@ -1,3 +1,4 @@
+import logging
 import os
 import urllib
 import urllib2
@@ -7,6 +8,7 @@ from pluginsystem import pluginsystem, BuiltinPlugin
 
 class RhapsodyCovers(object):
     def __init__(self):
+        self.logger = logging.getLogger(__name__)
         pluginsystem.plugin_infos.append(BuiltinPlugin(
                 'rhapsodycovers', "Rhapsody Covers",
                 "Fetch album covers from Rhapsody.com.",
@@ -26,13 +28,15 @@ class RhapsodyCovers(object):
         rhapsody_uri = "http://feeds.rhapsody.com"
         url = "%s/%s/%s/data.xml" % (rhapsody_uri, artist, album)
         url = self._sanitize_query(url)
+        self.logger.debug("Finding cover from %r", url)
         request = urllib2.Request(url)
         opener = urllib2.build_opener()
         try:
             body = opener.open(request).read()
             xml = ElementTree.fromstring(body)
             imgs = xml.getiterator("img")
-        except:
+        except Exception, e:
+            self.logger.error("Unable to find cover from %r: %s", url, e)
             return False
 
         imglist = [img.attrib['src'] for img in imgs if img.attrib['src']]
