@@ -1,6 +1,10 @@
 
-import os, re, StringIO
-import ConfigParser, pkgutil
+import ConfigParser
+import StringIO
+import logging
+import os
+import pkgutil
+import re
 
 import sonata.plugins
 
@@ -17,6 +21,7 @@ sonata.plugins.__path__ = find_plugin_dirs() + sonata.plugins.__path__
 
 class Plugin(object):
     def __init__(self, path, name, info, load):
+        self.logger = logging.getLogger(__name__)
         self.path = path
         self.name = name
         self._info = info
@@ -71,9 +76,9 @@ class Plugin(object):
                 for f in features.split(', ')]
         except KeyboardInterrupt:
             raise
-        except "Exception":
-            print ("Failed to access features in plugin %s." %
-                   self.name)
+        except:
+            self.logger.exception("Failed to access features in plugin %s.",
+                                  self.name)
             return []
 
     def get_feature(self, module, feature):
@@ -87,7 +92,7 @@ class Plugin(object):
             try:
                 self._module = self._load()
             except Exception:
-                print "Failed to load plugin %s." % self.name
+                self.logger.exception("Failed to load plugin %s.", self.name)
                 return None
         return self._module
 
@@ -158,9 +163,9 @@ class PluginSystem(object):
                 if entry.endswith('.py'):
                     try:
                         self.load_info(path, entry[:-3])
-                    except Exception:
-                        print "Failed to load info:",
-                        print os.path.join(path, entry)
+                    except:
+                        self.logger.exception("Failed to load info: %s",
+                                              os.path.join(path, entry))
 
     def load_info(self, path, name):
         f = open(os.path.join(path, name+".py"), "rt")
@@ -187,7 +192,7 @@ class PluginSystem(object):
             self.plugin_infos.append(plugin)
 
         if not info.options('capabilities'):
-            print "Warning: No capabilities in plugin %s." % name
+            self.logger.warning("No capabilities in plugin %s.", name)
 
     def import_plugin(self, name):
         # XXX load from a .py file - no .pyc etc.

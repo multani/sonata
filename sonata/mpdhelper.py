@@ -1,16 +1,21 @@
 
 import locale
+import logging
 import sys
 import os
 from time import strftime
 from misc import remove_list_duplicates
 
-suppress_errors = False
+
+logger = logging.getLogger(__name__)
 
 
-def suppress_mpd_errors(val):
-    global suppress_errors
-    suppress_errors = val
+def suppress_mpd_errors(suppress_errors):
+    if suppress_errors:
+        # Well, maybe we still want some very bad errors, who knows
+        logger.setLevel(logging.CRITICAL)
+    else:
+        logger.setLevel(logging.NOTSET)
 
 
 def status(client):
@@ -62,13 +67,18 @@ def conout(s):
 
 
 def call(mpdclient, mpd_cmd, *mpd_args):
+
+    # This is potentially called (too) many times. In the cas the logging is not
+    # active, just don't try to do anything at all. This is supposed to save
+    # some performance in the case it is not active.
+    if logger.isEnabledFor(logging.DEBUG):
+        logger.debug("Calling MPD %s%r", mpd_cmd, mpd_args)
+
     try:
         retval = getattr(mpdclient, mpd_cmd)(*mpd_args)
-    except:
+    except Exception, e:
         if not mpd_cmd in ['disconnect', 'lsinfo', 'listplaylists']:
-            if not suppress_errors:
-                print '%s  %s' % (strftime("%Y-%m-%d %H:%M:%S"),
-                                  str(sys.exc_info()[1]))
+            logger.error("%s", e)
         if mpd_cmd in ['lsinfo', 'list']:
             return []
         else:

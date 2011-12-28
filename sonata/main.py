@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 import gettext
+import logging
 import os
 import warnings
 
@@ -84,6 +85,8 @@ class Base(object):
     ### XXX Warning, a long __init__ ahead:
 
     def __init__(self, args, window=None, _sugar=False):
+        self.logger = logging.getLogger(__name__)
+
         # The following attributes were used but not defined here before:
         self.album_current_artist = None
 
@@ -935,12 +938,11 @@ class Base(object):
             if plugin.name not in self.config.known_plugins:
                 self.config.known_plugins.append(plugin.name)
                 if plugin.name in consts.DEFAULT_PLUGINS:
-                    print _("Enabling new plug-in %s..." %
-                        plugin.name)
+                    self.logger.info(
+                        _("Enabling new plug-in %s..." % plugin.name))
                     pluginsystem.set_enabled(plugin, True)
                 else:
-                    print _("Found new plug-in %s." %
-                        plugin.name)
+                    self.logger.info(_("Found new plug-in %s." % plugin.name))
 
     ### Tab system:
 
@@ -3472,7 +3474,7 @@ class Base(object):
                 full_filename = os.path.join(sys.prefix,
                                              'share', 'pixmaps', filename)
         if not full_filename:
-            print filename + " cannot be found. Aborting..."
+            self.logger.critical("%r cannot be found. Aborting...", filename)
             sys.exit(1)
         return full_filename
 

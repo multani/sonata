@@ -55,7 +55,6 @@ clean-up
 		- write automated tests
 		- refactor code into parts that can be tested
 	use the logging module:
-		- add verbose and debug logging modes
 		- log to file if not running on console
 	exceptions:
 		- add class restrictions to most "except:" clauses

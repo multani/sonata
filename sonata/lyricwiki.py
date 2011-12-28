@@ -1,4 +1,5 @@
 from HTMLParser import HTMLParser
+import logging
 import os
 import urllib
 import re
@@ -16,6 +17,7 @@ from pluginsystem import pluginsystem, BuiltinPlugin
 class LyricWiki(object):
 
     def __init__(self):
+        self.logger = logging.getLogger(__name__)
         self.lyricServer = None
 
         pluginsystem.plugin_infos.append(BuiltinPlugin(
@@ -54,11 +56,14 @@ class LyricWiki(object):
         try:
             addr = 'http://lyrics.wikia.com/index.php?title=%s:%s&action=edit' \
                     % (self.lyricwiki_format(artist), self.lyricwiki_format(title))
+            self.logger.debug("Searching lyrics for %r from %r using %r",
+                              title, artist, addr)
             content = get_content(urllib.urlopen(addr))
 
             if content.lower().startswith("#redirect"):
                 addr = "http://lyrics.wikia.com/index.php?title=%s&action=edit" \
                         % urllib.quote(content.split("[[")[1].split("]]")[0])
+                self.logger.debug("Redirected to %r", addr)
                 content = get_content(urllib.urlopen(addr))
 
             lyrics = content.split("<lyrics>")[1].split("</lyrics>")[0].strip()
@@ -66,12 +71,15 @@ class LyricWiki(object):
                 lyrics = misc.unescape_html(lyrics)
                 lyrics = misc.wiki_to_html(lyrics)
                 lyrics = lyrics.decode("utf-8")
+                self.logger.debug("Found lyrics for %r from %r", title, artist)
                 self.call_back(callback, lyrics=lyrics)
             else:
+                self.logger.debug("No lyrics found for %r from %r", title, artist)
                 error = _("Lyrics not found")
                 self.call_back(callback, error=error)
-        except Exception, e:
-            print >> sys.stderr, "Error while fetching the lyrics:\n%s" % e
+        except:
+            self.logger.exception(
+                "Error while fetching the lyrics for %r from %r", title, artist)
             error = _("Fetching lyrics failed")
             self.call_back(callback, error=error)
 

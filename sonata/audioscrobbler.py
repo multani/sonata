@@ -275,6 +275,7 @@ import datetime
 import locale
 import hashlib
 import site
+import logging
 import sys
 import time
 import urllib
@@ -403,6 +404,8 @@ class AudioScrobbler:
                  audioscrobbler_post_host=audioscrobbler_post_host,
                  client_name=client_name,
                  client_version=pyscrobbler_version):
+
+        self.logger = logging.getLogger(__name__)
 
         self.audioscrobbler_request_version = audioscrobbler_request_version
         self.audioscrobbler_post_version = audioscrobbler_post_version
@@ -610,13 +613,15 @@ class AudioScrobblerPost:
                            protocol_version=protocol_version,
                            host=host)
 
-        self.verbose = verbose
+        self.logger = logging.getLogger(__name__)
+        if not verbose:
+            self.logger.setLevel(logging.WARNING)
 
         self.auth_details = {}
         self.last_post = None
         self.interval = 0
         self.cache = []
-        self.loglines = []
+        self.loglines = [] # TODO: it somehow duplicates with the logging module
         self.last_shake = None
         self.authenticated = False
         self.updateurl = None
@@ -819,12 +824,14 @@ class AudioScrobblerPost:
             url_handle = urllib2.urlopen(req)
         except urllib2.HTTPError, error:
             self.authenticated = False
-            print AudioScrobblerConnectionError('http', error.code, error.msg)
+            self.logger.error(
+                "%s", AudioScrobblerConnectionError('http', error.code, error.msg))
             return
         except:
             code = '000'
             message = sys.exc_info()[1]
-            print AudioScrobblerConnectionError('network', code, message)
+            self.logger.error(
+                "%s", AudioScrobblerConnectionError('network', code, message))
             return
 
         response = url_handle.readlines()
@@ -963,8 +970,7 @@ class AudioScrobblerPost:
 
         time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.loglines.append("%s: %s" % (time, msg))
-        if self.verbose:
-            print self.loglines[-1]
+        self.logger.debug(msg)
 
     def getlog(self, clear=False):
 
