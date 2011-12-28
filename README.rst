@@ -64,6 +64,20 @@ Currently, the following things have been changed since the Berlios's version:
 * "Daniel <quite@hack.org>" added support to toggle fullscreen status from the
   command line.
 
+* Sonata now use the Python's `logging` module to log things instead of
+  print/sys.std[out|err].write/custom thing, which should render things more
+  uniform and customizable.
+
+  This is the `logging-support` branch.
+
+* I refactored how the MPD object is accessed in the code: the MPD client is now
+  a plain object with nice methods to access MPD functionality, which makes the
+  code sightly better to read. There's still some (hard) work to do to provide a
+  good looking and *uniform* access to the song's info (it's currently a
+  gigantic mess).
+
+  This is the `cleanup-mpd-object` branch.
+
 
 Personal todo list
 ------------------
