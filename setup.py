@@ -10,24 +10,31 @@ from sonata.version import version
 def capture(cmd):
     return os.popen(cmd).read().strip()
 
-# Create mo files:
-if not os.path.exists("mo"):
-    os.mkdir("mo")
 
-langs = (os.path.splitext(l)[0]
-         for l in os.listdir('po')
-         if l.endswith('po') and l != "messages.po")
+def generate_translation_files():
+    lang_files = []
 
-for lang in langs:
-    pofile = os.path.join("po", "%s.po" % lang)
-    modir = os.path.join("mo", lang)
-    mofile = os.path.join(modir, "sonata.mo")
-    if not os.path.exists(modir):
-        os.mkdir(modir)
+    if not os.path.exists("mo"):
+        os.mkdir("mo")
 
-    if newer(pofile, mofile):
-        print "Generating %s" % mofile
-        os.system("msgfmt %s -o %s" % (pofile, mofile))
+    langs = (os.path.splitext(l)[0]
+             for l in os.listdir('po')
+             if l.endswith('po') and l != "messages.po")
+
+    for lang in langs:
+        pofile = os.path.join("po", "%s.po" % lang)
+        modir = os.path.join("mo", lang)
+        mofile = os.path.join(modir, "sonata.mo")
+        if not os.path.exists(modir):
+            os.mkdir(modir)
+
+        lang_files.append(('share/locale/%s/LC_MESSAGES' % lang, [mofile]))
+
+        if newer(pofile, mofile):
+            print "Generating %s" % mofile
+            os.system("msgfmt %s -o %s" % (pofile, mofile))
+
+    return lang_files
 
 versionfile = open("sonata/genversion.py","wt")
 versionfile.write("""
@@ -36,6 +43,13 @@ VERSION = 'v%s'
 """ % version)
 versionfile.close()
 
+
+
+data_files = [
+    ('share/sonata', ['README.old', 'CHANGELOG', 'TODO', 'TRANSLATORS']),
+    ('share/applications', ['sonata.desktop']),
+    ('share/man/man1', ['sonata.1']),
+] + generate_translation_files()
 
 tests_require = [
     'unittest2',
@@ -69,35 +83,7 @@ setup(
             extra_link_args=capture("pkg-config --libs gtk+-2.0 pygtk-2.0").split()
         ),
     ],
-    data_files=[
-        ('share/sonata', ['README.old', 'CHANGELOG', 'TODO', 'TRANSLATORS']),
-        ('share/applications', ['sonata.desktop']),
-        ('share/man/man1', ['sonata.1']),
-        ('share/locale/de/LC_MESSAGES', ['mo/de/sonata.mo']),
-        ('share/locale/pl/LC_MESSAGES', ['mo/pl/sonata.mo']),
-        ('share/locale/ru/LC_MESSAGES', ['mo/ru/sonata.mo']),
-        ('share/locale/fr/LC_MESSAGES', ['mo/fr/sonata.mo']),
-        ('share/locale/zh_CN/LC_MESSAGES', ['mo/zh_CN/sonata.mo']),
-        ('share/locale/sv/LC_MESSAGES', ['mo/sv/sonata.mo']),
-        ('share/locale/es/LC_MESSAGES', ['mo/es/sonata.mo']),
-        ('share/locale/fi/LC_MESSAGES', ['mo/fi/sonata.mo']),
-        ('share/locale/nl/LC_MESSAGES', ['mo/nl/sonata.mo']),
-        ('share/locale/it/LC_MESSAGES', ['mo/it/sonata.mo']),
-        ('share/locale/cs/LC_MESSAGES', ['mo/cs/sonata.mo']),
-        ('share/locale/da/LC_MESSAGES', ['mo/da/sonata.mo']),
-        ('share/locale/ca/LC_MESSAGES', ['mo/ca/sonata.mo']),
-        ('share/locale/ar/LC_MESSAGES', ['mo/ar/sonata.mo']),
-        ('share/locale/pt_BR/LC_MESSAGES', ['mo/pt_BR/sonata.mo']),
-        ('share/locale/et/LC_MESSAGES', ['mo/et/sonata.mo']),
-        ('share/locale/tr/LC_MESSAGES', ['mo/tr/sonata.mo']),
-        ('share/locale/be@latin/LC_MESSAGES', ['mo/be@latin/sonata.mo']),
-        ('share/locale/el_GR/LC_MESSAGES', ['mo/el_GR/sonata.mo']),
-        ('share/locale/sk/LC_MESSAGES', ['mo/sk/sonata.mo']),
-        ('share/locale/ja/LC_MESSAGES', ['mo/ja/sonata.mo']),
-        ('share/locale/sl/LC_MESSAGES', ['mo/sl/sonata.mo']),
-        ('share/locale/zh_TW/LC_MESSAGES', ['mo/zh_TW/sonata.mo']),
-        ('share/locale/uk/LC_MESSAGES', ['mo/uk/sonata.mo'])
-    ],
+    data_files=data_files,
     package_data={
         'sonata': ['pixmaps/*.*'],
     },
