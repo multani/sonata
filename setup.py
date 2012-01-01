@@ -1,50 +1,33 @@
 #!/usr/bin/env python
 
-import os, glob, shutil
-
+from distutils.dep_util import newer
+import glob
+import os
 from setuptools import setup, Extension
-
 from sonata.version import version
+
 
 def capture(cmd):
     return os.popen(cmd).read().strip()
 
-def removeall(path):
-    if not os.path.isdir(path):
-        return
-
-    files=os.listdir(path)
-
-    for x in files:
-        fullpath=os.path.join(path, x)
-        if os.path.isfile(fullpath):
-            f=os.remove
-            rmgeneric(fullpath, f)
-        elif os.path.isdir(fullpath):
-            removeall(fullpath)
-            f=os.rmdir
-            rmgeneric(fullpath, f)
-
-def rmgeneric(path, __func__):
-    try:
-        __func__(path)
-    except OSError, (errno, strerror):
-        pass
-
 # Create mo files:
-if not os.path.exists("mo/"):
-    os.mkdir("mo/")
+if not os.path.exists("mo"):
+    os.mkdir("mo")
 
-langs = (l[:-3] for l in os.listdir('po') if l.endswith('po')
-                                          and l != "messages.po")
+langs = (os.path.splitext(l)[0]
+         for l in os.listdir('po')
+         if l.endswith('po') and l != "messages.po")
+
 for lang in langs:
     pofile = os.path.join("po", "%s.po" % lang)
     modir = os.path.join("mo", lang)
     mofile = os.path.join(modir, "sonata.mo")
     if not os.path.exists(modir):
         os.mkdir(modir)
-    print "generating", mofile
-    os.system("msgfmt %s -o %s" % (pofile, mofile))
+
+    if newer(pofile, mofile):
+        print "Generating %s" % mofile
+        os.system("msgfmt %s -o %s" % (pofile, mofile))
 
 versionfile = open("sonata/genversion.py","wt")
 versionfile.write("""
@@ -129,26 +112,6 @@ setup(
         'test': tests_require,
     },
 )
-
-# Cleanup (remove /build, /mo, and *.pyc files:
-print "Cleaning up..."
-try:
-    removeall("build/")
-    os.rmdir("build/")
-except:
-    pass
-try:
-    removeall("mo/")
-    os.rmdir("mo/")
-except:
-    pass
-try:
-    for f in os.listdir("."):
-        if os.path.isfile(f):
-            if os.path.splitext(os.path.basename(f))[1] == ".pyc":
-                os.remove(f)
-except:
-    pass
 try:
     os.remove("sonata/genversion.py")
     os.remove("sonata/genversion.pyc")

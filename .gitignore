@@ -9,3 +9,4 @@ cscope*
 RECORD
 *.egg-info/
 build/
+sonata/genversion.py
