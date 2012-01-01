@@ -79,8 +79,6 @@ import lyricwiki # plug-ins
 import rhapsodycovers
 import dbus_plugin as dbus
 
-from version import version
-
 
 class Base(object):
 
@@ -1015,7 +1013,7 @@ class Base(object):
             # Code thanks to quodlibet:
 
             # XXX gnome.init sets process name, locale...
-            gnome.init("sonata", version)
+            gnome.init("sonata", misc.sonata_version())
 
             misc.setlocale()
 
@@ -3511,7 +3509,7 @@ class Base(object):
     def on_about(self, _action):
         about_dialog = about.About(self.window,
                                    self.config,
-                                   version,
+                                   misc.sonata_version(),
                                    __license__,
                                    self.path_to_icon('sonata_large.png'))
 

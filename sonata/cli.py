@@ -4,7 +4,7 @@ import gettext
 import logging
 from optparse import OptionParser
 
-from version import version
+from sonata import misc
 
 # the mpd commands need a connection to server and exit without gui
 mpd_cmds = ["play", "pause", "stop", "next", "prev", "pp", "info",
@@ -41,7 +41,7 @@ class Args(object):
         "  info            %s" % _("display current song info"),
         "  status          %s" % _("display MPD status"),
         ))
-        _version = "%prog " + version
+        _version = "%prog " + misc.sonata_version()
 
         parser = OptionParser(usage=_usage, version=_version)
         parser.add_option("-p", "--popup", dest="popup",
@@ -130,7 +130,7 @@ class Args(object):
 class CliMain(object):
 
     def __init__(self, args):
-        global os, mpd, config, library, mpdh, misc
+        global os, mpd, config, library, mpdh
         import os
         import mpd
         import config

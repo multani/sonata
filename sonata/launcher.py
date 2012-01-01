@@ -54,18 +54,6 @@ def run():
         logger.critical("Perhaps Sonata is improperly installed?")
         sys.exit(1)
 
-    try:
-        from sonata.version import version
-    except ImportError:
-        logger.critical("Python failed to find the sonata modules.")
-        logger.critical("An old or incomplete installation was "
-                        "found in the following directory: %s",
-                        os.path.dirname(sonata.__file__))
-        logger.critical("Perhaps you want to delete it?")
-        sys.exit(1)
-
-    # XXX check that version.VERSION is what this script was installed for
-
     ## Apply global fixes:
 
     # the following line is to fix python-zsi 2.0 and thus lyrics in ubuntu:

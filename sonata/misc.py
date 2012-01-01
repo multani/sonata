@@ -6,6 +6,8 @@ import locale
 import logging
 import sys
 
+import pkg_resources
+
 
 logger = logging.getLogger(__name__)
 
@@ -262,3 +264,22 @@ def setlocale():
     except:
         logger.exception("Failed to set locale")
         sys.exit(1)
+
+def sonata_version():
+    try:
+        working_set = pkg_resources.WorkingSet()
+        sonata_distribution = working_set.by_key["sonata"]
+    except:
+        # Don't fail just because we can't find the version, it's not *that*
+        # important. Though, we log the error, hoping to fix it.
+        logger.warning(
+            "Unable to find Sonata's version. Is there a Sonata.egg-info "
+            "directory, did you run 'setup.py egg_info'?")
+        logger.warning("Using '(unknown version)' instead.")
+        logger.exception("The error was:")
+        version = "(unknown version)"
+    else:
+        version = sonata_distribution.version
+
+    return version
+

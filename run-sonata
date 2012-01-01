@@ -1,5 +1,15 @@
 #!/usr/bin/env python
 
+import os
+import sys
+
+if not os.path.exists("Sonata.egg-info"):
+    print "Sonata.egg-info directory doesn't exist. Attempting to generate it."
+    argv = sys.argv
+    sys.argv = ["setup.py", "egg_info"]
+    import setup
+    sys.argv = argv
+
 import sonata.launcher
 
 if __name__ == '__main__':
