@@ -38,6 +38,8 @@ import gobject
 import gtk
 import pango
 
+import pkg_resources
+
 
 # Default to no sugar, then test...
 HAVE_SUGAR = False
@@ -3446,34 +3448,21 @@ class Base(object):
                          'pl', 'update', 'sort', 'tag']:
                 self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
 
-    def find_path(self, filename):
-        full_filename = None
+    def find_path(self, icon_name):
+        # TOOD: when Sugar support has been removed, simplify this function:
+        # remove temporary variables, simplify the check on the file existence
         if HAVE_SUGAR:
             full_filename = os.path.join(activity.get_bundle_path(),
-                                         'share', filename)
+                                         'share', icon_name)
         else:
-            if os.path.exists(os.path.join(os.path.split(__file__)[0],
-                                           filename)):
-                full_filename = os.path.join(os.path.split(__file__)[0],
-                                             filename)
-            elif os.path.exists(os.path.join(os.path.split(__file__)[0],
-                                             'pixmaps', filename)):
-                full_filename = os.path.join(os.path.split(__file__)[0],
-                                             'pixmaps', filename)
-            elif os.path.exists(os.path.join(os.path.split(__file__)[0],
-                                             'share', filename)):
-                full_filename = os.path.join(os.path.split(__file__)[0],
-                                             'share', filename)
-            elif os.path.exists(os.path.join(__file__.split('/lib')[0],
-                                             'share', 'pixmaps', filename)):
-                full_filename = os.path.join(__file__.split('/lib')[0],
-                                             'share', 'pixmaps', filename)
-            elif os.path.exists(os.path.join(sys.prefix,
-                                             'share', 'pixmaps', filename)):
-                full_filename = os.path.join(sys.prefix,
-                                             'share', 'pixmaps', filename)
+            full_filename = pkg_resources.resource_filename(
+                __name__, "pixmaps/%s" % icon_name)
+
+            if not os.path.exists(full_filename):
+                full_filename = None
+
         if not full_filename:
-            self.logger.critical("%r cannot be found. Aborting...", filename)
+            self.logger.critical("Icon %r cannot be found. Aborting...", icon_name)
             sys.exit(1)
         return full_filename
 

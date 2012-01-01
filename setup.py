@@ -76,7 +76,7 @@ setup(
         'Topic :: Multimedia :: Sound :: Players',
     ],
     packages=["sonata", "sonata.plugins"],
-    package_dir={"sonata": "sonata/"},
+    package_dir={"sonata": "sonata"},
     ext_modules=[
         Extension(
             "mmkeys",
@@ -89,7 +89,6 @@ setup(
     data_files=[
         ('share/sonata', ['README.old', 'CHANGELOG', 'TODO', 'TRANSLATORS']),
         ('share/applications', ['sonata.desktop']),
-        ('share/pixmaps', glob.glob('sonata/pixmaps/*')),
         ('share/man/man1', ['sonata.1']),
         ('share/locale/de/LC_MESSAGES', ['mo/de/sonata.mo']),
         ('share/locale/pl/LC_MESSAGES', ['mo/pl/sonata.mo']),
@@ -116,6 +115,9 @@ setup(
         ('share/locale/zh_TW/LC_MESSAGES', ['mo/zh_TW/sonata.mo']),
         ('share/locale/uk/LC_MESSAGES', ['mo/uk/sonata.mo'])
     ],
+    package_data={
+        'sonata': ['pixmaps/*.*'],
+    },
     entry_points={
         'console_scripts': [
             'sonata=sonata.launcher:run',
