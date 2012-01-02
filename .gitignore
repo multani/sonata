@@ -6,3 +6,6 @@ mo/
 tags
 TAGS
 cscope*
+RECORD
+*.egg-info/
+build/

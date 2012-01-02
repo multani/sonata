@@ -17,7 +17,7 @@ from pluginsystem import pluginsystem
 
 class Artwork(object):
 
-    def __init__(self, config, find_path, is_lang_rtl,
+    def __init__(self, config, path_to_icon, is_lang_rtl,
                  info_imagebox_get_size_request, schedule_gc_collect,
                  target_image_filename, imagelist_append,
                  remotefilelist_append, notebook_get_allocation,
@@ -42,9 +42,9 @@ class Artwork(object):
         self.get_current_song_text = get_current_song_text
 
         # local pixbufs, image file names
-        self.sonatacd = find_path('sonatacd.png')
-        self.sonatacd_large = find_path('sonatacd_large.png')
-        path = find_path('sonata-case.png')
+        self.sonatacd = path_to_icon('sonatacd.png')
+        self.sonatacd_large = path_to_icon('sonatacd_large.png')
+        path = path_to_icon('sonata-case.png')
         self.casepb = gtk.gdk.pixbuf_new_from_file(path)
         self.albumpb = None
         self.currentpb = None

@@ -38,6 +38,8 @@ import gobject
 import gtk
 import pango
 
+import pkg_resources
+
 
 # Default to no sugar, then test...
 HAVE_SUGAR = False
@@ -216,10 +218,10 @@ class Base(object):
 
         # Add some icons, assign pixbufs:
         self.iconfactory = gtk.IconFactory()
-        ui.icon(self.iconfactory, 'sonata', self.find_path('sonata.png'))
+        ui.icon(self.iconfactory, 'sonata', self.path_to_icon('sonata.png'))
         ui.icon(self.iconfactory, 'artist',
-                self.find_path('sonata-artist.png'))
-        ui.icon(self.iconfactory, 'album', self.find_path('sonata-album.png'))
+                self.path_to_icon('sonata-artist.png'))
+        ui.icon(self.iconfactory, 'album', self.path_to_icon('sonata-album.png'))
         icon_theme = gtk.icon_theme_get_default()
         if HAVE_SUGAR:
             activity_root = activity.get_bundle_path()
@@ -235,7 +237,7 @@ class Base(object):
             except:
                 # Fallback to Sonata-included icons:
                 ui.icon(self.iconfactory, iconname,
-                        self.find_path('sonata-%s.png' % iconname))
+                        self.path_to_icon('sonata-%s.png' % iconname))
 
         # Main window
         if window is None:
@@ -260,12 +262,12 @@ class Base(object):
 
         # Artwork
         self.artwork = artwork.Artwork(
-            self.config, self.find_path, misc.is_lang_rtl(self.window),
+            self.config, self.path_to_icon, misc.is_lang_rtl(self.window),
             lambda: self.info_imagebox.get_size_request(),
             self.schedule_gc_collect, self.target_image_filename,
             self.imagelist_append, self.remotefilelist_append,
             self.notebook.get_allocation, self.set_allow_art_search,
-            self.status_is_play_or_pause, self.find_path('sonata-album.png'),
+            self.status_is_play_or_pause, self.path_to_icon('sonata-album.png'),
             self.get_current_song_text)
 
 
@@ -528,7 +530,7 @@ class Base(object):
         # Library tab
         self.library = library.Library(
             self.config, self.mpd, self.artwork, self.TAB_LIBRARY,
-            self.find_path('sonata-album.png'), self.settings_save,
+            self.path_to_icon('sonata-album.png'), self.settings_save,
             self.current.filtering_entry_make_red,
             self.current.filtering_entry_revert_color,
             self.current.filter_key_pressed, self.on_add_item, self.connected,
@@ -1317,7 +1319,7 @@ class Base(object):
             self.currentdata.clear()
             if self.current_treeview.get_model():
                 self.current_treeview.get_model().clear()
-            self.tray_icon.update_icon(self.find_path('sonata_disconnect.png'))
+            self.tray_icon.update_icon(self.path_to_icon('sonata_disconnect.png'))
             self.info_update(True)
             if self.current.filterbox_visible:
                 gobject.idle_add(self.current.searchfilter_toggle, None)
@@ -1627,7 +1629,7 @@ class Base(object):
                 child[1].set_text('')
                 self.UIManager.get_widget('/traymenu/playmenu').show()
                 self.UIManager.get_widget('/traymenu/pausemenu').hide()
-                self.tray_icon.update_icon(self.find_path('sonata.png'))
+                self.tray_icon.update_icon(self.path_to_icon('sonata.png'))
             elif self.status['state'] == 'pause':
                 self.ppbutton.set_image(ui.image(
                     stock=gtk.STOCK_MEDIA_PLAY,
@@ -1636,7 +1638,7 @@ class Base(object):
                 child[1].set_text('')
                 self.UIManager.get_widget('/traymenu/playmenu').show()
                 self.UIManager.get_widget('/traymenu/pausemenu').hide()
-                self.tray_icon.update_icon(self.find_path('sonata_pause.png'))
+                self.tray_icon.update_icon(self.path_to_icon('sonata_pause.png'))
             elif self.status['state'] == 'play':
                 self.ppbutton.set_image(ui.image(
                     stock=gtk.STOCK_MEDIA_PAUSE,
@@ -1649,7 +1651,7 @@ class Base(object):
                     if self.prevstatus['state'] == 'pause':
                         # Forces the notification to popup if specified
                         self.on_currsong_notify()
-                self.tray_icon.update_icon(self.find_path('sonata_play.png'))
+                self.tray_icon.update_icon(self.path_to_icon('sonata_play.png'))
 
             self.playing_song_change()
             if self.status_is_play_or_pause():
@@ -3446,34 +3448,21 @@ class Base(object):
                          'pl', 'update', 'sort', 'tag']:
                 self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
 
-    def find_path(self, filename):
-        full_filename = None
+    def path_to_icon(self, icon_name):
+        # TOOD: when Sugar support has been removed, simplify this function:
+        # remove temporary variables, simplify the check on the file existence
         if HAVE_SUGAR:
             full_filename = os.path.join(activity.get_bundle_path(),
-                                         'share', filename)
+                                         'share', icon_name)
         else:
-            if os.path.exists(os.path.join(os.path.split(__file__)[0],
-                                           filename)):
-                full_filename = os.path.join(os.path.split(__file__)[0],
-                                             filename)
-            elif os.path.exists(os.path.join(os.path.split(__file__)[0],
-                                             'pixmaps', filename)):
-                full_filename = os.path.join(os.path.split(__file__)[0],
-                                             'pixmaps', filename)
-            elif os.path.exists(os.path.join(os.path.split(__file__)[0],
-                                             'share', filename)):
-                full_filename = os.path.join(os.path.split(__file__)[0],
-                                             'share', filename)
-            elif os.path.exists(os.path.join(__file__.split('/lib')[0],
-                                             'share', 'pixmaps', filename)):
-                full_filename = os.path.join(__file__.split('/lib')[0],
-                                             'share', 'pixmaps', filename)
-            elif os.path.exists(os.path.join(sys.prefix,
-                                             'share', 'pixmaps', filename)):
-                full_filename = os.path.join(sys.prefix,
-                                             'share', 'pixmaps', filename)
+            full_filename = pkg_resources.resource_filename(
+                __name__, "pixmaps/%s" % icon_name)
+
+            if not os.path.exists(full_filename):
+                full_filename = None
+
         if not full_filename:
-            self.logger.critical("%r cannot be found. Aborting...", filename)
+            self.logger.critical("Icon %r cannot be found. Aborting...", icon_name)
             sys.exit(1)
         return full_filename
 
@@ -3524,7 +3513,7 @@ class Base(object):
                                    self.config,
                                    version,
                                    __license__,
-                                   self.find_path('sonata_large.png'))
+                                   self.path_to_icon('sonata_large.png'))
 
         stats = None
         if self.conn:
@@ -3550,7 +3539,7 @@ class Base(object):
             self.tray_icon.show()
         else:
             self.tray_icon.hide()
-        self.tray_icon.update_icon(self.find_path('sonata.png'))
+        self.tray_icon.update_icon(self.path_to_icon('sonata.png'))
 
     def dbus_show(self):
         self.window.hide()
