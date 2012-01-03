@@ -1,50 +1,40 @@
 #!/usr/bin/env python
 
-import os, glob, shutil
-
+from distutils.dep_util import newer
+import glob
+import os
 from setuptools import setup, Extension
-
 from sonata.version import version
+
 
 def capture(cmd):
     return os.popen(cmd).read().strip()
 
-def removeall(path):
-    if not os.path.isdir(path):
-        return
 
-    files=os.listdir(path)
+def generate_translation_files():
+    lang_files = []
 
-    for x in files:
-        fullpath=os.path.join(path, x)
-        if os.path.isfile(fullpath):
-            f=os.remove
-            rmgeneric(fullpath, f)
-        elif os.path.isdir(fullpath):
-            removeall(fullpath)
-            f=os.rmdir
-            rmgeneric(fullpath, f)
+    if not os.path.exists("mo"):
+        os.mkdir("mo")
 
-def rmgeneric(path, __func__):
-    try:
-        __func__(path)
-    except OSError, (errno, strerror):
-        pass
+    langs = (os.path.splitext(l)[0]
+             for l in os.listdir('po')
+             if l.endswith('po') and l != "messages.po")
 
-# Create mo files:
-if not os.path.exists("mo/"):
-    os.mkdir("mo/")
+    for lang in langs:
+        pofile = os.path.join("po", "%s.po" % lang)
+        modir = os.path.join("mo", lang)
+        mofile = os.path.join(modir, "sonata.mo")
+        if not os.path.exists(modir):
+            os.mkdir(modir)
 
-langs = (l[:-3] for l in os.listdir('po') if l.endswith('po')
-                                          and l != "messages.po")
-for lang in langs:
-    pofile = os.path.join("po", "%s.po" % lang)
-    modir = os.path.join("mo", lang)
-    mofile = os.path.join(modir, "sonata.mo")
-    if not os.path.exists(modir):
-        os.mkdir(modir)
-    print "generating", mofile
-    os.system("msgfmt %s -o %s" % (pofile, mofile))
+        lang_files.append(('share/locale/%s/LC_MESSAGES' % lang, [mofile]))
+
+        if newer(pofile, mofile):
+            print "Generating %s" % mofile
+            os.system("msgfmt %s -o %s" % (pofile, mofile))
+
+    return lang_files
 
 versionfile = open("sonata/genversion.py","wt")
 versionfile.write("""
@@ -53,6 +43,13 @@ VERSION = 'v%s'
 """ % version)
 versionfile.close()
 
+
+
+data_files = [
+    ('share/sonata', ['README.old', 'CHANGELOG', 'TODO', 'TRANSLATORS']),
+    ('share/applications', ['sonata.desktop']),
+    ('share/man/man1', ['sonata.1']),
+] + generate_translation_files()
 
 tests_require = [
     'unittest2',
@@ -86,35 +83,7 @@ setup(
             extra_link_args=capture("pkg-config --libs gtk+-2.0 pygtk-2.0").split()
         ),
     ],
-    data_files=[
-        ('share/sonata', ['README.old', 'CHANGELOG', 'TODO', 'TRANSLATORS']),
-        ('share/applications', ['sonata.desktop']),
-        ('share/man/man1', ['sonata.1']),
-        ('share/locale/de/LC_MESSAGES', ['mo/de/sonata.mo']),
-        ('share/locale/pl/LC_MESSAGES', ['mo/pl/sonata.mo']),
-        ('share/locale/ru/LC_MESSAGES', ['mo/ru/sonata.mo']),
-        ('share/locale/fr/LC_MESSAGES', ['mo/fr/sonata.mo']),
-        ('share/locale/zh_CN/LC_MESSAGES', ['mo/zh_CN/sonata.mo']),
-        ('share/locale/sv/LC_MESSAGES', ['mo/sv/sonata.mo']),
-        ('share/locale/es/LC_MESSAGES', ['mo/es/sonata.mo']),
-        ('share/locale/fi/LC_MESSAGES', ['mo/fi/sonata.mo']),
-        ('share/locale/nl/LC_MESSAGES', ['mo/nl/sonata.mo']),
-        ('share/locale/it/LC_MESSAGES', ['mo/it/sonata.mo']),
-        ('share/locale/cs/LC_MESSAGES', ['mo/cs/sonata.mo']),
-        ('share/locale/da/LC_MESSAGES', ['mo/da/sonata.mo']),
-        ('share/locale/ca/LC_MESSAGES', ['mo/ca/sonata.mo']),
-        ('share/locale/ar/LC_MESSAGES', ['mo/ar/sonata.mo']),
-        ('share/locale/pt_BR/LC_MESSAGES', ['mo/pt_BR/sonata.mo']),
-        ('share/locale/et/LC_MESSAGES', ['mo/et/sonata.mo']),
-        ('share/locale/tr/LC_MESSAGES', ['mo/tr/sonata.mo']),
-        ('share/locale/be@latin/LC_MESSAGES', ['mo/be@latin/sonata.mo']),
-        ('share/locale/el_GR/LC_MESSAGES', ['mo/el_GR/sonata.mo']),
-        ('share/locale/sk/LC_MESSAGES', ['mo/sk/sonata.mo']),
-        ('share/locale/ja/LC_MESSAGES', ['mo/ja/sonata.mo']),
-        ('share/locale/sl/LC_MESSAGES', ['mo/sl/sonata.mo']),
-        ('share/locale/zh_TW/LC_MESSAGES', ['mo/zh_TW/sonata.mo']),
-        ('share/locale/uk/LC_MESSAGES', ['mo/uk/sonata.mo'])
-    ],
+    data_files=data_files,
     package_data={
         'sonata': ['pixmaps/*.*'],
     },
@@ -129,26 +98,6 @@ setup(
         'test': tests_require,
     },
 )
-
-# Cleanup (remove /build, /mo, and *.pyc files:
-print "Cleaning up..."
-try:
-    removeall("build/")
-    os.rmdir("build/")
-except:
-    pass
-try:
-    removeall("mo/")
-    os.rmdir("mo/")
-except:
-    pass
-try:
-    for f in os.listdir("."):
-        if os.path.isfile(f):
-            if os.path.splitext(os.path.basename(f))[1] == ".pyc":
-                os.remove(f)
-except:
-    pass
 try:
     os.remove("sonata/genversion.py")
     os.remove("sonata/genversion.pyc")
