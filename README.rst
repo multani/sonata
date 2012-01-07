@@ -78,6 +78,8 @@ Currently, the following things have been changed since the Berlios's version:
 
   This is the `cleanup-mpd-object` branch.
 
+* Improved the packaging of the application: use `pkg_resources` to access
+  data files, and stop doing so much work when running `python setup.py ...`.
 
 Personal todo list
 ------------------
