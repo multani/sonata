@@ -129,27 +129,15 @@ def get_tray_icon_factory():
 
     This will detect the best way to create a tray icon:
 
-        * if the egg.trayicon module is available, then use it
         * if the gtk.StatusIcon is available, then use it
         * else, use a dummy tray icon, we should show no tray icon at all
     """
 
-    # Prevent deprecation warning for egg:
-    import warnings
-    warnings.simplefilter('ignore', DeprecationWarning)
     try:
-        import egg.trayicon
-        factory = TrayIconEgg
+        from sugar.activity import activity
+        return TrayIconDummy
     except ImportError:
-        try:
-            from sugar.activity import activity
-            factory = TrayIconDummy
-        except ImportError:
-            factory = TrayIconGtk
-    # Reset so that we can see any other deprecation warnings
-    warnings.simplefilter('default', DeprecationWarning)
-
-    return factory
+        return TrayIconGtk
 
 
 class TrayIconDummy(object):
@@ -178,91 +166,6 @@ class TrayIconDummy(object):
 
     def is_available(self):
         return False
-
-
-class TrayIconEgg(object):
-    """Tray icon which use egg.trayicon module"""
-
-    def __init__(self, window, traymenu, traytips):
-        self.trayicon = None
-        self.trayimage = None
-        self.eggtrayfile = None
-        self.eggtrayheight = None
-        self.trayeventbox = None
-        self.traytips = traytips
-
-    def compute_pos(self):
-        widget = self.trayeventbox
-        x, y = widget.window.get_origin()
-        if widget.flags() & gtk.NO_WINDOW:
-            x += widget.allocation.x
-            y += widget.allocation.y
-        height = widget.allocation.height
-        width = widget.allocation.width
-        return x, y, width, height
-
-    def initialize(self, on_click, on_scroll, on_activate):
-        # Local import to not break if egg.trayicon is not available
-        import egg.trayicon
-        self.trayimage = ui.image()
-        self.trayeventbox = ui.eventbox(add=self.trayimage)
-        self.trayeventbox.connect('button_press_event', on_click)
-        self.trayeventbox.connect('scroll-event', on_scroll)
-        self.trayeventbox.connect('size-allocate', self._systemtray_size)
-        self.trayeventbox.connect_after("event-after", self._motion_cb)
-        self.trayicon = egg.trayicon.TrayIcon("TrayIcon")
-        self.trayicon.add(self.trayeventbox)
-
-    def is_visible(self):
-        return self.trayicon.get_property('visible')
-
-    def update_icon(self, icon_path):
-        self.eggtrayfile = icon_path
-        self._set_tray_image()
-
-    def show(self):
-        self.trayicon.show_all()
-
-    def hide(self):
-        self.trayicon.hide_all()
-
-    def is_available(self):
-        # TODO: does eggtray as any way to know it the systray is available in
-        # the current window manager?
-        return True
-
-    def _set_tray_image(self):
-        if self.eggtrayheight is None:
-            # The tray height has not been computed yet, so we can't display the
-            # tray icon yet.
-            return
-
-        self.trayimage.set_from_pixbuf(
-            img.get_pixbuf_of_size(
-                gtk.gdk.pixbuf_new_from_file(self.eggtrayfile),
-                self.eggtrayheight)[0])
-
-    def _event_handler(self):
-        self.trayeventbox.connect_after("event-after", self._motion_cb)
-
-    def _motion_cb(self, tray_icon, event):
-        if self.traytips.notif_handler != None:
-            return
-        if event.type == gtk.gdk.LEAVE_NOTIFY:
-            self.traytips._remove_timer()
-        if event.type == gtk.gdk.ENTER_NOTIFY:
-            self.traytips._start_delay(self)
-
-    def _systemtray_size(self, widget, _allocation):
-        if widget.allocation.height <= 5:
-            # For vertical panels, height can be 1px, so use width
-            size = widget.allocation.width
-        else:
-            size = widget.allocation.height
-        if not self.eggtrayheight or self.eggtrayheight != size:
-            self.eggtrayheight = size
-            if size > 5 and self.eggtrayfile:
-                self._set_tray_image()
 
 
 class TrayIconGtk(object):

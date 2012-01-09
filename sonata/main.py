@@ -2824,7 +2824,7 @@ class Base(object):
                                 self.tooltip_set_ignore_toggle_signal_false)
 
     def systemtray_click(self, _widget, event):
-        # Clicking on an egg system tray icon:
+        # Clicking on a system tray icon:
         # Left button shows/hides window(s)
         if event.button == 1 and not self.ignore_toggle_signal:
             self.systemtray_activate(None)
