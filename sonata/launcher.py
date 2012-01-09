@@ -68,10 +68,6 @@ def run():
 
     ## Apply global fixes:
 
-    # the following line is to fix python-zsi 2.0 and thus lyrics in ubuntu:
-    # https://bugs.launchpad.net/ubuntu/+source/zsi/+bug/208855
-    sys.path.append('/usr/lib/python2.5/site-packages/oldxml')
-
     # hint for gnome.init to set the process name to 'sonata'
     if platform.system() == 'Linux':
         sys.argv[0] = 'sonata'
