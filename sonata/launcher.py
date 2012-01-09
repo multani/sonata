@@ -131,9 +131,6 @@ def run():
     if not args.skip_gui:
         # importing gtk does sys.setdefaultencoding("utf-8"), sets locale etc.
         import gtk
-        if gtk.pygtk_version < (2, 12, 0):
-            logger.critical("Sonata requires PyGTK 2.12.0 or newer. Aborting...")
-            sys.exit(1)
         # fix locale
         misc.setlocale()
     else:
