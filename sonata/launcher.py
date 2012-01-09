@@ -156,10 +156,6 @@ def run():
     if not args.skip_gui:
         gtk.gdk.threads_init()
 
-        # we don't use gtk.LinkButton, but gtk.AboutDialog does;
-        # in gtk 2.16.0 without this, the about uri opens doubly:
-        gtk.link_button_set_uri_hook(lambda *args:None)
-
     ## CLI actions:
 
     args.execute_cmds()
