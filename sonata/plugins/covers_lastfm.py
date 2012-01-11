@@ -13,8 +13,6 @@
 ### END PLUGIN INFO
 
 # TODO: API key specific to Sonata
-# TODO: errore checking (see http://www.last.fm/api/show?service=290)
-# TODO: handle malformed XML
 
 import logging
 import shutil
@@ -22,7 +20,6 @@ import urllib
 import urllib2
 from xml.etree import ElementTree
 
-from sonata.pluginsystem import pluginsystem, BuiltinPlugin
 from sonata.version import version
 
 
@@ -41,8 +38,10 @@ def on_cover_fetch(callback, artist, album, destination, all_images):
                                destination, all_images)
     except urllib2.URLError, e:
         logger.info("Unable to fetch cover from Last.fm: %s", e.reason)
-        return False
+    except ElementTree.ParseError, e:
+        logger.info("Unable to process Last.fm response: %s", e)
 
+    return False
 
 def _cover_fetching(callback, artist, album, destination, all_images):
 
@@ -50,6 +49,12 @@ def _cover_fetching(callback, artist, album, destination, all_images):
 
     opener = urllib2.build_opener()
     opener.addheaders = [("User-Agent", make_user_agent())]
+
+    def urlretrieve(url, dest):
+        logger.debug("Downloading %r into %r", url, dest)
+        u = opener.open(url)
+        with open(dest, "w") as fp:
+            shutil.copyfileobj(u, fp)
 
     # First, find the link to the master release of this album
     search_url = "http://ws.audioscrobbler.com/2.0/?%s" % (
@@ -63,11 +68,49 @@ def _cover_fetching(callback, artist, album, destination, all_images):
     logger.debug("Querying %r...", search_url)
     response = opener.open(search_url)
 
-    tree = ElementTree.parse(response)
-    image = tree.find('album/image[@size="large"]')
+    tree = parse_lastfm_xml(response)
 
-    logger.debug("Downloading image from %s", image.text)
-    image_response = opener.open(image.text)
+    if all_images:
+        image_found = False
 
-    with open(destination, "w") as fp:
-        shutil.copyfileobj(image_response, fp)
+        for i, image in enumerate(tree.findall('album/image')):
+            filename = destination.replace("<imagenum>", str(i+1))
+            try:
+                urlretrieve(image.text, filename)
+            except urllib2.URLError, e:
+                logger.warning("Can't download %r: %s", image.text, e)
+                continue
+
+            image_found = True
+
+            if not callback(filename, i):
+                # Cancelled
+                break
+
+        return image_found
+
+    else:
+        image = tree.find('album/image[@size="large"]')
+        # Caller should catch URLError
+        urlretrieve(image.text, destination)
+        return True
+
+
+def parse_lastfm_xml(content):
+    root = ElementTree.parse(content)
+
+    if root.tag != 'lfm':
+        msg = "Response should start with 'lfm', starts with %r instead"
+        raise ElementTree.ParseError(msg % root.tag)
+
+    if root.get("status") != 'ok':
+        error = root.find("error")
+        if error is None:
+            msg = "Response not 'ok', but no error given :("
+            raise ElementTree.ParseError(msg)
+
+        msg = "Last.fm error %d: %s"
+        raise ElementTree.ParseError(msg % (error.get("code"),
+                                            error.text))
+    else:
+        return tree
