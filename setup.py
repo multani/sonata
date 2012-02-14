@@ -74,15 +74,6 @@ setup(
     ],
     packages=["sonata", "sonata.plugins"],
     package_dir={"sonata": "sonata"},
-    ext_modules=[
-        Extension(
-            "mmkeys",
-            ["mmkeys/mmkeyspy.c", "mmkeys/mmkeys.c",
-             "mmkeys/mmkeysmodule.c"],
-            extra_compile_args=capture("pkg-config --cflags gtk+-2.0 pygtk-2.0").split(),
-            extra_link_args=capture("pkg-config --libs gtk+-2.0 pygtk-2.0").split()
-        ),
-    ],
     data_files=data_files,
     package_data={
         'sonata': ['pixmaps/*.*'],

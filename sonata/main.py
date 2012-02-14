@@ -853,18 +853,9 @@ class Base(object):
         dbus.init_gnome_mediakeys(self.mpd_pp, self.mpd_stop, self.mpd_prev,
                                   self.mpd_next)
 
-        # Try to connect to mmkeys signals, if no dbus and gnome 2.18+
-        if not dbus.using_gnome_mediakeys():
-            try:
-                import mmkeys
-                # this must be an attribute to keep it around:
-                self.keys = mmkeys.MmKeys()
-                self.keys.connect("mm_prev", self.mpd_prev)
-                self.keys.connect("mm_next", self.mpd_next)
-                self.keys.connect("mm_playpause", self.mpd_pp)
-                self.keys.connect("mm_stop", self.mpd_stop)
-            except ImportError:
-                pass
+        # XXX find new multimedia key library here, in case we don't have gnome!
+        #if not dbus.using_gnome_mediakeys():
+        #    pass
 
         # Set up current view
         self.currentdata = self.current.get_model()
