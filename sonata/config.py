@@ -135,24 +135,12 @@ class Config:
     def settings_load_real(self, library_set_data):
         """Load configuration from file"""
         # Load config
-        conf = ConfigParser.ConfigParser()
+        conf = configparser.RawConfigParser()
         misc.create_dir('~/.config/sonata/')
         if os.path.isfile(os.path.expanduser('~/.config/sonata/sonatarc')):
             conf.read(os.path.expanduser('~/.config/sonata/sonatarc'))
         else:
             return
-        # Compatibility with previous versions of Sonata:
-        # --------------------------------------------------------------------
-        if conf.has_option('connection', 'host'):
-            self.host[0] = conf.get('connection', 'host')
-        if conf.has_option('connection', 'port'):
-            self.port[0] = int(conf.get('connection', 'port'))
-        if conf.has_option('connection', 'password'):
-            self.password[0] = conf.get('connection', 'password')
-        if conf.has_option('connection', 'musicdir'):
-            self.musicdir[0] = misc.sanitize_musicdir(conf.get('connection',
-                                                               'musicdir'))
-        # --------------------------------------------------------------------
         if conf.has_option('connection', 'auto'):
             self.autoconnect = conf.getboolean('connection', 'auto')
         if conf.has_option('connection', 'profile_num'):
@@ -204,10 +192,6 @@ class Config:
             self.show_playback = conf.getboolean('player', 'playback')
         if conf.has_option('player', 'progressbar'):
             self.show_progress = conf.getboolean('player', 'progressbar')
-        if conf.has_option('player', 'crossfade'):
-            crossfade = conf.getint('player', 'crossfade')
-            # Backwards compatibility:
-            self.xfade = crossfade
         if conf.has_option('player', 'xfade'):
             self.xfade = conf.getint('player', 'xfade')
         if conf.has_option('player', 'xfade_enabled'):
@@ -368,9 +352,6 @@ class Config:
                                               'use_audioscrobbler')
         if conf.has_option('audioscrobbler', 'username'):
             self.as_username = conf.get('audioscrobbler', 'username')
-        if conf.has_option('audioscrobbler', 'password'): # old...
-            self.as_password_md5 = hashlib.md5(conf.get('audioscrobbler',
-                                                       'password')).hexdigest()
         if conf.has_option('audioscrobbler', 'password_md5'):
             self.as_password_md5 = conf.get('audioscrobbler', 'password_md5')
         if conf.has_option('profiles', 'num_profiles'):
@@ -408,21 +389,21 @@ class Config:
 
     def settings_save_real(self, library_get_data):
         """Save configuration in file"""
-        conf = ConfigParser.ConfigParser()
+        conf = configparser.RawConfigParser()
 
         conf.add_section('profiles')
-        conf.set('profiles', 'num_profiles', len(self.profile_names))
+        conf.set('profiles', 'num_profiles', str(len(self.profile_names)))
         for (i, (name, host, port, password, musicdir)) in \
                 enumerate(zip(self.profile_names, self.host,
                               self.port, self.password, self.musicdir)):
             conf.set('profiles', 'names[%s]' % i, name)
             conf.set('profiles', 'hosts[%s]' % i, host)
-            conf.set('profiles', 'ports[%s]' % i, port)
+            conf.set('profiles', 'ports[%s]' % i, str(port))
             conf.set('profiles', 'passwords[%s]' % i, password)
             conf.set('profiles', 'musicdirs[%s]' % i, musicdir)
         conf.add_section('connection')
-        conf.set('connection', 'auto', self.autoconnect)
-        conf.set('connection', 'profile_num', self.profile_num)
+        conf.set('connection', 'auto', str(self.autoconnect))
+        conf.set('connection', 'profile_num', str(self.profile_num))
 
         conf.add_section('player')
         attributes = ['w',
@@ -457,25 +438,25 @@ class Config:
                 'tabs_expanded']
 
         for attribute in attributes:
-            conf.set('player', attribute, getattr(self, attribute))
+            conf.set('player', attribute, str(getattr(self, attribute)))
 
-        conf.set('player', 'covers', self.show_covers)
-        conf.set('player', 'minimize', self.minimize_to_systray)
-        conf.set('player', 'statusbar', self.show_statusbar)
-        conf.set('player', 'lyrics', self.show_lyrics)
-        conf.set('player', 'notification', self.show_notification)
-        conf.set('player', 'popup_time', self.popup_option)
+        conf.set('player', 'covers', str(self.show_covers))
+        conf.set('player', 'minimize', str(self.minimize_to_systray))
+        conf.set('player', 'statusbar', str(self.show_statusbar))
+        conf.set('player', 'lyrics', str(self.show_lyrics))
+        conf.set('player', 'notification', str(self.show_notification))
+        conf.set('player', 'popup_time', str(self.popup_option))
         conf.set('player', 'notif_location',
-                 self.traytips_notifications_location)
-        conf.set('player', 'playback', self.show_playback)
-        conf.set('player', 'progressbar', self.show_progress)
-        conf.set('player', 'trayicon', self.show_trayicon)
-        conf.set('player', 'search_num', self.last_search_num)
-        conf.set('player', 'existing_playlist', self.existing_playlist_option)
+                 str(self.traytips_notifications_location))
+        conf.set('player', 'playback', str(self.show_playback))
+        conf.set('player', 'progressbar', str(self.show_progress))
+        conf.set('player', 'trayicon', str(self.show_trayicon))
+        conf.set('player', 'search_num', str(self.last_search_num))
+        conf.set('player', 'existing_playlist', str(self.existing_playlist_option))
         conf.set('player', 'browser', self.url_browser)
 
         columnwidths = ",".join(str(w) for w in self.columnwidths)
-        conf.set('player', 'columnwidths', columnwidths)
+        conf.set('player', 'columnwidths', str(columnwidths))
 
 
         # Save tab positions and visibility:
@@ -492,7 +473,7 @@ class Config:
                 'info_tab_pos']
 
         for attribute in attributes:
-            conf.set('notebook', attribute, getattr(self, attribute))
+            conf.set('notebook', attribute, str(getattr(self, attribute)))
 
         # Save current library browsing state:
         album = library_get_data(self.wd, 'album')
@@ -516,11 +497,11 @@ class Config:
         conf.set('library', 'lib_genre', genre)
         conf.set('library', 'lib_year', year)
         conf.set('library', 'lib_path', path)
-        conf.set('library', 'lib_view', self.lib_view)
+        conf.set('library', 'lib_view', str(self.lib_view))
 
         # Save formats for current playlist, library, etc:
         conf.add_section('currformat')
-        conf.set('currformat', 'current', self.currentformat)
+        conf.set('currformat', 'current', str(self.currentformat))
         conf.set('currformat', 'library', self.libraryformat)
         conf.set('currformat', 'title', self.titleformat)
         conf.set('currformat', 'currsong1', self.currsongformat1)
@@ -528,20 +509,20 @@ class Config:
 
         # Save streams:
         conf.add_section('streams')
-        conf.set('streams', 'num_streams', len(self.stream_names))
+        conf.set('streams', 'num_streams', str(len(self.stream_names)))
         for (i, (stream, stream_uri)) in enumerate(zip(self.stream_names,
                                                        self.stream_uris)):
             conf.set('streams', 'names[%s]' % i, stream)
             conf.set('streams', 'uris[%s]' % i, stream_uri)
 
         conf.add_section('audioscrobbler')
-        conf.set('audioscrobbler', 'use_audioscrobbler', self.as_enabled)
+        conf.set('audioscrobbler', 'use_audioscrobbler', str(self.as_enabled))
         conf.set('audioscrobbler', 'username', self.as_username)
         conf.set('audioscrobbler', 'password_md5', self.as_password_md5)
 
         # Tag editor
         conf.add_section('tags')
-        conf.set('tags', 'use_mpdpaths', self.tags_use_mpdpath)
+        conf.set('tags', 'use_mpdpaths', str(self.tags_use_mpdpath))
 
         # Enabled plugins list
         conf.add_section('plugins')
