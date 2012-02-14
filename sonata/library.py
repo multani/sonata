@@ -86,65 +86,62 @@ class Library(object):
         self.lib_list_years = None
         self.view_caches_reset()
 
-        self.libraryvbox = gtk.VBox()
+        self.libraryvbox = Gtk.VBox()
         self.library = ui.treeview()
         self.library_selection = self.library.get_selection()
         self.breadcrumbs = breadcrumbs.CrumbBox()
         self.breadcrumbs.props.spacing = 2
         expanderwindow2 = ui.scrollwindow(add=self.library)
-        self.searchbox = gtk.HBox()
+        self.searchbox = Gtk.HBox()
         self.searchcombo = ui.combo(items=self.search_terms)
         self.searchcombo.set_tooltip_text(_("Search terms"))
         self.searchtext = ui.entry()
         self.searchtext.set_tooltip_text(_("Search library"))
-        self.searchbutton = ui.button(img=ui.image(stock=gtk.STOCK_CANCEL),
-                                      h=self.searchcombo.size_request()[1])
+        self.searchbutton = ui.button(img=ui.image(stock=Gtk.STOCK_CANCEL),
+                                      h=self.searchcombo.size_request().height)
         self.searchbutton.set_no_show_all(True)
         self.searchbutton.hide()
         self.searchbutton.set_tooltip_text(_("End Search"))
-        self.libraryview = ui.button(relief=gtk.RELIEF_NONE)
+        self.libraryview = ui.button(relief=Gtk.ReliefStyle.NONE)
         self.libraryview.set_tooltip_text(_("Library browsing view"))
-        # disabled as breadcrumbs replace this:
-#		self.searchbox.pack_start(self.libraryview, False, False, 1)
-#		self.searchbox.pack_start(gtk.VSeparator(), False, False, 2)
         self.searchbox.pack_start(ui.label(_("Search:")), False, False, 3)
         self.searchbox.pack_start(self.searchtext, True, True, 2)
         self.searchbox.pack_start(self.searchcombo, False, False, 2)
         self.searchbox.pack_start(self.searchbutton, False, False, 2)
         self.libraryvbox.pack_start(self.breadcrumbs, False, False, 2)
-        self.libraryvbox.pack_start(expanderwindow2, True, True)
+        self.libraryvbox.pack_start(expanderwindow2, True, True, 0)
         self.libraryvbox.pack_start(self.searchbox, False, False, 2)
 
-        self.tab = new_tab(self.libraryvbox, gtk.STOCK_HARDDISK, TAB_LIBRARY,
+        self.tab = new_tab(self.libraryvbox, Gtk.STOCK_HARDDISK, TAB_LIBRARY,
                            self.library)
 
         # Assign some pixbufs for use in self.library
-        self.openpb2 = self.library.render_icon(gtk.STOCK_OPEN,
-                                                gtk.ICON_SIZE_LARGE_TOOLBAR)
-        self.harddiskpb2 = self.library.render_icon(gtk.STOCK_HARDDISK,
-                                                   gtk.ICON_SIZE_LARGE_TOOLBAR)
-        self.openpb = self.library.render_icon(gtk.STOCK_OPEN,
-                                               gtk.ICON_SIZE_MENU)
-        self.harddiskpb = self.library.render_icon(gtk.STOCK_HARDDISK,
-                                                   gtk.ICON_SIZE_MENU)
-        self.albumpb = gtk.gdk.pixbuf_new_from_file_at_size(
+        self.openpb2 = self.library.render_icon(Gtk.STOCK_OPEN,
+                                                Gtk.IconSize.LARGE_TOOLBAR)
+        self.harddiskpb2 = self.library.render_icon(Gtk.STOCK_HARDDISK,
+                                                   Gtk.IconSize.LARGE_TOOLBAR)
+        self.openpb = self.library.render_icon(Gtk.STOCK_OPEN,
+                                               Gtk.IconSize.MENU)
+        self.harddiskpb = self.library.render_icon(Gtk.STOCK_HARDDISK,
+                                                   Gtk.IconSize.MENU)
+        self.albumpb = GdkPixbuf.Pixbuf.new_from_file_at_size(
             album_filename, consts.LIB_COVER_SIZE, consts.LIB_COVER_SIZE)
         self.genrepb = self.library.render_icon('gtk-orientation-portrait',
-                                                gtk.ICON_SIZE_LARGE_TOOLBAR)
+                                                Gtk.IconSize.LARGE_TOOLBAR)
         self.artistpb = self.library.render_icon('artist',
-                                                 gtk.ICON_SIZE_LARGE_TOOLBAR)
-        self.sonatapb = self.library.render_icon('sonata', gtk.ICON_SIZE_MENU)
+                                                 Gtk.IconSize.LARGE_TOOLBAR)
+        self.sonatapb = self.library.render_icon('sonata', Gtk.IconSize.MENU)
 
         # list of the library views: (id, name, icon name, label)
         self.VIEWS = [
             (consts.VIEW_FILESYSTEM, 'filesystem',
-             gtk.STOCK_HARDDISK, _("Filesystem")),
+             Gtk.STOCK_HARDDISK, _("Filesystem")),
             (consts.VIEW_ALBUM, 'album',
              'album', _("Albums")),
             (consts.VIEW_ARTIST, 'artist',
              'artist', _("Artists")),
             (consts.VIEW_GENRE, 'genre',
-             gtk.STOCK_ORIENTATION_PORTRAIT, _("Genres")),
+             Gtk.STOCK_ORIENTATION_PORTRAIT, _("Genres")),
             ]
 
         self.library_view_assign_image()
@@ -172,21 +169,21 @@ class Library(object):
         self.searchcombo.handler_block(searchcombo_changed_handler)
         self.searchcombo.set_active(self.config.last_search_num)
         self.searchcombo.handler_unblock(searchcombo_changed_handler)
-        self.librarydata = gtk.ListStore(gtk.gdk.Pixbuf, gobject.TYPE_PYOBJECT,
+        self.librarydata = Gtk.ListStore(GdkPixbuf.Pixbuf, GObject.TYPE_PYOBJECT,
                                          str)
         self.library.set_model(self.librarydata)
         self.library.set_search_column(2)
-        self.librarycell = gtk.CellRendererText()
-        self.librarycell.set_property("ellipsize", pango.ELLIPSIZE_END)
-        self.libraryimg = gtk.CellRendererPixbuf()
-        self.librarycolumn = gtk.TreeViewColumn()
+        self.librarycell = Gtk.CellRendererText()
+        self.librarycell.set_property("ellipsize", Pango.EllipsizeMode.END)
+        self.libraryimg = Gtk.CellRendererPixbuf()
+        self.librarycolumn = Gtk.TreeViewColumn()
         self.librarycolumn.pack_start(self.libraryimg, False)
         self.librarycolumn.pack_start(self.librarycell, True)
-        self.librarycolumn.set_attributes(self.libraryimg, pixbuf=0)
-        self.librarycolumn.set_attributes(self.librarycell, markup=2)
-        self.librarycolumn.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
+        self.librarycolumn.add_attribute(self.libraryimg, 'pixbuf', 0)
+        self.librarycolumn.add_attribute(self.librarycell, 'markup', 2)
+        self.librarycolumn.set_sizing(Gtk.TreeViewColumnSizing.AUTOSIZE)
         self.library.append_column(self.librarycolumn)
-        self.library_selection.set_mode(gtk.SELECTION_MULTIPLE)
+        self.library_selection.set_mode(Gtk.SelectionMode.MULTIPLE)
 
     def get_libraryactions(self):
         return [(name + 'view', icon, label,
@@ -239,7 +236,7 @@ class Library(object):
                                                     (len(self.librarydata)-1,))
         except:
             pass
-        gobject.idle_add(self.library.scroll_to_point, 0, 0)
+        GObject.idle_add(self.library.scroll_to_point, 0, 0)
 
     def library_view_assign_image(self):
         _view, _name, icon, label = [v for v in self.VIEWS
@@ -261,9 +258,9 @@ class Library(object):
 
     def on_library_scrolled(self, _widget, _event):
         try:
-            # Use gobject.idle_add so that we can get the visible
+            # Use GObject.idle_add so that we can get the visible
             # state of the treeview
-            gobject.idle_add(self._on_library_scrolled)
+            GObject.idle_add(self._on_library_scrolled)
         except:
             pass
 
@@ -275,16 +272,9 @@ class Library(object):
         if not self.library.props.visible:
             return
 
-        vis_range = self.library.get_visible_range()
-        if vis_range is None:
-            return
-        try:
-            start_row = int(vis_range[0][0])
-            end_row = int(vis_range[1][0])
-        except IndexError:
-            # get_visible_range failed
-            return
-
+        ok, start_row, end_row = self.library.get_visible_range()
+        if not ok:
+                return
         self.artwork.library_artwork_update(self.librarydata, start_row,
                                             end_row, self.albumpb)
 
@@ -319,7 +309,7 @@ class Library(object):
                     prev_selection.append(model.get_value(model.get_iter(path),
                                                           1))
             self.libraryposition[self.config.wd] = \
-                    self.library.get_visible_rect()[1]
+                    self.library.get_visible_rect().width
             path_updated = True
         else:
             path_updated = False
@@ -331,7 +321,7 @@ class Library(object):
             # Save position and row for where we just were if we've
             # navigated into a sub-directory:
             self.libraryposition[self.config.wd] = \
-                    self.library.get_visible_rect()[1]
+                    self.library.get_visible_rect().width
             model, rows = self.library_selection.get_selected_rows()
             if len(rows) > 0:
                 data = self.librarydata.get_value(
@@ -352,10 +342,10 @@ class Library(object):
         # in 5 seconds (first removing any current settings_save timeouts)
         if self.config.wd != root:
             try:
-                gobject.source_remove(self.save_timeout)
+                GObject.source_remove(self.save_timeout)
             except:
                 pass
-            self.save_timeout = gobject.timeout_add(5000, self.settings_save)
+            self.save_timeout = GObject.timeout_add(5000, self.settings_save)
 
         self.config.wd = root
         self.library.freeze_child_notify()
@@ -416,7 +406,7 @@ class Library(object):
 
         # Scroll back to set view for current dir:
         self.library.realize()
-        gobject.idle_add(self.library_set_view, not path_updated)
+        GObject.idle_add(self.library_set_view, not path_updated)
         if len(prev_selection) > 0 or prev_selection_root or \
            prev_selection_parent:
             # Retain pre-update selection:
@@ -434,14 +424,14 @@ class Library(object):
             self.breadcrumbs.remove(b)
 
         # add the views button first
-        b = ui.button(text=_(" v "), can_focus=False, relief=gtk.RELIEF_NONE)
+        b = ui.button(text=_(" v "), can_focus=False, relief=Gtk.ReliefStyle.NONE)
         b.connect('clicked', self.library_view_popup)
-        self.breadcrumbs.pack_start(b, False, False)
+        self.breadcrumbs.pack_start(b, False, False, 0)
         b.show()
 
         # add the ellipsis explicitly XXX make this unnecessary
         b = ui.label("...")
-        self.breadcrumbs.pack_start(b, False, False)
+        self.breadcrumbs.pack_start(b, False, False, 0)
         b.show()
 
         # find info for current view
@@ -463,7 +453,7 @@ class Library(object):
             for i, part in enumerate(parts):
                 partpath = '/'.join(parts[:i + 1])
                 target = self.library_set_data(path=partpath)
-                crumbs.append((part, gtk.STOCK_OPEN, None, target))
+                crumbs.append((part, Gtk.STOCK_OPEN, None, target))
         else:
             if view == consts.VIEW_ALBUM:
                 # We don't want to show an artist button in album view
@@ -493,7 +483,7 @@ class Library(object):
                 elif key == 'artist':
                     icon = 'artist'
                 else:
-                    icon = gtk.STOCK_ORIENTATION_PORTRAIT
+                    icon = Gtk.STOCK_ORIENTATION_PORTRAIT
                 crumbs.append((part, icon, pb, target))
 
         # add a button for each crumb
@@ -507,19 +497,19 @@ class Library(object):
             if icon:
                 image = ui.image(stock=icon)
             elif pb:
-                pb = pb.scale_simple(16, 16, gtk.gdk.INTERP_HYPER)
+                pb = pb.scale_simple(16, 16, GdkPixbuf.InterpType.HYPER)
                 image = ui.image(pb=pb)
 
             b = breadcrumbs.CrumbButton(image, label)
 
             if crumb is crumbs[-1]:
                 # FIXME makes the button request minimal space:
-                # label.props.ellipsize = pango.ELLIPSIZE_END
+                # label.props.ellipsize = Pango.EllipsizeMode.END
                 b.props.active = True
             # FIXME why doesn't the tooltip show?
             b.set_tooltip_text(label.get_label())
             b.connect('toggled', self.library_browse, target)
-            self.breadcrumbs.pack_start(b, False, False)
+            self.breadcrumbs.pack_start(b, False, False, 0)
             b.show_all()
 
     def library_populate_add_parent_rows(self):
@@ -1047,8 +1037,9 @@ class Library(object):
                                  prev_selection_parent):
         # Unselect everything:
         if len(self.librarydata) > 0:
-            self.library_selection.unselect_range((0,),
-                                                  (len(self.librarydata) - 1,))
+            self.library_selection.unselect_all()
+            #self.library_selection.unselect_range((0,),
+            #                                      (len(self.librarydata) - 1,))
         # Now attempt to retain the selection from before the update:
         for value in prev_selection:
             for row in self.librarydata:
@@ -1110,7 +1101,7 @@ class Library(object):
             return level
 
     def on_library_key_press(self, widget, event):
-        if event.keyval == gtk.gdk.keyval_from_name('Return'):
+        if event.keyval == Gdk.keyval_from_name('Return'):
             self.on_library_row_activated(widget, widget.get_cursor()[0])
             return True
 
@@ -1123,16 +1114,16 @@ class Library(object):
 
         pathinfo = widget.get_path_at_pos(bin_x, bin_y)
         if not pathinfo:
-            widget.set_tooltip_text(None)
+            widget.set_tooltip_text("")
             # If the user hovers over an empty row and then back to
             # a row with a search result, this will ensure the tooltip
             # shows up again:
-            gobject.idle_add(self.library_search_tooltips_enable, widget, x, y,
+            GObject.idle_add(self.library_search_tooltips_enable, widget, x, y,
                              keyboard_mode, None)
             return False
         treepath, _col, _x2, _y2 = pathinfo
 
-        i = self.librarydata.get_iter(treepath[0])
+        i = self.librarydata.get_iter(treepath.get_indices()[0])
         path = misc.escape_html(self.library_get_data(
             self.librarydata.get_value(i, 1), 'path'))
         song = self.librarydata.get_value(i, 2)
@@ -1142,9 +1133,9 @@ class Library(object):
         if new_tooltip != self.libsearch_last_tooltip:
             self.libsearch_last_tooltip = new_tooltip
             self.library.set_property('has-tooltip', False)
-            gobject.idle_add(self.library_search_tooltips_enable, widget, x, y,
+            GObject.idle_add(self.library_search_tooltips_enable, widget, x, y,
                              keyboard_mode, tooltip)
-            gobject.idle_add(widget.set_tooltip_markup, new_tooltip)
+            GObject.idle_add(widget.set_tooltip_markup, new_tooltip)
             return
 
         self.libsearch_last_tooltip = new_tooltip
@@ -1314,12 +1305,12 @@ class Library(object):
         if not self.search_visible():
             self.libsearchfilter_toggle(None)
         # Lets only trigger the searchfilter_loop if 200ms pass
-        # without a change in gtk.Entry
+        # without a change in Gtk.Entry
         try:
-            gobject.source_remove(self.libfilterbox_source)
+            GObject.source_remove(self.libfilterbox_source)
         except:
             pass
-        self.libfilterbox_source = gobject.timeout_add(
+        self.libfilterbox_source = GObject.timeout_add(
             300, self.libsearchfilter_start_loop, editable)
 
     def libsearchfilter_start_loop(self, editable):
@@ -1348,18 +1339,18 @@ class Library(object):
             searchby = self.search_terms_mpd[self.config.last_search_num]
             if self.prevlibtodo != todo:
                 if todo == '$$$QUIT###':
-                    gobject.idle_add(self.filtering_entry_revert_color,
+                    GObject.idle_add(self.filtering_entry_revert_color,
                                      self.searchtext)
                     return
                 elif len(todo) > 1:
-                    gobject.idle_add(self.libsearchfilter_do_search,
+                    GObject.idle_add(self.libsearchfilter_do_search,
                                      searchby, todo)
                 elif len(todo) == 0:
-                    gobject.idle_add(self.filtering_entry_revert_color,
+                    GObject.idle_add(self.filtering_entry_revert_color,
                                      self.searchtext)
                     self.libsearchfilter_toggle(False)
                 else:
-                    gobject.idle_add(self.filtering_entry_revert_color,
+                    GObject.idle_add(self.filtering_entry_revert_color,
                                      self.searchtext)
             self.libfilterbox_cond.acquire()
             self.libfilterbox_cmd_buf = '$$$DONE###'
@@ -1442,10 +1433,10 @@ class Library(object):
                 self.librarydata.remove(j)
         self.library.thaw_child_notify()
         if len(matches) == 0:
-            gobject.idle_add(self.filtering_entry_make_red, self.searchtext)
+            GObject.idle_add(self.filtering_entry_make_red, self.searchtext)
         else:
-            gobject.idle_add(self.library.set_cursor, '0')
-            gobject.idle_add(self.filtering_entry_revert_color,
+            GObject.idle_add(self.library.set_cursor, '0')
+            GObject.idle_add(self.filtering_entry_revert_color,
                              self.searchtext)
 
     def libsearchfilter_key_pressed(self, widget, event):
@@ -1455,7 +1446,7 @@ class Library(object):
         self.on_library_row_activated(None, None)
 
     def libsearchfilter_set_focus(self):
-        gobject.idle_add(self.searchtext.grab_focus)
+        GObject.idle_add(self.searchtext.grab_focus)
 
     def libsearchfilter_get_style(self):
         return self.searchtext.get_style()

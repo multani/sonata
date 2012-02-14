@@ -94,10 +94,10 @@ def run():
     # let gettext install _ as a built-in for all modules to see
     # XXX what's the correct way to find the localization?
     try:
-        gettext.install('sonata', os.path.join(sonata.__file__.split('/lib')[0], 'share', 'locale'), unicode=1)
+        gettext.install('sonata', os.path.join(sonata.__file__.split('/lib')[0], 'share', 'locale'))
     except:
         logger.warning("Trying to use an old translation")
-        gettext.install('sonata', '/usr/share/locale', unicode=1)
+        gettext.install('sonata', '/usr/share/locale')
     gettext.textdomain('sonata')
 
 
@@ -158,11 +158,7 @@ def run():
     socketsettimeout(5)
 
     if not args.skip_gui:
-        gtk.gdk.threads_init()
-
-        # we don't use gtk.LinkButton, but gtk.AboutDialog does;
-        # in gtk 2.16.0 without this, the about uri opens doubly:
-        gtk.link_button_set_uri_hook(lambda *args:None)
+        Gdk.threads_init()
 
     ## CLI actions:
 

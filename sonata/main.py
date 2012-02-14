@@ -204,23 +204,25 @@ class Base(object):
                 self.config.withdrawn
 
         # Add some icons, assign pixbufs:
-        self.iconfactory = gtk.IconFactory()
+        self.iconfactory = Gtk.IconFactory()
         ui.icon(self.iconfactory, 'sonata', self.path_to_icon('sonata.png'))
         ui.icon(self.iconfactory, 'artist',
                 self.path_to_icon('sonata-artist.png'))
         ui.icon(self.iconfactory, 'album', self.path_to_icon('sonata-album.png'))
-        icon_theme = gtk.icon_theme_get_default()
+        icon_theme = Gtk.IconTheme.get_default()
         if HAVE_SUGAR:
             activity_root = activity.get_bundle_path()
             icon_theme.append_search_path(os.path.join(activity_root, 'share'))
-        img_width, _img_height = gtk.icon_size_lookup(VOLUME_ICON_SIZE)
+        img_res, img_width, _img_height = Gtk.icon_size_lookup(VOLUME_ICON_SIZE)
+        if not img_res:
+                self.logger.error("Invalid size of Volume Icon")
         for iconname in ('stock_volume-mute', 'stock_volume-min',
                          'stock_volume-med', 'stock_volume-max'):
             try:
                 ui.icon(self.iconfactory, iconname,
                         icon_theme.lookup_icon(
                             iconname, img_width,
-                            gtk.ICON_LOOKUP_USE_BUILTIN).get_filename())
+                            Gtk.IconLookupFlags.USE_BUILTIN).get_filename())
             except:
                 # Fallback to Sonata-included icons:
                 ui.icon(self.iconfactory, iconname,
@@ -228,7 +230,7 @@ class Base(object):
 
         # Main window
         if window is None:
-            self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+            self.window = Gtk.Window(type=Gtk.WindowType.TOPLEVEL)
             self.window_owner = True
         else:
             self.window = window
@@ -245,7 +247,7 @@ class Base(object):
                 self.window.set_decorated(False)
         self.preferences.window = self.window
 
-        self.notebook = gtk.Notebook()
+        self.notebook = Gtk.Notebook()
 
         # Artwork
         self.artwork = artwork.Artwork(
@@ -266,42 +268,42 @@ class Base(object):
             ('playaftermenu', None, _('P_lay after')),
             ('playmodemenu', None, _('Play _Mode')),
             ('updatemenu', None, _('_Update')),
-            ('chooseimage_menu', gtk.STOCK_CONVERT, _('Use _Remote Image...'),
+            ('chooseimage_menu', Gtk.STOCK_CONVERT, _('Use _Remote Image...'),
              None, None, self.image_remote),
-            ('localimage_menu', gtk.STOCK_OPEN, _('Use _Local Image...'),
+            ('localimage_menu', Gtk.STOCK_OPEN, _('Use _Local Image...'),
              None, None, self.image_local),
-            ('fullscreencoverart_menu', gtk.STOCK_FULLSCREEN,
+            ('fullscreencoverart_menu', Gtk.STOCK_FULLSCREEN,
              _('_Fullscreen Mode'), 'F11', None, self.fullscreen_cover_art),
-            ('resetimage_menu', gtk.STOCK_CLEAR, _('Reset Image'), None, None,
+            ('resetimage_menu', Gtk.STOCK_CLEAR, _('Reset Image'), None, None,
              self.artwork.on_reset_image),
-            ('playmenu', gtk.STOCK_MEDIA_PLAY, _('_Play'), None, None,
+            ('playmenu', Gtk.STOCK_MEDIA_PLAY, _('_Play'), None, None,
              self.mpd_pp),
-            ('pausemenu', gtk.STOCK_MEDIA_PAUSE, _('Pa_use'), None, None,
+            ('pausemenu', Gtk.STOCK_MEDIA_PAUSE, _('Pa_use'), None, None,
              self.mpd_pp),
-            ('stopmenu', gtk.STOCK_MEDIA_STOP, _('_Stop'), None, None,
+            ('stopmenu', Gtk.STOCK_MEDIA_STOP, _('_Stop'), None, None,
              self.mpd_stop),
-            ('prevmenu', gtk.STOCK_MEDIA_PREVIOUS, _('Pre_vious'), None, None,
+            ('prevmenu', Gtk.STOCK_MEDIA_PREVIOUS, _('Pre_vious'), None, None,
              self.mpd_prev),
-            ('nextmenu', gtk.STOCK_MEDIA_NEXT, _('_Next'), None, None,
+            ('nextmenu', Gtk.STOCK_MEDIA_NEXT, _('_Next'), None, None,
              self.mpd_next),
-            ('quitmenu', gtk.STOCK_QUIT, _('_Quit'), None, None,
+            ('quitmenu', Gtk.STOCK_QUIT, _('_Quit'), None, None,
              self.on_delete_event_yes),
-            ('removemenu', gtk.STOCK_REMOVE, _('_Remove'), None, None,
+            ('removemenu', Gtk.STOCK_REMOVE, _('_Remove'), None, None,
              self.on_remove),
-            ('clearmenu', gtk.STOCK_CLEAR, _('_Clear'), '<Ctrl>Delete', None,
+            ('clearmenu', Gtk.STOCK_CLEAR, _('_Clear'), '<Ctrl>Delete', None,
              self.mpd_clear),
             ('updatefullmenu', None, _('_Entire Library'), '<Ctrl><Shift>u',
              None, self.on_updatedb),
             ('updateselectedmenu', None, _('_Selected Items'), '<Ctrl>u', None,
              self.on_updatedb_shortcut),
-            ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'),
+            ('preferencemenu', Gtk.STOCK_PREFERENCES, _('_Preferences...'),
              'F5', None, self.on_prefs),
             ('aboutmenu', None, _('_About...'), 'F1', None, self.on_about),
             ('tagmenu', None, _('_Edit Tags...'), '<Ctrl>t', None,
              self.on_tags_edit),
-            ('addmenu', gtk.STOCK_ADD, _('_Add'), '<Ctrl>d', None,
+            ('addmenu', Gtk.STOCK_ADD, _('_Add'), '<Ctrl>d', None,
              self.on_add_item),
-            ('replacemenu', gtk.STOCK_REDO, _('_Replace'), '<Ctrl>r', None,
+            ('replacemenu', Gtk.STOCK_REDO, _('_Replace'), '<Ctrl>r', None,
              self.on_replace_item),
             ('add2menu', None, _('Add'), '<Shift><Ctrl>d', None,
              self.on_add_item_play),
@@ -579,8 +581,8 @@ class Base(object):
             ]
 
         # Main app:
-        self.UIManager = gtk.UIManager()
-        actionGroup = gtk.ActionGroup('Actions')
+        self.UIManager = Gtk.UIManager()
+        actionGroup = Gtk.ActionGroup('Actions')
         actionGroup.add_actions(actions)
         actionGroup.add_actions(keyactions)
         actionGroup.add_actions(tabactions)
@@ -602,58 +604,57 @@ class Base(object):
         self.librarymenu = self.UIManager.get_widget('/librarymenu')
         self.library.set_librarymenu(self.librarymenu)
         self.notebookmenu = self.UIManager.get_widget('/notebookmenu')
-        mainhbox = gtk.HBox()
-        mainvbox = gtk.VBox()
-        tophbox = gtk.HBox()
+        mainhbox = Gtk.HBox()
+        mainvbox = Gtk.VBox()
+        tophbox = Gtk.HBox()
 
-        TrayFactory = tray.get_tray_icon_factory()
-        self.tray_icon = TrayFactory(self.window, self.traymenu, self.traytips)
+        self.tray_icon = tray.TrayIcon(self.window, self.traymenu, self.traytips)
 
         self.albumimage = self.artwork.get_albumimage()
 
         self.imageeventbox = ui.eventbox(add=self.albumimage)
-        self.imageeventbox.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT |
-                                         gtk.DEST_DEFAULT_DROP,
-                                         [("text/uri-list", 0, 80),
-                                          ("text/plain", 0, 80)],
-                                         gtk.gdk.ACTION_DEFAULT)
+        self.imageeventbox.drag_dest_set(Gtk.DestDefaults.HIGHLIGHT |
+                                         Gtk.DestDefaults.DROP,
+                                         [Gtk.TargetEntry.new("text/uri-list", 0, 80),
+                                          Gtk.TargetEntry.new("text/plain", 0, 80)],
+                                         Gdk.DragAction.DEFAULT)
         if not self.config.show_covers:
             ui.hide(self.imageeventbox)
         tophbox.pack_start(self.imageeventbox, False, False, 5)
-        topvbox = gtk.VBox()
-        toptophbox = gtk.HBox()
-        self.prevbutton = ui.button(stock=gtk.STOCK_MEDIA_PREVIOUS,
-                                    relief=gtk.RELIEF_NONE,
+        topvbox = Gtk.VBox()
+        toptophbox = Gtk.HBox()
+        self.prevbutton = ui.button(stock=Gtk.STOCK_MEDIA_PREVIOUS,
+                                    relief=Gtk.ReliefStyle.NONE,
                                     can_focus=False, hidetxt=True)
-        self.ppbutton = ui.button(stock=gtk.STOCK_MEDIA_PLAY,
-                                  relief=gtk.RELIEF_NONE,
+        self.ppbutton = ui.button(stock=Gtk.STOCK_MEDIA_PLAY,
+                                  relief=Gtk.ReliefStyle.NONE,
                                   can_focus=False, hidetxt=True)
-        self.stopbutton = ui.button(stock=gtk.STOCK_MEDIA_STOP,
-                                    relief=gtk.RELIEF_NONE,
+        self.stopbutton = ui.button(stock=Gtk.STOCK_MEDIA_STOP,
+                                    relief=Gtk.ReliefStyle.NONE,
                                     can_focus=False, hidetxt=True)
-        self.nextbutton = ui.button(stock=gtk.STOCK_MEDIA_NEXT,
-                                    relief=gtk.RELIEF_NONE,
+        self.nextbutton = ui.button(stock=Gtk.STOCK_MEDIA_NEXT,
+                                    relief=Gtk.ReliefStyle.NONE,
                                     can_focus=False, hidetxt=True)
         for mediabutton in (self.prevbutton, self.ppbutton, self.stopbutton,
                             self.nextbutton):
             toptophbox.pack_start(mediabutton, False, False, 0)
             if not self.config.show_playback:
                 ui.hide(mediabutton)
-        self.progressbox = gtk.VBox()
+        self.progressbox = Gtk.VBox()
         self.progresslabel = ui.label(w=-1, h=6)
-        self.progressbox.pack_start(self.progresslabel)
-        self.progressbar = ui.progressbar(orient=gtk.PROGRESS_LEFT_TO_RIGHT,
+        self.progressbox.pack_start(self.progresslabel, True, True, 0)
+        self.progressbar = ui.progressbar(orient=Gtk.Orientation.HORIZONTAL,
                                           frac=0, step=0.05,
-                                          ellipsize=pango.ELLIPSIZE_END)
+                                          ellipsize=Pango.EllipsizeMode.END)
         self.progresseventbox = ui.eventbox(add=self.progressbar, visible=True)
         self.progressbox.pack_start(self.progresseventbox, False, False, 0)
         self.progresslabel2 = ui.label(w=-1, h=6)
-        self.progressbox.pack_start(self.progresslabel2)
+        self.progressbox.pack_start(self.progresslabel2, True, True, 0)
         toptophbox.pack_start(self.progressbox, True, True, 0)
         if not self.config.show_progress:
             ui.hide(self.progressbox)
-        self.volumebutton = gtk.VolumeButton()
-        self.volumebutton.set_adjustment(gtk.Adjustment(0, 0, 100, 5, 5,))
+        self.volumebutton = Gtk.VolumeButton()
+        self.volumebutton.set_adjustment(Gtk.Adjustment(0, 0, 100, 5, 5,))
         if not self.config.show_playback:
             ui.hide(self.volumebutton)
         toptophbox.pack_start(self.volumebutton, False, False, 0)
@@ -661,7 +662,7 @@ class Base(object):
         self.expander = ui.expander(text=_("Playlist"),
                                     expand=self.config.expanded,
                                     can_focus=False)
-        expanderbox = gtk.VBox()
+        expanderbox = Gtk.VBox()
         self.cursonglabel1 = ui.label(y=0)
         self.cursonglabel2 = ui.label(y=0)
         expanderbox.pack_start(self.cursonglabel1, True, True, 0)
@@ -670,13 +671,14 @@ class Base(object):
         topvbox.pack_start(self.expander, False, False, 2)
         tophbox.pack_start(topvbox, True, True, 3)
         mainvbox.pack_start(tophbox, False, False, 5)
-        self.notebook.set_tab_pos(gtk.POS_TOP)
+        self.notebook.set_tab_pos(Gtk.PositionType.TOP)
         self.notebook.set_scrollable(True)
 
         mainvbox.pack_start(self.notebook, True, True, 5)
 
-        self.statusbar = gtk.Statusbar()
-        self.statusbar.set_has_resize_grip(True)
+        self.statusbar = Gtk.Statusbar()
+        # TODO Find out what to do here
+        #self.statusbar.set_has_resize_grip(True)
         if not self.config.show_statusbar or not self.config.expanded:
             ui.hide(self.statusbar)
         mainvbox.pack_start(self.statusbar, False, False, 0)
@@ -724,8 +726,8 @@ class Base(object):
         self.last_tab = self.notebook_get_tab_text(self.notebook, 0)
 
         # Song notification window:
-        outtertipbox = gtk.VBox()
-        tipbox = gtk.HBox()
+        outtertipbox = Gtk.VBox()
+        tipbox = Gtk.HBox()
 
         self.trayalbumeventbox, self.trayalbumimage2 = \
                 self.artwork.get_trayalbum()
@@ -738,23 +740,23 @@ class Base(object):
         if not self.config.show_covers:
             ui.hide(self.trayalbumeventbox)
             ui.hide(self.trayalbumimage2)
-        innerbox = gtk.VBox()
+        innerbox = Gtk.VBox()
         self.traycursonglabel1 = ui.label(markup=_("Playlist"), y=1)
         self.traycursonglabel2 = ui.label(markup=_("Playlist"), y=0)
         label1 = ui.label(markup='<span size="10"> </span>')
-        innerbox.pack_start(label1)
+        innerbox.pack_start(label1, True, True, 0)
         innerbox.pack_start(self.traycursonglabel1, True, True, 0)
         innerbox.pack_start(self.traycursonglabel2, True, True, 0)
         self.trayprogressbar = ui.progressbar(
-            orient=gtk.PROGRESS_LEFT_TO_RIGHT, frac=0, step=0.05,
-            ellipsize=pango.ELLIPSIZE_NONE)
+            orient=Gtk.Orientation.HORIZONTAL, frac=0, step=0.05,
+            ellipsize=Pango.EllipsizeMode.NONE)
         label2 = ui.label(markup='<span size="10"> </span>')
-        innerbox.pack_start(label2)
+        innerbox.pack_start(label2, True, True, 0)
         innerbox.pack_start(self.trayprogressbar, False, False, 0)
         if not self.config.show_progress:
             ui.hide(self.trayprogressbar)
         label3 = ui.label(markup='<span size="10"> </span>')
-        innerbox.pack_start(label3)
+        innerbox.pack_start(label3, True, True, 0)
         tipbox.pack_start(innerbox, True, True, 6)
         outtertipbox.pack_start(tipbox, False, False, 2)
         outtertipbox.show_all()
@@ -762,19 +764,20 @@ class Base(object):
         self.tooltip_set_window_width()
 
         # Fullscreen cover art window
-        self.fullscreencoverart = gtk.Window()
+        self.fullscreencoverart = Gtk.Window()
         self.fullscreencoverart.set_title(_("Cover Art"))
         self.fullscreencoverart.set_decorated(True)
         self.fullscreencoverart.fullscreen()
         style = self.fullscreencoverart.get_style().copy()
-        style.bg[gtk.STATE_NORMAL] = \
-                self.fullscreencoverart.get_colormap().alloc_color("black")
-        style.bg_pixmap[gtk.STATE_NORMAL] = None
+        #TODO deprecated ?
+        #style.bg[Gtk.StateFlags.NORMAL] = \
+        #        self.fullscreencoverart.get_colormap().alloc_color("black")
+        #style.bg_pixmap[Gtk.StateFlags.NORMAL] = None
         self.fullscreencoverart.set_style(style)
         self.fullscreencoverart.add_accel_group(
             self.UIManager.get_accel_group())
-        fscavbox = gtk.VBox()
-        fscahbox = gtk.HBox()
+        fscavbox = Gtk.VBox()
+        fscahbox = Gtk.HBox()
         self.fullscreenalbumimage = self.artwork.get_fullscreenalbumimage()
         fscalbl, fscalbl2 = self.artwork.get_fullscreenalbumlabels()
         fscahbox.pack_start(self.fullscreenalbumimage, True, False, 0)
@@ -788,8 +791,8 @@ class Base(object):
         self.fullscreencoverart.add(fscavbox)
 
         # Connect to signals
-        self.window.add_events(gtk.gdk.BUTTON_PRESS_MASK)
-        self.traytips.add_events(gtk.gdk.BUTTON_PRESS_MASK)
+        self.window.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
+        self.traytips.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
         self.traytips.connect('button_press_event', self.on_traytips_press)
         self.window.connect('delete_event', self.on_delete_event)
         self.window.connect('configure_event', self.on_window_configure)
@@ -820,7 +823,7 @@ class Base(object):
         self.notebook.connect('size-allocate', self.on_notebook_resize)
         self.notebook.connect('switch-page', self.on_notebook_page_change)
 
-        self.fullscreencoverart.add_events(gtk.gdk.BUTTON_PRESS_MASK)
+        self.fullscreencoverart.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
         self.fullscreencoverart.connect("button-press-event",
                                         self.fullscreen_cover_art_close, False)
         self.fullscreencoverart.connect("key-press-event",
@@ -844,8 +847,8 @@ class Base(object):
         # Ensure that the systemtray icon is added here. This is really only
         # important if we're starting in hidden (minimized-to-tray) mode:
         if self.window_owner and self.config.withdrawn:
-            while gtk.events_pending():
-                gtk.main_iteration()
+            while Gtk.events_pending():
+                Gtk.main_iteration()
 
         dbus.init_gnome_mediakeys(self.mpd_pp, self.mpd_stop, self.mpd_prev,
                                   self.mpd_next)
@@ -878,7 +881,7 @@ class Base(object):
                                           consts.LIB_COVER_SIZE)
 
         if self.window_owner:
-            icon = self.window.render_icon('sonata', gtk.ICON_SIZE_DIALOG)
+            icon = self.window.render_icon('sonata', Gtk.IconSize.DIALOG)
             self.window.set_icon(icon)
 
         self.streams.populate()
@@ -911,7 +914,7 @@ class Base(object):
 
         gc.disable()
 
-        gobject.idle_add(self.header_save_column_widths)
+        GObject.idle_add(self.header_save_column_widths)
 
         pluginsystem.notify_of('tabs',
                        self.on_enable_tab,
@@ -943,7 +946,7 @@ class Base(object):
 
     def new_tab(self, page, stock, text, focus):
         # create the "ear" of the tab:
-        hbox = gtk.HBox()
+        hbox = Gtk.HBox()
         hbox.pack_start(ui.image(stock=stock), False, False, 2)
         hbox.pack_start(ui.label(text=text), False, False, 2)
         evbox = ui.eventbox(add=hbox)
@@ -962,7 +965,7 @@ class Base(object):
         self.notebook.set_tab_reorderable(page, True)
         if self.config.tabs_expanded:
             self.notebook.set_tab_label_packing(page, True, True,
-                                                gtk.PACK_START)
+                                                Gtk.PACK_START)
 
         self.tabname2tab[text] = page
         self.tabname2focus[text] = focus
@@ -1018,7 +1021,7 @@ class Base(object):
                 # http://trac.gajim.org/ticket/929
                 client.set_restart_command(len(sys.argv),
                                            [command] + sys.argv[1:])
-            client.connect('die', gtk.main_quit)
+            client.connect('die', Gtk.main_quit)
         except:
             pass
 
@@ -1028,7 +1031,7 @@ class Base(object):
             self.UIManager.remove_ui(self.merge_id)
         if self.actionGroupProfiles:
             self.UIManager.remove_action_group(self.actionGroupProfiles)
-        self.actionGroupProfiles = gtk.ActionGroup('MPDProfiles')
+        self.actionGroupProfiles = Gtk.ActionGroup('MPDProfiles')
         self.UIManager.ensure_update()
 
         profile_names = [_("MPD_HOST/PORT")] if host \
@@ -1202,7 +1205,7 @@ class Base(object):
         self.prevsonginfo = self.songinfo
 
         # Repeat ad infitum..
-        self.iterate_handler = gobject.timeout_add(self.iterate_time,
+        self.iterate_handler = GObject.timeout_add(self.iterate_time,
                                                    self.iterate)
 
         if self.config.show_trayicon:
@@ -1223,7 +1226,7 @@ class Base(object):
 
     def iterate_stop(self):
         try:
-            gobject.source_remove(self.iterate_handler)
+            GObject.source_remove(self.iterate_handler)
         except:
             pass
 
@@ -1236,7 +1239,7 @@ class Base(object):
         self.iterate()
 
     def on_topwindow_keypress(self, _widget, event):
-        shortcut = gtk.accelerator_name(event.keyval, event.state)
+        shortcut = Gtk.accelerator_name(event.keyval, event.get_state())
         shortcut = shortcut.replace("<Mod2>", "")
         # These shortcuts were moved here so that they don't interfere with
         # searching the library
@@ -1256,18 +1259,18 @@ class Base(object):
         elif shortcut == 'Delete':
             self.on_remove(None)
         if self.current_tab == self.TAB_CURRENT:
-            if event.state & (gtk.gdk.CONTROL_MASK | gtk.gdk.MOD1_MASK):
+            if event.get_state() & (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.MOD1_MASK):
                 return
 
             # XXX this isn't the right thing with GTK input methods:
-            text = unichr(gtk.gdk.keyval_to_unicode(event.keyval))
+            text = chr(Gdk.keyval_to_unicode(event.keyval))
 
             # We only want to toggle open the filterbar if the key press
             # is actual text! This will ensure that we skip, e.g., F5, Alt,
             # Ctrl, ...
-            if text != u"\x00" and text.strip():
+            if text != "\x00" and text.strip():
                 if not self.current.filterbox_visible:
-                    if text != u"/":
+                    if text != "/":
                         self.current.searchfilter_toggle(None, text)
                     else:
                         self.current.searchfilter_toggle(None)
@@ -1309,7 +1312,7 @@ class Base(object):
             self.tray_icon.update_icon(self.path_to_icon('sonata_disconnect.png'))
             self.info_update(True)
             if self.current.filterbox_visible:
-                gobject.idle_add(self.current.searchfilter_toggle, None)
+                GObject.idle_add(self.current.searchfilter_toggle, None)
             if self.library.search_visible():
                 self.library.on_search_end(None)
             self.handle_change_song()
@@ -1364,7 +1367,7 @@ class Base(object):
             return True
 
     def on_button_press(self, widget, event, widget_is_current):
-        ctrl_press = (event.state & gtk.gdk.CONTROL_MASK)
+        ctrl_press = (event.get_state() & Gdk.ModifierType.CONTROL_MASK)
         self.current.sel_rows = None
         if event.button == 1 and widget_is_current and not ctrl_press:
             # If the user clicked inside a group of rows that were already
@@ -1386,7 +1389,7 @@ class Base(object):
             # items to have been shown/hidden before the menu is popped up.
             # Otherwise, if the menu pops up too quickly, it can result in
             # automatically clicking menu items for the user!
-            gobject.idle_add(self.mainmenu.popup, None, None,
+            GObject.idle_add(self.mainmenu.popup, None, None, None,
                              None, event.button, event.time)
             # Don't change the selection for a right-click. This
             # will allow the user to select multiple rows and then
@@ -1445,8 +1448,8 @@ class Base(object):
         # We need to do different things depending on if this is
         # a normal stream, pls, m3u, etc..
         # Note that we will only download the first 4000 bytes
-        while gtk.events_pending():
-            gtk.main_iteration()
+        while Gtk.events_pending():
+            Gtk.main_iteration()
         f = None
         try:
             request = urllib2.Request(item)
@@ -1464,8 +1467,8 @@ class Base(object):
                     f = opener.open(request).read(4000)
                 except:
                     pass
-        while gtk.events_pending():
-            gtk.main_iteration()
+        while Gtk.events_pending():
+            Gtk.main_iteration()
         if f:
             if misc.is_binary(f):
                 # Binary file, just add it:
@@ -1610,8 +1613,8 @@ class Base(object):
             self.info_update(True)
             if self.status['state'] == 'stop':
                 self.ppbutton.set_image(ui.image(
-                    stock=gtk.STOCK_MEDIA_PLAY,
-                    stocksize=gtk.ICON_SIZE_BUTTON))
+                    stock=Gtk.STOCK_MEDIA_PLAY,
+                    stocksize=Gtk.IconSize.BUTTON))
                 child = self.ppbutton.get_child().get_child().get_children()
                 child[1].set_text('')
                 self.UIManager.get_widget('/traymenu/playmenu').show()
@@ -1619,8 +1622,8 @@ class Base(object):
                 self.tray_icon.update_icon(self.path_to_icon('sonata.png'))
             elif self.status['state'] == 'pause':
                 self.ppbutton.set_image(ui.image(
-                    stock=gtk.STOCK_MEDIA_PLAY,
-                    stocksize=gtk.ICON_SIZE_BUTTON))
+                    stock=Gtk.STOCK_MEDIA_PLAY,
+                    stocksize=Gtk.IconSize.BUTTON))
                 child = self.ppbutton.get_child().get_child().get_children()
                 child[1].set_text('')
                 self.UIManager.get_widget('/traymenu/playmenu').show()
@@ -1628,8 +1631,8 @@ class Base(object):
                 self.tray_icon.update_icon(self.path_to_icon('sonata_pause.png'))
             elif self.status['state'] == 'play':
                 self.ppbutton.set_image(ui.image(
-                    stock=gtk.STOCK_MEDIA_PAUSE,
-                    stocksize=gtk.ICON_SIZE_BUTTON))
+                    stock=Gtk.STOCK_MEDIA_PAUSE,
+                    stocksize=Gtk.IconSize.BUTTON))
                 child = self.ppbutton.get_child().get_child().get_children()
                 child[1].set_text('')
                 self.UIManager.get_widget('/traymenu/playmenu').hide()
@@ -1828,14 +1831,6 @@ class Base(object):
                                     status_text)
                 self.last_status_text = status_text
 
-    def expander_ellipse_workaround(self):
-        # Hacky workaround to ellipsize the expander - see
-        # http://bugzilla.gnome.org/show_bug.cgi?id=406528
-        cursonglabelwidth = self.expander.get_allocation().width - 15
-        if cursonglabelwidth > 0:
-            self.cursonglabel1.set_size_request(cursonglabelwidth, -1)
-            self.cursonglabel1.set_size_request(cursonglabelwidth, -1)
-
     def update_cursong(self):
         if self.status_is_play_or_pause():
             # We must show the trayprogressbar and trayalbumeventbox
@@ -1852,9 +1847,8 @@ class Base(object):
 
             for label in (self.cursonglabel1, self.cursonglabel2,
                           self.traycursonglabel1, self.traycursonglabel2):
-                label.set_ellipsize(pango.ELLIPSIZE_END)
+                label.set_ellipsize(Pango.EllipsizeMode.END)
 
-            self.expander_ellipse_workaround()
 
             if len(self.config.currsongformat1) > 0:
                 newlabel1 = ('<big><b>%s </b></big>' %
@@ -1884,7 +1878,7 @@ class Base(object):
         else:
             for label in (self.cursonglabel1, self.cursonglabel2,
                           self.traycursonglabel1, self.cursonglabel2):
-                label.set_ellipsize(pango.ELLIPSIZE_NONE)
+                label.set_ellipsize(Pango.EllipsizeMode.NONE)
 
             self.cursonglabel1.set_markup('<big><b>%s</b></big>' % \
                                           (_('Stopped'),))
@@ -1945,7 +1939,7 @@ class Base(object):
                 self.traytips.set_size_request(-1, -1)
             if self.config.show_notification or force_popup:
                 try:
-                    gobject.source_remove(self.traytips.notif_handler)
+                    GObject.source_remove(self.traytips.notif_handler)
                 except:
                     pass
                 if self.status_is_play_or_pause():
@@ -1968,7 +1962,7 @@ class Base(object):
                                         int(self.popuptimes[
                                             self.config.popup_option]) * 1000
                             self.traytips.notif_handler = \
-                                    gobject.timeout_add(timeout,
+                                    GObject.timeout_add(timeout,
                                                         self.traytips.hide)
                         else:
                             # -1 indicates that the timeout should be forever.
@@ -2061,12 +2055,11 @@ class Base(object):
         else:
             self.config.w = width
         self.config.x, self.config.y = window.get_position()
-        self.expander_ellipse_workaround()
 
     def on_notebook_resize(self, _widget, _event):
         if not self.current.resizing_columns:
-            gobject.idle_add(self.header_save_column_widths)
-        gobject.idle_add(self.info.resize_elements, self.notebook.allocation)
+            GObject.idle_add(self.header_save_column_widths)
+        GObject.idle_add(self.info.resize_elements, self.notebook.get_allocation())
 
     def on_expand(self, _action):
         if not self.config.expanded:
@@ -2115,7 +2108,7 @@ class Base(object):
             if window_about_to_be_expanded:
                 if not skip_size_check:
                     while self.window.get_size()[1] == currheight:
-                        gtk.main_iteration()
+                        Gtk.main_iteration()
                 # Notebook is visible, now resize:
                 self.window.resize(self.config.w, self.config.h)
             else:
@@ -2123,8 +2116,14 @@ class Base(object):
         if window_about_to_be_expanded:
             self.config.expanded = True
             if self.status_is_play_or_pause():
-                gobject.idle_add(self.current.center_song_in_list)
-            self.window.set_geometry_hints(self.window)
+                GObject.idle_add(self.current.center_song_in_list)
+
+            hints = Gdk.Geometry()
+            hints.min_height = -1
+            hints.max_height = -1
+            hints.min_width = -1
+            hints.max_width = -1
+            self.window.set_geometry_hints(self.window, hints, Gdk.WindowHints.USER_SIZE)
         if self.notebook_show_first_tab:
             # Sonata was launched in collapsed state. Ensure we display
             # first tab:
@@ -2140,7 +2139,7 @@ class Base(object):
             if self.status_is_play_or_pause():
                 at, length = [int(c) for c in self.status['time'].split(':')]
                 try:
-                    pbsize = self.progressbar.allocation
+                    pbsize = self.progressbar.get_allocation()
                     if misc.is_lang_rtl(self.window):
                         seektime = int(
                             ((pbsize.width - event.x) / pbsize.width) * length)
@@ -2154,19 +2153,19 @@ class Base(object):
     def on_progressbar_scroll(self, _widget, event):
         if self.status_is_play_or_pause():
             try:
-                gobject.source_remove(self.seekidle)
+                GObject.source_remove(self.seekidle)
             except:
                 pass
-            self.seekidle = gobject.idle_add(self._seek_when_idle,
+            self.seekidle = GObject.idle_add(self._seek_when_idle,
                                              event.direction)
         return True
 
     def _seek_when_idle(self, direction):
         at, _length = [int(c) for c in self.status['time'].split(':')]
         try:
-            if direction == gtk.gdk.SCROLL_UP:
+            if direction == Gdk.ScrollDirection.UP:
                 seektime = max(0, at + 5)
-            elif direction == gtk.gdk.SCROLL_DOWN:
+            elif direction == Gdk.ScrollDirection.DOWN:
                 seektime = min(mpdh.get(self.songinfo, 'time'),
                            at - 5)
             self.seek(int(self.status['song']), seektime)
@@ -2178,29 +2177,29 @@ class Base(object):
         title = mpdh.get(self.songinfo, 'title')
         dialog = ui.dialog(
             title=_('Lyrics Search'), parent=self.window,
-            flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-            buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_FIND,
-                     gtk.RESPONSE_ACCEPT), role='lyricsSearch',
-            default=gtk.RESPONSE_ACCEPT)
+            flags=Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
+            buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT, Gtk.STOCK_FIND,
+                     Gtk.ResponseType.ACCEPT), role='lyricsSearch',
+            default=Gtk.ResponseType.ACCEPT)
         dialog.action_area.get_children()[0].set_label(_("_Search"))
         dialog.action_area.get_children()[0].set_image(
-            ui.image(stock=gtk.STOCK_FIND))
-        artist_hbox = gtk.HBox()
+            ui.image(stock=Gtk.STOCK_FIND))
+        artist_hbox = Gtk.HBox()
         artist_label = ui.label(text=_('Artist Name:'))
         artist_hbox.pack_start(artist_label, False, False, 5)
         artist_entry = ui.entry(text=artist)
         artist_hbox.pack_start(artist_entry, True, True, 5)
-        title_hbox = gtk.HBox()
+        title_hbox = Gtk.HBox()
         title_label = ui.label(text=_('Song Title:'))
         title_hbox.pack_start(title_label, False, False, 5)
         title_entry = ui.entry(title)
         title_hbox.pack_start(title_entry, True, True, 5)
         ui.set_widths_equal([artist_label, title_label])
-        dialog.vbox.pack_start(artist_hbox)
-        dialog.vbox.pack_start(title_hbox)
+        dialog.vbox.pack_start(artist_hbox, True, True, 0)
+        dialog.vbox.pack_start(title_hbox, True, True, 0)
         ui.show(dialog.vbox)
         response = dialog.run()
-        if response == gtk.RESPONSE_ACCEPT:
+        if response == Gtk.ResponseType.ACCEPT:
             # Search for new lyrics:
             self.info.get_lyrics_start(
                 artist_entry.get_text(),
@@ -2216,14 +2215,14 @@ class Base(object):
         if self.conn:
             if not self.status or self.status['playlistlength'] == '0':
                 return
-            ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
-            while gtk.events_pending():
-                gtk.main_iteration()
+            ui.change_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
+            while Gtk.events_pending():
+                Gtk.main_iteration()
             self.mpd.shuffle()
 
     def on_menu_popup(self, _widget):
         self.update_menu_visibility()
-        gobject.idle_add(self.mainmenu.popup, None, None, self.menu_position,
+        GObject.idle_add(self.mainmenu.popup, None, None, self.menu_position,
                          3, 0)
 
     def on_updatedb(self, _action):
@@ -2264,7 +2263,7 @@ class Base(object):
                 self.artwork.artwork_set_image_last()
                 self.config.info_art_enlarged = False
             # Force a resize of the info labels, if needed:
-            gobject.idle_add(self.on_notebook_resize, self.notebook, None)
+            GObject.idle_add(self.on_notebook_resize, self.notebook, None)
         elif event.button == 1 and widget != self.info_imagebox:
             if self.config.expanded:
                 if self.current_tab != self.TAB_INFO:
@@ -2291,11 +2290,11 @@ class Base(object):
                 self.UIManager.get_widget(path_resetimage).hide()
                 self.UIManager.get_widget(path_chooseimage).hide()
             self.imagemenu.popup(None, None, None, event.button, event.time)
-        gobject.timeout_add(50, self.on_image_activate_after)
+        GObject.timeout_add(50, self.on_image_activate_after)
         return False
 
     def on_image_motion_cb(self, _widget, context, _x, _y, time):
-        context.drag_status(gtk.gdk.ACTION_COPY, time)
+        context.drag_status(Gdk.DragAction.COPY, time)
         return True
 
     def on_image_drop_cb(self, _widget, _context, _x, _y, selection,
@@ -2481,26 +2480,26 @@ class Base(object):
         filename = file_chooser.get_preview_filename()
         pixbuf = None
         try:
-            pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(filename, 128, 128)
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(filename, 128, 128)
         except:
             pass
         if pixbuf is None:
             try:
-                pixbuf = gtk.gdk.PixbufAnimation(filename).get_static_image()
+                pixbuf = GdkPixbuf.PixbufAnimation(filename).get_static_image()
                 width = pixbuf.get_width()
                 height = pixbuf.get_height()
                 if width > height:
                     pixbuf = pixbuf.scale_simple(
                         128, int(float(height) / width * 128),
-                        gtk.gdk.INTERP_HYPER)
+                        GdkPixbuf.InterpType.HYPER)
                 else:
                     pixbuf = pixbuf.scale_simple(
                         int(float(width) / height * 128), 128,
-                        gtk.gdk.INTERP_HYPER)
+                        GdkPixbuf.InterpType.HYPER)
             except:
                 pass
         if pixbuf is None:
-            pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, 1, 8, 128, 128)
+            pixbuf = GdkPixbuf.Pixbuf(GdkPixbuf.Colorspace.RGB, 1, 8, 128, 128)
             pixbuf.fill(0x00000000)
         preview.set_from_pixbuf(pixbuf)
         have_preview = True
@@ -2509,16 +2508,16 @@ class Base(object):
         self.call_gc_collect = True
 
     def image_local(self, _widget):
-        dialog = gtk.FileChooserDialog(
+        dialog = Gtk.FileChooserDialog(
             title=_("Open Image"),
-            action=gtk.FILE_CHOOSER_ACTION_OPEN,
-            buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-                 gtk.STOCK_OPEN, gtk.RESPONSE_OK))
-        filefilter = gtk.FileFilter()
+            action=Gtk.FileChooserAction.OPEN,
+            buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                 Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+        filefilter = Gtk.FileFilter()
         filefilter.set_name(_("Images"))
         filefilter.add_pixbuf_formats()
         dialog.add_filter(filefilter)
-        filefilter = gtk.FileFilter()
+        filefilter = Gtk.FileFilter()
         filefilter.set_name(_("All files"))
         filefilter.add_pattern("*")
         dialog.add_filter(filefilter)
@@ -2531,7 +2530,7 @@ class Base(object):
         artist = self.album_current_artist[1].replace("/", "")
         dialog.connect("response", self.image_local_response, artist,
                        album, stream)
-        dialog.set_default_response(gtk.RESPONSE_OK)
+        dialog.set_default_response(Gtk.ResponseType.OK)
         songdir = os.path.dirname(mpdh.get(self.songinfo, 'file'))
         currdir = misc.file_from_utf8(
             os.path.join(self.config.musicdir[self.config.profile_num],
@@ -2547,7 +2546,7 @@ class Base(object):
         dialog.show()
 
     def image_local_response(self, dialog, response, _artist, _album, _stream):
-        if response == gtk.RESPONSE_OK:
+        if response == Gtk.ResponseType.OK:
             filename = dialog.get_filenames()[0]
             # Copy file to covers dir:
             if self.local_dest_filename != filename:
@@ -2555,7 +2554,7 @@ class Base(object):
             # And finally, set the image in the interface:
             self.artwork.artwork_update(True)
             # Force a resize of the info labels, if needed:
-            gobject.idle_add(self.on_notebook_resize, self.notebook, None)
+            GObject.idle_add(self.on_notebook_resize, self.notebook, None)
         dialog.destroy()
 
     def imagelist_append(self, elem):
@@ -2567,27 +2566,27 @@ class Base(object):
     def image_remote(self, _widget):
         self.choose_dialog = ui.dialog(title=_("Choose Cover Art"),
                                        parent=self.window,
-                                       flags=gtk.DIALOG_MODAL,
-                                       buttons=(gtk.STOCK_CANCEL,
-                                                gtk.RESPONSE_REJECT),
+                                       flags=Gtk.DialogFlags.MODAL,
+                                       buttons=(Gtk.STOCK_CANCEL,
+                                                Gtk.ResponseType.REJECT),
                                        role='chooseCoverArt',
-                                       default=gtk.RESPONSE_ACCEPT,
+                                       default=Gtk.ResponseType.ACCEPT,
                                        separator=False, resizable=False)
         choosebutton = self.choose_dialog.add_button(_("C_hoose"),
-                                                     gtk.RESPONSE_ACCEPT)
-        chooseimage = ui.image(stock=gtk.STOCK_CONVERT,
-                               stocksize=gtk.ICON_SIZE_BUTTON)
+                                                     Gtk.ResponseType.ACCEPT)
+        chooseimage = ui.image(stock=Gtk.STOCK_CONVERT,
+                               stocksize=Gtk.IconSize.BUTTON)
         choosebutton.set_image(chooseimage)
-        self.imagelist = gtk.ListStore(int, gtk.gdk.Pixbuf)
+        self.imagelist = Gtk.ListStore(int, GdkPixbuf.Pixbuf)
         # Setting col=2 only shows 1 column with gtk 2.16 while col=-1 shows 2
         imagewidget = ui.iconview(col=-1, space=0, margin=0, itemw=75,
-                                  selmode=gtk.SELECTION_SINGLE)
-        scroll = ui.scrollwindow(policy_x=gtk.POLICY_NEVER,
-                                 policy_y=gtk.POLICY_ALWAYS, w=360, h=325,
+                                  selmode=Gtk.SelectionMode.SINGLE)
+        scroll = ui.scrollwindow(policy_x=Gtk.PolicyType.NEVER,
+                                 policy_y=Gtk.PolicyType.ALWAYS, w=360, h=325,
                                  add=imagewidget)
         self.choose_dialog.vbox.pack_start(scroll, False, False, 0)
-        hbox = gtk.HBox()
-        vbox = gtk.VBox()
+        hbox = Gtk.HBox()
+        vbox = Gtk.VBox()
         vbox.pack_start(ui.label(markup='<small> </small>'), False, False, 0)
         self.remote_artistentry = ui.entry()
         self.remote_albumentry = ui.entry()
@@ -2595,22 +2594,22 @@ class Base(object):
         labels = [ui.label(text=labelname + ": ") for labelname in text]
         entries = [self.remote_artistentry, self.remote_albumentry]
         for entry, label in zip(entries, labels):
-            tmphbox = gtk.HBox()
+            tmphbox = Gtk.HBox()
             tmphbox.pack_start(label, False, False, 5)
             entry.connect('activate', self.image_remote_refresh, imagewidget)
             tmphbox.pack_start(entry, True, True, 5)
-            vbox.pack_start(tmphbox)
+            vbox.pack_start(tmphbox, True, True, 0)
         ui.set_widths_equal(labels)
         vbox.pack_start(ui.label(markup='<small> </small>'), False, False, 0)
         hbox.pack_start(vbox, True, True, 5)
-        vbox2 = gtk.VBox()
-        vbox2.pack_start(ui.label(" "))
+        vbox2 = Gtk.VBox()
+        vbox2.pack_start(ui.label(" "), True, True, 0)
         refreshbutton = ui.button(text=_('_Update'),
-                                  img=ui.image(stock=gtk.STOCK_REFRESH))
+                                  img=ui.image(stock=Gtk.STOCK_REFRESH))
         refreshbutton.connect('clicked', self.image_remote_refresh,
                               imagewidget)
         vbox2.pack_start(refreshbutton, False, False, 5)
-        vbox2.pack_start(ui.label(" "))
+        vbox2.pack_start(ui.label(" "), True, True, 0)
         hbox.pack_start(vbox2, False, False, 15)
         searchexpander = ui.expander(text=_("Edit search terms"))
         searchexpander.add(hbox)
@@ -2643,13 +2642,13 @@ class Base(object):
         self.allow_art_search = False
         self.artwork.artwork_stop_update()
         while self.artwork.artwork_is_downloading_image():
-            gtk.main_iteration()
+            Gtk.main_iteration()
         self.imagelist.clear()
         imagewidget.set_text_column(-1)
         imagewidget.set_model(self.imagelist)
         imagewidget.set_pixbuf_column(1)
         ui.focus(imagewidget)
-        ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
+        ui.change_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
         thread = threading.Thread(target=self._image_remote_refresh,
                                   args=(imagewidget, None))
         thread.setDaemon(True)
@@ -2661,7 +2660,7 @@ class Base(object):
         artist_search = self.remote_artistentry.get_text()
         album_search = self.remote_albumentry.get_text()
         if len(artist_search) == 0 and len(album_search) == 0:
-            gobject.idle_add(self.image_remote_no_tag_found, imagewidget)
+            GObject.idle_add(self.image_remote_no_tag_found, imagewidget)
             return
         filename = os.path.expanduser("~/.covers/temp/<imagenum>.jpg")
         misc.remove_dir_recursive(os.path.dirname(filename))
@@ -2672,7 +2671,7 @@ class Base(object):
         ui.change_cursor(None)
         if self.chooseimage_visible:
             if not imgfound:
-                gobject.idle_add(self.image_remote_no_covers_found,
+                GObject.idle_add(self.image_remote_no_covers_found,
                                  imagewidget)
         self.call_gc_collect = True
 
@@ -2684,7 +2683,7 @@ class Base(object):
         self.image_remote_warning(imagewidget, _("No cover art found."))
 
     def image_remote_warning(self, imagewidget, msgstr):
-        liststore = gtk.ListStore(int, str)
+        liststore = Gtk.ListStore(int, str)
         liststore.append([0, msgstr])
         imagewidget.set_pixbuf_column(-1)
         imagewidget.set_model(liststore)
@@ -2695,13 +2694,13 @@ class Base(object):
     def image_remote_response(self, dialog, response_id, imagewidget, artist,
                               album, stream):
         self.artwork.artwork_stop_update()
-        if response_id == gtk.RESPONSE_ACCEPT:
+        if response_id == Gtk.ResponseType.ACCEPT:
             try:
                 self.image_remote_replace_cover(
                     imagewidget, imagewidget.get_selected_items()[0], artist,
                     album, stream)
                 # Force a resize of the info labels, if needed:
-                gobject.idle_add(self.on_notebook_resize, self.notebook, None)
+                GObject.idle_add(self.on_notebook_resize, self.notebook, None)
             except:
                 dialog.destroy()
         else:
@@ -2724,7 +2723,7 @@ class Base(object):
         self.chooseimage_visible = False
         self.choose_dialog.destroy()
         while self.artwork.artwork_is_downloading_image():
-            gtk.main_iteration()
+            Gtk.main_iteration()
 
     def fullscreen_cover_art(self, _widget):
         if self.fullscreencoverart.get_property('visible'):
@@ -2748,7 +2747,7 @@ class Base(object):
 
     def fullscreen_cover_art_close(self, _widget, event, key_press):
         if key_press:
-            shortcut = gtk.accelerator_name(event.keyval, event.state)
+            shortcut = Gtk.accelerator_name(event.keyval, event.get_state())
             shortcut = shortcut.replace("<Mod2>", "")
             if shortcut != 'Escape':
                 return
@@ -2756,12 +2755,12 @@ class Base(object):
 
     def header_save_column_widths(self):
         if not self.config.withdrawn and self.config.expanded:
-            windowwidth = self.window.allocation.width
+            windowwidth = self.window.get_allocation().width
             if windowwidth <= 10 or self.current.columns[0].get_width() <= 10:
                 # Make sure we only set self.config.columnwidths if
                 # self.current has its normal allocated width:
                 return
-            notebookwidth = self.notebook.allocation.width
+            notebookwidth = self.notebook.get_allocation().width
             treewidth = 0
             for i, column in enumerate(self.current.columns):
                 colwidth = column.get_width()
@@ -2773,15 +2772,15 @@ class Base(object):
                 else:
                     self.config.columnwidths[i] = colwidth
             if treewidth > notebookwidth:
-                self.current.expanderwindow.set_policy(gtk.POLICY_AUTOMATIC,
-                                                       gtk.POLICY_AUTOMATIC)
+                self.current.expanderwindow.set_policy(Gtk.PolicyType.AUTOMATIC,
+                                                       Gtk.PolicyType.AUTOMATIC)
             else:
-                self.current.expanderwindow.set_policy(gtk.POLICY_NEVER,
-                                                       gtk.POLICY_AUTOMATIC)
+                self.current.expanderwindow.set_policy(Gtk.PolicyType.NEVER,
+                                                       Gtk.PolicyType.AUTOMATIC)
         self.current.resizing_columns = False
 
     def systemtray_activate(self, _status_icon):
-        # Clicking on a gtk.StatusIcon:
+        # Clicking on a Gtk.StatusIcon:
         if not self.ignore_toggle_signal:
             # This prevents the user clicking twice in a row quickly
             # and having the second click not revert to the intial
@@ -2790,13 +2789,13 @@ class Base(object):
             path_showmenu = '/traymenu/showmenu'
             prev_state = self.UIManager.get_widget(path_showmenu).get_active()
             self.UIManager.get_widget(path_showmenu).set_active(not prev_state)
-            if not self.window.window:
+            if not self.window.get_window():
                 # For some reason, self.window.window is not defined if
                 # mpd is not running and sonata is started with
                 # self.config.withdrawn = True
                 self.withdraw_app_undo()
-            elif not (self.window.window.get_state() & \
-                      gtk.gdk.WINDOW_STATE_WITHDRAWN) and \
+            elif not (self.window.get_window().get_state() & \
+                      Gdk.WindowState.WITHDRAWN) and \
                     self.window.is_active():
                 # Window is not withdrawn and is active (has toplevel focus):
                 self.withdraw_app()
@@ -2807,7 +2806,7 @@ class Base(object):
             # if self.traytips.notif_handler is None and
             # self.traytips.notif_handler != -1:
             # self.traytips._remove_timer()
-            gobject.timeout_add(100,
+            GObject.timeout_add(100,
                                 self.tooltip_set_ignore_toggle_signal_false)
 
     def systemtray_click(self, _widget, event):
@@ -2819,7 +2818,7 @@ class Base(object):
             if self.conn:
                 self.mpd_pp(None)
         elif event.button == 3: # Right button pops up menu
-            self.traymenu.popup(None, None, None, event.button, event.time)
+            self.traymenu.popup(None, None, None, None, event.button, event.time)
         return False
 
     def on_traytips_press(self, _widget, _event):
@@ -2827,13 +2826,12 @@ class Base(object):
             self.traytips._remove_timer()
 
     def withdraw_app_undo(self):
-        # get desktop size
-        ws_width, ws_height = gtk.gdk.get_default_root_window().get_size()
+        desktop = Gdk.get_default_root_window()
         # convert window coordinates to current workspace so sonata
         # will always appear on the current workspace with the same
         # position as it was before (may be on the other workspace)
-        self.config.x %= ws_width
-        self.config.y %= ws_height
+        self.config.x %= desktop.get_width()
+        self.config.y %= desktop.get_height()
         self.window.move(self.config.x, self.config.y)
         if not self.config.expanded:
             self.notebook.set_no_show_all(True)
@@ -2876,7 +2874,7 @@ class Base(object):
             self.withdraw_app_undo()
         else:
             self.withdraw_app()
-        gobject.timeout_add(500, self.tooltip_set_ignore_toggle_signal_false)
+        GObject.timeout_add(500, self.tooltip_set_ignore_toggle_signal_false)
 
     def tooltip_set_ignore_toggle_signal_false(self):
         self.ignore_toggle_signal = False
@@ -2939,8 +2937,8 @@ class Base(object):
     def on_remove(self, _widget):
         if self.conn:
             model = None
-            while gtk.events_pending():
-                gtk.main_iteration()
+            while Gtk.events_pending():
+                Gtk.main_iteration()
             if self.current_tab == self.TAB_CURRENT:
                 self.current.on_remove()
             elif self.current_tab == self.TAB_PLAYLISTS:
@@ -2953,8 +2951,8 @@ class Base(object):
                                gettext.ngettext("Delete Playlist",
                                                 "Delete Playlists",
                                                 int(len(selected))),
-                               'deletePlaylist', gtk.BUTTONS_YES_NO) == \
-                   gtk.RESPONSE_YES:
+                               'deletePlaylist', Gtk.ButtonsType.YES_NO) == \
+                   Gtk.ResponseType.YES:
                     iters = [model.get_iter(path) for path in selected]
                     for i in iters:
                         self.mpd.rm(misc.unescape_html(
@@ -2970,8 +2968,8 @@ class Base(object):
                                gettext.ngettext("Delete Stream",
                                                 "Delete Streams",
                                                 int(len(selected))),
-                               'deleteStreams', gtk.BUTTONS_YES_NO) == \
-                   gtk.RESPONSE_YES:
+                               'deleteStreams', Gtk.ButtonsType.YES_NO) == \
+                   Gtk.ResponseType.YES:
                     iters = [model.get_iter(path) for path in selected]
                     for i in iters:
                         stream_removed = False
@@ -3161,7 +3159,7 @@ class Base(object):
             self.update_cursong()
 
         # Force a resize of the info labels, if needed:
-        gobject.idle_add(self.on_notebook_resize, self.notebook, None)
+        GObject.idle_add(self.on_notebook_resize, self.notebook, None)
 
     def prefs_stylized_toggled(self, button):
         self.config.covers_type = button.get_active()
@@ -3192,7 +3190,7 @@ class Base(object):
             self.on_currsong_notify()
         else:
             try:
-                gobject.source_remove(self.traytips.notif_handler)
+                GObject.source_remove(self.traytips.notif_handler)
             except:
                 pass
             self.traytips.hide()
@@ -3238,11 +3236,11 @@ class Base(object):
         if browser_not_loaded:
             ui.show_msg(self.window, _('Unable to launch a suitable browser.'),
                         _('Launch Browser'),
-                        'browserLoadError', gtk.BUTTONS_CLOSE)
+                        'browserLoadError', Gtk.ButtonsType.CLOSE)
 
     def on_tab_click(self, _widget, event):
         if event.button == 3:
-            self.notebookmenu.popup(None, None, None, event.button, event.time)
+            self.notebookmenu.popup(None, None, None, None, event.button, event.time)
             return True
 
     def notebook_get_tab_num(self, notebook, tabname):
@@ -3275,9 +3273,9 @@ class Base(object):
         self.current_tab = self.notebook_get_tab_text(self.notebook, page_num)
         to_focus = self.tabname2focus.get(self.current_tab, None)
         if to_focus:
-            gobject.idle_add(ui.focus, to_focus)
+            GObject.idle_add(ui.focus, to_focus)
 
-        gobject.idle_add(self.update_menu_visibility)
+        GObject.idle_add(self.update_menu_visibility)
         if not self.img_clicked:
             self.last_tab = self.current_tab
 
@@ -3287,11 +3285,11 @@ class Base(object):
 
     def menu_popup(self, widget, event):
         if widget == self.window:
-            if event.get_coords()[1] > self.notebook.get_allocation()[1]:
+            if event.get_coords().height > self.notebook.get_allocation().height:
                 return
         if event.button == 3:
             self.update_menu_visibility(True)
-            gobject.idle_add(self.mainmenu.popup, None, None, None,
+            GObject.idle_add(self.mainmenu.popup, None, None, None, None,
                              event.button, event.time)
 
     def on_tab_toggle(self, toggleAction):
@@ -3404,8 +3402,7 @@ class Base(object):
                 for menu in ['add', 'replace', 'playafter', 'rm']:
                     self.UIManager.get_widget('/mainmenu/%smenu/' % \
                                              (menu,)).show()
-                if self.playlists_selection.count_selected_rows() == 1 and \
-                   self.mpd.version >= (0, 13):
+                if self.playlists_selection.count_selected_rows() == 1:
                     self.UIManager.get_widget('/mainmenu/renamemenu/').show()
                 else:
                     self.UIManager.get_widget('/mainmenu/renamemenu/').hide()
@@ -3454,9 +3451,9 @@ class Base(object):
         return full_filename
 
     def on_tags_edit(self, _widget):
-        ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
-        while gtk.events_pending():
-            gtk.main_iteration()
+        ui.change_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
+        while Gtk.events_pending():
+            Gtk.main_iteration()
 
         files = []
         temp_mpdpaths = []
@@ -3545,4 +3542,4 @@ class Base(object):
         self.fullscreen_cover_art(None)
 
     def main(self):
-        gtk.main()
+        Gtk.main()

@@ -213,7 +213,7 @@ def browser_load(docslink, browser, window):
 def file_from_utf8(filename):
     from gi.repository import GObject
     try:
-        return gobject.filename_from_utf8(filename)
+        return GObject.filename_from_utf8(filename)
     except:
         return filename
 
@@ -221,7 +221,7 @@ def file_from_utf8(filename):
 def is_lang_rtl(window):
     from gi.repository import Pango
     # Check if a RTL (right-to-left) language:
-    return window.get_pango_context().get_base_dir() == pango.DIRECTION_RTL
+    return window.get_pango_context().get_base_dir() == Pango.Direction.RTL
 
 
 def sanitize_musicdir(mdir):

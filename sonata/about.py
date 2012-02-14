@@ -122,20 +122,20 @@ class About(object):
                 [_("Stream Shortcuts"), streamshortcuts],
                 [_("Info Shortcuts"), infoshortcuts]]
         dialog = ui.dialog(title=_("Shortcuts"), parent=self.about_dialog,
-                           flags=gtk.DIALOG_MODAL |
-                           gtk.DIALOG_DESTROY_WITH_PARENT,
-                           buttons=(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE),
-                           role='shortcuts', default=gtk.RESPONSE_CLOSE, h=320)
+                           flags=Gtk.DialogFlags.MODAL |
+                           Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                           buttons=(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE),
+                           role='shortcuts', default=Gtk.ResponseType.CLOSE, h=320)
 
         # each pair is a [ heading, shortcutlist ]
-        vbox = gtk.VBox()
+        vbox = Gtk.VBox()
         for pair in shortcuts:
             titlelabel = ui.label(markup="<b>%s</b>" % pair[0])
             vbox.pack_start(titlelabel, False, False, 2)
 
             # print the items of [ shortcut, desc ]
             for item in pair[1]:
-                tmphbox = gtk.HBox()
+                tmphbox = Gtk.HBox()
 
                 tmplabel = ui.label(markup="<b>%s:</b>" % item[0], y=0)
                 tmpdesc = ui.label(text=item[1], wrap=True, y=0)
@@ -145,7 +145,7 @@ class About(object):
 
                 vbox.pack_start(tmphbox, False, False, 2)
             vbox.pack_start(ui.label(text=" "), False, False, 2)
-        scrollbox = ui.scrollwindow(policy_x=gtk.POLICY_NEVER, addvp=vbox)
+        scrollbox = ui.scrollwindow(policy_x=Gtk.PolicyType.NEVER, addvp=vbox)
         dialog.vbox.pack_start(scrollbox, True, True, 2)
         dialog.show_all()
         dialog.run()
@@ -203,13 +203,13 @@ class About(object):
         self.about_dialog.set_artists([('Adrian Chromenko <adrian@rest0re.org>'
                                        '\nhttp://oss.rest0re.org/')])
         self.about_dialog.set_translator_credits(translators)
-        gtk.about_dialog_set_url_hook(self.show_website)
         self.about_dialog.set_website("http://sonata.berlios.de/")
-        large_icon = gtk.gdk.pixbuf_new_from_file(self.icon_file)
+        self.about_dialog.connect("activate-link", self.show_website)
+        large_icon = GdkPixbuf.Pixbuf.new_from_file(self.icon_file)
         self.about_dialog.set_logo(large_icon)
         # Add button to show keybindings:
         shortcut_button = ui.button(text=_("_Shortcuts"))
-        self.about_dialog.action_area.pack_start(shortcut_button)
+        self.about_dialog.action_area.pack_start(shortcut_button, True, True, 0)
         children = self.about_dialog.action_area.get_children()[-1]
         self.about_dialog.action_area.reorder_child(children, -2)
         # Connect to callbacks
@@ -219,9 +219,5 @@ class About(object):
         self.about_dialog.show_all()
 
     def show_website(self, _dialog, link):
-        if not misc.browser_load(link, self.config.url_browser,
-                                 self.parent_window):
-            ui.show_msg(self.about_dialog, _(('Unable to launch a '
-                                             'suitable browser.')),
-                        _('Launch Browser'), 'browserLoadError',
-                        gtk.BUTTONS_CLOSE)
+        return misc.browser_load(link, self.config.url_browser, \
+                                 self.parent_window)

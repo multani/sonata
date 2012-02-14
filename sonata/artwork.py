@@ -41,7 +41,7 @@ class Artwork(object):
         self.sonatacd = path_to_icon('sonatacd.png')
         self.sonatacd_large = path_to_icon('sonatacd_large.png')
         path = path_to_icon('sonata-case.png')
-        self.casepb = gtk.gdk.pixbuf_new_from_file(path)
+        self.casepb = GdkPixbuf.Pixbuf.new_from_file(path)
         self.albumpb = None
         self.currentpb = None
 
@@ -52,7 +52,7 @@ class Artwork(object):
         self.trayalbumimage1 = ui.image(w=51, h=77, x=1)
         self.trayalbumeventbox = ui.eventbox(w=59, h=90,
                                              add=self.trayalbumimage1,
-                                             state=gtk.STATE_SELECTED,
+                                             state=Gtk.StateFlags.SELECTED,
                                              visible=True)
 
         self.trayalbumimage2 = ui.image(w=26, h=77)
@@ -130,11 +130,11 @@ class Artwork(object):
     def artwork_set_tooltip_art(self, pix):
         # Set artwork
         if not self.is_lang_rtl:
-            pix1 = pix.subpixbuf(0, 0, 51, 77)
-            pix2 = pix.subpixbuf(51, 0, 26, 77)
+            pix1 = pix.new_subpixbuf(0, 0, 51, 77)
+            pix2 = pix.new_subpixbuf(51, 0, 26, 77)
         else:
-            pix1 = pix.subpixbuf(26, 0, 51, 77)
-            pix2 = pix.subpixbuf(0, 0, 26, 77)
+            pix1 = pix.new_subpixbuf(26, 0, 51, 77)
+            pix2 = pix.new_subpixbuf(0, 0, 26, 77)
         self.trayalbumimage1.set_from_pixbuf(pix1)
         self.trayalbumimage2.set_from_pixbuf(pix2)
         del pix1
@@ -164,7 +164,9 @@ class Artwork(object):
         self.lib_art_cond.acquire()
         self.lib_art_rows_local = []
         self.lib_art_rows_remote = []
-        test_rows = range(start_row, end_row + 1) + range(len(model))
+        start = start_row.get_indices()[0]
+        end = end_row.get_indices()[0]
+        test_rows = list(range(start, end + 1)) + list(range(len(model)))
         for row in test_rows:
             i = model.get_iter((row,))
             icon = model.get_value(i, 0)
@@ -245,7 +247,7 @@ class Artwork(object):
                     if filename is not None:
                         self.set_library_artwork_cached_filename(cache_key,
                                                                  filename)
-                    gobject.idle_add(self.library_set_cover, i, pb, data)
+                    GObject.idle_add(self.library_set_cover, i, pb, data)
 
                 # Remote processed item from queue:
                 if not remote_art:
@@ -290,7 +292,7 @@ class Artwork(object):
         _tmp, coverfile = self.artwork_get_local_image(dirname, artist, album)
         if coverfile:
             try:
-                coverpb = gtk.gdk.pixbuf_new_from_file_at_size(coverfile,
+                coverpb = GdkPixbuf.Pixbuf.new_from_file_at_size(coverfile,
                                                             pb_size, pb_size)
             except:
                 # Delete bad image:
@@ -315,7 +317,7 @@ class Artwork(object):
         filename = self.get_library_artwork_cached_filename(cache_key)
         if filename is not None:
             if os.path.exists(filename):
-                pb = gtk.gdk.pixbuf_new_from_file_at_size(filename,
+                pb = GdkPixbuf.Pixbuf.new_from_file_at_size(filename,
                                                           self.lib_art_pb_size,
                                                           self.lib_art_pb_size)
                 return self.artwork_apply_composite_case(pb,
@@ -373,7 +375,7 @@ class Artwork(object):
             streamfile = self.artwork_stream_filename(mpdh.get(self.songinfo,
                                                                'name'))
             if os.path.exists(streamfile):
-                gobject.idle_add(self.artwork_set_image, streamfile, None,
+                GObject.idle_add(self.artwork_set_image, streamfile, None,
                                  None, None)
             else:
                 self.artwork_set_default_icon()
@@ -412,7 +414,7 @@ class Artwork(object):
                 self.misc_img_in_dir = filename
             elif location_type == consts.ART_LOCATION_SINGLE:
                 self.single_img_in_dir = filename
-            gobject.idle_add(self.artwork_set_image, filename, artist, album,
+            GObject.idle_add(self.artwork_set_image, filename, artist, album,
                              path)
             return True
 
@@ -467,19 +469,19 @@ class Artwork(object):
         self.artwork_set_default_icon(artist, album, path)
         self.artwork_download_img_to_file(artist, album, filename)
         if os.path.exists(filename):
-            gobject.idle_add(self.artwork_set_image, filename, artist, album,
+            GObject.idle_add(self.artwork_set_image, filename, artist, album,
                              path)
             return True
         return False
 
     def artwork_set_default_icon(self, artist=None, album=None, path=None):
         if self.albumimage.get_property('file') != self.sonatacd:
-            gobject.idle_add(self.albumimage.set_from_file, self.sonatacd)
-            gobject.idle_add(self.info_image.set_from_file,
+            GObject.idle_add(self.albumimage.set_from_file, self.sonatacd)
+            GObject.idle_add(self.info_image.set_from_file,
                              self.sonatacd_large)
-            gobject.idle_add(self.fullscreen_cover_art_reset_image)
-        gobject.idle_add(self.artwork_set_tooltip_art,
-                         gtk.gdk.pixbuf_new_from_file(self.sonatacd))
+            GObject.idle_add(self.fullscreen_cover_art_reset_image)
+        GObject.idle_add(self.artwork_set_tooltip_art,
+                         GdkPixbuf.Pixbuf.new_from_file(self.sonatacd))
         self.lastalbumart = None
 
         # Also, update row in library:
@@ -487,7 +489,7 @@ class Artwork(object):
             cache_key = library_set_data(artist=artist, album=album, path=path)
             self.set_library_artwork_cached_filename(cache_key,
                                                      self.album_filename)
-            gobject.idle_add(self.library_set_image_for_current_song,
+            GObject.idle_add(self.library_set_image_for_current_song,
                              cache_key)
 
     def artwork_get_misc_img_in_path(self, songdir):
@@ -510,7 +512,7 @@ class Artwork(object):
                 # We use try here because the file might exist, but might
                 # still be downloading or corrupt:
                 try:
-                    pix = gtk.gdk.pixbuf_new_from_file(filename)
+                    pix = GdkPixbuf.Pixbuf.new_from_file(filename)
                 except:
                     # If we have a 0-byte file, it should mean that
                     # sonata reset the image file. Otherwise, it's a
@@ -569,16 +571,16 @@ class Artwork(object):
             # we will scale the artwork so that it isn't covered by the case:
             spine_ratio = float(60) / 600 # From original png
             spine_width = int(w * spine_ratio)
-            case = self.casepb.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
+            case = self.casepb.scale_simple(w, h, GdkPixbuf.InterpType.BILINEAR)
             # Scale pix and shift to the right on a transparent pixbuf:
-            pix = pix.scale_simple(w - spine_width, h, gtk.gdk.INTERP_BILINEAR)
-            blank = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, w, h)
+            pix = pix.scale_simple(w - spine_width, h, GdkPixbuf.InterpType.BILINEAR)
+            blank = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, True, 8, w, h)
             blank.fill(0x00000000)
             pix.copy_area(0, 0, pix.get_width(), pix.get_height(), blank,
                           spine_width, 0)
             # Composite case and scaled pix:
             case.composite(blank, 0, 0, w, h, 0, 0, 1, 1,
-                           gtk.gdk.INTERP_BILINEAR, 250)
+                           GdkPixbuf.InterpType.BILINEAR, 250)
             del case
             return blank
         return pix
@@ -628,8 +630,8 @@ class Artwork(object):
     def download_progress(self, dest_filename_curr, i):
         # This populates Main.imagelist for the remote image window
         if os.path.exists(dest_filename_curr):
-            pix = gtk.gdk.pixbuf_new_from_file(dest_filename_curr)
-            pix = pix.scale_simple(148, 148, gtk.gdk.INTERP_HYPER)
+            pix = jdk.pixbuf_new_from_file(dest_filename_curr)
+            pix = pix.scale_simple(148, 148, GdkPixbuf.InterpType.HYPER)
             pix = self.artwork_apply_composite_case(pix, 148, 148)
             pix = img.pixbuf_add_border(pix)
             if self.stop_art_update:
@@ -661,7 +663,7 @@ class Artwork(object):
         self.fullscreen_cover_art_set_text()
 
     def fullscreen_cover_art_reset_image(self):
-        pix = gtk.gdk.pixbuf_new_from_file(self.sonatacd_large)
+        pix = GdkPixbuf.Pixbuf.new_from_file(self.sonatacd_large)
         pix = img.pixbuf_pad(pix, consts.FULLSCREEN_COVER_SIZE,
                              consts.FULLSCREEN_COVER_SIZE)
         self.fullscreenalbumimage.set_from_pixbuf(pix)

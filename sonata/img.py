@@ -4,7 +4,7 @@ import os
 from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
 
 def valid_image(filename):
-    return bool(gtk.gdk.pixbuf_get_file_info(filename))
+    return bool(GdkPixbuf.Pixbuf.get_file_info(filename))
 
 
 def get_pixbuf_of_size(pixbuf, size):
@@ -22,7 +22,7 @@ def get_pixbuf_of_size(pixbuf, size):
             image_width = int(size / float(image_height) * image_width)
             image_height = size
     crop_pixbuf = pixbuf.scale_simple(image_width, image_height,
-                                      gtk.gdk.INTERP_HYPER)
+                                      GdkPixbuf.InterpType.HYPER)
     return (crop_pixbuf, image_width, image_height)
 
 
@@ -31,7 +31,7 @@ def pixbuf_add_border(pix):
     # 2 pixels lengthwise and heightwise, 1 on each side. Returns pixbuf.
     width = pix.get_width()
     height = pix.get_height()
-    newpix = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, width + 2,
+    newpix = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, True, 8, width + 2,
                             height + 2)
     newpix.fill(0x858585ff)
     pix.copy_area(0, 0, width, height, newpix, 1, 1)
@@ -43,7 +43,7 @@ def pixbuf_pad(pix, w, h):
     # centers the pixbuf in the canvas.
     width = pix.get_width()
     height = pix.get_height()
-    transpbox = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, w, h)
+    transpbox = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, True, 8, w, h)
     transpbox.fill(0)
     x_pos = int((w - width) / 2)
     y_pos = int((h - height) / 2)
@@ -52,8 +52,8 @@ def pixbuf_pad(pix, w, h):
 
 
 def extension_is_valid(extension):
-    for imgformat in gtk.gdk.pixbuf_get_formats():
-        if extension.lower() in imgformat['extensions']:
+    for imgformat in GdkPixbuf.Pixbuf.get_formats():
+        if extension.lower() in imgformat.get_extensions():
             return True
     return False
 
@@ -67,7 +67,7 @@ def single_image_in_dir(dirname):
     # Returns None or a filename if there is exactly one image
     # in the dir.
     try:
-        dirname = gobject.filename_from_utf8(dirname)
+        dirname = GObject.filename_from_utf8(dirname)
     except:
         pass
 

@@ -37,7 +37,7 @@ class Plugin(object):
         # optional plugin info:
         try:
             self.description = info.get('plugin', 'description')
-        except ConfigParser.NoOptionError:
+        except configparser.NoOptionError:
             self.description = ""
         try:
             self.author = info.get('plugin', 'author')
@@ -49,7 +49,7 @@ class Plugin(object):
             self.author_email = ""
         try:
             self.iconurl = info.get('plugin', 'icon')
-        except ConfigParser.NoOptionError:
+        except configparser.NoOptionError:
             self.iconurl = None
         try:
             self.url = info.get('plugin', 'url')
