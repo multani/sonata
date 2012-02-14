@@ -1,5 +1,6 @@
 import doctest
 import unittest
+from sonata import misc
 
 
 DOCTEST_FLAGS = (
@@ -10,11 +11,9 @@ DOCTEST_FLAGS = (
 
 
 class TestSonata(unittest.TestCase):
-    def test_dummy(self):
-        # TODO: replace with a test which does something once we start to have
-        # tests!
-        pass
-
+    def test_convert_time(self):
+        self.assertEqual(misc.convert_time(60*4+4), "04:04")
+        self.assertEqual(misc.convert_time(3600*3+60*2), "03:02:00")
 
 def additional_tests():
     return unittest.TestSuite(

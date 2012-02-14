@@ -10,17 +10,18 @@ import sys
 logger = logging.getLogger(__name__)
 
 
-def convert_time(raw):
-    # Converts raw time to 'hh:mm:ss' with leading zeros as appropriate
-    h, m, s = ['%02d' % c for c in (raw / 3600, (raw % 3600) / 60, raw % 60)]
-    if h == '00':
-        if m.startswith('0'):
-            m = m[1:]
-        return m + ':' + s
-    else:
-        if h.startswith('0'):
-            h = h[1:]
-        return h + ':' + m + ':' + s
+def convert_time(seconds):
+    """
+    Converts time in seconds to 'hh:mm:ss' format
+    with leading zeros as appropriate and optional hours
+    """
+    hours = seconds // 3600
+    seconds -= 3600 * hours
+    minutes = seconds // 60
+    seconds -= 60 * minutes
+    if hours == 0:
+       return "%02d:%02d" %(minutes, seconds)
+    return "%02d:%02d:%02d" %(hours, minutes, seconds)
 
 
 def bold(s):
