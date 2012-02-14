@@ -1,6 +1,6 @@
 
-import ConfigParser
-import StringIO
+import configparser
+from io import StringIO
 import logging
 import os
 import pkgutil

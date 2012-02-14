@@ -26,7 +26,6 @@ import os
 import warnings
 
 import urllib
-import urllib2
 import re
 import gc
 import shutil

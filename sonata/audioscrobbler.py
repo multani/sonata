@@ -279,8 +279,7 @@ import logging
 import sys
 import time
 import urllib
-import urllib2
-import ConfigParser
+import configparser
 import os
 
 from xml.etree import ElementTree

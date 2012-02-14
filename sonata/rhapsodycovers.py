@@ -1,7 +1,6 @@
 import logging
 import os
-import urllib
-import urllib2
+import urllib.request
 from xml.etree import ElementTree
 
 from sonata.pluginsystem import pluginsystem, BuiltinPlugin

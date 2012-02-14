@@ -1,7 +1,6 @@
-from HTMLParser import HTMLParser
 import logging
 import os
-import urllib
+import urllib.request
 import re
 import sys
 import threading # get_lyrics_start starts a thread get_lyrics_thread

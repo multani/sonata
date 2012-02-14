@@ -9,11 +9,10 @@ import config
 self.config = config.Config(_('Default Profile'), _("by") + " %A " +\
         _("from") + " %B")
 """
-from __future__ import with_statement
 
 import os
 import hashlib
-import ConfigParser
+import configparser
 
 from sonata.consts import consts
 from sonata import misc
