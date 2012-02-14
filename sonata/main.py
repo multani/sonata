@@ -37,19 +37,6 @@ from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, Pango
 
 import pkg_resources
 
-
-# Default to no sugar, then test...
-HAVE_SUGAR = False
-VOLUME_ICON_SIZE = 4
-if 'SUGAR_BUNDLE_PATH' in os.environ:
-    try:
-        from sugar.activity import activity
-        HAVE_STATUS_ICON = False
-        HAVE_SUGAR = True
-        VOLUME_ICON_SIZE = 3
-    except:
-        pass
-
 import sonata.mpdhelper as mpdh
 
 from sonata import misc, ui, img, tray, formatting
@@ -73,7 +60,7 @@ class Base(object):
 
     ### XXX Warning, a long __init__ ahead:
 
-    def __init__(self, args, window=None, _sugar=False):
+    def __init__(self, args, window=None):
         self.logger = logging.getLogger(__name__)
 
         # The following attributes were used but not defined here before:
@@ -210,10 +197,7 @@ class Base(object):
                 self.path_to_icon('sonata-artist.png'))
         ui.icon(self.iconfactory, 'album', self.path_to_icon('sonata-album.png'))
         icon_theme = Gtk.IconTheme.get_default()
-        if HAVE_SUGAR:
-            activity_root = activity.get_bundle_path()
-            icon_theme.append_search_path(os.path.join(activity_root, 'share'))
-        img_res, img_width, _img_height = Gtk.icon_size_lookup(VOLUME_ICON_SIZE)
+        img_res, img_width, _img_height = Gtk.icon_size_lookup(4)
         if not img_res:
                 self.logger.error("Invalid size of Volume Icon")
         for iconname in ('stock_volume-mute', 'stock_volume-min',
@@ -687,8 +671,6 @@ class Base(object):
             self.window.add(mainhbox)
             self.window.move(self.config.x, self.config.y)
             self.window.set_size_request(270, -1)
-        elif HAVE_SUGAR:
-            self.window.set_canvas(mainhbox)
         if not self.config.expanded:
             ui.hide(self.notebook)
             self.cursonglabel1.set_markup('<big><b>%s</b></big>' %
@@ -3421,22 +3403,13 @@ class Base(object):
                 self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
 
     def path_to_icon(self, icon_name):
-        # TOOD: when Sugar support has been removed, simplify this function:
-        # remove temporary variables, simplify the check on the file existence
-        if HAVE_SUGAR:
-            full_filename = os.path.join(activity.get_bundle_path(),
-                                         'share', icon_name)
+        full_filename = pkg_resources.resource_filename( __name__, \
+                                                        "pixmaps/%s" % icon_name)
+        if os.path.exists(full_filename):
+            return full_filename
         else:
-            full_filename = pkg_resources.resource_filename(
-                __name__, "pixmaps/%s" % icon_name)
-
-            if not os.path.exists(full_filename):
-                full_filename = None
-
-        if not full_filename:
             self.logger.critical("Icon %r cannot be found. Aborting...", icon_name)
             sys.exit(1)
-        return full_filename
 
     def on_tags_edit(self, _widget):
         ui.change_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
