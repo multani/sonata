@@ -191,14 +191,14 @@ def browser_load(docslink, browser, window):
     if browser and browser.strip():
         browsers = [browser.strip()]
     else:
-        browsers = ["gnome-open",    # default, we are a "gnome" app
+        browsers = ["xdg-open",    # default, this respect the used DE
                 "x-www-browser", # default on Debian-based systems
+                "gnome-open",
+                "kde-open",
                 "exo-open",
-                "kfmclient openURL",
                 "firefox",
-                "mozilla",
                 "opera",
-                "chromium-browser"]
+                "chromium"]
     for browser in browsers:
         try:
             subprocess.Popen(browser.split() + [docslink])
