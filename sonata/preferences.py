@@ -871,7 +871,7 @@ class Preferences():
 
     def plugin_show_website(self, _dialog, link):
         return misc.browser_load(link, self.config.url_browser, \
-                                 self.window):
+                                 self.window)
 
     def plugin_configure(self, _widget):
         plugin = self.plugin_get_selected()
