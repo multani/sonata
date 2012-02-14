@@ -14,9 +14,9 @@ self.streams.populate()
 
 from gi.repository import Gtk, Gdk, Pango
 
-import misc, ui
+from sonata import misc, ui
 
-from pluginsystem import pluginsystem, BuiltinPlugin
+from sonata.pluginsystem import pluginsystem, BuiltinPlugin
 
 class Streams(object):
     def __init__(self, config, window, on_streams_button_press, on_add_item, settings_save, TAB_STREAMS):

@@ -8,10 +8,9 @@ import threading # get_lyrics_start starts a thread get_lyrics_thread
 
 from gi.repository import GObject
 
-import misc
-import mpdhelper as mpdh
-from consts import consts
-from pluginsystem import pluginsystem, BuiltinPlugin
+from sonata import misc, mpdhelper as mpdh
+from sonata.consts import consts
+from sonata.pluginsystem import pluginsystem, BuiltinPlugin
 
 
 class LyricWiki(object):

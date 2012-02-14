@@ -212,7 +212,7 @@ def browser_load(docslink, browser, window):
 
 
 def file_from_utf8(filename):
-    import gobject
+    from gi.repository import GObject
     try:
         return gobject.filename_from_utf8(filename)
     except:

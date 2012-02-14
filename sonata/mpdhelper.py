@@ -5,7 +5,7 @@ import logging
 import sys
 import os
 from time import strftime
-from misc import remove_list_duplicates
+from sonata.misc import remove_list_duplicates
 
 
 class MPDHelper(object):

@@ -16,11 +16,9 @@ self.playlists.populate()
 
 from gi.repository import Gtk, Pango, Gdk
 
-import ui
-import misc
-import mpdhelper as mpdh
+from sonata import ui, misc, mpdhelper as mpdh
 
-from pluginsystem import pluginsystem, BuiltinPlugin
+from sonata.pluginsystem import pluginsystem, BuiltinPlugin
 
 
 class Playlists(object):

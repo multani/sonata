@@ -3,7 +3,7 @@ import os
 
 from gi.repository import Gtk, GObject, Pango
 
-from . import ui, img
+from sonata import ui, img
 
 
 class TrayIconTips(gtk.Window):

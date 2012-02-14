@@ -19,7 +19,7 @@ import time
 
 audioscrobbler = None # imported when first needed
 
-import mpdhelper as mpdh
+from sonata import mpdhelper as mpdh
 
 
 class Scrobbler(object):
@@ -42,7 +42,7 @@ class Scrobbler(object):
         # (if as_enabled=True) or if the user enables it in prefs.
         global audioscrobbler
         if audioscrobbler is None:
-            import audioscrobbler
+            from sonata import audioscrobbler
 
     def imported(self):
         """Return True if the audioscrobbler module has been imported"""

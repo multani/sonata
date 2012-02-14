@@ -4,7 +4,7 @@ import gettext
 import logging
 from optparse import OptionParser
 
-from version import version
+from sonata.version import version
 
 # the mpd commands need a connection to server and exit without gui
 mpd_cmds = ["play", "pause", "stop", "next", "prev", "pp", "info",

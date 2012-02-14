@@ -15,8 +15,8 @@ import os
 import hashlib
 import ConfigParser
 
-from consts import consts
-import misc
+from sonata.consts import consts
+from sonata import misc
 
 
 class Config:

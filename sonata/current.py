@@ -22,10 +22,7 @@ import threading # searchfilter_toggle starts thread searchfilter_loop
 
 from gi.repository import Gtk, Gdk, Pango, GObject
 
-import ui
-import misc
-import formatting
-import mpdhelper as mpdh
+from sonata import ui, misc, formatting, mpdhelper as mpdh
 
 
 class Current(object):

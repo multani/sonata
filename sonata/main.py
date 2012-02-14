@@ -51,33 +51,23 @@ if 'SUGAR_BUNDLE_PATH' in os.environ:
     except:
         pass
 
-import mpdhelper as mpdh
+import sonata.mpdhelper as mpdh
 
-import misc
-import ui
-import img
-import tray
-import formatting
+from sonata import misc, ui, img, tray, formatting
 
-from consts import consts
-from pluginsystem import pluginsystem
-from config import Config
+from sonata.consts import consts
+from sonata.pluginsystem import pluginsystem
+from sonata.config import Config
 
-import preferences
-import tagedit
-import artwork
-import about
-import scrobbler
-import info
-import library
-import streams
-import playlists
-import current
-import lyricwiki # plug-ins
-import rhapsodycovers
-import dbus_plugin as dbus
+from sonata import preferences, tagedit, \
+                artwork, about, \
+                scrobbler, info, \
+                library, streams, \
+                playlists, current, \
+                lyricwiki, rhapsodycovers, \
+                dbus_plugin as dbus
 
-from version import version
+from sonata.version import version
 
 
 class Base(object):

@@ -7,34 +7,30 @@ import operator
 
 from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, Pango
 
-import ui
-import misc
-import formatting
-import mpdhelper as mpdh
-from consts import consts
-import breadcrumbs
+from sonata import ui, misc, formatting, breadcrumbs, mpdhelper as mpdh
+from sonata.consts import consts
 
 
 def library_set_data(album=None, artist=None, genre=None, year=None,
                      path=None):
     if album is not None:
-        album = unicode(album)
+        album = str(album)
     if artist is not None:
-        artist = unicode(artist)
+        artist = str(artist)
     if genre is not None:
-        genre = unicode(genre)
+        genre = str(genre)
     if year is not None:
-        year = unicode(year)
+        year = str(year)
     if path is not None:
-        path = unicode(path)
+        path = str(path)
     return (album, artist, genre, year, path)
 
 
 def library_get_data(data, *args):
     name_to_index = {'album': 0, 'artist': 1, 'genre': 2, 'year': 3, 'path': 4}
     # Data retrieved from the gtktreeview model is not in
-    # unicode anymore, so convert it.
-    retlist = [unicode(data[name_to_index[arg]]) if data[name_to_index[arg]] \
+    # str anymore, so convert it.
+    retlist = [str(data[name_to_index[arg]]) if data[name_to_index[arg]] \
                else None for arg in args]
     if len(retlist) == 1:
         return retlist[0]

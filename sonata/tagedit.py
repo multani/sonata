@@ -15,7 +15,7 @@ import re
 from gi.repository import Gtk, GObject
 tagpy = None # module loaded when needed
 
-import ui, misc
+from sonata import ui, misc
 
 
 class TagEditor():

@@ -12,14 +12,12 @@ prefs.on_prefs_real(self.window, self.prefs_window_response, tab callbacks...)
 
 import gettext, hashlib
 
-from consts import consts
-from config import Config
-from pluginsystem import pluginsystem
-import ui
-import misc
-import formatting
 from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
 
+from sonata.consts import consts
+from sonata.config import Config
+from sonata.pluginsystem import pluginsystem
+from sonata import ui, misc, formatting
 import os
 
 class Extras_cbs(object):

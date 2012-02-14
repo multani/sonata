@@ -22,7 +22,7 @@
 
 from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, Pango
 
-from sonata.misc import escape_html
+from .misc import escape_html
 
 songlabel = None
 lyricslabel = None

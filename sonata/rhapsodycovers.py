@@ -4,7 +4,7 @@ import urllib
 import urllib2
 from xml.etree import ElementTree
 
-from pluginsystem import pluginsystem, BuiltinPlugin
+from sonata.pluginsystem import pluginsystem, BuiltinPlugin
 
 class RhapsodyCovers(object):
     def __init__(self):

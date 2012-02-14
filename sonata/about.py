@@ -4,8 +4,7 @@ import gettext
 
 from gi.repository import Gtk, GdkPixbuf
 
-import misc
-import ui
+from sonata import misc, ui
 
 translators = '''\
 ar - Ahmad Farghal <ahmad.farghal@gmail.com>
