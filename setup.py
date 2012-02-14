@@ -31,7 +31,7 @@ def generate_translation_files():
         lang_files.append(('share/locale/%s/LC_MESSAGES' % lang, [mofile]))
 
         if newer(pofile, mofile):
-            print "Generating %s" % mofile
+            print("Generating %s" % mofile)
             os.system("msgfmt %s -o %s" % (pofile, mofile))
 
     return lang_files
