@@ -155,7 +155,7 @@ def dialog(title=None, parent=None, flags=0, buttons=None, default=None, \
     return tmpdialog
 
 def entry(text=None, password=False, w=-1, h=-1, changed_cb=None):
-    tmpentry = UnicodeEntry()
+    tmpentry = Gtk.Entry()
     if text:
         tmpentry.set_text(text)
     if password:
@@ -164,14 +164,6 @@ def entry(text=None, password=False, w=-1, h=-1, changed_cb=None):
     if changed_cb:
         tmpentry.connect('changed', changed_cb)
     return tmpentry
-
-class UnicodeEntry(gtk.Entry):
-    def get_text(self):
-        try:
-            return gtk.Entry.get_text(self).decode('utf-8')
-        except:
-            logger.exception("Unable to get text from Gtk widget")
-            return gtk.Entry.get_text(self).decode('utf-8', 'replace')
 
 def treeview(hint=True, reorder=False, search=True, headers=False):
     tmptv = Gtk.TreeView()
