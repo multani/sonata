@@ -177,8 +177,8 @@ class PluginSystem(object):
         infotext = re.search(pat, text, re.MULTILINE).group(1)
         uncommented = '\n'.join(line[1:].strip()
                     for line in infotext.split('\n'))
-        info = ConfigParser.SafeConfigParser()
-        info.readfp(StringIO.StringIO(uncommented))
+        info = configparser.SafeConfigParser()
+        info.readfp(StringIO(uncommented))
 
         plugin = Plugin(path, name, info,
                 lambda:self.import_plugin(name))
