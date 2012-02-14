@@ -548,11 +548,11 @@ class Library(object):
                     name = mpdh.get(item, 'directory').split('/')[-1]
                     data = self.library_set_data(path=mpdh.get(item,
                                                                'directory'))
-                    bd += [('d' + unicode(name).lower(), [self.openpb, data,
+                    bd += [('d' + str(name).lower(), [self.openpb, data,
                                                       misc.escape_html(name)])]
                 elif 'file' in item:
                     data = self.library_set_data(path=mpdh.get(item, 'file'))
-                    bd += [('f' + unicode(mpdh.get(item, 'file')).lower(),
+                    bd += [('f' + str(mpdh.get(item, 'file')).lower(),
                             [self.sonatapb, data,
                              formatting.parse(self.config.libraryformat, item,
                                               True)])]
@@ -679,16 +679,16 @@ class Library(object):
                 break
             VA = False
             for j in range(1, consts.NUM_ARTISTS_FOR_VA):
-                if unicode(self.library_get_data(albums[i], 'album')).lower() \
-                   != unicode(self.library_get_data(albums[i + j],
+                if str(self.library_get_data(albums[i], 'album')).lower() \
+                   != str(self.library_get_data(albums[i + j],
                                                     'album')).lower() or \
                    self.library_get_data(albums[i], 'year') != \
                    self.library_get_data(albums[i + j], 'year') or \
                    self.library_get_data(albums[i], 'path') != \
                    self.library_get_data(albums[i + j], 'path'):
                     break
-                if unicode(self.library_get_data(albums[i], 'artist')) == \
-                   unicode(self.library_get_data(albums[i + j], 'artist')):
+                if str(self.library_get_data(albums[i], 'artist')) == \
+                   str(self.library_get_data(albums[i + j], 'artist')):
                     albums.pop(i + j)
                     break
 
@@ -702,9 +702,9 @@ class Library(object):
                                                   year=year, path=path)
                 j = 1
                 while i + j <= len(albums) - 1:
-                    if unicode(self.library_get_data(albums[i],
+                    if str(self.library_get_data(albums[i],
                                                      'album')).lower() == \
-                       unicode(self.library_get_data(albums[i + j],
+                       str(self.library_get_data(albums[i + j],
                                                      'album')).lower() \
                     and self.library_get_data(albums[i], 'year') == \
                        self.library_get_data(albums[i + j], 'year'):
@@ -829,7 +829,7 @@ class Library(object):
                                                    song, True)])]
             except:
                 bd += [('f' + disc + track + \
-                        unicode(mpdh.get(song, 'file')).lower(),
+                        str(mpdh.get(song, 'file')).lower(),
                         [self.sonatapb, data,
                          formatting.parse(self.config.libraryformat, song,
                                           True)])]
@@ -916,7 +916,7 @@ class Library(object):
                     # This allows us to match untagged items
                     cached_list.append('')
                 for item in cached_list:
-                    if unicode(item).lower() == unicode(search).lower():
+                    if str(item).lower() == str(search).lower():
                         itemlist.append(item)
             if len(itemlist) == 0:
                 # There should be no results!
@@ -1027,8 +1027,8 @@ class Library(object):
                         # "foobar" isn't returned too
                         for arg in args_tuple[::2]:
                             if arg in item and \
-                               unicode(mpdh.get(item, arg)).upper() != \
-                               unicode(args_tuple[pos + 1]).upper():
+                               str(mpdh.get(item, arg)).upper() != \
+                               str(args_tuple[pos + 1]).upper():
                                 match = False
                                 break
                             pos += 2
@@ -1398,7 +1398,7 @@ class Library(object):
             for row in self.prevlibtodo_base_results:
                 is_match = True
                 for regexp in regexps:
-                    if not regexp.match(unicode(mpdh.get(row,
+                    if not regexp.match(str(mpdh.get(row,
                                                          searchby)).lower()):
                         is_match = False
                         break
@@ -1409,7 +1409,7 @@ class Library(object):
                 allstr = " ".join(mpdh.get(row, meta) for meta in row)
                 is_match = True
                 for regexp in regexps:
-                    if not regexp.match(unicode(allstr).lower()):
+                    if not regexp.match(str(allstr).lower()):
                         is_match = False
                         break
                 if is_match:

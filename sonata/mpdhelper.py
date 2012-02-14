@@ -39,7 +39,7 @@ class MPDHelper(object):
 
         try:
             retval = getattr(self._client, command)(*args)
-        except Exception, e:
+        except Exception as e:
             # XXX make the distinction between bad getattr() call and bad MPD
             # call?
             if not command in ['disconnect', 'lsinfo', 'listplaylists']:

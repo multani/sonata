@@ -125,7 +125,6 @@ the_re = re.compile('^the ')
 
 
 def lower_no_the(s):
-    s = unicode(s)
     s = the_re.sub('', s.lower())
     s = str(s)
     return s

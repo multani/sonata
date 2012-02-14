@@ -73,7 +73,7 @@ class Scrobbler(object):
                                                   verbose=True)
         try:
             self.scrob_post.auth()
-        except Exception, e:
+        except Exception as e:
             self.logger.error("Error authenticating audioscrobbler: %r", e)
             self.scrob_post = None
         if self.scrob_post:
@@ -161,11 +161,11 @@ class Scrobbler(object):
                'title' in songinfo and \
                'time' in songinfo:
                 if not 'album' in songinfo:
-                    album = u''
+                    album = ''
                 else:
                     album = mpdh.get(songinfo, 'album')
                 if not 'track' in songinfo:
-                    tracknumber = u''
+                    tracknumber = ''
                 else:
                     tracknumber = mpdh.get(songinfo, 'track')
                 try:
@@ -186,11 +186,11 @@ class Scrobbler(object):
                'title' in prevsonginfo and \
                'time' in prevsonginfo:
                 if not 'album' in prevsonginfo:
-                    album = u''
+                    album = ''
                 else:
                     album = mpdh.get(prevsonginfo, 'album')
                 if not 'track' in prevsonginfo:
-                    tracknumber = u''
+                    tracknumber = ''
                 else:
                     tracknumber = mpdh.get(prevsonginfo, 'track')
                 try:
@@ -217,7 +217,7 @@ class Scrobbler(object):
                 return
             try:
                 self.scrob_post.post()
-            except audioscrobbler.AudioScrobblerConnectionError, e:
+            except audioscrobbler.AudioScrobblerConnectionError as e:
                 self.logger.exception(
                     "Error while posting data to the scrobbler")
             time.sleep(10)

@@ -172,17 +172,17 @@ class About(object):
             statslabel += '%s %s.' % (days_of_playtime,
                                       gettext.ngettext('day of bliss',
                                                        'days of bliss',
-                                                       int(days_of_playtime)))
+                                                       float(days_of_playtime)))
         else:
             statslabel += '%s %s.' % (hours_of_playtime,
                                       gettext.ngettext('hour of bliss',
                                                        'hours of bliss',
-                                                       int(hours_of_playtime)))
+                                                       float(hours_of_playtime)))
 
         return statslabel
 
     def about_load(self, stats):
-        self.about_dialog = gtk.AboutDialog()
+        self.about_dialog = Gtk.AboutDialog()
         try:
             self.about_dialog.set_transient_for(self.parent_window)
             self.about_dialog.set_modal(True)

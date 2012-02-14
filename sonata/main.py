@@ -2430,9 +2430,9 @@ class Base(object):
                 # right one. If we have a VA album, compare paths. Otherwise,
                 # compare artists.
                 for dataitem in datalist:
-                    if unicode(
+                    if str(
                         library.library_get_data(dataitem, 'artist')).lower() \
-                       == unicode(mpdh.get(self.songinfo, 'artist')).lower() \
+                       == str(mpdh.get(self.songinfo, 'artist')).lower() \
                     or (library.library_get_data(dataitem, 'artist') == \
                         self.library.get_VAstr() and \
                         library.library_get_data(dataitem, 'path') == \
@@ -2444,16 +2444,16 @@ class Base(object):
             # Find all songs in album:
             retsongs = []
             for song in songs:
-                if unicode(mpdh.get(song, 'album')).lower() == \
-                   unicode(library.library_get_data(datalist[0],
+                if str(mpdh.get(song, 'album')).lower() == \
+                   str(library.library_get_data(datalist[0],
                                                     'album')).lower() \
                 and mpdh.get(song, 'date', None) == \
                    library.library_get_data(datalist[0], 'year'):
                     if library.library_get_data(datalist[0], 'artist') == \
                        self.library.get_VAstr() \
-                    or unicode(library.library_get_data(datalist[0],
+                    or str(library.library_get_data(datalist[0],
                                                         'artist')).lower() == \
-                       unicode(mpdh.get(song, 'artist')).lower():
+                       str(mpdh.get(song, 'artist')).lower():
                         retsongs.append(song)
 
             artist = library.library_get_data(datalist[0], 'artist')

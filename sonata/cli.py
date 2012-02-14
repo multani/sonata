@@ -223,27 +223,27 @@ class CliMain(object):
             try:
                 time = misc.convert_time(mpdh.get(self.songinfo, 'time',
                                                   '', True))
-                print "%s: %s/%s" % (_("Time"), at_time, time)
+                print("%s: %s/%s" % (_("Time"), at_time, time))
             except:
-                print "%s: %s" % (_("Time"), at_time)
-            print "%s: %s" % (_("Bitrate"),
-                      self.status.get('bitrate', ''))
+                print("%s: %s" % (_("Time"), at_time))
+            print("%s: %s" % (_("Bitrate"),
+                      self.status.get('bitrate', '')))
         else:
-            print _("MPD stopped")
+            print(_("MPD stopped"))
 
     def _execute_status(self):
         state_map = {
                 'play': _("Playing"),
                 'pause': _("Paused"),
                 'stop': _("Stopped")}
-        print "%s: %s" % (_("State"),
+        print("%s: %s" % (_("State")),
                 state_map[self.status['state']])
 
-        print "%s %s" % (_("Repeat:"), _("On") \
-                         if self.status['repeat'] == '1' else _("Off"))
-        print "%s %s" % (_("Random:"), _("On") \
-                         if self.status['random'] == '1' else _("Off"))
-        print "%s: %s/100" % (_("Volume"), self.status['volume'])
-        print "%s: %s %s" % (_('Crossfade'), self.status['xfade'],
+        print("%s %s" % (_("Repeat:"), _("On") \
+                         if self.status['repeat'] == '1' else _("Off")))
+        print("%s %s" % (_("Random:"), _("On") \
+                         if self.status['random'] == '1' else _("Off")))
+        print("%s: %s/100" % (_("Volume"), self.status['volume']))
+        print("%s: %s %s" % (_('Crossfade'), self.status['xfade'],
                              gettext.ngettext('second', 'seconds',
-                                              int(self.status['xfade'])))
+                                              int(self.status['xfade']))))

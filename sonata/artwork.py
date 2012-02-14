@@ -276,8 +276,8 @@ class Artwork(object):
         for row in self.lib_model:
             artist, album, path = library_get_data(row[1], 'artist', 'album',
                                                    'path')
-            if unicode(play_artist).lower() == unicode(artist).lower() \
-            and unicode(play_album).lower() == unicode(album).lower():
+            if str(play_artist).lower() == str(artist).lower() \
+            and str(play_album).lower() == str(album).lower():
                 pb = self.get_library_artwork_cached_pb(cache_key, None)
                 self.lib_model.set_value(row.iter, 0, pb)
 
