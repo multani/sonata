@@ -2733,17 +2733,14 @@ class Base(object):
             self.artwork.fullscreen_cover_art_set_image(force_update=True)
             self.fullscreencoverart.show_all()
             # setting up invisible cursor
-            window = self.fullscreencoverart.window
-            pix_data = '''/* XPM */
-                static char * invisible_xpm[] = {
-                "1 1 1 1",
-                " c None",
-                " "};'''
-            color = gtk.gdk.Color()
-            pix = gtk.gdk.pixmap_create_from_data(window, pix_data, 1, 1, 1,
-                                                  color, color)
-            invisible_cursor = gtk.gdk.Cursor(pix, pix, color, color, 0, 0)
-            window.set_cursor(invisible_cursor)
+            # idea stolen from gnome-mplayer's src/gui.c
+            import cairo
+            s = cairo.ImageSurface(cairo.FORMAT_A1, 1, 1)
+            cursor_pixbuf = Gdk.pixbuf_get_from_surface(s, 0, 0, 1, 1)
+            cursor = Gdk.Cursor.new_from_pixbuf(Gdk.Display.get_default(), \
+                                                cursor_pixbuf, 0, 0)
+            window = self.fullscreencoverart.get_window()
+            window.set_cursor(cursor)
 
     def fullscreen_cover_art_close(self, _widget, event, key_press):
         if key_press:
