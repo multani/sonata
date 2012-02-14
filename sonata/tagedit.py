@@ -12,7 +12,7 @@ tageditor.on_tags_edit(files, temp_mpdpaths, self.musicdir[self.profile_num])
 import os
 import re
 
-import gtk, gobject
+from gi.repository import Gtk, GObject
 tagpy = None # module loaded when needed
 
 import ui, misc

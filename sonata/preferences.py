@@ -12,14 +12,14 @@ prefs.on_prefs_real(self.window, self.prefs_window_response, tab callbacks...)
 
 import gettext, hashlib
 
-import gtk
-
 from consts import consts
 from config import Config
 from pluginsystem import pluginsystem
 import ui
 import misc
 import formatting
+from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
+
 import os
 
 class Extras_cbs(object):

@@ -2,7 +2,7 @@
 
 import gettext
 
-import gtk
+from gi.repository import Gtk, GdkPixbuf
 
 import misc
 import ui

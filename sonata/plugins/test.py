@@ -20,7 +20,7 @@
 
 # nothing magical from here on
 
-import gobject, gtk, pango
+from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, Pango
 
 from sonata.misc import escape_html
 

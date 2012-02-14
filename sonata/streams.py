@@ -12,7 +12,7 @@ self.streams.populate()
 ...
 """
 
-import gtk, pango
+from gi.repository import Gtk, Gdk, Pango
 
 import misc, ui
 

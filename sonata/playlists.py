@@ -14,8 +14,7 @@ self.playlists.populate()
 ...
 """
 
-import gtk
-import pango
+from gi.repository import Gtk, Pango, Gdk
 
 import ui
 import misc

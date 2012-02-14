@@ -2,8 +2,7 @@ from __future__ import with_statement
 import os
 import threading # artwork_update starts a thread _artwork_update
 
-import gtk
-import gobject
+from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
 
 import img
 import ui

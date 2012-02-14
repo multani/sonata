@@ -34,9 +34,7 @@ import threading
 
 import mpd
 
-import gobject
-import gtk
-import pango
+from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, Pango
 
 import pkg_resources
 

@@ -18,7 +18,7 @@
 import subprocess, locale
 from pwd import getpwuid
 
-import gobject, gtk
+from gi.repository import GObject, Gtk
 
 from sonata.misc import escape_html
 

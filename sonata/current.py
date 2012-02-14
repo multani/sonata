@@ -20,9 +20,7 @@ import re
 import urllib
 import threading # searchfilter_toggle starts thread searchfilter_loop
 
-import gtk
-import pango
-import gobject
+from gi.repository import Gtk, Gdk, Pango, GObject
 
 import ui
 import misc

@@ -5,9 +5,7 @@ import locale
 import threading # libsearchfilter_toggle starts thread libsearchfilter_loop
 import operator
 
-import gtk
-import gobject
-import pango
+from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, Pango
 
 import ui
 import misc

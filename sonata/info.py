@@ -5,9 +5,7 @@ import os
 import locale
 import logging
 
-import gtk
-import pango
-import gobject
+from gi.repository import Gtk, Pango, Gdk, GdkPixbuf, GObject
 
 import ui
 import misc

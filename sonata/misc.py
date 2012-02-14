@@ -220,7 +220,7 @@ def file_from_utf8(filename):
 
 
 def is_lang_rtl(window):
-    import pango
+    from gi.repository import Pango
     # Check if a RTL (right-to-left) language:
     return window.get_pango_context().get_base_dir() == pango.DIRECTION_RTL
 

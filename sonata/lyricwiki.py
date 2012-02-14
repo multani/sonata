@@ -6,7 +6,7 @@ import re
 import sys
 import threading # get_lyrics_start starts a thread get_lyrics_thread
 
-import gobject
+from gi.repository import GObject
 
 import misc
 import mpdhelper as mpdh

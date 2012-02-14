@@ -1,6 +1,7 @@
 import logging
 
-import gtk, sys, pango
+import sys
+from gi.repository import Gtk, Pango, Gdk, GdkPixbuf, GObject
 
 
 logger = logging.getLogger(__name__)

@@ -1,9 +1,7 @@
 
 import os
 
-import gtk
-import gobject
-
+from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
 
 def valid_image(filename):
     return bool(gtk.gdk.pixbuf_get_file_info(filename))

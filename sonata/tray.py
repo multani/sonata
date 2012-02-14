@@ -1,7 +1,7 @@
 
 import os
-import gobject
-import gtk
+
+from gi.repository import Gtk, GObject, Pango
 
 from . import ui, img
 
