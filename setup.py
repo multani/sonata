@@ -51,10 +51,6 @@ data_files = [
     ('share/man/man1', ['sonata.1']),
 ] + generate_translation_files()
 
-tests_require = [
-    'unittest2',
-]
-
 
 setup(
     name='Sonata',
@@ -84,10 +80,6 @@ setup(
         ]
     },
     test_suite='sonata.tests',
-    tests_require=tests_require,
-    extras_require={
-        'test': tests_require,
-    },
 )
 try:
     os.remove("sonata/genversion.py")

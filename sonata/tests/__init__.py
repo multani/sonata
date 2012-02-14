@@ -1,5 +1,5 @@
 import doctest
-import unittest2
+import unittest
 
 
 DOCTEST_FLAGS = (
@@ -9,7 +9,7 @@ DOCTEST_FLAGS = (
 )
 
 
-class TestSonata(unittest2.TestCase):
+class TestSonata(unittest.TestCase):
     def test_dummy(self):
         # TODO: replace with a test which does something once we start to have
         # tests!
@@ -17,7 +17,7 @@ class TestSonata(unittest2.TestCase):
 
 
 def additional_tests():
-    return unittest2.TestSuite(
+    return unittest.TestSuite(
         # TODO: add files which use doctests here
         #doctest.DocFileSuite('../audioscrobbler.py', optionflags=DOCTEST_FLAGS),
     )
