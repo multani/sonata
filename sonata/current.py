@@ -888,10 +888,9 @@ class Current(object):
         widget.set_position(-1)
 
     def filtering_entry_make_red(self, editable):
-        style = editable.get_style().copy()
-        style.text[Gtk.StateType.NORMAL] = editable.get_colormap().alloc_color(
-            "red")
-        editable.set_style(style)
+        color = Gdk.RGBA()
+        color.parse("red")
+        editable.override_color(Gtk.StateFlags.NORMAL, color)
 
     def filtering_entry_revert_color(self, editable):
         editable.set_style(self.edit_style_orig)
