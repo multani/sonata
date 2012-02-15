@@ -245,8 +245,8 @@ def icon(factory, icon_name, path):
     factory.add_default()
 
 def change_cursor(cursortype):
-    # TODO Check if set_cursor is needed
-    pass
-#    for i in Gtk.Window.list_toplevels():
-#        if hasattr(i, "set_cursor"):
-#          i.set_cursor(cursortype)
+    for w in Gtk.Window.list_toplevels():
+        gdk_window = w.get_window()
+        # some toplevel windows have no drawing area
+        if gdk_window != None:
+                gdk_window.set_cursor(cursortype)
