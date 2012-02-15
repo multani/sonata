@@ -750,12 +750,10 @@ class Base(object):
         self.fullscreencoverart.set_title(_("Cover Art"))
         self.fullscreencoverart.set_decorated(True)
         self.fullscreencoverart.fullscreen()
-        style = self.fullscreencoverart.get_style().copy()
-        #TODO deprecated ?
-        #style.bg[Gtk.StateFlags.NORMAL] = \
-        #        self.fullscreencoverart.get_colormap().alloc_color("black")
-        #style.bg_pixmap[Gtk.StateFlags.NORMAL] = None
-        self.fullscreencoverart.set_style(style)
+        bgcolor = Gdk.RGBA()
+        bgcolor.parse("black")
+        self.fullscreencoverart\
+            .override_background_color(Gtk.StateFlags.NORMAL, bgcolor)
         self.fullscreencoverart.add_accel_group(
             self.UIManager.get_accel_group())
         fscavbox = Gtk.VBox()
