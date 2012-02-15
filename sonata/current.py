@@ -861,7 +861,7 @@ class Current(object):
                 for path in filterselected:
                     self.current_selection.select_path(path)
             elif len(matches) > 0:
-                self.current.set_cursor('0')
+                self.current.set_cursor(Gtk.TreePath.new_first(), None, False)
             if len(matches) == 0:
                 GObject.idle_add(self.filtering_entry_make_red,
                                  self.filterpattern)
