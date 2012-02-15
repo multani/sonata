@@ -1435,7 +1435,8 @@ class Library(object):
         if len(matches) == 0:
             GObject.idle_add(self.filtering_entry_make_red, self.searchtext)
         else:
-            GObject.idle_add(self.library.set_cursor, '0')
+            GObject.idle_add(self.library.set_cursor, Gtk.TreePath.first(),
+                             None, False)
             GObject.idle_add(self.filtering_entry_revert_color,
                              self.searchtext)
 
