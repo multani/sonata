@@ -810,7 +810,7 @@ class Current(object):
                         song_info.append(misc.unbold(row[i + 1]))
                     # Search for matches in all columns:
                     for i in range(len(self.columnformat)):
-                        if regexp.match(unicode(song_info[i + 1]).lower()):
+                        if regexp.match(song_info[i + 1].lower()):
                             matches.append(song_info)
                             if subset:
                                 self.filter_row_mapping.append(
