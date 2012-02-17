@@ -5,8 +5,7 @@ import threading # artwork_update starts a thread _artwork_update
 from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
 
 from sonata import img, ui, misc, mpdhelper as mpdh
-from sonata.library import library_set_data
-from sonata.library import library_get_data
+from sonata import library
 from sonata.consts import consts
 from sonata.pluginsystem import pluginsystem
 
@@ -200,17 +199,15 @@ class Artwork(object):
 
             if i is not None and self.lib_model.iter_is_valid(i):
 
-                artist, album, path = library_get_data(data, 'artist',
-                                                       'album', 'path')
-
-                if artist is None or album is None:
+                if data.artist is None or data.album is None:
                     if remote_art:
                         self.lib_art_rows_remote.pop(0)
                     else:
                         self.lib_art_rows_local.pop(0)
 
-                cache_key = library_set_data(artist=artist, album=album,
-                                             path=path)
+                cache_key = library.SongRecord(artist=data.artist,
+                                               album=data.album,
+                                               path=data.path)
 
                 # Try to replace default icons with cover art:
                 pb = self.get_library_artwork_cached_pb(cache_key, None)
@@ -271,15 +268,11 @@ class Artwork(object):
     def library_set_image_for_current_song(self, cache_key):
         # Search through the rows in the library to see
         # if we match the currently playing song:
-        play_artist, play_album = library_get_data(cache_key, 'artist',
-                                                   'album')
-        if play_artist is None and play_album is None:
+        if cache_key.artist is None and cache_key.album is None:
             return
         for row in self.lib_model:
-            artist, album, path = library_get_data(row[1], 'artist', 'album',
-                                                   'path')
-            if str(play_artist).lower() == str(artist).lower() \
-            and str(play_album).lower() == str(album).lower():
+            if str(cache_key.artist).lower() == str(row[1].artist).lower() \
+            and str(cache_key.album).lower() == str(row[1].album).lower():
                 pb = self.get_library_artwork_cached_pb(cache_key, None)
                 self.lib_model.set_value(row.iter, 0, pb)
 
@@ -486,7 +479,7 @@ class Artwork(object):
 
         # Also, update row in library:
         if artist is not None:
-            cache_key = library_set_data(artist=artist, album=album, path=path)
+            cache_key = library.SongRecord(artist=artist, album=album, path=path)
             self.set_library_artwork_cached_filename(cache_key,
                                                      self.album_filename)
             GObject.idle_add(self.library_set_image_for_current_song,
@@ -525,7 +518,7 @@ class Artwork(object):
 
                 if not info_img_only:
                     # Store in cache
-                    cache_key = library_set_data(artist=artist, album=album,
+                    cache_key = library.SongRecord(artist=artist, album=album,
                                                  path=path)
                     self.set_library_artwork_cached_filename(cache_key,
                                                              filename)

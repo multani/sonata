@@ -16,7 +16,10 @@ import configparser
 
 from sonata.consts import consts
 from sonata import misc
+from sonata.library import SongRecord
 
+# Constant to express a None value
+LIB_NODATA = "!NONE!"
 
 class Config:
     """This class contains the configuration variables as attributes.
@@ -28,8 +31,7 @@ class Config:
     XXX This is mostly ConfigParser plus some custom serialization work.
     """
 
-    def __init__(self, default_profile_name, currsongformat2,
-                 library_set_data):
+    def __init__(self, default_profile_name, currsongformat2):
         # the config settings:
         self.profile_num = 0
         self.profile_names = [default_profile_name]
@@ -98,7 +100,7 @@ class Config:
         self.as_password_md5 = ""
 
         self.url_browser = ""
-        self.wd = library_set_data(path="/")
+        self.wd = SongRecord(path="/")
 
         self.info_song_expanded = True
         self.info_lyrics_expanded = True
@@ -129,10 +131,8 @@ class Config:
         self.autostart_plugins = []
         self.known_plugins = []
 
-        # Local consts
-        self.LIB_NODATA = "!NONE!"
 
-    def settings_load_real(self, library_set_data):
+    def settings_load_real(self):
         """Load configuration from file"""
         # Load config
         conf = configparser.RawConfigParser()
@@ -309,18 +309,12 @@ class Config:
                 year = conf.get('library', 'lib_year')
             if conf.has_option('library', 'lib_path'):
                 path = conf.get('library', 'lib_path')
-            if album == self.LIB_NODATA:
-                album = None
-            if artist == self.LIB_NODATA:
-                artist = None
-            if genre == self.LIB_NODATA:
-                genre = None
-            if year == self.LIB_NODATA:
-                year = None
-            if path == self.LIB_NODATA:
-                path = None
-            self.wd = library_set_data(album=album, artist=artist, genre=genre,
-                                       year=year, path=path)
+            if album  == LIB_NODATA: album = None
+            if artist == LIB_NODATA: artist = None
+            if genre  == LIB_NODATA: genre = None
+            if year   == LIB_NODATA: year = None
+            if path   == LIB_NODATA: path = None
+            self.wd = SongRecord(album, artist, genre, year, path)
 
         if conf.has_section('currformat'):
             if conf.has_option('currformat', 'current'):
@@ -387,7 +381,7 @@ class Config:
                 self.known_plugins = [x.strip("[]' ") \
                                       for x in self.known_plugins]
 
-    def settings_save_real(self, library_get_data):
+    def settings_save_real(self):
         """Save configuration in file"""
         conf = configparser.RawConfigParser()
 
@@ -476,21 +470,11 @@ class Config:
             conf.set('notebook', attribute, str(getattr(self, attribute)))
 
         # Save current library browsing state:
-        album = library_get_data(self.wd, 'album')
-        artist = library_get_data(self.wd, 'artist')
-        genre = library_get_data(self.wd, 'genre')
-        year = library_get_data(self.wd, 'year')
-        path = library_get_data(self.wd, 'path')
-        if album is None:
-            album = self.LIB_NODATA
-        if artist is None:
-            artist = self.LIB_NODATA
-        if genre is None:
-            genre = self.LIB_NODATA
-        if year is None:
-            year = self.LIB_NODATA
-        if path is None:
-            path = self.LIB_NODATA
+        album  = LIB_NODATA if self.wd.album  is None else self.wd.album
+        artist = LIB_NODATA if self.wd.artist is None else self.wd.artist
+        genre  = LIB_NODATA if self.wd.genre  is None else self.wd.genre
+        year   = LIB_NODATA if self.wd.year   is None else self.wd.year
+        path   = LIB_NODATA if self.wd.path   is None else self.wd.path
         conf.add_section('library')
         conf.set('library', 'lib_album', album)
         conf.set('library', 'lib_artist', artist)

@@ -170,9 +170,8 @@ class Base(object):
         self.tabname2focus = dict()
         self.plugintabs = dict()
 
-        self.config = Config(_('Default Profile'), '%s %%A %s %%B' % (_("by"),
-                                                                   _("from"),),
-                             library.library_set_data)
+        self.config = Config( _('Default Profile'),
+                             '%s %%A %s %%B' % (_("by"), _("from")))
         self.preferences = preferences.Preferences(self.config,
             self.on_connectkey_pressed, self.on_currsong_notify,
             self.update_infofile, self.settings_save,
@@ -1247,7 +1246,7 @@ class Base(object):
                         self.current.searchfilter_toggle(None)
 
     def settings_load(self):
-        self.config.settings_load_real(library.library_set_data)
+        self.config.settings_load_real()
 
     def settings_save(self):
         self.header_save_column_widths()
@@ -1269,7 +1268,7 @@ class Base(object):
                 autostart_plugins.append(plugin.name)
         self.config.autostart_plugins = autostart_plugins
 
-        self.config.settings_save_real(library.library_get_data)
+        self.config.settings_save_real()
 
     def handle_change_conn(self):
         if not self.conn:
@@ -1294,7 +1293,7 @@ class Base(object):
                                 self.volumebutton):
                 mediabutton.set_property('sensitive', True)
             if self.sonata_loaded:
-                self.library.library_browse(library.library_set_data(path="/"))
+                self.library.library_browse(root=library.SongRecord(path="/"))
             self.playlists.populate()
             self.streams.populate()
             self.on_notebook_page_change(self.notebook, 0,
@@ -2389,44 +2388,34 @@ class Base(object):
             year = mpdh.get(song, 'date', '')
             artist = mpdh.get(song, 'artist', '')
             path = os.path.dirname(mpdh.get(song, 'file'))
-            data = library.library_set_data(album=album, artist=artist,
-                                            year=year, path=path)
+            data = library.SongRecord(album=album, artist=artist, \
+                                       year=year, path=path)
             datalist.append(data)
         if len(datalist) > 0:
             datalist = misc.remove_list_duplicates(datalist, case=False)
-            datalist = self.library.list_identify_VA_albums(datalist)
+            datalist = library.list_mark_various_artists_albums(datalist)
             if len(datalist) > 0:
                 # Multiple albums with same name and year, choose the
                 # right one. If we have a VA album, compare paths. Otherwise,
                 # compare artists.
                 for dataitem in datalist:
-                    if str(
-                        library.library_get_data(dataitem, 'artist')).lower() \
-                       == str(mpdh.get(self.songinfo, 'artist')).lower() \
-                    or (library.library_get_data(dataitem, 'artist') == \
-                        self.library.get_VAstr() and \
-                        library.library_get_data(dataitem, 'path') == \
-                        os.path.dirname(mpdh.get(self.songinfo, 'file'))):
-
-
+                    if dataitem.artist.lower() == \
+                       mpdh.get(self.songinfo, 'artist').lower() \
+                       or dataitem.artist == library.VARIOUS_ARTISTS \
+                       and dataitem.path == \
+                       os.path.dirname(mpdh.get(self.songinfo, 'file')):
                         datalist = [dataitem]
                         break
             # Find all songs in album:
             retsongs = []
             for song in songs:
-                if str(mpdh.get(song, 'album')).lower() == \
-                   str(library.library_get_data(datalist[0],
-                                                    'album')).lower() \
-                and mpdh.get(song, 'date', None) == \
-                   library.library_get_data(datalist[0], 'year'):
-                    if library.library_get_data(datalist[0], 'artist') == \
-                       self.library.get_VAstr() \
-                    or str(library.library_get_data(datalist[0],
-                                                        'artist')).lower() == \
-                       str(mpdh.get(song, 'artist')).lower():
+                if mpdh.get(song, 'album').lower() == datalist[0].album.lower() \
+                   and mpdh.get(song, 'date', None) == datalist[0].year \
+                   and (datalist[0].artist == library.VARIOUS_ARTISTS \
+                        or datalist[0].artist.lower() ==  \
+                        mpdh.get(song, 'artist').lower()):
                         retsongs.append(song)
 
-            artist = library.library_get_data(datalist[0], 'artist')
             return artist, retsongs
         else:
             return None, None
