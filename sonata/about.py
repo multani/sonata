@@ -153,31 +153,31 @@ class About(object):
 
     def statstext(self, stats):
         # XXX translate expressions, not words
-        statslabel = '%s %s\n.' % (stats['songs'],
+        statslabel = '%s %s.\n' % (stats['songs'],
                                    gettext.ngettext('song', 'songs',
                                                     int(stats['songs'])))
-        statslabel += '%s %s\n.' % (stats['albums'],
+        statslabel += '%s %s.\n' % (stats['albums'],
                                     gettext.ngettext('album', 'albums',
                                                      int(stats['albums'])))
-        statslabel += '%s %s\n.' % (stats['artists'],
+        statslabel += '%s %s.\n' % (stats['artists'],
                                    gettext.ngettext('artist', 'artists',
                                                     int(stats['artists'])))
         try:
             db_playtime = float(stats['db_playtime'])
-            hours_of_playtime = misc.convert_time(db_playtime).split(':')[-3]
+            hours_of_playtime = int(misc.convert_time(db_playtime).split(':')[-3])
         except:
-            hours_of_playtime = '0'
-        if int(hours_of_playtime) >= 24:
-            days_of_playtime = str(int(hours_of_playtime) / 24)
+            hours_of_playtime = 0
+        if hours_of_playtime >= 24:
+            days_of_playtime = round(hours_of_playtime / 24, 1)
             statslabel += '%s %s.' % (days_of_playtime,
                                       gettext.ngettext('day of bliss',
                                                        'days of bliss',
-                                                       float(days_of_playtime)))
+                                                       days_of_playtime))
         else:
             statslabel += '%s %s.' % (hours_of_playtime,
                                       gettext.ngettext('hour of bliss',
                                                        'hours of bliss',
-                                                       float(hours_of_playtime)))
+                                                       hours_of_playtime))
 
         return statslabel
 
