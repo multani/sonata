@@ -2192,7 +2192,7 @@ class Base(object):
 
     def on_menu_popup(self, _widget):
         self.update_menu_visibility()
-        GObject.idle_add(self.mainmenu.popup, None, None, self.menu_position,
+        GObject.idle_add(self.mainmenu.popup, None, None, None, self.menu_position,
                          3, 0)
 
     def on_updatedb(self, _action):
@@ -2259,7 +2259,7 @@ class Base(object):
                 self.UIManager.get_widget(path_localimage).hide()
                 self.UIManager.get_widget(path_resetimage).hide()
                 self.UIManager.get_widget(path_chooseimage).hide()
-            self.imagemenu.popup(None, None, None, event.button, event.time)
+            self.imagemenu.popup(None, None, None, None, event.button, event.time)
         GObject.timeout_add(50, self.on_image_activate_after)
         return False
 
