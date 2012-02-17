@@ -250,4 +250,4 @@ def change_cursor(cursortype):
         gdk_window = w.get_window()
         # some toplevel windows have no drawing area
         if gdk_window != None:
-                gdk_window.set_cursor(cursortype)
+            gdk_window.set_cursor(cursortype)
