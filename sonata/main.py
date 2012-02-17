@@ -2839,7 +2839,7 @@ class Base(object):
     # Change volume on mousewheel over systray icon:
     def systemtray_scroll(self, widget, event):
         if self.conn:
-            self.volumebutton.emit("scroll-event", event)
+            self.volumebutton.emit("scroll-event", event.copy())
 
     def switch_to_tab_name(self, tab_name):
         self.notebook.set_current_page(self.notebook_get_tab_num(self.notebook,
