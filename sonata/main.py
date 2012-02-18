@@ -52,7 +52,7 @@ from sonata import preferences, tagedit, \
                 playlists, current, \
                 lyricwiki, rhapsodycovers, \
                 dbus_plugin as dbus
-from sonata import song
+from sonata.song import SongRecord
 
 from sonata.version import version
 
@@ -1294,7 +1294,7 @@ class Base(object):
                                 self.volumebutton):
                 mediabutton.set_property('sensitive', True)
             if self.sonata_loaded:
-                self.library.library_browse(root=song.SongRecord(path="/"))
+                self.library.library_browse(root=SongRecord(path="/"))
             self.playlists.populate()
             self.streams.populate()
             self.on_notebook_page_change(self.notebook, 0,
@@ -2392,7 +2392,7 @@ class Base(object):
             year = mpdh.get(song, 'date', '')
             artist = mpdh.get(song, 'artist', '')
             path = os.path.dirname(mpdh.get(song, 'file'))
-            data = song.SongRecord(album=album, artist=artist, \
+            data = SongRecord(album=album, artist=artist, \
                                        year=year, path=path)
             datalist.append(data)
         if len(datalist) > 0:
