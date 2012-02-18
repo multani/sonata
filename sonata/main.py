@@ -25,7 +25,7 @@ import logging
 import os
 import warnings
 
-import urllib
+import urllib.parse
 import re
 import gc
 import shutil
@@ -2272,7 +2272,7 @@ class Base(object):
                          _info, _time):
         if self.status_is_play_or_pause():
             uri = selection.data.strip()
-            path = urllib.url2pathname(uri)
+            path = urllib.request.url2pathname(uri)
             paths = path.rsplit('\n')
             thread = threading.Thread(target=self.on_image_drop_cb_thread,
                                       args=(paths,))
@@ -2292,7 +2292,7 @@ class Base(object):
                 try:
                     # Eliminate query arguments and extract extension
                     # & filename
-                    path = urllib.splitquery(paths[i])[0]
+                    path = urllib.parse.urlparse(paths[i]).path
                     extension = os.path.splitext(path)[1][1:]
                     filename = os.path.split(path)[1]
                     if img.extension_is_valid(extension):
@@ -2301,15 +2301,18 @@ class Base(object):
                         dest_file = os.path.expanduser('~/.covers/temp/%s' % \
                                                        (filename,))
                         misc.create_dir('~/.covers/temp')
-                        urllib.urlretrieve(paths[i], dest_file)
+                        src  = urllib.request.urlopen(paths[i], dest_file)
+                        dest = open(dest_file, "w+")
+                        dest.write(src.read())
                         paths[i] = dest_file
                         remove_after_set = True
                     else:
                         continue
-                except:
+                except Exception as e:
+                    self.logger.critical("Can't retrieve cover: %s", e)
                     # cleanup undone file
                     misc.remove_file(paths[i])
-                    raise
+                    raise e
             paths[i] = os.path.abspath(paths[i])
             if img.valid_image(paths[i]):
                 stream = mpdh.get(self.songinfo, 'name', None)
@@ -3175,12 +3178,12 @@ class Base(object):
         if linktype == 'artist':
             browser_not_loaded = not misc.browser_load(
                 '%s%s' % (wikipedia_search,
-                          urllib.quote(mpdh.get(self.songinfo, 'artist')),),
+                          urllib.parse.quote(mpdh.get(self.songinfo, 'artist')),),
                 self.config.url_browser, self.window)
         elif linktype == 'album':
             browser_not_loaded = not misc.browser_load(
                 '%s%s' % (wikipedia_search,
-                          urllib.quote(mpdh.get(self.songinfo, 'album')),),
+                          urllib.parse.quote(mpdh.get(self.songinfo, 'album')),),
                 self.config.url_browser, self.window)
         elif linktype == 'edit':
             if self.songinfo:
