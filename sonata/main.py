@@ -197,7 +197,7 @@ class Base(object):
                 self.path_to_icon('sonata-artist.png'))
         ui.icon(self.iconfactory, 'album', self.path_to_icon('sonata-album.png'))
         icon_theme = Gtk.IconTheme.get_default()
-        img_res, img_width, _img_height = Gtk.icon_size_lookup(4)
+        img_res, img_width, _img_height = Gtk.icon_size_lookup(Gtk.IconSize.SMALL_TOOLBAR)
         if not img_res:
                 self.logger.error("Invalid size of Volume Icon")
         for iconname in ('stock_volume-mute', 'stock_volume-min',
