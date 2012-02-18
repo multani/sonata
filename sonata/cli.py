@@ -212,9 +212,9 @@ class CliMain(object):
                 (_("File"), ('file',)),
                    ]
             for pretty, cmd in cmds:
-                # XXX we should know the encoding of the string instead...
-                print ("%s: %s" % (pretty, mpdh.get(self.songinfo, *cmd))
-                      ).encode(locale.getpreferredencoding(), "replace")
+                # XXX this could fail, if not all characters are supported by
+                # os.stdout.encoding
+                print("%s: %s" % (pretty, mpdh.get(self.songinfo, *cmd)))
             at, _length = [int(c) for c in self.status['time'].split(':')]
             at_time = misc.convert_time(at)
             try:
