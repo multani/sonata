@@ -91,7 +91,7 @@ class Args(object):
                 parser.error(_("unknown command %s") % cmd)
 
         if options.toggle or options.popup or options.fullscreen:
-            import dbus_plugin as dbus
+            from sonata import dbus_plugin as dbus
             if not dbus.using_dbus():
                 self.logger.critical(
                     _("toggle and popup options require D-Bus.  Aborting."))
@@ -130,13 +130,10 @@ class Args(object):
 class CliMain(object):
 
     def __init__(self, args):
-        global os, mpd, config, library, mpdh, misc
+        global os, mpd, misc, config, mpdh
         import os
         import mpd
-        import config
-        import library
-        import mpdhelper as mpdh
-        import misc
+        from sonata import config, misc, mpdhelper as mpdh
 
         self.logger = logging.getLogger(__name__)
         self.config = config.Config(_('Default Profile'), _("by") + " %A " + \
