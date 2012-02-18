@@ -16,7 +16,7 @@ import configparser
 
 from sonata.consts import consts
 from sonata import misc
-from sonata.library import SongRecord
+from sonata.song import SongRecord
 
 # Constant to express a None value
 LIB_NODATA = "!NONE!"
