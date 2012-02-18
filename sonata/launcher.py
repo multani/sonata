@@ -147,9 +147,6 @@ def run():
                     "Module %s imported in CLI mode (it should not)", m)
             else:
                 sys.modules[m] = FakeModule()
-        # like gtk, set utf-8 encoding of str objects
-        reload(sys) # hack access to setdefaultencoding
-        sys.setdefaultencoding("utf-8")
 
 
     ## Global init:
