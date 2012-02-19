@@ -31,7 +31,7 @@ def generate_translation_files():
         lang_files.append(('share/locale/%s/LC_MESSAGES' % lang, [mofile]))
 
         if newer(pofile, mofile):
-            print "Generating %s" % mofile
+            print("Generating %s" % mofile)
             os.system("msgfmt %s -o %s" % (pofile, mofile))
 
     return lang_files
@@ -50,10 +50,6 @@ data_files = [
     ('share/applications', ['sonata.desktop']),
     ('share/man/man1', ['sonata.1']),
 ] + generate_translation_files()
-
-tests_require = [
-    'unittest2',
-]
 
 
 setup(
@@ -74,15 +70,6 @@ setup(
     ],
     packages=["sonata", "sonata.plugins"],
     package_dir={"sonata": "sonata"},
-    ext_modules=[
-        Extension(
-            "mmkeys",
-            ["mmkeys/mmkeyspy.c", "mmkeys/mmkeys.c",
-             "mmkeys/mmkeysmodule.c"],
-            extra_compile_args=capture("pkg-config --cflags gtk+-2.0 pygtk-2.0").split(),
-            extra_link_args=capture("pkg-config --libs gtk+-2.0 pygtk-2.0").split()
-        ),
-    ],
     data_files=data_files,
     package_data={
         'sonata': ['pixmaps/*.*'],
@@ -93,10 +80,6 @@ setup(
         ]
     },
     test_suite='sonata.tests',
-    tests_require=tests_require,
-    extras_require={
-        'test': tests_require,
-    },
 )
 try:
     os.remove("sonata/genversion.py")

@@ -18,7 +18,7 @@
 import subprocess, locale
 from pwd import getpwuid
 
-import gobject, gtk
+from gi.repository import GObject, Gtk
 
 from sonata.misc import escape_html
 
@@ -81,10 +81,10 @@ class Netstat(object):
 
 def update(label):
     # schedule next update
-    gobject.timeout_add(1000, update, label)
+    GObject.timeout_add(1000, update, label)
 
     # don't update if not visible
-    if not label.window or not label.window.is_viewable():
+    if not hasattr(label, "window") or not label.get_window().is_viewable():
         return
 
     netstat = Netstat()
@@ -110,28 +110,28 @@ def update(label):
 
 # nothing magical here, this constructs the parts of the tab when called:
 def construct_tab():
-    vbox = gtk.VBox(spacing=2)
+    vbox = Gtk.VBox(spacing=2)
     vbox.props.border_width = 2
-    buttonbox = gtk.HBox(spacing=2)
-    editbutton = gtk.Button("Edit /etc/mpd.conf")
+    buttonbox = Gtk.HBox(spacing=2)
+    editbutton = Gtk.Button("Edit /etc/mpd.conf")
     editbutton.connect('clicked', lambda *args:subprocess.Popen(
             ["gksu", "gedit", "/etc/mpd.conf"]))
-    buttonbox.pack_start(editbutton, False, False)
-    restartbutton = gtk.Button("Restart the mpd service")
+    buttonbox.pack_start(editbutton, False, False, 0)
+    restartbutton = Gtk.Button("Restart the mpd service")
     restartbutton.connect('clicked', lambda *args:subprocess.Popen(
             ["gksu", "service", "mpd", "restart"]))
-    buttonbox.pack_start(restartbutton, False, False)
-    vbox.pack_start(buttonbox, False, False)
-    label = gtk.Label()
+    buttonbox.pack_start(restartbutton, False, False, 0)
+    vbox.pack_start(buttonbox, False, False, 0)
+    label = Gtk.Label(label="...")
     label.set_properties(xalign=0.0, xpad=5, yalign=0.0, ypad=5,
                  selectable=True)
-    vbox.pack_start(label, False, False)
+    vbox.pack_start(label, False, False, 0)
 
     update(label)
 
-    window = gtk.ScrolledWindow()
-    window.set_properties(hscrollbar_policy=gtk.POLICY_AUTOMATIC,
-                  vscrollbar_policy=gtk.POLICY_AUTOMATIC)
+    window = Gtk.ScrolledWindow()
+    window.set_properties(hscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
+                  vscrollbar_policy=Gtk.PolicyType.AUTOMATIC)
     window.add_with_viewport(vbox)
     window.show_all()
 

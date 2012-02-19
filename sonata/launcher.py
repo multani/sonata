@@ -94,10 +94,10 @@ def run():
     # let gettext install _ as a built-in for all modules to see
     # XXX what's the correct way to find the localization?
     try:
-        gettext.install('sonata', os.path.join(sonata.__file__.split('/lib')[0], 'share', 'locale'), unicode=1)
+        gettext.install('sonata', os.path.join(sonata.__file__.split('/lib')[0], 'share', 'locale'))
     except:
         logger.warning("Trying to use an old translation")
-        gettext.install('sonata', '/usr/share/locale', unicode=1)
+        gettext.install('sonata', '/usr/share/locale')
     gettext.textdomain('sonata')
 
 
@@ -134,10 +134,7 @@ def run():
 
     if not args.skip_gui:
         # importing gtk does sys.setdefaultencoding("utf-8"), sets locale etc.
-        import gtk
-        if gtk.pygtk_version < (2, 12, 0):
-            logger.critical("Sonata requires PyGTK 2.12.0 or newer. Aborting...")
-            sys.exit(1)
+        from gi.repository import Gtk, Gdk
         # fix locale
         misc.setlocale()
     else:
@@ -150,9 +147,6 @@ def run():
                     "Module %s imported in CLI mode (it should not)", m)
             else:
                 sys.modules[m] = FakeModule()
-        # like gtk, set utf-8 encoding of str objects
-        reload(sys) # hack access to setdefaultencoding
-        sys.setdefaultencoding("utf-8")
 
 
     ## Global init:
@@ -161,11 +155,7 @@ def run():
     socketsettimeout(5)
 
     if not args.skip_gui:
-        gtk.gdk.threads_init()
-
-        # we don't use gtk.LinkButton, but gtk.AboutDialog does;
-        # in gtk 2.16.0 without this, the about uri opens doubly:
-        gtk.link_button_set_uri_hook(lambda *args:None)
+        Gdk.threads_init()
 
     ## CLI actions:
 

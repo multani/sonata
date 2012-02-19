@@ -5,15 +5,11 @@ import os
 import locale
 import logging
 
-import gtk
-import pango
-import gobject
+from gi.repository import Gtk, Pango, Gdk, GdkPixbuf, GObject
 
-import ui
-import misc
-import mpdhelper as mpdh
-from consts import consts
-from pluginsystem import pluginsystem
+from sonata import ui, misc, mpdhelper as mpdh
+from sonata.consts import consts
+from sonata.pluginsystem import pluginsystem
 
 
 class Info(object):
@@ -49,16 +45,16 @@ class Info(object):
         self.lyricsText = None
         self.albumText = None
 
-        self.info_area = ui.scrollwindow(shadow=gtk.SHADOW_NONE)
-        self.tab = new_tab(self.info_area, gtk.STOCK_JUSTIFY_FILL,
+        self.info_area = ui.scrollwindow(shadow=Gtk.ShadowType.NONE)
+        self.tab = new_tab(self.info_area, Gtk.STOCK_JUSTIFY_FILL,
                            TAB_INFO, self.info_area)
 
         image_width = -1 if self.config.info_art_enlarged else 152
         imagebox = ui.eventbox(w=image_width, add=info_image)
-        imagebox.drag_dest_set(gtk.DEST_DEFAULT_HIGHLIGHT |
-                gtk.DEST_DEFAULT_DROP,
-                [("text/uri-list", 0, 80),
-                 ("text/plain", 0, 80)], gtk.gdk.ACTION_DEFAULT)
+        imagebox.drag_dest_set(Gtk.DestDefaults.HIGHLIGHT |
+                Gtk.DestDefaults.DROP,
+                [Gtk.TargetEntry.new("text/uri-list", 0, 80),
+                 Gtk.TargetEntry.new("text/plain", 0, 80)], Gdk.DragAction.DEFAULT)
         imagebox.connect('button_press_event', on_image_activate)
         imagebox.connect('drag_motion', on_image_motion_cb)
         imagebox.connect('drag_data_received', on_image_drop_cb)
@@ -68,7 +64,7 @@ class Info(object):
 
     def _widgets_initialize(self):
         margin = 5
-        outter_vbox = gtk.VBox()
+        outter_vbox = Gtk.VBox()
         setupfuncs = (getattr(self, "_widgets_%s" % func)
                 for func in ['song', 'lyrics', 'album'])
         for setup in setupfuncs:
@@ -101,11 +97,11 @@ class Info(object):
             (_("File"), 'file', False, "", True),
             (_("Bitrate"), 'bitrate', False, "", True)]
 
-        tagtable = gtk.Table(len(labels), 2)
+        tagtable = Gtk.Table(len(labels), 2)
         tagtable.set_col_spacings(12)
         for i, (text, name, link, tooltip, in_more) in enumerate(labels):
             label = ui.label(markup="<b>%s:</b>" % text, y=0)
-            tagtable.attach(label, 0, 1, i, i + 1, yoptions=gtk.SHRINK)
+            tagtable.attach(label, 0, 1, i, i + 1, yoptions=Gtk.AttachOptions.SHRINK)
             if i == 0:
                 self.info_left_label = label
             # Using set_selectable overrides the hover cursor that
@@ -117,7 +113,7 @@ class Info(object):
                 tmpevbox = ui.eventbox(add=tmplabel2)
                 self._apply_link_signals(tmpevbox, name, tooltip)
             to_pack = tmpevbox if link else tmplabel2
-            tagtable.attach(to_pack, 1, 2, i, i + 1, yoptions=gtk.SHRINK)
+            tagtable.attach(to_pack, 1, 2, i, i + 1, yoptions=Gtk.AttachOptions.SHRINK)
             self.info_labels[name] = tmplabel2
             if in_more:
                 self.info_boxes_in_more.append(label)
@@ -130,12 +126,12 @@ class Info(object):
         self._editlabel = ui.label(y=0)
         editevbox = ui.eventbox(add=self._editlabel)
         self._apply_link_signals(editevbox, 'edit', _("Edit song tags"))
-        mischbox = gtk.HBox()
+        mischbox = Gtk.HBox()
         mischbox.pack_start(moreevbox, False, False, 3)
         mischbox.pack_start(editevbox, False, False, 3)
 
         tagtable.attach(mischbox, 0, 2, len(labels), len(labels) + 1)
-        inner_hbox = gtk.HBox()
+        inner_hbox = Gtk.HBox()
         inner_hbox.pack_start(self._imagebox, False, False, 6)
         inner_hbox.pack_start(tagtable, False, False, 6)
         info_song.add(inner_hbox)
@@ -148,14 +144,14 @@ class Info(object):
                     expand=self.config.info_lyrics_expanded,
                     can_focus=False)
         self.info_lyrics.connect("activate", self._expanded, "lyrics")
-        lyricsbox = gtk.VBox()
+        lyricsbox = Gtk.VBox()
         self.lyricsText = ui.textview(text="", edit=False, wrap=True)
         self._populate_lyrics_tag_table()
-        self.lyricsSw = ui.scrollwindow(policy_x=gtk.POLICY_NEVER,
-                                        policy_y=gtk.POLICY_NEVER,
+        self.lyricsSw = ui.scrollwindow(policy_x=Gtk.PolicyType.NEVER,
+                                        policy_y=Gtk.PolicyType.NEVER,
                                         add=self.lyricsText)
         lyricsbox.pack_start(self.lyricsSw, True, True, vert_spacing)
-        lyricsbox_bottom = gtk.HBox()
+        lyricsbox_bottom = Gtk.HBox()
         self._searchlabel = ui.label(y=0)
         self._editlyricslabel = ui.label(y=0)
         searchevbox = ui.eventbox(add=self._searchlabel)
@@ -177,8 +173,8 @@ class Info(object):
                 can_focus=False)
         info_album.connect("activate", self._expanded, "album")
         self.albumText = ui.textview(text="", edit=False, wrap=True)
-        self.albumSw = ui.scrollwindow(policy_x=gtk.POLICY_NEVER,
-                                       policy_y=gtk.POLICY_NEVER,
+        self.albumSw = ui.scrollwindow(policy_x=Gtk.PolicyType.NEVER,
+                                       policy_y=Gtk.PolicyType.NEVER,
                                        add=self.albumText)
         info_album.add(self.albumSw)
         return info_album
@@ -201,7 +197,7 @@ class Info(object):
 
     def on_link_enter(self, widget, _event):
         if widget.get_children()[0].get_use_markup():
-            ui.change_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
+            ui.change_cursor(Gdk.Cursor.new(Gdk.CursorType.HAND2))
 
     def on_link_leave(self, _widget, _event):
         ui.change_cursor(None)
@@ -460,7 +456,7 @@ class Info(object):
         lyrics = misc.unescape_html(lyrics).replace('&', '&amp;')
 
         try:
-            attr_list, plain_text, accel_marker = pango.parse_markup(lyrics)
+            attr_list, plain_text, accel_marker = Pango.parse_markup(lyrics)
         except:
             # failed to parse, use lyrics as it is
             lyrics_buf.set_text(lyrics)
@@ -474,9 +470,9 @@ class Info(object):
             text = plain_text[range[0]:range[1]]
 
             tags = []
-            if font.get_weight() == pango.WEIGHT_BOLD:
+            if font.get_weight() == Pango.Weight.BOLD:
                 tags.append('bold')
-            if font.get_style() == pango.STYLE_ITALIC:
+            if font.get_style() == Pango.Style.ITALIC:
                 tags.append('italic')
 
             if tags:
@@ -491,12 +487,12 @@ class Info(object):
     def _populate_lyrics_tag_table(self):
         tag_table = self.lyricsText.get_buffer().get_tag_table()
 
-        bold_tag = gtk.TextTag('bold')
-        bold_tag.set_property('weight', pango.WEIGHT_BOLD)
+        bold_tag = Gtk.TextTag.new('bold')
+        bold_tag.set_property('weight', Pango.Weight.BOLD)
         tag_table.add(bold_tag)
 
-        italic_tag = gtk.TextTag('italic')
-        italic_tag.set_property('style', pango.STYLE_ITALIC)
+        italic_tag = Gtk.TextTag.new('italic')
+        italic_tag.set_property('style', Pango.Style.ITALIC)
         tag_table.add(italic_tag)
 
     def resize_elements(self, notebook_allocation):
@@ -504,12 +500,12 @@ class Info(object):
         if self.config.show_covers:
             # 60 accounts for vert scrollbar, box paddings, etc..
             labelwidth = notebook_allocation.width - \
-                    self.info_left_label.allocation.width - \
-                    self._imagebox.allocation.width - 60
+                    self.info_left_label.get_allocation().width - \
+                    self._imagebox.get_allocation().width - 60
         else:
             # 60 accounts for vert scrollbar, box paddings, etc..
             labelwidth = notebook_allocation.width - \
-                    self.info_left_label.allocation.width - 60
+                    self.info_left_label.get_allocation().width - 60
         if labelwidth > 100:
             for label in self.info_labels.values():
                 label.set_size_request(labelwidth, -1)

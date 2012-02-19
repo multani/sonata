@@ -279,8 +279,7 @@ import logging
 import sys
 import time
 import urllib
-import urllib2
-import ConfigParser
+import configparser
 import os
 
 from xml.etree import ElementTree
@@ -304,10 +303,10 @@ audioscrobbler_request_version = '1.0'
 audioscrobbler_request_host = 'ws.audioscrobbler.com'
 
 # AudioScrobblerPost configuration settings
-audioscrobbler_post_version = u'1.2' #updated
+audioscrobbler_post_version = '1.2' #updated
 audioscrobbler_post_host = 'post.audioscrobbler.com'
-client_name = u'sna'
-pyscrobbler_version = u'1.0.0.0' # This is set to 1.0 while we use
+client_name = 'sna'
+pyscrobbler_version = '1.0.0.0' # This is set to 1.0 while we use
                              # client_name = u'tst' as we keep getting
                              # UPDATE responses with anything less.
 
@@ -496,7 +495,7 @@ class AudioScrobblerQuery:
             # Open the URL and test the response
             try:
                 response = urllib2.urlopen(url)
-            except urllib2.HTTPError, error:
+            except urllib2.HTTPError as error:
                 if error.code == 304:
                     return AudioScrobblerItem(cache[url].getroot(), _self, url)
                 if error.code == 400:
@@ -504,7 +503,7 @@ class AudioScrobblerQuery:
                                                         error.fp.read())
                 raise AudioScrobblerConnectionError('http', error.code,
                                                     error.msg)
-            except urllib2.URLError, error:
+            except urllib2.URLError as error:
                 code = error.reason.args[0]
                 message = error.reason.args[1]
                 raise AudioScrobblerConnectionError('network', code, message)
@@ -597,8 +596,8 @@ class AudioScrobblerPost:
     #Updated to protocol version 1.2
 
     def __init__(self,
-                 username=u'',
-                 md5_password=u'',
+                 username='',
+                 md5_password='',
                  client_name=client_name,
                  client_version=pyscrobbler_version,
                  protocol_version=audioscrobbler_post_version,
@@ -656,10 +655,10 @@ class AudioScrobblerPost:
         req = urllib2.Request(url)
         try:
             url_handle = urllib2.urlopen(req)
-        except urllib2.HTTPError, error:
+        except urllib2.HTTPError as error:
             self.authenticated = False
             raise AudioScrobblerConnectionError('http', error.code, error.msg)
-        except urllib2.URLError, error:
+        except urllib2.URLError as error:
             self.authenticated = False
             code = error.reason#.args[0]
             message = error.reason#.args[1]
@@ -717,10 +716,10 @@ class AudioScrobblerPost:
                   song_title,
                   length,
                   date_played,
-                  tracknumber=u'',
-                  album=u'',
-                  mbid=u'',
-                  source=u'P'):
+                  tracknumber='',
+                  album='',
+                  mbid='',
+                  source='P'):
 
         """
         Add the track to the local cache, and try to post it to the server
@@ -743,10 +742,10 @@ class AudioScrobblerPost:
                  song_title,
                  length,
                  date_played,
-                 tracknumber=u'',
-                 album=u'',
-                 mbid=u'',
-                 source=u'P'):
+                 tracknumber='',
+                 album='',
+                 mbid='',
+                 source='P'):
 
         """ Add a track to the local cache """
 
@@ -772,7 +771,7 @@ class AudioScrobblerPost:
                         'i[%s]': date_played,
                         'b[%s]': album.encode('utf8'),
                         'm[%s]': mbid.encode('utf8'),
-                        'r[%s]': u'',
+                        'r[%s]': '',
                         'n[%s]': tracknumber.encode('utf8'),
                         'o[%s]': source.encode('utf8'),
                         }
@@ -783,7 +782,7 @@ class AudioScrobblerPost:
                         'i[%s]': date_played,
                         'b[%s]': album,
                         'm[%s]': mbid.encode('utf8'),
-                        'r[%s]': u'',
+                        'r[%s]': '',
                         'n[%s]': tracknumber.encode('utf8'),
                         'o[%s]': source.encode('utf8'),
                         }
@@ -792,10 +791,10 @@ class AudioScrobblerPost:
     def nowplaying(self,
                   artist_name,
                   song_title,
-                  length=u'',
-                  tracknumber=u'',
-                  album=u'',
-                  mbid=u''):
+                  length='',
+                  tracknumber='',
+                  album='',
+                  mbid=''):
 
         self.auth()
 
@@ -822,7 +821,7 @@ class AudioScrobblerPost:
 
         try:
             url_handle = urllib2.urlopen(req)
-        except urllib2.HTTPError, error:
+        except urllib2.HTTPError as error:
             self.authenticated = False
             self.logger.error(
                 "%s", AudioScrobblerConnectionError('http', error.code, error.msg))
@@ -871,9 +870,9 @@ class AudioScrobblerPost:
 
         try:
             url_handle = urllib2.urlopen(req)
-        except urllib2.HTTPError, error:
+        except urllib2.HTTPError as error:
             raise AudioScrobblerConnectionError('http', error.code, error.msg)
-        except urllib2.URLError, error:
+        except urllib2.URLError as error:
             args = getattr(error.reason, 'args', None)
             code = '000'
             message = str(error)
@@ -919,7 +918,7 @@ class AudioScrobblerPost:
 
         """ Save all tracks in the cache to a file """
 
-        conf = ConfigParser.ConfigParser()
+        conf = configparser.ConfigParser()
 
         # Save each track in cache:
         count = 0
@@ -944,7 +943,7 @@ class AudioScrobblerPost:
         if not os.path.isfile(filename):
             return
 
-        conf = ConfigParser.ConfigParser()
+        conf = configparser.ConfigParser()
         try:
             conf.read(filename)
         except IOError:

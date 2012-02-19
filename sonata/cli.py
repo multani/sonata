@@ -4,7 +4,7 @@ import gettext
 import logging
 from optparse import OptionParser
 
-from version import version
+from sonata.version import version
 
 # the mpd commands need a connection to server and exit without gui
 mpd_cmds = ["play", "pause", "stop", "next", "prev", "pp", "info",
@@ -91,7 +91,7 @@ class Args(object):
                 parser.error(_("unknown command %s") % cmd)
 
         if options.toggle or options.popup or options.fullscreen:
-            import dbus_plugin as dbus
+            from sonata import dbus_plugin as dbus
             if not dbus.using_dbus():
                 self.logger.critical(
                     _("toggle and popup options require D-Bus.  Aborting."))
@@ -130,18 +130,15 @@ class Args(object):
 class CliMain(object):
 
     def __init__(self, args):
-        global os, mpd, config, library, mpdh, misc
+        global os, mpd, misc, config, mpdh
         import os
         import mpd
-        import config
-        import library
-        import mpdhelper as mpdh
-        import misc
+        from sonata import config, misc, mpdhelper as mpdh
 
         self.logger = logging.getLogger(__name__)
-        self.config = config.Config(_('Default Profile'), _("by") + " %A " + \
-                                _("from") + " %B", library.library_set_data)
-        self.config.settings_load_real(library.library_set_data)
+        self.config = config.Config(_('Default Profile'),
+                                    _("by") + " %A " + _("from") + " %B")
+        self.config.settings_load_real()
         args.apply_profile_arg(self.config)
 
         c = mpd.MPDClient()
@@ -215,35 +212,35 @@ class CliMain(object):
                 (_("File"), ('file',)),
                    ]
             for pretty, cmd in cmds:
-                # XXX we should know the encoding of the string instead...
-                print ("%s: %s" % (pretty, mpdh.get(self.songinfo, *cmd))
-                      ).encode(locale.getpreferredencoding(), "replace")
+                # XXX this could fail, if not all characters are supported by
+                # os.stdout.encoding
+                print("%s: %s" % (pretty, mpdh.get(self.songinfo, *cmd)))
             at, _length = [int(c) for c in self.status['time'].split(':')]
             at_time = misc.convert_time(at)
             try:
                 time = misc.convert_time(mpdh.get(self.songinfo, 'time',
                                                   '', True))
-                print "%s: %s/%s" % (_("Time"), at_time, time)
+                print("%s: %s/%s" % (_("Time"), at_time, time))
             except:
-                print "%s: %s" % (_("Time"), at_time)
-            print "%s: %s" % (_("Bitrate"),
-                      self.status.get('bitrate', ''))
+                print("%s: %s" % (_("Time"), at_time))
+            print("%s: %s" % (_("Bitrate"),
+                      self.status.get('bitrate', '')))
         else:
-            print _("MPD stopped")
+            print(_("MPD stopped"))
 
     def _execute_status(self):
         state_map = {
                 'play': _("Playing"),
                 'pause': _("Paused"),
                 'stop': _("Stopped")}
-        print "%s: %s" % (_("State"),
+        print("%s: %s" % (_("State")),
                 state_map[self.status['state']])
 
-        print "%s %s" % (_("Repeat:"), _("On") \
-                         if self.status['repeat'] == '1' else _("Off"))
-        print "%s %s" % (_("Random:"), _("On") \
-                         if self.status['random'] == '1' else _("Off"))
-        print "%s: %s/100" % (_("Volume"), self.status['volume'])
-        print "%s: %s %s" % (_('Crossfade'), self.status['xfade'],
+        print("%s %s" % (_("Repeat:"), _("On") \
+                         if self.status['repeat'] == '1' else _("Off")))
+        print("%s %s" % (_("Random:"), _("On") \
+                         if self.status['random'] == '1' else _("Off")))
+        print("%s: %s/100" % (_("Volume"), self.status['volume']))
+        print("%s: %s %s" % (_('Crossfade'), self.status['xfade'],
                              gettext.ngettext('second', 'seconds',
-                                              int(self.status['xfade'])))
+                                              int(self.status['xfade']))))
