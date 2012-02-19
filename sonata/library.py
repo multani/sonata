@@ -1047,7 +1047,7 @@ class Library(object):
 
     def on_library_query_tooltip(self, widget, x, y, keyboard_mode, tooltip):
         if keyboard_mode or not self.search_visible():
-            widget.set_tooltip_text(None)
+            widget.set_tooltip_text("")
             return False
 
         bin_x, bin_y = widget.convert_widget_to_bin_window_coords(x, y)
