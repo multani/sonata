@@ -986,7 +986,7 @@ class Library(object):
         if len(self.librarydata) > 0:
             first = Gtk.TreePath.new_first()
             to = Gtk.TreePath.new()
-            to.append(len(self.librarydata) - 1)
+            to.append_index(len(self.librarydata) - 1)
             self.library_selection.unselect_range(first, to)
         # Now attempt to retain the selection from before the update:
         for value in prev_selection:
