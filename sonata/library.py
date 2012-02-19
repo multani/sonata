@@ -279,7 +279,7 @@ class Library(object):
 
         ok, start_row, end_row = self.library.get_visible_range()
         if not ok:
-                return
+            return
         self.artwork.library_artwork_update(self.librarydata, start_row,
                                             end_row, self.albumpb)
 
@@ -567,11 +567,11 @@ class Library(object):
         for _sort, info in bd:
             pb = info[0]
             if pb == self.albumpb:
-                 key = SongRecord(path=info[1].path, artist=info[1].artist,
-                                        album=info[1].album)
-                 pb2 = self.artwork.get_library_artwork_cached_pb(key, None)
-                 if pb2 is not None:
-                         info[0] = pb2
+                key = SongRecord(path=info[1].path, artist=info[1].artist,
+                                 album=info[1].album)
+                pb2 = self.artwork.get_library_artwork_cached_pb(key, None)
+                if pb2 is not None:
+                    info[0] = pb2
         return bd
 
     def library_populate_toplevel_data(self, genreview=False, artistview=False,
