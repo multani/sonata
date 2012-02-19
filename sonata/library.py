@@ -1347,7 +1347,7 @@ class Library(object):
                  SongRecord(path=mpdh.get(item, 'file')),
                  formatting.parse(self.config.libraryformat, item, True)]
               for item in matches if 'file' in item]
-        bd.sort(locale.strcoll, key=operator.itemgetter(2))
+        bd.sort(key=lambda key: locale.strxfrm(key[2]))
         for i, item in enumerate(bd):
             if i < currlen:
                 j = self.librarydata.get_iter((i, ))
@@ -1368,7 +1368,7 @@ class Library(object):
         if len(matches) == 0:
             GObject.idle_add(self.filtering_entry_make_red, self.searchtext)
         else:
-            GObject.idle_add(self.library.set_cursor, Gtk.TreePath.first(),
+            GObject.idle_add(self.library.set_cursor, Gtk.TreePath.new_first(),
                              None, False)
             GObject.idle_add(self.filtering_entry_revert_color,
                              self.searchtext)
