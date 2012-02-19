@@ -125,7 +125,14 @@ def _sanitize(tag, return_int=False, str_padding=0):
     # for the mpd tag can be "4", "4/10", and "4,10".
     if not tag:
         return tag
-    tag = str(tag).replace(',', ' ', 1).replace('/', ' ', 1).split()[0]
+    tag = str(tag).replace(',', ' ', 1).replace('/', ' ', 1).split()
+
+    # fix #2842: tag only consist of '/' or ','
+    if len(tag) == 0:
+        tag = ''
+    else:
+        tag = tag[0]
+
     if return_int:
         return int(tag) if tag.isdigit() else 0
 
