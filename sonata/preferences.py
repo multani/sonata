@@ -14,9 +14,9 @@ import gettext, hashlib
 
 import gtk
 
-from consts import consts
 from config import Config
 from pluginsystem import pluginsystem
+import consts
 import ui
 import misc
 import formatting
