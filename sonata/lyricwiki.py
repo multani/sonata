@@ -10,7 +10,7 @@ import gobject
 
 import misc
 import mpdhelper as mpdh
-from consts import consts
+import consts
 from pluginsystem import pluginsystem, BuiltinPlugin
 
 

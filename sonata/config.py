@@ -15,7 +15,7 @@ import os
 import hashlib
 import ConfigParser
 
-from consts import consts
+import consts
 import misc
 
 

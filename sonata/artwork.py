@@ -9,9 +9,9 @@ import img
 import ui
 import misc
 import mpdhelper as mpdh
+import consts
 from library import library_set_data
 from library import library_get_data
-from consts import consts
 from pluginsystem import pluginsystem
 
 
