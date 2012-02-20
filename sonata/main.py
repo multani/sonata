@@ -61,7 +61,7 @@ import img
 import tray
 import formatting
 
-from consts import consts
+import consts
 from pluginsystem import pluginsystem
 from config import Config
 
