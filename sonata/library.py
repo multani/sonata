@@ -19,7 +19,7 @@ def list_mark_various_artists_albums(albums):
     for i in range(len(albums)):
         if i + consts.NUM_ARTISTS_FOR_VA - 1 > len(albums)-1:
             break
-            VA = False
+        VA = False
         for j in range(1, consts.NUM_ARTISTS_FOR_VA):
             if albums[i].album.lower() != albums[i + j].album.lower() or \
                albums[i].year  != albums[i + j].year or \
