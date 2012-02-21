@@ -227,16 +227,16 @@ class Artwork(object):
                 # No cached pixbuf, try local/remote search:
                 if pb is None:
                     if not remote_art:
-                        pb, filename = self.library_get_album_cover(path,
-                                                        artist, album,
+                        pb, filename = self.library_get_album_cover(data.path,
+                                                        data.artist, data.album,
                                                         self.lib_art_pb_size)
                     else:
-                        filename = self.target_image_filename(None, path,
-                                                              artist, album)
-                        self.artwork_download_img_to_file(artist, album,
+                        filename = self.target_image_filename(None, data.path,
+                                                              data.artist, data.album)
+                        self.artwork_download_img_to_file(data.artist, data.album,
                                                           filename)
-                        pb, filename = self.library_get_album_cover(path,
-                                                            artist, album,
+                        pb, filename = self.library_get_album_cover(data.path,
+                                                            data.artist, data.album,
                                                         self.lib_art_pb_size)
 
                 # Set pixbuf icon in model; add to cache
