@@ -2193,8 +2193,8 @@ class Base(object):
 
     def on_menu_popup(self, _widget):
         self.update_menu_visibility()
-        GObject.idle_add(self.mainmenu.popup, None, None, None, self.menu_position,
-                         3, 0)
+        GObject.idle_add(self.mainmenu.popup, None, None, self.menu_position,
+                         None, 3, 0)
 
     def on_updatedb(self, _action):
         if self.conn:

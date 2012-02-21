@@ -209,8 +209,8 @@ class Library(object):
         self.librarymenu.attach_to_widget(self.libraryview, None)
 
     def library_view_popup(self, button):
-        self.librarymenu.popup(None, None, self.library_view_position_menu, 1,
-                               0, button)
+        self.librarymenu.popup(None, None, self.library_view_position_menu,
+                               button, 1, 0)
 
     def library_view_position_menu(self, _menu, button):
         x, y, _width, height = button.get_allocation()
