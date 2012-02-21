@@ -213,8 +213,10 @@ class Library(object):
                                button, 1, 0)
 
     def library_view_position_menu(self, _menu, button):
-        x, y, _width, height = button.get_allocation()
-        return (self.config.x + x, self.config.y + y + height, True)
+        alloc = button.get_allocation()
+        return (self.config.x + alloc.x,
+                self.config.y + alloc.y + alloc.height,
+                True)
 
     def on_libraryview_chosen(self, action):
         if self.search_visible():
@@ -236,7 +238,7 @@ class Library(object):
             if len(self.librarydata) > 0:
                 first = Gtk.TreePath.new_first()
                 to   = Gtk.TreePath.new()
-                to.append(len(self.librarydata)-1)
+                to.append_index(len(self.librarydata)-1)
                 self.library_selection.unselect_range(first, to)
         except Exception as e:
             # XXX import logger here in the future
@@ -357,38 +359,37 @@ class Library(object):
 
         # Populate treeview with data:
         bd = []
+        wd = self.config.wd
         while len(bd) == 0:
             if self.config.lib_view == consts.VIEW_FILESYSTEM:
-                bd = self.library_populate_filesystem_data(
-                    self.config.wd.path)
+                bd = self.library_populate_filesystem_data(wd.path)
             elif self.config.lib_view == consts.VIEW_ALBUM:
-                if self.config.wd.album is not None:
-                    bd = self.library_populate_data(artist=self.config.wd.artist,
-                                                    album=self.config.wd.album,
-                                                    year=self.config.wd.year)
+                if wd.album is not None:
+                    bd = self.library_populate_data(artist=wd.artist,
+                                                    album=wd.album,
+                                                    year=wd.year)
                 else:
                     bd = self.library_populate_toplevel_data(albumview=True)
             elif self.config.lib_view == consts.VIEW_ARTIST:
-                if self.config.wd.artist is not None \
-                   and self.config.wd.album is not None:
-                    bd = self.library_populate_data(artist=self.config.wd.artist,
-                                                    album=self.config.wd.album,
-                                                    year=self.config.wd.year)
+                if wd.artist is not None and wd.album is not None:
+                    bd = self.library_populate_data(artist=wd.artist,
+                                                    album=wd.album,
+                                                    year=wd.year)
                 elif self.config.wd.artist is not None:
-                    bd = self.library_populate_data(artist=self.config.wd.artist)
+                    bd = self.library_populate_data(artist=wd.artist)
                 else:
                     bd = self.library_populate_toplevel_data(artistview=True)
             elif self.config.lib_view == consts.VIEW_GENRE:
-                if self.config.wd.genre is not None and \
-                   self.config.wd.artist is not None and \
-                   self.config.wd.album is not None:
-                    bd = self.library_populate_data(genre=self.config.wd.genre,
-                                                    artist=self.config.wd.artist,
-                                                    album=self.config.wd.album,
-                                                    year=self.config.wd.year)
-                elif self.config.wd.genre is not None:
-                    bd = self.library_populate_data(genre=self.config.wd.genre,
-                                                    artist=self.config.wd.artist)
+                if wd.genre is not None and \
+                   wd.artist is not None and \
+                   wd.album is not None:
+                    bd = self.library_populate_data(genre=wd.genre,
+                                                    artist=wd.artist,
+                                                    album=wd.album,
+                                                    year=wd.year)
+                elif wd.genre is not None:
+                    bd = self.library_populate_data(genre=wd.genre,
+                                                    artist=wd.artist)
                 else:
                     bd = self.library_populate_toplevel_data(genreview=True)
 
@@ -454,7 +455,7 @@ class Library(object):
                 target = SongRecord(path=partpath)
                 crumbs.append((part, Gtk.STOCK_OPEN, None, target))
         else:
-            parts
+            parts = ()
             if view == consts.VIEW_ALBUM:
                 # We don't want to show an artist button in album view
                 keys = 'genre', 'album'
@@ -469,7 +470,7 @@ class Library(object):
             for i, key, part in zip(range(nkeys), keys, parts):
                 if part is None:
                     continue
-                partdata = dict(zip(keys, parts)[:i + 1])
+                partdata = dict(list(zip(keys, parts))[:i + 1])
                 target = SongRecord(**partdata)
                 pb, icon = None, None
                 if key == 'album':
@@ -646,7 +647,7 @@ class Library(object):
                     display += self.add_display_info(num_songs, playtime)
                     bd += [(misc.lower_no_the(album), [self.albumpb, data,
                                                        display])]
-        bd.sort(locale.strcoll, key=operator.itemgetter(0))
+        bd.sort(key=lambda key: locale.strxfrm(key[0]))
         if genreview:
             self.lib_view_genre_cache = bd
         elif artistview:
@@ -738,7 +739,7 @@ class Library(object):
             bd += self.library_populate_data_songs(genre, artist, album, year)
         if len(bd) > 0:
             bd = self.library_populate_add_parent_rows() + bd
-        bd.sort(locale.strcoll, key=operator.itemgetter(0))
+        bd.sort(key=lambda key: locale.strxfrm(key[0]))
         return bd
 
     def library_populate_data_songs(self, genre, artist, album, year):
@@ -802,7 +803,7 @@ class Library(object):
                         results.append(item)
         if ignore_case:
             results = misc.remove_list_duplicates(results, case=False)
-        results.sort(locale.strcoll)
+        results.sort(key=locale.strxfrm)
         return results
 
     def library_return_count(self, genre=None, artist=None, album=None,
@@ -818,7 +819,7 @@ class Library(object):
         num_songs = 0
         for s in searches:
 
-            if '' in s and self.mpd.version <= (0, 13):
+            if '' in s:
 
                 # Can't return count for empty tags, use search instead:
 
@@ -929,7 +930,7 @@ class Library(object):
             num_songs = 0
             results = []
 
-            if '' in s and self.mpd.version <= (0, 13):
+            if '' in s:
 
                 # Can't search for empty tags, search broader and
                 # filter instead:
@@ -1118,23 +1119,24 @@ class Library(object):
             self.library_browse(None, value)
 
     def library_get_parent(self):
+        wd = self.config.wd
         if self.config.lib_view == consts.VIEW_ALBUM:
             value = SongRecord(path="/")
         elif self.config.lib_view == consts.VIEW_ARTIST:
-            if self.config.wd.album is None:
+            if wd.album is None:
                 value = SongRecord(path="/")
             else:
-                value = SongRecord(artist = self.config.wd.artist)
+                value = SongRecord(artist = wd.artist)
         elif self.config.lib_view == consts.VIEW_GENRE:
-            album, artist, genre = song.config.wd
-            if album is not None:
-                value = SongRecord(genre=genre, artist=artist)
-            elif artist is not None:
-                value = SongRecord(genre=genre)
+            if wd.album is not None:
+                value = SongRecord(genre=wd.genre,
+                                   artist=wd.artist)
+            elif wd.artist is not None:
+                value = SongRecord(genre=wd.genre)
             else:
                 value = SongRecord(path="/")
         else:
-            newvalue = '/'.join(self.config.wd.path.split('/')[:-1]) or '/'
+            newvalue = '/'.join(wd.path.split('/')[:-1]) or '/'
             value = SongRecord(path=newvalue)
         return value
 
@@ -1193,6 +1195,7 @@ class Library(object):
                     for item in results:
                         items.append(mpdh.get(item, 'file'))
         # Make sure we don't have any EXACT duplicates:
+        # XXX TreePath is not hashable
         items = misc.remove_list_duplicates(items, case=True)
         return items
 
@@ -1300,8 +1303,9 @@ class Library(object):
             self.libfilterbox_cmd_buf = '$$$DONE###'
             try:
                 self.libfilterbox_cond.release()
-            except:
-                pass
+            except Exception as e:
+                # XXX add logger here in the future!
+                raise e
             self.prevlibtodo = todo
 
     def libsearchfilter_do_search(self, searchby, todo):
