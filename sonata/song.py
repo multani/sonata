@@ -1,6 +1,23 @@
 
 class SongRecord(object):
-    """A convenient class to store a song"""
+    """
+    A convenient class to store a song
+
+    Example usage:
+    import song
+    one   = song.SongRecord("album", "artist", "genre", "year", "path")
+    other = song.SongRecord(album="album", artist="artist",
+                            genre="genre", year="year", path="path")
+    # object with same content are equal, other comparision works too.
+    print(one == other)  # True
+    # Support unpacking
+    album, artist, genre = song
+    # is hashable
+    mycache = {}
+    mycache[song] = True
+    # pretty printing
+    print(song) # <SongRecord album='album', artist='artist', genre='genre', year='year', path='path'>"
+    """
     # use slots for memory efficiency
     __slots__ = ['album', 'artist', 'genre', 'year', 'path']
     def __init__(self, album=None, artist=None, genre=None, year=None, path=None):
