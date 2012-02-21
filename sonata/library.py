@@ -602,8 +602,7 @@ class Library(object):
                     data = SongRecord(artist=item)
                 if num_songs > 0:
                     display = misc.escape_html(item)
-                    display += self.add_display_info(num_songs,
-                                                     int(playtime) / 60)
+                    display += self.add_display_info(num_songs, playtime)
                     bd += [(misc.lower_no_the(item), [pb, data, display])]
         elif albumview:
             albums = []
@@ -644,8 +643,7 @@ class Library(object):
                     elif year and len(year) > 0 and year != self.NOTAG:
                         display += " <span weight='light'>(%s)</span>" \
                                 % misc.escape_html(year)
-                    display += self.add_display_info(num_songs,
-                                                     int(playtime) / 60)
+                    display += self.add_display_info(num_songs, playtime)
                     bd += [(misc.lower_no_the(album), [self.albumpb, data,
                                                        display])]
         bd.sort(locale.strcoll, key=operator.itemgetter(0))
@@ -673,8 +671,7 @@ class Library(object):
                         genre=genre, artist=artist)
                     if num_songs > 0:
                         display = misc.escape_html(artist)
-                        display += self.add_display_info(num_songs,
-                                                         int(playtime) / 60)
+                        display += self.add_display_info(num_songs, playtime)
                         data = SongRecord(genre=genre, artist=artist)
                         bd += [(misc.lower_no_the(artist),
                                 [self.artistpb, data, display])]
@@ -725,8 +722,7 @@ class Library(object):
                         if year and len(year) > 0 and year != self.NOTAG:
                             display += " <span weight='light'>(%s)</span>" \
                                     % misc.escape_html(year)
-                        display += self.add_display_info(num_songs,
-                                                         int(playtime) / 60)
+                        display += self.add_display_info(num_songs, playtime)
                         ordered_year = year
                         if ordered_year == self.NOTAG:
                             ordered_year = '9999'
@@ -976,9 +972,25 @@ class Library(object):
         return (results, int(playtime), num_songs)
 
     def add_display_info(self, num_songs, playtime):
-        return "\n<small><span weight='light'>%s %s, %s %s</span></small>" \
-                % (num_songs, gettext.ngettext('song', 'songs', num_songs),
-                   playtime, gettext.ngettext('minute', 'minutes', playtime))
+        seconds = int(playtime)
+        hours   = seconds // 3600
+        seconds -= 3600 * hours
+        minutes = seconds // 60
+        seconds -= 60 * minutes
+        if hours > 0:
+            return "\n<small><span weight='light'>%s %s, %s %s, %s %s</span></small>" \
+                    % (num_songs, gettext.ngettext('song', 'songs', num_songs),
+                       seconds, gettext.ngettext('hour', 'hours', hours),
+                       seconds, gettext.ngettext('minute', 'minutes', minutes))
+        elif minutes > 0:
+            return "\n<small><span weight='light'>%s %s, %s %s, %s %s</span></small>" \
+                    % (num_songs, gettext.ngettext('song', 'songs', num_songs),
+                       minutes, gettext.ngettext('minute', 'minutes', minutes),
+                       seconds, gettext.ngettext('second', 'secondes', seconds))
+        else:
+            return "\n<small><span weight='light'>%s %s, %s %s</span></small>" \
+                    % (num_songs, gettext.ngettext('song', 'songs', num_songs),
+                       seconds, gettext.ngettext('second', 'secondes', seconds))
 
     def library_retain_selection(self, prev_selection, prev_selection_root,
                                  prev_selection_parent):
