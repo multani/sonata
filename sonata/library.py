@@ -1179,7 +1179,7 @@ class Library(object):
                    data.year is None and data.genre is None:
                     if pb == self.sonatapb:
                         # File
-                        items.append(path)
+                        items.append(data.path)
                     else:
                         # Directory
                         if not return_root:
@@ -1195,7 +1195,6 @@ class Library(object):
                     for item in results:
                         items.append(mpdh.get(item, 'file'))
         # Make sure we don't have any EXACT duplicates:
-        # XXX TreePath is not hashable
         items = misc.remove_list_duplicates(items, case=True)
         return items
 
