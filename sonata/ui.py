@@ -119,19 +119,6 @@ def image(stock=None, stocksize=Gtk.IconSize.MENU, w=-1, h=-1, \
     tmpimg.set_alignment(x, y)
     return tmpimg
 
-def progressbar(orient=None, frac=None, step=None, ellipsize=None, showtext=True):
-    tmpprog = Gtk.ProgressBar()
-    if orient:
-        tmpprog.set_orientation(orient)
-    if frac:
-        tmpprog.set_fraction(frac)
-    if step:
-        tmpprog.set_pulse_step(step)
-    if ellipsize:
-        tmpprog.set_ellipsize(ellipsize)
-    tmpprog.set_show_text(showtext)
-    return tmpprog
-
 def scrollwindow(policy_x=Gtk.PolicyType.AUTOMATIC, policy_y=Gtk.PolicyType.AUTOMATIC, \
                  shadow=Gtk.ShadowType.IN, w=-1, h=-1, add=None, addvp=None):
     tmpsw = Gtk.ScrolledWindow()

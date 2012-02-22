@@ -627,9 +627,11 @@ class Base(object):
         self.progressbox = Gtk.VBox()
         self.progresslabel = ui.label(w=-1, h=6)
         self.progressbox.pack_start(self.progresslabel, True, True, 0)
-        self.progressbar = ui.progressbar(orient=Gtk.Orientation.HORIZONTAL,
-                                          frac=0, step=0.05,
-                                          ellipsize=Pango.EllipsizeMode.END)
+        self.progressbar = Gtk.ProgressBar()
+        self.progressbar.set_pulse_step(0.05)
+        self.progressbar.set_ellipsize(Pango.EllipsizeMode.NONE)
+        self.progressbar.set_show_text(True)
+
         self.progresseventbox = ui.eventbox(add=self.progressbar, visible=True)
         self.progressbox.pack_start(self.progresseventbox, False, False, 0)
         self.progresslabel2 = ui.label(w=-1, h=6)
@@ -729,9 +731,12 @@ class Base(object):
         innerbox.pack_start(label1, True, True, 0)
         innerbox.pack_start(self.traycursonglabel1, True, True, 0)
         innerbox.pack_start(self.traycursonglabel2, True, True, 0)
-        self.trayprogressbar = ui.progressbar(
-            orient=Gtk.Orientation.HORIZONTAL, frac=0, step=0.05,
-            ellipsize=Pango.EllipsizeMode.NONE)
+
+        self.trayprogressbar = Gtk.ProgressBar()
+        self.trayprogressbar.set_pulse_step(0.05)
+        self.trayprogressbar.set_ellipsize(Pango.EllipsizeMode.NONE)
+        self.trayprogressbar.set_show_text(True)
+
         label2 = ui.label(markup='<span size="10"> </span>')
         innerbox.pack_start(label2, True, True, 0)
         innerbox.pack_start(self.trayprogressbar, False, False, 0)
