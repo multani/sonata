@@ -13,7 +13,7 @@ import ui
 import misc
 import formatting
 import mpdhelper as mpdh
-from consts import consts
+import consts
 import breadcrumbs
 
 

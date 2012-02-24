@@ -81,6 +81,11 @@ Currently, the following things have been changed since the Berlios's version:
 * Improved the packaging of the application: use `pkg_resources` to access
   data files, and stop doing so much work when running `python setup.py ...`.
 
+* Transform the ``consts`` module into a more simple constant module, thanks to
+  Jörg Thalheim  (Mic92).
+
+  This is the `refactor-consts` branch.
+
 Personal todo list
 ------------------
 
