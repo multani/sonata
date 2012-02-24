@@ -24,20 +24,6 @@ def convert_time(seconds):
     return "%02d:%02d:%02d" %(hours, minutes, seconds)
 
 
-def bold(s):
-    if not (str(s).startswith('<b>') and str(s).endswith('</b>')):
-        return '<b>%s</b>' % s
-    else:
-        return s
-
-
-def unbold(s):
-    if str(s).startswith('<b>') and str(s).endswith('</b>'):
-        return s[3:-4]
-    else:
-        return s
-
-
 def escape_html(s):
     # & needs to be escaped first, before more are introduced:
     s = s.replace('&', '&amp;')

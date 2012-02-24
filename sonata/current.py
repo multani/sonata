@@ -136,11 +136,12 @@ class Current(object):
         # Initialize current playlist data and widget
         self.resizing_columns = False
         self.columnformat = self.config.currentformat.split("|")
-        self.currentdata = Gtk.ListStore(*([int] + [str] * \
-                                           len(self.columnformat)))
+        current_columns = [int] + [str] * len(self.columnformat) + [int]
+        self.currentdata = Gtk.ListStore(*(current_columns))
         self.current.set_model(self.currentdata)
         cellrenderer = Gtk.CellRendererText()
         cellrenderer.set_property("ellipsize", Pango.EllipsizeMode.END)
+        cellrenderer.set_property("weight-set", True)
 
         num_columns = len(self.columnformat)
         if num_columns != len(self.config.columnwidths):
@@ -150,9 +151,10 @@ class Current(object):
 
         colnames = formatting.parse_colnames(
             self.config.currentformat)
-        self.columns = [Gtk.TreeViewColumn(name, cellrenderer,
-                markup=(i + 1))
+        self.columns = [Gtk.TreeViewColumn(name, cellrenderer, markup=(i + 1))
                 for i, name in enumerate(colnames)]
+        for tree in self.columns:
+            tree.add_attribute(cellrenderer, "weight", len(current_columns) - 1)
 
         for column, width in zip(self.columns, self.config.columnwidths):
             column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
@@ -262,8 +264,9 @@ class Current(object):
                         self.current_songs[pos] = track
                     else:
                         # Add new item:
-                        self.currentdata.append([mpdh.get(track, 'id', 0,
-                                                          True)] + items)
+                        row = [mpdh.get(track, 'id', 0, True)] + \
+                                items + [Pango.Weight.NORMAL]
+                        self.currentdata.append(row)
                         self.current_songs.append(track)
 
                 if newlen == 0:
@@ -461,9 +464,9 @@ class Current(object):
                     record["sortby"] = mpdh.get(track, 'file', zzz).lower()
                 elif mode == 'col':
                     # Sort by column:
-                    record["sortby"] = misc.unbold(self.currentdata.get_value(
+                    record["sortby"] = self.currentdata.get_value(
                         self.currentdata.get_iter((track_num, 0)),
-                        col_num).lower())
+                        col_num).lower()
                     if custom_sort:
                         record["sortby"] = self.sanitize_songlen_for_sorting(
                             record["sortby"], custom_pos)
@@ -777,7 +780,7 @@ class Current(object):
                     rownum = rownum + 1
                     song_info = [row[0]]
                     for i in range(len(self.columnformat)):
-                        song_info.append(misc.unbold(row[i + 1]))
+                        song_info.append(row[i + 1])
                     matches.append(song_info)
             else:
                 # this make take some seconds... and we'll escape the search
@@ -807,7 +810,7 @@ class Current(object):
                 for row in use_data:
                     song_info = [row[0]]
                     for i in range(len(self.columnformat)):
-                        song_info.append(misc.unbold(row[i + 1]))
+                        song_info.append(row[i + 1])
                     # Search for matches in all columns:
                     for i in range(len(self.columnformat)):
                         if regexp.match(song_info[i + 1].lower()):
@@ -897,21 +900,11 @@ class Current(object):
 
     def boldrow(self, row):
         if row > -1:
-            try:
-                for i in range(len(self.currentdata[row]) - 1):
-                    self.currentdata[row][i + 1] = misc.bold(
-                        self.currentdata[row][i + 1])
-            except:
-                pass
+            self.currentdata[row][-1] = Pango.Weight.BOLD
 
     def unbold_boldrow(self, row):
         if row > -1:
-            try:
-                for i in range(len(self.currentdata[row]) - 1):
-                    self.currentdata[row][i + 1] = misc.unbold(
-                        self.currentdata[row][i + 1])
-            except:
-                pass
+            self.currentdata[row][-1] = Pango.Weight.NORMAL
 
     def on_remove(self):
         treeviewsel = self.current_selection
