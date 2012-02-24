@@ -30,11 +30,11 @@ class MPDHelper(object):
         """
         cmd = getattr(self._client, attr)
         # save result, so function have to be constructed only once
-        wrapped_cmd = functools.partial(self.call, cmd, attr)
+        wrapped_cmd = functools.partial(self._call, cmd, attr)
         setattr(self, attr, wrapped_cmd)
         return wrapped_cmd
 
-    def call(self, cmd, cmd_name, *args):
+    def _call(self, cmd, cmd_name, *args):
         # This is potentially called (too) many times. In the case the logging is not
         # active, just don't try to do anything at all. This is supposed to save
         # some performance in the case it is not active.
