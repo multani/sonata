@@ -46,6 +46,8 @@ class MPDHelper(object):
             if cmd_name in ['lsinfo', 'list']:
                 # return sane values, which could be used afterwards
                 return []
+            elif cmd_name == 'status'
+                return {}
             elif cmd_name == 'disconnect':
                 # We really don't care, if connections breaks, before we
                 # could disconnect.
