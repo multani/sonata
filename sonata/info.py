@@ -7,8 +7,7 @@ import logging
 
 from gi.repository import Gtk, Pango, Gdk, GdkPixbuf, GObject
 
-from sonata import ui, misc, mpdhelper as mpdh
-from sonata.consts import consts
+from sonata import ui, misc, consts, mpdhelper as mpdh
 from sonata.pluginsystem import pluginsystem
 
 

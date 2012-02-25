@@ -14,8 +14,7 @@ import os
 import hashlib
 import configparser
 
-from sonata.consts import consts
-from sonata import misc
+from sonata import misc, consts
 from sonata.song import SongRecord
 
 # Constant to express a None value

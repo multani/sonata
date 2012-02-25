@@ -185,15 +185,13 @@ class CliMain(object):
     def _execute_prev(self):
         self.mpd.previous()
 
-    def _execute_bool(self, cmd):
-        """Set the reverse the value of cmd"""
-        self.mpd.call(cmd, int(not int(self.status[cmd])))
-
     def _execute_random(self):
-        self._execute_bool('random')
+        opt = int(not int(self.status["random"]))
+        self.mpd.random(opt)
 
     def _execute_repeat(self):
-        self._execute_bool('repeat')
+        opt = int(not int(self.status["repeat"]))
+        self.mpd.repeat(opt)
 
     def _execute_pp(self):
         if self.status['state'] in ['play']:

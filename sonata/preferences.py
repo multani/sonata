@@ -14,10 +14,9 @@ import gettext, hashlib
 
 from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
 
-from sonata.consts import consts
 from sonata.config import Config
 from sonata.pluginsystem import pluginsystem
-from sonata import ui, misc, formatting
+from sonata import ui, misc, consts, formatting
 import os
 
 class Extras_cbs(object):

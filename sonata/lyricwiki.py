@@ -7,8 +7,7 @@ import threading # get_lyrics_start starts a thread get_lyrics_thread
 
 from gi.repository import GObject
 
-from sonata import misc, mpdhelper as mpdh
-from sonata.consts import consts
+from sonata import misc, consts, mpdhelper as mpdh
 from sonata.pluginsystem import pluginsystem, BuiltinPlugin
 
 

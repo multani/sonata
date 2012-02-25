@@ -4,9 +4,8 @@ import threading # artwork_update starts a thread _artwork_update
 
 from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
 
-from sonata import img, ui, misc, mpdhelper as mpdh
+from sonata import img, ui, misc, consts, mpdhelper as mpdh
 from sonata import library
-from sonata.consts import consts
 from sonata.pluginsystem import pluginsystem
 
 

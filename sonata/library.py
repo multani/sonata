@@ -7,8 +7,7 @@ import operator
 
 from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, Pango
 
-from sonata import ui, misc, formatting, breadcrumbs, mpdhelper as mpdh
-from sonata.consts import consts
+from sonata import ui, misc, consts, formatting, breadcrumbs, mpdhelper as mpdh
 from sonata.song import SongRecord
 
 
@@ -1243,7 +1242,9 @@ class Library(object):
             self.searchtext.set_text("")
             self.searchtext.handler_unblock(self.libfilter_changed_handler)
             self.libsearchfilter_stop_loop()
-            self.library_browse(root=self.config.wd)
+            # call library_browse from the main thread to avoid corruption
+            # of treeview, fixes #1959
+            gobject.idle_add(self.library_browse, None, self.config.wd)
             if move_focus:
                 self.library.grab_focus()
 

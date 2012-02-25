@@ -39,9 +39,8 @@ import pkg_resources
 
 import sonata.mpdhelper as mpdh
 
-from sonata import misc, ui, img, tray, formatting
+from sonata import misc, ui, consts, img, tray, formatting
 
-from sonata.consts import consts
 from sonata.pluginsystem import pluginsystem
 from sonata.config import Config
 
@@ -2968,16 +2967,13 @@ class Base(object):
             self.mpd.clear()
             self.iterate_now()
 
-    def _toggle_clicked(self, command, widget):
-        self.mpd.call(command, int(widget.get_active()))
-
     def on_repeat_clicked(self, widget):
         if self.conn:
-            self._toggle_clicked('repeat', widget)
+            self.mpd.repeat(int(widget.get_active()))
 
     def on_random_clicked(self, widget):
         if self.conn:
-            self._toggle_clicked('random', widget)
+            self.mpd.random(int(widget.get_active()))
 
     def setup_prefs_callbacks(self):
         extras = preferences.Extras_cbs
