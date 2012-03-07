@@ -30,6 +30,7 @@ import logging
 import os
 import platform
 import sys
+import threading  # needed for interactive shell
 
 
 def run():
@@ -161,13 +162,35 @@ def run():
 
     args.execute_cmds()
 
-
     ## Load the main application:
 
     from sonata import main
 
     app = main.Base(args)
+
+    ## Load the shell
+    # yo dawg, I heard you like python,
+    # so I put a python shell in your python application
+    # so you can debug while you run it.
+    if args.start_shell:
+        # the enviroment used for the shell
+        scope = dict(list(globals().items()) + list(locals().items()))
+        def run_shell():
+            try:
+                import IPython
+                IPython.embed(user_ns=scope)
+            except ImportError as e: # fallback if ipython is not avaible
+                import code
+                shell = code.InteractiveConsole(scope)
+                shell.interact()
+            # quit program if shell is closed,
+            # This is the only way to close the program clone in this mode,
+            # because we can't close the shell thread easily
+            from gi.repository import Gtk
+            Gtk.main_quit()
+        threading.Thread(target=run_shell).start()
+
     try:
         app.main()
     except KeyboardInterrupt:
-        pass
+        Gtk.main_quit()

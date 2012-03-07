@@ -17,6 +17,7 @@ class Args(object):
         self.logger = logging.getLogger(__name__)
         self.skip_gui = False
         self.start_visibility = None
+        self.start_shell = False
 
     def parse(self, argv):
         """Parse the command line arguments.
@@ -64,6 +65,9 @@ class Args(object):
                   help=_("start app visible (requires systray)"))
         parser.add_option("--profile", dest="profile", metavar="NUM",
                   help=_("start with profile NUM"), type=int)
+        parser.add_option("--shell", dest="start_shell",
+                  action="store_true",
+                  help=_("start app with a interactive (ipython) shell"))
         parser.add_option("-v", "--verbose", dest="log_level",
                           action="append_const", const=-10,
                           help=_("Increase log verbosity"))
@@ -83,6 +87,7 @@ class Args(object):
             options.start_visibility = False
         self.start_visibility = options.start_visibility
         self.arg_profile = options.profile
+        self.start_shell = options.start_shell
 
         for cmd in self.cmds:
             if cmd in mpd_cmds:
