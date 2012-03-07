@@ -41,7 +41,7 @@ class CrumbBox(Gtk.Box):
 #		Gtk.widget_pop_composite_child()
 #		self.ellipsis.set_parent(self)
 
-    def do_size_request(self, requisition):
+    def do_get_preferred_width(self):
         """This gets called to determine the size we request"""
 #		ellipsis_req = self.ellipsis.size_request()
         reqs = [w.size_request() for w in self]
@@ -53,8 +53,7 @@ class CrumbBox(Gtk.Box):
 #		return
 
         # Request "minimum" size:
-
-        height = max([0] + [r[1] for r in reqs])
+        height = max([0]+[r.height for r in reqs])
 
         if len(reqs) == 0: # empty
             width = 0
@@ -66,10 +65,9 @@ class CrumbBox(Gtk.Box):
             width = height + height + height + 2 * self.props.spacing
         elif len(reqs) > 4: # root, ellipsis, parent, current
             pad = 3 * self.props.spacing
-            width = height + reqs[1][0] + height + height + pad
+            width = height + reqs[1].width + height + height + pad
 
-        requisition.width = width
-        requisition.height = height
+        return width, width
 
     def _req_sum(self, reqs):
         pad = 0 if not reqs else (len(reqs)-1) * self.props.spacing
@@ -81,7 +79,7 @@ class CrumbBox(Gtk.Box):
 #			w.get_child().get_child().get_children()[1].hide()
 #		except (AttributeError, IndexError):
 #			pass
-        return req.width, req.height # XXX simplistic: set square size for now
+        return req # XXX simplistic: set square size for now
 
     def _uncondense(self, w):
         pass
@@ -90,8 +88,8 @@ class CrumbBox(Gtk.Box):
 #		except (AttributeError, IndexError):
 
     def _truncate(self, req, amount):
-        wr, hr = req
-        return (wr - amount, hr) # XXX this can be less than hr, even <0
+        req.width -= amount
+        return req # XXX this can be less than hr, even <0
 
     def do_size_allocate(self, allocation):
         """This gets called to layout our child widgets"""
@@ -163,6 +161,8 @@ class CrumbBox(Gtk.Box):
             w.size_allocate(alloc)
             w.hide()
 
+        Gtk.Box.do_size_allocate(self, allocation)
+
 #		def do_forall(self, internal, callback, data):
 #			callback(self.ellipsis, data)
 #			for w in self.get_children():
@@ -187,9 +187,9 @@ if __name__ == '__main__':
         if stock:
             image = Gtk.Image.new_from_stock(stock,
                              Gtk.IconSize.MENU)
-            crumbs.pack_start(CrumbButton(image, Gtk.Label(label=text)), True, True, 0)
+            crumbs.pack_start(CrumbButton(image, Gtk.Label(label=text)), False, False, 0)
         else:
-            crumbs.pack_start(Gtk.Label("..."), True, True, 0)
+            crumbs.pack_start(Gtk.Label("..."), False, False, 0)
 
     w.add(crumbs)
     w.connect('hide', Gtk.main_quit)
