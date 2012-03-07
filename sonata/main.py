@@ -2736,12 +2736,6 @@ class Base(object):
                                                       column.get_fixed_width())
                 else:
                     self.config.columnwidths[i] = colwidth
-            if treewidth > notebookwidth:
-                self.current.expanderwindow.set_policy(Gtk.PolicyType.AUTOMATIC,
-                                                       Gtk.PolicyType.AUTOMATIC)
-            else:
-                self.current.expanderwindow.set_policy(Gtk.PolicyType.NEVER,
-                                                       Gtk.PolicyType.AUTOMATIC)
         self.current.resizing_columns = False
 
     def systemtray_activate(self, _status_icon):
