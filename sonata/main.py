@@ -677,6 +677,10 @@ class Base(object):
             toptophbox.pack_start(mediabutton, False, False, 0)
             if not self.config.show_playback:
                 ui.hide(mediabutton)
+        button_constructors = pluginsystem.get('add_toolbar_button')
+        if button_constructors:
+            for plugin, button in button_constructors:
+                toptophbox.pack_start(button(), False, False, 0)
         self.progressbox = gtk.VBox()
         self.progresslabel = ui.label(w=-1, h=6)
         self.progressbox.pack_start(self.progresslabel)
