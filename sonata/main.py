@@ -941,7 +941,7 @@ class Base(object):
 
         gobject.idle_add(self.header_save_column_widths)
 
-        pluginsystem.notify_of('tabs',
+        pluginsystem.notify_of('tab_construct',
                        self.on_enable_tab,
                        self.on_disable_tab)
 

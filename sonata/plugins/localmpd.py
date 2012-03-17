@@ -12,7 +12,7 @@
 # url: http://sonata.berlios.de
 # license: GPL v3 or later
 # [capabilities]
-# tabs: construct_tab
+# tab_construct: tab_construct
 ### END PLUGIN INFO
 
 import subprocess, locale
@@ -109,7 +109,7 @@ def update(label):
                      'replace'))
 
 # nothing magical here, this constructs the parts of the tab when called:
-def construct_tab():
+def tab_construct():
     vbox = gtk.VBox(spacing=2)
     vbox.props.border_width = 2
     buttonbox = gtk.HBox(spacing=2)
