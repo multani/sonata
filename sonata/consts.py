@@ -54,7 +54,6 @@ class Constants:
         self.NUM_ARTISTS_FOR_VA = 2
 
         # the names of the plug-ins that will be enabled by default
-        self.DEFAULT_PLUGINS = ('playlists streams lyricwiki '
-                                'rhapsodycovers localmpd').split()
+        self.DEFAULT_PLUGINS = ('').split()
 
 consts = Constants()

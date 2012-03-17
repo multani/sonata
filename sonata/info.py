@@ -1,3 +1,4 @@
+
 from __future__ import with_statement
 
 import sys
@@ -7,11 +8,12 @@ import logging
 
 import gtk
 import pango
-import gobject
 
 import ui
 import misc
 import mpdhelper as mpdh
+import urllib
+import threading
 from consts import consts
 from pluginsystem import pluginsystem
 
@@ -386,18 +388,28 @@ class Info(object):
                 lyrics = lyrics[len(header):]
             self._show_lyrics(filename_artist, filename_title, lyrics=lyrics)
         else:
-            # Fetch lyrics from lyricwiki.org etc.
-            lyrics_fetchers = pluginsystem.get('lyrics_fetching')
-            callback = lambda * args: self.get_lyrics_response(
-                filename_artist, filename_title, song_dir, *args)
-            if lyrics_fetchers:
-                msg = _("Fetching lyrics...")
-                for _plugin, cb in lyrics_fetchers:
-                    cb(callback, search_artist, search_title)
-            else:
-                msg = _("No lyrics plug-in enabled.")
-            self._show_lyrics(filename_artist, filename_title,
-                          lyrics=msg)
+            # Fetch lyrics from plugins.
+            thread = threading.Thread(target=self.fetch_lyrics_from_plugins,
+                                      args=(search_artist, search_title,
+                                            song_dir))
+            thread.start()
+
+    def fetch_lyrics_from_plugins(self, search_artist, search_title, song_dir):
+        lyrics_fetchers = pluginsystem.get('lyrics_fetching')
+        if lyrics_fetchers:
+            self._show_lyrics(search_artist, search_title,
+                              lyrics=_("Fetching lyrics..."))
+            for plugin, get_lyrics in lyrics_fetchers:
+                lyrics = get_lyrics(search_artist, search_title)
+                if lyrics:
+                    self.get_lyrics_response(search_artist, search_title,
+                                             song_dir, lyrics=lyrics)
+                    return
+            msg = _("Lyrics not found.")
+        else:
+            msg = _("No lyrics plug-in enabled.")
+
+        self._show_lyrics(search_artist, search_title, lyrics=msg)
 
     def get_lyrics_response(self, artist_then, title_then, song_dir,
                 lyrics=None, error=None):

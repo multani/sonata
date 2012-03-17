@@ -1,0 +1,36 @@
+#
+#   Information fetching interfaces
+#
+
+lyric_fetching(artist, title) -> Lyrics
+
+cover_fetching(artist, album) -> ??
+
+
+#
+#   Ui interfaces
+#
+
+button_construst() -> Gtk.Button
+
+tab_construct() -> (tab content, icon name, tab name, the widget to focus on tab switch)
+
+#
+#   Other
+#
+
+# Called when one of the following items are changed:
+#  1. Current playlist (song added, removed, etc)
+#  2. Repeat/random/xfade/volume
+#  3. Currently selected song in playlist
+#  4. Status (playing/paused/stopped)
+
+handle_change_status(state, prevstate, prevsonginfo, songinfo, mpd_time_now)
+
+# Called when song changes:
+
+playing_song_observers(songinfo)
+
+# This gets called when the plugin is loaded, enabled, or disabled:
+
+on_enable(state):

@@ -12,7 +12,6 @@ self.config = config.Config(_('Default Profile'), _("by") + " %A " +\
 from __future__ import with_statement
 
 import os
-import hashlib
 import ConfigParser
 
 from consts import consts
@@ -93,10 +92,6 @@ class Config:
         self.lyrics_location = consts.LYRICS_LOCATION_HOME
 
         self.tags_use_mpdpath = False
-
-        self.as_enabled = False
-        self.as_username = ""
-        self.as_password_md5 = ""
 
         self.url_browser = ""
         self.wd = library_set_data(path="/")
@@ -364,16 +359,6 @@ class Config:
                                                   str(i) + ']'))
                 self.stream_uris.append(conf.get('streams', 'uris[' + \
                                                  str(i) + ']'))
-        if conf.has_option('audioscrobbler', 'use_audioscrobbler'):
-            self.as_enabled = conf.getboolean('audioscrobbler',
-                                              'use_audioscrobbler')
-        if conf.has_option('audioscrobbler', 'username'):
-            self.as_username = conf.get('audioscrobbler', 'username')
-        if conf.has_option('audioscrobbler', 'password'): # old...
-            self.as_password_md5 = hashlib.md5(conf.get('audioscrobbler',
-                                                       'password')).hexdigest()
-        if conf.has_option('audioscrobbler', 'password_md5'):
-            self.as_password_md5 = conf.get('audioscrobbler', 'password_md5')
         if conf.has_option('profiles', 'num_profiles'):
             num_profiles = conf.getint('profiles', 'num_profiles')
             if num_profiles > 0:
@@ -534,11 +519,6 @@ class Config:
                                                        self.stream_uris)):
             conf.set('streams', 'names[%s]' % i, stream)
             conf.set('streams', 'uris[%s]' % i, stream_uri)
-
-        conf.add_section('audioscrobbler')
-        conf.set('audioscrobbler', 'use_audioscrobbler', self.as_enabled)
-        conf.set('audioscrobbler', 'username', self.as_username)
-        conf.set('audioscrobbler', 'password_md5', self.as_password_md5)
 
         # Tag editor
         conf.add_section('tags')

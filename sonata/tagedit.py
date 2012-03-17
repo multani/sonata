@@ -11,6 +11,7 @@ tageditor.on_tags_edit(files, temp_mpdpaths, self.musicdir[self.profile_num])
 
 import os
 import re
+import gettext
 
 import gtk, gobject
 tagpy = None # module loaded when needed
@@ -208,7 +209,7 @@ class TagEditor():
         else:
             button.set_tooltip_text(_("Apply to all selected music files."))
         padding = int((entry.size_request()[1] - button.size_request()[1])/2)+1
-        vbox = gtk.VBox();
+        vbox = gtk.VBox()
         vbox.pack_start(button, False, False, padding)
         return vbox
 

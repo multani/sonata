@@ -69,13 +69,11 @@ import preferences
 import tagedit
 import artwork
 import about
-import scrobbler
 import info
 import library
 import streams
 import playlists
 import current
-import lyricwiki # plug-ins
 import rhapsodycovers
 import dbus_plugin as dbus
 
@@ -175,6 +173,7 @@ class Base(object):
         self.skip_on_profiles_click = False
         self.last_repeat = None
         self.last_random = None
+        self.last_consume = None
         self.last_title = None
         self.last_progress_frac = None
         self.last_progress_text = None
@@ -273,12 +272,12 @@ class Base(object):
 
         # Popup menus:
         actions = [
-            ('sortmenu', None, _('_Sort List')),
-            ('plmenu', None, _('Sa_ve Selected to')),
-            ('profilesmenu', None, _('_Connection')),
+            ('sortmenu', gtk.STOCK_SORT_ASCENDING, _('_Sort List')),
+            ('plmenu', gtk.STOCK_SAVE, _('Sa_ve Selected to')),
+            ('profilesmenu', gtk.STOCK_CONNECT, _('_Connection')),
             ('playaftermenu', None, _('P_lay after')),
             ('playmodemenu', None, _('Play _Mode')),
-            ('updatemenu', None, _('_Update')),
+            ('updatemenu', gtk.STOCK_REFRESH, _('_Update')),
             ('chooseimage_menu', gtk.STOCK_CONVERT, _('Use _Remote Image...'),
              None, None, self.image_remote),
             ('localimage_menu', gtk.STOCK_OPEN, _('Use _Local Image...'),
@@ -309,8 +308,8 @@ class Base(object):
              self.on_updatedb_shortcut),
             ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'),
              'F5', None, self.on_prefs),
-            ('aboutmenu', None, _('_About...'), 'F1', None, self.on_about),
-            ('tagmenu', None, _('_Edit Tags...'), '<Ctrl>t', None,
+            ('aboutmenu', gtk.STOCK_ABOUT, _('_About...'), 'F1', None, self.on_about),
+            ('tagmenu', gtk.STOCK_EDIT, _('_Edit Tags...'), '<Ctrl>t', None,
              self.on_tags_edit),
             ('addmenu', gtk.STOCK_ADD, _('_Add'), '<Ctrl>d', None,
              self.on_add_item),
@@ -361,12 +360,11 @@ class Base(object):
                   for i in range(1, 10)]
 
         toggle_actions = [
-            ('showmenu', None, _('S_how Sonata'), None, None,
-             self.on_withdraw_app_toggle, not self.config.withdrawn),
-            ('repeatmenu', None, _('_Repeat'), None, None,
-             self.on_repeat_clicked, False),
-            ('randommenu', None, _('Rando_m'), None, None,
-             self.on_random_clicked, False), ]
+            ('showmenu',    None,   _('Show Sonata'),    None,  None,   self.on_withdraw_app_toggle,    not self.config.withdrawn),
+            ('repeatmenu',  None,   _('Repeat'),         None,  None,   self.on_repeat_clicked,         False),
+            ('randommenu',  None,   _('Random'),         None,  None,   self.on_random_clicked,         False),
+            ('consumemenu', None,   _('Consume'),        None,  None,   self.on_consume_clicked,        False),
+            ]
 
         toggle_tabactions = [
             (self.TAB_CURRENT, None, self.TAB_CURRENT, None, None,
@@ -438,6 +436,7 @@ class Base(object):
                 <separator name="FM1"/>
                 <menuitem action="repeatmenu"/>
                 <menuitem action="randommenu"/>
+				<menuitem action="consumemenu"/>
                 <menu action="updatemenu">
                   <menuitem action="updateselectedmenu"/>
                   <menuitem action="updatefullmenu"/>
@@ -489,14 +488,7 @@ class Base(object):
         except:
             linkcolor = None
 
-        # Audioscrobbler
-        self.scrobbler = scrobbler.Scrobbler(self.config)
-        self.scrobbler.import_module()
-        self.scrobbler.init()
-        self.preferences.scrobbler = self.scrobbler
-
         # Plug-ins imported as modules
-        self.lyricwiki = lyricwiki.LyricWiki()
         self.rhapsodycovers = rhapsodycovers.RhapsodyCovers()
 
         # Current tab
@@ -557,7 +549,9 @@ class Base(object):
         self.streams = streams.Streams(self.config, self.window,
                                        self.on_streams_button_press,
                                        self.on_add_item,
-                                       self.settings_save, self.TAB_STREAMS)
+                                       self.settings_save,
+                                       self.TAB_STREAMS,
+                                       self.new_tab)
 
         self.streams_treeview = self.streams.get_treeview()
         self.streams_selection = self.streams.get_selection()
@@ -579,7 +573,8 @@ class Base(object):
                                              self.current.get_current_songs,
                                              self.connected,
                                              self.add_selected_to_playlist,
-                                             self.TAB_PLAYLISTS)
+                                             self.TAB_PLAYLISTS,
+                                             self.new_tab)
 
         self.playlists_treeview = self.playlists.get_treeview()
         self.playlists_selection = self.playlists.get_selection()
@@ -609,6 +604,7 @@ class Base(object):
         self.window.add_accel_group(self.UIManager.get_accel_group())
         self.mainmenu = self.UIManager.get_widget('/mainmenu')
         self.randommenu = self.UIManager.get_widget('/mainmenu/randommenu')
+        self.consumemenu = self.UIManager.get_widget('/mainmenu/consumemenu')
         self.repeatmenu = self.UIManager.get_widget('/mainmenu/repeatmenu')
         self.imagemenu = self.UIManager.get_widget('/imagemenu')
         self.traymenu = self.UIManager.get_widget('/traymenu')
@@ -618,6 +614,23 @@ class Base(object):
         mainhbox = gtk.HBox()
         mainvbox = gtk.VBox()
         tophbox = gtk.HBox()
+
+        # Autostart plugins
+        for plugin in pluginsystem.get_info():
+            if plugin.name in self.config.autostart_plugins:
+                pluginsystem.app = self
+                pluginsystem.set_enabled(plugin, True)
+
+        # New plugins
+        for plugin in pluginsystem.get_info():
+            if plugin.name not in self.config.known_plugins:
+                self.config.known_plugins.append(plugin.name)
+                if plugin.name in consts.DEFAULT_PLUGINS:
+                    print (_("Enabling new plug-in %s...") % plugin.name)
+                    pluginsystem.set_enabled(plugin, True)
+                else:
+                    print (_("Found new plug-in %s.") % plugin.name)
+
 
         TrayFactory = tray.get_tray_icon_factory()
         self.tray_icon = TrayFactory(self.window, self.traymenu, self.traytips)
@@ -652,6 +665,10 @@ class Base(object):
             toptophbox.pack_start(mediabutton, False, False, 0)
             if not self.config.show_playback:
                 ui.hide(mediabutton)
+        button_constructors = pluginsystem.get('button_construct')
+        if button_constructors:
+            for plugin, button in button_constructors:
+                toptophbox.pack_start(button(), False, False, 0)
         self.progressbox = gtk.VBox()
         self.progresslabel = ui.label(w=-1, h=6)
         self.progressbox.pack_start(self.progresslabel)
@@ -926,25 +943,9 @@ class Base(object):
 
         gobject.idle_add(self.header_save_column_widths)
 
-        pluginsystem.notify_of('tabs',
+        pluginsystem.notify_of('tab_construct',
                        self.on_enable_tab,
                        self.on_disable_tab)
-
-        # Autostart plugins
-        for plugin in pluginsystem.get_info():
-            if plugin.name in self.config.autostart_plugins:
-                pluginsystem.set_enabled(plugin, True)
-
-        # New plugins
-        for plugin in pluginsystem.get_info():
-            if plugin.name not in self.config.known_plugins:
-                self.config.known_plugins.append(plugin.name)
-                if plugin.name in consts.DEFAULT_PLUGINS:
-                    self.logger.info(
-                        _("Enabling new plug-in %s..." % plugin.name))
-                    pluginsystem.set_enabled(plugin, True)
-                else:
-                    self.logger.info(_("Found new plug-in %s." % plugin.name))
 
     ### Tab system:
 
@@ -1050,8 +1051,7 @@ class Base(object):
             "[%s] %s" % (i + 1, name.replace("_", "__")), None,
             None, i)
             for i, name in enumerate(profile_names)]
-        actions.append(('disconnect', None, _('Disconnect'), None, None,
-                        len(self.config.profile_names)))
+        actions.append(('disconnect', gtk.STOCK_DISCONNECT, _('Disconnect'), None, None, len(self.config.profile_names)))
 
         active_radio = 0 if host or port else self.config.profile_num
         if not self.conn:
@@ -1173,6 +1173,8 @@ class Base(object):
                        or self.last_random != self.status['random']:
                         self.randommenu.set_active(
                             self.status['random'] == '1')
+                    if not self.last_consume or self.last_consume != self.status['consume']:
+                        self.consumemenu.set_active(self.status['consume'] == '1')
                     if self.status['xfade'] == '0':
                         self.config.xfade_enabled = False
                     else:
@@ -1182,6 +1184,7 @@ class Base(object):
                             self.config.xfade = 30
                     self.last_repeat = self.status['repeat']
                     self.last_random = self.status['random']
+                    self.last_consume = self.status['consume']
                     return
         except:
             pass
@@ -1677,7 +1680,9 @@ class Base(object):
                 self.mpd_updated_db()
         self.mpd_update_queued = False
 
-        if self.config.as_enabled:
+        # send information to scrobblers, etc.
+        plugins = pluginsystem.get('handle_change_status')
+        if plugins:
             if self.prevstatus:
                 prevstate = self.prevstatus['state']
             else:
@@ -1689,13 +1694,12 @@ class Base(object):
 
             if state in ('play', 'pause'):
                 mpd_time_now = self.status['time']
-                self.scrobbler.handle_change_status(state, prevstate,
-                                                    self.prevsonginfo,
-                                                    self.songinfo,
-                                                    mpd_time_now)
+                for _plugin, cb in plugins:
+                    cb(state, prevstate, self.prevsonginfo, self.songinfo,
+                       mpd_time_now)
             elif state == 'stop':
-                self.scrobbler.handle_change_status(state, prevstate,
-                                                    self.prevsonginfo)
+                for _plugin, cb in plugins:
+                    cb(state, prevstate, self.prevsonginfo)
 
     def mpd_updated_db(self):
         self.library.view_caches_reset()
@@ -2034,6 +2038,7 @@ class Base(object):
                 info_file.write('Volume: %s\n' % (self.status['volume'],))
                 info_file.write('Repeat: %s\n' % (self.status['repeat'],))
                 info_file.write('Random: %s\n' % (self.status['random'],))
+                info_file.write('Consume: %s\n' % (self.status['consume'],))
                 info_file.close()
             except:
                 pass
@@ -2054,8 +2059,6 @@ class Base(object):
                 return True
         self.settings_save()
         self.artwork.artwork_save_cache()
-        if self.config.as_enabled:
-            self.scrobbler.save_cache()
         if self.conn and self.config.stop_on_exit:
             self.mpd_stop(None)
         sys.exit()
@@ -3027,6 +3030,10 @@ class Base(object):
     def on_random_clicked(self, widget):
         if self.conn:
             self._toggle_clicked('random', widget)
+
+    def on_consume_clicked(self, widget):
+        if self.conn:
+            self._toggle_clicked('consume', widget)
 
     def setup_prefs_callbacks(self):
         extras = preferences.Extras_cbs
