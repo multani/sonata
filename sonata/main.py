@@ -273,12 +273,12 @@ class Base(object):
 
         # Popup menus:
         actions = [
-            ('sortmenu', None, _('_Sort List')),
-            ('plmenu', None, _('Sa_ve Selected to')),
-            ('profilesmenu', None, _('_Connection')),
+            ('sortmenu', gtk.STOCK_SORT_ASCENDING, _('_Sort List')),
+            ('plmenu', gtk.STOCK_SAVE, _('Sa_ve Selected to')),
+            ('profilesmenu', gtk.STOCK_CONNECT, _('_Connection')),
             ('playaftermenu', None, _('P_lay after')),
             ('playmodemenu', None, _('Play _Mode')),
-            ('updatemenu', None, _('_Update')),
+            ('updatemenu', gtk.STOCK_REFRESH, _('_Update')),
             ('chooseimage_menu', gtk.STOCK_CONVERT, _('Use _Remote Image...'),
              None, None, self.image_remote),
             ('localimage_menu', gtk.STOCK_OPEN, _('Use _Local Image...'),
@@ -309,8 +309,8 @@ class Base(object):
              self.on_updatedb_shortcut),
             ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'),
              'F5', None, self.on_prefs),
-            ('aboutmenu', None, _('_About...'), 'F1', None, self.on_about),
-            ('tagmenu', None, _('_Edit Tags...'), '<Ctrl>t', None,
+            ('aboutmenu', gtk.STOCK_ABOUT, _('_About...'), 'F1', None, self.on_about),
+            ('tagmenu', gtk.STOCK_EDIT, _('_Edit Tags...'), '<Ctrl>t', None,
              self.on_tags_edit),
             ('addmenu', gtk.STOCK_ADD, _('_Add'), '<Ctrl>d', None,
              self.on_add_item),
@@ -1050,8 +1050,8 @@ class Base(object):
             "[%s] %s" % (i + 1, name.replace("_", "__")), None,
             None, i)
             for i, name in enumerate(profile_names)]
-        actions.append(('disconnect', None, _('Disconnect'), None, None,
-                        len(self.config.profile_names)))
+        actions.append(('disconnect', gtk.STOCK_DISCONNECT, _('Disconnect'),
+                        None, None, len(self.config.profile_names)))
 
         active_radio = 0 if host or port else self.config.profile_num
         if not self.conn:
