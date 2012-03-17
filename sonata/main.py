@@ -549,7 +549,9 @@ class Base(object):
         self.streams = streams.Streams(self.config, self.window,
                                        self.on_streams_button_press,
                                        self.on_add_item,
-                                       self.settings_save, self.TAB_STREAMS)
+                                       self.settings_save,
+                                       self.TAB_STREAMS,
+                                       self.new_tab)
 
         self.streams_treeview = self.streams.get_treeview()
         self.streams_selection = self.streams.get_selection()
@@ -571,7 +573,8 @@ class Base(object):
                                              self.current.get_current_songs,
                                              self.connected,
                                              self.add_selected_to_playlist,
-                                             self.TAB_PLAYLISTS)
+                                             self.TAB_PLAYLISTS,
+                                             self.new_tab)
 
         self.playlists_treeview = self.playlists.get_treeview()
         self.playlists_selection = self.playlists.get_selection()

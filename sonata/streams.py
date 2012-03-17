@@ -16,10 +16,9 @@ import gtk, pango
 
 import misc, ui
 
-from pluginsystem import pluginsystem, BuiltinPlugin
 
 class Streams(object):
-    def __init__(self, config, window, on_streams_button_press, on_add_item, settings_save, TAB_STREAMS):
+    def __init__(self, config, window, on_streams_button_press, on_add_item, settings_save, TAB_STREAMS, new_tab):
         self.config = config
         self.window = window
         self.on_streams_button_press = on_streams_button_press
@@ -31,7 +30,7 @@ class Streams(object):
         self.streams_selection = self.streams.get_selection()
         self.streamswindow = ui.scrollwindow(add=self.streams)
 
-        self.tab = (self.streamswindow, gtk.STOCK_NETWORK, TAB_STREAMS, self.streams)
+        self.tab = new_tab(self.streamswindow, gtk.STOCK_NETWORK, TAB_STREAMS, self.streams)
 
         self.streams.connect('button_press_event', self.on_streams_button_press)
         self.streams.connect('row_activated', self.on_streams_activated)
@@ -52,9 +51,6 @@ class Streams(object):
         self.streams.append_column(self.streamscolumn)
         self.streams_selection.set_mode(gtk.SELECTION_MULTIPLE)
 
-        pluginsystem.plugin_infos.append(BuiltinPlugin(
-                'streams', "Streams", "A tab for streams.",
-                {'tabs': 'construct_tab'}, self))
 
     def construct_tab(self):
         self.streamswindow.show_all()
