@@ -16,20 +16,16 @@ self.playlists.populate()
 
 import gtk
 import pango
-
 import ui
 import misc
 import mpdhelper as mpdh
-
-from pluginsystem import pluginsystem, BuiltinPlugin
-
 
 class Playlists(object):
 
     def __init__(self, config, window, mpd, UIManager,
                  update_menu_visibility, iterate_now, on_add_item,
                  on_playlists_button_press, get_current_songs, connected,
-                 add_selected_to_playlist, TAB_PLAYLISTS):
+                 add_selected_to_playlist, TAB_PLAYLISTS, new_tab):
         self.config = config
         self.window = window
         self.mpd = mpd
@@ -50,7 +46,7 @@ class Playlists(object):
         self.playlists_selection = self.playlists.get_selection()
         self.playlistswindow = ui.scrollwindow(add=self.playlists)
 
-        self.tab = (self.playlistswindow, gtk.STOCK_JUSTIFY_CENTER,
+        self.tab = new_tab(self.playlistswindow, gtk.STOCK_JUSTIFY_CENTER,
                     TAB_PLAYLISTS, self.playlists)
 
         self.playlists.connect('button_press_event',
@@ -72,14 +68,6 @@ class Playlists(object):
         self.playlistscolumn.set_attributes(self.playlistscell, markup=1)
         self.playlists.append_column(self.playlistscolumn)
         self.playlists_selection.set_mode(gtk.SELECTION_MULTIPLE)
-
-        pluginsystem.plugin_infos.append(BuiltinPlugin(
-                'playlists', "Playlists", "A tab for playlists.",
-                {'tabs': 'construct_tab'}, self))
-
-    def construct_tab(self):
-        self.playlistswindow.show_all()
-        return self.tab
 
     def get_model(self):
         return self.playlistsdata
