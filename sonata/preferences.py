@@ -634,7 +634,14 @@ class Preferences():
 
     def plugin_configure(self, _widget):
         plugin = self.plugin_get_selected()
-        ui.show_msg(self.prefswindow, "Nothing yet implemented.", "Configure", "pluginConfigure", Gtk.ButtonsType.CLOSE)
+        for _plugin, cb in pluginsystem.get('plugin_configure'):
+            if _plugin == plugin:
+                cb()
+                return
+
+        ui.show_msg(self.prefswindow,
+                    _("Nothing yet implemented."), _("Configure"),
+                    "pluginConfigure", Gtk.ButtonsType.CLOSE)
 
     def plugin_get_selected(self):
         model, i = self.pluginselection.get_selected()
