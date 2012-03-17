@@ -628,6 +628,14 @@ class Base:
         self.progressbar = self.builder.get_object('progress_bar')
 
         self.progresseventbox = self.builder.get_object('progress_event_box')
+
+        # Add buttons from plugins
+        btn_bar_box = self.builder.get_object('toptop_h_box')
+        button_constructors = pluginsystem.get('add_toolbar_button')
+        if button_constructors:
+            for plugin, button in button_constructors:
+                btn_bar_box.pack_end(button(), False, False, 0)
+
         if not self.config.show_progress:
             ui.hide(self.progressbox)
         self.volumebutton = self.builder.get_object('volume_button')
