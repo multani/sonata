@@ -115,7 +115,7 @@ def tab_construct():
     buttonbox = gtk.HBox(spacing=2)
     editbutton = gtk.Button("Edit /etc/mpd.conf")
     editbutton.connect('clicked', lambda *args:subprocess.Popen(
-            ["gksu", "gedit", "/etc/mpd.conf"]))
+        ["gksu", "xdg-open", "/etc/mpd.conf"]))
     buttonbox.pack_start(editbutton, False, False)
     restartbutton = gtk.Button("Restart the mpd service")
     restartbutton.connect('clicked', lambda *args:subprocess.Popen(
