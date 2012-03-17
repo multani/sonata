@@ -69,13 +69,11 @@ import preferences
 import tagedit
 import artwork
 import about
-import scrobbler
 import info
 import library
 import streams
 import playlists
 import current
-import lyricwiki # plug-ins
 import rhapsodycovers
 import dbus_plugin as dbus
 
@@ -489,14 +487,7 @@ class Base(object):
         except:
             linkcolor = None
 
-        # Audioscrobbler
-        self.scrobbler = scrobbler.Scrobbler(self.config)
-        self.scrobbler.import_module()
-        self.scrobbler.init()
-        self.preferences.scrobbler = self.scrobbler
-
         # Plug-ins imported as modules
-        self.lyricwiki = lyricwiki.LyricWiki()
         self.rhapsodycovers = rhapsodycovers.RhapsodyCovers()
 
         # Current tab
@@ -618,6 +609,23 @@ class Base(object):
         mainhbox = gtk.HBox()
         mainvbox = gtk.VBox()
         tophbox = gtk.HBox()
+
+        # Autostart plugins
+        for plugin in pluginsystem.get_info():
+            if plugin.name in self.config.autostart_plugins:
+                pluginsystem.app = self
+                pluginsystem.set_enabled(plugin, True)
+
+        # New plugins
+        for plugin in pluginsystem.get_info():
+            if plugin.name not in self.config.known_plugins:
+                self.config.known_plugins.append(plugin.name)
+                if plugin.name in consts.DEFAULT_PLUGINS:
+                    print (_("Enabling new plug-in %s...") % plugin.name)
+                    pluginsystem.set_enabled(plugin, True)
+                else:
+                    print (_("Found new plug-in %s.") % plugin.name)
+
 
         TrayFactory = tray.get_tray_icon_factory()
         self.tray_icon = TrayFactory(self.window, self.traymenu, self.traytips)
@@ -929,22 +937,6 @@ class Base(object):
         pluginsystem.notify_of('tabs',
                        self.on_enable_tab,
                        self.on_disable_tab)
-
-        # Autostart plugins
-        for plugin in pluginsystem.get_info():
-            if plugin.name in self.config.autostart_plugins:
-                pluginsystem.set_enabled(plugin, True)
-
-        # New plugins
-        for plugin in pluginsystem.get_info():
-            if plugin.name not in self.config.known_plugins:
-                self.config.known_plugins.append(plugin.name)
-                if plugin.name in consts.DEFAULT_PLUGINS:
-                    self.logger.info(
-                        _("Enabling new plug-in %s..." % plugin.name))
-                    pluginsystem.set_enabled(plugin, True)
-                else:
-                    self.logger.info(_("Found new plug-in %s." % plugin.name))
 
     ### Tab system:
 
@@ -1677,7 +1669,9 @@ class Base(object):
                 self.mpd_updated_db()
         self.mpd_update_queued = False
 
-        if self.config.as_enabled:
+        # send information to scrobblers, etc.
+        plugins = pluginsystem.get('handle_change_status')
+        if plugins:
             if self.prevstatus:
                 prevstate = self.prevstatus['state']
             else:
@@ -1689,13 +1683,12 @@ class Base(object):
 
             if state in ('play', 'pause'):
                 mpd_time_now = self.status['time']
-                self.scrobbler.handle_change_status(state, prevstate,
-                                                    self.prevsonginfo,
-                                                    self.songinfo,
-                                                    mpd_time_now)
+                for _plugin, cb in plugins:
+                    cb(state, prevstate, self.prevsonginfo, self.songinfo,
+                       mpd_time_now)
             elif state == 'stop':
-                self.scrobbler.handle_change_status(state, prevstate,
-                                                    self.prevsonginfo)
+                for _plugin, cb in plugins:
+                    cb(state, prevstate, self.prevsonginfo)
 
     def mpd_updated_db(self):
         self.library.view_caches_reset()
@@ -2054,8 +2047,6 @@ class Base(object):
                 return True
         self.settings_save()
         self.artwork.artwork_save_cache()
-        if self.config.as_enabled:
-            self.scrobbler.save_cache()
         if self.conn and self.config.stop_on_exit:
             self.mpd_stop(None)
         sys.exit()

@@ -10,8 +10,7 @@ prefs = preferences.Preferences()
 prefs.on_prefs_real(self.window, self.prefs_window_response, tab callbacks...)
 """
 
-import gettext, hashlib
-
+import gettext
 import gtk
 
 from consts import consts
@@ -242,37 +241,13 @@ class Preferences():
 
     def extras_tab(self, cbs):
         """Construct and layout the extras tab"""
-        if not self.scrobbler.imported():
-            self.config.as_enabled = False
         extraslabel = ui.label(markup='<b>' + _('Extras') + '</b>')
         frame = gtk.Frame()
         frame.set_label_widget(extraslabel)
         frame.set_shadow_type(gtk.SHADOW_NONE)
 
-        as_checkbox = gtk.CheckButton(_("_Audioscrobbling (Last.fm)"))
-        as_checkbox.set_active(self.config.as_enabled)
-        as_user_label = ui.label(textmn=_("_Username:"))
-        as_pass_label = ui.label(textmn=_("_Password:"))
-        as_user_entry = ui.entry(text=self.config.as_username,
-            changed_cb=self._as_username_changed)
-        as_user_label.set_mnemonic_widget(as_user_entry)
-        if len(self.config.as_password_md5) > 0:
-            as_pass_entry = ui.entry(text='1234', password=True,
-                changed_cb=self._as_password_changed)
-        else:
-            as_pass_entry = ui.entry(text='', password=True,
-                changed_cb=self._as_password_changed)
-        as_pass_label.set_mnemonic_widget(as_pass_entry)
-        as_user_box = gtk.HBox(spacing=12)
-        as_user_box.pack_end(as_user_entry, False, False)
-        as_user_box.pack_end(as_user_label, False, False)
-        as_pass_box = gtk.HBox(spacing=12)
-        as_pass_box.pack_end(as_pass_entry, False, False)
-        as_pass_box.pack_end(as_pass_label, False, False)
-        as_entries = gtk.VBox()
-        as_entries.pack_start(as_user_box)
-        as_entries.pack_start(as_pass_box)
-        display_notification = gtk.CheckButton(_("Popup _notification on song changes"))
+
+        display_notification = gtk.CheckButton(_("Popup notification on song changes"))
         display_notification.set_active(self.config.show_notification)
 
         time_names = ["%s %s" %
@@ -314,8 +289,8 @@ class Preferences():
         crossfadecheck.set_active(self.config.xfade_enabled)
         crossfadecheck.toggled() # Force the toggled callback
 
-        widgets = (as_checkbox, as_entries, display_notification,
-            notifhbox, crossfadecheck, crossfadebox)
+        widgets = (display_notification, notifhbox, crossfadecheck,
+                   crossfadebox)
         table = gtk.Table(len(widgets), 1)
         table.set_col_spacings(12)
         table.set_row_spacings(6)
@@ -330,13 +305,6 @@ class Preferences():
         tab.set_padding(12, 12, 12, 12)
         tab.add(frame)
 
-        as_checkbox.connect('toggled', self._as_enabled_toggled,
-            as_user_entry, as_pass_entry, as_user_label,
-            as_pass_label)
-        if not self.config.as_enabled or not self.scrobbler.imported():
-            for widget in (as_user_entry, as_pass_entry,
-                    as_user_label, as_pass_label):
-                widget.set_sensitive(False)
         return tab
 
     def display_tab(self, cbs):
@@ -682,27 +650,6 @@ class Preferences():
     def _config_widget_active(self, widget, member):
         """Sets a config attribute to the widget's active value"""
         setattr(self.config, member, widget.get_active())
-
-    def _as_enabled_toggled(self, checkbox, *widgets):
-        if checkbox.get_active():
-            self.scrobbler.import_module(True)
-        if self.scrobbler.imported():
-            self.config.as_enabled = checkbox.get_active()
-            self.scrobbler.init()
-            for widget in widgets:
-                widget.set_sensitive(self.config.as_enabled)
-        elif checkbox.get_active():
-            checkbox.set_active(False)
-
-    def _as_username_changed(self, entry):
-        if self.scrobbler.imported():
-            self.config.as_username = entry.get_text()
-            self.scrobbler.auth_changed()
-
-    def _as_password_changed(self, entry):
-        if self.scrobbler.imported():
-            self.config.as_password_md5 = hashlib.md5(entry.get_text()).hexdigest()
-            self.scrobbler.auth_changed()
 
     def _nameentry_changed(self, entry, profile_combo, remove_profiles):
         if not self.updating_nameentry:
