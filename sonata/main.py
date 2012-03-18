@@ -3017,16 +3017,13 @@ class Base(object):
             self.mpd.clear()
             self.iterate_now()
 
-    def _toggle_clicked(self, command, widget):
-        self.mpd.call(command, int(widget.get_active()))
-
     def on_repeat_clicked(self, widget):
         if self.conn:
-            self._toggle_clicked('repeat', widget)
+            self.mpd.repeat(int(widget.get_active()))
 
     def on_random_clicked(self, widget):
         if self.conn:
-            self._toggle_clicked('random', widget)
+            self.mpd.random(int(widget.get_active()))
 
     def setup_prefs_callbacks(self):
         extras = preferences.Extras_cbs

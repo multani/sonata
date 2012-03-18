@@ -1312,7 +1312,9 @@ class Library(object):
             self.searchtext.set_text("")
             self.searchtext.handler_unblock(self.libfilter_changed_handler)
             self.libsearchfilter_stop_loop()
-            self.library_browse(root=self.config.wd)
+            # call library_browse from the main thread to avoid corruption
+            # of treeview, fixes #1959
+            gobject.idle_add(self.library_browse, None, self.config.wd)
             if move_focus:
                 self.library.grab_focus()
 

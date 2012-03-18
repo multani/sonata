@@ -6,6 +6,7 @@ import sys
 import os
 from time import strftime
 from misc import remove_list_duplicates
+from mpd import MPDError
 
 
 class MPDHelper(object):
@@ -23,41 +24,36 @@ class MPDHelper(object):
     suppress_errors = property(fset=__set_suppress_errors)
 
     def __getattr__(self, attr):
-        """Catch-all for methods with no special implementation."""
-        # XXX we still pass through the .call() method, since the original code
-        # expected this, and this method does some additionnal postprocessing in
-        # case of error. If .call() is cleaned up, maybe we can somehow merge
-        # .__getattr__() and .call() together.
-        return functools.partial(self.call, attr)
+        """
+        Wraps all calls from mpd client into a proper function,
+        which catches all MPDClient related exceptions and log them.
+        """
+        cmd = getattr(self._client, attr)
+        # save result, so function have to be constructed only once
+        wrapped_cmd = functools.partial(self._call, cmd, attr)
+        setattr(self, attr, wrapped_cmd)
+        return wrapped_cmd
 
-    def call(self, command, *args):
-        # This is potentially called (too) many times. In the cas the logging is not
+    def _call(self, cmd, cmd_name, *args):
+        # This is potentially called (too) many times. In the case the logging is not
         # active, just don't try to do anything at all. This is supposed to save
         # some performance in the case it is not active.
         if self.logger.isEnabledFor(logging.DEBUG):
-            self.logger.debug("Calling MPD %s%r", command, args)
-
+            self.logger.debug("Calling MPD %s%r", cmd_name, args)
         try:
-            retval = getattr(self._client, command)(*args)
-        except Exception, e:
-            # XXX make the distinction between bad getattr() call and bad MPD
-            # call?
-            if not command in ['disconnect', 'lsinfo', 'listplaylists']:
-                self.logger.error("%s", e)
-            if command in ['lsinfo', 'list']:
+            return cmd(*args)
+        except MPDError, e:
+            if cmd_name in ['lsinfo', 'list']:
+                # return sane values, which could be used afterwards
                 return []
-            else:
+            elif cmd_name == 'status'
+                return {}
+            elif cmd_name == 'disconnect':
+                # We really don't care, if connections breaks, before we
+                # could disconnect.
                 return None
-
-        return retval
-
-    def status(self):
-        result = self.call('status')
-        # XXX why we return different things here?
-        if result and 'state' in result:
-            return result
-        else:
-            return {}
+            else:
+                self.logger.error("%s", e)
 
     @property
     def version(self):
@@ -125,7 +121,14 @@ def _sanitize(tag, return_int=False, str_padding=0):
     # for the mpd tag can be "4", "4/10", and "4,10".
     if not tag:
         return tag
-    tag = str(tag).replace(',', ' ', 1).replace('/', ' ', 1).split()[0]
+    tag = str(tag).replace(',', ' ', 1).replace('/', ' ', 1).split()
+
+    # fix #2842: tag only consist of '/' or ','
+    if len(tag) == 0:
+        tag = ''
+    else:
+        tag = tag[0]
+
     if return_int:
         return int(tag) if tag.isdigit() else 0
 
