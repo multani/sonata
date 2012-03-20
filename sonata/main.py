@@ -196,9 +196,8 @@ class Base(object):
         self.tabname2focus = dict()
         self.plugintabs = dict()
 
-        self.config = Config(_('Default Profile'), '%s %%A %s %%B' % (_("by"),
-                                                                   _("from"),),
-                             library.library_set_data)
+        self.config = Config(_('Default Profile'),
+                             '%s %%A %s %%B' % (_("by"), _("from")))
         self.preferences = preferences.Preferences(self.config,
             self.on_connectkey_pressed, self.on_currsong_notify,
             self.update_infofile, self.settings_save,
@@ -1286,7 +1285,7 @@ class Base(object):
                         self.current.searchfilter_toggle(None)
 
     def settings_load(self):
-        self.config.settings_load_real(library.library_set_data)
+        self.config.settings_load_real()
 
     def settings_save(self):
         self.header_save_column_widths()
@@ -1308,7 +1307,7 @@ class Base(object):
                 autostart_plugins.append(plugin.name)
         self.config.autostart_plugins = autostart_plugins
 
-        self.config.settings_save_real(library.library_get_data)
+        self.config.settings_save_real()
 
     def handle_change_conn(self):
         if not self.conn:
