@@ -70,10 +70,6 @@ class Playlists(object):
         self.playlists.append_column(self.playlistscolumn)
         self.playlists_selection.set_mode(gtk.SELECTION_MULTIPLE)
 
-    def construct_tab(self):
-        self.playlistswindow.show_all()
-        return self.tab
-
     def get_model(self):
         return self.playlistsdata
 
