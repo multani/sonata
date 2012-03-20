@@ -51,11 +51,6 @@ class Streams(object):
         self.streams.append_column(self.streamscolumn)
         self.streams_selection.set_mode(gtk.SELECTION_MULTIPLE)
 
-
-    def construct_tab(self):
-        self.streamswindow.show_all()
-        return self.tab
-
     def get_model(self):
         return self.streamsdata
 
