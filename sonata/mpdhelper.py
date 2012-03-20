@@ -1,12 +1,13 @@
 
 import functools
-import locale
 import logging
-import sys
 import os
-from time import strftime
-from sonata.misc import remove_list_duplicates
+import socket
+
 from mpd import MPDError
+
+from sonata.misc import remove_list_duplicates
+
 
 class MPDHelper(object):
     def __init__(self, client):
@@ -41,7 +42,7 @@ class MPDHelper(object):
             self.logger.debug("Calling MPD %s%r", cmd_name, args)
         try:
             return cmd(*args)
-        except MPDError as e:
+        except (socket.error, MPDError) as e:
             if cmd_name in ['lsinfo', 'list']:
                 # return sane values, which could be used afterwards
                 return []
