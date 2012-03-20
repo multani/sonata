@@ -15,6 +15,7 @@ import os
 import ConfigParser
 
 from consts import consts
+from library import library_set_data
 import misc
 
 
@@ -28,8 +29,7 @@ class Config:
     XXX This is mostly ConfigParser plus some custom serialization work.
     """
 
-    def __init__(self, default_profile_name, currsongformat2,
-                 library_set_data):
+    def __init__(self, default_profile_name, currsongformat2):
         # the config settings:
         self.profile_num = 0
         self.profile_names = [default_profile_name]
