@@ -1288,7 +1288,7 @@ class Base(object):
                         self.current.searchfilter_toggle(None)
 
     def settings_load(self):
-        self.config.settings_load_real(library.library_set_data)
+        self.config.settings_load_real()
 
     def settings_save(self):
         self.header_save_column_widths()
@@ -1310,7 +1310,7 @@ class Base(object):
                 autostart_plugins.append(plugin.name)
         self.config.autostart_plugins = autostart_plugins
 
-        self.config.settings_save_real(library.library_get_data)
+        self.config.settings_save_real()
 
     def handle_change_conn(self):
         if not self.conn:

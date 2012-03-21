@@ -16,6 +16,7 @@ import ConfigParser
 
 from consts import consts
 from library import library_set_data
+from library import library_get_data
 import misc
 
 
@@ -128,7 +129,7 @@ class Config:
         # Local consts
         self.LIB_NODATA = "!NONE!"
 
-    def settings_load_real(self, library_set_data):
+    def settings_load_real(self):
         """Load configuration from file"""
         # Load config
         conf = ConfigParser.ConfigParser()
@@ -392,7 +393,7 @@ class Config:
                 self.known_plugins = [x.strip("[]' ") \
                                       for x in self.known_plugins]
 
-    def settings_save_real(self, library_get_data):
+    def settings_save_real(self):
         """Save configuration in file"""
         conf = ConfigParser.ConfigParser()
 
