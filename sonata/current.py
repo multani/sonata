@@ -706,7 +706,7 @@ class Current(object):
             self.filterbox_cond = threading.Condition()
             self.filterbox_cmd_buf = initial_text
             qsearch_thread = threading.Thread(target=self.searchfilter_loop)
-            qsearch_thread.setDaemon(True)
+            qsearch_thread.daemon = True
             qsearch_thread.start()
             GObject.idle_add(self.filter_entry_grab_focus, self.filterpattern)
         self.current.set_headers_clickable(not self.filterbox_visible)

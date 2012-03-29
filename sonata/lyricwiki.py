@@ -23,10 +23,10 @@ class LyricWiki(object):
                 {'lyrics_fetching': 'get_lyrics_start'}, self))
 
     def get_lyrics_start(self, *args):
-        lyricThread = threading.Thread(target=self.get_lyrics_thread,
+        lyric_thread = threading.Thread(target=self.get_lyrics_thread,
                                        args=args)
-        lyricThread.setDaemon(True)
-        lyricThread.start()
+        lyric_thread.daemon = True
+        lyric_thread.start()
 
     def lyricwiki_format(self, text):
         return urllib.request.quote(str(text).title())

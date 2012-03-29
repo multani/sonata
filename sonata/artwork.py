@@ -151,7 +151,7 @@ class Artwork(object):
 
         self.lib_art_cond = threading.Condition()
         thread = threading.Thread(target=self._library_artwork_update)
-        thread.setDaemon(True)
+        thread.daemon = True
         thread.start()
 
     def library_artwork_update(self, model, start_row, end_row, albumpb):
@@ -354,7 +354,7 @@ class Artwork(object):
 
         if self.status_is_play_or_pause():
             thread = threading.Thread(target=self._artwork_update)
-            thread.setDaemon(True)
+            thread.daemon = True
             thread.start()
         else:
             self.artwork_set_default_icon()
