@@ -7,7 +7,7 @@ class CrumbButton(Gtk.ToggleButton):
     """A ToggleButton tailored for use as a breadcrumb."""
 
     def __init__(self, image, label):
-        GObject.GObject.__init__(self)
+        Gtk.ToggleButton.__init__(self)
 
         self.set_properties(can_focus=False, relief=Gtk.ReliefStyle.NONE)
 
@@ -32,7 +32,7 @@ class CrumbBox(Gtk.Box):
     __gtype_name__ = 'CrumbBox'
 
     def __init__(self, *args, **kwargs):
-        GObject.GObject.__init__(self, *args, **kwargs)
+        Gtk.Box.__init__(self, *args, **kwargs)
 
         # FIXME i can't get an internal child ellipsis to render...
 #		Gtk.widget_push_composite_child()
