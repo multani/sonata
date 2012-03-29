@@ -25,7 +25,7 @@ import logging
 import os
 import warnings
 
-import urllib.parse
+import urllib.parse, urllib.request
 import re
 import gc
 import shutil
@@ -1427,18 +1427,18 @@ class Base(object):
             Gtk.main_iteration()
         f = None
         try:
-            request = urllib2.Request(item)
-            opener = urllib2.build_opener()
+            request = urllib.request.Request(item)
+            opener = urllib.request.build_opener()
             f = opener.open(request).read(4000)
         except:
             try:
-                request = urllib2.Request("http://" + item)
-                opener = urllib2.build_opener()
+                request = urllib.request.Request("http://" + item)
+                opener = urllib.request.build_opener()
                 f = opener.open(request).read(4000)
             except:
                 try:
-                    request = urllib2.Request("file://" + item)
-                    opener = urllib2.build_opener()
+                    request = urllib.request.Request("file://" + item)
+                    opener = urllib.request.build_opener()
                     f = opener.open(request).read(4000)
                 except:
                     pass

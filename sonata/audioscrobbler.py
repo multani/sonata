@@ -278,7 +278,7 @@ import site
 import logging
 import sys
 import time
-import urllib
+import urllib.error, urllib.parse, urllib.request
 import configparser
 import os
 
@@ -466,8 +466,8 @@ class AudioScrobblerQuery:
         self.param = str(kwargs[self.type])
         self.baseurl = 'http://%s/%s/%s/%s' % (host,
                                                version,
-                                               urllib.quote(self.type),
-                                               urllib.quote(self.param),
+                                               urllib.parse.quote(self.type),
+                                               urllib.parse.quote(self.param),
                                               )
         self._cache = {}
 
@@ -475,7 +475,7 @@ class AudioScrobblerQuery:
 
         def method(_self=self, name=name, **params):
             # Build the URL
-            url = '%s/%s.xml' % (_self.baseurl, urllib.quote(name))
+            url = '%s/%s.xml' % (_self.baseurl, urllib.parse.quote(name))
             if len(params) != 0:
                 for key in params.keys():
                     # This little mess is required to get round the fact that
@@ -484,8 +484,8 @@ class AudioScrobblerQuery:
                     if key.startswith('_'):
                         params[key[1:]] = params[key]
                         del params[key]
-                url = '%s?%s' % (url, urllib.urlencode(params))
-            req = urllib2.Request(url)
+                url = '%s?%s' % (url, urllib.parse.urlencode(params))
+            req = urllib.request.Request(url)
 
             # Check the cache
             cache = _self._cache
@@ -494,8 +494,8 @@ class AudioScrobblerQuery:
 
             # Open the URL and test the response
             try:
-                response = urllib2.urlopen(url)
-            except urllib2.HTTPError as error:
+                response = urllib.request.urlopen(url)
+            except urllib.error.HTTPError as error:
                 if error.code == 304:
                     return AudioScrobblerItem(cache[url].getroot(), _self, url)
                 if error.code == 400:
@@ -503,7 +503,7 @@ class AudioScrobblerQuery:
                                                         error.fp.read())
                 raise AudioScrobblerConnectionError('http', error.code,
                                                     error.msg)
-            except urllib2.URLError as error:
+            except urllib.error.URLError as error:
                 code = error.reason.args[0]
                 message = error.reason.args[1]
                 raise AudioScrobblerConnectionError('network', code, message)
@@ -647,18 +647,18 @@ class AudioScrobblerPost:
         p['t'] = timestamp
         p['a'] = auth_token
 
-        plist = [(k, urllib.quote_plus(v.encode('utf8'))) \
+        plist = [(k, urllib.parse.quote_plus(v.encode('utf8'))) \
                  for k, v in p.items()]
 
-        authparams = urllib.urlencode(plist)
+        authparams = urllib.parse.urlencode(plist)
         url = 'http://%s/?%s' % (self.params['host'], authparams)
-        req = urllib2.Request(url)
+        req = urllib.request.Request(url)
         try:
-            url_handle = urllib2.urlopen(req)
-        except urllib2.HTTPError as error:
+            url_handle = urllib.request.urlopen(req)
+        except urllib.error.HTTPError as error:
             self.authenticated = False
             raise AudioScrobblerConnectionError('http', error.code, error.msg)
-        except urllib2.URLError as error:
+        except urllib.error.URLError as error:
             self.authenticated = False
             code = error.reason#.args[0]
             message = error.reason#.args[1]
@@ -815,13 +815,13 @@ class AudioScrobblerPost:
             p['n'] = tracknumber.encode('utf8')
             p['m'] = mbid.encode('utf8')
 
-        npdata = urllib.urlencode(p)
+        npdata = urllib.parse.urlencode(p)
 
-        req = urllib2.Request(url=self.npurl, data=npdata)
+        req = urllib.request.Request(url=self.npurl, data=npdata)
 
         try:
-            url_handle = urllib2.urlopen(req)
-        except urllib2.HTTPError as error:
+            url_handle = urllib.request.urlopen(req)
+        except urllib.error.HTTPError as error:
             self.authenticated = False
             self.logger.error(
                 "%s", AudioScrobblerConnectionError('http', error.code, error.msg))
@@ -863,16 +863,16 @@ class AudioScrobblerPost:
 
         self.auth()
         params.update(self.auth_details)
-        postdata = urllib.urlencode(params)
-        req = urllib2.Request(url=self.posturl, data=postdata)
+        postdata = urllib.parse.urlencode(params)
+        req = urllib.request.Request(url=self.posturl, data=postdata)
 
         now = datetime.datetime.utcnow()
 
         try:
-            url_handle = urllib2.urlopen(req)
-        except urllib2.HTTPError as error:
+            url_handle = urllib.request.urlopen(req)
+        except urllib.error.HTTPError as error:
             raise AudioScrobblerConnectionError('http', error.code, error.msg)
-        except urllib2.URLError as error:
+        except urllib.error.URLError as error:
             args = getattr(error.reason, 'args', None)
             code = '000'
             message = str(error)

@@ -17,7 +17,7 @@ self.current.current_update(prevstatus_playlist, self.status['playlistlength'])
 
 import os
 import re
-import urllib
+import urllib.parse, urllib.request
 import threading # searchfilter_toggle starts thread searchfilter_loop
 
 from gi.repository import Gtk, Gdk, Pango, GObject
@@ -188,7 +188,7 @@ class Current(object):
         context.drag_status(Gdk.DragAction.COPY, context.start_time)
 
         filenames = self.get_selected_filenames(True)
-        uris = ["file://%s" % urllib.quote(filename)
+        uris = ["file://%s" % urllib.parse.quote(filename)
             for filename in filenames]
 
         selection.set_uris(uris)
@@ -535,7 +535,7 @@ class Current(object):
                 return
             # DND from outside sonata:
             uri = selection.data.strip()
-            path = urllib.url2pathname(uri)
+            path = urllib.request.url2pathname(uri)
             paths = path.rsplit('\n')
             mpdpaths = []
             # Strip off paranthesis so that we can DND entire music dir
@@ -566,7 +566,7 @@ class Current(object):
                         filenames = [paths[i]]
                     for filename in filenames:
                         if os.path.exists(misc.file_from_utf8(filename)):
-                            mpdpaths.append("file://" + urllib.quote(filename))
+                            mpdpaths.append("file://" + urllib.parse.quote(filename))
             if len(mpdpaths) > 0:
                 # Items found, add to list at drop position:
                 if drop_info:
