@@ -213,7 +213,11 @@ class Base(object):
 
         # Main window
         if window is None:
-            self.window = Gtk.Window(type=Gtk.WindowType.TOPLEVEL)
+            self.builder = Gtk.Builder()
+            # FIXME where will the ui directory reside?
+            self.builder.add_from_file('{0}/ui/sonata.ui'.format(
+              os.path.dirname(ui.__file__)))
+            self.window = self.builder.get_object('main_window')
             self.window_owner = True
         else:
             self.window = window

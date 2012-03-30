@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="main_window">
+    <property name="type">TOPLEVEL</property>
+    <child>
+      <placeholder/>
+    </child>
+  </object>
+</interface>
