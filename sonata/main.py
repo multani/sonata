@@ -223,9 +223,6 @@ class Base(object):
             self.window = window
             self.window_owner = False
         if self.window_owner:
-            self.window.set_title('Sonata')
-            self.window.set_role('mainWindow')
-            self.window.set_resizable(True)
             if self.config.ontop:
                 self.window.set_keep_above(True)
             if self.config.sticky:
@@ -234,7 +231,7 @@ class Base(object):
                 self.window.set_decorated(False)
         self.preferences.window = self.window
 
-        self.notebook = Gtk.Notebook()
+        self.notebook = self.builder.get_object('main_notebook')
 
         # Artwork
         self.artwork = artwork.Artwork(
@@ -591,15 +588,15 @@ class Base(object):
         self.librarymenu = self.UIManager.get_widget('/librarymenu')
         self.library.set_librarymenu(self.librarymenu)
         self.notebookmenu = self.UIManager.get_widget('/notebookmenu')
-        mainhbox = Gtk.HBox()
-        mainvbox = Gtk.VBox()
-        tophbox = Gtk.HBox()
+        mainvbox = self.builder.get_object('main_v_box')
+        tophbox = self.builder.get_object('top_h_box')
 
         self.tray_icon = tray.TrayIcon(self.window, self.traymenu, self.traytips)
 
         self.albumimage = self.artwork.get_albumimage()
 
-        self.imageeventbox = ui.eventbox(add=self.albumimage)
+        self.imageeventbox = self.builder.get_object('image_event_box')
+        self.imageeventbox.add(self.albumimage)
         self.imageeventbox.drag_dest_set(Gtk.DestDefaults.HIGHLIGHT |
                                          Gtk.DestDefaults.DROP,
                                          [Gtk.TargetEntry.new("text/uri-list", 0, 80),
@@ -607,24 +604,15 @@ class Base(object):
                                          Gdk.DragAction.DEFAULT)
         if not self.config.show_covers:
             ui.hide(self.imageeventbox)
-        tophbox.pack_start(self.imageeventbox, False, False, 5)
-        topvbox = Gtk.VBox()
-        toptophbox = Gtk.HBox()
-        self.prevbutton = ui.button(stock=Gtk.STOCK_MEDIA_PREVIOUS,
-                                    relief=Gtk.ReliefStyle.NONE,
-                                    can_focus=False, hidetxt=True)
-        self.ppbutton = ui.button(stock=Gtk.STOCK_MEDIA_PLAY,
-                                  relief=Gtk.ReliefStyle.NONE,
-                                  can_focus=False, hidetxt=True)
-        self.stopbutton = ui.button(stock=Gtk.STOCK_MEDIA_STOP,
-                                    relief=Gtk.ReliefStyle.NONE,
-                                    can_focus=False, hidetxt=True)
-        self.nextbutton = ui.button(stock=Gtk.STOCK_MEDIA_NEXT,
-                                    relief=Gtk.ReliefStyle.NONE,
-                                    can_focus=False, hidetxt=True)
+        topvbox = self.builder.get_object('top_v_box')
+        toptophbox = self.builder.get_object('toptop_h_box')
+        self.prevbutton = self.builder.get_object('prev_button')
+        self.ppbutton = self.builder.get_object('playpause_button')
+        self.stopbutton = self.builder.get_object('stop_button')
+        self.nextbutton = self.builder.get_object('next_button')
         for mediabutton in (self.prevbutton, self.ppbutton, self.stopbutton,
                             self.nextbutton):
-            toptophbox.pack_start(mediabutton, False, False, 0)
+            mediabutton.get_child().get_child().get_children()[1].set_text('')
             if not self.config.show_playback:
                 ui.hide(mediabutton)
         self.progressbox = Gtk.VBox()
@@ -647,7 +635,6 @@ class Base(object):
         if not self.config.show_playback:
             ui.hide(self.volumebutton)
         toptophbox.pack_start(self.volumebutton, False, False, 0)
-        topvbox.pack_start(toptophbox, False, False, 2)
         self.expander = ui.expander(text=_("Playlist"),
                                     expand=self.config.expanded,
                                     can_focus=False)
@@ -658,22 +645,13 @@ class Base(object):
         expanderbox.pack_start(self.cursonglabel2, True, True, 0)
         self.expander.set_label_widget(expanderbox)
         topvbox.pack_start(self.expander, False, False, 2)
-        tophbox.pack_start(topvbox, True, True, 3)
-        mainvbox.pack_start(tophbox, False, False, 5)
         self.notebook.set_tab_pos(Gtk.PositionType.TOP)
         self.notebook.set_scrollable(True)
 
-        mainvbox.pack_start(self.notebook, True, True, 5)
-
-        self.statusbar = Gtk.Statusbar()
-        # TODO Find out what to do here
-        #self.statusbar.set_has_resize_grip(True)
+        self.statusbar = self.builder.get_object('main_statusbar')
         if not self.config.show_statusbar or not self.config.expanded:
             ui.hide(self.statusbar)
-        mainvbox.pack_start(self.statusbar, False, False, 0)
-        mainhbox.pack_start(mainvbox, True, True, 3)
         if self.window_owner:
-            self.window.add(mainhbox)
             self.window.move(self.config.x, self.config.y)
             self.window.set_size_request(270, -1)
         if not self.config.expanded:
