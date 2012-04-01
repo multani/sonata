@@ -44,7 +44,7 @@ class Library(object):
     def __init__(self, config, mpd, artwork, TAB_LIBRARY, album_filename,
                  settings_save, filtering_entry_make_red,
                  filtering_entry_revert_color, filter_key_pressed,
-                 on_add_item, connected, on_library_button_press, new_tab,
+                 on_add_item, connected, on_library_button_press, add_tab,
                  get_multicd_album_root_dir):
         self.artwork = artwork
         self.config = config
@@ -87,34 +87,37 @@ class Library(object):
         self.lib_list_years = None
         self.view_caches_reset()
 
-        self.libraryvbox = Gtk.VBox()
-        self.library = ui.treeview()
+        # Library tab
+        self.builder = Gtk.Builder()
+        self.builder.add_from_file('{0}/ui/library.ui'.format(
+          os.path.dirname(ui.__file__)))
+
+        self.libraryvbox = self.builder.get_object('library_page_v_box')
+        self.library = self.builder.get_object('library_page_treeview')
         self.library_selection = self.library.get_selection()
-        self.breadcrumbs = breadcrumbs.CrumbBox()
+        self.breadcrumbs = self.builder.get_object('library_page_crumbbox')
         self.breadcrumbs.props.spacing = 2
-        expanderwindow2 = ui.scrollwindow(add=self.library)
-        self.searchbox = Gtk.HBox()
-        self.searchcombo = ui.combo(items=self.search_terms)
+        expanderwindow2 = self.builder.get_object('library_page_scrolledwindow')
+        self.searchbox = self.builder.get_object('library_page_searchbox')
+        self.searchcombo = self.builder.get_object('library_page_searchbox_combo')
+        for term in self.search_terms:
+            self.searchcombo.append_text(term)
         self.searchcombo.set_tooltip_text(_("Search terms"))
-        self.searchtext = ui.entry()
+        self.searchtext = self.builder.get_object('library_page_searchbox_entry')
         self.searchtext.set_tooltip_text(_("Search library"))
-        self.searchbutton = ui.button(img=ui.image(stock=Gtk.STOCK_CANCEL),
-                                      h=self.searchcombo.size_request().height)
-        self.searchbutton.set_no_show_all(True)
+        self.searchbutton = self.builder.get_object('library_page_searchbox_button')
         self.searchbutton.hide()
         self.searchbutton.set_tooltip_text(_("End Search"))
         self.libraryview = ui.button(relief=Gtk.ReliefStyle.NONE)
         self.libraryview.set_tooltip_text(_("Library browsing view"))
-        self.searchbox.pack_start(ui.label(_("Search:")), False, False, 3)
-        self.searchbox.pack_start(self.searchtext, True, True, 2)
-        self.searchbox.pack_start(self.searchcombo, False, False, 2)
-        self.searchbox.pack_start(self.searchbutton, False, False, 2)
-        self.libraryvbox.pack_start(self.breadcrumbs, False, False, 2)
-        self.libraryvbox.pack_start(expanderwindow2, True, True, 0)
-        self.libraryvbox.pack_start(self.searchbox, False, False, 2)
+        searchbox_label = self.builder.get_object('library_page_searchbox_label')
+        searchbox_label.set_text(_("Search:"))
+        self.tab_label_widget = self.builder.get_object('library_tab_h_box')
+        tab_label = self.builder.get_object('library_tab_label')
+        tab_label.set_text(TAB_LIBRARY)
 
-        self.tab = new_tab(self.libraryvbox, Gtk.STOCK_HARDDISK, TAB_LIBRARY,
-                           self.library)
+        self.tab = add_tab(self.libraryvbox, self.tab_label_widget,
+                           TAB_LIBRARY, self.library)
 
         # Assign some pixbufs for use in self.library
         self.openpb2 = self.library.render_icon(Gtk.STOCK_OPEN,

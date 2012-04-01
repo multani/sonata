@@ -16,7 +16,7 @@ class Info(object):
     def __init__(self, config, info_image, linkcolor, on_link_click_cb,
                  get_playing_song, TAB_INFO, on_image_activate,
                  on_image_motion_cb, on_image_drop_cb,
-                 album_return_artist_and_tracks, new_tab):
+                 album_return_artist_and_tracks, add_tab):
         self.logger = logging.getLogger(__name__)
         self.config = config
         self.linkcolor = linkcolor
@@ -44,8 +44,15 @@ class Info(object):
         self.lyricsText = None
         self.albumText = None
 
-        self.info_area = ui.scrollwindow(shadow=Gtk.ShadowType.NONE)
-        self.tab = new_tab(self.info_area, Gtk.STOCK_JUSTIFY_FILL,
+        # Info tab
+        self.builder = Gtk.Builder()
+        self.builder.add_from_file('{0}/ui/info.ui'.format(
+          os.path.dirname(ui.__file__)))
+        self.info_area = self.builder.get_object('info_page_scrolledwindow')
+        self.tab_label_widget = self.builder.get_object('info_tab_h_box')
+        tab_label = self.builder.get_object('info_tab_label')
+        tab_label.set_text(TAB_INFO)
+        self.tab = add_tab(self.info_area, self.tab_label_widget,
                            TAB_INFO, self.info_area)
 
         image_width = -1 if self.config.info_art_enlarged else 152

@@ -29,7 +29,7 @@ class Current(object):
 
     def __init__(self, config, mpd, TAB_CURRENT, on_current_button_press,
                  connected, sonata_loaded, songinfo, update_statusbar,
-                 iterate_now, libsearchfilter_get_style, new_tab):
+                 iterate_now, libsearchfilter_get_style, add_tab):
         self.config = config
         self.mpd = mpd
         self.on_current_button_press = on_current_button_press
@@ -64,24 +64,23 @@ class Current(object):
         self.sel_rows = None
 
         # Current tab
-        self.current = ui.treeview(reorder=True, search=False, headers=True)
+        self.builder = Gtk.Builder()
+        self.builder.add_from_file('{0}/ui/current.ui'.format(
+          os.path.dirname(ui.__file__)))
+        self.current = self.builder.get_object('current_page_treeview')
         self.current_selection = self.current.get_selection()
-        self.expanderwindow = ui.scrollwindow(shadow=Gtk.ShadowType.IN,
-                                              add=self.current)
-        self.filterpattern = ui.entry()
-        self.filterbox = Gtk.HBox()
-        self.filterbox.pack_start(ui.label(text=_("Filter:")), False, False, 5)
-        self.filterbox.pack_start(self.filterpattern, True, True, 5)
-        filterclosebutton = ui.button(img=ui.image(stock=Gtk.STOCK_CLOSE),
-                                      relief=Gtk.ReliefStyle.NONE)
-        self.filterbox.pack_start(filterclosebutton, False, False, 0)
-        self.filterbox.set_no_show_all(True)
-        self.vbox_current = Gtk.VBox()
-        self.vbox_current.pack_start(self.expanderwindow, True, True, 0)
-        self.vbox_current.pack_start(self.filterbox, False, False, 5)
+        self.expanderwindow = self.builder.get_object('current_page_scrolledwindow')
+        self.filterpattern = self.builder.get_object('current_page_filterbox_entry')
+        self.filterbox = self.builder.get_object('current_page_filterbox')
+        filt_label = self.builder.get_object('current_page_filterbox_label')
+        filt_label.set_text(_("Filter:"))
+        self.vbox_current = self.builder.get_object('current_page_v_box')
+        tab_label = self.builder.get_object('current_tab_label')
+        tab_label.set_text(TAB_CURRENT)
 
-        self.tab = new_tab(self.vbox_current, Gtk.STOCK_CDROM, TAB_CURRENT,
-                           self.current)
+        self.tab_label_widget = self.builder.get_object('current_tab_h_box')
+        self.tab = add_tab(self.vbox_current, self.tab_label_widget,
+                           TAB_CURRENT, self.current)
 
         self.current.connect('drag_data_received', self.on_dnd)
         self.current.connect('row_activated', self.on_current_click)
@@ -98,6 +97,8 @@ class Current(object):
         self.filterpattern.connect('activate', self.searchfilter_on_enter)
         self.filterpattern.connect('key-press-event',
                                    self.searchfilter_key_pressed)
+        filterclosebutton = self.builder.get_object(
+            'current_page_filterbox_closebutton')
         filterclosebutton.connect('clicked', self.searchfilter_toggle)
 
         # Set up current view

@@ -478,7 +478,7 @@ class Base(object):
             self.on_current_button_press, self.connected,
             lambda: self.sonata_loaded, lambda: self.songinfo,
             self.update_statusbar, self.iterate_now,
-            lambda: self.library.libsearchfilter_get_style(), self.new_tab)
+            lambda: self.library.libsearchfilter_get_style(), self.add_tab)
 
         self.current_treeview = self.current.get_treeview()
         self.current_selection = self.current.get_selection()
@@ -507,7 +507,7 @@ class Base(object):
             self.current.filtering_entry_make_red,
             self.current.filtering_entry_revert_color,
             self.current.filter_key_pressed, self.on_add_item, self.connected,
-            self.on_library_button_press, self.new_tab,
+            self.on_library_button_press, self.add_tab,
             self.get_multicd_album_root_dir)
 
         self.library_treeview = self.library.get_treeview()
@@ -522,7 +522,7 @@ class Base(object):
                               self.TAB_INFO, self.on_image_activate,
                               self.on_image_motion_cb, self.on_image_drop_cb,
                               self.album_return_artist_and_tracks,
-                              self.new_tab)
+                              self.add_tab)
 
         self.info_imagebox = self.info.get_info_imagebox()
 
@@ -883,6 +883,24 @@ class Base(object):
 
     def on_disable_tab(self, _plugin, tab):
         self.notebook.remove(self.plugintabs.pop(tab))
+
+    def add_tab(self, page, label_widget, text, focus):
+        label_widget.show_all()
+        label_widget.connect("button_press_event", self.on_tab_click)
+
+        self.notebook.append_page(page, label_widget)
+        if (text in self.tabname2id and
+            not getattr(self.config,
+                self.tabname2id[text] + '_tab_visible')):
+            ui.hide(page)
+
+        self.notebook.set_tab_reorderable(page, True)
+        if self.config.tabs_expanded:
+            self.notebook.set_tab_label_packing(page, True, True,
+                                                Gtk.PACK_START)
+
+        self.tabname2tab[text] = page
+        self.tabname2focus[text] = focus
 
     def new_tab(self, page, stock, text, focus):
         # create the "ear" of the tab:
@@ -3181,7 +3199,13 @@ class Base(object):
 
     def notebook_get_tab_text(self, notebook, tab_num):
         tab = notebook.get_children()[tab_num]
-        child = notebook.get_tab_label(tab).get_child().get_children()[1]
+
+        # FIXME when new UI is done, the top branch expression wins
+        if notebook.get_tab_label(tab).get_children and \
+            len(notebook.get_tab_label(tab).get_children()) is 2:
+            child = notebook.get_tab_label(tab).get_children()[1]
+        else:
+            child = notebook.get_tab_label(tab).get_child().get_children()[1]
         return child.get_text()
 
     def on_notebook_page_change(self, _notebook, _page, page_num):
