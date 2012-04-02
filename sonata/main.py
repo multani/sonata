@@ -3064,11 +3064,13 @@ class Base(object):
         for widget in [self.progressbox, self.trayprogressbar]:
             func(widget)
 
-    def prefs_art_toggled(self, button, art_hbox1, art_hbox2, art_stylized):
+    # FIXME move into prefs or elsewhere?
+    def prefs_art_toggled(self, button, art_prefs):
         button_active = button.get_active()
-        art_hbox1.set_sensitive(button_active)
-        art_hbox2.set_sensitive(button_active)
-        art_stylized.set_sensitive(button_active)
+        art_prefs.set_sensitive(button_active)
+
+        #art_hbox2.set_sensitive(button_active)
+        #art_stylized.set_sensitive(button_active)
         if button_active:
             self.traytips.set_size_request(self.notification_width, -1)
             self.artwork.artwork_set_default_icon()

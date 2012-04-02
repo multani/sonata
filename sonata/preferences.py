@@ -91,8 +91,13 @@ class Preferences():
     def on_prefs_real(self):
         """Display the preferences dialog"""
 
-        self.prefswindow = ui.dialog(title=_("Preferences"), parent=self.window, flags=Gtk.DialogFlags.DESTROY_WITH_PARENT, role='preferences', resizable=False)
-        self.prefsnotebook = Gtk.Notebook()
+        self.builder = Gtk.Builder()
+        self.builder.add_from_file('{0}/ui/preferences.ui'.format(
+            os.path.dirname(ui.__file__)))
+
+        self.prefswindow = self.builder.get_object('preferences_dialog')
+        #self.prefswindow = ui.dialog(title=_("Preferences"), parent=self.window, flags=Gtk.DialogFlags.DESTROY_WITH_PARENT, role='preferences', resizable=False)
+        self.prefsnotebook = self.builder.get_object('preferences_notebook')
 
         tabs = [(_("MPD"), 'mpd'),
                 (_("Display"), 'display'),
@@ -108,10 +113,12 @@ class Preferences():
             cbs = globals().get('%s_cbs' % name.capitalize())
             tab = func(cbs)
             self.prefsnotebook.append_page(tab, label)
-        hbox = Gtk.HBox()
-        hbox.pack_start(self.prefsnotebook, False, False, 10)
-        self.prefswindow.vbox.pack_start(hbox, False, False, 10)
-        close_button = self.prefswindow.add_button(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE)
+
+        #hbox = Gtk.HBox()
+        #hbox.pack_start(self.prefsnotebook, False, False, 10)
+        #self.prefswindow.vbox.pack_start(hbox, False, False, 10)
+        #close_button = self.prefswindow.add_button(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE)
+        close_button = self.builder.get_object('preferences_closebutton')
         self.prefswindow.show_all()
         self.prefsnotebook.set_current_page(self.last_tab)
         close_button.grab_focus()
@@ -124,41 +131,47 @@ class Preferences():
 
     def mpd_tab(self, cbs=None):
         """Construct and layout the MPD tab"""
-        mpdlabel = ui.label(markup='<b>' + _('MPD Connection') + '</b>')
-        frame = Gtk.Frame()
-        frame.set_label_widget(mpdlabel)
-        frame.set_shadow_type(Gtk.ShadowType.NONE)
-        controlbox = Gtk.HBox()
-        profiles = ui.combo()
-        add_profile = ui.button(img=ui.image(stock=Gtk.STOCK_ADD))
-        remove_profile = ui.button(img=ui.image(stock=Gtk.STOCK_REMOVE))
+        mpd_builder = Gtk.Builder()
+        mpd_builder.set_translation_domain('sonata')
+        mpd_builder.add_from_file('{0}/ui/preferences_mpd.ui'.format(
+            os.path.dirname(ui.__file__)))
+        mpdlabel = mpd_builder.get_object('mpd_label')
+        mpdlabel.set_markup('<b>' + _('MPD Connection') + '</b>')
+        #frame.set_shadow_type(Gtk.ShadowType.NONE)
+        controlbox = mpd_builder.get_object('connection_frame_label_widget')
+        profiles = mpd_builder.get_object('connection_profiles')
+        add_profile = mpd_builder.get_object('connection_add_profile')
+        remove_profile = mpd_builder.get_object('connection_remove_profile')
         self._populate_profile_combo(profiles, self.config.profile_num,
             remove_profile)
-        controlbox.pack_start(profiles, False, False, 2)
-        controlbox.pack_start(remove_profile, False, False, 2)
-        controlbox.pack_start(add_profile, False, False, 2)
-        namelabel = ui.label(textmn=_("_Name:"))
-        nameentry = ui.entry()
+        namelabel = mpd_builder.get_object('connection_name_label')
+        namelabel.set_text_with_mnemonic(_("_Name:"))
+        nameentry = mpd_builder.get_object('connection_name')
         namelabel.set_mnemonic_widget(nameentry)
-        hostlabel = ui.label(textmn=_("_Host:"))
-        hostentry = ui.entry()
+        hostlabel = mpd_builder.get_object('connection_host_label')
+        hostlabel.set_text_with_mnemonic(_("_Host:"))
+        hostentry = mpd_builder.get_object('connection_host')
         hostlabel.set_mnemonic_widget(hostentry)
-        portlabel = ui.label(textmn=_("_Port:"))
-        portentry = Gtk.SpinButton.new(Gtk.Adjustment.new(0 ,0 ,65535, 1, 0, 0),1,0)
-        portentry.set_numeric(True)
+        portlabel = mpd_builder.get_object('connection_port_label')
+        portlabel.set_text_with_mnemonic(_("_Port:"))
+        portentry = mpd_builder.get_object('connection_port')
         portlabel.set_mnemonic_widget(portentry)
-        dirlabel = ui.label(textmn=_("_Music dir:"))
-        direntry = Gtk.FileChooserButton(_('Select a Music Directory'))
+        dirlabel = mpd_builder.get_object('connection_dir_label')
+        dirlabel.set_text_with_mnemonic(_("_Music dir:"))
+        direntry = mpd_builder.get_object('connection_dir')
+        dirlabel.set_mnemonic_widget(direntry)
+        direntry.set_title(_('Select a Music Directory'))
         self.direntry = direntry
-        direntry.set_action(Gtk.FileChooserAction.SELECT_FOLDER)
         direntry.connect('selection-changed', self._direntry_changed,
             profiles)
-        dirlabel.set_mnemonic_widget(direntry)
-        passwordlabel = ui.label(textmn=_("Pa_ssword:"))
-        passwordentry = ui.entry(password=True)
+        passwordlabel = mpd_builder.get_object('connection_password_label')
+        passwordlabel.set_text_with_mnemonic(_("Pa_ssword:"))
+        passwordentry = mpd_builder.get_object('connection_password')
         passwordlabel.set_mnemonic_widget(passwordentry)
         passwordentry.set_tooltip_text(_("Leave blank if no password is required."))
-        autoconnect = Gtk.CheckButton(_("_Autoconnect on start"))
+        autoconnect = mpd_builder.get_object('connection_autoconnect')
+        #FIXME test if localization from builder UI works properly
+        #autoconnect.(_("_Autoconnect on start"))
         autoconnect.set_active(self.config.autoconnect)
         autoconnect.connect('toggled', self._config_widget_active,
             'autoconnect')
@@ -201,39 +214,7 @@ class Preferences():
             remove_profile.connect('clicked', self._remove_profile,
                 profiles, remove_profile)
 
-        rows = [(namelabel, nameentry),
-            (hostlabel, hostentry),
-            (portlabel, portentry),
-            (passwordlabel, passwordentry),
-            (dirlabel, direntry)]
-
-        connection_table = Gtk.Table(len(rows), 2)
-        connection_table.set_col_spacings(12)
-        for i, (label, entry) in enumerate(rows):
-            connection_table.attach(label, 0, 1, i, i+1, Gtk.AttachOptions.FILL,
-                Gtk.AttachOptions.FILL)
-            connection_table.attach(entry, 1, 2, i, i+1,
-                Gtk.AttachOptions.FILL|Gtk.AttachOptions.EXPAND, Gtk.AttachOptions.FILL)
-
-        connection_alignment = Gtk.Alignment.new(0.5, 0.5, 1.0, 1.0)
-        connection_alignment.set_padding(12, 12, 12, 12)
-        connection_alignment.add(connection_table)
-        connection_frame = Gtk.Frame()
-        connection_frame.set_label_widget(controlbox)
-        connection_frame.add(connection_alignment)
-        table = Gtk.Table(2, 1)
-        table.set_row_spacings(12)
-        table.attach(connection_frame, 0, 1, 0, 1,
-            Gtk.AttachOptions.FILL|Gtk.AttachOptions.EXPAND, Gtk.AttachOptions.FILL)
-        table.attach(autoconnect, 0, 1, 1, 2, Gtk.AttachOptions.FILL|Gtk.AttachOptions.EXPAND,
-            Gtk.AttachOptions.FILL)
-        alignment = Gtk.Alignment.new(0.5, 0.5, 1.0, 1.0)
-        alignment.set_padding(12, 0, 12, 0)
-        alignment.add(table)
-        frame.add(alignment)
-        tab = Gtk.Alignment.new(0.5, 0.5, 1.0, 1.0)
-        tab.set_padding(12, 12, 12, 12)
-        tab.add(frame)
+        tab = mpd_builder.get_object('preferences_mpd')
 
         return tab
 
@@ -338,87 +319,78 @@ class Preferences():
 
     def display_tab(self, cbs):
         """Construct and layout the display tab"""
-        displaylabel = ui.label(markup='<b>' + _('Display') + '</b>')
-        frame = Gtk.Frame()
-        frame.set_label_widget(displaylabel)
-        frame.set_shadow_type(Gtk.ShadowType.NONE)
+        disp_builder = Gtk.Builder()
+        disp_builder.add_from_file('{0}/ui/preferences_display.ui'.format(
+            os.path.dirname(ui.__file__)))
 
-        art = Gtk.CheckButton(_("_Album art"))
+        displaylabel = disp_builder.get_object('display_frame_label')
+        displaylabel.set_markup('<b>' + _('Display') + '</b>')
+
+        art = disp_builder.get_object('art_check')
+        art.set_label(_("_Album art"))
         art.set_active(self.config.show_covers)
-        stylized_combo = ui.combo(items=[_("Standard"),
-            _("Stylized")], active=self.config.covers_type,
-            changed_cb=cbs.stylized_toggled)
-        stylized_hbox = Gtk.HBox(spacing=12)
-        stylized_hbox.pack_end(stylized_combo, False, False, 0)
-        stylized_hbox.pack_end(ui.label(
-            text=_("Artwork style:")), False, False, 0)
-        stylized_hbox.set_sensitive(self.config.show_covers)
-        art_combo = ui.combo(items=[_("Local only"),
-            _("Local and remote")], active=self.config.covers_pref)
-        art_combo.connect('changed',
-            self._config_widget_active, 'covers_pref')
-        orderart_label = ui.label(text=_("Search locations:"))
-        art_hbox = Gtk.HBox(spacing=12)
-        art_hbox.pack_end(art_combo, False, False, 0)
-        art_hbox.pack_end(orderart_label, False, False, 0)
-        art_hbox.set_sensitive(self.config.show_covers)
+        stylized_label = disp_builder.get_object('art_style_label')
+        stylized_label.set_text(_("Artwork style:"))
+        stylized_combo = disp_builder.get_object('art_style_combo')
+        for item in [_("Standard"), _("Stylized")]:
+            stylized_combo.append_text(item)
+        stylized_combo.set_active(self.config.covers_type)
+        stylized_combo.connect('changed', cbs.stylized_toggled)
+        art_prefs = disp_builder.get_object('art_preferences')
+        art_prefs.set_sensitive(self.config.show_covers)
+        art_combo = disp_builder.get_object('art_search_combo')
+        for item in [_("Local only"), _("Local and remote")]:
+            art_combo.append_text(item)
+        art_combo.set_active(self.config.covers_pref)
+        art_combo.connect('changed', self._config_widget_active, 'covers_pref')
+        orderart_label = disp_builder.get_object('art_search_label')
+        orderart_label.set_text(_("Search locations:"))
 
         art_paths = ["~/.covers/"]
         art_paths += ("%s/%s" % (_("SONG_DIR"), item)
             for item in ("cover.jpg", "album.jpg", "folder.jpg",
                 self.config.art_location_custom_filename or _("custom")))
-        art_location = ui.combo(items=art_paths,
-            active=self.config.art_location,
-            changed_cb=self._art_location_changed)
+        art_location = disp_builder.get_object('art_save_combo')
+        for item in art_paths:
+            art_location.append_text(item)
+        art_location.set_active(self.config.art_location)
+        art_location.connect('changed', self._art_location_changed)
 
-        art_location_hbox = Gtk.HBox(spacing=12)
-        art_location_hbox.pack_end(art_location, False, False, 0)
-        art_location_hbox.pack_end(ui.label(text=_("Save art to:")),
-            False, False, 0)
-        art_location_hbox.set_sensitive(self.config.show_covers)
-        art.connect('toggled', cbs.art_toggled, art_hbox,
-            art_location_hbox, stylized_hbox)
-        playback = Gtk.CheckButton(_("_Playback/volume buttons"))
+        art_save_label = disp_builder.get_object('art_save_label')
+        art_save_label.set_text(_("Save art to:"))
+        art.connect('toggled', cbs.art_toggled, art_prefs)
+        playback = disp_builder.get_object('playback_buttons_check')
+        playback.set_label(_("_Playback/volume buttons"))
         playback.set_active(self.config.show_playback)
         playback.connect('toggled', cbs.playback_toggled)
-        progress = Gtk.CheckButton(_("Pr_ogressbar"))
+        progress = disp_builder.get_object('progressbar_check')
+        progress.set_label(_("Pr_ogressbar"))
         progress.set_active(self.config.show_progress)
         progress.connect('toggled', cbs.progress_toggled)
-        statusbar = Gtk.CheckButton(_("_Statusbar"))
+        statusbar = disp_builder.get_object('statusbar_check')
+        statusbar.set_label(_("_Statusbar"))
         statusbar.set_active(self.config.show_statusbar)
         statusbar.connect('toggled', cbs.statusbar_toggled)
-        lyrics = Gtk.CheckButton(_("Song Ly_rics"))
+        lyrics = disp_builder.get_object('lyrics_check')
+        lyrics.set_label(_("Song Ly_rics"))
         lyrics.set_active(self.config.show_lyrics)
-        savelyrics_label = ui.label(text=_("Save lyrics to:"), x=1)
-        lyrics_location = ui.combo(
-            items=["~/.lyrics/", _("SONG_DIR") + "/"],
-            active=self.config.lyrics_location,
-            changed_cb=self._lyrics_location_changed)
-        lyrics_location_hbox = Gtk.HBox(spacing=12)
-        lyrics_location_hbox.pack_end(lyrics_location, False, False, 0)
-        lyrics_location_hbox.pack_end(savelyrics_label, False, False, 0)
+        savelyrics = disp_builder.get_object('lyrics_save_label')
+        savelyrics.set_text(_("Save lyrics to:"))
+        lyrics_location = disp_builder.get_object('lyrics_save_combo')
+        for item in ["~/.lyrics/", _("SONG_DIR") + "/"]:
+            lyrics_location.append_text(item)
+        lyrics_location.set_active(self.config.lyrics_location)
+        lyrics_location.connect('changed', self._lyrics_location_changed)
+        lyrics_location_hbox = disp_builder.get_object('lyrics_preferences')
         lyrics_location_hbox.set_sensitive(self.config.show_lyrics)
-        lyrics.connect('toggled', cbs.lyrics_toggled,
-            lyrics_location_hbox)
-        trayicon = Gtk.CheckButton(_("System _tray icon"))
+        lyrics.connect('toggled', cbs.lyrics_toggled, lyrics_location_hbox)
+        trayicon = disp_builder.get_object('tray_icon_check')
+        trayicon.set_label(_("System _tray icon"))
         self.display_trayicon = trayicon
         trayicon.set_active(self.config.show_trayicon)
         trayicon.set_sensitive(cbs.trayicon_available)
 
-        widgets = (playback, progress, statusbar, trayicon, lyrics,
-               lyrics_location_hbox, art, stylized_hbox, art_hbox,
-               art_location_hbox)
-        table = Gtk.Table(len(widgets), 1, False)
-        for i, widget in enumerate(widgets):
-            table.attach(widget, 0, 1, i, i+1, Gtk.AttachOptions.FILL|Gtk.AttachOptions.EXPAND,
-                Gtk.AttachOptions.FILL)
-        alignment = Gtk.Alignment.new(0.5, 0.5, 1.0, 1.0)
-        alignment.set_padding(12, 0, 12, 0)
-        alignment.add(table)
-        frame.add(alignment)
-        tab = Gtk.Alignment.new(0.5, 0.5, 1.0, 1.0)
-        tab.set_padding(12, 12, 12, 12)
-        tab.add(frame)
+        tab = disp_builder.get_object('preferences_display')
 
         return tab
 
