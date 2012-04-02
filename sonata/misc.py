@@ -231,7 +231,7 @@ def mpd_env_vars():
 
 def get_files_recursively(dirname):
     filenames = []
-    os.path.walk(dirname, _get_files_recursively, filenames)
+    os.walk(dirname, _get_files_recursively, filenames)
     return filenames
 
 
