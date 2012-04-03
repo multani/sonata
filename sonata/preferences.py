@@ -399,29 +399,23 @@ class Preferences():
 
     def format_tab(self, cbs):
         """Construct and layout the format tab"""
-        formatlabel = ui.label(markup='<b>'+_('Song Formatting')+'</b>')
-        frame = Gtk.Frame()
-        frame.set_label_widget(formatlabel)
-        frame.set_shadow_type(Gtk.ShadowType.NONE)
+        builder = Gtk.Builder()
+        builder.add_from_file('{0}/ui/preferences_format.ui'.format(
+            os.path.dirname(ui.__file__)))
+        builder.set_translation_domain('sonata')
 
-        rows = [(_("C_urrent playlist:"), self.config.currentformat),
-            (_("_Library:"), self.config.libraryformat),
-            (_("_Window title:"), self.config.titleformat),
-            (_("Current _song line 1:"),
-                self.config.currsongformat1),
-            (_("Current s_ong line 2:"),
-                self.config.currsongformat2)]
-
-        labels = []
-        entries = []
-        for label_text, entry_text in rows:
-            label = ui.label(textmn=label_text)
-            entry = ui.entry(text=entry_text)
-
-            label.set_mnemonic_widget(entry)
-
-            labels.append(label)
-            entries.append(entry)
+        playlist_entry = builder.get_object('format_playlist_entry')
+        playlist_entry.set_text(self.config.currentformat)
+        library_entry = builder.get_object('format_library_entry')
+        library_entry.set_text(self.config.libraryformat)
+        window_entry = builder.get_object('format_window_entry')
+        window_entry.set_text(self.config.titleformat)
+        current1_entry = builder.get_object('format_current1_entry')
+        current1_entry.set_text(self.config.currsongformat1)
+        current2_entry = builder.get_object('format_current2_entry')
+        current2_entry.set_text(self.config.currsongformat2)
+        entries = [playlist_entry, library_entry, window_entry, current1_entry,
+                   current2_entry]
 
         entry_cbs = (cbs.currentoptions_changed,
                  cbs.libraryoptions_changed,
@@ -434,9 +428,8 @@ class Preferences():
             entry.connect('activate', lambda _, n: n.grab_focus(),
                     next)
 
-        availableheading = ui.label(markup='<small>' + _('Available options') + ':</small>')
-        availablevbox = Gtk.VBox()
-        availableformatbox = Gtk.HBox()
+        #FIXME doesn't currently use small markup (id="format_avail_label")
+        availableformatbox = builder.get_object('format_avail_descs')
         formatcodes = formatting.formatcodes
         for codes in [formatcodes[:int((len(formatcodes)+1)/2)],
                   formatcodes[int((len(formatcodes)+1)/2):]]:
@@ -447,28 +440,12 @@ class Preferences():
             formattinghelp = ui.label(markup=markup)
             availableformatbox.pack_start(formattinghelp, True, True, 0)
 
-        availablevbox.pack_start(availableformatbox, False, False, 0)
-        additionalinfo = ui.label(markup='<small><tt>{ }</tt> - ' + _('Info displayed only if all enclosed tags are defined') + '\n<tt>|</tt> - ' + _('Creates columns in the current playlist') + '</small>')
-        availablevbox.pack_start(additionalinfo, False, False, 4)
+        additionalinfo = builder.get_object('format_additional_label')
+        # FIXME need to either separate markup from localized strings OR
+        # include markup in the strings and let the translators work around them
+        additionalinfo.set_markup('<small><tt>{ }</tt> - ' + _('Info displayed only if all enclosed tags are defined') + '\n<tt>|</tt> - ' + _('Creates columns in the current playlist') + '</small>')
 
-        num_rows = len(rows) + 2
-        table = Gtk.Table(num_rows, 2)
-        table.set_col_spacings(12)
-        label_entries = enumerate(zip(labels, entries))
-        for i, (label, entry) in label_entries:
-            table.attach(label, 0, 1, i, i+1, Gtk.AttachOptions.FILL)
-            table.attach(entry, 1, 2, i, i+1)
-        table.attach(availableheading, 0, 2, num_rows-2,
-            num_rows-1, Gtk.AttachOptions.FILL|Gtk.AttachOptions.EXPAND, Gtk.AttachOptions.FILL|Gtk.AttachOptions.EXPAND,
-            0, 6)
-        table.attach(availablevbox, 0, 2, num_rows-1, num_rows)
-        alignment = Gtk.Alignment.new(0.5, 0.5, 1.0, 1.0)
-        alignment.set_padding(12, 0, 12, 0)
-        alignment.add(table)
-        frame.add(alignment)
-        tab = Gtk.Alignment.new(0.5, 0.5, 1.0, 1.0)
-        tab.set_padding(12, 12, 12, 12)
-        tab.add(frame)
+        tab = builder.get_object('preferences_format')
         return tab
 
     def plugins_tab(self, cbs=None):
