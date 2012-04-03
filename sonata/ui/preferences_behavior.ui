@@ -1,45 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
-  <object class="GtkAlignment" id="preferences_mpd">
+  <object class="GtkAlignment" id="preferences_behavior">
     <property name="can_focus">False</property>
     <property name="top_padding">12</property>
     <property name="bottom_padding">12</property>
     <property name="left_padding">12</property>
     <property name="right_padding">12</property>
     <child>
-      <object class="GtkFrame" id="preferences_mpd_frame">
+      <object class="GtkFrame" id="behavior_frame">
         <property name="can_focus">False</property>
         <property name="label_xalign">0</property>
         <child>
-          <object class="GtkAlignment" id="preferences_mpd_frame_alignment">
+          <object class="GtkAlignment" id="behavior_frame_alignment">
             <property name="can_focus">False</property>
             <property name="top_padding">12</property>
             <property name="left_padding">12</property>
             <child>
-              <object class="GtkBox" id="box2">
+              <object class="GtkBox" id="behavior_box">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="orientation">vertical</property>
                 <child>
-                  <object class="GtkFrame" id="connection_frame">
+                  <object class="GtkFrame" id="behavior_window_frame">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="label_xalign">0</property>
                     <property name="shadow_type">none</property>
                     <child>
-                      <object class="GtkAlignment" id="connection_alignment">
+                      <object class="GtkAlignment" id="behavior_window_alignment">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="left_padding">12</property>
                         <child>
-                          <object class="GtkBox" id="box1">
+                          <object class="GtkBox" id="behavior_window_prefs">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="orientation">vertical</property>
                             <child>
-                              <object class="GtkCheckButton" id="checkbutton2">
-                                <property name="label" translatable="yes">checkbutton</property>
+                              <object class="GtkCheckButton" id="behavior_sticky_check">
+                                <property name="label" translatable="yes">_Show window on all workspaces</property>
+                                <property name="use_underline">True</property>
                                 <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
@@ -55,8 +56,9 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkCheckButton" id="checkbutton3">
-                                <property name="label" translatable="yes">checkbutton</property>
+                              <object class="GtkCheckButton" id="behavior_ontop_check">
+                                <property name="label" translatable="yes">_Keep window above other windows</property>
+                                <property name="use_underline">True</property>
                                 <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
@@ -72,8 +74,9 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkCheckButton" id="checkbutton4">
-                                <property name="label" translatable="yes">checkbutton</property>
+                              <object class="GtkCheckButton" id="behavior_decor_check">
+                                <property name="label" translatable="yes">_Hide window titlebar</property>
+                                <property name="use_underline">True</property>
                                 <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
@@ -89,8 +92,9 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkCheckButton" id="checkbutton5">
-                                <property name="label" translatable="yes">checkbutton</property>
+                              <object class="GtkCheckButton" id="behavior_minimize_check">
+                                <property name="label" translatable="yes">_Minimize to system tray on close/escape</property>
+                                <property name="use_underline">True</property>
                                 <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
@@ -98,6 +102,7 @@
                                 <property name="use_action_appearance">False</property>
                                 <property name="xalign">0</property>
                                 <property name="draw_indicator">True</property>
+                                <property name="tooltip_text" translatable="yes">If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one.</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -110,10 +115,13 @@
                       </object>
                     </child>
                     <child type="label">
-                      <object class="GtkLabel" id="label1">
+                      <object class="GtkLabel" id="behavior_window_label">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">label</property>
+                        <property name="label" translatable="yes">Window Behavior</property>
+                        <attributes>
+                          <attribute name="weight" value="bold"/>
+                        </attributes>
                       </object>
                     </child>
                   </object>
@@ -124,24 +132,25 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkFrame" id="connection_frame1">
+                  <object class="GtkFrame" id="behavior_misc_frame">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="label_xalign">0</property>
                     <property name="shadow_type">none</property>
                     <child>
-                      <object class="GtkAlignment" id="connection_alignment1">
+                      <object class="GtkAlignment" id="behavior_misc_alignment">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="left_padding">12</property>
                         <child>
-                          <object class="GtkBox" id="box3">
+                          <object class="GtkBox" id="behavior_misc_prefs">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="orientation">vertical</property>
                             <child>
-                              <object class="GtkCheckButton" id="checkbutton1">
-                                <property name="label" translatable="yes">checkbutton</property>
+                              <object class="GtkCheckButton" id="misc_updatestart_check">
+                                <property name="label" translatable="yes">_Update MPD library on start</property>
+                                <property name="use_underline">True</property>
                                 <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
@@ -149,6 +158,7 @@
                                 <property name="use_action_appearance">False</property>
                                 <property name="xalign">0</property>
                                 <property name="draw_indicator">True</property>
+                                <property name="tooltip_text" translatable="yes">If enabled, Sonata will automatically update your MPD library when it starts up.</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -157,8 +167,9 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkCheckButton" id="checkbutton6">
-                                <property name="label" translatable="yes">checkbutton</property>
+                              <object class="GtkCheckButton" id="misc_exit_stop_check">
+                                <property name="label" translatable="yes">S_top playback on exit</property>
+                                <property name="use_underline">True</property>
                                 <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
@@ -166,6 +177,7 @@
                                 <property name="use_action_appearance">False</property>
                                 <property name="xalign">0</property>
                                 <property name="draw_indicator">True</property>
+                                <property name="tooltip_text" translatable="yes">MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit.</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -174,12 +186,13 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkBox" id="box4">
+                              <object class="GtkBox" id="misc_infofile_box">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <child>
-                                  <object class="GtkCheckButton" id="checkbutton7">
-                                    <property name="label" translatable="yes">checkbutton</property>
+                                  <object class="GtkCheckButton" id="misc_infofile_usage_check">
+                                    <property name="label" translatable="yes">_Write status file:</property>
+                                    <property name="use_underline">True</property>
                                     <property name="use_action_appearance">False</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -187,6 +200,7 @@
                                     <property name="use_action_appearance">False</property>
                                     <property name="xalign">0</property>
                                     <property name="draw_indicator">True</property>
+                                    <property name="tooltip_text" translatable="yes">If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -195,10 +209,10 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkEntry" id="entry1">
+                                  <object class="GtkEntry" id="misc_infofile_entry">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
-                                    <property name="invisible_char">•</property>
+                                    <property name="tooltip_text" translatable="yes">If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -218,10 +232,13 @@
                       </object>
                     </child>
                     <child type="label">
-                      <object class="GtkLabel" id="label2">
+                      <object class="GtkLabel" id="behavior_misc_label">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">label</property>
+                        <property name="label" translatable="yes">Miscellaneous</property>
+                        <attributes>
+                          <attribute name="weight" value="bold"/>
+                        </attributes>
                       </object>
                     </child>
                   </object>
@@ -241,6 +258,6 @@
   <object class="GtkLabel" id="preferences_tab_mpd">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="label" translatable="yes">page 1</property>
+    <property name="label" translatable="yes"></property>
   </object>
 </interface>

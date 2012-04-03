@@ -65,6 +65,7 @@
         <child>
           <object class="GtkLabel" id="current_page_filterbox_label">
             <property name="can_focus">True</property>
+            <property name="label" translatable="yes">Filter:</property>
           </object><!--current_page_filterbox_label-->
           <packing>
             <property name="expand">False</property>

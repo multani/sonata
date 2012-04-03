@@ -94,6 +94,7 @@ class Preferences():
         self.builder = Gtk.Builder()
         self.builder.add_from_file('{0}/ui/preferences.ui'.format(
             os.path.dirname(ui.__file__)))
+        self.builder.set_translation_domain('sonata')
 
         self.prefswindow = self.builder.get_object('preferences_dialog')
         #self.prefswindow = ui.dialog(title=_("Preferences"), parent=self.window, flags=Gtk.DialogFlags.DESTROY_WITH_PARENT, role='preferences', resizable=False)
@@ -114,10 +115,6 @@ class Preferences():
             tab = func(cbs)
             self.prefsnotebook.append_page(tab, label)
 
-        #hbox = Gtk.HBox()
-        #hbox.pack_start(self.prefsnotebook, False, False, 10)
-        #self.prefswindow.vbox.pack_start(hbox, False, False, 10)
-        #close_button = self.prefswindow.add_button(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE)
         close_button = self.builder.get_object('preferences_closebutton')
         self.prefswindow.show_all()
         self.prefsnotebook.set_current_page(self.last_tab)
@@ -131,47 +128,26 @@ class Preferences():
 
     def mpd_tab(self, cbs=None):
         """Construct and layout the MPD tab"""
-        mpd_builder = Gtk.Builder()
-        mpd_builder.set_translation_domain('sonata')
-        mpd_builder.add_from_file('{0}/ui/preferences_mpd.ui'.format(
+        builder = Gtk.Builder()
+        builder.set_translation_domain('sonata')
+        builder.add_from_file('{0}/ui/preferences_mpd.ui'.format(
             os.path.dirname(ui.__file__)))
-        mpdlabel = mpd_builder.get_object('mpd_label')
-        mpdlabel.set_markup('<b>' + _('MPD Connection') + '</b>')
         #frame.set_shadow_type(Gtk.ShadowType.NONE)
-        controlbox = mpd_builder.get_object('connection_frame_label_widget')
-        profiles = mpd_builder.get_object('connection_profiles')
-        add_profile = mpd_builder.get_object('connection_add_profile')
-        remove_profile = mpd_builder.get_object('connection_remove_profile')
+        controlbox = builder.get_object('connection_frame_label_widget')
+        profiles = builder.get_object('connection_profiles')
+        add_profile = builder.get_object('connection_add_profile')
+        remove_profile = builder.get_object('connection_remove_profile')
         self._populate_profile_combo(profiles, self.config.profile_num,
             remove_profile)
-        namelabel = mpd_builder.get_object('connection_name_label')
-        namelabel.set_text_with_mnemonic(_("_Name:"))
-        nameentry = mpd_builder.get_object('connection_name')
-        namelabel.set_mnemonic_widget(nameentry)
-        hostlabel = mpd_builder.get_object('connection_host_label')
-        hostlabel.set_text_with_mnemonic(_("_Host:"))
-        hostentry = mpd_builder.get_object('connection_host')
-        hostlabel.set_mnemonic_widget(hostentry)
-        portlabel = mpd_builder.get_object('connection_port_label')
-        portlabel.set_text_with_mnemonic(_("_Port:"))
-        portentry = mpd_builder.get_object('connection_port')
-        portlabel.set_mnemonic_widget(portentry)
-        dirlabel = mpd_builder.get_object('connection_dir_label')
-        dirlabel.set_text_with_mnemonic(_("_Music dir:"))
-        direntry = mpd_builder.get_object('connection_dir')
-        dirlabel.set_mnemonic_widget(direntry)
-        direntry.set_title(_('Select a Music Directory'))
+        nameentry = builder.get_object('connection_name')
+        hostentry = builder.get_object('connection_host')
+        portentry = builder.get_object('connection_port')
+        direntry = builder.get_object('connection_dir')
         self.direntry = direntry
         direntry.connect('selection-changed', self._direntry_changed,
             profiles)
-        passwordlabel = mpd_builder.get_object('connection_password_label')
-        passwordlabel.set_text_with_mnemonic(_("Pa_ssword:"))
-        passwordentry = mpd_builder.get_object('connection_password')
-        passwordlabel.set_mnemonic_widget(passwordentry)
-        passwordentry.set_tooltip_text(_("Leave blank if no password is required."))
-        autoconnect = mpd_builder.get_object('connection_autoconnect')
-        #FIXME test if localization from builder UI works properly
-        #autoconnect.(_("_Autoconnect on start"))
+        passwordentry = builder.get_object('connection_password')
+        autoconnect = builder.get_object('connection_autoconnect')
         autoconnect.set_active(self.config.autoconnect)
         autoconnect.connect('toggled', self._config_widget_active,
             'autoconnect')
@@ -214,7 +190,7 @@ class Preferences():
             remove_profile.connect('clicked', self._remove_profile,
                 profiles, remove_profile)
 
-        tab = mpd_builder.get_object('preferences_mpd')
+        tab = builder.get_object('preferences_mpd')
 
         return tab
 
@@ -319,133 +295,98 @@ class Preferences():
 
     def display_tab(self, cbs):
         """Construct and layout the display tab"""
-        disp_builder = Gtk.Builder()
-        disp_builder.add_from_file('{0}/ui/preferences_display.ui'.format(
+        builder = Gtk.Builder()
+        builder.add_from_file('{0}/ui/preferences_display.ui'.format(
             os.path.dirname(ui.__file__)))
+        builder.set_translation_domain('sonata')
 
-        displaylabel = disp_builder.get_object('display_frame_label')
+        displaylabel = builder.get_object('display_frame_label')
         displaylabel.set_markup('<b>' + _('Display') + '</b>')
 
-        art = disp_builder.get_object('art_check')
-        art.set_label(_("_Album art"))
+        art = builder.get_object('art_check')
         art.set_active(self.config.show_covers)
-        stylized_label = disp_builder.get_object('art_style_label')
-        stylized_label.set_text(_("Artwork style:"))
-        stylized_combo = disp_builder.get_object('art_style_combo')
-        for item in [_("Standard"), _("Stylized")]:
-            stylized_combo.append_text(item)
+        stylized_combo = builder.get_object('art_style_combo')
         stylized_combo.set_active(self.config.covers_type)
         stylized_combo.connect('changed', cbs.stylized_toggled)
-        art_prefs = disp_builder.get_object('art_preferences')
+        art_prefs = builder.get_object('art_preferences')
         art_prefs.set_sensitive(self.config.show_covers)
-        art_combo = disp_builder.get_object('art_search_combo')
-        for item in [_("Local only"), _("Local and remote")]:
-            art_combo.append_text(item)
+        art_combo = builder.get_object('art_search_combo')
         art_combo.set_active(self.config.covers_pref)
         art_combo.connect('changed', self._config_widget_active, 'covers_pref')
-        orderart_label = disp_builder.get_object('art_search_label')
-        orderart_label.set_text(_("Search locations:"))
 
-        art_paths = ["~/.covers/"]
-        art_paths += ("%s/%s" % (_("SONG_DIR"), item)
+        #FIXME move into preferences_display.ui?
+        art_location = builder.get_object('art_save_combo')
+        for item in ["%s/%s" % (_("SONG_DIR"), item)
             for item in ("cover.jpg", "album.jpg", "folder.jpg",
-                self.config.art_location_custom_filename or _("custom")))
-        art_location = disp_builder.get_object('art_save_combo')
-        for item in art_paths:
+                self.config.art_location_custom_filename or _("custom"))]:
             art_location.append_text(item)
         art_location.set_active(self.config.art_location)
         art_location.connect('changed', self._art_location_changed)
 
-        art_save_label = disp_builder.get_object('art_save_label')
-        art_save_label.set_text(_("Save art to:"))
         art.connect('toggled', cbs.art_toggled, art_prefs)
-        playback = disp_builder.get_object('playback_buttons_check')
-        playback.set_label(_("_Playback/volume buttons"))
+        playback = builder.get_object('playback_buttons_check')
         playback.set_active(self.config.show_playback)
         playback.connect('toggled', cbs.playback_toggled)
-        progress = disp_builder.get_object('progressbar_check')
-        progress.set_label(_("Pr_ogressbar"))
+        progress = builder.get_object('progressbar_check')
         progress.set_active(self.config.show_progress)
         progress.connect('toggled', cbs.progress_toggled)
-        statusbar = disp_builder.get_object('statusbar_check')
-        statusbar.set_label(_("_Statusbar"))
+        statusbar = builder.get_object('statusbar_check')
         statusbar.set_active(self.config.show_statusbar)
         statusbar.connect('toggled', cbs.statusbar_toggled)
-        lyrics = disp_builder.get_object('lyrics_check')
-        lyrics.set_label(_("Song Ly_rics"))
+        lyrics = builder.get_object('lyrics_check')
         lyrics.set_active(self.config.show_lyrics)
-        savelyrics = disp_builder.get_object('lyrics_save_label')
-        savelyrics.set_text(_("Save lyrics to:"))
-        lyrics_location = disp_builder.get_object('lyrics_save_combo')
-        for item in ["~/.lyrics/", _("SONG_DIR") + "/"]:
-            lyrics_location.append_text(item)
+        lyrics_location = builder.get_object('lyrics_save_combo')
         lyrics_location.set_active(self.config.lyrics_location)
         lyrics_location.connect('changed', self._lyrics_location_changed)
-        lyrics_location_hbox = disp_builder.get_object('lyrics_preferences')
+        lyrics_location_hbox = builder.get_object('lyrics_preferences')
         lyrics_location_hbox.set_sensitive(self.config.show_lyrics)
         lyrics.connect('toggled', cbs.lyrics_toggled, lyrics_location_hbox)
-        trayicon = disp_builder.get_object('tray_icon_check')
-        trayicon.set_label(_("System _tray icon"))
+        trayicon = builder.get_object('tray_icon_check')
         self.display_trayicon = trayicon
         trayicon.set_active(self.config.show_trayicon)
         trayicon.set_sensitive(cbs.trayicon_available)
 
-        tab = disp_builder.get_object('preferences_display')
+        tab = builder.get_object('preferences_display')
 
         return tab
 
     def behavior_tab(self, cbs):
         """Construct and layout the behavior tab"""
-        windowlabel = ui.label(markup='<b>'+_('Window Behavior')+'</b>')
-        frame = Gtk.Frame()
-        frame.set_label_widget(windowlabel)
-        frame.set_shadow_type(Gtk.ShadowType.NONE)
-        sticky = Gtk.CheckButton(_("_Show window on all workspaces"))
+        builder = Gtk.Builder()
+        builder.add_from_file('{0}/ui/preferences_behavior.ui'.format(
+            os.path.dirname(ui.__file__)))
+        builder.set_translation_domain('sonata')
+
+        frame = builder.get_object('behavior_frame')
+        sticky = builder.get_object('behavior_sticky_check')
         sticky.set_active(self.config.sticky)
         sticky.connect('toggled', cbs.sticky_toggled)
-        ontop = Gtk.CheckButton(_("_Keep window above other windows"))
+        ontop = builder.get_object('behavior_ontop_check')
         ontop.set_active(self.config.ontop)
         ontop.connect('toggled', cbs.ontop_toggled)
-        decor = Gtk.CheckButton(_("_Hide window titlebar"))
+        decor = builder.get_object('behavior_decor_check')
         decor.set_active(not self.config.decorated)
         decor.connect('toggled', cbs.decorated_toggled, self.prefswindow)
-        minimize = Gtk.CheckButton(_("_Minimize to system tray on close/escape"))
+        minimize = builder.get_object('behavior_minimize_check')
         minimize.set_active(self.config.minimize_to_systray)
-        minimize.set_tooltip_text(_("If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."))
         minimize.connect('toggled', self._config_widget_active,
             'minimize_to_systray')
         self.display_trayicon.connect('toggled', cbs.trayicon_toggled,
             minimize)
         minimize.set_sensitive(cbs.trayicon_in_use)
-        widgets = (sticky, ontop, decor, minimize)
-        table = Gtk.Table(len(widgets), 1)
-        for i, widget in enumerate(widgets):
-            table.attach(widget, 0, 1, i, i+1,
-                Gtk.AttachOptions.FILL|Gtk.AttachOptions.EXPAND, Gtk.AttachOptions.FILL)
-        alignment = Gtk.Alignment.new(0, 0, 0, 0)
-        alignment.set_padding(12, 0, 12, 0)
-        alignment.add(table)
-        frame.add(alignment)
 
-        misclabel = ui.label(markup='<b>' + _('Miscellaneous') + '</b>')
-        misc_frame = Gtk.Frame()
-        misc_frame.set_label_widget(misclabel)
-        misc_frame.set_shadow_type(Gtk.ShadowType.NONE)
-        update_start = Gtk.CheckButton(_("_Update MPD library on start"))
+        update_start = builder.get_object('misc_updatestart_check')
         update_start.set_active(self.config.update_on_start)
-        update_start.set_tooltip_text(_("If enabled, Sonata will automatically update your MPD library when it starts up."))
         update_start.connect('toggled', self._config_widget_active,
             'update_on_start')
-        exit_stop = Gtk.CheckButton(_("S_top playback on exit"))
+        exit_stop = builder.get_object('misc_exit_stop_check')
         exit_stop.set_active(self.config.stop_on_exit)
-        exit_stop.set_tooltip_text(_("MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit."))
         exit_stop.connect('toggled', self._config_widget_active,
             'stop_on_exit')
-        infofile_usage = Gtk.CheckButton(_("_Write status file:"))
+        infofile_usage = builder.get_object('misc_infofile_usage_check')
         infofile_usage.set_active(self.config.use_infofile)
-        infofile_usage.set_tooltip_text(_("If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)"))
-        infopath_options = ui.entry(text=self.config.infofile_path)
-        infopath_options.set_tooltip_text(_("If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)"))
+        infopath_options = builder.get_object('misc_infofile_entry')
+        infopath_options.set_text(self.config.infofile_path)
         infopath_options.connect('focus_out_event',
                     cbs.infofile_changed)
         infopath_options.connect('activate', cbs.infofile_changed, None)
@@ -453,28 +394,7 @@ class Preferences():
             infopath_options.set_sensitive(False)
         infofile_usage.connect('toggled', self._infofile_toggled,
             infopath_options)
-        infofilebox = Gtk.HBox(spacing=6)
-        infofilebox.pack_start(infofile_usage, False, False, 0)
-        infofilebox.pack_start(infopath_options, True, True, 0)
-        widgets = (update_start, exit_stop, infofilebox)
-        misc_table = Gtk.Table(len(widgets), 1)
-        for i, widget in enumerate(widgets):
-            misc_table.attach(widget, 0, 1, i, i+1,
-                Gtk.AttachOptions.FILL|Gtk.AttachOptions.EXPAND, Gtk.AttachOptions.FILL)
-        misc_alignment = Gtk.Alignment.new(0, 0, 0, 0)
-        misc_alignment.set_padding(12, 0, 12, 0)
-        misc_alignment.add(misc_table)
-        misc_frame.add(misc_alignment)
-
-        table = Gtk.Table(2, 1)
-        table.set_row_spacings(12)
-        table.attach(frame, 0, 1, 0, 1,
-            Gtk.AttachOptions.FILL|Gtk.AttachOptions.EXPAND, Gtk.AttachOptions.FILL)
-        table.attach(misc_frame, 0, 1, 1, 2,
-            Gtk.AttachOptions.FILL|Gtk.AttachOptions.EXPAND, Gtk.AttachOptions.FILL)
-        tab = Gtk.Alignment.new(0, 0, 0, 0)
-        tab.set_padding(12, 12, 12, 12)
-        tab.add(table)
+        tab = builder.get_object('preferences_behavior')
         return tab
 
     def format_tab(self, cbs):

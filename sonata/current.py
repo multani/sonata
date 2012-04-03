@@ -66,14 +66,13 @@ class Current(object):
         # Current tab
         self.builder = Gtk.Builder()
         self.builder.add_from_file('{0}/ui/current.ui'.format(
-          os.path.dirname(ui.__file__)))
+            os.path.dirname(ui.__file__)))
+        self.builder.set_translation_domain('sonata')
         self.current = self.builder.get_object('current_page_treeview')
         self.current_selection = self.current.get_selection()
         self.expanderwindow = self.builder.get_object('current_page_scrolledwindow')
         self.filterpattern = self.builder.get_object('current_page_filterbox_entry')
         self.filterbox = self.builder.get_object('current_page_filterbox')
-        filt_label = self.builder.get_object('current_page_filterbox_label')
-        filt_label.set_text(_("Filter:"))
         self.vbox_current = self.builder.get_object('current_page_v_box')
         tab_label = self.builder.get_object('current_tab_label')
         tab_label.set_text(TAB_CURRENT)

@@ -177,6 +177,7 @@
                       <object class="GtkExpander" id="expander">
                         <property name="can_focus">False</property>
                         <property name="resize_toplevel">False</property>
+                        <property name="label" translatable="yes">Playlist</property>
                       </object><!--expander-->
                       <packing>
                         <property name="expand">False</property>

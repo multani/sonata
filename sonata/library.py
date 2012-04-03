@@ -90,7 +90,8 @@ class Library(object):
         # Library tab
         self.builder = Gtk.Builder()
         self.builder.add_from_file('{0}/ui/library.ui'.format(
-          os.path.dirname(ui.__file__)))
+            os.path.dirname(ui.__file__)))
+        self.builder.set_translation_domain('sonata')
 
         self.libraryvbox = self.builder.get_object('library_page_v_box')
         self.library = self.builder.get_object('library_page_treeview')
@@ -100,18 +101,11 @@ class Library(object):
         expanderwindow2 = self.builder.get_object('library_page_scrolledwindow')
         self.searchbox = self.builder.get_object('library_page_searchbox')
         self.searchcombo = self.builder.get_object('library_page_searchbox_combo')
-        for term in self.search_terms:
-            self.searchcombo.append_text(term)
-        self.searchcombo.set_tooltip_text(_("Search terms"))
         self.searchtext = self.builder.get_object('library_page_searchbox_entry')
-        self.searchtext.set_tooltip_text(_("Search library"))
         self.searchbutton = self.builder.get_object('library_page_searchbox_button')
         self.searchbutton.hide()
-        self.searchbutton.set_tooltip_text(_("End Search"))
+        #XXX replaced by breadcrumbs
         self.libraryview = ui.button(relief=Gtk.ReliefStyle.NONE)
-        self.libraryview.set_tooltip_text(_("Library browsing view"))
-        searchbox_label = self.builder.get_object('library_page_searchbox_label')
-        searchbox_label.set_text(_("Search:"))
         self.tab_label_widget = self.builder.get_object('library_tab_h_box')
         tab_label = self.builder.get_object('library_tab_label')
         tab_label.set_text(TAB_LIBRARY)

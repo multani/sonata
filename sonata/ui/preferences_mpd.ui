@@ -44,7 +44,8 @@
                             <property name="column_spacing">12</property>
                             <child>
                               <object class="GtkEntry" id="connection_name">
-                                <property name="can_focus">False</property>
+                                <property name="can_focus">True</property>
+                                <property name="editable">True</property>
                               </object>
                               <packing>
                                 <property name="left_attach">1</property>
@@ -59,6 +60,9 @@
                                 <property name="can_focus">False</property>
                                 <property name="use_markup">True</property>
                                 <property name="xalign">0</property>
+                                <property name="label" translatable="yes">_Name:</property>
+                                <property name="use_underline">True</property>
+                                <property name="mnemonic_widget">connection_name</property>
                               </object>
                               <packing>
                                 <property name="left_attach">0</property>
@@ -69,7 +73,8 @@
                             </child>
                             <child>
                               <object class="GtkEntry" id="connection_host">
-                                <property name="can_focus">False</property>
+                                <property name="can_focus">True</property>
+                                <property name="editable">True</property>
                               </object>
                               <packing>
                                 <property name="left_attach">1</property>
@@ -84,6 +89,9 @@
                                 <property name="can_focus">False</property>
                                 <property name="xalign">0</property>
                                 <property name="use_markup">True</property>
+                                <property name="label" translatable="yes">_Host:</property>
+                                <property name="use_underline">True</property>
+                                <property name="mnemonic_widget">connection_host</property>
                               </object>
                               <packing>
                                 <property name="left_attach">0</property>
@@ -94,7 +102,8 @@
                             </child>
                             <child>
                               <object class="GtkSpinButton" id="connection_port">
-                                <property name="can_focus">False</property>
+                                <property name="can_focus">True</property>
+                                <property name="editable">True</property>
                                 <property name="adjustment">port_adjustment</property>
                               </object>
                               <packing>
@@ -110,6 +119,9 @@
                                 <property name="can_focus">False</property>
                                 <property name="xalign">0</property>
                                 <property name="use_markup">True</property>
+                                <property name="label" translatable="yes">_Port:</property>
+                                <property name="use_underline">True</property>
+                                <property name="mnemonic_widget">connection_port</property>
                               </object>
                               <packing>
                                 <property name="left_attach">0</property>
@@ -120,9 +132,9 @@
                             </child>
                             <child>
                               <object class="GtkFileChooserButton" id="connection_dir">
-                                <property name="can_focus">False</property>
+                                <property name="can_focus">True</property>
                                 <property name="action">select-folder</property>
-                                <property name="title" translatable="yes">Select a Folder</property>
+                                <property name="title" translatable="yes">Select a Music Directory</property>
                               </object>
                               <packing>
                                 <property name="left_attach">1</property>
@@ -137,6 +149,9 @@
                                 <property name="can_focus">False</property>
                                 <property name="xalign">0</property>
                                 <property name="use_markup">True</property>
+                                <property name="label" translatable="yes">_Music dir:</property>
+                                <property name="use_underline">True</property>
+                                <property name="mnemonic_widget">connection_dir</property>
                               </object>
                               <packing>
                                 <property name="left_attach">0</property>
@@ -147,8 +162,11 @@
                             </child>
                             <child>
                               <object class="GtkEntry" id="connection_password">
-                                <property name="can_focus">False</property>
-                                <property name="invisible_char_set">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="editable">True</property>
+                                <property name="caps_lock_warning">True</property>
+                                <property name="visibility">False</property>
+                                <property name="tooltip_text" translatable="yes">Leave blank if no password is required.</property>
                               </object>
                               <packing>
                                 <property name="left_attach">1</property>
@@ -163,6 +181,9 @@
                                 <property name="can_focus">False</property>
                                 <property name="xalign">0</property>
                                 <property name="use_markup">True</property>
+                                <property name="label" translatable="yes">Pa_ssword:</property>
+                                <property name="use_underline">True</property>
+                                <property name="mnemonic_widget">connection_password</property>
                               </object>
                               <packing>
                                 <property name="left_attach">0</property>
@@ -263,6 +284,10 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="xalign">0</property>
+            <property name="label" translatable="yes">MPD Connection</property>
+            <attributes>
+              <attribute name="weight" value="bold"/>
+            </attributes>
           </object>
         </child>
       </object>

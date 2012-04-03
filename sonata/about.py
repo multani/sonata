@@ -153,7 +153,9 @@ class About(object):
     def about_load(self, stats):
         self.builder = Gtk.Builder()
         self.builder.add_from_file('{0}/ui/about.ui'.format(
-          os.path.dirname(ui.__file__)))
+            os.path.dirname(ui.__file__)))
+        self.builder.set_translation_domain('sonata')
+
         self.about_dialog = self.builder.get_object('about_dialog')
         try:
             self.about_dialog.set_transient_for(self.parent_window)
@@ -166,13 +168,12 @@ class About(object):
         large_icon = GdkPixbuf.Pixbuf.new_from_file(self.icon_file)
         self.about_dialog.set_logo(large_icon)
         # Add button to show keybindings:
-        shortcut_button = ui.button(text=_("_Shortcuts"))
-        self.about_dialog.action_area.pack_start(shortcut_button, True, True, 0)
         children = self.about_dialog.action_area.get_children()[-1]
         self.about_dialog.action_area.reorder_child(children, -2)
         # Connect to callbacks
         self.about_dialog.connect('response', self.about_close)
         self.about_dialog.connect('delete_event', self.about_close)
+        shortcut_button = self.builder.get_object('shortcut_button')
         shortcut_button.connect('clicked', self.about_shortcuts)
         self.about_dialog.show_all()
 

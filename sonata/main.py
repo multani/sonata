@@ -217,6 +217,7 @@ class Base(object):
             # FIXME where will the ui directory reside?
             self.builder.add_from_file('{0}/ui/sonata.ui'.format(
               os.path.dirname(ui.__file__)))
+            self.builder.set_translation_domain('sonata')
             self.window = self.builder.get_object('main_window')
             self.window_owner = True
         else:
@@ -625,7 +626,6 @@ class Base(object):
         if not self.config.show_playback:
             ui.hide(self.volumebutton)
         self.expander = self.builder.get_object('expander')
-        self.expander.set_label(_("Playlist"))
         self.expander.set_expanded(self.config.expanded)
         self.cursonglabel1 = self.builder.get_object('current_label_1')
         self.cursonglabel2 = self.builder.get_object('current_label_2')

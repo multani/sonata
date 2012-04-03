@@ -36,6 +36,9 @@
       <object class="GtkBox" id="library_page_crumbbox">
         <property name="can_focus">False</property>
         <property name="orientation">horizontal</property>
+        <child>
+          <placeholder/>
+        </child>
       </object><!--library_page_crumbbox-->
       <packing>
         <property name="expand">False</property>
@@ -76,6 +79,7 @@
         <child>
           <object class="GtkLabel" id="library_page_searchbox_label">
             <property name="can_focus">True</property>
+            <property name="label" translatable="yes">Search:</property>
           </object><!--library_page_searchbox_label-->
           <packing>
             <property name="expand">False</property>
@@ -87,6 +91,7 @@
         <child>
           <object class="GtkEntry" id="library_page_searchbox_entry">
             <property name="can_focus">True</property>
+            <property name="tooltip_text" translatable="yes">Search library</property>
           </object><!--library_page_searchbox_entry-->
           <packing>
             <property name="expand">True</property>
@@ -99,9 +104,15 @@
           <object class="GtkComboBoxText" id="library_page_searchbox_combo">
             <property name="can_focus">True</property>
             <property name="receives_default">False</property>
-            <child>
-              <placeholder/>
-            </child>
+            <property name="tooltip_text" translatable="yes">Search terms</property>
+            <items>
+              <item translatable="yes">Artist</item>
+              <item translatable="yes">Title</item>
+              <item translatable="yes">Album</item>
+              <item translatable="yes">Genre</item>
+              <item translatable="yes">Filename</item>
+              <item translatable="yes">Everything</item>
+            </items>
           </object><!--library_page_searchbox_combo-->
           <packing>
             <property name="expand">False</property>
@@ -117,6 +128,7 @@
             <property name="relief">none</property>
             <property name="receives_default">False</property>
             <property name="no_show_all">True</property>
+            <property name="tooltip_text" translatable="yes">End Search</property>
             <child>
               <object class="GtkImage" id="library_page_searchbox_button_image">
                 <property name="visible">True</property>
