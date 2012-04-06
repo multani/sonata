@@ -1046,12 +1046,22 @@ class Base(object):
 
         profile_names = [_("MPD_HOST/PORT")] if host \
                 or port else self.config.profile_names
-        actions = [(str(i), None,
-            "[%s] %s" % (i + 1, ui.quote_label(name)), None,
-            None, i)
+
+        actions = [
+            (str(i),
+             None,
+             "[%d] %s" % (i + 1, ui.quote_label(name)),
+             None,
+             None,
+             i)
             for i, name in enumerate(profile_names)]
-        actions.append(('disconnect', None, _('Disconnect'), None, None,
-                        len(self.config.profile_names)))
+        actions.append((
+            'disconnect',
+            None,
+            _('Disconnect'),
+            None,
+            None,
+            len(self.config.profile_names)))
 
         active_radio = 0 if host or port else self.config.profile_num
         if not self.conn:

@@ -101,12 +101,13 @@ class Playlists(object):
             self.actionGroupPlaylists = None
         self.actionGroupPlaylists = gtk.ActionGroup('MPDPlaylists')
         self.UIManager().ensure_update()
-        actions = [("Playlist: %s" % playlist.replace("&", ""),
-                gtk.STOCK_JUSTIFY_CENTER,
-                ui.quote_label(misc.unescape_html(playlist)),
-                None, None,
-                self.on_playlist_menu_click)
-                for playlist in playlistinfo]
+        actions = [
+            ("Playlist: %s" % playlist.replace("&", ""),
+             gtk.STOCK_JUSTIFY_CENTER,
+             ui.quote_label(misc.unescape_html(playlist)),
+             None, None,
+             self.on_playlist_menu_click)
+            for playlist in playlistinfo]
         self.actionGroupPlaylists.add_actions(actions)
         uiDescription = """
             <ui>
