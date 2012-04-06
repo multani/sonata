@@ -1047,7 +1047,7 @@ class Base(object):
         profile_names = [_("MPD_HOST/PORT")] if host \
                 or port else self.config.profile_names
         actions = [(str(i), None,
-            "[%s] %s" % (i + 1, name.replace("_", "__")), None,
+            "[%s] %s" % (i + 1, ui.quote_label(name)), None,
             None, i)
             for i, name in enumerate(profile_names)]
         actions.append(('disconnect', None, _('Disconnect'), None, None,

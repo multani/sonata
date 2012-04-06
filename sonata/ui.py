@@ -231,6 +231,14 @@ def hide(widget):
 def focus(widget):
     widget.grab_focus()
 
+def quote_label(label_value):
+    """Quote the content of a label so that it's safe to display."""
+
+    # Don't inadvertently create accelerators if the value contains a "_"
+    result = label_value.replace("_", "__")
+
+    return result
+
 def set_widths_equal(widgets):
     # Assigns the same width to all passed widgets in the list, where
     # the width is the maximum width across widgets.

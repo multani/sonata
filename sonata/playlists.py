@@ -103,7 +103,7 @@ class Playlists(object):
         self.UIManager().ensure_update()
         actions = [("Playlist: %s" % playlist.replace("&", ""),
                 gtk.STOCK_JUSTIFY_CENTER,
-                misc.unescape_html(playlist).replace("_", "__"),
+                ui.quote_label(misc.unescape_html(playlist)),
                 None, None,
                 self.on_playlist_menu_click)
                 for playlist in playlistinfo]
