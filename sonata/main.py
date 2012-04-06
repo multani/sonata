@@ -3417,8 +3417,7 @@ class Base(object):
                 for menu in ['add', 'replace', 'playafter', 'rm']:
                     self.UIManager.get_widget('/mainmenu/%smenu/' % \
                                              (menu,)).show()
-                if self.playlists_selection.count_selected_rows() == 1 and \
-                   self.mpd.version >= (0, 13):
+                if self.playlists_selection.count_selected_rows() == 1:
                     self.UIManager.get_widget('/mainmenu/renamemenu/').show()
                 else:
                     self.UIManager.get_widget('/mainmenu/renamemenu/').hide()

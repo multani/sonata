@@ -556,18 +556,18 @@ class Current(object):
                     for item in listallinfo:
                         if 'file' in item:
                             mpdpaths.append(mpdh.get(item, 'file'))
-                elif self.mpd.version >= (0, 14):
-                    # Add local file, available in mpd 0.14. This currently
-                    # work because python-mpd does not support unix socket
-                    # paths, won't which is needed for authentication for
-                    # local files. It's also therefore untested.
-                    if os.path.isdir(misc.file_from_utf8(paths[i])):
-                        filenames = misc.get_files_recursively(paths[i])
-                    else:
-                        filenames = [paths[i]]
-                    for filename in filenames:
-                        if os.path.exists(misc.file_from_utf8(filename)):
-                            mpdpaths.append("file://" + urllib.quote(filename))
+
+                # Add local file, available in mpd 0.14. This currently
+                # work because python-mpd does not support unix socket
+                # paths, won't which is needed for authentication for
+                # local files. It's also therefore untested.
+                if os.path.isdir(misc.file_from_utf8(paths[i])):
+                    filenames = misc.get_files_recursively(paths[i])
+                else:
+                    filenames = [paths[i]]
+                for filename in filenames:
+                    if os.path.exists(misc.file_from_utf8(filename)):
+                        mpdpaths.append("file://" + urllib.quote(filename))
             if len(mpdpaths) > 0:
                 # Items found, add to list at drop position:
                 if drop_info:
