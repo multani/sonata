@@ -1,41 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
-  <object class="GtkAlignment" id="preferences_mpd">
+  <object class="GtkAdjustment" id="crossfade_adjustment">
+    <property name="lower">1</property>
+    <property name="upper">30</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">5</property>
+  </object>
+  <object class="GtkAlignment" id="preferences_extras">
     <property name="can_focus">False</property>
     <property name="top_padding">12</property>
     <property name="bottom_padding">12</property>
     <property name="left_padding">12</property>
     <property name="right_padding">12</property>
     <child>
-      <object class="GtkFrame" id="preferences_mpd_frame">
+      <object class="GtkFrame" id="preferences_extras_frame">
         <property name="can_focus">False</property>
         <property name="label_xalign">0</property>
         <child>
-          <object class="GtkAlignment" id="preferences_mpd_frame_alignment">
+          <object class="GtkAlignment" id="extras_frame_alignment">
             <property name="can_focus">False</property>
             <property name="top_padding">12</property>
             <property name="left_padding">12</property>
             <child>
-              <object class="GtkFrame" id="connection_frame">
+              <object class="GtkFrame" id="extras_frame">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label_xalign">0</property>
                 <property name="shadow_type">none</property>
                 <child>
-                  <object class="GtkAlignment" id="connection_alignment">
+                  <object class="GtkAlignment" id="extras_alignment">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="left_padding">12</property>
                     <child>
-                      <object class="GtkBox" id="box1">
+                      <object class="GtkBox" id="scrobbler_box">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="orientation">vertical</property>
                         <child>
-                          <object class="GtkCheckButton" id="checkbutton1">
-                            <property name="label" translatable="yes">checkbutton</property>
+                          <object class="GtkCheckButton" id="scrobbler_check">
+                            <property name="label" translatable="yes">_Audioscrobbling (Last.fm)</property>
                             <property name="use_action_appearance">False</property>
+                            <property name="use_underline">True</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
@@ -50,14 +57,17 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkBox" id="box2">
+                          <object class="GtkBox" id="scrobbler_username_box">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="halign">end</property>
                             <child>
-                              <object class="GtkLabel" id="label4">
+                              <object class="GtkLabel" id="scrobbler_username_label">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">label</property>
+                                <property name="label" translatable="yes">_Username:</property>
+                                <property name="use_underline">True</property>
+                                <property name="mnemonic_widget">scrobbler_username_entry</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -66,7 +76,7 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkEntry" id="entry1">
+                              <object class="GtkEntry" id="scrobbler_username_entry">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="invisible_char">•</property>
@@ -85,14 +95,17 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkBox" id="box3">
+                          <object class="GtkBox" id="scrobbler_password_box">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="halign">end</property>
                             <child>
-                              <object class="GtkLabel" id="label3">
+                              <object class="GtkLabel" id="scrobbler_password_label">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">label</property>
+                                <property name="label" translatable="yes">_Password:</property>
+                                <property name="use_underline">True</property>
+                                <property name="mnemonic_widget">scrobbler_password_entry</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -101,10 +114,10 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkEntry" id="entry2">
+                              <object class="GtkEntry" id="scrobbler_password_entry">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="invisible_char">•</property>
+                                <property name="visibility">False</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -120,9 +133,10 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkCheckButton" id="checkbutton3">
-                            <property name="label" translatable="yes">checkbutton</property>
+                          <object class="GtkCheckButton" id="notification_check">
+                            <property name="label" translatable="yes">Popup _notification on song changes</property>
                             <property name="use_action_appearance">False</property>
+                            <property name="use_underline">True</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
@@ -137,15 +151,19 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkBox" id="box4">
+                          <object class="GtkBox" id="notification_box">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="halign">end</property>
                             <child>
-                              <object class="GtkComboBoxText" id="comboboxtext1">
+                              <object class="GtkComboBoxText" id="notification_time_combo">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="entry_text_column">0</property>
                                 <property name="id_column">1</property>
+                                <items>
+                                  <item translatable="yes">Entire song</item>
+                                </items>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -154,11 +172,19 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkComboBoxText" id="comboboxtext2">
+                              <object class="GtkComboBoxText" id="notification_loc_combo">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="entry_text_column">0</property>
                                 <property name="id_column">1</property>
+                                <items>
+                                  <item translatable="yes">System tray</item>
+                                  <item translatable="yes">Top Left</item>
+                                  <item translatable="yes">Top Right</item>
+                                  <item translatable="yes">Bottom Left</item>
+                                  <item translatable="yes">Bottom Right</item>
+                                  <item translatable="yes">Screen Center</item>
+                                </items>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -174,9 +200,10 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkCheckButton" id="checkbutton2">
-                            <property name="label" translatable="yes">checkbutton</property>
+                          <object class="GtkCheckButton" id="crossfade_check">
+                            <property name="label" translatable="yes">C_rossfade</property>
                             <property name="use_action_appearance">False</property>
+                            <property name="use_underline">True</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
@@ -191,14 +218,17 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkBox" id="box5">
+                          <object class="GtkBox" id="crossfade_box">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="halign">end</property>
                             <child>
-                              <object class="GtkLabel" id="label2">
+                              <object class="GtkLabel" id="crossfade_label">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">label</property>
+                                <property name="label" translatable="yes">_Fade length:</property>
+                                <property name="use_underline">True</property>
+                                <property name="mnemonic_widget">crossfade_time</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -207,10 +237,10 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkSpinButton" id="spinbutton1">
+                              <object class="GtkSpinButton" id="crossfade_time">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="invisible_char">•</property>
+                                <property name="adjustment">crossfade_adjustment</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -219,10 +249,10 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkLabel" id="label5">
+                              <object class="GtkLabel" id="crossfade_extra_label">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">label</property>
+                                <property name="label" translatable="yes">sec</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -242,10 +272,13 @@
                   </object>
                 </child>
                 <child type="label">
-                  <object class="GtkLabel" id="label1">
+                  <object class="GtkLabel" id="extras_label">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">label</property>
+                    <property name="label" translatable="yes">Extras</property>
+                    <attributes>
+                      <attribute name="weight" value="bold"/>
+                    </attributes>
                   </object>
                 </child>
               </object>
@@ -255,7 +288,7 @@
       </object>
     </child>
   </object>
-  <object class="GtkLabel" id="preferences_tab_mpd">
+  <object class="GtkLabel" id="preferences_tab_extras">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="label" translatable="yes">page 1</property>

@@ -198,68 +198,47 @@ class Preferences():
         """Construct and layout the extras tab"""
         if not self.scrobbler.imported():
             self.config.as_enabled = False
-        extraslabel = ui.label(markup='<b>' + _('Extras') + '</b>')
-        frame = Gtk.Frame()
-        frame.set_label_widget(extraslabel)
-        frame.set_shadow_type(Gtk.ShadowType.NONE)
+        builder = Gtk.Builder()
+        builder.set_translation_domain('sonata')
+        builder.add_from_file('{0}/ui/preferences_extras.ui'.format(
+            os.path.dirname(ui.__file__)))
 
-        as_checkbox = Gtk.CheckButton(_("_Audioscrobbling (Last.fm)"))
+        as_checkbox = builder.get_object('scrobbler_check')
         as_checkbox.set_active(self.config.as_enabled)
-        as_user_label = ui.label(textmn=_("_Username:"))
-        as_pass_label = ui.label(textmn=_("_Password:"))
-        as_user_entry = ui.entry(text=self.config.as_username,
-            changed_cb=self._as_username_changed)
-        as_user_label.set_mnemonic_widget(as_user_entry)
-        if len(self.config.as_password_md5) > 0:
-            as_pass_entry = ui.entry(text='1234', password=True,
-                changed_cb=self._as_password_changed)
-        else:
-            as_pass_entry = ui.entry(text='', password=True,
-                changed_cb=self._as_password_changed)
-        as_pass_label.set_mnemonic_widget(as_pass_entry)
-        as_user_box = Gtk.HBox(spacing=12)
-        as_user_box.pack_end(as_user_entry, False, False, 0)
-        as_user_box.pack_end(as_user_label, False, False, 0)
-        as_pass_box = Gtk.HBox(spacing=12)
-        as_pass_box.pack_end(as_pass_entry, False, False, 0)
-        as_pass_box.pack_end(as_pass_label, False, False, 0)
-        as_entries = Gtk.VBox()
-        as_entries.pack_start(as_user_box, True, True, 0)
-        as_entries.pack_start(as_pass_box, True, True, 0)
-        display_notification = Gtk.CheckButton(_("Popup _notification on song changes"))
+        as_user_label = builder.get_object('scrobbler_username_label')
+        as_user_entry = builder.get_object('scrobbler_username_entry')
+        as_user_entry.set_text(self.config.as_username)
+        as_user_entry.connect('changed', self._as_username_changed)
+        as_pass_label = builder.get_object('scrobbler_password_label')
+        as_pass_entry = builder.get_object('scrobbler_password_entry')
+        as_pass_entry.set_text(self.config.as_password_md5)
+        as_pass_entry.connect('changed', self._as_password_changed)
+        display_notification = builder.get_object('notification_check')
         display_notification.set_active(self.config.show_notification)
 
         time_names = ["%s %s" %
             (i , gettext.ngettext('second', 'seconds', int(i)))
             for i in cbs.popuptimes if i != _('Entire song')]
-        time_names.append(_('Entire song'))
-        notification_options = ui.combo(items=time_names,
-            active=self.config.popup_option,
-            changed_cb=self._notiftime_changed)
-        notification_locs = ui.combo(items=cbs.popuplocations,
-            active=self.config.traytips_notifications_location,
-            changed_cb=self._notiflocation_changed)
-        notifhbox = Gtk.HBox(spacing=6)
-        notifhbox.pack_end(notification_locs, False, False, 0)
-        notifhbox.pack_end(notification_options, False, False, 0)
+        notification_options = builder.get_object('notification_time_combo')
+        for time in time_names:
+            notification_options.append_text(time)
+        notification_options.connect('changed', self._notiftime_changed)
+        notification_options.set_active(self.config.popup_option)
+        notification_locs = builder.get_object('notification_loc_combo')
+        notification_locs.set_active(self.config.traytips_notifications_location)
+        notification_locs.connect('changed', self._notiflocation_changed)
+        notifhbox = builder.get_object('notification_box')
         display_notification.connect('toggled', cbs.notif_toggled,
             notifhbox)
         if not self.config.show_notification:
             notifhbox.set_sensitive(False)
-        crossfadespin = Gtk.SpinButton()
-        crossfadespin.set_range(1, 30)
+
+        crossfadespin = builder.get_object('crossfade_time')
         crossfadespin.set_value(self.config.xfade)
-        crossfadespin.set_numeric(True)
-        crossfadespin.set_increments(1, 5)
         crossfadespin.connect('value-changed', cbs.crossfade_changed)
-        crossfadelabel2 = ui.label(textmn=_("_Fade length:"))
-        crossfadelabel2.set_mnemonic_widget(crossfadespin)
-        crossfadelabel3 = ui.label(text=_("sec"))
-        crossfadebox = Gtk.HBox(spacing=12)
-        crossfadebox.pack_end(crossfadelabel3, False, False, 0)
-        crossfadebox.pack_end(crossfadespin, False, False, 0)
-        crossfadebox.pack_end(crossfadelabel2, False, False, 0)
-        crossfadecheck = Gtk.CheckButton(_("C_rossfade"))
+        crossfadelabel2 = builder.get_object('crossfade_label')
+        crossfadelabel3 = builder.get_object('crossfade_extra_label')
+        crossfadecheck = builder.get_object('crossfade_check')
         crossfadecheck.connect('toggled',
             self._crossfadecheck_toggled, crossfadespin,
             crossfadelabel2, crossfadelabel3)
@@ -268,22 +247,6 @@ class Preferences():
         crossfadecheck.set_active(self.config.xfade_enabled)
         crossfadecheck.toggled() # Force the toggled callback
 
-        widgets = (as_checkbox, as_entries, display_notification,
-            notifhbox, crossfadecheck, crossfadebox)
-        table = Gtk.Table(len(widgets), 1)
-        table.set_col_spacings(12)
-        table.set_row_spacings(6)
-        for i, widget in enumerate(widgets):
-            table.attach(widget, 0, 1, i, i+1,
-                Gtk.AttachOptions.FILL|Gtk.AttachOptions.EXPAND, Gtk.AttachOptions.FILL)
-        alignment = Gtk.Alignment.new(0.5, 0.5, 1.0, 1.0)
-        alignment.set_padding(12, 0, 12, 0)
-        alignment.add(table)
-        frame.add(alignment)
-        tab = Gtk.Alignment.new(0.5, 0.5, 1.0, 1.0)
-        tab.set_padding(12, 12, 12, 12)
-        tab.add(frame)
-
         as_checkbox.connect('toggled', self._as_enabled_toggled,
             as_user_entry, as_pass_entry, as_user_label,
             as_pass_label)
@@ -291,6 +254,7 @@ class Preferences():
             for widget in (as_user_entry, as_pass_entry,
                     as_user_label, as_pass_label):
                 widget.set_sensitive(False)
+        tab = builder.get_object('preferences_extras')
         return tab
 
     def display_tab(self, cbs):
