@@ -105,6 +105,13 @@ Currently, the following things have been changed since the Berlios's version:
 
   This is the `refactor-consts` branch.
 
+* Fix the population of the "Save to playlist" context menu, which didn't
+  contain the current playlist of MPD.
+  Fix also the name of the playlists in this menu, if their were containing an
+  underscore. There are now displayed correctly.
+
+  Thanks to Zhihao Yuan for the fixes!
+
 Personal todo list
 ------------------
 
