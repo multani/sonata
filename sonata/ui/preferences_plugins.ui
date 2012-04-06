@@ -1,14 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
-  <object class="GtkListStore" id="liststore1">
+  <object class="GtkUIManager" id="plugins_ui_manager">
+    <child>
+      <object class="GtkActionGroup" id="plugin_actions">
+        <child>
+          <object class="GtkAction" id="plugin_about">
+            <property name="label" translatable="yes">_About</property>
+            <property name="stock_id">gtk-about</property>
+            <signal handler="plugin_about" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="plugin_configure">
+            <property name="label" translatable="yes">_Configure...</property>
+            <property name="stock_id">gtk-preferences</property>
+            <signal handler="plugin_configure" name="activate"/>
+          </object>
+        </child>
+      </object>
+    </child>
+    <ui>
+      <popup name="pluginmenu">
+        <menuitem action="plugin_configure"/>
+        <menuitem action="plugin_about"/>
+      </popup>
+    </ui>
+  </object>
+  <object class="GtkListStore" id="plugins_store">
     <columns>
       <!-- column-name gboolean1 -->
       <column type="gboolean"/>
       <!-- column-name GdkPixbuf.Pixbuf1 -->
-      <column type="GdkPixbuf.Pixbuf"/>
-      <!-- column-name gchar1 -->
-      <column type="gchar"/>
+      <column type="GdkPixbuf"/>
+      <!-- column-name gchararray1 -->
+      <column type="gchararray"/>
     </columns>
   </object>
   <object class="GtkScrolledWindow" id="preferences_plugins_scrolledwindow">
@@ -16,18 +42,51 @@
     <property name="can_focus">True</property>
     <property name="shadow_type">in</property>
     <child>
-      <object class="GtkTreeView" id="treeview1">
+      <object class="GtkTreeView" id="plugins_treeview">
         <property name="visible">True</property>
-        <property name="can_focus">True</property>
-        <property name="model">liststore1</property>
-        <property name="headers_visible">False</property>
+        <property name="can_focus">False</property>
+        <property name="model">plugins_store</property>
+        <property name="rules_hint">True</property>
+        <property name="headers_visible">True</property>
+        <child>
+          <object class="GtkTreeViewColumn" id="plugins_check_column">
+            <property name="title" translatable="yes">Enabled</property>
+            <child>
+              <object class="GtkCellRendererToggle" id="plugins_check_renderer">
+                <property name="activatable">True</property>
+              </object>
+              <attributes>
+                <attribute name="active">0</attribute>
+              </attributes>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTreeViewColumn" id="plugins_info_column">
+            <property name="title" translatable="yes">Description</property>
+            <property name="max_width">0</property>
+            <property name="spacing">10</property>
+            <child>
+              <object class="GtkCellRendererPixbuf" id="plugins_pixbuf_renderer"/>
+              <attributes>
+                <attribute name="pixbuf">1</attribute>
+              </attributes>
+            </child>
+            <child>
+              <object class="GtkCellRendererText" id="plugins_text_renderer"/>
+              <attributes>
+                <attribute name="markup">2</attribute>
+              </attributes>
+            </child>
+          </object>
+        </child>
         <child internal-child="selection">
-          <object class="GtkTreeSelection" id="treeview-selection1"/>
+          <object class="GtkTreeSelection" id="plugins_selection"/>
         </child>
       </object>
     </child>
   </object>
-  <object class="GtkLabel" id="preferences_tab_mpd">
+  <object class="GtkLabel" id="preferences_tab_plugins">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="label" translatable="yes">page 1</property>

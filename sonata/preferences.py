@@ -450,62 +450,27 @@ class Preferences():
 
     def plugins_tab(self, cbs=None):
         """Construct and layout the plugins tab"""
-        plugin_actions = (
-            ('plugin_about', Gtk.STOCK_ABOUT, _('_About'), None,
-                None, self.plugin_about),
-            ('plugin_configure', Gtk.STOCK_PREFERENCES,
-                _('_Configure...'), None, None,
-                self.plugin_configure))
 
-        uiDescription = """
-            <ui>
-              <popup name="pluginmenu">
-                <menuitem action="plugin_configure"/>
-                <menuitem action="plugin_about"/>
-              </popup>
-            </ui>
-            """
+        builder = Gtk.Builder()
+        builder.add_from_file('{0}/ui/preferences_plugins.ui'.format(
+            os.path.dirname(ui.__file__)))
+        builder.set_translation_domain('sonata')
 
-        self.plugin_UIManager = Gtk.UIManager()
-        actionGroup = Gtk.ActionGroup('PluginActions')
-        actionGroup.add_actions(plugin_actions)
-        self.plugin_UIManager.insert_action_group(actionGroup, 0)
-        self.plugin_UIManager.add_ui_from_string(uiDescription)
+        self.plugin_UIManager = builder.get_object('plugins_ui_manager')
+        menu_handlers = {
+            "plugin_configure": self.plugin_configure,
+            "plugin_about": self.plugin_about
+        }
+        builder.connect_signals(menu_handlers)
 
-        self.pluginview = ui.treeview()
-        self.pluginview.set_headers_visible(True)
+        self.pluginview = builder.get_object('plugins_treeview')
         self.pluginselection = self.pluginview.get_selection()
-        self.pluginselection.set_mode(Gtk.SelectionMode.SINGLE)
-        self.pluginview.set_rules_hint(True)
-        self.pluginview.set_property('can-focus', False)
-        pluginwindow = ui.scrollwindow(add=self.pluginview)
-        plugindata = Gtk.ListStore(bool, GdkPixbuf.Pixbuf, str)
-        self.pluginview.set_model(plugindata)
+        plugindata = builder.get_object('plugins_store')
         self.pluginview.connect('button-press-event', self.plugin_click)
 
-        plugincheckcell = Gtk.CellRendererToggle()
-        plugincheckcell.set_property('activatable', True)
+        plugincheckcell = builder.get_object('plugins_check_renderer')
         plugincheckcell.connect('toggled', self.plugin_toggled,
             (plugindata, 0))
-        pluginpixbufcell = Gtk.CellRendererPixbuf()
-        plugintextcell = Gtk.CellRendererText()
-
-        plugincol0 = Gtk.TreeViewColumn()
-        self.pluginview.append_column(plugincol0)
-        plugincol0.pack_start(plugincheckcell, True)
-        plugincol0.add_attribute(plugincheckcell, 'active', 0)
-        plugincol0.set_title(_("Enabled"))
-
-        plugincol1 = Gtk.TreeViewColumn()
-        plugincol1.set_properties(
-            max_width=0, # will expand to fill view and not more
-            spacing=10) # space between icon and text
-        self.pluginview.append_column(plugincol1)
-        plugincol1.pack_start(pluginpixbufcell, False)
-        plugincol1.pack_start(plugintextcell, True)
-        plugincol1.add_attribute(pluginpixbufcell, 'pixbuf', 1)
-        plugincol1.add_attribute(plugintextcell, 'markup', 2)
-        plugincol1.set_title(_("Description"))
 
         plugindata.clear()
         for plugin in pluginsystem.get_info():
@@ -514,7 +479,9 @@ class Preferences():
             plugin_text += "\n" + plugin.description
             enabled = plugin.get_enabled()
             plugindata.append((enabled, pb, plugin_text))
-        return pluginwindow
+
+        tab = builder.get_object('preferences_plugins_scrolledwindow')
+        return tab
 
     def _window_response(self, window, response):
         if response == Gtk.ResponseType.CLOSE:
