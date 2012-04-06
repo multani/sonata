@@ -112,6 +112,11 @@ Currently, the following things have been changed since the Berlios's version:
 
   Thanks to Zhihao Yuan for the fixes!
 
+* Remove a bunch of code used for old or deprecated components (MPD, pyGtk,
+  DBus, etc.)
+
+  This is the `remove-deprecated` branch.
+
 Personal todo list
 ------------------
 

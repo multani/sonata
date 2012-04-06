@@ -224,8 +224,8 @@ class Playlists(object):
             playlistinfo.sort(key=lambda x: x.lower())
             for item in playlistinfo:
                 self.playlistsdata.append([gtk.STOCK_JUSTIFY_FILL, item])
-            if self.mpd.version >= (0, 13):
-                self.populate_playlists_for_menu(playlistinfo)
+
+            self.populate_playlists_for_menu(playlistinfo)
 
     def on_playlist_rename(self, _action):
         plname = self.prompt_for_playlist_name(_("Rename Playlist"),

@@ -68,10 +68,6 @@ def run():
 
     ## Apply global fixes:
 
-    # the following line is to fix python-zsi 2.0 and thus lyrics in ubuntu:
-    # https://bugs.launchpad.net/ubuntu/+source/zsi/+bug/208855
-    sys.path.append('/usr/lib/python2.5/site-packages/oldxml')
-
     # hint for gnome.init to set the process name to 'sonata'
     if platform.system() == 'Linux':
         sys.argv[0] = 'sonata'
@@ -135,9 +131,6 @@ def run():
     if not args.skip_gui:
         # importing gtk does sys.setdefaultencoding("utf-8"), sets locale etc.
         import gtk
-        if gtk.pygtk_version < (2, 12, 0):
-            logger.critical("Sonata requires PyGTK 2.12.0 or newer. Aborting...")
-            sys.exit(1)
         # fix locale
         misc.setlocale()
     else:
@@ -162,10 +155,6 @@ def run():
 
     if not args.skip_gui:
         gtk.gdk.threads_init()
-
-        # we don't use gtk.LinkButton, but gtk.AboutDialog does;
-        # in gtk 2.16.0 without this, the about uri opens doubly:
-        gtk.link_button_set_uri_hook(lambda *args:None)
 
     ## CLI actions:
 

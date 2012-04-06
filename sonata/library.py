@@ -890,20 +890,9 @@ class Library(object):
         playtime = 0
         num_songs = 0
         for s in searches:
-
-            if '' in s and self.mpd.version <= (0, 13):
-
-                # Can't return count for empty tags, use search instead:
-
-                _results, playtime, num_songs = \
-                        self.library_return_search_items(
-                            genre=genre, artist=artist, album=album, year=year)
-
-            else:
-
-                count = self.mpd.count(*s)
-                playtime += mpdh.get(count, 'playtime', 0, True)
-                num_songs += mpdh.get(count, 'songs', 0, True)
+            count = self.mpd.count(*s)
+            playtime += mpdh.get(count, 'playtime', 0, True)
+            num_songs += mpdh.get(count, 'songs', 0, True)
 
         return (playtime, num_songs)
 
@@ -1001,23 +990,7 @@ class Library(object):
             playtime = 0
             num_songs = 0
             results = []
-
-            if '' in s and self.mpd.version <= (0, 13):
-
-                # Can't search for empty tags, search broader and
-                # filter instead:
-
-                # Strip empty tag args from tuple:
-                pos = list(args_tuple).index('')
-                strip_type = list(args_tuple)[pos-1]
-                new_lst = []
-                for i, item in enumerate(list(args_tuple)):
-                    if i != pos and i != pos-1:
-                        new_lst.append(item)
-                args_tuple = tuple(new_lst)
-
-            else:
-                strip_type = None
+            strip_type = None
 
             if len(args_tuple) == 0:
                 return None, 0, 0

@@ -2834,7 +2834,7 @@ class Base(object):
                                 self.tooltip_set_ignore_toggle_signal_false)
 
     def systemtray_click(self, _widget, event):
-        # Clicking on an egg system tray icon:
+        # Clicking on a system tray icon:
         # Left button shows/hides window(s)
         if event.button == 1 and not self.ignore_toggle_signal:
             self.systemtray_activate(None)
@@ -3427,8 +3427,7 @@ class Base(object):
                 for menu in ['add', 'replace', 'playafter', 'rm']:
                     self.UIManager.get_widget('/mainmenu/%smenu/' % \
                                              (menu,)).show()
-                if self.playlists_selection.count_selected_rows() == 1 and \
-                   self.mpd.version >= (0, 13):
+                if self.playlists_selection.count_selected_rows() == 1:
                     self.UIManager.get_widget('/mainmenu/renamemenu/').show()
                 else:
                     self.UIManager.get_widget('/mainmenu/renamemenu/').hide()
