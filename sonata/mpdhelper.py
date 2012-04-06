@@ -66,7 +66,7 @@ class MPDHelper(object):
         # after the initial client connection.
         try:
             version = getattr(self._client, "mpd_version", "0.0")
-            return version.split(".")
+            return tuple(int(x) for x in version.split("."))
         except:
             # XXX what exception are we expecting here!?
             return (0, 0)
