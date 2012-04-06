@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.0 -->
+  <object class="GtkListStore" id="streams_liststore">
+    <columns>
+      <!-- column-name gchararray1 -->
+      <column type="gchararray"/>
+      <!-- column-name gchararray2 -->
+      <column type="gchararray"/>
+      <!-- column-name gchararray3 -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkBox" id="streams_tab_h_box">
+    <property name="can_focus">False</property>
+    <property name="orientation">horizontal</property>
+    <child>
+      <object class="GtkImage" id="streams_tab_image">
+        <property name="can_focus">False</property>
+        <property name="stock">gtk-network</property>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">False</property>
+        <property name="padding">2</property>
+        <property name="position">0</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkLabel" id="streams_tab_label">
+        <property name="can_focus">False</property>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">False</property>
+        <property name="padding">2</property>
+        <property name="position">1</property>
+      </packing>
+    </child>
+  </object>
+  <object class="GtkScrolledWindow" id="streams_page_scrolledwindow">
+    <property name="can_focus">True</property>
+    <property name="shadow_type">in</property>
+    <child>
+      <object class="GtkTreeView" id="streams_page_treeview">
+        <property name="can_focus">True</property>
+        <property name="model">streams_liststore</property>
+        <property name="headers_visible">False</property>
+        <property name="enable_search">True</property>
+        <child>
+          <object class="GtkTreeViewColumn" id="streams_column">
+            <child>
+              <object class="GtkCellRendererPixbuf" id="streams_pixbuf_renderer"/>
+              <attributes>
+                <attribute name="stock_id">0</attribute>
+              </attributes>
+            </child>
+            <child>
+              <object class="GtkCellRendererText" id="streams_text_renderer">
+                <property name="ellipsize">end</property>
+              </object>
+              <attributes>
+                <attribute name="markup">1</attribute>
+              </attributes>
+            </child>
+          </object>
+        </child>
+        <child internal-child="selection">
+          <object class="GtkTreeSelection" id="streams_page_treeview_selection">
+            <property name="mode">multiple</property>
+          </object>
+        </child>
+      </object><!--streams_page_treeview-->
+    </child>
+  </object><!--streams_page_scrolledwindow-->
+</interface>

@@ -879,7 +879,7 @@ class Base(object):
     ### Tab system:
 
     def on_enable_tab(self, _plugin, tab):
-        self.plugintabs[tab] = self.new_tab(*tab())
+        self.plugintabs[tab] = self.add_tab(*tab())
 
     def on_disable_tab(self, _plugin, tab):
         self.notebook.remove(self.plugintabs.pop(tab))

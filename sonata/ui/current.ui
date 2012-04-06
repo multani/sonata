@@ -45,7 +45,9 @@
             <property name="reorderable">True</property>
             <property name="enable_search">False</property>
             <child internal-child="selection">
-              <object class="GtkTreeSelection" id="current_page_treeview_selection"/>
+              <object class="GtkTreeSelection" id="current_page_treeview_selection">
+                <property name="mode">multiple</property>
+              </object>
             </child>
           </object><!--current_page_treeview-->
         </child>

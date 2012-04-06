@@ -12,6 +12,8 @@ self.streams.populate()
 ...
 """
 
+import os
+
 from gi.repository import Gtk, Gdk, Pango
 
 from sonata import misc, ui
@@ -26,31 +28,30 @@ class Streams(object):
         self.on_add_item = on_add_item
         self.settings_save = settings_save
 
-        # Streams tab
-        self.streams = ui.treeview()
-        self.streams_selection = self.streams.get_selection()
-        self.streamswindow = ui.scrollwindow(add=self.streams)
+        self.builder = Gtk.Builder()
+        self.builder.add_from_file('{0}/ui/streams.ui'.format(
+            os.path.dirname(ui.__file__)))
+        self.builder.set_translation_domain('sonata')
 
-        self.tab = (self.streamswindow, Gtk.STOCK_NETWORK, TAB_STREAMS, self.streams)
+        # Streams tab
+        self.streams = self.builder.get_object('streams_page_treeview')
+        self.streams_selection = self.streams.get_selection()
+        self.streamswindow = self.builder.get_object('streams_page_scrolledwindow')
+
+        self.tab_widget = self.builder.get_object('streams_tab_h_box')
+        self.tab_label = self.builder.get_object('streams_tab_label')
+        self.tab_label.set_text(TAB_STREAMS)
+
+        self.tab = (self.streamswindow, self.tab_widget, TAB_STREAMS,
+                    self.streams)
 
         self.streams.connect('button_press_event', self.on_streams_button_press)
         self.streams.connect('row_activated', self.on_streams_activated)
         self.streams.connect('key-press-event', self.on_streams_key_press)
 
         # Initialize streams data and widget
-        self.streamsdata = Gtk.ListStore(str, str, str)
-        self.streams.set_model(self.streamsdata)
+        self.streamsdata = self.builder.get_object('streams_liststore')
         self.streams.set_search_column(1)
-        self.streamsimg = Gtk.CellRendererPixbuf()
-        self.streamscell = Gtk.CellRendererText()
-        self.streamscell.set_property("ellipsize", Pango.EllipsizeMode.END)
-        self.streamscolumn = Gtk.TreeViewColumn()
-        self.streamscolumn.pack_start(self.streamsimg, False)
-        self.streamscolumn.pack_start(self.streamscell, True)
-        self.streamscolumn.add_attribute(self.streamsimg, "stock_id", 0)
-        self.streamscolumn.add_attribute(self.streamscell, "markup", 1)
-        self.streams.append_column(self.streamscolumn)
-        self.streams_selection.set_mode(Gtk.SelectionMode.MULTIPLE)
 
         pluginsystem.plugin_infos.append(BuiltinPlugin(
                 'streams', "Streams", "A tab for streams.",

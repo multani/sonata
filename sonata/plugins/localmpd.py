@@ -15,7 +15,7 @@
 # tabs: construct_tab
 ### END PLUGIN INFO
 
-import subprocess, locale
+import subprocess, locale, os
 from pwd import getpwuid
 
 from gi.repository import GObject, Gtk
@@ -110,30 +110,23 @@ def update(label):
 
 # nothing magical here, this constructs the parts of the tab when called:
 def construct_tab():
-    vbox = Gtk.VBox(spacing=2)
-    vbox.props.border_width = 2
-    buttonbox = Gtk.HBox(spacing=2)
-    editbutton = Gtk.Button("Edit /etc/mpd.conf")
+    builder = Gtk.Builder()
+    builder.add_from_file('{0}/ui/localmpd.ui'.format(
+        os.path.dirname(__file__)))
+    builder.set_translation_domain('sonata')
+    editbutton = builder.get_object('localmpd_edit_button')
     editbutton.connect('clicked', lambda *args:subprocess.Popen(
             ["gksu", "gedit", "/etc/mpd.conf"]))
-    buttonbox.pack_start(editbutton, False, False, 0)
-    restartbutton = Gtk.Button("Restart the mpd service")
+    restartbutton = builder.get_object('localmpd_restart_button')
     restartbutton.connect('clicked', lambda *args:subprocess.Popen(
             ["gksu", "service", "mpd", "restart"]))
-    buttonbox.pack_start(restartbutton, False, False, 0)
-    vbox.pack_start(buttonbox, False, False, 0)
-    label = Gtk.Label(label="...")
-    label.set_properties(xalign=0.0, xpad=5, yalign=0.0, ypad=5,
-                 selectable=True)
-    vbox.pack_start(label, False, False, 0)
 
+    label = builder.get_object('localmpd_data_label')
     update(label)
 
-    window = Gtk.ScrolledWindow()
-    window.set_properties(hscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
-                  vscrollbar_policy=Gtk.PolicyType.AUTOMATIC)
-    window.add_with_viewport(vbox)
+    window = builder.get_object('localmpd_scrolledwindow')
     window.show_all()
+    tab_widget = builder.get_object('localmpd_tab_h_box')
 
     # (tab content, icon name, tab name, the widget to focus on tab switch)
-    return (window, None, "Local MPD", None)
+    return (window, tab_widget, "Local MPD", None)

@@ -14,6 +14,8 @@ self.playlists.populate()
 ...
 """
 
+import os
+
 from gi.repository import Gtk, Pango, Gdk
 
 from sonata import ui, misc, mpdhelper as mpdh
@@ -42,13 +44,22 @@ class Playlists(object):
         self.mergepl_id = None
         self.actionGroupPlaylists = None
 
-        # Playlists tab
-        self.playlists = ui.treeview()
-        self.playlists_selection = self.playlists.get_selection()
-        self.playlistswindow = ui.scrollwindow(add=self.playlists)
+        self.builder = Gtk.Builder()
+        self.builder.add_from_file('{0}/ui/playlists.ui'.format(
+            os.path.dirname(ui.__file__)))
+        self.builder.set_translation_domain('sonata')
 
-        self.tab = (self.playlistswindow, Gtk.STOCK_JUSTIFY_CENTER,
-                    TAB_PLAYLISTS, self.playlists)
+        # Playlists tab
+        self.playlists = self.builder.get_object('playlists_page_treeview')
+        self.playlists_selection = self.playlists.get_selection()
+        self.playlistswindow = self.builder.get_object('playlists_page_scrolledwindow')
+
+        self.tab_widget = self.builder.get_object('playlists_tab_h_box')
+        self.tab_label = self.builder.get_object('playlists_tab_label')
+        self.tab_label.set_text(TAB_PLAYLISTS)
+
+        self.tab = (self.playlistswindow, self.tab_widget, TAB_PLAYLISTS,
+                    self.playlists)
 
         self.playlists.connect('button_press_event',
                                self.on_playlists_button_press)
@@ -56,19 +67,8 @@ class Playlists(object):
         self.playlists.connect('key-press-event', self.playlists_key_press)
 
         # Initialize playlist data and widget
-        self.playlistsdata = Gtk.ListStore(str, str)
-        self.playlists.set_model(self.playlistsdata)
+        self.playlistsdata = self.builder.get_object('playlists_liststore')
         self.playlists.set_search_column(1)
-        self.playlistsimg = Gtk.CellRendererPixbuf()
-        self.playlistscell = Gtk.CellRendererText()
-        self.playlistscell.set_property("ellipsize", Pango.EllipsizeMode.END)
-        self.playlistscolumn = Gtk.TreeViewColumn()
-        self.playlistscolumn.pack_start(self.playlistsimg, False)
-        self.playlistscolumn.pack_start(self.playlistscell, True)
-        self.playlistscolumn.add_attribute(self.playlistsimg, "stock_id", 0)
-        self.playlistscolumn.add_attribute(self.playlistscell, "markup", 1)
-        self.playlists.append_column(self.playlistscolumn)
-        self.playlists_selection.set_mode(Gtk.SelectionMode.MULTIPLE)
 
         pluginsystem.plugin_infos.append(BuiltinPlugin(
                 'playlists', "Playlists", "A tab for playlists.",
