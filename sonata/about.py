@@ -25,6 +25,7 @@ class About(object):
     def about_shortcuts(self, _button):
         # define the shortcuts and their descriptions
         # these are all gettextable
+        # Keep them here (not as XML) as they're more convenient this way
         mainshortcuts = \
                 [["F1", _("About Sonata")],
                  ["F5", _("Preferences")],
@@ -96,7 +97,6 @@ class About(object):
         dialog = self.builder.get_object('shortcuts_dialog')
 
         # each pair is a [ heading, shortcutlist ]
-        #vbox = Gtk.VBox()
         vbox = self.builder.get_object('shortcuts_dialog_content_box')
         for pair in shortcuts:
             titlelabel = ui.label(markup="<b>%s</b>" % pair[0])
@@ -114,8 +114,6 @@ class About(object):
 
                 vbox.pack_start(tmphbox, False, False, 2)
             vbox.pack_start(ui.label(text=" "), False, False, 2)
-        #scrollbox = ui.scrollwindow(policy_x=Gtk.PolicyType.NEVER, addvp=vbox)
-        #dialog.vbox.pack_start(scrollbox, True, True, 2)
         dialog.show_all()
         dialog.run()
         dialog.destroy()
@@ -164,7 +162,6 @@ class About(object):
         self.about_dialog.set_version(self.version)
         if stats:
             self.about_dialog.set_copyright(self.statstext(stats))
-        self.about_dialog.connect("activate-link", self.show_website)
         large_icon = GdkPixbuf.Pixbuf.new_from_file(self.icon_file)
         self.about_dialog.set_logo(large_icon)
         # Add button to show keybindings:
@@ -177,6 +174,3 @@ class About(object):
         shortcut_button.connect('clicked', self.about_shortcuts)
         self.about_dialog.show_all()
 
-    def show_website(self, _dialog, link):
-        return misc.browser_load(link, self.config.url_browser, \
-                                 self.parent_window)

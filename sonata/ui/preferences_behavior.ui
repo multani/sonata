@@ -255,9 +255,9 @@
       </object>
     </child>
   </object>
-  <object class="GtkLabel" id="preferences_tab_mpd">
+  <object class="GtkLabel" id="preferences_tab_behavior">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="label" translatable="yes"></property>
+    <property name="label" translatable="yes">Behavior</property>
   </object>
 </interface>

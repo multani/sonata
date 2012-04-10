@@ -22,9 +22,6 @@ import os
 class Extras_cbs(object):
     """Callbacks and data specific to the extras tab"""
     popuptimes = []
-    popuplocations = [_('System tray'), _('Top Left'), _('Top Right'),
-              _('Bottom Left'), _('Bottom Right'),
-              _('Screen Center')]
     notif_toggled = None
     crossfade_changed = None
     crossfade_toggled = None
@@ -97,22 +94,15 @@ class Preferences():
         self.builder.set_translation_domain('sonata')
 
         self.prefswindow = self.builder.get_object('preferences_dialog')
-        #self.prefswindow = ui.dialog(title=_("Preferences"), parent=self.window, flags=Gtk.DialogFlags.DESTROY_WITH_PARENT, role='preferences', resizable=False)
+        self.prefswindow.set_transient_for(self.window)
         self.prefsnotebook = self.builder.get_object('preferences_notebook')
 
-        tabs = [(_("MPD"), 'mpd'),
-                (_("Display"), 'display'),
-                (_("Behavior"), 'behavior'),
-                (_("Format"), 'format'),
-                (_("Extras"), 'extras'),
-                (_("Plugins"), 'plugins'),
-                ]
+        tabs = ('mpd', 'display', 'behavior', 'format', 'extras', 'plugins')
 
-        for display_name, name in tabs:
-            label = ui.label(text=display_name)
+        for name in tabs:
             func = getattr(self, '%s_tab' % name)
             cbs = globals().get('%s_cbs' % name.capitalize())
-            tab = func(cbs)
+            tab, label = func(cbs)
             self.prefsnotebook.append_page(tab, label)
 
         close_button = self.builder.get_object('preferences_closebutton')
@@ -191,8 +181,9 @@ class Preferences():
                 profiles, remove_profile)
 
         tab = builder.get_object('preferences_mpd')
+        label = builder.get_object('preferences_tab_mpd')
 
-        return tab
+        return tab, label
 
     def extras_tab(self, cbs):
         """Construct and layout the extras tab"""
@@ -255,7 +246,9 @@ class Preferences():
                     as_user_label, as_pass_label):
                 widget.set_sensitive(False)
         tab = builder.get_object('preferences_extras')
-        return tab
+        label = builder.get_object('preferences_tab_extras')
+
+        return tab, label
 
     def display_tab(self, cbs):
         """Construct and layout the display tab"""
@@ -311,8 +304,9 @@ class Preferences():
         trayicon.set_sensitive(cbs.trayicon_available)
 
         tab = builder.get_object('preferences_display')
+        label = builder.get_object('preferences_tab_display')
 
-        return tab
+        return tab, label
 
     def behavior_tab(self, cbs):
         """Construct and layout the behavior tab"""
@@ -359,7 +353,9 @@ class Preferences():
         infofile_usage.connect('toggled', self._infofile_toggled,
             infopath_options)
         tab = builder.get_object('preferences_behavior')
-        return tab
+        label = builder.get_object('preferences_tab_behavior')
+
+        return tab, label
 
     def format_tab(self, cbs):
         """Construct and layout the format tab"""
@@ -410,7 +406,9 @@ class Preferences():
         additionalinfo.set_markup('<small><tt>{ }</tt> - ' + _('Info displayed only if all enclosed tags are defined') + '\n<tt>|</tt> - ' + _('Creates columns in the current playlist') + '</small>')
 
         tab = builder.get_object('preferences_format')
-        return tab
+        label = builder.get_object('preferences_tab_format')
+
+        return tab, label
 
     def plugins_tab(self, cbs=None):
         """Construct and layout the plugins tab"""
@@ -444,8 +442,10 @@ class Preferences():
             enabled = plugin.get_enabled()
             plugindata.append((enabled, pb, plugin_text))
 
-        tab = builder.get_object('preferences_plugins_scrolledwindow')
-        return tab
+        tab = builder.get_object('preferences_plugins')
+        label = builder.get_object('preferences_tab_plugins')
+
+        return tab, label
 
     def _window_response(self, window, response):
         if response == Gtk.ResponseType.CLOSE:

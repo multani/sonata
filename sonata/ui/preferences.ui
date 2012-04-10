@@ -3,6 +3,9 @@
   <!-- interface-requires gtk+ 3.0 -->
   <object class="GtkDialog" id="preferences_dialog">
     <property name="can_focus">False</property>
+    <property name="resizable">False</property>
+    <property name="role">preferences</property>
+    <property name="destroy_with_parent">True</property>
     <property name="border_width">5</property>
     <property name="type_hint">dialog</property>
     <child internal-child="vbox">
