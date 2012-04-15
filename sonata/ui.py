@@ -20,10 +20,7 @@ def label(text=None, textmn=None, markup=None, x=0, y=0.5, \
     tmplabel.set_alignment(x, y)
     tmplabel.set_size_request(w, h)
     tmplabel.set_line_wrap(wrap)
-    try: # Only recent versions of pygtk/gtk have this
-        tmplabel.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-    except:
-        pass
+    tmplabel.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
     tmplabel.set_selectable(select)
     return tmplabel
 

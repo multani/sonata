@@ -13,6 +13,9 @@ class MPDHelper(object):
     def __init__(self, client):
         self._client = client
         self.logger = logging.getLogger(__name__)
+        self._version = None
+        self._commands = None
+        self._urlhandlers = None
 
     def __set_suppress_errors(self, suppress_errors):
         if suppress_errors:
@@ -48,38 +51,45 @@ class MPDHelper(object):
                 return []
             elif cmd_name == 'status':
                 return {}
-            elif cmd_name == 'disconnect':
-                # We really don't care, if connections breaks, before we
-                # could disconnect.
-                return None
             else:
                 self.logger.error("%s", e)
 
+    def connect(self, host, port):
+        self.disconnect()
+        try:
+            self._client.connect(host, port)
+            self._version = self._client.mpd_version.split(".")
+            self._commands = self._client.commands()
+            self._urlhandlers = self._client.urlhandlers()
+        except (socket.error, MPDError) as e:
+            self.logger.exception("Can't connect to mpd: %s", e)
+
+    def disconnect(self):
+        # Reset to default values
+        self._version = None
+        self._commands = None
+        self._urlhandlers = None
+        try:
+            # We really don't care, if connections breaks, before we
+            # could disconnect.
+            self._client.close()
+            return self._client.disconnect()
+        except:
+            pass
+
     @property
     def version(self):
-        # XXX this is not supposed to change, unless the client reconnect to
-        # another server (or the same, upgraded). We should compute this once,
-        # after the initial client connection.
-        try:
-            version = getattr(self._client, "mpd_version", "0.0")
-            return version.split(".")
-        except:
-            # XXX what exception are we expecting here!?
-            return (0, 0)
+        return self._version
+
+    @property
+    def commands(self):
+        return self._commands
+
+    @property
+    def urlhandlers(self):
+        return self._urlhandlers
 
     def update(self,  paths):
-        # mpd 0.14.x limits the number of paths that can be
-        # updated within a command_list at 32. If we have
-        # >32 directories, we bail and update the entire library.
-        #
-        # If we want to get trickier in the future, we can find
-        # the 32 most specific parents that cover the set of files.
-        # This would lower the possibility of resorting to a full
-        # library update.
-        #
-        # Note: If a future version of mpd relaxes this limit,
-        # we should make the version check more specific to 0.14.x
-
         if mpd_is_updating(self.status()):
             return
 
@@ -90,13 +100,10 @@ class MPDHelper(object):
             dirs.append(os.path.dirname(path))
         dirs = remove_list_duplicates(dirs, True)
 
-        if len(dirs) > 32 and self.version >= (0, 14):
-            self._client.update('/')
-        else:
-            self._client.command_list_ok_begin()
-            for directory in dirs:
-                self._client.update(directory)
-            self._client.command_list_end()
+        self._client.command_list_ok_begin()
+        for directory in dirs:
+            self._client.update(directory)
+        self._client.command_list_end()
 
 
 def get(mapping, key, alt='', *sanitize_args):
