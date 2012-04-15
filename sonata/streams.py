@@ -108,26 +108,34 @@ class Streams(object):
         else:
             edit_mode = False
         # Prompt user for playlist name:
-        dialog = self.builder.get_object('streams_add_dialog')
-        dialog.set_transient_for(self.window)
-        # FIXME GNOME 3+'s default theme doesn't show this... does Gtk+ 3+ ever?
-        # If not, migrate to a label over the entries?
+        dialog = ui.dialog(title=None, parent=self.window,
+                           flags=Gtk.DialogFlags.MODAL |
+                                 Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                           buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT,
+                                    Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT),
+                           role="streamsNew")
         if edit_mode:
             dialog.set_title(_("Edit Stream"))
         else:
             dialog.set_title(_("New Stream"))
-        nameentry = self.builder.get_object('streams_add_title_entry')
-        nametext = ''
+        hbox = Gtk.HBox()
+        namelabel = ui.label(text=_('Stream name:'))
+        hbox.pack_start(namelabel, False, False, 5)
+        nameentry = ui.entry()
         if edit_mode:
-            nametext = self.config.stream_names[stream_num]
-        nameentry.set_text(nametext)
-        urlentry = self.builder.get_object('streams_add_url_entry')
-        urltext = ''
+            nameentry.set_text(self.config.stream_names[stream_num])
+        hbox.pack_start(nameentry, True, True, 5)
+        hbox2 = Gtk.HBox()
+        urllabel = ui.label(text=_('Stream URL:'))
+        hbox2.pack_start(urllabel, False, False, 5)
+        urlentry = ui.entry()
         if edit_mode:
-            urltext = self.config.stream_uris[stream_num]
-        urlentry.set_text(urltext)
-        vbox = self.builder.get_object('streams_add_v_box')
-        vbox.show_all()
+            urlentry.set_text(self.config.stream_uris[stream_num])
+        hbox2.pack_start(urlentry, True, True, 5)
+        ui.set_widths_equal([namelabel, urllabel])
+        dialog.vbox.pack_start(hbox, True, True, 0)
+        dialog.vbox.pack_start(hbox2, True, True, 0)
+        ui.show(dialog.vbox)
         response = dialog.run()
         if response == Gtk.ResponseType.ACCEPT:
             name = nameentry.get_text()
@@ -154,4 +162,5 @@ class Streams(object):
                 self.config.stream_uris.append(uri)
                 self.populate()
                 self.settings_save()
-        dialog.hide()
+        dialog.destroy()
+
