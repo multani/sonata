@@ -38,7 +38,7 @@
         <property name="shadow_type">in</property>
         <child>
           <object class="GtkTreeView" id="current_page_treeview">
-            <property name="can_focus">False</property>
+            <property name="can_focus">True</property>
             <property name="model">current_liststore</property>
             <property name="headers_visible">True</property>
             <property name="headers_clickable">True</property>
