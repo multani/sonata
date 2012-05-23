@@ -27,6 +27,8 @@ try:
     import dbus
     import dbus.service
     import _dbus_bindings as dbus_bindings
+    from dbus.mainloop.glib import DBusGMainLoop
+    DBusGMainLoop(set_as_default=True)
     HAVE_DBUS = True
 except:
     HAVE_DBUS = False

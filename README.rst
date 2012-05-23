@@ -117,6 +117,10 @@ Currently, the following things have been changed since the Berlios's version:
 
   This is the `remove-deprecated` branch.
 
+* Fix the initialization of DBus, due to the removal of deprecated stuff in
+  `remove-deprecated`. Thanks to Zhihao Yuan!
+
+
 Personal todo list
 ------------------
 
