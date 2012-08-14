@@ -827,7 +827,7 @@ class Preferences():
 
     def plugin_configure(self, _widget):
         plugin = self.plugin_get_selected()
-        for _plugin, cb in pluginsystem.get('plugin_configure'): #FIXME I think, that this is not right.
+        for _plugin, cb in pluginsystem.get('plugin_configure'):
             if _plugin == plugin:
                 cb()
                 return
