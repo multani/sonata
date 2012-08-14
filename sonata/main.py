@@ -398,6 +398,7 @@ class Base(object):
                 <menu action="playmodemenu">
                   <menuitem action="repeatmenu"/>
                   <menuitem action="randommenu"/>
+                  <menuitem action="consumemenu"/>
                 </menu>
                 <menuitem action="fullscreencoverart_menu"/>
                 <menuitem action="preferencemenu"/>
