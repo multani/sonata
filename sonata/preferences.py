@@ -361,10 +361,14 @@ class Preferences():
         lyrics = gtk.CheckButton(_("Song Ly_rics"))
         lyrics.set_active(self.config.show_lyrics)
         savelyrics_label = ui.label(text=_("Save lyrics to:"), x=1)
-        lyrics_location = ui.combo(items=["~/.lyrics/" + _("artist") + "-" + _("title") + ".txt",
-                                          _("SONG_DIR/")  + _("artist") + "-" + _("title") + ".txt",
-                                          "~/.lyrics/"+ _("artist") + " - " + _("title") + ".txt",
-                                          _("SONG_DIR/") + _("artist") + " - " + _("title") + ".txt"],
+        lyrics_location = ui.combo(items=["~/.lyrics/" + _("artist") + "-" +
+                                          _("title") + ".txt",
+                                          _("SONG_DIR") + "/" + _("artist") +
+                                          "-" + _("title") + ".txt",
+                                          "~/.lyrics/"+ _("artist") + " - " +
+                                          _("title") + ".txt",
+                                          _("SONG_DIR") + "/" + _("artist") +
+                                          " - " + _("title") + ".txt"],
                                    active=self.config.lyrics_location,
                                    changed_cb=self._lyrics_location_changed)
         lyrics_location_hbox = gtk.HBox(spacing=12)
