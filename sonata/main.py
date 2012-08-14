@@ -1050,7 +1050,8 @@ class Base(object):
             "[%s] %s" % (i + 1, name.replace("_", "__")), None,
             None, i)
             for i, name in enumerate(profile_names)]
-        actions.append(('disconnect', gtk.STOCK_DISCONNECT, _('Disconnect'), None, None, len(self.config.profile_names)))
+        actions.append(('disconnect', gtk.STOCK_DISCONNECT, _('Disconnect'),
+                        None, None, len(self.config.profile_names)))
 
         active_radio = 0 if host or port else self.config.profile_num
         if not self.conn:
