@@ -359,10 +359,14 @@ class Base(object):
                   for i in range(1, 10)]
 
         toggle_actions = [
-            ('showmenu',    None,   _('Show Sonata'),    None,  None,   self.on_withdraw_app_toggle,    not self.config.withdrawn),
-            ('repeatmenu',  None,   _('Repeat'),         None,  None,   self.on_repeat_clicked,         False),
-            ('randommenu',  None,   _('Random'),         None,  None,   self.on_random_clicked,         False),
-            ('consumemenu', None,   _('Consume'),        None,  None,   self.on_consume_clicked,        False),
+            ('showmenu', None, _('S_how Sonata'), None, None,
+             self.on_withdraw_app_toggle, not self.config.withdrawn),
+            ('repeatmenu', None, _('_Repeat'), None, None,
+             self.on_repeat_clicked, False),
+            ('randommenu', None, _('Rando_m'), None, None,
+             self.on_random_clicked, False),
+            ('consumemenu', None, _('Consume'), None, None,
+             self.on_consume_clicked, False),
             ]
 
         toggle_tabactions = [
