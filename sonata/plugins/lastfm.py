@@ -51,7 +51,10 @@ elapsed_now = None
 def on_enable(state):
     if state:
         read_settings()
-        login()
+        try:
+            login()
+        except:
+            pass
 
 
 def login():
@@ -59,13 +62,10 @@ def login():
 
     if username != "" and password_md5 != "":
         if network is None:
-            try:
-                network = pylast.LastFMNetwork(api_key=API_KEY,
-                                               api_secret=API_SECRET,
-                                               username=username,
-                                               password_hash=password_md5)
-            except:
-                logger.error(sys.exc_info()[1])
+            network = pylast.LastFMNetwork(api_key=API_KEY,
+                                           api_secret=API_SECRET,
+                                           username=username,
+                                           password_hash=password_md5)
     else:
         configure()
 
@@ -99,8 +99,11 @@ def handle_change_status(state, prevstate, prevsonginfo,
     global scrob_start_time, scrob_playing_duration, scrob_last_prepared,\
     elapsed_now, scrob_prev_time, network
 
-    if not network: #FIXME: Try to connect.
-        return
+    if not network:
+        try:
+            login()
+        except:
+            return
 
     if prevsonginfo and 'time' in prevsonginfo:
         prevsong_time = mpdh.get(prevsonginfo, 'time')
@@ -271,7 +274,10 @@ def settings_changed(obj, entry1, entry2):
         config.write(file)
 
     #(re)connect
-    login()
+    try:
+        login()
+    except:
+        pass
 
 
 def read_settings():
