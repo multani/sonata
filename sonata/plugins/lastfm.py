@@ -7,7 +7,7 @@
 # author: Lashkov Anton
 # author_email: lenton_91@mail.ru
 # url: http://onto.co.cc
-# license: GPL v3 and LGPL in scrobbler
+# license: GPL v3
 # [capabilities]
 # enablables: on_enable
 # handle_change_status: handle_change_status
