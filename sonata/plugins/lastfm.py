@@ -77,7 +77,7 @@ def playing_song_observers(songinfo):
 
 
 def add_toolbar_button():
-    button = ui.button(relief=gtk.RELIEF_NONE)
+    button = ui.button(relief=gtk.RELIEF_NONE, can_focus=False)
     button.props.image = gtk.image_new_from_icon_name('emblem-favorite',
                                                       gtk.ICON_SIZE_BUTTON)
     button.set_tooltip_text(_("Add to favorites on Last.Fm"))
