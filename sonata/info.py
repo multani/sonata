@@ -12,7 +12,6 @@ import pango
 import ui
 import misc
 import mpdhelper as mpdh
-import urllib
 import threading
 from consts import consts
 from pluginsystem import pluginsystem
