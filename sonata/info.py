@@ -401,6 +401,9 @@ class Info(object):
             for plugin, get_lyrics in lyrics_fetchers:
                 lyrics = get_lyrics(search_artist, search_title)
                 if lyrics:
+                    self.logger.info(_("Lyrics for '") + search_artist + " - " +
+                                     search_title + _("' fetched by ") +
+                                     plugin.name + _(" plugin."))
                     self.get_lyrics_response(search_artist, search_title,
                                              song_dir, lyrics=lyrics)
                     return
