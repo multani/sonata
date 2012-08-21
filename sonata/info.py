@@ -24,6 +24,7 @@ class Info(object):
                  on_image_motion_cb, on_image_drop_cb,
                  album_return_artist_and_tracks, new_tab):
         self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
         self.config = config
         self.linkcolor = linkcolor
         self.on_link_click_cb = on_link_click_cb
@@ -401,6 +402,9 @@ class Info(object):
             for plugin, get_lyrics in lyrics_fetchers:
                 lyrics = get_lyrics(search_artist, search_title)
                 if lyrics:
+                    self.logger.info(_("Lyrics for '") + search_artist + " - " +
+                                     search_title + _("' fetched by ") +
+                                     plugin.name + _(" plugin."))
                     self.get_lyrics_response(search_artist, search_title,
                                              song_dir, lyrics=lyrics)
                     return
