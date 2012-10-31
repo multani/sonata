@@ -2,6 +2,7 @@
 import sys
 import gettext
 import logging
+import locale
 from optparse import OptionParser
 
 from version import version
