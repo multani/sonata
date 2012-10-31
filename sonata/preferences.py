@@ -276,7 +276,7 @@ class Preferences():
         display_notification.set_active(self.config.show_notification)
 
         time_names = ["%s %s" %
-            (i , gettext.ngettext('second', 'seconds', int(i)))
+            (i , ngettext('second', 'seconds', int(i)))
             for i in cbs.popuptimes if i != _('Entire song')]
         time_names.append(_('Entire song'))
         notification_options = ui.combo(items=time_names,

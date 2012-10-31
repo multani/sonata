@@ -90,7 +90,10 @@ def run():
     # let gettext install _ as a built-in for all modules to see
     # XXX what's the correct way to find the localization?
     try:
-        gettext.install('sonata', os.path.join(sonata.__file__.split('/lib')[0], 'share', 'locale'), unicode=1)
+        gettext.install('sonata',
+                        os.path.join(sonata.__file__.split('/lib')[0],
+                                     'share', 'locale'),
+                        unicode=1, names=["ngettext"])
     except:
         logger.warning("Trying to use an old translation")
         gettext.install('sonata', '/usr/share/locale', unicode=1)
