@@ -69,7 +69,6 @@ import preferences
 import tagedit
 import artwork
 import about
-import scrobbler
 import info
 import library
 import streams
@@ -494,14 +493,7 @@ class Base(object):
         except:
             linkcolor = None
 
-        # Audioscrobbler
-        self.scrobbler = scrobbler.Scrobbler(self.config)
-        self.scrobbler.import_module()
-        self.scrobbler.init()
-        self.preferences.scrobbler = self.scrobbler
-
         # Plug-ins imported as modules
-        self.lyricwiki = lyricwiki.LyricWiki()
         self.rhapsodycovers = rhapsodycovers.RhapsodyCovers()
 
         # Current tab
@@ -1703,7 +1695,9 @@ class Base(object):
                 self.mpd_updated_db()
         self.mpd_update_queued = False
 
-        if self.config.as_enabled:
+        # send information to scrobblers, etc.
+        plugins = pluginsystem.get('handle_change_status')
+        if plugins:
             if self.prevstatus:
                 prevstate = self.prevstatus['state']
             else:
@@ -1715,13 +1709,12 @@ class Base(object):
 
             if state in ('play', 'pause'):
                 mpd_time_now = self.status['time']
-                self.scrobbler.handle_change_status(state, prevstate,
-                                                    self.prevsonginfo,
-                                                    self.songinfo,
-                                                    mpd_time_now)
+                for _plugin, cb in plugins:
+                    cb(state, prevstate, self.prevsonginfo, self.songinfo,
+                       mpd_time_now)
             elif state == 'stop':
-                self.scrobbler.handle_change_status(state, prevstate,
-                                                    self.prevsonginfo)
+                for _plugin, cb in plugins:
+                    cb(state, prevstate, self.prevsonginfo)
 
     def mpd_updated_db(self):
         self.library.view_caches_reset()
@@ -2081,8 +2074,6 @@ class Base(object):
                 return True
         self.settings_save()
         self.artwork.artwork_save_cache()
-        if self.config.as_enabled:
-            self.scrobbler.save_cache()
         if self.conn and self.config.stop_on_exit:
             self.mpd_stop(None)
         sys.exit()
