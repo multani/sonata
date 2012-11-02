@@ -11,59 +11,76 @@ XXX Not a real plugin yet.
 
 Example usage:
 import dbus_plugin as dbus
-self.dbus_service = dbus.SonataDBus(self.dbus_show, self.dbus_toggle, self.dbus_popup)
+self.dbus_service = dbus.SonataDBus(self.dbus_show, self.dbus_toggle,
+                                    self.dbus_popup, self.dbus_fullscreen)
 dbus.start_dbus_interface(toggle_arg, popup_arg)
-dbus.init_gnome_mediakeys(self.mpd_pp, self.mpd_stop, self.mpd_prev, self.mpd_next)
+dbus.init_gnome_mediakeys(self.mpd_pp, self.mpd_stop, self.mpd_prev,
+                            self.mpd_next)
 if not dbus.using_gnome_mediakeys():
         # do something else instead...
 """
 
+import logging
 import sys
 
 try:
-    import dbus, dbus.service
-    if getattr(dbus, "version", (0, 0, 0)) >= (0, 41, 0):
-        import dbus.glib
-    if getattr(dbus, "version", (0, 0, 0)) >= (0, 80, 0):
-        import _dbus_bindings as dbus_bindings
-        NEW_DBUS = True
-    else:
-        import dbus.dbus_bindings as dbus_bindings
-        NEW_DBUS = False
+    import dbus
+    import dbus.service
+    import _dbus_bindings as dbus_bindings
+    from dbus.mainloop.glib import DBusGMainLoop
+    DBusGMainLoop(set_as_default=True)
     HAVE_DBUS = True
 except:
     HAVE_DBUS = False
+
+
+logger = logging.getLogger(__name__)
+
 
 def using_dbus():
     return HAVE_DBUS
 
 HAVE_GNOME_MMKEYS = False
 
+
 def using_gnome_mediakeys():
     return HAVE_GNOME_MMKEYS
+
 
 def init_gnome_mediakeys(mpd_pp, mpd_stop, mpd_prev, mpd_next):
     global HAVE_GNOME_MMKEYS
     if HAVE_DBUS:
         try:
             bus = dbus.SessionBus()
-            dbusObj = bus.get_object('org.freedesktop.DBus', '/org/freedesktop/DBus')
-            dbusInterface = dbus.Interface(dbusObj, 'org.freedesktop.DBus')
+            dbusObj = bus.get_object('org.freedesktop.DBus',
+                                     '/org/freedesktop/DBus')
+            dbusInterface = dbus.Interface(dbusObj,
+                                            'org.freedesktop.DBus')
             if dbusInterface.NameHasOwner('org.gnome.SettingsDaemon'):
                 try:
                     # mmkeys for gnome 2.22+
-                    settingsDaemonObj = bus.get_object('org.gnome.SettingsDaemon', '/org/gnome/SettingsDaemon/MediaKeys')
-                    settingsDaemonInterface = dbus.Interface(settingsDaemonObj, 'org.gnome.SettingsDaemon.MediaKeys')
+                    settingsDaemonObj = bus.get_object(
+                        'org.gnome.SettingsDaemon',
+                        '/org/gnome/SettingsDaemon/MediaKeys')
+                    settingsDaemonInterface = dbus.Interface(settingsDaemonObj,
+                                        'org.gnome.SettingsDaemon.MediaKeys')
                     settingsDaemonInterface.GrabMediaPlayerKeys('Sonata', 0)
                 except:
                     # mmkeys for gnome 2.18+
-                    settingsDaemonObj = bus.get_object('org.gnome.SettingsDaemon', '/org/gnome/SettingsDaemon')
-                    settingsDaemonInterface = dbus.Interface(settingsDaemonObj, 'org.gnome.SettingsDaemon')
+                    settingsDaemonObj = bus.get_object(
+                        'org.gnome.SettingsDaemon',
+                        '/org/gnome/SettingsDaemon')
+                    settingsDaemonInterface = dbus.Interface(settingsDaemonObj,
+                                                    'org.gnome.SettingsDaemon')
                     settingsDaemonInterface.GrabMediaPlayerKeys('Sonata', 0)
-                settingsDaemonInterface.connect_to_signal('MediaPlayerKeyPressed', lambda app, key:mediaPlayerKeysCallback(mpd_pp, mpd_stop, mpd_prev, mpd_next, app, key))
+                settingsDaemonInterface.connect_to_signal(
+                    'MediaPlayerKeyPressed', lambda app,
+                    key: mediaPlayerKeysCallback(mpd_pp, mpd_stop, mpd_prev,
+                                                mpd_next, app, key))
                 HAVE_GNOME_MMKEYS = True
         except:
             pass
+
 
 def mediaPlayerKeysCallback(mpd_pp, mpd_stop, mpd_prev, mpd_next, app, key):
     if app == 'Sonata':
@@ -76,14 +93,21 @@ def mediaPlayerKeysCallback(mpd_pp, mpd_stop, mpd_prev, mpd_next, app, key):
         elif key == 'Next':
             mpd_next(None)
 
+
 def get_session_bus():
     try:
         return dbus.SessionBus()
     except Exception:
-        print _("Sonata failed to connect to the D-BUS session bus: Unable to determine the address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for help)")
+        logger.error(
+            _('Sonata failed to connect to the D-BUS session bus: '
+              'Unable to determine the address of the message bus '
+              '(try \'man dbus-launch\' and \'man dbus-daemon\' '
+              'for help)")'))
         raise
 
-def execute_remote_commands(toggle=False, popup=False, start=False):
+
+def execute_remote_commands(toggle=False, popup=False, fullscreen=False,
+                            start=False):
     try:
         bus = get_session_bus()
         obj = bus.get_object('org.MPD', '/org/MPD/Sonata')
@@ -91,33 +115,42 @@ def execute_remote_commands(toggle=False, popup=False, start=False):
             obj.toggle(dbus_interface='org.MPD.SonataInterface')
         if popup:
             obj.popup(dbus_interface='org.MPD.SonataInterface')
+        if fullscreen:
+            obj.fullscreen(dbus_interface='org.MPD.SonataInterface')
         sys.exit()
     except Exception:
-        print _("Failed to execute remote commands.")
+        logger.warning(_("Failed to execute remote commands."))
         if start is None or start:
-            print _("Starting Sonata instead...")
+            logger.info(_("Starting Sonata instead..."))
         else:
-            print _("Maybe Sonata is not running?")
+            # TODO: should we log the exception here?
+            logger.critical(_("Maybe Sonata is not running?"))
             sys.exit(1)
+
 
 def start_dbus_interface():
     if HAVE_DBUS:
         try:
             bus = get_session_bus()
-            if NEW_DBUS:
-                retval = bus.request_name("org.MPD.Sonata", dbus_bindings.NAME_FLAG_DO_NOT_QUEUE)
-            else:
-                retval = dbus_bindings.bus_request_name(bus.get_connection(), "org.MPD.Sonata", dbus_bindings.NAME_FLAG_DO_NOT_QUEUE)
-            if retval in (dbus_bindings.REQUEST_NAME_REPLY_PRIMARY_OWNER, dbus_bindings.REQUEST_NAME_REPLY_ALREADY_OWNER):
+
+            retval = bus.request_name("org.MPD.Sonata",
+                                      dbus_bindings.NAME_FLAG_DO_NOT_QUEUE)
+
+            if retval in (dbus_bindings.REQUEST_NAME_REPLY_PRIMARY_OWNER,
+                          dbus_bindings.REQUEST_NAME_REPLY_ALREADY_OWNER):
                 pass
-            elif retval in (dbus_bindings.REQUEST_NAME_REPLY_EXISTS, dbus_bindings.REQUEST_NAME_REPLY_IN_QUEUE):
-                print _("An instance of Sonata is already running. Showing it...")
+            elif retval in (dbus_bindings.REQUEST_NAME_REPLY_EXISTS,
+                            dbus_bindings.REQUEST_NAME_REPLY_IN_QUEUE):
+                logger.info(
+                    _('An instance of Sonata is already running. '
+                      'Showing it...'))
                 try:
                     obj = bus.get_object('org.MPD', '/org/MPD/Sonata')
                     obj.show(dbus_interface='org.MPD.SonataInterface')
                     sys.exit()
                 except Exception:
-                    print _("Failed to execute remote command.")
+                    # TODO: should we log the exception here?
+                    logger.critical(_("Failed to execute remote command."))
                     sys.exit(1)
         except Exception:
             pass
@@ -125,11 +158,14 @@ def start_dbus_interface():
             raise
 
 if HAVE_DBUS:
+
     class SonataDBus(dbus.service.Object):
-        def __init__(self, dbus_show, dbus_toggle, dbus_popup):
+
+        def __init__(self, dbus_show, dbus_toggle, dbus_popup, dbus_fullscreen):
             self.dbus_show = dbus_show
             self.dbus_toggle = dbus_toggle
             self.dbus_popup = dbus_popup
+            self.dbus_fullscreen = dbus_fullscreen
             session_bus = get_session_bus()
             bus_name = dbus.service.BusName('org.MPD', bus=session_bus)
             object_path = '/org/MPD/Sonata'
@@ -146,3 +182,7 @@ if HAVE_DBUS:
         @dbus.service.method('org.MPD.SonataInterface')
         def popup(self):
             self.dbus_popup()
+
+        @dbus.service.method('org.MPD.SonataInterface')
+        def fullscreen(self):
+            self.dbus_fullscreen()

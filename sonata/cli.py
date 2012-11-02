@@ -1,6 +1,7 @@
 
 import sys
 import gettext
+import logging
 from optparse import OptionParser
 
 from version import version
@@ -9,8 +10,11 @@ from version import version
 mpd_cmds = ["play", "pause", "stop", "next", "prev", "pp", "info",
             "status", "repeat", "random"]
 
+
 class Args(object):
+
     def __init__(self):
+        self.logger = logging.getLogger(__name__)
         self.skip_gui = False
         self.start_visibility = None
 
@@ -20,11 +24,11 @@ class Args(object):
         Separates options and arguments from the given argument list,
         checks their validity."""
 
-        # toggle and popup need d-bus and don't always need gui
+        # toggle and popup and fullscreen need d-bus and don't always need gui
         # version and help don't need anything and exit without gui
         # hidden and visible are only applicable when gui is launched
         # profile and no-start don't need anything
-        _usage = "\n".join((_("%prog [OPTION]... [COMMAND]...")+"\n",
+        _usage = "\n".join((_("%prog [OPTION]... [COMMAND]...") + "\n",
          _("Commands:"),
         "  play            %s" % _("play song in playlist"),
         "  pause           %s" % _("pause currently playing song"),
@@ -46,6 +50,9 @@ class Args(object):
         parser.add_option("-t", "--toggle", dest="toggle",
                   action="store_true",
                   help=_("toggles whether the app is minimized to the tray or visible (requires D-Bus)"))
+        parser.add_option("-f", "--fullscreen", dest="fullscreen",
+                  action="store_true",
+                  help=_("go fullscreen (requires D-Bus)"))
         parser.add_option("-n", "--no-start", dest="start",
                   action="store_false",
                   help=_("don't start app if D-Bus commands fail"))
@@ -57,12 +64,22 @@ class Args(object):
                   help=_("start app visible (requires systray)"))
         parser.add_option("--profile", dest="profile", metavar="NUM",
                   help=_("start with profile NUM"), type=int)
+        parser.add_option("-v", "--verbose", dest="log_level",
+                          action="append_const", const=-10,
+                          help=_("Increase log verbosity"))
+        parser.add_option("-q", "--quiet", dest="log_level",
+                          action="append_const", const=10,
+                          help=_("Decrease log verbosity"))
+        parser.set_defaults(log_level=[logging.root.level])
 
         options, self.cmds = parser.parse_args(argv[1:])
 
+        # Update default log level
+        logging.root.setLevel(sum(options.log_level))
+
         if options.toggle:
             options.start_visibility = True
-        if options.popup and options.start_visibility is None:
+        if options.popup or options.fullscreen and options.start_visibility is None:
             options.start_visibility = False
         self.start_visibility = options.start_visibility
         self.arg_profile = options.profile
@@ -73,22 +90,22 @@ class Args(object):
             else:
                 parser.error(_("unknown command %s") % cmd)
 
-        if options.toggle or options.popup:
+        if options.toggle or options.popup or options.fullscreen:
             import dbus_plugin as dbus
             if not dbus.using_dbus():
-                print _("toggle and popup options require D-Bus. Aborting.")
+                self.logger.critical(
+                    _("toggle and popup options require D-Bus.  Aborting."))
                 sys.exit(1)
 
             dbus.execute_remote_commands(options.toggle,
                              options.popup,
+                             options.fullscreen,
                              options.start)
-
 
     def execute_cmds(self):
         """If arguments were passed, perform action on them."""
         if self.cmds:
             main = CliMain(self)
-            mpdh.suppress_mpd_errors(True)
             main.mpd_connect()
             for cmd in self.cmds:
                 main.execute_cmd(cmd)
@@ -99,13 +116,19 @@ class Args(object):
             a = self.arg_profile
             if a > 0 and a <= len(config.profile_names):
                 config.profile_num = a-1
-                print _("Starting Sonata with profile %s...") % config.profile_names[config.profile_num]
+                self.logger.info(_("Starting Sonata with profile %s...") %
+                                 config.profile_names[config.profile_num])
             else:
-                print _("%d is not an available profile number.") % a
-                print _("Profile numbers must be between 1 and %d.") % len(config.profile_names)
+                self.logger.critical(
+                    _("%d is not an available profile number.") % a)
+                self.logger.critical(
+                    _("Profile numbers must be between 1 and %d.") %
+                    len(config.profile_names))
                 sys.exit(1)
 
+
 class CliMain(object):
+
     def __init__(self, args):
         global os, mpd, config, library, mpdh, misc
         import os
@@ -115,11 +138,16 @@ class CliMain(object):
         import mpdhelper as mpdh
         import misc
 
-        self.config = config.Config(_('Default Profile'), _("by") + " %A " + _("from") + " %B", library.library_set_data)
+        self.logger = logging.getLogger(__name__)
+        self.config = config.Config(_('Default Profile'), _("by") + " %A " + \
+                                _("from") + " %B", library.library_set_data)
         self.config.settings_load_real(library.library_set_data)
         args.apply_profile_arg(self.config)
 
-        self.client = mpd.MPDClient()
+        c = mpd.MPDClient()
+        self.mpd = mpdh.MPDHelper(c)
+        # XXX Should be configurable from the outside
+        self.mpd.suppress_errors = True
 
     def mpd_connect(self):
         host, port, password = misc.mpd_env_vars()
@@ -130,37 +158,39 @@ class CliMain(object):
         if not password:
             password = self.config.password[self.config.profile_num]
 
-        mpdh.call(self.client, 'connect', host, port)
+        self.mpd.connect(host, port)
         if password:
-            mpdh.call(self.client, 'password', password)
+            self.mpd.password(password)
 
     def execute_cmd(self, cmd):
-        self.status = mpdh.status(self.client)
+        self.status = self.mpd.status()
         if not self.status:
-            print _("Unable to connect to MPD.\nPlease check your Sonata preferences or MPD_HOST/MPD_PORT environment variables.")
+            self.logger.critical(_(
+                'Unable to connect to MPD.\nPlease check your Sonata '
+                'preferences or MPD_HOST/MPD_PORT environment variables.'))
             sys.exit(1)
 
-        self.songinfo = mpdh.currsong(self.client)
+        self.songinfo = self.mpd.currentsong()
         getattr(self, "_execute_%s" % cmd)()
 
     def _execute_play(self):
-        mpdh.call(self.client, 'play')
+        self.mpd.play()
 
     def _execute_pause(self):
-        mpdh.call(self.client, 'pause', 1)
+        self.mpd.pause(1)
 
     def _execute_stop(self):
-        mpdh.call(self.client, 'stop')
+        self.mpd.stop()
 
     def _execute_next(self):
-        mpdh.call(self.client, 'next')
+        self.mpd.next()
 
     def _execute_prev(self):
-        mpdh.call(self.client, 'previous')
+        self.mpd.previous()
 
     def _execute_bool(self, cmd):
         """Set the reverse the value of cmd"""
-        mpdh.call(self.client, cmd, int(not int(self.status[cmd])))
+        self.mpd.call(cmd, int(not int(self.status[cmd])))
 
     def _execute_random(self):
         self._execute_bool('random')
@@ -170,9 +200,9 @@ class CliMain(object):
 
     def _execute_pp(self):
         if self.status['state'] in ['play']:
-            mpdh.call(self.client, 'pause', 1)
+            self.mpd.pause(1)
         elif self.status['state'] in ['pause', 'stop']:
-            mpdh.call(self.client, 'play')
+            self.mpd.play()
 
     def _execute_info(self):
         if self.status['state'] in ['play', 'pause']:
@@ -185,12 +215,14 @@ class CliMain(object):
                 (_("File"), ('file',)),
                    ]
             for pretty, cmd in cmds:
-                mpdh.conout("%s: %s" % (pretty,
-                        mpdh.get(self.songinfo, *cmd)))
+                # XXX we should know the encoding of the string instead...
+                print ("%s: %s" % (pretty, mpdh.get(self.songinfo, *cmd))
+                      ).encode(locale.getpreferredencoding(), "replace")
             at, _length = [int(c) for c in self.status['time'].split(':')]
             at_time = misc.convert_time(at)
             try:
-                time = misc.convert_time(mpdh.get(self.songinfo, 'time', '', True))
+                time = misc.convert_time(mpdh.get(self.songinfo, 'time',
+                                                  '', True))
                 print "%s: %s/%s" % (_("Time"), at_time, time)
             except:
                 print "%s: %s" % (_("Time"), at_time)
@@ -203,14 +235,15 @@ class CliMain(object):
         state_map = {
                 'play': _("Playing"),
                 'pause': _("Paused"),
-                'stop': _("Stopped")
-                }
+                'stop': _("Stopped")}
         print "%s: %s" % (_("State"),
                 state_map[self.status['state']])
 
-        print "%s %s" % (_("Repeat:"), _("On") if self.status['repeat'] == '1' else _("Off"))
-        print "%s %s" % (_("Random:"), _("On") if self.status['random'] == '1' else _("Off"))
+        print "%s %s" % (_("Repeat:"), _("On") \
+                         if self.status['repeat'] == '1' else _("Off"))
+        print "%s %s" % (_("Random:"), _("On") \
+                         if self.status['random'] == '1' else _("Off"))
         print "%s: %s/100" % (_("Volume"), self.status['volume'])
         print "%s: %s %s" % (_('Crossfade'), self.status['xfade'],
-                    gettext.ngettext('second', 'seconds',
-                             int(self.status['xfade'])))
+                             gettext.ngettext('second', 'seconds',
+                                              int(self.status['xfade'])))

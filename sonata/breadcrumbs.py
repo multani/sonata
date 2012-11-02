@@ -2,8 +2,10 @@
 
 import gtk
 
+
 class CrumbButton(gtk.ToggleButton):
     """A ToggleButton tailored for use as a breadcrumb."""
+
     def __init__(self, image, label):
         gtk.ToggleButton.__init__(self)
 
@@ -18,6 +20,7 @@ class CrumbButton(gtk.ToggleButton):
 
         self.add(align)
 
+
 class CrumbBox(gtk.Box):
     """A box layout similar to gtk.HBox, but specifically for breadcrumbs.
 
@@ -27,6 +30,7 @@ class CrumbBox(gtk.Box):
     * The current element is truncated if necessary.
     """
     __gtype_name__ = 'CrumbBox'
+
     def __init__(self, *args, **kwargs):
         gtk.Box.__init__(self, *args, **kwargs)
 
@@ -50,7 +54,7 @@ class CrumbBox(gtk.Box):
 
         # Request "minimum" size:
 
-        height = max([0]+[r[1] for r in reqs])
+        height = max([0] + [r[1] for r in reqs])
 
         if len(reqs) == 0: # empty
             width = 0
@@ -59,17 +63,17 @@ class CrumbBox(gtk.Box):
         elif len(reqs) == 3: # parent and current
             width = height + height + self.props.spacing
         elif len(reqs) == 4: # root, parent and current
-            width = height + height + height + 2*self.props.spacing
+            width = height + height + height + 2 * self.props.spacing
         elif len(reqs) > 4: # root, ellipsis, parent, current
-            pad = 3*self.props.spacing
+            pad = 3 * self.props.spacing
             width = height + reqs[1][0] + height + height + pad
 
         requisition.width = width
         requisition.height = height
 
     def _req_sum(self, reqs):
-        pad = 0 if not reqs else (len(reqs)-1)*self.props.spacing
-        return pad+sum([req[0] for req in reqs])
+        pad = 0 if not reqs else (len(reqs)-1) * self.props.spacing
+        return pad + sum([req[0] for req in reqs])
 
     def _condense(self, req, w):
 # FIXME show and hide cause a fight in an infinite loop
@@ -88,7 +92,7 @@ class CrumbBox(gtk.Box):
 
     def _truncate(self, req, amount):
         wr, hr = req
-        return (wr-amount, hr) # XXX this can be less than hr, even <0
+        return (wr - amount, hr) # XXX this can be less than hr, even <0
 
     def do_size_allocate(self, allocation):
         """This gets called to layout our child widgets"""
@@ -137,14 +141,13 @@ class CrumbBox(gtk.Box):
 
         # If necessary, truncate the current crumb
         if self._req_sum(reqs) > w0:
-            reqs[-1] = self._truncate(reqs[-1],
-                                                  self._req_sum(reqs)-w0)
+            reqs[-1] = self._truncate(reqs[-1], self._req_sum(reqs) - w0)
             # Now we are at minimum width
 
         x = 0
         for w, req in zip(crumbs, reqs):
             wr, _hr = req
-            w.size_allocate(gtk.gdk.Rectangle(x0+x, y0, wr, h0))
+            w.size_allocate(gtk.gdk.Rectangle(x0 + x, y0, wr, h0))
             w.show()
             x += wr + self.props.spacing
 
@@ -158,7 +161,7 @@ class CrumbBox(gtk.Box):
 #				callback(w, data)
 
 # this file can be run as a simple test program:
-if __name__  == '__main__':
+if __name__ == '__main__':
     w = gtk.Window()
     crumbs = CrumbBox(spacing=2)
 

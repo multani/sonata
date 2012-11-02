@@ -1,5 +1,10 @@
+import logging
 
 import gtk, sys, pango
+
+
+logger = logging.getLogger(__name__)
+
 
 def label(text=None, textmn=None, markup=None, x=0, y=0.5, \
           wrap=False, select=False, w=-1, h=-1):
@@ -20,6 +25,16 @@ def label(text=None, textmn=None, markup=None, x=0, y=0.5, \
         pass
     tmplabel.set_selectable(select)
     return tmplabel
+
+def textview(text=None, edit=True, wrap=False):
+    buf = gtk.TextBuffer()
+    tmptv = gtk.TextView(buf)
+    if text:
+        buf.set_text(text)
+    if wrap:
+        tmptv.set_wrap_mode(gtk.WRAP_WORD_CHAR)
+    tmptv.set_editable(edit)
+    return tmptv
 
 def expander(text=None, markup=None, expand=False, can_focus=True):
     tmpexp = gtk.Expander()
@@ -156,7 +171,7 @@ class UnicodeEntry(gtk.Entry):
         try:
             return gtk.Entry.get_text(self).decode('utf-8')
         except:
-            print sys.exc_info()[1]
+            logger.exception("Unable to get text from Gtk widget")
             return gtk.Entry.get_text(self).decode('utf-8', 'replace')
 
 def treeview(hint=True, reorder=False, search=True, headers=False):
@@ -215,6 +230,14 @@ def hide(widget):
 
 def focus(widget):
     widget.grab_focus()
+
+def quote_label(label_value):
+    """Quote the content of a label so that it's safe to display."""
+
+    # Don't inadvertently create accelerators if the value contains a "_"
+    result = label_value.replace("_", "__")
+
+    return result
 
 def set_widths_equal(widgets):
     # Assigns the same width to all passed widgets in the list, where

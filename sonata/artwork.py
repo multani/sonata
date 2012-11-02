@@ -2,16 +2,28 @@ from __future__ import with_statement
 import os
 import threading # artwork_update starts a thread _artwork_update
 
-import gtk, gobject
+import gtk
+import gobject
 
-import img, ui, misc, mpdhelper as mpdh
+import img
+import ui
+import misc
+import mpdhelper as mpdh
+import consts
 from library import library_set_data
 from library import library_get_data
-from consts import consts
 from pluginsystem import pluginsystem
 
+
 class Artwork(object):
-    def __init__(self, config, find_path, is_lang_rtl, info_imagebox_get_size_request, schedule_gc_collect, target_image_filename, imagelist_append, remotefilelist_append, notebook_get_allocation, allow_art_search, status_is_play_or_pause, album_filename, get_current_song_text):
+
+    def __init__(self, config, path_to_icon, is_lang_rtl,
+                 info_imagebox_get_size_request, schedule_gc_collect,
+                 target_image_filename, imagelist_append,
+                 remotefilelist_append, notebook_get_allocation,
+                 allow_art_search, status_is_play_or_pause, album_filename,
+                 get_current_song_text):
+
         self.config = config
         self.album_filename = album_filename
 
@@ -30,9 +42,10 @@ class Artwork(object):
         self.get_current_song_text = get_current_song_text
 
         # local pixbufs, image file names
-        self.sonatacd = find_path('sonatacd.png')
-        self.sonatacd_large = find_path('sonatacd_large.png')
-        self.casepb = gtk.gdk.pixbuf_new_from_file(find_path('sonata-case.png'))
+        self.sonatacd = path_to_icon('sonatacd.png')
+        self.sonatacd_large = path_to_icon('sonatacd_large.png')
+        path = path_to_icon('sonata-case.png')
+        self.casepb = gtk.gdk.pixbuf_new_from_file(path)
         self.albumpb = None
         self.currentpb = None
 
@@ -41,11 +54,16 @@ class Artwork(object):
         self.albumimage.set_from_file(self.sonatacd)
 
         self.trayalbumimage1 = ui.image(w=51, h=77, x=1)
-        self.trayalbumeventbox = ui.eventbox(w=59, h=90, add=self.trayalbumimage1, state=gtk.STATE_SELECTED, visible=True)
+        self.trayalbumeventbox = ui.eventbox(w=59, h=90,
+                                             add=self.trayalbumimage1,
+                                             state=gtk.STATE_SELECTED,
+                                             visible=True)
 
         self.trayalbumimage2 = ui.image(w=26, h=77)
 
-        self.fullscreenalbumimage = ui.image(w=consts.FULLSCREEN_COVER_SIZE, h=consts.FULLSCREEN_COVER_SIZE, x=1)
+        self.fullscreenalbumimage = ui.image(w=consts.FULLSCREEN_COVER_SIZE,
+                                             h=consts.FULLSCREEN_COVER_SIZE,
+                                             x=1)
         self.fullscreenalbumlabel = ui.label(x=0.5)
         self.fullscreenalbumlabel2 = ui.label(x=0.5)
         self.fullscreen_cover_art_reset_image()
@@ -96,13 +114,16 @@ class Artwork(object):
         if self.songinfo:
             if 'name' in self.songinfo:
                 # Stream, remove file:
-                misc.remove_file(self.artwork_stream_filename(mpdh.get(self.songinfo, 'name')))
+                misc.remove_file(self.artwork_stream_filename(
+                    mpdh.get(self.songinfo, 'name')))
             else:
                 # Normal song:
                 misc.remove_file(self.target_image_filename())
-                misc.remove_file(self.target_image_filename(consts.ART_LOCATION_HOMECOVERS))
+                misc.remove_file(self.target_image_filename(
+                    consts.ART_LOCATION_HOMECOVERS))
                 # Use blank cover as the artwork
-                dest_filename = self.target_image_filename(consts.ART_LOCATION_HOMECOVERS)
+                dest_filename = self.target_image_filename(
+                    consts.ART_LOCATION_HOMECOVERS)
                 try:
                     emptyfile = open(dest_filename, 'w')
                     emptyfile.close()
@@ -147,7 +168,7 @@ class Artwork(object):
         self.lib_art_cond.acquire()
         self.lib_art_rows_local = []
         self.lib_art_rows_remote = []
-        test_rows = range(start_row, end_row+1) + range(len(model))
+        test_rows = range(start_row, end_row + 1) + range(len(model))
         for row in test_rows:
             i = model.get_iter((row,))
             icon = model.get_value(i, 0)
@@ -164,7 +185,8 @@ class Artwork(object):
 
             # Wait for items..
             self.lib_art_cond.acquire()
-            while(len(self.lib_art_rows_local) == 0 and len(self.lib_art_rows_remote) == 0):
+            while(len(self.lib_art_rows_local) == 0 and \
+                  len(self.lib_art_rows_remote) == 0):
                 self.lib_art_cond.wait()
             self.lib_art_cond.release()
 
@@ -180,7 +202,8 @@ class Artwork(object):
 
             if i is not None and self.lib_model.iter_is_valid(i):
 
-                artist, album, path = library_get_data(data, 'artist', 'album', 'path')
+                artist, album, path = library_get_data(data, 'artist',
+                                                       'album', 'path')
 
                 if artist is None or album is None:
                     if remote_art:
@@ -188,17 +211,20 @@ class Artwork(object):
                     else:
                         self.lib_art_rows_local.pop(0)
 
-                cache_key = library_set_data(artist=artist, album=album, path=path)
+                cache_key = library_set_data(artist=artist, album=album,
+                                             path=path)
 
                 # Try to replace default icons with cover art:
                 pb = self.get_library_artwork_cached_pb(cache_key, None)
 
                 if pb is not None and not remote_art:
-                    # Continue to rescan for local artwork if we are displaying the
-                    # default album image, in case the user has added a local image
-                    # since we first scanned.
-                    filename = self.get_library_artwork_cached_filename(cache_key)
-                    if os.path.basename(filename) == os.path.basename(self.album_filename):
+                    # Continue to rescan for local artwork if we are
+                    # displaying the default album image, in case the user
+                    # has added a local image since we first scanned.
+                    filename = self.get_library_artwork_cached_filename(
+                        cache_key)
+                    if os.path.basename(filename) == os.path.basename(
+                        self.album_filename):
                         pb = None
 
                 filename = None
@@ -206,40 +232,54 @@ class Artwork(object):
                 # No cached pixbuf, try local/remote search:
                 if pb is None:
                     if not remote_art:
-                        pb, filename = self.library_get_album_cover(path, artist, album, self.lib_art_pb_size)
+                        pb, filename = self.library_get_album_cover(path,
+                                                        artist, album,
+                                                        self.lib_art_pb_size)
                     else:
-                        filename = self.target_image_filename(None, path, artist, album)
-                        self.artwork_download_img_to_file(artist, album, filename)
-                        pb, filename = self.library_get_album_cover(path, artist, album, self.lib_art_pb_size)
+                        filename = self.target_image_filename(None, path,
+                                                              artist, album)
+                        self.artwork_download_img_to_file(artist, album,
+                                                          filename)
+                        pb, filename = self.library_get_album_cover(path,
+                                                            artist, album,
+                                                        self.lib_art_pb_size)
 
                 # Set pixbuf icon in model; add to cache
                 if pb is not None:
                     if filename is not None:
-                        self.set_library_artwork_cached_filename(cache_key, filename)
+                        self.set_library_artwork_cached_filename(cache_key,
+                                                                 filename)
                     gobject.idle_add(self.library_set_cover, i, pb, data)
 
                 # Remote processed item from queue:
                 if not remote_art:
-                    if len(self.lib_art_rows_local) > 0 and (i, data, icon) == self.lib_art_rows_local[0]:
+                    if len(self.lib_art_rows_local) > 0 and \
+                       (i, data, icon) == self.lib_art_rows_local[0]:
                         self.lib_art_rows_local.pop(0)
-                        if pb is None and self.config.covers_pref == consts.ART_LOCAL_REMOTE:
+                        if pb is None and self.config.covers_pref == \
+                           consts.ART_LOCAL_REMOTE:
                             # No local art found, add to remote queue for later
                             self.lib_art_rows_remote.append((i, data, icon))
                 else:
-                    if len(self.lib_art_rows_remote) > 0 and (i, data, icon) == self.lib_art_rows_remote[0]:
+                    if len(self.lib_art_rows_remote) > 0 and \
+                       (i, data, icon) == self.lib_art_rows_remote[0]:
                         self.lib_art_rows_remote.pop(0)
                         if pb is None:
-                            # No remote art found, store self.albumpb filename in cache
-                            self.set_library_artwork_cached_filename(cache_key, self.album_filename)
+                            # No remote art found, store self.albumpb
+                            # filename in cache
+                            self.set_library_artwork_cached_filename(cache_key,
+                                                        self.album_filename)
 
     def library_set_image_for_current_song(self, cache_key):
         # Search through the rows in the library to see
         # if we match the currently playing song:
-        play_artist, play_album = library_get_data(cache_key, 'artist', 'album')
+        play_artist, play_album = library_get_data(cache_key, 'artist',
+                                                   'album')
         if play_artist is None and play_album is None:
             return
         for row in self.lib_model:
-            artist, album, path = library_get_data(row[1], 'artist', 'album', 'path')
+            artist, album, path = library_get_data(row[1], 'artist', 'album',
+                                                   'path')
             if unicode(play_artist).lower() == unicode(artist).lower() \
             and unicode(play_album).lower() == unicode(album).lower():
                 pb = self.get_library_artwork_cached_pb(cache_key, None)
@@ -254,7 +294,8 @@ class Artwork(object):
         _tmp, coverfile = self.artwork_get_local_image(dirname, artist, album)
         if coverfile:
             try:
-                coverpb = gtk.gdk.pixbuf_new_from_file_at_size(coverfile, pb_size, pb_size)
+                coverpb = gtk.gdk.pixbuf_new_from_file_at_size(coverfile,
+                                                            pb_size, pb_size)
             except:
                 # Delete bad image:
                 misc.remove_file(coverfile)
@@ -278,8 +319,12 @@ class Artwork(object):
         filename = self.get_library_artwork_cached_filename(cache_key)
         if filename is not None:
             if os.path.exists(filename):
-                pb = gtk.gdk.pixbuf_new_from_file_at_size(filename, self.lib_art_pb_size, self.lib_art_pb_size)
-                return self.artwork_apply_composite_case(pb, self.lib_art_pb_size, self.lib_art_pb_size)
+                pb = gtk.gdk.pixbuf_new_from_file_at_size(filename,
+                                                          self.lib_art_pb_size,
+                                                          self.lib_art_pb_size)
+                return self.artwork_apply_composite_case(pb,
+                                                         self.lib_art_pb_size,
+                                                         self.lib_art_pb_size)
             else:
                 self.cache.pop(cache_key)
                 return origpb
@@ -329,9 +374,11 @@ class Artwork(object):
     def _artwork_update(self):
         if 'name' in self.songinfo:
             # Stream
-            streamfile = self.artwork_stream_filename(mpdh.get(self.songinfo, 'name'))
+            streamfile = self.artwork_stream_filename(mpdh.get(self.songinfo,
+                                                               'name'))
             if os.path.exists(streamfile):
-                gobject.idle_add(self.artwork_set_image, streamfile, None, None, None)
+                gobject.idle_add(self.artwork_set_image, streamfile, None,
+                                 None, None)
             else:
                 self.artwork_set_default_icon()
         else:
@@ -351,7 +398,8 @@ class Artwork(object):
             imgfound = self.artwork_check_for_local(artist, album, path)
             if not imgfound:
                 if self.config.covers_pref == consts.ART_LOCAL_REMOTE:
-                    imgfound = self.artwork_check_for_remote(artist, album, path, filename)
+                    imgfound = self.artwork_check_for_remote(artist, album,
+                                                             path, filename)
 
     def artwork_stream_filename(self, streamname):
         return os.path.join(os.path.expanduser('~/.covers'),
@@ -368,7 +416,8 @@ class Artwork(object):
                 self.misc_img_in_dir = filename
             elif location_type == consts.ART_LOCATION_SINGLE:
                 self.single_img_in_dir = filename
-            gobject.idle_add(self.artwork_set_image, filename, artist, album, path)
+            gobject.idle_add(self.artwork_set_image, filename, artist, album,
+                             path)
             return True
 
         return False
@@ -394,18 +443,25 @@ class Artwork(object):
                    consts.ART_LOCATION_ALBUM,
                    consts.ART_LOCATION_FOLDER]
         for location in simplelocations:
-            testfile = self.target_image_filename(location, songpath, artist, album)
+            testfile = self.target_image_filename(location, songpath, artist,
+                                                  album)
             if os.path.exists(testfile):
                 return location, testfile
 
-        testfile = self.target_image_filename(consts.ART_LOCATION_CUSTOM, songpath, artist, album)
-        if self.config.art_location == consts.ART_LOCATION_CUSTOM and len(self.config.art_location_custom_filename) > 0 and os.path.exists(testfile):
+        testfile = self.target_image_filename(consts.ART_LOCATION_CUSTOM,
+                                              songpath, artist, album)
+        if self.config.art_location == consts.ART_LOCATION_CUSTOM and \
+           len(self.config.art_location_custom_filename) > 0 and \
+           os.path.exists(testfile):
             return consts.ART_LOCATION_CUSTOM, testfile
 
         if self.artwork_get_misc_img_in_path(songpath):
-            return consts.ART_LOCATION_MISC, self.artwork_get_misc_img_in_path(songpath)
+            return consts.ART_LOCATION_MISC, \
+                    self.artwork_get_misc_img_in_path(songpath)
 
-        testfile = img.single_image_in_dir(os.path.join(self.config.musicdir[self.config.profile_num], songpath))
+        path = os.path.join(self.config.musicdir[self.config.profile_num],
+                            songpath)
+        testfile = img.single_image_in_dir(path)
         if testfile is not None:
             return consts.ART_LOCATION_SINGLE, testfile
 
@@ -415,26 +471,33 @@ class Artwork(object):
         self.artwork_set_default_icon(artist, album, path)
         self.artwork_download_img_to_file(artist, album, filename)
         if os.path.exists(filename):
-            gobject.idle_add(self.artwork_set_image, filename, artist, album, path)
+            gobject.idle_add(self.artwork_set_image, filename, artist, album,
+                             path)
             return True
         return False
 
     def artwork_set_default_icon(self, artist=None, album=None, path=None):
         if self.albumimage.get_property('file') != self.sonatacd:
             gobject.idle_add(self.albumimage.set_from_file, self.sonatacd)
-            gobject.idle_add(self.info_image.set_from_file, self.sonatacd_large)
+            gobject.idle_add(self.info_image.set_from_file,
+                             self.sonatacd_large)
             gobject.idle_add(self.fullscreen_cover_art_reset_image)
-        gobject.idle_add(self.artwork_set_tooltip_art, gtk.gdk.pixbuf_new_from_file(self.sonatacd))
+        gobject.idle_add(self.artwork_set_tooltip_art,
+                         gtk.gdk.pixbuf_new_from_file(self.sonatacd))
         self.lastalbumart = None
 
         # Also, update row in library:
         if artist is not None:
             cache_key = library_set_data(artist=artist, album=album, path=path)
-            self.set_library_artwork_cached_filename(cache_key, self.album_filename)
-            gobject.idle_add(self.library_set_image_for_current_song, cache_key)
+            self.set_library_artwork_cached_filename(cache_key,
+                                                     self.album_filename)
+            gobject.idle_add(self.library_set_image_for_current_song,
+                             cache_key)
 
     def artwork_get_misc_img_in_path(self, songdir):
-        dir = misc.file_from_utf8(os.path.join(self.config.musicdir[self.config.profile_num], songdir))
+        path = os.path.join(self.config.musicdir[self.config.profile_num],
+                            songdir)
+        dir = misc.file_from_utf8(path)
         if os.path.exists(dir):
             for name in consts.ART_LOCATIONS_MISC:
                 filename = os.path.join(dir, name)
@@ -442,7 +505,8 @@ class Artwork(object):
                     return filename
         return False
 
-    def artwork_set_image(self, filename, artist, album, path, info_img_only=False):
+    def artwork_set_image(self, filename, artist, album, path,
+                          info_img_only=False):
         # Note: filename arrives here is in FILESYSTEM_CHARSET, not UTF-8!
         if self.artwork_is_for_playing_song(filename):
             if os.path.exists(filename):
@@ -463,8 +527,10 @@ class Artwork(object):
 
                 if not info_img_only:
                     # Store in cache
-                    cache_key = library_set_data(artist=artist, album=album, path=path)
-                    self.set_library_artwork_cached_filename(cache_key, filename)
+                    cache_key = library_set_data(artist=artist, album=album,
+                                                 path=path)
+                    self.set_library_artwork_cached_filename(cache_key,
+                                                             filename)
 
                     # Artwork for tooltip, left-top of player:
                     (pix1, w, h) = img.get_pixbuf_of_size(pix, 75)
@@ -501,19 +567,22 @@ class Artwork(object):
         self.artwork_set_image(self.lastalbumart, None, None, None, True)
 
     def artwork_apply_composite_case(self, pix, w, h):
-        if self.config.covers_type == consts.COVERS_TYPE_STYLIZED and float(w)/h > 0.5:
-            # Rather than merely compositing the case on top of the artwork, we will
-            # scale the artwork so that it isn't covered by the case:
-            spine_ratio = float(60)/600 # From original png
+        if self.config.covers_type == consts.COVERS_TYPE_STYLIZED and \
+           float(w) / h > 0.5:
+            # Rather than merely compositing the case on top of the artwork,
+            # we will scale the artwork so that it isn't covered by the case:
+            spine_ratio = float(60) / 600 # From original png
             spine_width = int(w * spine_ratio)
             case = self.casepb.scale_simple(w, h, gtk.gdk.INTERP_BILINEAR)
             # Scale pix and shift to the right on a transparent pixbuf:
-            pix = pix.scale_simple(w-spine_width, h, gtk.gdk.INTERP_BILINEAR)
+            pix = pix.scale_simple(w - spine_width, h, gtk.gdk.INTERP_BILINEAR)
             blank = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, w, h)
             blank.fill(0x00000000)
-            pix.copy_area(0, 0, pix.get_width(), pix.get_height(), blank, spine_width, 0)
+            pix.copy_area(0, 0, pix.get_width(), pix.get_height(), blank,
+                          spine_width, 0)
             # Composite case and scaled pix:
-            case.composite(blank, 0, 0, w, h, 0, 0, 1, 1, gtk.gdk.INTERP_BILINEAR, 250)
+            case.composite(blank, 0, 0, w, h, 0, 0, 1, 1,
+                           gtk.gdk.INTERP_BILINEAR, 250)
             del case
             return blank
         return pix
@@ -524,29 +593,35 @@ class Artwork(object):
         # song is displayed
         if self.status_is_play_or_pause() and self.songinfo:
             if 'name' in self.songinfo:
-                streamfile = self.artwork_stream_filename(mpdh.get(self.songinfo, 'name'))
+                value = mpdh.get(self.songinfo, 'name')
+                streamfile = self.artwork_stream_filename(value)
                 if filename == streamfile:
                     return True
             else:
                 # Normal song:
-                if (filename in [self.target_image_filename(consts.ART_LOCATION_HOMECOVERS),
-                         self.target_image_filename(consts.ART_LOCATION_COVER),
-                         self.target_image_filename(consts.ART_LOCATION_ALBUM),
-                         self.target_image_filename(consts.ART_LOCATION_FOLDER),
-                         self.target_image_filename(consts.ART_LOCATION_CUSTOM)] or
-                    (self.misc_img_in_dir and filename == self.misc_img_in_dir) or
-                    (self.single_img_in_dir and filename == self.single_img_in_dir)):
+                if (filename in \
+                   [self.target_image_filename(consts.ART_LOCATION_HOMECOVERS),
+                     self.target_image_filename(consts.ART_LOCATION_COVER),
+                     self.target_image_filename(consts.ART_LOCATION_ALBUM),
+                     self.target_image_filename(consts.ART_LOCATION_FOLDER),
+                     self.target_image_filename(consts.ART_LOCATION_CUSTOM)] or
+                    (self.misc_img_in_dir and \
+                     filename == self.misc_img_in_dir) or
+                    (self.single_img_in_dir and filename == \
+                     self.single_img_in_dir)):
                     return True
         # If we got this far, no match:
         return False
 
-    def artwork_download_img_to_file(self, artist, album, dest_filename, all_images=False):
+    def artwork_download_img_to_file(self, artist, album, dest_filename,
+                                     all_images=False):
         self.downloading_image = True
         # Fetch covers from rhapsody.com etc.
         cover_fetchers = pluginsystem.get('cover_fetching')
         imgfound = False
         for _plugin, cb in cover_fetchers:
-            ret = cb(self.download_progress, artist, album, dest_filename, all_images)
+            ret = cb(self.download_progress, artist, album, dest_filename,
+                     all_images)
             if ret:
                 imgfound = True
                 break # XXX if all_images, merge results...
@@ -564,7 +639,7 @@ class Artwork(object):
             if self.stop_art_update:
                 del pix
                 return False # don't continue to next image
-            self.imagelist_append([i+1, pix])
+            self.imagelist_append([i + 1, pix])
             del pix
             self.remotefilelist_append(dest_filename_curr)
             if i == 0:
@@ -580,30 +655,39 @@ class Artwork(object):
                 self.fullscreen_cover_art_reset_image()
             else:
                 # Artwork for fullscreen cover mode
-                (pix3, w, h) = img.get_pixbuf_of_size(self.currentpb, consts.FULLSCREEN_COVER_SIZE)
+                (pix3, w, h) = img.get_pixbuf_of_size(self.currentpb,
+                                                  consts.FULLSCREEN_COVER_SIZE)
                 pix3 = self.artwork_apply_composite_case(pix3, w, h)
-                pix3 = img.pixbuf_pad(pix3, consts.FULLSCREEN_COVER_SIZE, consts.FULLSCREEN_COVER_SIZE)
+                pix3 = img.pixbuf_pad(pix3, consts.FULLSCREEN_COVER_SIZE,
+                                      consts.FULLSCREEN_COVER_SIZE)
                 self.fullscreenalbumimage.set_from_pixbuf(pix3)
                 del pix3
         self.fullscreen_cover_art_set_text()
 
     def fullscreen_cover_art_reset_image(self):
         pix = gtk.gdk.pixbuf_new_from_file(self.sonatacd_large)
-        pix = img.pixbuf_pad(pix, consts.FULLSCREEN_COVER_SIZE, consts.FULLSCREEN_COVER_SIZE)
+        pix = img.pixbuf_pad(pix, consts.FULLSCREEN_COVER_SIZE,
+                             consts.FULLSCREEN_COVER_SIZE)
         self.fullscreenalbumimage.set_from_pixbuf(pix)
         self.currentpb = None
 
     def fullscreen_cover_art_set_text(self):
         if self.status_is_play_or_pause():
             line1, line2 = self.get_current_song_text()
-            self.fullscreenalbumlabel.set_markup("<span size='20000' color='white'>%s</span>" % misc.escape_html(line1))
-            self.fullscreenalbumlabel2.set_markup("<span size='12000' color='white'>%s</span>" % misc.escape_html(line2))
+            self.fullscreenalbumlabel.set_markup(('<span size=\'20000\' '
+                                                  'color=\'white\'>%s</span>')
+                                                 % (misc.escape_html(line1)))
+            self.fullscreenalbumlabel2.set_markup(('<span size=\'12000\' '
+                                                   'color=\'white\'>%s</span>')
+                                                  % (misc.escape_html(line2)))
         else:
             self.fullscreen_cover_art_reset_text()
 
     def fullscreen_cover_art_reset_text(self):
-        self.fullscreenalbumlabel.set_markup("<span size='20000' color='white'> </span>")
-        self.fullscreenalbumlabel2.set_markup("<span size='12000' color='white'> </span>")
+        self.fullscreenalbumlabel.set_markup(('<span size=\'20000\' '
+                                              'color=\'white\'> </span>'))
+        self.fullscreenalbumlabel2.set_markup(('<span size=\'12000\' '
+                                               'color=\'white\'> </span>'))
 
     def have_last(self):
         if self.lastalbumart is not None:

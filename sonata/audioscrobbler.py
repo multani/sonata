@@ -110,8 +110,9 @@ pages, so you may find yourself making requests that you are sure should be
 cached, but in fact aren't.
 
 For example:
-http://ws.audioscrobbler.com/1.0/user/offmessage/topalbums.xml returns a ``304``
-http://ws.audioscrobbler.com/1.0/artist/The+Flaming+Lips/similar.xml does not
+http://ws.audioscrobbler.com/1.0/user/offmessage/topalbums.xml returns a
+``304`` http://ws.audioscrobbler.com/1.0/artist/The+Flaming+Lips/similar.xml
+does not
 
 I have assumed that this is for a reason, and as such honour this behaviour.
 If a page does not return a ``Last-Modified`` header we do not cache it.  Any
@@ -219,7 +220,7 @@ host
     fact, the url that we authenticate against is built as
     ``"http://%s/?%s" % (host, params)`` so as long as your host string makes
     a valid url in that format, go for it.  Note the trailing slash between
-    host and the query string.  This seems to be a requirement of urllib2.  This
+    host and the query string.  This seems to be a requirement of urllib2. This
     means that your test auth script should be able to be called that way.
 
 Putting them to use in real life
@@ -230,9 +231,9 @@ Some advice on using these classes.
 -----------
 I've not done anything about the socket timeout on the running system.  It's
 not really this code's place to do anything about it, but it is something that
-probably needs sorting out, otherwise your scripts will hang for as long as your
-timeout setting if there is a problem with the Last.fm servers (which there
-appears to be fairly frequently with the submissions servers).
+probably needs sorting out, otherwise your scripts will hang for as long as
+your timeout setting if there is a problem with the Last.fm servers (which
+there appears to be fairly frequently with the submissions servers).
 
 Generally, if you are on a slow link or one with poor latency you can up the
 timeout so that your requests don't keep failing unnecessarily.  However, if
@@ -270,7 +271,17 @@ __version__ = "$Revision$"[11:-2]
 __docformat__ = "restructuredtext"
 
 
-import datetime, locale, hashlib, site, sys, time, urllib, urllib2, ConfigParser, os
+import datetime
+import locale
+import hashlib
+import site
+import logging
+import sys
+import time
+import urllib
+import urllib2
+import ConfigParser
+import os
 
 from xml.etree import ElementTree
 
@@ -285,7 +296,7 @@ if enc == 'ascii' and locale.getpreferredencoding():
     enc = locale.getpreferredencoding()
 # if we are on MacOSX, we default to UTF8
 # because apples python reports 'ISO8859-1' as locale, but MacOSX uses utf8
-if sys.platform=='darwin':
+if sys.platform == 'darwin':
     enc = 'utf8'
 
 # AudioScrobblerQuery configuration settings
@@ -299,6 +310,7 @@ client_name = u'sna'
 pyscrobbler_version = u'1.0.0.0' # This is set to 1.0 while we use
                              # client_name = u'tst' as we keep getting
                              # UPDATE responses with anything less.
+
 
 class AudioScrobblerError(Exception):
 
@@ -321,6 +333,7 @@ class AudioScrobblerError(Exception):
     def __str__(self):
         return self.__repr__()
 
+
 class AudioScrobblerConnectionError(AudioScrobblerError):
 
     """
@@ -336,6 +349,7 @@ class AudioScrobblerConnectionError(AudioScrobblerError):
     def __repr__(self):
         msg = "AudioScrobblerConnectionError: %s: %s %s"
         return msg % (self.type.upper(), self.code, self.message,)
+
 
 class AudioScrobblerTypeError(AudioScrobblerError):
 
@@ -378,6 +392,7 @@ class AudioScrobblerHandshakeError(AudioScrobblerError):
     """
     pass
 
+
 class AudioScrobbler:
 
     """ Factory for Queries and Posts.  Holds configuration for the session """
@@ -390,12 +405,14 @@ class AudioScrobbler:
                  client_name=client_name,
                  client_version=pyscrobbler_version):
 
-        self.audioscrobbler_request_version=audioscrobbler_request_version
-        self.audioscrobbler_post_version=audioscrobbler_post_version
-        self.audioscrobbler_request_host=audioscrobbler_request_host
-        self.audioscrobbler_post_host=audioscrobbler_post_host
-        self.client_name=client_name
-        self.client_version=pyscrobbler_version
+        self.logger = logging.getLogger(__name__)
+
+        self.audioscrobbler_request_version = audioscrobbler_request_version
+        self.audioscrobbler_post_version = audioscrobbler_post_version
+        self.audioscrobbler_request_host = audioscrobbler_request_host
+        self.audioscrobbler_post_host = audioscrobbler_post_host
+        self.client_name = client_name
+        self.client_version = pyscrobbler_version
 
     def query(self, **kwargs):
 
@@ -414,16 +431,17 @@ class AudioScrobbler:
         """ Create a new AudioScrobblerPost """
 
         ret = AudioScrobblerPost(username=username.encode('utf8'),
-                                 md5_password=md5_password.encode('utf8'),
-                                 host=self.audioscrobbler_post_host,
-                                 protocol_version=self.audioscrobbler_post_version,
-                                 client_name=self.client_name,
-                                 client_version=self.client_version,
-                                 verbose=verbose)
+                         md5_password=md5_password.encode('utf8'),
+                         host=self.audioscrobbler_post_host,
+                         protocol_version=self.audioscrobbler_post_version,
+                         client_name=self.client_name,
+                         client_version=self.client_version,
+                         verbose=verbose)
         return ret
 
 
 class AudioScrobblerCache:
+
     def __init__(self, elemtree, last):
         self.elemtree = elemtree
         self.requestdate = last
@@ -444,8 +462,7 @@ class AudioScrobblerQuery:
 
         if len(kwargs) != 1:
             raise TypeError("__init__() takes exactly 1 audioscrobbler "
-                            "request argument, %s given" % str(len(kwargs))
-                           )
+                            "request argument, %s given" % str(len(kwargs)))
         self.type = kwargs.keys()[0]
         self.param = str(kwargs[self.type])
         self.baseurl = 'http://%s/%s/%s/%s' % (host,
@@ -456,6 +473,7 @@ class AudioScrobblerQuery:
         self._cache = {}
 
     def __getattr__(self, name):
+
         def method(_self=self, name=name, **params):
             # Build the URL
             url = '%s/%s.xml' % (_self.baseurl, urllib.quote(name))
@@ -482,8 +500,10 @@ class AudioScrobblerQuery:
                 if error.code == 304:
                     return AudioScrobblerItem(cache[url].getroot(), _self, url)
                 if error.code == 400:
-                    raise AudioScrobblerConnectionError('ws', 400, error.fp.read())
-                raise AudioScrobblerConnectionError('http', error.code, error.msg)
+                    raise AudioScrobblerConnectionError('ws', 400,
+                                                        error.fp.read())
+                raise AudioScrobblerConnectionError('http', error.code,
+                                                    error.msg)
             except urllib2.URLError, error:
                 code = error.reason.args[0]
                 message = error.reason.args[1]
@@ -534,9 +554,8 @@ class AudioScrobblerItem:
         result = self._element.findall(name)
         if len(result) == 0:
             raise AttributeError("AudioScrobbler %s element has no "
-                                 "subelement '%s'" % (self.tag, name)
-                                )
-        ret = [ AudioScrobblerItem(i, self) for i in result ]
+                                 "subelement '%s'" % (self.tag, name))
+        ret = [AudioScrobblerItem(i, self) for i in result]
         if len(ret) == 1:
             return ret[0]
         return ret
@@ -555,9 +574,10 @@ class AudioScrobblerItem:
             return default
 
     def __getslice__(self, i, j):
-        return [ AudioScrobblerItem(x, self) for x in self._element[i:j] ]
+        return [AudioScrobblerItem(x, self) for x in self._element[i:j]]
 
     def raw(self):
+
         def getparent(obj):
             if isinstance(obj._parent, AudioScrobblerQuery):
                 return obj._parent
@@ -593,13 +613,15 @@ class AudioScrobblerPost:
                            protocol_version=protocol_version,
                            host=host)
 
-        self.verbose = verbose
+        self.logger = logging.getLogger(__name__)
+        if not verbose:
+            self.logger.setLevel(logging.WARNING)
 
         self.auth_details = {}
         self.last_post = None
         self.interval = 0
         self.cache = []
-        self.loglines = []
+        self.loglines = [] # TODO: it somehow duplicates with the logging module
         self.last_shake = None
         self.authenticated = False
         self.updateurl = None
@@ -626,7 +648,8 @@ class AudioScrobblerPost:
         p['t'] = timestamp
         p['a'] = auth_token
 
-        plist = [(k, urllib.quote_plus(v.encode('utf8'))) for k, v in p.items()]
+        plist = [(k, urllib.quote_plus(v.encode('utf8'))) \
+                 for k, v in p.items()]
 
         authparams = urllib.urlencode(plist)
         url = 'http://%s/?%s' % (self.params['host'], authparams)
@@ -644,7 +667,8 @@ class AudioScrobblerPost:
 
         response = url_handle.readlines()
         if len(response) == 0:
-            raise AudioScrobblerHandshakeError('Got nothing back from the server')
+            raise AudioScrobblerHandshakeError(('Got nothing back from '
+                                                'the server'))
 
         username = self.params['username']
         md5_password = self.params['md5_password']
@@ -670,7 +694,8 @@ class AudioScrobblerPost:
 
         elif response[0].startswith('BADTIME'):
             self.authenticated = False
-            msg = "The timestamp provided was not close enough to the current time."
+            msg = ('The timestamp provided was not close enough to '
+                   'the current time.')
             raise AudioScrobblerHandshakeError(msg)
 
         elif response[0].startswith('FAILED'):
@@ -799,17 +824,20 @@ class AudioScrobblerPost:
             url_handle = urllib2.urlopen(req)
         except urllib2.HTTPError, error:
             self.authenticated = False
-            print AudioScrobblerConnectionError('http', error.code, error.msg)
+            self.logger.error(
+                "%s", AudioScrobblerConnectionError('http', error.code, error.msg))
             return
         except:
             code = '000'
             message = sys.exc_info()[1]
-            print AudioScrobblerConnectionError('network', code, message)
+            self.logger.error(
+                "%s", AudioScrobblerConnectionError('network', code, message))
             return
 
         response = url_handle.readlines()
         if response[0].startswith('OK'):
-            self.log("Now playing track updated ('%s' by '%s')." % (p['t'], p['a']))
+            self.log("Now playing track updated ('%s' by '%s')." % (p['t'],
+                                                                    p['a']))
         elif response[0].startswith('BADSESSION'):
             self.authenticated = False
 
@@ -867,7 +895,8 @@ class AudioScrobblerPost:
         # Test the various responses possibilities:
         if response[0].startswith('OK'):
             for song in self.cache[:number]:
-                self.log("Uploaded track successfully ('%s' by '%s')." % (song['t[%s]'], song['a[%s]']))
+                self.log("Uploaded track successfully ('%s' by '%s')." \
+                         % (song['t[%s]'], song['a[%s]']))
             del self.cache[:number]
         elif response[0].startswith('BADSESSION'):
             self.log("Got BADSESSION.")
@@ -925,9 +954,10 @@ class AudioScrobblerPost:
         count = 0
         while conf.has_section('Track ' + str(count)):
             track = {}
-            for key in ['a','t','l','i','b','m','r','n','o']:
+            for key in ['a', 't', 'l', 'i', 'b', 'm', 'r', 'n', 'o']:
                 if conf.has_option('Track ' + str(count), key + '[%s]'):
-                    track[key + '[%s]'] = conf.get('Track ' + str(count), key + '[%s]')
+                    track[key + '[%s]'] = conf.get('Track %s' % (str(count),),
+                                                   key + '[%s]')
             self.cache.append(track)
             count += 1
 
@@ -940,8 +970,7 @@ class AudioScrobblerPost:
 
         time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.loglines.append("%s: %s" % (time, msg))
-        if self.verbose:
-            print self.loglines[-1]
+        self.logger.debug(msg)
 
     def getlog(self, clear=False):
 

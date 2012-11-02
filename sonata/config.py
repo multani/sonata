@@ -6,15 +6,18 @@ Example usage:
 import config
 ...
 # XXX We shouldn't have the default values contain localised parts:
-self.config = config.Config(_('Default Profile'), _("by") + " %A " + _("from") + " %B")
+self.config = config.Config(_('Default Profile'), _("by") + " %A " +\
+        _("from") + " %B")
 """
 from __future__ import with_statement
 
-import os, hashlib
+import os
+import hashlib
 import ConfigParser
 
-from consts import consts
+import consts
 import misc
+
 
 class Config:
     """This class contains the configuration variables as attributes.
@@ -25,7 +28,9 @@ class Config:
 
     XXX This is mostly ConfigParser plus some custom serialization work.
     """
-    def __init__(self, default_profile_name, currsongformat2, library_set_data):
+
+    def __init__(self, default_profile_name, currsongformat2,
+                 library_set_data):
         # the config settings:
         self.profile_num = 0
         self.profile_names = [default_profile_name]
@@ -72,7 +77,7 @@ class Config:
         self.currsongformat1 = "%T"
         self.currsongformat2 = currsongformat2
         # this mirrors Main.columns widths
-        self.columnwidths = [325,10]
+        self.columnwidths = [325, 10]
         self.autoconnect = True
 
         self.stream_names = []
@@ -146,7 +151,8 @@ class Config:
         if conf.has_option('connection', 'password'):
             self.password[0] = conf.get('connection', 'password')
         if conf.has_option('connection', 'musicdir'):
-            self.musicdir[0] = misc.sanitize_musicdir(conf.get('connection', 'musicdir'))
+            self.musicdir[0] = misc.sanitize_musicdir(conf.get('connection',
+                                                               'musicdir'))
         # --------------------------------------------------------------------
         if conf.has_option('connection', 'auto'):
             self.autoconnect = conf.getboolean('connection', 'auto')
@@ -193,7 +199,8 @@ class Config:
         if conf.has_option('player', 'update_on_start'):
             self.update_on_start = conf.getboolean('player', 'update_on_start')
         if conf.has_option('player', 'notif_location'):
-            self.traytips_notifications_location = conf.getint('player', 'notif_location')
+            self.traytips_notifications_location = conf.getint('player',
+                                                              'notif_location')
         if conf.has_option('player', 'playback'):
             self.show_playback = conf.getboolean('player', 'playback')
         if conf.has_option('player', 'progressbar'):
@@ -224,19 +231,24 @@ class Config:
         if conf.has_option('player', 'art_location'):
             self.art_location = conf.getint('player', 'art_location')
         if conf.has_option('player', 'art_location_custom_filename'):
-            self.art_location_custom_filename = conf.get('player', 'art_location_custom_filename')
+            self.art_location_custom_filename = conf.get('player',
+                                                'art_location_custom_filename')
         if conf.has_option('player', 'lyrics_location'):
             self.lyrics_location = conf.getint('player', 'lyrics_location')
         if conf.has_option('player', 'info_song_expanded'):
-            self.info_song_expanded = conf.getboolean('player', 'info_song_expanded')
+            self.info_song_expanded = conf.getboolean('player',
+                                                      'info_song_expanded')
         if conf.has_option('player', 'info_lyrics_expanded'):
-            self.info_lyrics_expanded = conf.getboolean('player', 'info_lyrics_expanded')
+            self.info_lyrics_expanded = conf.getboolean('player',
+                                                        'info_lyrics_expanded')
         if conf.has_option('player', 'info_album_expanded'):
-            self.info_album_expanded = conf.getboolean('player', 'info_album_expanded')
+            self.info_album_expanded = conf.getboolean('player',
+                                                       'info_album_expanded')
         if conf.has_option('player', 'info_song_more'):
             self.info_song_more = conf.getboolean('player', 'info_song_more')
         if conf.has_option('player', 'columnwidths'):
-            self.columnwidths = [int(col) for col in conf.get('player', 'columnwidths').split(",")]
+            self.columnwidths = [int(col) for col in conf.get('player',
+                                                    'columnwidths').split(",")]
         if conf.has_option('player', 'show_header'):
             self.show_header = conf.getboolean('player', 'show_header')
         if conf.has_option('player', 'tabs_expanded'):
@@ -244,36 +256,57 @@ class Config:
         if conf.has_option('player', 'browser'):
             self.url_browser = conf.get('player', 'browser')
         if conf.has_option('player', 'info_art_enlarged'):
-            self.info_art_enlarged = conf.getboolean('player', 'info_art_enlarged')
+            self.info_art_enlarged = conf.getboolean('player',
+                                                     'info_art_enlarged')
         if conf.has_option('player', 'existing_playlist'):
-            self.existing_playlist_option = conf.getint('player', 'existing_playlist')
+            self.existing_playlist_option = conf.getint('player',
+                                                        'existing_playlist')
 
         if conf.has_section('notebook'):
             if conf.has_option('notebook', 'current_tab_visible'):
-                self.current_tab_visible = conf.getboolean('notebook', 'current_tab_visible')
+                self.current_tab_visible = conf.getboolean('notebook',
+                                                        'current_tab_visible')
             if conf.has_option('notebook', 'library_tab_visible'):
-                self.library_tab_visible = conf.getboolean('notebook', 'library_tab_visible')
+                self.library_tab_visible = conf.getboolean('notebook',
+                                                        'library_tab_visible')
             if conf.has_option('notebook', 'playlists_tab_visible'):
-                self.playlists_tab_visible = conf.getboolean('notebook', 'playlists_tab_visible')
+                self.playlists_tab_visible = conf.getboolean('notebook',
+                                                    'playlists_tab_visible')
             if conf.has_option('notebook', 'streams_tab_visible'):
-                self.streams_tab_visible = conf.getboolean('notebook', 'streams_tab_visible')
+                self.streams_tab_visible = conf.getboolean('notebook',
+                                                        'streams_tab_visible')
             if conf.has_option('notebook', 'info_tab_visible'):
-                self.info_tab_visible = conf.getboolean('notebook', 'info_tab_visible')
+                self.info_tab_visible = conf.getboolean('notebook',
+                                                        'info_tab_visible')
             if conf.has_option('notebook', 'current_tab_pos'):
-                try: self.current_tab_pos = conf.getint('notebook', 'current_tab_pos')
-                except: pass
+                try:
+                    self.current_tab_pos = conf.getint('notebook',
+                                                        'current_tab_pos')
+                except:
+                    pass
             if conf.has_option('notebook', 'library_tab_pos'):
-                try: self.library_tab_pos = conf.getint('notebook', 'library_tab_pos')
-                except: pass
+                try:
+                    self.library_tab_pos = conf.getint('notebook',
+                                                        'library_tab_pos')
+                except:
+                    pass
             if conf.has_option('notebook', 'playlists_tab_pos'):
-                try: self.playlists_tab_pos = conf.getint('notebook', 'playlists_tab_pos')
-                except: pass
+                try:
+                    self.playlists_tab_pos = conf.getint('notebook',
+                                                          'playlists_tab_pos')
+                except:
+                    pass
             if conf.has_option('notebook', 'streams_tab_pos'):
-                try: self.streams_tab_pos = conf.getint('notebook', 'streams_tab_pos')
-                except: pass
+                try:
+                    self.streams_tab_pos = conf.getint('notebook',
+                                                        'streams_tab_pos')
+                except:
+                    pass
             if conf.has_option('notebook', 'info_tab_pos'):
-                try: self.info_tab_pos = conf.getint('notebook', 'info_tab_pos')
-                except: pass
+                try:
+                    self.info_tab_pos = conf.getint('notebook', 'info_tab_pos')
+                except:
+                    pass
 
         if conf.has_section('library'):
             album = None
@@ -293,12 +326,18 @@ class Config:
                 year = conf.get('library', 'lib_year')
             if conf.has_option('library', 'lib_path'):
                 path = conf.get('library', 'lib_path')
-            if album == self.LIB_NODATA: album = None
-            if artist == self.LIB_NODATA: artist = None
-            if genre == self.LIB_NODATA: genre = None
-            if year == self.LIB_NODATA: year = None
-            if path == self.LIB_NODATA: path = None
-            self.wd = library_set_data(album=album, artist=artist, genre=genre, year=year, path=path)
+            if album == self.LIB_NODATA:
+                album = None
+            if artist == self.LIB_NODATA:
+                artist = None
+            if genre == self.LIB_NODATA:
+                genre = None
+            if year == self.LIB_NODATA:
+                year = None
+            if path == self.LIB_NODATA:
+                path = None
+            self.wd = library_set_data(album=album, artist=artist, genre=genre,
+                                       year=year, path=path)
 
         if conf.has_section('currformat'):
             if conf.has_option('currformat', 'current'):
@@ -321,14 +360,18 @@ class Config:
             self.stream_names = []
             self.stream_uris = []
             for i in range(num_streams):
-                self.stream_names.append(conf.get('streams', 'names[' + str(i) + ']'))
-                self.stream_uris.append(conf.get('streams', 'uris[' + str(i) + ']'))
+                self.stream_names.append(conf.get('streams', 'names[' + \
+                                                  str(i) + ']'))
+                self.stream_uris.append(conf.get('streams', 'uris[' + \
+                                                 str(i) + ']'))
         if conf.has_option('audioscrobbler', 'use_audioscrobbler'):
-            self.as_enabled = conf.getboolean('audioscrobbler', 'use_audioscrobbler')
+            self.as_enabled = conf.getboolean('audioscrobbler',
+                                              'use_audioscrobbler')
         if conf.has_option('audioscrobbler', 'username'):
             self.as_username = conf.get('audioscrobbler', 'username')
         if conf.has_option('audioscrobbler', 'password'): # old...
-            self.as_password_md5 = hashlib.md5(conf.get('audioscrobbler', 'password')).hexdigest()
+            self.as_password_md5 = hashlib.md5(conf.get('audioscrobbler',
+                                                       'password')).hexdigest()
         if conf.has_option('audioscrobbler', 'password_md5'):
             self.as_password_md5 = conf.get('audioscrobbler', 'password_md5')
         if conf.has_option('profiles', 'num_profiles'):
@@ -340,21 +383,29 @@ class Config:
                 self.password = []
                 self.musicdir = []
             for i in range(num_profiles):
-                self.profile_names.append(conf.get('profiles', 'names[' + str(i) + ']'))
+                self.profile_names.append(conf.get('profiles',
+                                                   'names[' + str(i) + ']'))
                 self.host.append(conf.get('profiles', 'hosts[' + str(i) + ']'))
-                self.port.append(conf.getint('profiles', 'ports[' + str(i) + ']'))
-                self.password.append(conf.get('profiles', 'passwords[' + str(i) + ']'))
-                self.musicdir.append(misc.sanitize_musicdir(conf.get('profiles', 'musicdirs[%s]' % i)))
+                self.port.append(conf.getint('profiles',
+                                             'ports[' + str(i) + ']'))
+                self.password.append(conf.get('profiles',
+                                              'passwords[' + str(i) + ']'))
+                self.musicdir.append(misc.sanitize_musicdir(conf.get(
+                    'profiles', 'musicdirs[%s]' % i)))
             # Ensure we have a valid profile number:
             self.profile_num = max(0, min(self.profile_num, num_profiles-1))
 
         if conf.has_section('plugins'):
             if conf.has_option('plugins', 'autostart_plugins'):
-                self.autostart_plugins = conf.get('plugins', 'autostart_plugins').split(',')
-                self.autostart_plugins = [x.strip("[]' ") for x in self.autostart_plugins]
+                self.autostart_plugins = conf.get('plugins',
+                                                'autostart_plugins').split(',')
+                self.autostart_plugins = [x.strip("[]' ") \
+                                          for x in self.autostart_plugins]
             if conf.has_option('plugins', 'known_plugins'):
-                self.known_plugins = conf.get('plugins', 'known_plugins').split(',')
-                self.known_plugins = [x.strip("[]' ") for x in self.known_plugins]
+                self.known_plugins = conf.get('plugins',
+                                              'known_plugins').split(',')
+                self.known_plugins = [x.strip("[]' ") \
+                                      for x in self.known_plugins]
 
     def settings_save_real(self, library_get_data):
         """Save configuration in file"""
@@ -362,18 +413,20 @@ class Config:
 
         conf.add_section('profiles')
         conf.set('profiles', 'num_profiles', len(self.profile_names))
-        for (i, (name, host, port, password, musicdir)) in enumerate(zip(self.profile_names, self.host, self.port, self.password, self.musicdir)):
+        for (i, (name, host, port, password, musicdir)) in \
+                enumerate(zip(self.profile_names, self.host,
+                              self.port, self.password, self.musicdir)):
             conf.set('profiles', 'names[%s]' % i, name)
             conf.set('profiles', 'hosts[%s]' % i, host)
             conf.set('profiles', 'ports[%s]' % i, port)
-            conf.set('profiles', 'passwords[%s]' %i, password)
+            conf.set('profiles', 'passwords[%s]' % i, password)
             conf.set('profiles', 'musicdirs[%s]' % i, musicdir)
         conf.add_section('connection')
         conf.set('connection', 'auto', self.autoconnect)
         conf.set('connection', 'profile_num', self.profile_num)
 
         conf.add_section('player')
-        attributes =   ['w',
+        attributes = ['w',
                 'h',
                 'x',
                 'y',
@@ -413,7 +466,8 @@ class Config:
         conf.set('player', 'lyrics', self.show_lyrics)
         conf.set('player', 'notification', self.show_notification)
         conf.set('player', 'popup_time', self.popup_option)
-        conf.set('player', 'notif_location', self.traytips_notifications_location)
+        conf.set('player', 'notif_location',
+                 self.traytips_notifications_location)
         conf.set('player', 'playback', self.show_playback)
         conf.set('player', 'progressbar', self.show_progress)
         conf.set('player', 'trayicon', self.show_trayicon)
@@ -427,7 +481,7 @@ class Config:
 
         # Save tab positions and visibility:
         conf.add_section('notebook')
-        attributes =   ['current_tab_visible',
+        attributes = ['current_tab_visible',
                 'library_tab_visible',
                 'playlists_tab_visible',
                 'streams_tab_visible',
@@ -439,7 +493,7 @@ class Config:
                 'info_tab_pos']
 
         for attribute in attributes:
-            conf.set('notebook', attribute, getattr(self,attribute))
+            conf.set('notebook', attribute, getattr(self, attribute))
 
         # Save current library browsing state:
         album = library_get_data(self.wd, 'album')
@@ -447,11 +501,16 @@ class Config:
         genre = library_get_data(self.wd, 'genre')
         year = library_get_data(self.wd, 'year')
         path = library_get_data(self.wd, 'path')
-        if album is None: album = self.LIB_NODATA
-        if artist is None: artist = self.LIB_NODATA
-        if genre is None: genre = self.LIB_NODATA
-        if year is None: year = self.LIB_NODATA
-        if path is None: path = self.LIB_NODATA
+        if album is None:
+            album = self.LIB_NODATA
+        if artist is None:
+            artist = self.LIB_NODATA
+        if genre is None:
+            genre = self.LIB_NODATA
+        if year is None:
+            year = self.LIB_NODATA
+        if path is None:
+            path = self.LIB_NODATA
         conf.add_section('library')
         conf.set('library', 'lib_album', album)
         conf.set('library', 'lib_artist', artist)
@@ -471,9 +530,10 @@ class Config:
         # Save streams:
         conf.add_section('streams')
         conf.set('streams', 'num_streams', len(self.stream_names))
-        for (i, (stream, stream_uri)) in enumerate(zip(self.stream_names,self.stream_uris)):
+        for (i, (stream, stream_uri)) in enumerate(zip(self.stream_names,
+                                                       self.stream_uris)):
             conf.set('streams', 'names[%s]' % i, stream)
-            conf.set('streams', 'uris[%s]' % i , stream_uri)
+            conf.set('streams', 'uris[%s]' % i, stream_uri)
 
         conf.add_section('audioscrobbler')
         conf.set('audioscrobbler', 'use_audioscrobbler', self.as_enabled)
@@ -492,7 +552,8 @@ class Config:
              ','.join(self.known_plugins))
 
         try:
-            with open(os.path.expanduser('~/.config/sonata/sonatarc'), 'w') as rc:
+            with open(os.path.expanduser('~/.config/sonata/sonatarc'), 'w')\
+                    as rc:
                 conf.write(rc)
         except IOError:
             pass
