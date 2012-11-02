@@ -618,6 +618,22 @@ class Base(object):
         mainvbox = gtk.VBox()
         tophbox = gtk.HBox()
 
+        # Autostart plugins
+        for plugin in pluginsystem.get_info():
+            if plugin.name in self.config.autostart_plugins:
+                pluginsystem.set_enabled(plugin, True)
+
+        # New plugins
+        for plugin in pluginsystem.get_info():
+            if plugin.name not in self.config.known_plugins:
+                self.config.known_plugins.append(plugin.name)
+                if plugin.name in consts.DEFAULT_PLUGINS:
+                    self.logger.info(
+                        _("Enabling new plug-in %s..." % plugin.name))
+                    pluginsystem.set_enabled(plugin, True)
+                else:
+                    self.logger.info(_("Found new plug-in %s." % plugin.name))
+
         TrayFactory = tray.get_tray_icon_factory()
         self.tray_icon = TrayFactory(self.window, self.traymenu, self.traytips)
 
@@ -928,22 +944,6 @@ class Base(object):
         pluginsystem.notify_of('tabs',
                        self.on_enable_tab,
                        self.on_disable_tab)
-
-        # Autostart plugins
-        for plugin in pluginsystem.get_info():
-            if plugin.name in self.config.autostart_plugins:
-                pluginsystem.set_enabled(plugin, True)
-
-        # New plugins
-        for plugin in pluginsystem.get_info():
-            if plugin.name not in self.config.known_plugins:
-                self.config.known_plugins.append(plugin.name)
-                if plugin.name in consts.DEFAULT_PLUGINS:
-                    self.logger.info(
-                        _("Enabling new plug-in %s..." % plugin.name))
-                    pluginsystem.set_enabled(plugin, True)
-                else:
-                    self.logger.info(_("Found new plug-in %s." % plugin.name))
 
     ### Tab system:
 
