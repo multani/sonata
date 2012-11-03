@@ -13,7 +13,7 @@ class MPDHelper(object):
         self._client = client
         self.logger = logging.getLogger(__name__)
 
-    def __set_suppress_errors(suppress_errors):
+    def __set_suppress_errors(self, suppress_errors):
         if suppress_errors:
             # Well, maybe we still want some very bad errors, who knows
             self.logger.setLevel(logging.CRITICAL)
