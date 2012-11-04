@@ -1019,8 +1019,8 @@ class Library(object):
 
     def add_display_info(self, num_songs, playtime):
         return "\n<small><span weight='light'>%s %s, %s %s</span></small>" \
-                % (num_songs, gettext.ngettext('song', 'songs', num_songs),
-                   playtime, gettext.ngettext('minute', 'minutes', playtime))
+                % (num_songs, ngettext('song', 'songs', num_songs),
+                   playtime, ngettext('minute', 'minutes', playtime))
 
     def library_retain_selection(self, prev_selection, prev_selection_root,
                                  prev_selection_parent):

@@ -154,15 +154,15 @@ class About(object):
 
     def statstext(self, stats):
         # XXX translate expressions, not words
-        statslabel = '%s %s\n.' % (stats['songs'],
-                                   gettext.ngettext('song', 'songs',
-                                                    int(stats['songs'])))
-        statslabel += '%s %s\n.' % (stats['albums'],
-                                    gettext.ngettext('album', 'albums',
-                                                     int(stats['albums'])))
-        statslabel += '%s %s\n.' % (stats['artists'],
-                                   gettext.ngettext('artist', 'artists',
-                                                    int(stats['artists'])))
+        statslabel = '%s %s.\n' % (stats['songs'],
+                                   ngettext('song', 'songs',
+                                            int(stats['songs'])))
+        statslabel += '%s %s.\n' % (stats['albums'],
+                                    ngettext('album', 'albums',
+                                             int(stats['albums'])))
+        statslabel += '%s %s.\n' % (stats['artists'],
+                                   ngettext('artist', 'artists',
+                                            int(stats['artists'])))
         try:
             db_playtime = float(stats['db_playtime'])
             hours_of_playtime = misc.convert_time(db_playtime).split(':')[-3]
@@ -171,14 +171,14 @@ class About(object):
         if int(hours_of_playtime) >= 24:
             days_of_playtime = str(int(hours_of_playtime) / 24)
             statslabel += '%s %s.' % (days_of_playtime,
-                                      gettext.ngettext('day of bliss',
-                                                       'days of bliss',
-                                                       int(days_of_playtime)))
+                                     ngettext('day of bliss',
+                                              'days of bliss',
+                                              int(days_of_playtime)))
         else:
             statslabel += '%s %s.' % (hours_of_playtime,
-                                      gettext.ngettext('hour of bliss',
-                                                       'hours of bliss',
-                                                       int(hours_of_playtime)))
+                                     ngettext('hour of bliss',
+                                              'hours of bliss',
+                                              int(hours_of_playtime)))
 
         return statslabel
 

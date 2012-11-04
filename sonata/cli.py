@@ -246,5 +246,5 @@ class CliMain(object):
                          if self.status['random'] == '1' else _("Off"))
         print "%s: %s/100" % (_("Volume"), self.status['volume'])
         print "%s: %s %s" % (_('Crossfade'), self.status['xfade'],
-                             gettext.ngettext('second', 'seconds',
-                                              int(self.status['xfade'])))
+                             ngettext('second', 'seconds',
+                                      int(self.status['xfade'])))
