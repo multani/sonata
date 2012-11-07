@@ -1818,20 +1818,18 @@ class Base(object):
                     except:
                         pass
                     if days:
-                        days_text = gettext.ngettext('day', 'days', int(days))
+                        days_text = ngettext('day', 'days', int(days))
                     if mins:
                         if mins.startswith('0') and len(mins) > 1:
                             mins = mins[1:]
-                        mins_text = gettext.ngettext('minute', 'minutes',
-                                                     int(mins))
+                        mins_text = ngettext('minute', 'minutes', int(mins))
                     if hours:
                         if hours.startswith('0'):
                             hours = hours[1:]
-                        hours_text = gettext.ngettext('hour', 'hours',
-                                                      int(hours))
+                        hours_text = ngettext('hour', 'hours', int(hours))
                     # Show text:
-                    songs_text = gettext.ngettext(
-                        'song', 'songs', int(self.status['playlistlength']))
+                    songs_text = ngettext('song', 'songs',
+                                          int(self.status['playlistlength']))
                     if int(self.status['playlistlength']) > 0:
                         if days:
                             status_text = '%s %s   %s %s, %s %s, %s %s %s' \
@@ -2983,12 +2981,12 @@ class Base(object):
                 treeviewsel = self.playlists_selection
                 model, selected = treeviewsel.get_selected_rows()
                 if ui.show_msg(self.window,
-                              gettext.ngettext("Delete the selected playlist?",
-                                              "Delete the selected playlists?",
-                                               int(len(selected))),
-                               gettext.ngettext("Delete Playlist",
-                                                "Delete Playlists",
-                                                int(len(selected))),
+                               ngettext("Delete the selected playlist?",
+                                        "Delete the selected playlists?",
+                                        int(len(selected))),
+                               ngettext("Delete Playlist",
+                                        "Delete Playlists",
+                                        int(len(selected))),
                                'deletePlaylist', gtk.BUTTONS_YES_NO) == \
                    gtk.RESPONSE_YES:
                     iters = [model.get_iter(path) for path in selected]
@@ -3000,12 +2998,12 @@ class Base(object):
                 treeviewsel = self.streams_selection
                 model, selected = treeviewsel.get_selected_rows()
                 if ui.show_msg(self.window,
-                               gettext.ngettext("Delete the selected stream?",
-                                                "Delete the selected streams?",
-                                                int(len(selected))),
-                               gettext.ngettext("Delete Stream",
-                                                "Delete Streams",
-                                                int(len(selected))),
+                               ngettext("Delete the selected stream?",
+                                        "Delete the selected streams?",
+                                        int(len(selected))),
+                               ngettext("Delete Stream",
+                                        "Delete Streams",
+                                        int(len(selected))),
                                'deleteStreams', gtk.BUTTONS_YES_NO) == \
                    gtk.RESPONSE_YES:
                     iters = [model.get_iter(path) for path in selected]
