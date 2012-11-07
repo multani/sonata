@@ -16,6 +16,8 @@ import hashlib
 import ConfigParser
 
 import consts
+from library import library_set_data
+from library import library_get_data
 import misc
 
 
@@ -29,8 +31,7 @@ class Config:
     XXX This is mostly ConfigParser plus some custom serialization work.
     """
 
-    def __init__(self, default_profile_name, currsongformat2,
-                 library_set_data):
+    def __init__(self, default_profile_name, currsongformat2):
         # the config settings:
         self.profile_num = 0
         self.profile_names = [default_profile_name]
@@ -133,7 +134,7 @@ class Config:
         # Local consts
         self.LIB_NODATA = "!NONE!"
 
-    def settings_load_real(self, library_set_data):
+    def settings_load_real(self):
         """Load configuration from file"""
         # Load config
         conf = ConfigParser.ConfigParser()
@@ -407,7 +408,7 @@ class Config:
                 self.known_plugins = [x.strip("[]' ") \
                                       for x in self.known_plugins]
 
-    def settings_save_real(self, library_get_data):
+    def settings_save_real(self):
         """Save configuration in file"""
         conf = ConfigParser.ConfigParser()
 

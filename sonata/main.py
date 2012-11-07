@@ -197,9 +197,8 @@ class Base(object):
         self.tabname2focus = dict()
         self.plugintabs = dict()
 
-        self.config = Config(_('Default Profile'), '%s %%A %s %%B' % (_("by"),
-                                                                   _("from"),),
-                             library.library_set_data)
+        self.config = Config(_('Default Profile'),
+                             '%s %%A %s %%B' % (_("by"), _("from")))
         self.preferences = preferences.Preferences(self.config,
             self.on_connectkey_pressed, self.on_currsong_notify,
             self.update_infofile, self.settings_save,
@@ -563,7 +562,9 @@ class Base(object):
         self.streams = streams.Streams(self.config, self.window,
                                        self.on_streams_button_press,
                                        self.on_add_item,
-                                       self.settings_save, self.TAB_STREAMS)
+                                       self.settings_save,
+                                       self.TAB_STREAMS,
+                                       self.new_tab)
 
         self.streams_treeview = self.streams.get_treeview()
         self.streams_selection = self.streams.get_selection()
@@ -585,7 +586,8 @@ class Base(object):
                                              self.current.get_current_songs,
                                              self.connected,
                                              self.add_selected_to_playlist,
-                                             self.TAB_PLAYLISTS)
+                                             self.TAB_PLAYLISTS,
+                                             self.new_tab)
 
         self.playlists_treeview = self.playlists.get_treeview()
         self.playlists_selection = self.playlists.get_selection()
@@ -625,6 +627,22 @@ class Base(object):
         mainhbox = gtk.HBox()
         mainvbox = gtk.VBox()
         tophbox = gtk.HBox()
+
+        # Autostart plugins
+        for plugin in pluginsystem.get_info():
+            if plugin.name in self.config.autostart_plugins:
+                pluginsystem.set_enabled(plugin, True)
+
+        # New plugins
+        for plugin in pluginsystem.get_info():
+            if plugin.name not in self.config.known_plugins:
+                self.config.known_plugins.append(plugin.name)
+                if plugin.name in consts.DEFAULT_PLUGINS:
+                    self.logger.info(
+                        _("Enabling new plug-in %s..." % plugin.name))
+                    pluginsystem.set_enabled(plugin, True)
+                else:
+                    self.logger.info(_("Found new plug-in %s." % plugin.name))
 
         TrayFactory = tray.get_tray_icon_factory()
         self.tray_icon = TrayFactory(self.window, self.traymenu, self.traytips)
@@ -933,25 +951,9 @@ class Base(object):
 
         gobject.idle_add(self.header_save_column_widths)
 
-        pluginsystem.notify_of('tabs',
+        pluginsystem.notify_of('tab_construct',
                        self.on_enable_tab,
                        self.on_disable_tab)
-
-        # Autostart plugins
-        for plugin in pluginsystem.get_info():
-            if plugin.name in self.config.autostart_plugins:
-                pluginsystem.set_enabled(plugin, True)
-
-        # New plugins
-        for plugin in pluginsystem.get_info():
-            if plugin.name not in self.config.known_plugins:
-                self.config.known_plugins.append(plugin.name)
-                if plugin.name in consts.DEFAULT_PLUGINS:
-                    self.logger.info(
-                        _("Enabling new plug-in %s..." % plugin.name))
-                    pluginsystem.set_enabled(plugin, True)
-                else:
-                    self.logger.info(_("Found new plug-in %s." % plugin.name))
 
     ### Tab system:
 
@@ -1306,7 +1308,7 @@ class Base(object):
                         self.current.searchfilter_toggle(None)
 
     def settings_load(self):
-        self.config.settings_load_real(library.library_set_data)
+        self.config.settings_load_real()
 
     def settings_save(self):
         self.header_save_column_widths()
@@ -1328,7 +1330,7 @@ class Base(object):
                 autostart_plugins.append(plugin.name)
         self.config.autostart_plugins = autostart_plugins
 
-        self.config.settings_save_real(library.library_get_data)
+        self.config.settings_save_real()
 
     def handle_change_conn(self):
         if not self.conn:

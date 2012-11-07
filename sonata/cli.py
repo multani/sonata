@@ -141,8 +141,8 @@ class CliMain(object):
 
         self.logger = logging.getLogger(__name__)
         self.config = config.Config(_('Default Profile'), _("by") + " %A " + \
-                                _("from") + " %B", library.library_set_data)
-        self.config.settings_load_real(library.library_set_data)
+                                _("from") + " %B")
+        self.config.settings_load_real()
         args.apply_profile_arg(self.config)
 
         c = mpd.MPDClient()
