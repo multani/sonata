@@ -175,6 +175,7 @@ class Base(object):
         self.skip_on_profiles_click = False
         self.last_repeat = None
         self.last_random = None
+        self.last_consume = None
         self.last_title = None
         self.last_progress_frac = None
         self.last_progress_text = None
@@ -273,12 +274,12 @@ class Base(object):
 
         # Popup menus:
         actions = [
-            ('sortmenu', None, _('_Sort List')),
-            ('plmenu', None, _('Sa_ve Selected to')),
-            ('profilesmenu', None, _('_Connection')),
+            ('sortmenu', gtk.STOCK_SORT_ASCENDING, _('_Sort List')),
+            ('plmenu', gtk.STOCK_SAVE, _('Sa_ve Selected to')),
+            ('profilesmenu', gtk.STOCK_CONNECT, _('_Connection')),
             ('playaftermenu', None, _('P_lay after')),
             ('playmodemenu', None, _('Play _Mode')),
-            ('updatemenu', None, _('_Update')),
+            ('updatemenu', gtk.STOCK_REFRESH, _('_Update')),
             ('chooseimage_menu', gtk.STOCK_CONVERT, _('Use _Remote Image...'),
              None, None, self.image_remote),
             ('localimage_menu', gtk.STOCK_OPEN, _('Use _Local Image...'),
@@ -309,8 +310,8 @@ class Base(object):
              self.on_updatedb_shortcut),
             ('preferencemenu', gtk.STOCK_PREFERENCES, _('_Preferences...'),
              'F5', None, self.on_prefs),
-            ('aboutmenu', None, _('_About...'), 'F1', None, self.on_about),
-            ('tagmenu', None, _('_Edit Tags...'), '<Ctrl>t', None,
+            ('aboutmenu', gtk.STOCK_ABOUT, _('_About...'), 'F1', None, self.on_about),
+            ('tagmenu', gtk.STOCK_EDIT, _('_Edit Tags...'), '<Ctrl>t', None,
              self.on_tags_edit),
             ('addmenu', gtk.STOCK_ADD, _('_Add'), '<Ctrl>d', None,
              self.on_add_item),
@@ -366,7 +367,10 @@ class Base(object):
             ('repeatmenu', None, _('_Repeat'), None, None,
              self.on_repeat_clicked, False),
             ('randommenu', None, _('Rando_m'), None, None,
-             self.on_random_clicked, False), ]
+             self.on_random_clicked, False),
+            ('consumemenu', None, _('Consume'), None, None,
+             self.on_consume_clicked, False),
+            ]
 
         toggle_tabactions = [
             (self.TAB_CURRENT, None, self.TAB_CURRENT, None, None,
@@ -401,6 +405,7 @@ class Base(object):
                 <menu action="playmodemenu">
                   <menuitem action="repeatmenu"/>
                   <menuitem action="randommenu"/>
+                  <menuitem action="consumemenu"/>
                 </menu>
                 <menuitem action="fullscreencoverart_menu"/>
                 <menuitem action="preferencemenu"/>
@@ -438,6 +443,7 @@ class Base(object):
                 <separator name="FM1"/>
                 <menuitem action="repeatmenu"/>
                 <menuitem action="randommenu"/>
+				<menuitem action="consumemenu"/>
                 <menu action="updatemenu">
                   <menuitem action="updateselectedmenu"/>
                   <menuitem action="updatefullmenu"/>
@@ -609,6 +615,7 @@ class Base(object):
         self.window.add_accel_group(self.UIManager.get_accel_group())
         self.mainmenu = self.UIManager.get_widget('/mainmenu')
         self.randommenu = self.UIManager.get_widget('/mainmenu/randommenu')
+        self.consumemenu = self.UIManager.get_widget('/mainmenu/consumemenu')
         self.repeatmenu = self.UIManager.get_widget('/mainmenu/repeatmenu')
         self.imagemenu = self.UIManager.get_widget('/imagemenu')
         self.traymenu = self.UIManager.get_widget('/traymenu')
@@ -1057,7 +1064,7 @@ class Base(object):
             for i, name in enumerate(profile_names)]
         actions.append((
             'disconnect',
-            None,
+            gtk.STOCK_DISCONNECT,
             _('Disconnect'),
             None,
             None,
@@ -1183,6 +1190,8 @@ class Base(object):
                        or self.last_random != self.status['random']:
                         self.randommenu.set_active(
                             self.status['random'] == '1')
+                    if not self.last_consume or self.last_consume != self.status['consume']:
+                        self.consumemenu.set_active(self.status['consume'] == '1')
                     if self.status['xfade'] == '0':
                         self.config.xfade_enabled = False
                     else:
@@ -1192,6 +1201,7 @@ class Base(object):
                             self.config.xfade = 30
                     self.last_repeat = self.status['repeat']
                     self.last_random = self.status['random']
+                    self.last_consume = self.status['consume']
                     return
         except:
             pass
@@ -2044,6 +2054,7 @@ class Base(object):
                 info_file.write('Volume: %s\n' % (self.status['volume'],))
                 info_file.write('Repeat: %s\n' % (self.status['repeat'],))
                 info_file.write('Random: %s\n' % (self.status['random'],))
+                info_file.write('Consume: %s\n' % (self.status['consume'],))
                 info_file.close()
             except:
                 pass
@@ -3037,6 +3048,10 @@ class Base(object):
     def on_random_clicked(self, widget):
         if self.conn:
             self._toggle_clicked('random', widget)
+
+    def on_consume_clicked(self, widget):
+        if self.conn:
+            self._toggle_clicked('consume', widget)
 
     def setup_prefs_callbacks(self):
         extras = preferences.Extras_cbs
