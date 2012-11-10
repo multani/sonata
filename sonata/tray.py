@@ -116,7 +116,6 @@ class TrayIconTips(Gtk.Window):
         self.add(widget_to_add)
 
 
-
 class TrayIcon(object):
     """Tray icon which use Gtk.StatusIcon"""
 

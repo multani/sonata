@@ -49,5 +49,10 @@ LIB_LEVEL_SONG = 3
 NUM_ARTISTS_FOR_VA = 2
 
 # the names of the plug-ins that will be enabled by default
-DEFAULT_PLUGINS = ('playlists streams lyricwiki '
-                   'rhapsodycovers localmpd').split()
+DEFAULT_PLUGINS = [
+    'playlists',
+    'streams',
+    'lyricwiki',
+    'rhapsodycovers',
+    'localmpd',
+]

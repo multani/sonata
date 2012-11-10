@@ -16,7 +16,6 @@
 ### END PLUGIN INFO
 
 import dbus.service
-from dbus.mainloop.glib import DBusGMainLoop
 
 songlabel = None
 lasttune = ''
@@ -27,7 +26,6 @@ def on_enable(state):
     global tune
     if state and not tune:
         tune = mpdtune()
-        dbus.SessionBus(mainloop = DBusGMainLoop())
     else:
         if tune:
             title = artist = album = ''
