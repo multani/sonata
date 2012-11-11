@@ -225,10 +225,8 @@ class Current(object):
             else:
                 weight = [Pango.Weight.NORMAL]
 
-            row = [mpdh.get(track, 'id', 0, True)] + items + weight
-            self.currentdata.append(row)
+            self.currentdata.append([track.id] + items + weight)
 
-        # Keep position
         self.playlist_retain_view(self.current, position.y)
 
     def current_update(self, prevstatus_playlist, new_playlist_length):
@@ -263,10 +261,8 @@ class Current(object):
                     if pos < currlen:
                         # Update attributes for item:
                         i = self.currentdata.get_iter((pos, ))
-                        trackid = mpdh.get(track, 'id',
-                                    0, True)
-                        if trackid != self.currentdata.get_value(i, 0):
-                            self.currentdata.set_value(i, 0, trackid)
+                        if track.id != self.currentdata.get_value(i, 0):
+                            self.currentdata.set_value(i, 0, track.id)
                         for index in range(len(items)):
                             if items[index] != self.currentdata.get_value(i,
                                                                     index + 1):
@@ -275,9 +271,8 @@ class Current(object):
                         self.current_songs[pos] = track
                     else:
                         # Add new item:
-                        row = [mpdh.get(track, 'id', 0, True)] + \
-                                items + [Pango.Weight.NORMAL]
-                        self.currentdata.append(row)
+                        self.currentdata.append([track.id] + items +
+                                                [Pango.Weight.NORMAL])
                         self.current_songs.append(track)
 
                 if newlen == 0:
@@ -483,7 +478,8 @@ class Current(object):
                             record["sortby"], custom_pos)
                 else:
                     record["sortby"] = mpdh.get(track, mode, zzz).lower()
-                record["id"] = int(track["id"])
+
+                record["id"] = track.id
                 songs.append(record)
                 track_num = track_num + 1
 

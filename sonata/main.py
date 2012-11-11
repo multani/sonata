@@ -1722,8 +1722,8 @@ class Base(object):
             row = int(self.status['song'])
             self.current.boldrow(row)
             if self.songinfo:
-                if not self.prevsonginfo or mpdh.get(self.songinfo, 'id') \
-                   != mpdh.get(self.prevsonginfo, 'id'):
+                if not self.prevsonginfo or self.songinfo.id != \
+                   self.prevsonginfo.id:
                     self.current.center_song_in_list()
             self.current.prev_boldrow = row
 

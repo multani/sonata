@@ -30,7 +30,7 @@ class MPDHelper(object):
 
     def _call(self, cmd, cmd_name, *args):
         try:
-            return cmd(*args)
+            retval = cmd(*args)
         except (socket.error, MPDError) as e:
             if cmd_name in ['lsinfo', 'list']:
                 # return sane values, which could be used afterwards
@@ -39,6 +39,14 @@ class MPDHelper(object):
                 return {}
             else:
                 self.logger.error("%s", e)
+                return None
+
+        if cmd_name == 'songinfo':
+            return SongResult(retval)
+        elif cmd_name == 'plchanges':
+            return [SongResult(s) for s in retval]
+        else:
+            return retval
 
     def connect(self, host, port):
         self.disconnect()
@@ -90,6 +98,23 @@ class MPDHelper(object):
         for directory in dirs:
             self._client.update(directory)
         self._client.command_list_end()
+
+
+class SongResult(object):
+    """Provide information about a song in a convenient format"""
+
+    def __init__(self, mapping):
+        self._mapping = mapping
+
+    def __getitem__(self, key):
+        return self._mapping[key]
+
+    def get(self, key, alt=None):
+        return getattr(self, key, alt)
+
+    @property
+    def id(self):
+        return int(self._mapping.get('id', 0))
 
 
 def get(mapping, key, alt='', *sanitize_args):
