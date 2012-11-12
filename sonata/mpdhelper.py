@@ -112,6 +112,13 @@ class SongResult(object):
     def get(self, key, alt=None):
         return getattr(self, key, alt)
 
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and \
+                self._mapping == other._mapping
+
+    def __ne__(self, other):
+        return not (self == other)
+
     @property
     def id(self):
         return int(self._mapping.get('id', 0))
