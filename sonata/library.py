@@ -945,7 +945,7 @@ class Library(object):
                         if match:
                             results.append(item)
                             num_songs += 1
-                            playtime += mpdh.get(item, 'time', 0, True)
+                            playtime += item.time
         return (results, int(playtime), num_songs)
 
     def add_display_info(self, num_songs, playtime):

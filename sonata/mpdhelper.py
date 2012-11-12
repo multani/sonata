@@ -140,6 +140,10 @@ class SongResult(object):
         v = self._mapping.get('pos', '0')
         return int(v) if v.isdigit() else 0
 
+    @property
+    def time(self):
+        return int(self._mapping.get('time', 0))
+
 
 def get(mapping, key, alt='', *sanitize_args):
     """Get a value from a mpd song and sanitize appropriately.

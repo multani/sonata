@@ -1751,8 +1751,7 @@ class Base(object):
                 at, length = [int(c) for c in self.status['time'].split(':')]
                 at_time = misc.convert_time(at)
                 try:
-                    time = misc.convert_time(mpdh.get(self.songinfo,
-                                                      'time', 0, True))
+                    time = misc.convert_time(self.songinfo.time)
                     newtime = at_time + " / " + time
                 except:
                     newtime = at_time
@@ -2003,8 +2002,7 @@ class Base(object):
                 info_file.write('Track: %s\n' % self.songinfo.track)
                 info_file.write('File: %s\n' % (mpdh.get(self.songinfo, 'file',
                                                          'No Data'),))
-                info_file.write('Time: %s\n' % (mpdh.get(self.songinfo, 'time',
-                                                         '0'),))
+                info_file.write('Time: %s\n' % self.songinfo.time)
                 info_file.write('Volume: %s\n' % (self.status['volume'],))
                 info_file.write('Repeat: %s\n' % (self.status['repeat'],))
                 info_file.write('Random: %s\n' % (self.status['random'],))
@@ -2160,8 +2158,7 @@ class Base(object):
             if direction == Gdk.ScrollDirection.UP:
                 seektime = max(0, at + 5)
             elif direction == Gdk.ScrollDirection.DOWN:
-                seektime = min(mpdh.get(self.songinfo, 'time'),
-                           at - 5)
+                seektime = min(self.songinfo.time, at - 5)
             self.seek(int(self.status['song']), seektime)
         except:
             pass

@@ -294,7 +294,7 @@ class Info(object):
             playtime = 0
             tracklist = []
             for t in tracks:
-                playtime += mpdh.get(t, 'time', 0, True)
+                playtime += t.time
                 tracklist.append("%s. %s" % (
                     str(t.track).zfill(2),
                     mpdh.get(t, 'title', os.path.basename(t['file']))))

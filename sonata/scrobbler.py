@@ -83,7 +83,7 @@ class Scrobbler(object):
                              songinfo=None, mpd_time_now=None):
         """Handle changes to play status, submitting info as appropriate"""
         if prevsonginfo and 'time' in prevsonginfo:
-            prevsong_time = mpdh.get(prevsonginfo, 'time')
+            prevsong_time = prevsonginfo.time
         else:
             prevsong_time = None
 
@@ -168,7 +168,7 @@ class Scrobbler(object):
                 try:
                     self.scrob_post.nowplaying(mpdh.get(songinfo, 'artist'),
                                                 mpdh.get(songinfo, 'title'),
-                                                mpdh.get(songinfo, 'time'),
+                                                songinfo.time,
                                                 tracknumber,
                                                 album)
                 except:
@@ -191,7 +191,7 @@ class Scrobbler(object):
                     self.scrob_post.addtrack(
                         mpdh.get(prevsonginfo, 'artist'),
                         mpdh.get(prevsonginfo, 'title'),
-                        mpdh.get(prevsonginfo, 'time'),
+                        prevsonginfo.time,
                         self.scrob_start_time,
                         tracknumber,
                         album)

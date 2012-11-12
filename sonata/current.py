@@ -291,13 +291,7 @@ class Current(object):
             self.current_update_skip = False
 
             # Update statusbar time:
-            self.total_time = 0
-            for track in self.current_songs:
-                try:
-                    self.total_time = self.total_time + mpdh.get(track, 'time',
-                                                                 0, True)
-                except:
-                    pass
+            self.total_time = sum(t.time for t in self.current_songs)
 
             if 'pos' in self.songinfo():
                 currsong = self.songinfo().pos
