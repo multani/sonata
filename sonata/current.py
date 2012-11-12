@@ -453,16 +453,15 @@ class Current(object):
                 # the end of the list (hence the 'zzzzzzz'):
                 zzz = 'zzzzzzzz'
                 if mode == 'artist':
-                    record["sortby"] = (misc.lower_no_the(mpdh.get(track,
-                                                                    'artist',
-                                                                    zzz)),
-                                mpdh.get(track, 'album', zzz).lower(),
-                                mpdh.get(track, 'disc', '0', True, 0),
-                                mpdh.get(track, 'track', '0', True, 0))
+                    record["sortby"] = (
+                        misc.lower_no_the(mpdh.get(track, 'artist', zzz)),
+                        mpdh.get(track, 'album', zzz).lower(),
+                        mpdh.get(track, 'disc', '0', True, 0),
+                        track.track)
                 elif mode == 'album':
                     record["sortby"] = (mpdh.get(track, 'album', zzz).lower(),
-                                mpdh.get(track, 'disc', '0', True, 0),
-                                mpdh.get(track, 'track', '0', True, 0))
+                                        mpdh.get(track, 'disc', '0', True, 0),
+                                        track.track)
                 elif mode == 'file':
                     record["sortby"] = mpdh.get(track, 'file',
                                                 zzz).lower().split('/')[-1]

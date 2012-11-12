@@ -15,13 +15,13 @@ except:
     gettext.textdomain('sonata')
 
 from sonata import misc, song, library
+from sonata.mpdhelper import SongResult
 
 DOCTEST_FLAGS = (
     doctest.ELLIPSIS |
     doctest.NORMALIZE_WHITESPACE |
     doctest.REPORT_NDIFF
 )
-
 
 class TestSonata(unittest.TestCase):
     def test_convert_time(self):
@@ -77,6 +77,13 @@ class TestSonata(unittest.TestCase):
         albums2 = [song.SongRecord(artist="Tim Pritlove, Holger Klein", album="Not Safe For Work", path="podcasts/Not Save For Work", year=2012)]
         various_albums2 = library.list_mark_various_artists_albums(albums2)
         self.assertEqual(various_albums2, albums2)
+
+
+class TestSongResult(unittest2.TestCase):
+    def test_get_track_number(self):
+        self.assertEqual(1, SongResult({'track': '1'}).track)
+        self.assertEqual(1, SongResult({'track': '1/10'}).track)
+        self.assertEqual(1, SongResult({'track': '1,10'}).track)
 
 def additional_tests():
     return unittest.TestSuite(

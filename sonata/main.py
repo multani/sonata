@@ -2000,8 +2000,7 @@ class Base(object):
                         info_file.write('Title: No - ID Tag\n')
                 info_file.write('Album: %s\n' % (mpdh.get(self.songinfo,
                                                          'album', 'No Data'),))
-                info_file.write('Track: %s\n' % (mpdh.get(self.songinfo,
-                                                          'track', '0'),))
+                info_file.write('Track: %s\n' % self.songinfo.track)
                 info_file.write('File: %s\n' % (mpdh.get(self.songinfo, 'file',
                                                          'No Data'),))
                 info_file.write('Time: %s\n' % (mpdh.get(self.songinfo, 'time',

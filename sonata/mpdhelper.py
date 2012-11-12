@@ -41,9 +41,9 @@ class MPDHelper(object):
                 self.logger.error("%s", e)
                 return None
 
-        if cmd_name == 'songinfo':
+        if cmd_name in ['songinfo', 'currentsong']:
             return SongResult(retval)
-        elif cmd_name == 'plchanges':
+        elif cmd_name in ['plchanges', 'search']:
             return [SongResult(s) for s in retval]
         else:
             return retval
@@ -119,9 +119,21 @@ class SongResult(object):
     def __ne__(self, other):
         return not (self == other)
 
+    def __contains__(self, key):
+        return key in self._mapping
+
     @property
     def id(self):
         return int(self._mapping.get('id', 0))
+
+    @property
+    def track(self):
+        value = self._mapping.get('track', '0')
+
+        # The track number can be a bit funky sometimes and contains value like
+        # "4/10" or "4,10" instead of only "4". We tr to clean it up a bit...
+        value = str(value).replace(',', ' ').replace('/', ' ').split()[0]
+        return int(value) if value.isdigit() else 0
 
 
 def get(mapping, key, alt='', *sanitize_args):

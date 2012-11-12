@@ -756,7 +756,7 @@ class Library(object):
                 artist=artist, album=album, year=year)
         for song in songs:
             data = SongRecord(path=mpdh.get(song, 'file'))
-            track = mpdh.get(song, 'track', '99', False, 2)
+            track = str(song.get('track', 99)).zfill(2)
             disc = mpdh.get(song, 'disc', '99', False, 2)
             try:
                 bd += [('f' + disc + track + misc.lower_no_the(

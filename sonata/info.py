@@ -260,7 +260,7 @@ class Info(object):
             label = self.info_labels[name]
             label.set_text(mpdh.get(songinfo, name))
 
-        tracklabel.set_text(mpdh.get(songinfo, 'track', '', False))
+        tracklabel.set_text(str(songinfo.track))
         artistlabel.set_markup(misc.link_markup(misc.escape_html(
             mpdh.get(songinfo, 'artist')), False, False,
             self.linkcolor))
@@ -290,17 +290,14 @@ class Info(object):
         albuminfo = _("Album info not found.")
 
         if tracks:
-            tracks.sort(key=lambda x: mpdh.get(x, 'track', 0, True))
+            tracks.sort(key=lambda x: x.track)
             playtime = 0
             tracklist = []
             for t in tracks:
                 playtime += mpdh.get(t, 'time', 0, True)
-                tracklist.append("%s. %s" %
-                        (mpdh.get(t, 'track', '0',
-                            False, 2),
-                        mpdh.get(t, 'title',
-                            os.path.basename(
-                                t['file']))))
+                tracklist.append("%s. %s" % (
+                    str(t.track).zfill(2),
+                    mpdh.get(t, 'title', os.path.basename(t['file']))))
 
             album = mpdh.get(songinfo, 'album')
             year = mpdh.get(songinfo, 'date', None)

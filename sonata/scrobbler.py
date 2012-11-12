@@ -164,10 +164,7 @@ class Scrobbler(object):
                     album = ''
                 else:
                     album = mpdh.get(songinfo, 'album')
-                if not 'track' in songinfo:
-                    tracknumber = ''
-                else:
-                    tracknumber = mpdh.get(songinfo, 'track')
+                tracknumber = songinfo.get('track', '')
                 try:
                     self.scrob_post.nowplaying(mpdh.get(songinfo, 'artist'),
                                                 mpdh.get(songinfo, 'title'),
@@ -189,10 +186,7 @@ class Scrobbler(object):
                     album = ''
                 else:
                     album = mpdh.get(prevsonginfo, 'album')
-                if not 'track' in prevsonginfo:
-                    tracknumber = ''
-                else:
-                    tracknumber = mpdh.get(prevsonginfo, 'track')
+                tracknumber = songinfo.get('track', '')
                 try:
                     self.scrob_post.addtrack(
                         mpdh.get(prevsonginfo, 'artist'),
