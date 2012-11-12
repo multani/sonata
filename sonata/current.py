@@ -252,7 +252,7 @@ class Current(object):
                 currlen = len(self.currentdata)
 
                 for track in changed_songs:
-                    pos = mpdh.get(track, 'pos', 0, True)
+                    pos = track.pos
 
                     items = [formatting.parse(part, track,
                                   True)
@@ -300,7 +300,7 @@ class Current(object):
                     pass
 
             if 'pos' in self.songinfo():
-                currsong = mpdh.get(self.songinfo(), 'pos', 0, True)
+                currsong = self.songinfo().pos
                 self.boldrow(currsong)
                 self.prev_boldrow = currsong
 
@@ -361,9 +361,9 @@ class Current(object):
         if self.config.expanded and len(self.currentdata) > 0:
             self.current.realize()
             try:
-                row = mpdh.get(self.songinfo(), 'pos', None)
-                if row is None:
+                if 'pos' not in self.songinfo():
                     return
+                row = self.songinfo().pos
                 visible_rect = self.current.get_visible_rect()
                 row_rect = self.current.get_background_area(row,
                                                             self.columns[0])
