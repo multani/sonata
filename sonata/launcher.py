@@ -69,10 +69,6 @@ def run():
 
     ## Apply global fixes:
 
-    # the following line is to fix python-zsi 2.0 and thus lyrics in ubuntu:
-    # https://bugs.launchpad.net/ubuntu/+source/zsi/+bug/208855
-    sys.path.append('/usr/lib/python2.5/site-packages/oldxml')
-
     # hint for gnome.init to set the process name to 'sonata'
     if platform.system() == 'Linux':
         sys.argv[0] = 'sonata'
@@ -95,7 +91,10 @@ def run():
     # let gettext install _ as a built-in for all modules to see
     # XXX what's the correct way to find the localization?
     try:
-        gettext.install('sonata', os.path.join(sonata.__file__.split('/lib')[0], 'share', 'locale'))
+        gettext.install('sonata',
+                        os.path.join(sonata.__file__.split('/lib')[0],
+                                     'share', 'locale'),
+                        names=["ngettext"])
     except:
         logger.warning("Trying to use an old translation")
         gettext.install('sonata', '/usr/share/locale')

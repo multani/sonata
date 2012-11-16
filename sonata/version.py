@@ -28,6 +28,6 @@ def _version():
                 raise OSError
         except OSError:
             version = default_version
-    return str(version.strip()[1:])
+    return version.strip()[1:].decode('utf-8')
 
 version = _version()

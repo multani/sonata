@@ -149,6 +149,7 @@ class Base(object):
         self.skip_on_profiles_click = False
         self.last_repeat = None
         self.last_random = None
+        self.last_consume = None
         self.last_title = None
         self.last_progress_frac = None
         self.last_progress_text = None
@@ -170,7 +171,7 @@ class Base(object):
         self.tabname2focus = dict()
         self.plugintabs = dict()
 
-        self.config = Config( _('Default Profile'),
+        self.config = Config(_('Default Profile'),
                              '%s %%A %s %%B' % (_("by"), _("from")))
         self.preferences = preferences.Preferences(self.config,
             self.on_connectkey_pressed, self.on_currsong_notify,
@@ -247,12 +248,12 @@ class Base(object):
 
         # Popup menus:
         actions = [
-            ('sortmenu', None, _('_Sort List')),
-            ('plmenu', None, _('Sa_ve Selected to')),
-            ('profilesmenu', None, _('_Connection')),
+            ('sortmenu', Gtk.STOCK_SORT_ASCENDING, _('_Sort List')),
+            ('plmenu', Gtk.STOCK_SAVE, _('Sa_ve Selected to')),
+            ('profilesmenu', Gtk.STOCK_CONNECT, _('_Connection')),
             ('playaftermenu', None, _('P_lay after')),
             ('playmodemenu', None, _('Play _Mode')),
-            ('updatemenu', None, _('_Update')),
+            ('updatemenu', Gtk.STOCK_REFRESH, _('_Update')),
             ('chooseimage_menu', Gtk.STOCK_CONVERT, _('Use _Remote Image...'),
              None, None, self.image_remote),
             ('localimage_menu', Gtk.STOCK_OPEN, _('Use _Local Image...'),
@@ -283,8 +284,8 @@ class Base(object):
              self.on_updatedb_shortcut),
             ('preferencemenu', Gtk.STOCK_PREFERENCES, _('_Preferences...'),
              'F5', None, self.on_prefs),
-            ('aboutmenu', None, _('_About...'), 'F1', None, self.on_about),
-            ('tagmenu', None, _('_Edit Tags...'), '<Ctrl>t', None,
+            ('aboutmenu', Gtk.STOCK_ABOUT, _('_About...'), 'F1', None, self.on_about),
+            ('tagmenu', Gtk.STOCK_EDIT, _('_Edit Tags...'), '<Ctrl>t', None,
              self.on_tags_edit),
             ('addmenu', Gtk.STOCK_ADD, _('_Add'), '<Ctrl>d', None,
              self.on_add_item),
@@ -340,7 +341,10 @@ class Base(object):
             ('repeatmenu', None, _('_Repeat'), None, None,
              self.on_repeat_clicked, False),
             ('randommenu', None, _('Rando_m'), None, None,
-             self.on_random_clicked, False), ]
+             self.on_random_clicked, False),
+            ('consumemenu', None, _('Consume'), None, None,
+             self.on_consume_clicked, False),
+            ]
 
         toggle_tabactions = [
             (self.TAB_CURRENT, None, self.TAB_CURRENT, None, None,
@@ -375,6 +379,7 @@ class Base(object):
                 <menu action="playmodemenu">
                   <menuitem action="repeatmenu"/>
                   <menuitem action="randommenu"/>
+                  <menuitem action="consumemenu"/>
                 </menu>
                 <menuitem action="fullscreencoverart_menu"/>
                 <menuitem action="preferencemenu"/>
@@ -412,6 +417,7 @@ class Base(object):
                 <separator name="FM1"/>
                 <menuitem action="repeatmenu"/>
                 <menuitem action="randommenu"/>
+				<menuitem action="consumemenu"/>
                 <menu action="updatemenu">
                   <menuitem action="updateselectedmenu"/>
                   <menuitem action="updatefullmenu"/>
@@ -531,7 +537,9 @@ class Base(object):
         self.streams = streams.Streams(self.config, self.window,
                                        self.on_streams_button_press,
                                        self.on_add_item,
-                                       self.settings_save, self.TAB_STREAMS)
+                                       self.settings_save,
+                                       self.TAB_STREAMS,
+                                       self.new_tab)
 
         self.streams_treeview = self.streams.get_treeview()
         self.streams_selection = self.streams.get_selection()
@@ -553,7 +561,8 @@ class Base(object):
                                              self.current.get_current_songs,
                                              self.connected,
                                              self.add_selected_to_playlist,
-                                             self.TAB_PLAYLISTS)
+                                             self.TAB_PLAYLISTS,
+                                             self.new_tab)
 
         self.playlists_treeview = self.playlists.get_treeview()
         self.playlists_selection = self.playlists.get_selection()
@@ -583,6 +592,7 @@ class Base(object):
         self.window.add_accel_group(self.UIManager.get_accel_group())
         self.mainmenu = self.UIManager.get_widget('/mainmenu')
         self.randommenu = self.UIManager.get_widget('/mainmenu/randommenu')
+        self.consumemenu = self.UIManager.get_widget('/mainmenu/consumemenu')
         self.repeatmenu = self.UIManager.get_widget('/mainmenu/repeatmenu')
         self.imagemenu = self.UIManager.get_widget('/imagemenu')
         self.traymenu = self.UIManager.get_widget('/traymenu')
@@ -591,6 +601,22 @@ class Base(object):
         self.notebookmenu = self.UIManager.get_widget('/notebookmenu')
         mainvbox = self.builder.get_object('main_v_box')
         tophbox = self.builder.get_object('top_h_box')
+
+        # Autostart plugins
+        for plugin in pluginsystem.get_info():
+            if plugin.name in self.config.autostart_plugins:
+                pluginsystem.set_enabled(plugin, True)
+
+        # New plugins
+        for plugin in pluginsystem.get_info():
+            if plugin.name not in self.config.known_plugins:
+                self.config.known_plugins.append(plugin.name)
+                if plugin.name in consts.DEFAULT_PLUGINS:
+                    self.logger.info(
+                        _("Enabling new plug-in %s..." % plugin.name))
+                    pluginsystem.set_enabled(plugin, True)
+                else:
+                    self.logger.info(_("Found new plug-in %s." % plugin.name))
 
         self.tray_icon = tray.TrayIcon(self.window, self.traymenu, self.traytips)
 
@@ -856,25 +882,9 @@ class Base(object):
 
         GObject.idle_add(self.header_save_column_widths)
 
-        pluginsystem.notify_of('tabs',
+        pluginsystem.notify_of('tab_construct',
                        self.on_enable_tab,
                        self.on_disable_tab)
-
-        # Autostart plugins
-        for plugin in pluginsystem.get_info():
-            if plugin.name in self.config.autostart_plugins:
-                pluginsystem.set_enabled(plugin, True)
-
-        # New plugins
-        for plugin in pluginsystem.get_info():
-            if plugin.name not in self.config.known_plugins:
-                self.config.known_plugins.append(plugin.name)
-                if plugin.name in consts.DEFAULT_PLUGINS:
-                    self.logger.info(
-                        _("Enabling new plug-in %s..." % plugin.name))
-                    pluginsystem.set_enabled(plugin, True)
-                else:
-                    self.logger.info(_("Found new plug-in %s." % plugin.name))
 
     ### Tab system:
 
@@ -994,12 +1004,22 @@ class Base(object):
 
         profile_names = [_("MPD_HOST/PORT")] if host \
                 or port else self.config.profile_names
-        actions = [(str(i), None,
-            "[%s] %s" % (i + 1, name.replace("_", "__")), None,
-            None, i)
+
+        actions = [
+            (str(i),
+             None,
+             "[%d] %s" % (i + 1, ui.quote_label(name)),
+             None,
+             None,
+             i)
             for i, name in enumerate(profile_names)]
-        actions.append(('disconnect', None, _('Disconnect'), None, None,
-                        len(self.config.profile_names)))
+        actions.append((
+            'disconnect',
+            Gtk.STOCK_DISCONNECT,
+            _('Disconnect'),
+            None,
+            None,
+            len(self.config.profile_names)))
 
         active_radio = 0 if host or port else self.config.profile_num
         if not self.conn:
@@ -1121,6 +1141,8 @@ class Base(object):
                        or self.last_random != self.status['random']:
                         self.randommenu.set_active(
                             self.status['random'] == '1')
+                    if not self.last_consume or self.last_consume != self.status['consume']:
+                        self.consumemenu.set_active(self.status['consume'] == '1')
                     if self.status['xfade'] == '0':
                         self.config.xfade_enabled = False
                     else:
@@ -1130,6 +1152,7 @@ class Base(object):
                             self.config.xfade = 30
                     self.last_repeat = self.status['repeat']
                     self.last_random = self.status['random']
+                    self.last_consume = self.status['consume']
                     return
         except:
             pass
@@ -1744,20 +1767,18 @@ class Base(object):
                     except:
                         pass
                     if days:
-                        days_text = gettext.ngettext('day', 'days', int(days))
+                        days_text = ngettext('day', 'days', int(days))
                     if mins:
                         if mins.startswith('0') and len(mins) > 1:
                             mins = mins[1:]
-                        mins_text = gettext.ngettext('minute', 'minutes',
-                                                     int(mins))
+                        mins_text = ngettext('minute', 'minutes', int(mins))
                     if hours:
                         if hours.startswith('0'):
                             hours = hours[1:]
-                        hours_text = gettext.ngettext('hour', 'hours',
-                                                      int(hours))
+                        hours_text = ngettext('hour', 'hours', int(hours))
                     # Show text:
-                    songs_text = gettext.ngettext(
-                        'song', 'songs', int(self.status['playlistlength']))
+                    songs_text = ngettext('song', 'songs',
+                                          int(self.status['playlistlength']))
                     if int(self.status['playlistlength']) > 0:
                         if days:
                             status_text = '%s %s   %s %s, %s %s, %s %s %s' \
@@ -1973,6 +1994,7 @@ class Base(object):
                 info_file.write('Volume: %s\n' % (self.status['volume'],))
                 info_file.write('Repeat: %s\n' % (self.status['repeat'],))
                 info_file.write('Random: %s\n' % (self.status['random'],))
+                info_file.write('Consume: %s\n' % (self.status['consume'],))
                 info_file.close()
             except:
                 pass
@@ -2746,7 +2768,7 @@ class Base(object):
                                 self.tooltip_set_ignore_toggle_signal_false)
 
     def systemtray_click(self, _widget, event):
-        # Clicking on an egg system tray icon:
+        # Clicking on a system tray icon:
         # Left button shows/hides window(s)
         if event.button == 1 and not self.ignore_toggle_signal:
             self.systemtray_activate(None)
@@ -2881,12 +2903,12 @@ class Base(object):
                 treeviewsel = self.playlists_selection
                 model, selected = treeviewsel.get_selected_rows()
                 if ui.show_msg(self.window,
-                              gettext.ngettext("Delete the selected playlist?",
-                                              "Delete the selected playlists?",
-                                               int(len(selected))),
-                               gettext.ngettext("Delete Playlist",
-                                                "Delete Playlists",
-                                                int(len(selected))),
+                               ngettext("Delete the selected playlist?",
+                                        "Delete the selected playlists?",
+                                        int(len(selected))),
+                               ngettext("Delete Playlist",
+                                        "Delete Playlists",
+                                        int(len(selected))),
                                'deletePlaylist', Gtk.ButtonsType.YES_NO) == \
                    Gtk.ResponseType.YES:
                     iters = [model.get_iter(path) for path in selected]
@@ -2898,12 +2920,12 @@ class Base(object):
                 treeviewsel = self.streams_selection
                 model, selected = treeviewsel.get_selected_rows()
                 if ui.show_msg(self.window,
-                               gettext.ngettext("Delete the selected stream?",
-                                                "Delete the selected streams?",
-                                                int(len(selected))),
-                               gettext.ngettext("Delete Stream",
-                                                "Delete Streams",
-                                                int(len(selected))),
+                               ngettext("Delete the selected stream?",
+                                        "Delete the selected streams?",
+                                        int(len(selected))),
+                               ngettext("Delete Stream",
+                                        "Delete Streams",
+                                        int(len(selected))),
                                'deleteStreams', Gtk.ButtonsType.YES_NO) == \
                    Gtk.ResponseType.YES:
                     iters = [model.get_iter(path) for path in selected]
@@ -2945,6 +2967,10 @@ class Base(object):
     def on_random_clicked(self, widget):
         if self.conn:
             self.mpd.random(int(widget.get_active()))
+
+    def on_consume_clicked(self, widget):
+        if self.conn:
+            self._toggle_clicked('consume', widget)
 
     def setup_prefs_callbacks(self):
         extras = preferences.Extras_cbs

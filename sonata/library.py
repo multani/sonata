@@ -275,9 +275,7 @@ class Library(object):
         if not self.library.props.visible:
             return
 
-        ok, start_row, end_row = self.library.get_visible_range()
-        if not ok:
-            return
+        start_row, end_row = self.library.get_visible_range()
         self.artwork.library_artwork_update(self.librarydata, start_row,
                                             end_row, self.albumpb)
 
@@ -814,20 +812,9 @@ class Library(object):
         playtime = 0
         num_songs = 0
         for s in searches:
-
-            if '' in s:
-
-                # Can't return count for empty tags, use search instead:
-
-                _results, playtime, num_songs = \
-                        self.library_return_search_items(
-                            genre=genre, artist=artist, album=album, year=year)
-
-            else:
-
-                count = self.mpd.count(*s)
-                playtime += mpdh.get(count, 'playtime', 0, True)
-                num_songs += mpdh.get(count, 'songs', 0, True)
+            count = self.mpd.count(*s)
+            playtime += mpdh.get(count, 'playtime', 0, True)
+            num_songs += mpdh.get(count, 'songs', 0, True)
 
         return (playtime, num_songs)
 
@@ -925,23 +912,7 @@ class Library(object):
             playtime = 0
             num_songs = 0
             results = []
-
-            if '' in s:
-
-                # Can't search for empty tags, search broader and
-                # filter instead:
-
-                # Strip empty tag args from tuple:
-                pos = list(args_tuple).index('')
-                strip_type = list(args_tuple)[pos-1]
-                new_lst = []
-                for i, item in enumerate(list(args_tuple)):
-                    if i != pos and i != pos-1:
-                        new_lst.append(item)
-                args_tuple = tuple(new_lst)
-
-            else:
-                strip_type = None
+            strip_type = None
 
             if len(args_tuple) == 0:
                 return None, 0, 0
@@ -976,18 +947,18 @@ class Library(object):
         seconds -= 60 * minutes
         if hours > 0:
             return "\n<small><span weight='light'>%s %s, %s %s, %s %s</span></small>" \
-                    % (num_songs, gettext.ngettext('song', 'songs', num_songs),
-                       seconds, gettext.ngettext('hour', 'hours', hours),
-                       seconds, gettext.ngettext('minute', 'minutes', minutes))
+                    % (num_songs, ngettext('song', 'songs', num_songs),
+                       seconds, ngettext('hour', 'hours', hours),
+                       seconds, ngettext('minute', 'minutes', minutes))
         elif minutes > 0:
             return "\n<small><span weight='light'>%s %s, %s %s, %s %s</span></small>" \
-                    % (num_songs, gettext.ngettext('song', 'songs', num_songs),
-                       minutes, gettext.ngettext('minute', 'minutes', minutes),
-                       seconds, gettext.ngettext('second', 'secondes', seconds))
+                    % (num_songs, ngettext('song', 'songs', num_songs),
+                       minutes, ngettext('minute', 'minutes', minutes),
+                       seconds, ngettext('second', 'secondes', seconds))
         else:
             return "\n<small><span weight='light'>%s %s, %s %s</span></small>" \
-                    % (num_songs, gettext.ngettext('song', 'songs', num_songs),
-                       seconds, gettext.ngettext('second', 'secondes', seconds))
+                    % (num_songs, ngettext('song', 'songs', num_songs),
+                       seconds, ngettext('second', 'secondes', seconds))
 
     def library_retain_selection(self, prev_selection, prev_selection_root,
                                  prev_selection_parent):

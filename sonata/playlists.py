@@ -28,7 +28,7 @@ class Playlists(object):
     def __init__(self, config, window, mpd, UIManager,
                  update_menu_visibility, iterate_now, on_add_item,
                  on_playlists_button_press, get_current_songs, connected,
-                 add_selected_to_playlist, TAB_PLAYLISTS):
+                 add_selected_to_playlist, TAB_PLAYLISTS, new_tab):
         self.config = config
         self.window = window
         self.mpd = mpd
@@ -70,14 +70,6 @@ class Playlists(object):
         self.playlistsdata = self.builder.get_object('playlists_liststore')
         self.playlists.set_search_column(1)
 
-        pluginsystem.plugin_infos.append(BuiltinPlugin(
-                'playlists', "Playlists", "A tab for playlists.",
-                {'tabs': 'construct_tab'}, self))
-
-    def construct_tab(self):
-        self.playlistswindow.show_all()
-        return self.tab
-
     def get_model(self):
         return self.playlistsdata
 
@@ -98,11 +90,13 @@ class Playlists(object):
             self.actionGroupPlaylists = None
         self.actionGroupPlaylists = Gtk.ActionGroup('MPDPlaylists')
         self.UIManager().ensure_update()
-        actions = [("Playlist: %s" % playlist.replace("&", ""),
-                Gtk.STOCK_JUSTIFY_CENTER,
-                misc.unescape_html(playlist), None, None,
-                self.on_playlist_menu_click)
-                for playlist in playlistinfo]
+        actions = [
+            ("Playlist: %s" % playlist.replace("&", ""),
+             Gtk.STOCK_JUSTIFY_CENTER,
+             ui.quote_label(misc.unescape_html(playlist)),
+             None, None,
+             self.on_playlist_menu_click)
+            for playlist in playlistinfo]
         self.actionGroupPlaylists.add_actions(actions)
         uiDescription = """
             <ui>
@@ -219,7 +213,8 @@ class Playlists(object):
             playlistinfo.sort(key=lambda x: x.lower())
             for item in playlistinfo:
                 self.playlistsdata.append([Gtk.STOCK_JUSTIFY_FILL, item])
-                self.populate_playlists_for_menu(playlistinfo)
+
+            self.populate_playlists_for_menu(playlistinfo)
 
     def on_playlist_rename(self, _action):
         plname = self.prompt_for_playlist_name(_("Rename Playlist"),

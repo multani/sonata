@@ -1,5 +1,6 @@
 *.py[co]
 *.swp
+*~
 mmkeys.so
 sonata/sonata
 mo/
