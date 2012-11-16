@@ -75,7 +75,6 @@ import library
 import streams
 import playlists
 import current
-import lyricwiki # plug-ins
 import rhapsodycovers
 import dbus_plugin as dbus
 
