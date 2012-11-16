@@ -214,11 +214,22 @@ class Current(object):
         return filenames
 
     def update_format(self):
-        for track in self.current_songs:
-            items = [formatting.parse(part, track, True)
-                 for part in self.columnformat]
+        position = self.current.get_visible_rect()
 
-            self.currentdata.append([mpdh.get(track, 'id', 0, True)] + items)
+        for i, track in enumerate(self.current_songs):
+            items = [formatting.parse(part, track, True)
+                     for part in self.columnformat]
+
+            if mpdh.get(self.songinfo(), 'pos', 0, True) == i:
+                weight = [Pango.Weight.BOLD]
+            else:
+                weight = [Pango.Weight.NORMAL]
+
+            row = [mpdh.get(track, 'id', 0, True)] + items + weight
+            self.currentdata.append(row)
+
+        # Keep position
+        self.playlist_retain_view(self.current, position.y)
 
     def current_update(self, prevstatus_playlist, new_playlist_length):
         if self.connected():
