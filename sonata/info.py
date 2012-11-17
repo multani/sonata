@@ -294,7 +294,7 @@ class Info(object):
                 playtime += t.time
                 tracklist.append("%s. %s" % (
                     str(t.track).zfill(2),
-                    mpdh.get(t, 'title', os.path.basename(t['file']))))
+                    t.get('title', os.path.basename(t.file))))
 
             album = songinfo.album
             year = mpdh.get(songinfo, 'date', None)
@@ -309,10 +309,8 @@ class Info(object):
     def _update_lyrics(self, songinfo):
         if self.config.show_lyrics:
             if 'artist' in songinfo and 'title' in songinfo:
-                self.get_lyrics_start(songinfo.artist,
-                                      mpdh.get(songinfo, 'title'),
-                                      songinfo.artist,
-                                      mpdh.get(songinfo, 'title'),
+                self.get_lyrics_start(songinfo.artist, songinfo.title,
+                                      songinfo.artist, songinfo.title,
                                       os.path.dirname(songinfo.file))
             else:
                 self._show_lyrics(None, None, error=_(('Artist or song title '
@@ -424,7 +422,7 @@ class Info(object):
         if not songinfo:
             return
         artist_now = misc.strip_all_slashes(songinfo.artist)
-        title_now = misc.strip_all_slashes(mpdh.get(songinfo, 'title', None))
+        title_now = misc.strip_all_slashes(songinfo.title)
         if artist_now == artist_then and title_now == title_then:
             self._searchlabel.set_markup(misc.link_markup(
                 _("search"), True, True, self.linkcolor))

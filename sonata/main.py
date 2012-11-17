@@ -1990,12 +1990,11 @@ class Base(object):
                 if self.songinfo.artist:
                     info_file.write('Title: %s - %s\n' % (
                         self.songinfo.artist,
-                        mpdh.get(self.songinfo, 'title')))
+                        (self.songinfo.title or '')))
                 else:
                     # No Artist in streams
                     try:
-                        info_file.write('Title: %s\n' % \
-                                        (mpdh.get(self.songinfo, 'title'),))
+                        info_file.write('Title: %s\n' % (self.songinfo.title or ''))
                     except:
                         info_file.write('Title: No - ID Tag\n')
                 info_file.write('Album: %s\n' % (self.songinfo.album or 'No Data'))
@@ -2165,7 +2164,7 @@ class Base(object):
 
     def on_lyrics_search(self, _event):
         artist = self.songinfo.artist or ''
-        title = mpdh.get(self.songinfo, 'title')
+        title = self.songinfo.title or ''
         dialog = ui.dialog(
             title=_('Lyrics Search'), parent=self.window,
             flags=Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,

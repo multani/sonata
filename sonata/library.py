@@ -759,11 +759,9 @@ class Library(object):
             track = str(song.get('track', 99)).zfill(2)
             disc = str(song.get('disc', 99)).zfill(2)
             try:
-                bd += [('f' + disc + track + misc.lower_no_the(
-                    mpdh.get(song, 'title')), [self.sonatapb, data,
-                                               formatting.parse(
-                                                   self.config.libraryformat,
-                                                   song, True)])]
+                bd += [('f' + disc + track + misc.lower_no_the(song.title),
+                        [self.sonatapb, data, formatting.parse(
+                            self.config.libraryformat, song, True)])]
             except:
                 bd += [('f' + disc + track + song.file.lower(),
                         [self.sonatapb, data,

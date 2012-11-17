@@ -164,7 +164,7 @@ class Scrobbler(object):
                 tracknumber = songinfo.get('track', '')
                 try:
                     self.scrob_post.nowplaying(songinfo.artist,
-                                               mpdh.get(songinfo, 'title'),
+                                               songinfo.title,
                                                songinfo.time,
                                                tracknumber,
                                                album)
@@ -184,7 +184,7 @@ class Scrobbler(object):
                 try:
                     self.scrob_post.addtrack(
                         prevsonginfo.artist,
-                        mpdh.get(prevsonginfo, 'title'),
+                        prevsonginfo.title,
                         prevsonginfo.time,
                         self.scrob_start_time,
                         tracknumber,
