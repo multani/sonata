@@ -2197,7 +2197,7 @@ class Base(object):
                 title_entry.get_text(),
                 artist,
                 title,
-                os.path.dirname(mpdh.get(self.songinfo, 'file')),
+                os.path.dirname(self.songinfo.file),
                 force_fetch=True)
 
         dialog.destroy()
@@ -2360,7 +2360,7 @@ class Base(object):
             album = album.replace("/", "")
             artist = artist.replace("/", "")
             if songpath is None:
-                songpath = os.path.dirname(mpdh.get(self.songinfo, 'file'))
+                songpath = os.path.dirname(self.songinfo.file)
             songpath = self.get_multicd_album_root_dir(songpath)
             # Return target filename:
             if force_location is not None:
@@ -2411,9 +2411,8 @@ class Base(object):
         for song in songs:
             year = mpdh.get(song, 'date', '')
             artist = song.artist or ''
-            path = os.path.dirname(mpdh.get(song, 'file'))
-            data = SongRecord(album=album, artist=artist, \
-                                       year=year, path=path)
+            path = os.path.dirname(song.file)
+            data = SongRecord(album=album, artist=artist, year=year, path=path)
             datalist.append(data)
         if len(datalist) > 0:
             datalist = misc.remove_list_duplicates(datalist, case=False)
@@ -2427,7 +2426,7 @@ class Base(object):
                        str(self.songinfo.artist or '').lower() \
                        or dataitem.artist == library.VARIOUS_ARTISTS \
                        and dataitem.path == \
-                       os.path.dirname(mpdh.get(self.songinfo, 'file')):
+                       os.path.dirname(self.songinfo.file):
 
                         datalist = [dataitem]
                         break
@@ -2516,7 +2515,7 @@ class Base(object):
         dialog.connect("response", self.image_local_response, artist,
                        album, stream)
         dialog.set_default_response(Gtk.ResponseType.OK)
-        songdir = os.path.dirname(mpdh.get(self.songinfo, 'file'))
+        songdir = os.path.dirname(self.songinfo.file)
         currdir = misc.file_from_utf8(
             os.path.join(self.config.musicdir[self.config.profile_num],
                          songdir))
@@ -3422,7 +3421,7 @@ class Base(object):
         if self.current_tab == self.TAB_INFO:
             if self.status_is_play_or_pause():
                 # Use current file in songinfo:
-                mpdpath = mpdh.get(self.songinfo, 'file')
+                mpdpath = self.songinfo.file
                 fullpath = os.path.join(
                     self.config.musicdir[self.config.profile_num], mpdpath)
                 files.append(fullpath)

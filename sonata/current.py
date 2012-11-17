@@ -200,11 +200,9 @@ class Current(object):
         for path in selected:
             index = path.get_indices()[0]
             if not self.filterbox_visible:
-                item = mpdh.get(self.current_songs[index], 'file')
+                item = self.current_songs[index].file
             else:
-                item = mpdh.get(
-                    self.current_songs[self.filter_row_mapping[index]],
-                    'file')
+                item = self.current_songs[self.filter_row_mapping[index]].file
             if return_abs_paths:
                 filenames.append(
                     os.path.join(self.config.musicdir[self.config.profile_num],
@@ -457,10 +455,10 @@ class Current(object):
                                         track.disc,
                                         track.track)
                 elif mode == 'file':
-                    record["sortby"] = mpdh.get(track, 'file',
-                                                zzz).lower().split('/')[-1]
+                    record["sortby"] = os.path.basename(track.file or
+                                                        zzz).lower()
                 elif mode == 'dirfile':
-                    record["sortby"] = mpdh.get(track, 'file', zzz).lower()
+                    record["sortby"] = (track.file or zzz).lower()
                 elif mode == 'col':
                     # Sort by column:
                     record["sortby"] = self.currentdata.get_value(
@@ -554,7 +552,8 @@ class Current(object):
                     listallinfo = self.mpd.listallinfo(paths[i])
                     for item in listallinfo:
                         if 'file' in item:
-                            mpdpaths.append(mpdh.get(item, 'file'))
+                            mpdpaths.append(item['file'])
+
                 # Add local file, available in mpd 0.14. This currently
                 # work because python-mpd does not support unix socket
                 # paths, won't which is needed for authentication for

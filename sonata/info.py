@@ -269,16 +269,13 @@ class Info(object):
                              False, False, self.linkcolor))
 
         path = misc.file_from_utf8(os.path.join(
-            self.config.musicdir[self.config.profile_num], mpdh.get(songinfo,
-                                                                    'file')))
+            self.config.musicdir[self.config.profile_num], songinfo.file))
         if os.path.exists(path):
-            filelabel.set_text(os.path.join(
-                self.config.musicdir[self.config.profile_num],
-                mpdh.get(songinfo, 'file')))
+            filelabel.set_text(path)
             self._editlabel.set_markup(misc.link_markup(_("edit tags"), True,
                                                         True, self.linkcolor))
         else:
-            filelabel.set_text(mpdh.get(songinfo, 'file'))
+            filelabel.set_text(songinfo.file)
             self._editlabel.set_text("")
 
     def _update_album(self, songinfo):
@@ -316,8 +313,7 @@ class Info(object):
                                       mpdh.get(songinfo, 'title'),
                                       songinfo.artist,
                                       mpdh.get(songinfo, 'title'),
-                                      os.path.dirname(mpdh.get(songinfo,
-                                                               'file')))
+                                      os.path.dirname(songinfo.file))
             else:
                 self._show_lyrics(None, None, error=_(('Artist or song title '
                                                        'not set.')))

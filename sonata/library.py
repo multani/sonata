@@ -545,8 +545,8 @@ class Library(object):
                     bd += [('d' + str(name).lower(), [self.openpb, data,
                                                       misc.escape_html(name)])]
                 elif 'file' in item:
-                    data = SongRecord(path=mpdh.get(item, 'file'))
-                    bd += [('f' + str(mpdh.get(item, 'file')).lower(),
+                    data = SongRecord(path=item['file'])
+                    bd += [('f' + item['file'].lower(),
                             [self.sonatapb, data,
                              formatting.parse(self.config.libraryformat, item,
                                               True)])]
@@ -617,7 +617,7 @@ class Library(object):
                     artist = item.artist or self.NOTAG
                     year = mpdh.get(item, 'date', self.NOTAG)
                     path = self.get_multicd_album_root_dir(
-                        os.path.dirname(mpdh.get(item, 'file')))
+                        os.path.dirname(item.file))
                     data = SongRecord(album=album, artist=artist,
                                       year=year, path=path)
                     albums.append(data)
@@ -755,7 +755,7 @@ class Library(object):
             songs, _playtime, _num_songs = self.library_return_search_items(
                 artist=artist, album=album, year=year)
         for song in songs:
-            data = SongRecord(path=mpdh.get(song, 'file'))
+            data = SongRecord(path=song.file)
             track = str(song.get('track', 99)).zfill(2)
             disc = str(song.get('disc', 99)).zfill(2)
             try:
@@ -765,8 +765,7 @@ class Library(object):
                                                    self.config.libraryformat,
                                                    song, True)])]
             except:
-                bd += [('f' + disc + track + \
-                        str(mpdh.get(song, 'file')).lower(),
+                bd += [('f' + disc + track + song.file.lower(),
                         [self.sonatapb, data,
                          formatting.parse(self.config.libraryformat, song,
                                           True)])]
@@ -1169,7 +1168,7 @@ class Library(object):
                                 genre=data.genre, artist=data.artist, album=data.album,
                                 year=data.year)
                     for item in results:
-                        items.append(mpdh.get(item, 'file'))
+                        items.append(item.file)
         # Make sure we don't have any EXACT duplicates:
         items = misc.remove_list_duplicates(items, case=True)
         return items
@@ -1181,7 +1180,7 @@ class Library(object):
                 results = results + self.library_get_path_files_recursive(
                     mpdh.get(item, 'directory'))
             elif 'file' in item:
-                results.append(mpdh.get(item, 'file'))
+                results.append(item['file'])
         return results
 
     def on_library_search_combo_change(self, _combo=None):
@@ -1335,10 +1334,9 @@ class Library(object):
             return
         self.library.freeze_child_notify()
         currlen = len(self.librarydata)
-        bd = [
-                [self.sonatapb,
-                 SongRecord(path=mpdh.get(item, 'file')),
-                 formatting.parse(self.config.libraryformat, item, True)]
+        bd = [(self.sonatapb,
+               SongRecord(path=item['file']),
+               formatting.parse(self.config.libraryformat, item, True))
               for item in matches if 'file' in item]
         bd.sort(key=lambda key: locale.strxfrm(key[2]))
         for i, item in enumerate(bd):

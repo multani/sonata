@@ -375,7 +375,7 @@ class Artwork(object):
             # Normal song:
             artist = self.songinfo.artist or ""
             album = self.songinfo.album or ""
-            path = os.path.dirname(mpdh.get(self.songinfo, 'file'))
+            path = os.path.dirname(self.songinfo.file)
             if len(artist) == 0 and len(album) == 0:
                 self.artwork_set_default_icon(artist, album, path)
                 return
@@ -418,7 +418,7 @@ class Artwork(object):
         # to use info from the currently playing song.
 
         if songpath is None:
-            songpath = os.path.dirname(mpdh.get(self.songinfo, 'file'))
+            songpath = os.path.dirname(self.songinfo.file)
 
         # Give precedence to images defined by the user's current
         # art_location config (in case they have multiple valid images

@@ -148,6 +148,10 @@ class SongResult(object):
     def disc(self):
         return int(self._mapping.get('disc', 0))
 
+    @property
+    def file(self):
+        return self._mapping.get('file', '') # XXX should be always here?
+
 
 def get(mapping, key, alt='', *sanitize_args):
     """Get a value from a mpd song and sanitize appropriately.

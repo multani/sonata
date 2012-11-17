@@ -91,7 +91,7 @@ class Scrobbler(object):
             elapsed_prev = self.elapsed_now
             self.elapsed_now, length = [float(c) for c in
                                         mpd_time_now.split(':')]
-            current_file = mpdh.get(songinfo, 'file')
+            current_file = songinfo.file
             if prevstate == 'stop':
                 # Switched from stop to play, prepare current track:
                 self.prepare(songinfo)
@@ -147,7 +147,7 @@ class Scrobbler(object):
                     self.np(songinfo)
 
                     self.scrob_start_time = str(int(time.time()))
-                    self.scrob_last_prepared = mpdh.get(songinfo, 'file')
+                    self.scrob_last_prepared = songinfo.file
 
     def np(self, songinfo):
         thread = threading.Thread(target=self.do_np, args=(songinfo,))
