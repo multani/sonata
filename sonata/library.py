@@ -613,11 +613,11 @@ class Library(object):
             untagged_found = False
             for item in self.mpd.listallinfo('/'):
                 if 'file' in item and 'album' in item:
-                    album = item.album
-                    artist = item.artist or self.NOTAG
-                    year = item.date or self.NOTAG
+                    album = item['album']
+                    artist = item.get('artist', self.NOTAG)
+                    year = item.get('date', self.NOTAG)
                     path = self.get_multicd_album_root_dir(
-                        os.path.dirname(item.file))
+                        os.path.dirname(item['file']))
                     data = SongRecord(album=album, artist=artist,
                                       year=year, path=path)
                     albums.append(data)
