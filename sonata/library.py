@@ -615,7 +615,7 @@ class Library(object):
                 if 'file' in item and 'album' in item:
                     album = item.album
                     artist = item.artist or self.NOTAG
-                    year = mpdh.get(item, 'date', self.NOTAG)
+                    year = item.date or self.NOTAG
                     path = self.get_multicd_album_root_dir(
                         os.path.dirname(item.file))
                     data = SongRecord(album=album, artist=artist,

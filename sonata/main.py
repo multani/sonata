@@ -2408,7 +2408,7 @@ class Base(object):
         songs, _playtime, _num_songs = \
                 self.library.library_return_search_items(album=album)
         for song in songs:
-            year = mpdh.get(song, 'date', '')
+            year = song.date or ''
             artist = song.artist or ''
             path = os.path.dirname(song.file)
             data = SongRecord(album=album, artist=artist, year=year, path=path)
@@ -2433,7 +2433,7 @@ class Base(object):
             retsongs = []
             for song in songs:
                 if (song.album or '').lower() == datalist[0].album.lower() \
-                   and mpdh.get(song, 'date', None) == datalist[0].year \
+                   and song.date == datalist[0].year \
                    and (datalist[0].artist == library.VARIOUS_ARTISTS \
                         or datalist[0].artist.lower() ==  \
                         (song.artist or '').lower()):

@@ -297,7 +297,7 @@ class Info(object):
                     t.get('title', os.path.basename(t.file))))
 
             album = songinfo.album
-            year = mpdh.get(songinfo, 'date', None)
+            year = songinfo.date
             playtime = misc.convert_time(playtime)
             albuminfo = "\n".join(i for i in (album, artist, year,
                               playtime) if i)
