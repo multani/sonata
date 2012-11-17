@@ -211,18 +211,23 @@ class CliMain(object):
 
     def _execute_info(self):
         if self.status['state'] in ['play', 'pause']:
-            cmds = [(_("Title"), ('title',)),
-                (_("Artist"), ('artist',)),
-                (_("Album"), ('album',)),
-                (_("Date"), ('date',)),
-                (_("Track"), ('track', '0', False, 2)),
-                (_("Genre"), ('genre',)),
-                (_("File"), ('file',)),
-                   ]
-            for pretty, cmd in cmds:
+            cmds = [
+                (_("Title"), 'title'),
+                (_("Artist"), 'artist'),
+                (_("Album"), 'album'),
+                (_("Date"), 'date'),
+                (_("Track"), 'track'),
+                (_("Genre"), 'genre'),
+                (_("File"), 'file'),
+            ]
+            for pretty, key in cmds:
+                value = str(self.songinfo.get(key))
+                if key == 'track':
+                    value = value.zfill(2)
                 # XXX this could fail, if not all characters are supported by
                 # os.stdout.encoding
-                print("%s: %s" % (pretty, mpdh.get(self.songinfo, *cmd)))
+                print("%s: %s" % (pretty, value))
+
             at, _length = [int(c) for c in self.status['time'].split(':')]
             at_time = misc.convert_time(at)
             try:

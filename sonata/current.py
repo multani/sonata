@@ -468,7 +468,7 @@ class Current(object):
                         record["sortby"] = self.sanitize_songlen_for_sorting(
                             record["sortby"], custom_pos)
                 else:
-                    record["sortby"] = mpdh.get(track, mode, zzz).lower()
+                    record["sortby"] = track.get(mode, zzz).lower()
 
                 record["id"] = track.id
                 songs.append(record)

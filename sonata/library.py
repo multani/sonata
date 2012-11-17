@@ -789,7 +789,7 @@ class Library(object):
                             self.library_return_search_items(genre, artist,
                                                              album, year)
                     for song in songs:
-                        items.append(mpdh.get(song, itemtype))
+                        items.append(song.get(itemtype))
                 else:
                     items = self.mpd.list(itemtype, *s)
                 for item in items:
@@ -934,7 +934,7 @@ class Library(object):
                         # "foobar" isn't returned too
                         for arg in args_tuple[::2]:
                             if arg in item and \
-                               str(mpdh.get(item, arg)).upper() != \
+                               str(item.get(arg, '')).upper() != \
                                str(args_tuple[pos + 1]).upper():
                                 match = False
                                 break
@@ -1311,15 +1311,14 @@ class Library(object):
             for row in self.prevlibtodo_base_results:
                 is_match = True
                 for regexp in regexps:
-                    if not regexp.match(str(mpdh.get(row,
-                                                         searchby)).lower()):
+                    if not regexp.match(row.get(searchby, '')).lower():
                         is_match = False
                         break
                 if is_match:
                     matches.append(row)
         else:
             for row in self.prevlibtodo_base_results:
-                allstr = " ".join(mpdh.get(row, meta) for meta in row)
+                allstr = " ".join(row.values())
                 is_match = True
                 for regexp in regexps:
                     if not regexp.match(str(allstr).lower()):

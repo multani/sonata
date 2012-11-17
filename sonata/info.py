@@ -258,7 +258,7 @@ class Info(object):
 
         for name in ['title', 'date', 'genre']:
             label = self.info_labels[name]
-            label.set_text(mpdh.get(songinfo, name))
+            label.set_text(songinfo.get(name, ''))
 
         tracklabel.set_text(str(songinfo.track))
         artistlabel.set_markup(
