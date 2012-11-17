@@ -118,12 +118,6 @@ class SongResult(object):
     def __init__(self, mapping):
         self._mapping = mapping
 
-    def __getitem__(self, key):
-        return self._mapping[key]
-
-    def get(self, key, alt=None):
-        return getattr(self, key, alt)
-
     def __eq__(self, other):
         return isinstance(other, self.__class__) and \
                 self._mapping == other._mapping
@@ -133,6 +127,23 @@ class SongResult(object):
 
     def __contains__(self, key):
         return key in self._mapping
+
+    def __getitem__(self, key):
+        if key not in self:
+            raise KeyError(key)
+        return self.get(key)
+
+    def get(self, key, alt=None):
+        if key in self._mapping and hasattr(self, key):
+            return getattr(self, key)
+        else:
+            return self._mapping.get(key, alt)
+
+    def __getattr__(self, attr):
+        # Get the attribute's value directly into the internal mapping.
+        # This function is not called if the current object has a "real"
+        # attribute set.
+        return self._mapping.get(attr)
 
     @property
     def id(self):

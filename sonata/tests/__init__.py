@@ -85,6 +85,22 @@ class TestSongResult(unittest2.TestCase):
         self.assertEqual(1, SongResult({'track': '1/10'}).track)
         self.assertEqual(1, SongResult({'track': '1,10'}).track)
 
+    def test_access_attributes(self):
+        song = SongResult({'foo': 'zz', 'id': '5'})
+
+        self.assertEqual(5, song.id)
+        self.assertEqual("zz", song.foo)
+        self.assertIsInstance(song.foo, str)
+        self.assertEqual(song.foo, song.get("foo"))
+
+    def test_get_unknown_attribute(self):
+        song = SongResult({})
+        self.assertRaises(KeyError, lambda: song['bla'])
+        self.assertEqual(None, song.get('bla'))
+        self.assertEqual('foo', song.get('bla', 'foo'))
+        self.assertEqual(None, song.bla)
+
+
 def additional_tests():
     return unittest.TestSuite(
         # TODO: add files which use doctests here
