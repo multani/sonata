@@ -449,11 +449,11 @@ class Current(object):
                 if mode == 'artist':
                     record["sortby"] = (
                         misc.lower_no_the(track.artist or zzz),
-                        mpdh.get(track, 'album', zzz).lower(),
+                        (track.album or zzz).lower(),
                         track.disc,
                         track.track)
                 elif mode == 'album':
-                    record["sortby"] = (mpdh.get(track, 'album', zzz).lower(),
+                    record["sortby"] = ((track.album or zzz).lower(),
                                         track.disc,
                                         track.track)
                 elif mode == 'file':

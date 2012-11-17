@@ -1998,8 +1998,7 @@ class Base(object):
                                         (mpdh.get(self.songinfo, 'title'),))
                     except:
                         info_file.write('Title: No - ID Tag\n')
-                info_file.write('Album: %s\n' % (mpdh.get(self.songinfo,
-                                                         'album', 'No Data'),))
+                info_file.write('Album: %s\n' % (self.songinfo.album or 'No Data'))
                 info_file.write('Track: %s\n' % self.songinfo.track)
                 info_file.write('File: %s\n' % (mpdh.get(self.songinfo, 'file',
                                                          'No Data'),))
@@ -2275,7 +2274,7 @@ class Base(object):
                 self.UIManager.get_widget(path_chooseimage).show()
                 self.UIManager.get_widget(path_localimage).show()
                 artist = self.songinfo.artist
-                album = mpdh.get(self.songinfo, 'album', None)
+                album = self.songinfo.album
                 stream = mpdh.get(self.songinfo, 'name', None)
             if not (artist or album or stream):
                 self.UIManager.get_widget(path_localimage).hide()
@@ -2355,7 +2354,7 @@ class Base(object):
         if self.conn:
             # If no info passed, you info from currently playing song:
             if not album:
-                album = mpdh.get(self.songinfo, 'album', "")
+                album = self.songinfo.album or ""
             if not artist:
                 artist = self.album_current_artist[1]
             album = album.replace("/", "")
@@ -2406,7 +2405,7 @@ class Base(object):
         # Includes logic for Various Artists albums to determine
         # the tracks.
         datalist = []
-        album = mpdh.get(self.songinfo, 'album')
+        album = self.songinfo.album or ''
         songs, _playtime, _num_songs = \
                 self.library.library_return_search_items(album=album)
         for song in songs:
@@ -2435,7 +2434,7 @@ class Base(object):
             # Find all songs in album:
             retsongs = []
             for song in songs:
-                if mpdh.get(song, 'album').lower() == datalist[0].album.lower() \
+                if (song.album or '').lower() == datalist[0].album.lower() \
                    and mpdh.get(song, 'date', None) == datalist[0].year \
                    and (datalist[0].artist == library.VARIOUS_ARTISTS \
                         or datalist[0].artist.lower() ==  \
@@ -2512,7 +2511,7 @@ class Base(object):
         dialog.set_use_preview_label(False)
         dialog.connect("update-preview", self.update_preview, preview)
         stream = mpdh.get(self.songinfo, 'name', None)
-        album = mpdh.get(self.songinfo, 'album', "").replace("/", "")
+        album = (self.songinfo.album or "").replace("/", "")
         artist = self.album_current_artist[1].replace("/", "")
         dialog.connect("response", self.image_local_response, artist,
                        album, stream)
@@ -2610,7 +2609,7 @@ class Base(object):
                 stream)
         else:
             self.remote_dest_filename = self.target_image_filename()
-        album = mpdh.get(self.songinfo, 'album', '')
+        album = self.songinfo.album or ''
         artist = self.album_current_artist[1]
         imagewidget.connect('item-activated', self.image_remote_replace_cover,
                             artist.replace("/", ""), album.replace("/", ""),
@@ -3194,7 +3193,7 @@ class Base(object):
         elif linktype == 'album':
             browser_not_loaded = not misc.browser_load(
                 '%s%s' % (wikipedia_search,
-                          urllib.parse.quote(mpdh.get(self.songinfo, 'album')),),
+                          urllib.parse.quote(self.songinfo.album or '')),
                 self.config.url_browser, self.window)
         elif linktype == 'edit':
             if self.songinfo:

@@ -374,7 +374,7 @@ class Artwork(object):
         else:
             # Normal song:
             artist = self.songinfo.artist or ""
-            album = mpdh.get(self.songinfo, 'album', "")
+            album = self.songinfo.album or ""
             path = os.path.dirname(mpdh.get(self.songinfo, 'file'))
             if len(artist) == 0 and len(album) == 0:
                 self.artwork_set_default_icon(artist, album, path)

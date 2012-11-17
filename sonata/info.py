@@ -264,9 +264,9 @@ class Info(object):
         artistlabel.set_markup(
             misc.link_markup(misc.escape_html(songinfo.artist),
                              False, False, self.linkcolor))
-        albumlabel.set_markup(misc.link_markup(misc.escape_html(
-            mpdh.get(songinfo, 'album')), False, False,
-            self.linkcolor))
+        albumlabel.set_markup(
+            misc.link_markup(misc.escape_html(songinfo.album),
+                             False, False, self.linkcolor))
 
         path = misc.file_from_utf8(os.path.join(
             self.config.musicdir[self.config.profile_num], mpdh.get(songinfo,
@@ -299,7 +299,7 @@ class Info(object):
                     str(t.track).zfill(2),
                     mpdh.get(t, 'title', os.path.basename(t['file']))))
 
-            album = mpdh.get(songinfo, 'album')
+            album = songinfo.album
             year = mpdh.get(songinfo, 'date', None)
             playtime = misc.convert_time(playtime)
             albuminfo = "\n".join(i for i in (album, artist, year,

@@ -613,7 +613,7 @@ class Library(object):
             untagged_found = False
             for item in self.mpd.listallinfo('/'):
                 if 'file' in item and 'album' in item:
-                    album = mpdh.get(item, 'album')
+                    album = item.album
                     artist = item.artist or self.NOTAG
                     year = mpdh.get(item, 'date', self.NOTAG)
                     path = self.get_multicd_album_root_dir(
