@@ -23,11 +23,11 @@ def _version():
             dir = os.path.dirname(__file__)
             version = Popen(["git", "describe", "--abbrev=4", "HEAD"],
                              cwd=dir, stdout=PIPE,
-                             stderr=PIPE).communicate()[0]
+                             stderr=PIPE).communicate()[0].decode('utf-8')
             if not version:
                 raise OSError
         except OSError:
             version = default_version
-    return version.strip()[1:].decode('utf-8')
+    return version.strip()[1:]
 
 version = _version()

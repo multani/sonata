@@ -1753,56 +1753,34 @@ class Base(object):
     def update_statusbar(self, updatingdb=False):
         if self.config.show_statusbar:
             if self.conn and self.status:
-                try:
-                    days = None
-                    hours = None
-                    mins = None
-                    total_time = misc.convert_time(self.current.total_time)
-                    try:
-                        mins = total_time.split(":")[-2]
-                        hours = total_time.split(":")[-3]
-                        if int(hours) >= 24:
-                            days = str(int(hours) / 24)
-                            hours = str(int(hours) - int(days) * 24).zfill(2)
-                    except:
-                        pass
-                    if days:
-                        days_text = ngettext('day', 'days', int(days))
-                    if mins:
-                        if mins.startswith('0') and len(mins) > 1:
-                            mins = mins[1:]
-                        mins_text = ngettext('minute', 'minutes', int(mins))
-                    if hours:
-                        if hours.startswith('0'):
-                            hours = hours[1:]
-                        hours_text = ngettext('hour', 'hours', int(hours))
-                    # Show text:
-                    songs_text = ngettext('song', 'songs',
-                                          int(self.status['playlistlength']))
-                    if int(self.status['playlistlength']) > 0:
-                        if days:
-                            status_text = '%s %s   %s %s, %s %s, %s %s %s' \
-                                    % (str(self.status['playlistlength']),
-                                       songs_text, days, days_text, hours,
-                                       hours_text, _('and'), mins, mins_text,)
-                        elif hours:
-                            status_text = '%s %s   %s %s %s %s %s' % \
-                                    (str(self.status['playlistlength']),
-                                     songs_text, hours, hours_text, _('and'),
-                                     mins, mins_text,)
-                        elif mins:
-                            status_text = '%s %s   %s %s' % \
-                                    (str(self.status['playlistlength']),
-                                     songs_text, mins, mins_text,)
-                        else:
-                            status_text = ''
-                    else:
-                        status_text = ''
-                    if updatingdb:
-                        status_text = '%s   %s' % (status_text, _(('(updating '
-                                                                  'mpd)')),)
-                except:
+                days = None
+                hours, mins, _ = misc.convert_time_raw(self.current.total_time)
+                # Show text:
+                songs_text = ngettext('song', 'songs',
+                                      int(self.status['playlistlength']))
+                songs_string = "{} {}".format(self.status['playlistlength'],
+                                              songs_text)
+                if hours >= 24:
+                    days = int(hours / 24)
+                    hours = hours - (days * 24)
+                if days:
+                    days_text = ngettext('day', 'days', days)
+                    days_string = "{} {}".format(days, days_text)
+                if hours:
+                    hours_text = ngettext('hour', 'hours', hours)
+                    hours_string = "{} {}".format(hours, hours_text)
+                if mins:
+                    mins_text = ngettext('minute', 'minutes', mins)
+                    mins_string = "{} {}".format(mins, mins_text)
+                time_parts = (days_string, hours_string, mins_string)
+                time_string = ', '.join([part for part in time_parts if part])
+                if float(self.status['playlistlength']) > 0:
+                    status_text = "{}: {}".format(songs_string, time_string)
+                else:
                     status_text = ''
+                if updatingdb:
+                    update_string = _(('(updating mpd)'))
+                    status_text = "{}: {}".format(status_text, update_string)
             else:
                 status_text = ''
             if status_text != self.last_status_text:
@@ -3252,7 +3230,9 @@ class Base(object):
 
     def menu_popup(self, widget, event):
         if widget == self.window:
-            if event.get_coords().height > self.notebook.get_allocation().height:
+            # Prevent the popup from statusbar (if present)
+            height = event.get_coords()[1]
+            if height > self.notebook.get_allocation().height:
                 return
         if event.button == 3:
             self.update_menu_visibility(True)
