@@ -109,7 +109,7 @@ class Artwork(object):
             if 'name' in self.songinfo:
                 # Stream, remove file:
                 misc.remove_file(self.artwork_stream_filename(
-                    mpdh.get(self.songinfo, 'name')))
+                    self.songinfo.name))
             else:
                 # Normal song:
                 misc.remove_file(self.target_image_filename())
@@ -364,8 +364,7 @@ class Artwork(object):
     def _artwork_update(self):
         if 'name' in self.songinfo:
             # Stream
-            streamfile = self.artwork_stream_filename(mpdh.get(self.songinfo,
-                                                               'name'))
+            streamfile = self.artwork_stream_filename(self.songinfo.name)
             if os.path.exists(streamfile):
                 GObject.idle_add(self.artwork_set_image, streamfile, None,
                                  None, None)
@@ -583,8 +582,7 @@ class Artwork(object):
         # song is displayed
         if self.status_is_play_or_pause() and self.songinfo:
             if 'name' in self.songinfo:
-                value = mpdh.get(self.songinfo, 'name')
-                streamfile = self.artwork_stream_filename(value)
+                streamfile = self.artwork_stream_filename(self.songinfo.name)
                 if filename == streamfile:
                     return True
             else:

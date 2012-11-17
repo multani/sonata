@@ -1999,8 +1999,7 @@ class Base(object):
                         info_file.write('Title: No - ID Tag\n')
                 info_file.write('Album: %s\n' % (self.songinfo.album or 'No Data'))
                 info_file.write('Track: %s\n' % self.songinfo.track)
-                info_file.write('File: %s\n' % (mpdh.get(self.songinfo, 'file',
-                                                         'No Data'),))
+                info_file.write('File: %s\n' % (self.songinfo.file or 'No Data'))
                 info_file.write('Time: %s\n' % self.songinfo.time)
                 info_file.write('Volume: %s\n' % (self.status['volume'],))
                 info_file.write('Repeat: %s\n' % (self.status['repeat'],))
@@ -2274,7 +2273,7 @@ class Base(object):
                 self.UIManager.get_widget(path_localimage).show()
                 artist = self.songinfo.artist
                 album = self.songinfo.album
-                stream = mpdh.get(self.songinfo, 'name', None)
+                stream = self.songinfo.name
             if not (artist or album or stream):
                 self.UIManager.get_widget(path_localimage).hide()
                 self.UIManager.get_widget(path_resetimage).hide()
@@ -2334,10 +2333,9 @@ class Base(object):
                     raise e
             paths[i] = os.path.abspath(paths[i])
             if img.valid_image(paths[i]):
-                stream = mpdh.get(self.songinfo, 'name', None)
+                stream = self.songinfo.name
                 if stream is not None:
-                    dest_filename = self.artwork.artwork_stream_filename(
-                        mpdh.get(self.songinfo, 'name'))
+                    dest_filename = self.artwork.artwork_stream_filename(stream)
                 else:
                     dest_filename = self.target_image_filename()
                 if dest_filename != paths[i]:
@@ -2508,7 +2506,7 @@ class Base(object):
         dialog.set_preview_widget(preview)
         dialog.set_use_preview_label(False)
         dialog.connect("update-preview", self.update_preview, preview)
-        stream = mpdh.get(self.songinfo, 'name', None)
+        stream = self.songinfo.name
         album = (self.songinfo.album or "").replace("/", "")
         artist = self.album_current_artist[1].replace("/", "")
         dialog.connect("response", self.image_local_response, artist,
@@ -2600,7 +2598,7 @@ class Base(object):
         self.choose_dialog.show_all()
         self.chooseimage_visible = True
         self.remotefilelist = []
-        stream = mpdh.get(self.songinfo, 'name', None)
+        stream = self.songinfo.name
         if stream is not None:
             # Allow saving an image file for a stream:
             self.remote_dest_filename = self.artwork.artwork_stream_filename(
