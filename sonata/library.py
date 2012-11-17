@@ -540,8 +540,8 @@ class Library(object):
         else:
             for item in self.mpd.lsinfo(path):
                 if 'directory' in item:
-                    name = mpdh.get(item, 'directory').split('/')[-1]
-                    data = SongRecord(path=mpdh.get(item, "directory"))
+                    name = os.path.basename(item['directory'])
+                    data = SongRecord(path=item["directory"])
                     bd += [('d' + str(name).lower(), [self.openpb, data,
                                                       misc.escape_html(name)])]
                 elif 'file' in item:
@@ -1176,7 +1176,7 @@ class Library(object):
         for item in self.mpd.lsinfo(path):
             if 'directory' in item:
                 results = results + self.library_get_path_files_recursive(
-                    mpdh.get(item, 'directory'))
+                    item['directory'])
             elif 'file' in item:
                 results.append(item['file'])
         return results
