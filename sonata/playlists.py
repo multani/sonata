@@ -159,7 +159,7 @@ class Playlists(object):
             playlists = self.mpd.lsinfo()
         for item in playlists:
             if 'playlist' in item:
-                if mpdh.get(item, 'playlist') == plname and \
+                if item['playlist'] == plname and \
                    plname != skip_plname:
                     if ui.show_msg(self.window,
                                    _(('A playlist with this name already '
@@ -206,8 +206,7 @@ class Playlists(object):
                 playlists = self.mpd.lsinfo()
             for item in playlists:
                 if 'playlist' in item:
-                    playlistinfo.append(misc.escape_html(mpdh.get(item,
-                                                                  'playlist')))
+                    playlistinfo.append(misc.escape_html(item['playlist']))
 
             # Remove case sensitivity
             playlistinfo.sort(key=lambda x: x.lower())
