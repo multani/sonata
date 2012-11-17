@@ -819,8 +819,8 @@ class Library(object):
         num_songs = 0
         for s in searches:
             count = self.mpd.count(*s)
-            playtime += mpdh.get(count, 'playtime', 0, True)
-            num_songs += mpdh.get(count, 'songs', 0, True)
+            playtime += count.playtime
+            num_songs += count.songs
 
         return (playtime, num_songs)
 

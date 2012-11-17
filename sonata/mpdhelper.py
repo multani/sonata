@@ -45,6 +45,8 @@ class MPDHelper(object):
             return SongResult(retval)
         elif cmd_name in ['plchanges', 'search']:
             return [SongResult(s) for s in retval]
+        elif cmd_name in ['count']:
+            return CountResult(retval)
         else:
             return retval
 
@@ -98,6 +100,16 @@ class MPDHelper(object):
         for directory in dirs:
             self._client.update(directory)
         self._client.command_list_end()
+
+
+class CountResult(object):
+    """Represent the result of the 'count' MPD command"""
+
+    __slots__ = ['playtime', 'songs']
+
+    def __init__(self, m):
+        self.playtime = int(m['playtime'])
+        self.songs = int(m['songs'])
 
 
 class SongResult(object):
