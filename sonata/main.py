@@ -1705,7 +1705,7 @@ class Base(object):
             self.album_return_artist_name()
         elif self.songinfo and 'artist' in self.songinfo:
             self.album_current_artist = [self.songinfo,
-                                         mpdh.get(self.songinfo, 'artist')]
+                                         self.songinfo.artist]
         else:
             self.album_current_artist = [self.songinfo, ""]
 
@@ -1986,13 +1986,14 @@ class Base(object):
                     info_file.write('Status: ' + 'Paused' + '\n')
                 elif self.status['state'] in ['stop']:
                     info_file.write('Status: ' + 'Stopped' + '\n')
-                try:
-                    info_file.write('Title: %s - %s\n' %
-                                    (mpdh.get(self.songinfo, 'artist'),
-                                     mpdh.get(self.songinfo, 'title'),))
-                except:
+
+                if self.songinfo.artist:
+                    info_file.write('Title: %s - %s\n' % (
+                        self.songinfo.artist,
+                        mpdh.get(self.songinfo, 'title')))
+                else:
+                    # No Artist in streams
                     try:
-                        # No Arist in streams
                         info_file.write('Title: %s\n' % \
                                         (mpdh.get(self.songinfo, 'title'),))
                     except:
@@ -2164,7 +2165,7 @@ class Base(object):
             pass
 
     def on_lyrics_search(self, _event):
-        artist = mpdh.get(self.songinfo, 'artist')
+        artist = self.songinfo.artist or ''
         title = mpdh.get(self.songinfo, 'title')
         dialog = ui.dialog(
             title=_('Lyrics Search'), parent=self.window,
@@ -2273,7 +2274,7 @@ class Base(object):
             if self.status_is_play_or_pause():
                 self.UIManager.get_widget(path_chooseimage).show()
                 self.UIManager.get_widget(path_localimage).show()
-                artist = mpdh.get(self.songinfo, 'artist', None)
+                artist = self.songinfo.artist
                 album = mpdh.get(self.songinfo, 'album', None)
                 stream = mpdh.get(self.songinfo, 'name', None)
             if not (artist or album or stream):
@@ -2410,7 +2411,7 @@ class Base(object):
                 self.library.library_return_search_items(album=album)
         for song in songs:
             year = mpdh.get(song, 'date', '')
-            artist = mpdh.get(song, 'artist', '')
+            artist = song.artist or ''
             path = os.path.dirname(mpdh.get(song, 'file'))
             data = SongRecord(album=album, artist=artist, \
                                        year=year, path=path)
@@ -2424,10 +2425,11 @@ class Base(object):
                 # compare artists.
                 for dataitem in datalist:
                     if dataitem.artist.lower() == \
-                       mpdh.get(self.songinfo, 'artist').lower() \
+                       str(self.songinfo.artist or '').lower() \
                        or dataitem.artist == library.VARIOUS_ARTISTS \
                        and dataitem.path == \
                        os.path.dirname(mpdh.get(self.songinfo, 'file')):
+
                         datalist = [dataitem]
                         break
             # Find all songs in album:
@@ -2437,7 +2439,7 @@ class Base(object):
                    and mpdh.get(song, 'date', None) == datalist[0].year \
                    and (datalist[0].artist == library.VARIOUS_ARTISTS \
                         or datalist[0].artist.lower() ==  \
-                        mpdh.get(song, 'artist').lower()):
+                        (song.artist or '').lower()):
                         retsongs.append(song)
 
             return artist, retsongs
@@ -3187,7 +3189,7 @@ class Base(object):
         if linktype == 'artist':
             browser_not_loaded = not misc.browser_load(
                 '%s%s' % (wikipedia_search,
-                          urllib.parse.quote(mpdh.get(self.songinfo, 'artist')),),
+                          urllib.parse.quote(self.songinfo.artist or '')),
                 self.config.url_browser, self.window)
         elif linktype == 'album':
             browser_not_loaded = not misc.browser_load(

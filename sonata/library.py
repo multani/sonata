@@ -614,7 +614,7 @@ class Library(object):
             for item in self.mpd.listallinfo('/'):
                 if 'file' in item and 'album' in item:
                     album = mpdh.get(item, 'album')
-                    artist = mpdh.get(item, 'artist', self.NOTAG)
+                    artist = item.artist or self.NOTAG
                     year = mpdh.get(item, 'date', self.NOTAG)
                     path = self.get_multicd_album_root_dir(
                         os.path.dirname(mpdh.get(item, 'file')))

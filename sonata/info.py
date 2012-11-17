@@ -261,9 +261,9 @@ class Info(object):
             label.set_text(mpdh.get(songinfo, name))
 
         tracklabel.set_text(str(songinfo.track))
-        artistlabel.set_markup(misc.link_markup(misc.escape_html(
-            mpdh.get(songinfo, 'artist')), False, False,
-            self.linkcolor))
+        artistlabel.set_markup(
+            misc.link_markup(misc.escape_html(songinfo.artist),
+                             False, False, self.linkcolor))
         albumlabel.set_markup(misc.link_markup(misc.escape_html(
             mpdh.get(songinfo, 'album')), False, False,
             self.linkcolor))
@@ -312,9 +312,9 @@ class Info(object):
     def _update_lyrics(self, songinfo):
         if self.config.show_lyrics:
             if 'artist' in songinfo and 'title' in songinfo:
-                self.get_lyrics_start(mpdh.get(songinfo, 'artist'),
+                self.get_lyrics_start(songinfo.artist,
                                       mpdh.get(songinfo, 'title'),
-                                      mpdh.get(songinfo, 'artist'),
+                                      songinfo.artist,
                                       mpdh.get(songinfo, 'title'),
                                       os.path.dirname(mpdh.get(songinfo,
                                                                'file')))
@@ -427,7 +427,7 @@ class Info(object):
         songinfo = self.get_playing_song()
         if not songinfo:
             return
-        artist_now = misc.strip_all_slashes(mpdh.get(songinfo, 'artist', None))
+        artist_now = misc.strip_all_slashes(songinfo.artist)
         title_now = misc.strip_all_slashes(mpdh.get(songinfo, 'title', None))
         if artist_now == artist_then and title_now == title_then:
             self._searchlabel.set_markup(misc.link_markup(

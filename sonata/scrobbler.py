@@ -166,11 +166,11 @@ class Scrobbler(object):
                     album = mpdh.get(songinfo, 'album')
                 tracknumber = songinfo.get('track', '')
                 try:
-                    self.scrob_post.nowplaying(mpdh.get(songinfo, 'artist'),
-                                                mpdh.get(songinfo, 'title'),
-                                                songinfo.time,
-                                                tracknumber,
-                                                album)
+                    self.scrob_post.nowplaying(songinfo.artist,
+                                               mpdh.get(songinfo, 'title'),
+                                               songinfo.time,
+                                               tracknumber,
+                                               album)
                 except:
                     self.logger.exception(
                         "Unable to send 'now playing' data to the scrobbler")
@@ -189,7 +189,7 @@ class Scrobbler(object):
                 tracknumber = songinfo.get('track', '')
                 try:
                     self.scrob_post.addtrack(
-                        mpdh.get(prevsonginfo, 'artist'),
+                        prevsonginfo.artist,
                         mpdh.get(prevsonginfo, 'title'),
                         prevsonginfo.time,
                         self.scrob_start_time,

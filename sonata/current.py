@@ -448,7 +448,7 @@ class Current(object):
                 zzz = 'zzzzzzzz'
                 if mode == 'artist':
                     record["sortby"] = (
-                        misc.lower_no_the(mpdh.get(track, 'artist', zzz)),
+                        misc.lower_no_the(track.artist or zzz),
                         mpdh.get(track, 'album', zzz).lower(),
                         mpdh.get(track, 'disc', '0', True, 0),
                         track.track)
