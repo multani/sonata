@@ -757,7 +757,7 @@ class Library(object):
         for song in songs:
             data = SongRecord(path=mpdh.get(song, 'file'))
             track = str(song.get('track', 99)).zfill(2)
-            disc = mpdh.get(song, 'disc', '99', False, 2)
+            disc = str(song.get('disc', 99)).zfill(2)
             try:
                 bd += [('f' + disc + track + misc.lower_no_the(
                     mpdh.get(song, 'title')), [self.sonatapb, data,
