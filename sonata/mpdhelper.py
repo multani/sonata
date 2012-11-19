@@ -62,7 +62,7 @@ class MPDHelper(object):
             self._commands = self._client.commands()
             self._urlhandlers = self._client.urlhandlers()
         except (socket.error, MPDError) as e:
-            self.logger.exception("Can't connect to mpd: %s", e)
+            self.logger.error("Error while connecting to MPD: %s", e)
 
     def disconnect(self):
         # Reset to default values
