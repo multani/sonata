@@ -910,11 +910,19 @@ class Current(object):
 
     def boldrow(self, row):
         if row > -1:
-            self.currentdata[row][-1] = Pango.Weight.BOLD
+            try:
+                self.currentdata[row][-1] = Pango.Weight.BOLD
+            except IndexError:
+                # The row might not exist anymore
+                pass
 
     def unbold_boldrow(self, row):
         if row > -1:
-            self.currentdata[row][-1] = Pango.Weight.NORMAL
+            try:
+                self.currentdata[row][-1] = Pango.Weight.NORMAL
+            except IndexError:
+                # The row might not exist anymore
+                pass
 
     def on_remove(self):
         treeviewsel = self.current_selection
