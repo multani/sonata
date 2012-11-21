@@ -131,36 +131,6 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkFileChooserButton" id="connection_dir">
-                                <property name="can_focus">True</property>
-                                <property name="action">select-folder</property>
-                                <property name="title" translatable="yes">Select a Music Directory</property>
-                              </object>
-                              <packing>
-                                <property name="left_attach">1</property>
-                                <property name="top_attach">3</property>
-                                <property name="width">1</property>
-                                <property name="height">1</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkLabel" id="connection_dir_label">
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="xalign">0</property>
-                                <property name="use_markup">True</property>
-                                <property name="label" translatable="yes">_Music dir:</property>
-                                <property name="use_underline">True</property>
-                                <property name="mnemonic_widget">connection_dir</property>
-                              </object>
-                              <packing>
-                                <property name="left_attach">0</property>
-                                <property name="top_attach">3</property>
-                                <property name="width">1</property>
-                                <property name="height">1</property>
-                              </packing>
-                            </child>
-                            <child>
                               <object class="GtkEntry" id="connection_password">
                                 <property name="can_focus">True</property>
                                 <property name="editable">True</property>
@@ -170,7 +140,7 @@
                               </object>
                               <packing>
                                 <property name="left_attach">1</property>
-                                <property name="top_attach">4</property>
+                                <property name="top_attach">3</property>
                                 <property name="width">1</property>
                                 <property name="height">1</property>
                               </packing>
@@ -184,6 +154,36 @@
                                 <property name="label" translatable="yes">Pa_ssword:</property>
                                 <property name="use_underline">True</property>
                                 <property name="mnemonic_widget">connection_password</property>
+                              </object>
+                              <packing>
+                                <property name="left_attach">0</property>
+                                <property name="top_attach">3</property>
+                                <property name="width">1</property>
+                                <property name="height">1</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkFileChooserButton" id="connection_dir">
+                                <property name="can_focus">True</property>
+                                <property name="action">select-folder</property>
+                                <property name="title" translatable="yes">Select a Music Directory</property>
+                              </object>
+                              <packing>
+                                <property name="left_attach">1</property>
+                                <property name="top_attach">4</property>
+                                <property name="width">1</property>
+                                <property name="height">1</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="connection_dir_label">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="xalign">0</property>
+                                <property name="use_markup">True</property>
+                                <property name="label" translatable="yes">_Music dir:</property>
+                                <property name="use_underline">True</property>
+                                <property name="mnemonic_widget">connection_dir</property>
                               </object>
                               <packing>
                                 <property name="left_attach">0</property>
@@ -216,12 +216,14 @@
                         </child>
                         <child>
                           <object class="GtkButton" id="connection_add_profile">
-                            <property name="label">gtk-add</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="can_focus">False</property>
-                            <property name="receives_default">False</property>
-                            <property name="use_action_appearance">False</property>
-                            <property name="use_stock">True</property>
+                            <child>
+                              <object class="GtkImage" id="add_profile_image">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="stock">gtk-add</property>
+                              </object>
+                            </child>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -232,12 +234,14 @@
                         </child>
                         <child>
                           <object class="GtkButton" id="connection_remove_profile">
-                            <property name="label">gtk-delete</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="can_focus">False</property>
-                            <property name="receives_default">False</property>
-                            <property name="use_action_appearance">False</property>
-                            <property name="use_stock">True</property>
+                            <child>
+                              <object class="GtkImage" id="remove_profile_image">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="stock">gtk-delete</property>
+                              </object>
+                            </child>
                           </object>
                           <packing>
                             <property name="expand">False</property>

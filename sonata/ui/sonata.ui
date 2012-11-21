@@ -70,12 +70,26 @@
                       <object class="GtkBox" id="toptop_h_box">
                         <property name="can_focus">False</property>
                         <property name="orientation">horizontal</property>
+<!--
+                        <property name="halign">left</property>
+                        <property name="valign">center</property>
+                        <property name="margin_left">5</property>
+                        <property name="margin_right">5</property>
+                        <property name="margin_top">5</property>
+                        <property name="margin_bottom">5</property>
+-->
                         <child>
                           <object class="GtkButton" id="prev_button">
-                            <property name="label">gtk-media-previous</property>
-                            <property name="use_stock">True</property>
                             <property name="relief">none</property>
                             <property name="can_focus">False</property>
+                            <property name="margin_right">5</property>
+                            <child>
+                              <object class="GtkImage" id="prev_button_image">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="stock">gtk-media-previous</property>
+                              </object>
+                            </child>
                           </object><!--prev_button-->
                           <packing>
                             <property name="expand">False</property>
@@ -86,10 +100,16 @@
                         </child>
                         <child>
                           <object class="GtkButton" id="playpause_button">
-                            <property name="label">gtk-media-play</property>
-                            <property name="use_stock">True</property>
                             <property name="relief">none</property>
                             <property name="can_focus">False</property>
+                            <property name="margin_right">5</property>
+                            <child>
+                              <object class="GtkImage" id="playpause_button_image">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="stock">gtk-media-play</property>
+                              </object>
+                            </child>
                           </object><!--play_button-->
                           <packing>
                             <property name="expand">False</property>
@@ -100,10 +120,16 @@
                         </child>
                         <child>
                           <object class="GtkButton" id="stop_button">
-                            <property name="label">gtk-media-stop</property>
-                            <property name="use_stock">True</property>
                             <property name="relief">none</property>
                             <property name="can_focus">False</property>
+                            <property name="margin_right">5</property>
+                            <child>
+                              <object class="GtkImage" id="stop_button_image">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="stock">gtk-media-stop</property>
+                              </object>
+                            </child>
                           </object><!--stop_button-->
                           <packing>
                             <property name="expand">False</property>
@@ -114,10 +140,16 @@
                         </child>
                         <child>
                           <object class="GtkButton" id="next_button">
-                            <property name="label">gtk-media-next</property>
-                            <property name="use_stock">True</property>
                             <property name="relief">none</property>
                             <property name="can_focus">False</property>
+                            <property name="margin_right">5</property>
+                            <child>
+                              <object class="GtkImage" id="next_button_image">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="stock">gtk-media-next</property>
+                              </object>
+                            </child>
                           </object><!--next_button-->
                           <packing>
                             <property name="expand">False</property>
@@ -130,6 +162,8 @@
                           <object class="GtkBox" id="progress_box">
                             <property name="can_focus">False</property>
                             <property name="orientation">vertical</property>
+                            <property name="margin_right">5</property>
+                            <property name="valign">center</property>
                             <child>
                               <object class="GtkEventBox" id="progress_event_box">
                                 <child>

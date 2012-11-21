@@ -640,7 +640,6 @@ class Base(object):
         self.nextbutton = self.builder.get_object('next_button')
         for mediabutton in (self.prevbutton, self.ppbutton, self.stopbutton,
                             self.nextbutton):
-            mediabutton.get_child().get_child().get_children()[1].set_text('')
             if not self.config.show_playback:
                 ui.hide(mediabutton)
         self.progressbox = self.builder.get_object('progress_box')
@@ -1606,8 +1605,6 @@ class Base(object):
                 self.ppbutton.set_image(ui.image(
                     stock=Gtk.STOCK_MEDIA_PLAY,
                     stocksize=Gtk.IconSize.BUTTON))
-                child = self.ppbutton.get_child().get_child().get_children()
-                child[1].set_text('')
                 self.UIManager.get_widget('/traymenu/playmenu').show()
                 self.UIManager.get_widget('/traymenu/pausemenu').hide()
                 self.tray_icon.update_icon(self.path_to_icon('sonata_pause.png'))
@@ -1615,8 +1612,6 @@ class Base(object):
                 self.ppbutton.set_image(ui.image(
                     stock=Gtk.STOCK_MEDIA_PAUSE,
                     stocksize=Gtk.IconSize.BUTTON))
-                child = self.ppbutton.get_child().get_child().get_children()
-                child[1].set_text('')
                 self.UIManager.get_widget('/traymenu/playmenu').hide()
                 self.UIManager.get_widget('/traymenu/pausemenu').show()
                 if self.prevstatus != None:
