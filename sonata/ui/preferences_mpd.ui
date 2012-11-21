@@ -41,19 +41,11 @@
                           <object class="GtkGrid" id="connection_grid">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="column_spacing">12</property>
-                            <child>
-                              <object class="GtkEntry" id="connection_name">
-                                <property name="can_focus">True</property>
-                                <property name="editable">True</property>
-                              </object>
-                              <packing>
-                                <property name="left_attach">1</property>
-                                <property name="top_attach">0</property>
-                                <property name="width">1</property>
-                                <property name="height">1</property>
-                              </packing>
-                            </child>
+                            <property name="column_spacing">6</property>
+                            <property name="column_homogeneous">True</property>
+                            <property name="row_spacing">6</property>
+                            <property name="row_homogeneous">True</property>
+                            <property name="margin">5</property>
                             <child>
                               <object class="GtkLabel" id="connection_name_label">
                                 <property name="visible">True</property>
@@ -67,20 +59,17 @@
                               <packing>
                                 <property name="left_attach">0</property>
                                 <property name="top_attach">0</property>
-                                <property name="width">1</property>
-                                <property name="height">1</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkEntry" id="connection_host">
+                              <object class="GtkEntry" id="connection_name">
                                 <property name="can_focus">True</property>
                                 <property name="editable">True</property>
                               </object>
                               <packing>
                                 <property name="left_attach">1</property>
-                                <property name="top_attach">1</property>
-                                <property name="width">1</property>
-                                <property name="height">1</property>
+                                <property name="top_attach">0</property>
+                                <property name="width">3</property>
                               </packing>
                             </child>
                             <child>
@@ -96,21 +85,17 @@
                               <packing>
                                 <property name="left_attach">0</property>
                                 <property name="top_attach">1</property>
-                                <property name="width">1</property>
-                                <property name="height">1</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkSpinButton" id="connection_port">
+                              <object class="GtkEntry" id="connection_host">
                                 <property name="can_focus">True</property>
                                 <property name="editable">True</property>
-                                <property name="adjustment">port_adjustment</property>
                               </object>
                               <packing>
                                 <property name="left_attach">1</property>
-                                <property name="top_attach">2</property>
-                                <property name="width">1</property>
-                                <property name="height">1</property>
+                                <property name="top_attach">1</property>
+                                <property name="width">3</property>
                               </packing>
                             </child>
                             <child>
@@ -126,23 +111,18 @@
                               <packing>
                                 <property name="left_attach">0</property>
                                 <property name="top_attach">2</property>
-                                <property name="width">1</property>
-                                <property name="height">1</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkEntry" id="connection_password">
+                              <object class="GtkSpinButton" id="connection_port">
                                 <property name="can_focus">True</property>
                                 <property name="editable">True</property>
-                                <property name="caps_lock_warning">True</property>
-                                <property name="visibility">False</property>
-                                <property name="tooltip_text" translatable="yes">Leave blank if no password is required.</property>
+                                <property name="adjustment">port_adjustment</property>
                               </object>
                               <packing>
                                 <property name="left_attach">1</property>
-                                <property name="top_attach">3</property>
-                                <property name="width">1</property>
-                                <property name="height">1</property>
+                                <property name="top_attach">2</property>
+                                <property name="width">3</property>
                               </packing>
                             </child>
                             <child>
@@ -158,21 +138,20 @@
                               <packing>
                                 <property name="left_attach">0</property>
                                 <property name="top_attach">3</property>
-                                <property name="width">1</property>
-                                <property name="height">1</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkFileChooserButton" id="connection_dir">
+                              <object class="GtkEntry" id="connection_password">
                                 <property name="can_focus">True</property>
-                                <property name="action">select-folder</property>
-                                <property name="title" translatable="yes">Select a Music Directory</property>
+                                <property name="editable">True</property>
+                                <property name="caps_lock_warning">True</property>
+                                <property name="visibility">False</property>
+                                <property name="tooltip_text" translatable="yes">Leave blank if no password is required.</property>
                               </object>
                               <packing>
                                 <property name="left_attach">1</property>
-                                <property name="top_attach">4</property>
-                                <property name="width">1</property>
-                                <property name="height">1</property>
+                                <property name="top_attach">3</property>
+                                <property name="width">3</property>
                               </packing>
                             </child>
                             <child>
@@ -188,8 +167,18 @@
                               <packing>
                                 <property name="left_attach">0</property>
                                 <property name="top_attach">4</property>
-                                <property name="width">1</property>
-                                <property name="height">1</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkFileChooserButton" id="connection_dir">
+                                <property name="can_focus">True</property>
+                                <property name="action">select-folder</property>
+                                <property name="title" translatable="yes">Select a Music Directory</property>
+                              </object>
+                              <packing>
+                                <property name="left_attach">1</property>
+                                <property name="top_attach">4</property>
+                                <property name="width">3</property>
                               </packing>
                             </child>
                           </object>
