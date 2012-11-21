@@ -3,10 +3,7 @@
   <!-- interface-requires gtk+ 3.0 -->
   <object class="GtkAlignment" id="preferences_behavior">
     <property name="can_focus">False</property>
-    <property name="top_padding">12</property>
-    <property name="bottom_padding">12</property>
-    <property name="left_padding">12</property>
-    <property name="right_padding">12</property>
+    <property name="margin">12</property>
     <child>
       <object class="GtkFrame" id="behavior_frame">
         <property name="can_focus">False</property>
@@ -27,11 +24,21 @@
                     <property name="can_focus">False</property>
                     <property name="label_xalign">0</property>
                     <property name="shadow_type">none</property>
+                    <child type="label">
+                      <object class="GtkLabel" id="behavior_window_label">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Window Behavior</property>
+                        <attributes>
+                          <attribute name="weight" value="bold"/>
+                        </attributes>
+                      </object>
+                    </child>
                     <child>
                       <object class="GtkAlignment" id="behavior_window_alignment">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="left_padding">12</property>
+                        <property name="margin">12</property>
                         <child>
                           <object class="GtkBox" id="behavior_window_prefs">
                             <property name="visible">True</property>
@@ -114,16 +121,6 @@
                         </child>
                       </object>
                     </child>
-                    <child type="label">
-                      <object class="GtkLabel" id="behavior_window_label">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Window Behavior</property>
-                        <attributes>
-                          <attribute name="weight" value="bold"/>
-                        </attributes>
-                      </object>
-                    </child>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -137,11 +134,21 @@
                     <property name="can_focus">False</property>
                     <property name="label_xalign">0</property>
                     <property name="shadow_type">none</property>
+                    <child type="label">
+                      <object class="GtkLabel" id="behavior_misc_label">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Miscellaneous</property>
+                        <attributes>
+                          <attribute name="weight" value="bold"/>
+                        </attributes>
+                      </object>
+                    </child>
                     <child>
                       <object class="GtkAlignment" id="behavior_misc_alignment">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="left_padding">12</property>
+                        <property name="margin">12</property>
                         <child>
                           <object class="GtkBox" id="behavior_misc_prefs">
                             <property name="visible">True</property>
@@ -229,16 +236,6 @@
                             </child>
                           </object>
                         </child>
-                      </object>
-                    </child>
-                    <child type="label">
-                      <object class="GtkLabel" id="behavior_misc_label">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Miscellaneous</property>
-                        <attributes>
-                          <attribute name="weight" value="bold"/>
-                        </attributes>
                       </object>
                     </child>
                   </object>

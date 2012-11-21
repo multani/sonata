@@ -3,19 +3,25 @@
   <!-- interface-requires gtk+ 3.0 -->
   <object class="GtkAlignment" id="preferences_format">
     <property name="can_focus">False</property>
-    <property name="top_padding">12</property>
-    <property name="bottom_padding">12</property>
-    <property name="left_padding">12</property>
-    <property name="right_padding">12</property>
+    <property name="margin">12</property>
     <child>
       <object class="GtkFrame" id="format_frame">
         <property name="can_focus">False</property>
         <property name="label_xalign">0</property>
+        <child type="label">
+          <object class="GtkLabel" id="format_label">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">Song Formatting</property>
+            <attributes>
+              <attribute name="weight" value="bold"/>
+            </attributes>
+          </object>
+        </child>
         <child>
           <object class="GtkAlignment" id="format_frame_alignment">
             <property name="can_focus">False</property>
-            <property name="top_padding">12</property>
-            <property name="left_padding">12</property>
+            <property name="margin">12</property>
             <child>
               <object class="GtkBox" id="format_box">
                 <property name="visible">True</property>
@@ -274,16 +280,6 @@
                 </child>
               </object>
             </child>
-          </object>
-        </child>
-        <child type="label">
-          <object class="GtkLabel" id="format_label">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Song Formatting</property>
-            <attributes>
-              <attribute name="weight" value="bold"/>
-            </attributes>
           </object>
         </child>
       </object>
