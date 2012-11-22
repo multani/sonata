@@ -37,17 +37,17 @@ class MMKeysHandler(object):
         self._connect("mm_playpause", cb_play_pause)
         self._connect("mm_stop", cb_stop)
 
-    def is_enabled(self):
-        return len(self._callbacks) > 0
 
     def disable(self):
         while self._callbacks:
             self.keys.disconnect_by_func(self._callbacks.pop())
 
+    def is_enabled(self):
+        return len(self._callbacks) > 0
+
 
 class GnomeSettingsDaemonHandler(object):
     APP_NAME = "Sonata"
-    DBUS_NAME = 'org.gnome.SettingsDaemon'
 
     @classmethod
     def is_supported(cls):
@@ -63,15 +63,15 @@ class GnomeSettingsDaemonHandler(object):
 
         obj = bus.get_object('org.freedesktop.DBus', '/org/freedesktop/DBus')
         interface = dbus.Interface(obj, 'org.freedesktop.DBus')
-        return interface.NameHasOwner(cls.DBUS_NAME)
+        return interface.NameHasOwner('org.gnome.SettingsDaemon')
 
     def __init__(self):
         self._callbacks = {}
         import dbus
         bus = dbus.SessionBus()
-        obj = bus.get_object(self.DBUS_NAME, "/%s/MediaKeys" %
-                             self.DBUS_NAME.replace('.', '/'))
-        self._interface = dbus.Interface(obj, self.DBUS_NAME + '.MediaKeys')
+        obj = bus.get_object('org.gnome.SettingsDaemon',
+                             '/org/gnome/SettingsDaemon/MediaKeys')
+        self._interface = dbus.Interface(obj, 'org.gnome.SettingsDaemon.MediaKeys')
         self._interface.connect_to_signal('MediaPlayerKeyPressed',
                                           self._handle_keys)
 
@@ -104,7 +104,14 @@ class GnomeSettingsDaemonHandler(object):
 
 class NullHandler(object):
     @staticmethod
-    def is_supported(): return True
-    def enable(self, *args): pass
-    def disable(self): pass
-    def is_enabled(self): return True
+    def is_supported():
+        return True
+
+    def enable(self, *args):
+        pass
+
+    def disable(self):
+        pass
+
+    def is_enabled(self):
+        return True
