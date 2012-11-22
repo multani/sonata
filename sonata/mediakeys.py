@@ -33,7 +33,7 @@ class MMKeysHandler(object):
         if self.is_enabled():
             return
         self._connect("mm_prev", cb_prev)
-        self._connect("mm_next", cp_next)
+        self._connect("mm_next", cb_next)
         self._connect("mm_playpause", cb_play_pause)
         self._connect("mm_stop", cb_stop)
 
@@ -56,7 +56,11 @@ class GnomeSettingsDaemonHandler(object):
         except ImportError:
             return False
 
-        bus = dbus.SessionBus()
+        try:
+            bus = dbus.SessionBus()
+        except dbus.exceptions.DBusException:
+            return False
+
         obj = bus.get_object('org.freedesktop.DBus', '/org/freedesktop/DBus')
         interface = dbus.Interface(obj, 'org.freedesktop.DBus')
         return interface.NameHasOwner(cls.DBUS_NAME)
@@ -68,19 +72,20 @@ class GnomeSettingsDaemonHandler(object):
         obj = bus.get_object(self.DBUS_NAME, "/%s/MediaKeys" %
                              self.DBUS_NAME.replace('.', '/'))
         self._interface = dbus.Interface(obj, self.DBUS_NAME + '.MediaKeys')
+        self._interface.connect_to_signal('MediaPlayerKeyPressed',
+                                          self._handle_keys)
 
     def enable(self, cb_pp, cb_stop, cb_prev, cb_next):
         if self.is_enabled():
             return
         self._callbacks = {
-            'Play': cb_pp, 'PlayPause': cb_pp, 'Pause': cb_pp,
+            'Play': cb_pp,
+            'Pause': cb_pp,
             'Stop': cb_stop,
             'Previous': cb_prev,
             'Next': cb_next,
         }
         self._interface.GrabMediaPlayerKeys(self.APP_NAME, 0)
-        self._interface.connect_to_signal('MediaPlayerKeyPressed',
-                                          self._handle_keys)
 
     def disable(self):
         self._interface.ReleaseMediaPlayerKeys(self.APP_NAME)
