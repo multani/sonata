@@ -44,6 +44,7 @@ class Display_cbs(object):
 
 class Behavior_cbs(object):
     """Callbacks and data specific to the behavior tab"""
+    mediakeys_toggled = None
     trayicon_toggled = None
     trayicon_in_use = None
     sticky_toggled = None
@@ -431,6 +432,9 @@ class Preferences():
         frame = gtk.Frame()
         frame.set_label_widget(windowlabel)
         frame.set_shadow_type(gtk.SHADOW_NONE)
+        mediakeys = gtk.CheckButton(_("Handle m_edia keys"))
+        mediakeys.set_active(self.config.handle_mediakeys)
+        mediakeys.connect('toggled', cbs.mediakeys_toggled)
         sticky = gtk.CheckButton(_("_Show window on all workspaces"))
         sticky.set_active(self.config.sticky)
         sticky.connect('toggled', cbs.sticky_toggled)
@@ -448,7 +452,7 @@ class Preferences():
         self.display_trayicon.connect('toggled', cbs.trayicon_toggled,
             minimize)
         minimize.set_sensitive(cbs.trayicon_in_use)
-        widgets = (sticky, ontop, decor, minimize)
+        widgets = (mediakeys, sticky, ontop, decor, minimize)
         table = gtk.Table(len(widgets), 1)
         for i, widget in enumerate(widgets):
             table.attach(widget, 0, 1, i, i+1,

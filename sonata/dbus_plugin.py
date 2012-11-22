@@ -40,60 +40,6 @@ logger = logging.getLogger(__name__)
 def using_dbus():
     return HAVE_DBUS
 
-HAVE_GNOME_MMKEYS = False
-
-
-def using_gnome_mediakeys():
-    return HAVE_GNOME_MMKEYS
-
-
-def init_gnome_mediakeys(mpd_pp, mpd_stop, mpd_prev, mpd_next):
-    global HAVE_GNOME_MMKEYS
-    if HAVE_DBUS:
-        try:
-            bus = dbus.SessionBus()
-            dbusObj = bus.get_object('org.freedesktop.DBus',
-                                     '/org/freedesktop/DBus')
-            dbusInterface = dbus.Interface(dbusObj,
-                                            'org.freedesktop.DBus')
-            if dbusInterface.NameHasOwner('org.gnome.SettingsDaemon'):
-                try:
-                    # mmkeys for gnome 2.22+
-                    settingsDaemonObj = bus.get_object(
-                        'org.gnome.SettingsDaemon',
-                        '/org/gnome/SettingsDaemon/MediaKeys')
-                    settingsDaemonInterface = dbus.Interface(settingsDaemonObj,
-                                        'org.gnome.SettingsDaemon.MediaKeys')
-                    settingsDaemonInterface.GrabMediaPlayerKeys('Sonata', 0)
-                except:
-                    # mmkeys for gnome 2.18+
-                    settingsDaemonObj = bus.get_object(
-                        'org.gnome.SettingsDaemon',
-                        '/org/gnome/SettingsDaemon')
-                    settingsDaemonInterface = dbus.Interface(settingsDaemonObj,
-                                                    'org.gnome.SettingsDaemon')
-                    settingsDaemonInterface.GrabMediaPlayerKeys('Sonata', 0)
-                settingsDaemonInterface.connect_to_signal(
-                    'MediaPlayerKeyPressed', lambda app,
-                    key: mediaPlayerKeysCallback(mpd_pp, mpd_stop, mpd_prev,
-                                                mpd_next, app, key))
-                HAVE_GNOME_MMKEYS = True
-        except:
-            pass
-
-
-def mediaPlayerKeysCallback(mpd_pp, mpd_stop, mpd_prev, mpd_next, app, key):
-    if app == 'Sonata':
-        if key in ('Play', 'PlayPause', 'Pause'):
-            mpd_pp(None)
-        elif key == 'Stop':
-            mpd_stop(None)
-        elif key == 'Previous':
-            mpd_prev(None)
-        elif key == 'Next':
-            mpd_next(None)
-
-
 def get_session_bus():
     try:
         return dbus.SessionBus()

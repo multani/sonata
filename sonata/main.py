@@ -78,6 +78,7 @@ import current
 import lyricwiki # plug-ins
 import rhapsodycovers
 import dbus_plugin as dbus
+import sonata.mediakeys
 
 from version import version
 
@@ -885,21 +886,9 @@ class Base(object):
             while gtk.events_pending():
                 gtk.main_iteration()
 
-        dbus.init_gnome_mediakeys(self.mpd_pp, self.mpd_stop, self.mpd_prev,
-                                  self.mpd_next)
-
-        # Try to connect to mmkeys signals, if no dbus and gnome 2.18+
-        if not dbus.using_gnome_mediakeys():
-            try:
-                import mmkeys
-                # this must be an attribute to keep it around:
-                self.keys = mmkeys.MmKeys()
-                self.keys.connect("mm_prev", self.mpd_prev)
-                self.keys.connect("mm_next", self.mpd_next)
-                self.keys.connect("mm_playpause", self.mpd_pp)
-                self.keys.connect("mm_stop", self.mpd_stop)
-            except ImportError:
-                pass
+        # Initialize media keys
+        self.mediakeys = sonata.mediakeys.MultimediaKeys()
+        self.toggle_mediakeys(self.config.handle_mediakeys)
 
         # Set up current view
         self.currentdata = self.current.get_model()
@@ -3074,6 +3063,7 @@ class Base(object):
         display.trayicon_available = True
 
         behavior = preferences.Behavior_cbs
+        behavior.mediakeys_toggled = self.prefs_mediakeys_toggled
         behavior.trayicon_toggled = self.prefs_trayicon_toggled
         behavior.sticky_toggled = self.prefs_sticky_toggled
         behavior.ontop_toggled = self.prefs_ontop_toggled
@@ -3234,6 +3224,18 @@ class Base(object):
             except:
                 pass
             self.traytips.hide()
+
+    def prefs_mediakeys_toggled(self, button):
+        enabled = button.get_active()
+        self.config.handle_mediakeys = enabled
+        self.toggle_mediakeys(enabled)
+
+    def toggle_mediakeys(self, enabled):
+        if enabled and not self.mediakeys.is_enabled():
+            self.mediakeys.enable(
+                self.mpd_pp, self.mpd_stop, self.mpd_prev, self.mpd_next)
+        elif not enabled and self.mediakeys.is_enabled():
+            self.mediakeys.disable()
 
     def prefs_trayicon_toggled(self, button, minimize):
         # Note that we update the sensitivity of the minimize

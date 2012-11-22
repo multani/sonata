@@ -66,6 +66,7 @@ class Config:
         self.stop_on_exit = False
         self.update_on_start = False
         self.minimize_to_systray = False
+        self.handle_mediakeys = True
 
         self.popup_option = 2
 
@@ -193,6 +194,9 @@ class Config:
             self.ontop = conf.getboolean('player', 'ontop')
         if conf.has_option('player', 'decorated'):
             self.decorated = conf.getboolean('player', 'decorated')
+        if conf.has_option('player', 'handle_mediakeys'):
+            self.handle_mediakeys = conf.getboolean('player',
+                                                    'handle_mediakeys')
         if conf.has_option('player', 'notification'):
             self.show_notification = conf.getboolean('player', 'notification')
         if conf.has_option('player', 'popup_time'):
@@ -465,6 +469,7 @@ class Config:
         conf.set('player', 'minimize', self.minimize_to_systray)
         conf.set('player', 'statusbar', self.show_statusbar)
         conf.set('player', 'lyrics', self.show_lyrics)
+        conf.set('player', 'handle_mediakeys', self.handle_mediakeys)
         conf.set('player', 'notification', self.show_notification)
         conf.set('player', 'popup_time', self.popup_option)
         conf.set('player', 'notif_location',
