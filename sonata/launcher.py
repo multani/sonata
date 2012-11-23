@@ -36,6 +36,11 @@ import threading  # needed for interactive shell
 def run():
     """Main entry point of Sonata"""
 
+    # TODO: allow to exit the application with Ctrl+C from the terminal
+    # This is a fix for https://bugzilla.gnome.org/show_bug.cgi?id=622084
+    import signal
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+
     # XXX insert the correct sonata package dir in sys.path
 
     logging.basicConfig(
