@@ -1083,7 +1083,6 @@ class Base(object):
             return
         self.trying_connection = True
         if self.user_connect or force:
-            self.mpd.disconnect()
             host, port, password = misc.mpd_env_vars()
             if not host:
                 host = self.config.host[self.config.profile_num]
