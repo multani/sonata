@@ -31,8 +31,6 @@ import gc
 import shutil
 import threading
 
-import mpd
-
 from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, Pango
 
 import pkg_resources
@@ -84,7 +82,7 @@ class Base(object):
         self.seekidle = None
         self.artwork = None
 
-        self.mpd = mpdh.MPDHelper(mpd.MPDClient())
+        self.mpd = mpdh.MPDClient()
         self.conn = False
         # Anything != than self.conn, to actually refresh the UI at startup.
         self.prevconn = not self.conn
