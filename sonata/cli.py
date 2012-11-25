@@ -237,8 +237,7 @@ class CliMain(object):
                 'play': _("Playing"),
                 'pause': _("Paused"),
                 'stop': _("Stopped")}
-        print("%s: %s" % (_("State")),
-                state_map[self.status['state']])
+        print("%s: %s" % (_("State"), state_map[self.status['state']]))
 
         print("%s %s" % (_("Repeat:"), _("On") \
                          if self.status['repeat'] == '1' else _("Off")))
