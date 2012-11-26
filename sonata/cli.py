@@ -1,9 +1,12 @@
 
-import sys
 import gettext
+import locale
 import logging
+import os
 from optparse import OptionParser
+import sys
 
+from sonata import config, misc, mpdhelper as mpdh
 from sonata.version import version
 
 # the mpd commands need a connection to server and exit without gui
@@ -135,19 +138,13 @@ class Args(object):
 class CliMain(object):
 
     def __init__(self, args):
-        global os, mpd, misc, config, mpdh
-        import os
-        import mpd
-        from sonata import config, misc, mpdhelper as mpdh
-
         self.logger = logging.getLogger(__name__)
         self.config = config.Config(_('Default Profile'),
                                     _("by") + " %A " + _("from") + " %B")
         self.config.settings_load_real()
         args.apply_profile_arg(self.config)
 
-        c = mpd.MPDClient()
-        self.mpd = mpdh.MPDHelper(c)
+        self.mpd = mpdh.MPDClient()
         # XXX Should be configurable from the outside
         self.mpd.suppress_errors = True
 
@@ -236,8 +233,7 @@ class CliMain(object):
                 'play': _("Playing"),
                 'pause': _("Paused"),
                 'stop': _("Stopped")}
-        print("%s: %s" % (_("State")),
-                state_map[self.status['state']])
+        print("%s: %s" % (_("State"), state_map[self.status['state']]))
 
         print("%s %s" % (_("Repeat:"), _("On") \
                          if self.status['repeat'] == '1' else _("Off")))
@@ -245,5 +241,5 @@ class CliMain(object):
                          if self.status['random'] == '1' else _("Off")))
         print("%s: %s/100" % (_("Volume"), self.status['volume']))
         print("%s: %s %s" % (_('Crossfade'), self.status['xfade'],
-                             gettext.ngettext('second', 'seconds',
-                                              int(self.status['xfade']))))
+                             ngettext('second', 'seconds',
+                                      int(self.status['xfade']))))

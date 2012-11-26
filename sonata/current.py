@@ -214,11 +214,22 @@ class Current(object):
         return filenames
 
     def update_format(self):
-        for track in self.current_songs:
-            items = [formatting.parse(part, track, True)
-                 for part in self.columnformat]
+        position = self.current.get_visible_rect()
 
-            self.currentdata.append([mpdh.get(track, 'id', 0, True)] + items)
+        for i, track in enumerate(self.current_songs):
+            items = [formatting.parse(part, track, True)
+                     for part in self.columnformat]
+
+            if mpdh.get(self.songinfo(), 'pos', 0, True) == i:
+                weight = [Pango.Weight.BOLD]
+            else:
+                weight = [Pango.Weight.NORMAL]
+
+            row = [mpdh.get(track, 'id', 0, True)] + items + weight
+            self.currentdata.append(row)
+
+        # Keep position
+        self.playlist_retain_view(self.current, position.y)
 
     def current_update(self, prevstatus_playlist, new_playlist_length):
         if self.connected():
@@ -555,18 +566,17 @@ class Current(object):
                     for item in listallinfo:
                         if 'file' in item:
                             mpdpaths.append(mpdh.get(item, 'file'))
-                elif self.mpd.version >= (0, 14):
-                    # Add local file, available in mpd 0.14. This currently
-                    # work because python-mpd does not support unix socket
-                    # paths, won't which is needed for authentication for
-                    # local files. It's also therefore untested.
-                    if os.path.isdir(misc.file_from_utf8(paths[i])):
-                        filenames = misc.get_files_recursively(paths[i])
-                    else:
-                        filenames = [paths[i]]
-                    for filename in filenames:
-                        if os.path.exists(misc.file_from_utf8(filename)):
-                            mpdpaths.append("file://" + urllib.parse.quote(filename))
+                # Add local file, available in mpd 0.14. This currently
+                # work because python-mpd does not support unix socket
+                # paths, won't which is needed for authentication for
+                # local files. It's also therefore untested.
+                if os.path.isdir(misc.file_from_utf8(paths[i])):
+                    filenames = misc.get_files_recursively(paths[i])
+                else:
+                    filenames = [paths[i]]
+                for filename in filenames:
+                    if os.path.exists(misc.file_from_utf8(filename)):
+                        mpdpaths.append("file://" + urllib.parse.quote(filename))
             if len(mpdpaths) > 0:
                 # Items found, add to list at drop position:
                 if drop_info:
@@ -900,11 +910,19 @@ class Current(object):
 
     def boldrow(self, row):
         if row > -1:
-            self.currentdata[row][-1] = Pango.Weight.BOLD
+            try:
+                self.currentdata[row][-1] = Pango.Weight.BOLD
+            except IndexError:
+                # The row might not exist anymore
+                pass
 
     def unbold_boldrow(self, row):
         if row > -1:
-            self.currentdata[row][-1] = Pango.Weight.NORMAL
+            try:
+                self.currentdata[row][-1] = Pango.Weight.NORMAL
+            except IndexError:
+                # The row might not exist anymore
+                pass
 
     def on_remove(self):
         treeviewsel = self.current_selection

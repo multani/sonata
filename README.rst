@@ -7,6 +7,25 @@ See the ``README.old`` for the official README of the project.
 
 All the following fixes are available in the `integration` branch.
 
+How to contribute?
+------------------
+
+If you are interested to send me some changes, please consider the following:
+
+#. Clone my repository or fork it on Github;
+#. **For each** feature, bug fix, refactor, anything, you want to submit to me,
+   create a branch with a name which reflects what you want to do;
+#. Commit your changes related to *this* thing in this branch;
+#. Signal your changes with one of the following
+   * send a mail to jon+sonata@multani.info with the URL of your repository, the
+     name of the branch you want to be merged, and a meaningful description of
+     your work;
+   * send me your patch(es) to jon+sonata@multani.info using ``git send-email``;
+   * open a pull request on Github.
+
+I hate, hate, *hate* having to review 20 unrelated commits with 1000+ lines
+changed, this is the easiest way for your changes not to be merged.
+
 Changelog
 ---------
 
@@ -80,6 +99,27 @@ Currently, the following things have been changed since the Berlios's version:
 
 * Improved the packaging of the application: use `pkg_resources` to access
   data files, and stop doing so much work when running `python setup.py ...`.
+
+* Transform the ``consts`` module into a more simple constant module, thanks to
+  Jörg Thalheim  (Mic92).
+
+  This is the `refactor-consts` branch.
+
+* Fix the population of the "Save to playlist" context menu, which didn't
+  contain the current playlist of MPD.
+  Fix also the name of the playlists in this menu, if their were containing an
+  underscore. There are now displayed correctly.
+
+  Thanks to Zhihao Yuan for the fixes!
+
+* Remove a bunch of code used for old or deprecated components (MPD, pyGtk,
+  DBus, etc.)
+
+  This is the `remove-deprecated` branch.
+
+* Fix the initialization of DBus, due to the removal of deprecated stuff in
+  `remove-deprecated`. Thanks to Zhihao Yuan!
+
 
 Personal todo list
 ------------------

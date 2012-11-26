@@ -3,6 +3,7 @@ sonata/cli.py
 sonata/config.py
 sonata/current.py
 sonata/dbus_plugin.py
+sonata/formatting.py
 sonata/info.py
 sonata/library.py
 sonata/main.py

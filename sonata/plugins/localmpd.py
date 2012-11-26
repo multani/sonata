@@ -12,7 +12,7 @@
 # url: http://sonata.berlios.de
 # license: GPL v3 or later
 # [capabilities]
-# tabs: construct_tab
+# tab_construct: tab_construct
 ### END PLUGIN INFO
 
 import subprocess, locale, os
@@ -109,14 +109,14 @@ def update(label):
                      'replace'))
 
 # nothing magical here, this constructs the parts of the tab when called:
-def construct_tab():
+def tab_construct():
     builder = Gtk.Builder()
     builder.add_from_file('{0}/ui/localmpd.ui'.format(
         os.path.dirname(__file__)))
     builder.set_translation_domain('sonata')
     editbutton = builder.get_object('localmpd_edit_button')
-    editbutton.connect('clicked', lambda *args:subprocess.Popen(
-            ["gksu", "gedit", "/etc/mpd.conf"]))
+    editbutton.connect('clicked', lambda *args: subprocess.Popen(
+        ["gksu", "xdg-open", "/etc/mpd.conf"]))
     restartbutton = builder.get_object('localmpd_restart_button')
     restartbutton.connect('clicked', lambda *args:subprocess.Popen(
             ["gksu", "service", "mpd", "restart"]))
