@@ -53,6 +53,7 @@
         <property name="shadow_type">in</property>
         <child>
           <object class="GtkTreeView" id="library_page_treeview">
+            <property name="rules_hint">True</property>
             <property name="can_focus">True</property>
             <property name="model">library_liststore</property>
             <property name="headers_visible">False</property>
