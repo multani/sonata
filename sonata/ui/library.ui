@@ -33,7 +33,7 @@
   <property name="can_focus">False</property>
   <property name="orientation">vertical</property>
     <child>
-      <object class="GtkBox" id="library_page_crumbbox">
+      <object class="CrumbBox" id="library_page_crumbbox">
         <property name="can_focus">False</property>
         <property name="orientation">horizontal</property>
         <child>
