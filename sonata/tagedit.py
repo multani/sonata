@@ -12,10 +12,10 @@ tageditor.on_tags_edit(files, temp_mpdpaths, self.musicdir[self.profile_num])
 import os
 import re
 
-import gtk, gobject
+from gi.repository import Gtk, GObject
 tagpy = None # module loaded when needed
 
-import ui, misc
+from sonata import ui, misc
 
 
 class TagEditor():
@@ -43,7 +43,7 @@ class TagEditor():
         buttonvbox = self.tags_win_create_apply_all_button(button, entry, track)
 
         label = ui.label(text=label_name, x=1)
-        hbox = gtk.HBox()
+        hbox = Gtk.HBox()
         hbox.pack_start(label, False, False, 2)
         hbox.pack_start(entry, True, True, 2)
         hbox.pack_start(buttonvbox, False, False, 2)
@@ -58,7 +58,7 @@ class TagEditor():
             try:
                 import tagpy
             except ImportError:
-                ui.show_msg(self.window, _("Taglib and/or tagpy not found, tag editing support disabled."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=ui.dialog_destroy)
+                ui.show_msg(self.window, _("Taglib and/or tagpy not found, tag editing support disabled."), _("Edit Tags"), 'editTagsError', Gtk.ButtonsType.CLOSE, response_cb=ui.dialog_destroy)
                 ui.change_cursor(None)
                 return
             # Set default tag encoding to utf8.. fixes some reported bugs.
@@ -67,12 +67,12 @@ class TagEditor():
 
         # Make sure tagpy is at least 0.91
         if hasattr(tagpy.Tag.title, '__call__'):
-            ui.show_msg(self.window, _("Tagpy version < 0.91. Please upgrade to a newer version, tag editing support disabled."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=ui.dialog_destroy)
+            ui.show_msg(self.window, _("Tagpy version < 0.91. Please upgrade to a newer version, tag editing support disabled."), _("Edit Tags"), 'editTagsError', Gtk.ButtonsType.CLOSE, response_cb=ui.dialog_destroy)
             ui.change_cursor(None)
             return
 
         if not os.path.isdir(misc.file_from_utf8(music_dir)):
-            ui.show_msg(self.window, _("The path %s does not exist. Please specify a valid music directory in preferences.") % music_dir, _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=ui.dialog_destroy)
+            ui.show_msg(self.window, _("The path %s does not exist. Please specify a valid music directory in preferences.") % music_dir, _("Edit Tags"), 'editTagsError', Gtk.ButtonsType.CLOSE, response_cb=ui.dialog_destroy)
             ui.change_cursor(None)
             return
 
@@ -96,25 +96,25 @@ class TagEditor():
 
         if not os.path.exists(tags[0]['fullpath']):
             ui.change_cursor(None)
-            ui.show_msg(self.window, _("File '%s' not found. Please specify a valid music directory in preferences.") % tags[0]['fullpath'], _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=ui.dialog_destroy)
+            ui.show_msg(self.window, _("File '%s' not found. Please specify a valid music directory in preferences.") % tags[0]['fullpath'], _("Edit Tags"), 'editTagsError', Gtk.ButtonsType.CLOSE, response_cb=ui.dialog_destroy)
             return
         if not self.tags_next_tag(tags):
             ui.change_cursor(None)
-            ui.show_msg(self.window, _("No music files with editable tags found."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=ui.dialog_destroy)
+            ui.show_msg(self.window, _("No music files with editable tags found."), _("Edit Tags"), 'editTagsError', Gtk.ButtonsType.CLOSE, response_cb=ui.dialog_destroy)
             return
-        editwindow = ui.dialog(parent=self.window, flags=gtk.DIALOG_MODAL, role='editTags', resizable=False, separator=False)
+        editwindow = ui.dialog(parent=self.window, flags=Gtk.DialogFlags.MODAL, role='editTags', resizable=False, separator=False)
         editwindow.set_size_request(375, -1)
-        table = gtk.Table(9, 2, False)
+        table = Gtk.Table(9, 2, False)
         table.set_row_spacings(2)
         self.filelabel = ui.label(select=True, wrap=True)
-        filehbox = gtk.HBox()
-        sonataicon = ui.image(stock='sonata', stocksize=gtk.ICON_SIZE_DND, x=1)
+        filehbox = Gtk.HBox()
+        sonataicon = ui.image(stock='sonata', stocksize=Gtk.IconSize.DND, x=1)
         expandbutton = ui.button(" ")
         self.set_expandbutton_state(expandbutton)
-        expandvbox = gtk.VBox()
-        expandvbox.pack_start(ui.label(), True, True)
-        expandvbox.pack_start(expandbutton, False, False)
-        expandvbox.pack_start(ui.label(), True, True)
+        expandvbox = Gtk.VBox()
+        expandvbox.pack_start(ui.label(), True, True, 0)
+        expandvbox.pack_start(expandbutton, False, False, 0)
+        expandvbox.pack_start(ui.label(), True, True, 0)
         expandbutton.connect('clicked', self.toggle_path)
         blanklabel = ui.label(w=5, h=12)
         filehbox.pack_start(sonataicon, False, False, 2)
@@ -129,7 +129,7 @@ class TagEditor():
         yearentry.set_size_request(50,-1)
         tracklabel, trackentry, trackbutton, trackhbox = self._create_label_entry_button_hbox("  " + _("Track:"), True)
         trackentry.set_size_request(50,-1)
-        yearandtrackhbox = gtk.HBox()
+        yearandtrackhbox = Gtk.HBox()
         yearandtrackhbox.pack_start(yearhbox, True, True, 0)
         yearandtrackhbox.pack_start(trackhbox, True, True, 0)
 
@@ -139,7 +139,7 @@ class TagEditor():
         genrelabel = ui.label(text=_("Genre:"), x=1)
         genrecombo = ui.comboentry(items=self.tags_win_genres(), wrap=2)
         genreentry = genrecombo.get_child()
-        genrehbox = gtk.HBox()
+        genrehbox = Gtk.HBox()
         genrebutton = ui.button()
         genrebuttonvbox = self.tags_win_create_apply_all_button(genrebutton,
                                                                 genreentry)
@@ -153,15 +153,15 @@ class TagEditor():
         genrecombo.set_size_request(-1, titleentry.size_request()[1])
         tablewidgets = [ui.label(), filehbox, ui.label(), titlehbox, artisthbox, albumhbox, yearandtrackhbox, genrehbox, commenthbox, ui.label()]
         for i, widget in enumerate(tablewidgets):
-            table.attach(widget, 1, 2, i+1, i+2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 2, 0)
-        editwindow.vbox.pack_start(table)
+            table.attach(widget, 1, 2, i+1, i+2, Gtk.AttachOptions.FILL|Gtk.AttachOptions.EXPAND, Gtk.AttachOptions.FILL|Gtk.AttachOptions.EXPAND, 2, 0)
+        editwindow.vbox.pack_start(table, True, True, 0)
         saveall_button = None
         if len(files) > 1:
             # Only show save all button if more than one song being edited.
             saveall_button = ui.button(text=_("Save _All"))
-            editwindow.action_area.pack_start(saveall_button)
-        editwindow.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT)
-        editwindow.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT)
+            editwindow.action_area.pack_start(saveall_button, True, True, 0)
+        editwindow.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT)
+        editwindow.add_button(Gtk.STOCK_SAVE, Gtk.ResponseType.ACCEPT)
         editwindow.connect('delete_event', self.tags_win_hide, tags)
         entries = [titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry]
         buttons = [titlebutton, artistbutton, albumbutton, yearbutton, trackbutton, genrebutton, commentbutton]
@@ -195,7 +195,7 @@ class TagEditor():
 
     def tags_win_entry_changed(self, editable):
         style = editable.get_style().copy()
-        style.text[gtk.STATE_NORMAL] = editable.get_colormap().alloc_color("red")
+        style.text[Gtk.StateType.NORMAL] = editable.get_colormap().alloc_color("red")
         editable.set_style(style)
 
     def tags_win_entry_revert_color(self, editable):
@@ -208,7 +208,7 @@ class TagEditor():
         else:
             button.set_tooltip_text(_("Apply to all selected music files."))
         padding = int((entry.size_request()[1] - button.size_request()[1])/2)+1
-        vbox = gtk.VBox()
+        vbox = Gtk.VBox()
         vbox.pack_start(button, False, False, padding)
         return vbox
 
@@ -251,7 +251,7 @@ class TagEditor():
             if not current_tag[entry_name + "-changed"]:
                 self.tags_win_entry_revert_color(entry)
 
-        self.curr_mpdpath = gobject.filename_display_name(current_tag['mpdpath'])
+        self.curr_mpdpath = GObject.filename_display_name(current_tag['mpdpath'])
         filename = self.curr_mpdpath
         if not self.use_mpdpaths:
             filename = os.path.basename(filename)
@@ -272,15 +272,15 @@ class TagEditor():
         for entry in entries:
             entry.set_property('editable', False)
         while window.get_property('visible'):
-            self.tags_win_response(window, gtk.RESPONSE_ACCEPT, tags, entries, entries_names)
+            self.tags_win_response(window, Gtk.ResponseType.ACCEPT, tags, entries, entries_names)
 
     def tags_win_response(self, window, response, tags, entries, entries_names):
-        if response == gtk.RESPONSE_REJECT:
+        if response == Gtk.ResponseType.REJECT:
             self.tags_win_hide(window, None, tags)
-        elif response == gtk.RESPONSE_ACCEPT:
+        elif response == Gtk.ResponseType.ACCEPT:
             window.action_area.set_sensitive(False)
-            while window.action_area.get_property("sensitive") or gtk.events_pending():
-                gtk.main_iteration()
+            while window.action_area.get_property("sensitive") or Gtk.events_pending():
+                Gtk.main_iteration()
             filetag = tagpy.FileRef(tags[self.tagnum]['fullpath'])
             tag = filetag.tag()
             # Set tag fields according to entry text
@@ -297,7 +297,7 @@ class TagEditor():
 
             save_success = filetag.save()
             if not (save_success): # FIXME: was (save_success and self.conn and self.status):
-                ui.show_msg(self.window, _("Unable to save tag to music file."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=ui.dialog_destroy)
+                ui.show_msg(self.window, _("Unable to save tag to music file."), _("Edit Tags"), 'editTagsError', Gtk.ButtonsType.CLOSE, response_cb=ui.dialog_destroy)
             if self.tags_next_tag(tags):
                 # Next file:
                 self.tags_win_update(window, tags, entries, entries_names)
@@ -308,7 +308,7 @@ class TagEditor():
 
     def tags_win_hide(self, window, _data, tags):
         tag_paths = (tag['mpdpath'] for tag in tags[:self.tagnum])
-        gobject.idle_add(self.tags_mpd_update, tag_paths)
+        GObject.idle_add(self.tags_mpd_update, tag_paths)
         window.destroy()
         self.tags_set_use_mpdpath(self.use_mpdpaths)
 
