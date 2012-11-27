@@ -158,7 +158,8 @@ class Preferences():
         passwordentry = ui.entry(password=True)
         passwordlabel.set_mnemonic_widget(passwordentry)
         passwordentry.set_tooltip_text(_("Leave blank if no password is required."))
-        autoconnect = Gtk.CheckButton(_("_Autoconnect on start"))
+        autoconnect = Gtk.CheckButton(_("_Autoconnect on start"),
+                                      use_underline=True)
         autoconnect.set_active(self.config.autoconnect)
         autoconnect.connect('toggled', self._config_widget_active,
             'autoconnect')
@@ -246,7 +247,8 @@ class Preferences():
         frame.set_label_widget(extraslabel)
         frame.set_shadow_type(Gtk.ShadowType.NONE)
 
-        as_checkbox = Gtk.CheckButton(_("_Audioscrobbling (Last.fm)"))
+        as_checkbox = Gtk.CheckButton(_("_Audioscrobbling (Last.fm)"),
+                                      use_underline=True)
         as_checkbox.set_active(self.config.as_enabled)
         as_user_label = ui.label(textmn=_("_Username:"))
         as_pass_label = ui.label(textmn=_("_Password:"))
@@ -269,7 +271,8 @@ class Preferences():
         as_entries = Gtk.VBox()
         as_entries.pack_start(as_user_box, True, True, 0)
         as_entries.pack_start(as_pass_box, True, True, 0)
-        display_notification = Gtk.CheckButton(_("Popup _notification on song changes"))
+        display_notification = Gtk.CheckButton(
+            _("Popup _notification on song changes"), use_underline=True)
         display_notification.set_active(self.config.show_notification)
 
         time_names = ["%s %s" %
@@ -302,7 +305,7 @@ class Preferences():
         crossfadebox.pack_end(crossfadelabel3, False, False, 0)
         crossfadebox.pack_end(crossfadespin, False, False, 0)
         crossfadebox.pack_end(crossfadelabel2, False, False, 0)
-        crossfadecheck = Gtk.CheckButton(_("C_rossfade"))
+        crossfadecheck = Gtk.CheckButton(_("C_rossfade"), use_underline=True)
         crossfadecheck.connect('toggled',
             self._crossfadecheck_toggled, crossfadespin,
             crossfadelabel2, crossfadelabel3)
@@ -343,7 +346,7 @@ class Preferences():
         frame.set_label_widget(displaylabel)
         frame.set_shadow_type(Gtk.ShadowType.NONE)
 
-        art = Gtk.CheckButton(_("_Album art"))
+        art = Gtk.CheckButton(_("_Album art"), use_underline=True)
         art.set_active(self.config.show_covers)
         stylized_combo = ui.combo(items=[_("Standard"),
             _("Stylized")], active=self.config.covers_type,
@@ -378,16 +381,17 @@ class Preferences():
         art_location_hbox.set_sensitive(self.config.show_covers)
         art.connect('toggled', cbs.art_toggled, art_hbox,
             art_location_hbox, stylized_hbox)
-        playback = Gtk.CheckButton(_("_Playback/volume buttons"))
+        playback = Gtk.CheckButton(_("_Playback/volume buttons"),
+                                   use_underline=True)
         playback.set_active(self.config.show_playback)
         playback.connect('toggled', cbs.playback_toggled)
-        progress = Gtk.CheckButton(_("Pr_ogressbar"))
+        progress = Gtk.CheckButton(_("Pr_ogressbar"), use_underline=True)
         progress.set_active(self.config.show_progress)
         progress.connect('toggled', cbs.progress_toggled)
-        statusbar = Gtk.CheckButton(_("_Statusbar"))
+        statusbar = Gtk.CheckButton(_("_Statusbar"), use_underline=True)
         statusbar.set_active(self.config.show_statusbar)
         statusbar.connect('toggled', cbs.statusbar_toggled)
-        lyrics = Gtk.CheckButton(_("Song Ly_rics"))
+        lyrics = Gtk.CheckButton(_("Song Ly_rics"), use_underline=True)
         lyrics.set_active(self.config.show_lyrics)
         savelyrics_label = ui.label(text=_("Save lyrics to:"), x=1)
         lyrics_location = ui.combo(
@@ -400,7 +404,7 @@ class Preferences():
         lyrics_location_hbox.set_sensitive(self.config.show_lyrics)
         lyrics.connect('toggled', cbs.lyrics_toggled,
             lyrics_location_hbox)
-        trayicon = Gtk.CheckButton(_("System _tray icon"))
+        trayicon = Gtk.CheckButton(_("System _tray icon"), use_underline=True)
         self.display_trayicon = trayicon
         trayicon.set_active(self.config.show_trayicon)
         trayicon.set_sensitive(cbs.trayicon_available)
@@ -428,16 +432,19 @@ class Preferences():
         frame = Gtk.Frame()
         frame.set_label_widget(windowlabel)
         frame.set_shadow_type(Gtk.ShadowType.NONE)
-        sticky = Gtk.CheckButton(_("_Show window on all workspaces"))
+        sticky = Gtk.CheckButton(_("_Show window on all workspaces"),
+                                 use_underline=True)
         sticky.set_active(self.config.sticky)
         sticky.connect('toggled', cbs.sticky_toggled)
-        ontop = Gtk.CheckButton(_("_Keep window above other windows"))
+        ontop = Gtk.CheckButton(_("_Keep window above other windows"),
+                                use_underline=True)
         ontop.set_active(self.config.ontop)
         ontop.connect('toggled', cbs.ontop_toggled)
-        decor = Gtk.CheckButton(_("_Hide window titlebar"))
+        decor = Gtk.CheckButton(_("_Hide window titlebar"), use_underline=True)
         decor.set_active(not self.config.decorated)
         decor.connect('toggled', cbs.decorated_toggled, self.prefswindow)
-        minimize = Gtk.CheckButton(_("_Minimize to system tray on close/escape"))
+        minimize = Gtk.CheckButton(_(
+            "_Minimize to system tray on close/escape"), use_underline=True)
         minimize.set_active(self.config.minimize_to_systray)
         minimize.set_tooltip_text(_("If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if there actually is a system tray, so only check this if you have one."))
         minimize.connect('toggled', self._config_widget_active,
@@ -459,17 +466,20 @@ class Preferences():
         misc_frame = Gtk.Frame()
         misc_frame.set_label_widget(misclabel)
         misc_frame.set_shadow_type(Gtk.ShadowType.NONE)
-        update_start = Gtk.CheckButton(_("_Update MPD library on start"))
+        update_start = Gtk.CheckButton(_("_Update MPD library on start"),
+                                       use_underline=True)
         update_start.set_active(self.config.update_on_start)
         update_start.set_tooltip_text(_("If enabled, Sonata will automatically update your MPD library when it starts up."))
         update_start.connect('toggled', self._config_widget_active,
             'update_on_start')
-        exit_stop = Gtk.CheckButton(_("S_top playback on exit"))
+        exit_stop = Gtk.CheckButton(_("S_top playback on exit"),
+                                    use_underline=True)
         exit_stop.set_active(self.config.stop_on_exit)
         exit_stop.set_tooltip_text(_("MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional music player and, instead, stop playback upon exit."))
         exit_stop.connect('toggled', self._config_widget_active,
             'stop_on_exit')
-        infofile_usage = Gtk.CheckButton(_("_Write status file:"))
+        infofile_usage = Gtk.CheckButton(_("_Write status file:"),
+                                         use_underline=True)
         infofile_usage.set_active(self.config.use_infofile)
         infofile_usage.set_tooltip_text(_("If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)"))
         infopath_options = ui.entry(text=self.config.infofile_path)
