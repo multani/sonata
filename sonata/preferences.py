@@ -102,8 +102,7 @@ class Preferences():
         for name in tabs:
             func = getattr(self, '%s_tab' % name)
             cbs = globals().get('%s_cbs' % name.capitalize())
-            tab, label = func(cbs)
-            self.prefsnotebook.append_page(tab, label)
+            func(cbs)
 
         close_button = self.builder.get_object('preferences_closebutton')
         self.prefswindow.show_all()
@@ -118,26 +117,22 @@ class Preferences():
 
     def mpd_tab(self, cbs=None):
         """Construct and layout the MPD tab"""
-        builder = Gtk.Builder()
-        builder.set_translation_domain('sonata')
-        builder.add_from_file('{0}/ui/preferences_mpd.ui'.format(
-            os.path.dirname(ui.__file__)))
         #frame.set_shadow_type(Gtk.ShadowType.NONE)
-        controlbox = builder.get_object('connection_frame_label_widget')
-        profiles = builder.get_object('connection_profiles')
-        add_profile = builder.get_object('connection_add_profile')
-        remove_profile = builder.get_object('connection_remove_profile')
+        controlbox = self.builder.get_object('connection_frame_label_widget')
+        profiles = self.builder.get_object('connection_profiles')
+        add_profile = self.builder.get_object('connection_add_profile')
+        remove_profile = self.builder.get_object('connection_remove_profile')
         self._populate_profile_combo(profiles, self.config.profile_num,
             remove_profile)
-        nameentry = builder.get_object('connection_name')
-        hostentry = builder.get_object('connection_host')
-        portentry = builder.get_object('connection_port')
-        direntry = builder.get_object('connection_dir')
+        nameentry = self.builder.get_object('connection_name')
+        hostentry = self.builder.get_object('connection_host')
+        portentry = self.builder.get_object('connection_port')
+        direntry = self.builder.get_object('connection_dir')
         self.direntry = direntry
         direntry.connect('selection-changed', self._direntry_changed,
             profiles)
-        passwordentry = builder.get_object('connection_password')
-        autoconnect = builder.get_object('connection_autoconnect')
+        passwordentry = self.builder.get_object('connection_password')
+        autoconnect = self.builder.get_object('connection_autoconnect')
         autoconnect.set_active(self.config.autoconnect)
         autoconnect.connect('toggled', self._config_widget_active,
             'autoconnect')
@@ -180,56 +175,47 @@ class Preferences():
             remove_profile.connect('clicked', self._remove_profile,
                 profiles, remove_profile)
 
-        tab = builder.get_object('preferences_mpd')
-        label = builder.get_object('preferences_tab_mpd')
-
-        return tab, label
-
     def extras_tab(self, cbs):
         """Construct and layout the extras tab"""
         if not self.scrobbler.imported():
             self.config.as_enabled = False
-        builder = Gtk.Builder()
-        builder.set_translation_domain('sonata')
-        builder.add_from_file('{0}/ui/preferences_extras.ui'.format(
-            os.path.dirname(ui.__file__)))
 
-        as_checkbox = builder.get_object('scrobbler_check')
+        as_checkbox = self.builder.get_object('scrobbler_check')
         as_checkbox.set_active(self.config.as_enabled)
-        as_user_label = builder.get_object('scrobbler_username_label')
-        as_user_entry = builder.get_object('scrobbler_username_entry')
+        as_user_label = self.builder.get_object('scrobbler_username_label')
+        as_user_entry = self.builder.get_object('scrobbler_username_entry')
         as_user_entry.set_text(self.config.as_username)
         as_user_entry.connect('changed', self._as_username_changed)
-        as_pass_label = builder.get_object('scrobbler_password_label')
-        as_pass_entry = builder.get_object('scrobbler_password_entry')
+        as_pass_label = self.builder.get_object('scrobbler_password_label')
+        as_pass_entry = self.builder.get_object('scrobbler_password_entry')
         as_pass_entry.set_text(self.config.as_password_md5)
         as_pass_entry.connect('changed', self._as_password_changed)
-        display_notification = builder.get_object('notification_check')
+        display_notification = self.builder.get_object('notification_check')
         display_notification.set_active(self.config.show_notification)
 
         time_names = ["%s %s" %
             (i , ngettext('second', 'seconds', int(i)))
             for i in cbs.popuptimes if i != _('Entire song')]
-        notification_options = builder.get_object('notification_time_combo')
+        notification_options = self.builder.get_object('notification_time_combo')
         for time in time_names:
             notification_options.append_text(time)
         notification_options.connect('changed', self._notiftime_changed)
         notification_options.set_active(self.config.popup_option)
-        notification_locs = builder.get_object('notification_loc_combo')
+        notification_locs = self.builder.get_object('notification_loc_combo')
         notification_locs.set_active(self.config.traytips_notifications_location)
         notification_locs.connect('changed', self._notiflocation_changed)
-        notifhbox = builder.get_object('notification_box')
+        notifhbox = self.builder.get_object('notification_box')
         display_notification.connect('toggled', cbs.notif_toggled,
             notifhbox)
         if not self.config.show_notification:
             notifhbox.set_sensitive(False)
 
-        crossfadespin = builder.get_object('crossfade_time')
+        crossfadespin = self.builder.get_object('crossfade_time')
         crossfadespin.set_value(self.config.xfade)
         crossfadespin.connect('value-changed', cbs.crossfade_changed)
-        crossfadelabel2 = builder.get_object('crossfade_label')
-        crossfadelabel3 = builder.get_object('crossfade_extra_label')
-        crossfadecheck = builder.get_object('crossfade_check')
+        crossfadelabel2 = self.builder.get_object('crossfade_label')
+        crossfadelabel3 = self.builder.get_object('crossfade_extra_label')
+        crossfadecheck = self.builder.get_object('crossfade_check')
         crossfadecheck.connect('toggled',
             self._crossfadecheck_toggled, crossfadespin,
             crossfadelabel2, crossfadelabel3)
@@ -245,34 +231,26 @@ class Preferences():
             for widget in (as_user_entry, as_pass_entry,
                     as_user_label, as_pass_label):
                 widget.set_sensitive(False)
-        tab = builder.get_object('preferences_extras')
-        label = builder.get_object('preferences_tab_extras')
-
-        return tab, label
 
     def display_tab(self, cbs):
         """Construct and layout the display tab"""
-        builder = Gtk.Builder()
-        builder.add_from_file('{0}/ui/preferences_display.ui'.format(
-            os.path.dirname(ui.__file__)))
-        builder.set_translation_domain('sonata')
 
-        displaylabel = builder.get_object('display_frame_label')
+        displaylabel = self.builder.get_object('display_frame_label')
         displaylabel.set_markup('<b>' + _('Display') + '</b>')
 
-        art = builder.get_object('art_check')
+        art = self.builder.get_object('art_check')
         art.set_active(self.config.show_covers)
-        stylized_combo = builder.get_object('art_style_combo')
+        stylized_combo = self.builder.get_object('art_style_combo')
         stylized_combo.set_active(self.config.covers_type)
         stylized_combo.connect('changed', cbs.stylized_toggled)
-        art_prefs = builder.get_object('art_preferences')
+        art_prefs = self.builder.get_object('art_preferences')
         art_prefs.set_sensitive(self.config.show_covers)
-        art_combo = builder.get_object('art_search_combo')
+        art_combo = self.builder.get_object('art_search_combo')
         art_combo.set_active(self.config.covers_pref)
         art_combo.connect('changed', self._config_widget_active, 'covers_pref')
 
         #FIXME move into preferences_display.ui?
-        art_location = builder.get_object('art_save_combo')
+        art_location = self.builder.get_object('art_save_combo')
         for item in ["%s/%s" % (_("SONG_DIR"), item)
             for item in ("cover.jpg", "album.jpg", "folder.jpg",
                 self.config.art_location_custom_filename or _("custom"))]:
@@ -281,51 +259,42 @@ class Preferences():
         art_location.connect('changed', self._art_location_changed)
 
         art.connect('toggled', cbs.art_toggled, art_prefs)
-        playback = builder.get_object('playback_buttons_check')
+        playback = self.builder.get_object('playback_buttons_check')
         playback.set_active(self.config.show_playback)
         playback.connect('toggled', cbs.playback_toggled)
-        progress = builder.get_object('progressbar_check')
+        progress = self.builder.get_object('progressbar_check')
         progress.set_active(self.config.show_progress)
         progress.connect('toggled', cbs.progress_toggled)
-        statusbar = builder.get_object('statusbar_check')
+        statusbar = self.builder.get_object('statusbar_check')
         statusbar.set_active(self.config.show_statusbar)
         statusbar.connect('toggled', cbs.statusbar_toggled)
-        lyrics = builder.get_object('lyrics_check')
+        lyrics = self.builder.get_object('lyrics_check')
         lyrics.set_active(self.config.show_lyrics)
-        lyrics_location = builder.get_object('lyrics_save_combo')
+        lyrics_location = self.builder.get_object('lyrics_save_combo')
         lyrics_location.set_active(self.config.lyrics_location)
         lyrics_location.connect('changed', self._lyrics_location_changed)
-        lyrics_location_hbox = builder.get_object('lyrics_preferences')
+        lyrics_location_hbox = self.builder.get_object('lyrics_preferences')
         lyrics_location_hbox.set_sensitive(self.config.show_lyrics)
         lyrics.connect('toggled', cbs.lyrics_toggled, lyrics_location_hbox)
-        trayicon = builder.get_object('tray_icon_check')
+        trayicon = self.builder.get_object('tray_icon_check')
         self.display_trayicon = trayicon
         trayicon.set_active(self.config.show_trayicon)
         trayicon.set_sensitive(cbs.trayicon_available)
 
-        tab = builder.get_object('preferences_display')
-        label = builder.get_object('preferences_tab_display')
-
-        return tab, label
-
     def behavior_tab(self, cbs):
         """Construct and layout the behavior tab"""
-        builder = Gtk.Builder()
-        builder.add_from_file('{0}/ui/preferences_behavior.ui'.format(
-            os.path.dirname(ui.__file__)))
-        builder.set_translation_domain('sonata')
 
-        frame = builder.get_object('behavior_frame')
-        sticky = builder.get_object('behavior_sticky_check')
+        frame = self.builder.get_object('behavior_frame')
+        sticky = self.builder.get_object('behavior_sticky_check')
         sticky.set_active(self.config.sticky)
         sticky.connect('toggled', cbs.sticky_toggled)
-        ontop = builder.get_object('behavior_ontop_check')
+        ontop = self.builder.get_object('behavior_ontop_check')
         ontop.set_active(self.config.ontop)
         ontop.connect('toggled', cbs.ontop_toggled)
-        decor = builder.get_object('behavior_decor_check')
+        decor = self.builder.get_object('behavior_decor_check')
         decor.set_active(not self.config.decorated)
         decor.connect('toggled', cbs.decorated_toggled, self.prefswindow)
-        minimize = builder.get_object('behavior_minimize_check')
+        minimize = self.builder.get_object('behavior_minimize_check')
         minimize.set_active(self.config.minimize_to_systray)
         minimize.connect('toggled', self._config_widget_active,
             'minimize_to_systray')
@@ -333,17 +302,17 @@ class Preferences():
             minimize)
         minimize.set_sensitive(cbs.trayicon_in_use)
 
-        update_start = builder.get_object('misc_updatestart_check')
+        update_start = self.builder.get_object('misc_updatestart_check')
         update_start.set_active(self.config.update_on_start)
         update_start.connect('toggled', self._config_widget_active,
             'update_on_start')
-        exit_stop = builder.get_object('misc_exit_stop_check')
+        exit_stop = self.builder.get_object('misc_exit_stop_check')
         exit_stop.set_active(self.config.stop_on_exit)
         exit_stop.connect('toggled', self._config_widget_active,
             'stop_on_exit')
-        infofile_usage = builder.get_object('misc_infofile_usage_check')
+        infofile_usage = self.builder.get_object('misc_infofile_usage_check')
         infofile_usage.set_active(self.config.use_infofile)
-        infopath_options = builder.get_object('misc_infofile_entry')
+        infopath_options = self.builder.get_object('misc_infofile_entry')
         infopath_options.set_text(self.config.infofile_path)
         infopath_options.connect('focus_out_event',
                     cbs.infofile_changed)
@@ -352,27 +321,19 @@ class Preferences():
             infopath_options.set_sensitive(False)
         infofile_usage.connect('toggled', self._infofile_toggled,
             infopath_options)
-        tab = builder.get_object('preferences_behavior')
-        label = builder.get_object('preferences_tab_behavior')
-
-        return tab, label
 
     def format_tab(self, cbs):
         """Construct and layout the format tab"""
-        builder = Gtk.Builder()
-        builder.add_from_file('{0}/ui/preferences_format.ui'.format(
-            os.path.dirname(ui.__file__)))
-        builder.set_translation_domain('sonata')
 
-        playlist_entry = builder.get_object('format_playlist_entry')
+        playlist_entry = self.builder.get_object('format_playlist_entry')
         playlist_entry.set_text(self.config.currentformat)
-        library_entry = builder.get_object('format_library_entry')
+        library_entry = self.builder.get_object('format_library_entry')
         library_entry.set_text(self.config.libraryformat)
-        window_entry = builder.get_object('format_window_entry')
+        window_entry = self.builder.get_object('format_window_entry')
         window_entry.set_text(self.config.titleformat)
-        current1_entry = builder.get_object('format_current1_entry')
+        current1_entry = self.builder.get_object('format_current1_entry')
         current1_entry.set_text(self.config.currsongformat1)
-        current2_entry = builder.get_object('format_current2_entry')
+        current2_entry = self.builder.get_object('format_current2_entry')
         current2_entry.set_text(self.config.currsongformat2)
         entries = [playlist_entry, library_entry, window_entry, current1_entry,
                    current2_entry]
@@ -389,7 +350,7 @@ class Preferences():
                     next)
 
         #FIXME doesn't currently use small markup (id="format_avail_label")
-        availableformatbox = builder.get_object('format_avail_descs')
+        availableformatbox = self.builder.get_object('format_avail_descs')
         formatcodes = formatting.formatcodes
         for codes in [formatcodes[:int((len(formatcodes)+1)/2)],
                   formatcodes[int((len(formatcodes)+1)/2):]]:
@@ -400,37 +361,27 @@ class Preferences():
             formattinghelp = ui.label(markup=markup)
             availableformatbox.pack_start(formattinghelp, True, True, 0)
 
-        additionalinfo = builder.get_object('format_additional_label')
+        additionalinfo = self.builder.get_object('format_additional_label')
         # FIXME need to either separate markup from localized strings OR
         # include markup in the strings and let the translators work around them
         additionalinfo.set_markup('<small><tt>{ }</tt> - ' + _('Info displayed only if all enclosed tags are defined') + '\n<tt>|</tt> - ' + _('Creates columns in the current playlist') + '</small>')
 
-        tab = builder.get_object('preferences_format')
-        label = builder.get_object('preferences_tab_format')
-
-        return tab, label
-
     def plugins_tab(self, cbs=None):
         """Construct and layout the plugins tab"""
 
-        builder = Gtk.Builder()
-        builder.add_from_file('{0}/ui/preferences_plugins.ui'.format(
-            os.path.dirname(ui.__file__)))
-        builder.set_translation_domain('sonata')
-
-        self.plugin_UIManager = builder.get_object('plugins_ui_manager')
+        self.plugin_UIManager = self.builder.get_object('plugins_ui_manager')
         menu_handlers = {
             "plugin_configure": self.plugin_configure,
             "plugin_about": self.plugin_about
         }
-        builder.connect_signals(menu_handlers)
+        self.builder.connect_signals(menu_handlers)
 
-        self.pluginview = builder.get_object('plugins_treeview')
+        self.pluginview = self.builder.get_object('plugins_treeview')
         self.pluginselection = self.pluginview.get_selection()
-        plugindata = builder.get_object('plugins_store')
+        plugindata = self.builder.get_object('plugins_store')
         self.pluginview.connect('button-press-event', self.plugin_click)
 
-        plugincheckcell = builder.get_object('plugins_check_renderer')
+        plugincheckcell = self.builder.get_object('plugins_check_renderer')
         plugincheckcell.connect('toggled', self.plugin_toggled,
             (plugindata, 0))
 
@@ -441,11 +392,6 @@ class Preferences():
             plugin_text += "\n" + plugin.description
             enabled = plugin.get_enabled()
             plugindata.append((enabled, pb, plugin_text))
-
-        tab = builder.get_object('preferences_plugins')
-        label = builder.get_object('preferences_tab_plugins')
-
-        return tab, label
 
     def _window_response(self, window, response):
         if response == Gtk.ResponseType.CLOSE:
