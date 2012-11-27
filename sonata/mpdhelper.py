@@ -13,15 +13,6 @@ class MPDHelper(object):
         self._client = client
         self.logger = logging.getLogger(__name__)
 
-    def __set_suppress_errors(self, suppress_errors):
-        if suppress_errors:
-            # Well, maybe we still want some very bad errors, who knows
-            self.logger.setLevel(logging.CRITICAL)
-        else:
-            self.logger.setLevel(logging.NOTSET)
-
-    suppress_errors = property(fset=__set_suppress_errors)
-
     def __getattr__(self, attr):
         """Catch-all for methods with no special implementation."""
         # XXX we still pass through the .call() method, since the original code
@@ -31,12 +22,6 @@ class MPDHelper(object):
         return functools.partial(self.call, attr)
 
     def call(self, command, *args):
-        # This is potentially called (too) many times. In the cas the logging is not
-        # active, just don't try to do anything at all. This is supposed to save
-        # some performance in the case it is not active.
-        if self.logger.isEnabledFor(logging.DEBUG):
-            self.logger.debug("Calling MPD %s%r", command, args)
-
         try:
             retval = getattr(self._client, command)(*args)
         except Exception, e:
