@@ -446,7 +446,7 @@ class Base(object):
         uiDescription += ''.join('<accelerator action="%s"/>' % a[0]
                      for a in keyactions + tabactions)
 
-        uiDescription += "</ui>"
+        uiDescription += "</ui>\n"
 
         # Try to connect to MPD:
         self.mpd_connect(blocking=True)
