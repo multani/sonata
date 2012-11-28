@@ -1,3 +1,4 @@
 #!/bin/sh
-
-python setup.py test
+BASEDIR=$(dirname $0)
+cd $BASEDIR
+python3 setup.py test

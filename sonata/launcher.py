@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Sonata is a simple GTK+ client for the Music Player Daemon.
 """
 
@@ -24,16 +24,26 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import sys
+if sys.version_info <= (3, 2):
+    sys.stderr.write("Sonata requires Python 3.2+\n")
+    sys.exit(1)
+
 import gettext
 import locale
 import logging
 import os
 import platform
-import sys
+import threading  # needed for interactive shell
 
 
 def run():
     """Main entry point of Sonata"""
+
+    # TODO: allow to exit the application with Ctrl+C from the terminal
+    # This is a fix for https://bugzilla.gnome.org/show_bug.cgi?id=622084
+    import signal
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     # XXX insert the correct sonata package dir in sys.path
 
@@ -89,24 +99,20 @@ def run():
 
     # let gettext install _ as a built-in for all modules to see
     # XXX what's the correct way to find the localization?
-    try:
-        gettext.install('sonata',
-                        os.path.join(sonata.__file__.split('/lib')[0],
-                                     'share', 'locale'),
-                        unicode=1, names=["ngettext"])
-    except:
-        logger.warning("Trying to use an old translation")
-        gettext.install('sonata', '/usr/share/locale', unicode=1)
+    locales_path = '/usr/share/locale'
+    for path in [
+        os.path.join(os.path.dirname(sonata.__file__), "share", "locale"),
+        os.path.join(sonata.__file__.split('/lib')[0], 'share', 'locale'),
+    ]:
+        if os.path.exists(path):
+            locales_path = path
+            break
+
+    gettext.install('sonata', locales_path, names=["ngettext"])
     gettext.textdomain('sonata')
 
 
     ## Check initial dependencies:
-
-    # Test python version:
-    if sys.version_info < (2,5):
-        logger.critical("Sonata requires Python 2.5 or newer. Aborting...")
-        sys.exit(1)
-
     try:
         import mpd
     except:
@@ -133,7 +139,7 @@ def run():
 
     if not args.skip_gui:
         # importing gtk does sys.setdefaultencoding("utf-8"), sets locale etc.
-        import gtk
+        from gi.repository import Gtk, Gdk
         # fix locale
         misc.setlocale()
     else:
@@ -146,9 +152,6 @@ def run():
                     "Module %s imported in CLI mode (it should not)", m)
             else:
                 sys.modules[m] = FakeModule()
-        # like gtk, set utf-8 encoding of str objects
-        reload(sys) # hack access to setdefaultencoding
-        sys.setdefaultencoding("utf-8")
 
 
     ## Global init:
@@ -157,19 +160,41 @@ def run():
     socketsettimeout(5)
 
     if not args.skip_gui:
-        gtk.gdk.threads_init()
+        Gdk.threads_init()
 
     ## CLI actions:
 
     args.execute_cmds()
-
 
     ## Load the main application:
 
     from sonata import main
 
     app = main.Base(args)
+
+    ## Load the shell
+    # yo dawg, I heard you like python,
+    # so I put a python shell in your python application
+    # so you can debug while you run it.
+    if args.start_shell:
+        # the enviroment used for the shell
+        scope = dict(list(globals().items()) + list(locals().items()))
+        def run_shell():
+            try:
+                import IPython
+                IPython.embed(user_ns=scope)
+            except ImportError as e: # fallback if ipython is not avaible
+                import code
+                shell = code.InteractiveConsole(scope)
+                shell.interact()
+            # quit program if shell is closed,
+            # This is the only way to close the program clone in this mode,
+            # because we can't close the shell thread easily
+            from gi.repository import Gtk
+            Gtk.main_quit()
+        threading.Thread(target=run_shell).start()
+
     try:
         app.main()
     except KeyboardInterrupt:
-        pass
+        Gtk.main_quit()

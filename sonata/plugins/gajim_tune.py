@@ -15,7 +15,6 @@
 # playing_song_observers: on_song_change
 ### END PLUGIN INFO
 
-import gtk, pango
 import dbus.service
 
 songlabel = None

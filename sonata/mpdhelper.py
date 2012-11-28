@@ -1,74 +1,81 @@
 
 import functools
-import locale
 import logging
-import sys
 import os
-from time import strftime
-from misc import remove_list_duplicates
+import socket
+
+from mpd import MPDError
+
+from sonata.misc import remove_list_duplicates
 
 
 class MPDHelper(object):
     def __init__(self, client):
         self._client = client
         self.logger = logging.getLogger(__name__)
+        self._version = None
+        self._commands = None
+        self._urlhandlers = None
 
     def __getattr__(self, attr):
-        """Catch-all for methods with no special implementation."""
-        # XXX we still pass through the .call() method, since the original code
-        # expected this, and this method does some additionnal postprocessing in
-        # case of error. If .call() is cleaned up, maybe we can somehow merge
-        # .__getattr__() and .call() together.
-        return functools.partial(self.call, attr)
+        """
+        Wraps all calls from mpd client into a proper function,
+        which catches all MPDClient related exceptions and log them.
+        """
+        cmd = getattr(self._client, attr)
+        # save result, so function have to be constructed only once
+        wrapped_cmd = functools.partial(self._call, cmd, attr)
+        setattr(self, attr, wrapped_cmd)
+        return wrapped_cmd
 
-    def call(self, command, *args):
+    def _call(self, cmd, cmd_name, *args):
         try:
-            retval = getattr(self._client, command)(*args)
-        except Exception, e:
-            # XXX make the distinction between bad getattr() call and bad MPD
-            # call?
-            if not command in ['disconnect', 'lsinfo', 'listplaylists']:
-                self.logger.error("%s", e)
-            if command in ['lsinfo', 'list']:
+            return cmd(*args)
+        except (socket.error, MPDError) as e:
+            if cmd_name in ['lsinfo', 'list']:
+                # return sane values, which could be used afterwards
                 return []
+            elif cmd_name == 'status':
+                return {}
             else:
-                return None
+                self.logger.error("%s", e)
 
-        return retval
+    def connect(self, host, port):
+        self.disconnect()
+        try:
+            self._client.connect(host, port)
+            self._version = self._client.mpd_version.split(".")
+            self._commands = self._client.commands()
+            self._urlhandlers = self._client.urlhandlers()
+        except (socket.error, MPDError) as e:
+            self.logger.error("Error while connecting to MPD: %s", e)
 
-    def status(self):
-        result = self.call('status')
-        # XXX why we return different things here?
-        if result and 'state' in result:
-            return result
-        else:
-            return {}
+    def disconnect(self):
+        # Reset to default values
+        self._version = None
+        self._commands = None
+        self._urlhandlers = None
+        try:
+            # We really don't care, if connections breaks, before we
+            # could disconnect.
+            self._client.close()
+            return self._client.disconnect()
+        except:
+            pass
 
     @property
     def version(self):
-        # XXX this is not supposed to change, unless the client reconnect to
-        # another server (or the same, upgraded). We should compute this once,
-        # after the initial client connection.
-        try:
-            version = getattr(self._client, "mpd_version", "0.0")
-            return tuple(int(x) for x in version.split("."))
-        except:
-            # XXX what exception are we expecting here!?
-            return (0, 0)
+        return self._version
+
+    @property
+    def commands(self):
+        return self._commands
+
+    @property
+    def urlhandlers(self):
+        return self._urlhandlers
 
     def update(self,  paths):
-        # mpd 0.14.x limits the number of paths that can be
-        # updated within a command_list at 32. If we have
-        # >32 directories, we bail and update the entire library.
-        #
-        # If we want to get trickier in the future, we can find
-        # the 32 most specific parents that cover the set of files.
-        # This would lower the possibility of resorting to a full
-        # library update.
-        #
-        # Note: If a future version of mpd relaxes this limit,
-        # we should make the version check more specific to 0.14.x
-
         if mpd_is_updating(self.status()):
             return
 
@@ -79,13 +86,10 @@ class MPDHelper(object):
             dirs.append(os.path.dirname(path))
         dirs = remove_list_duplicates(dirs, True)
 
-        if len(dirs) > 32:
-            self._client.update('/')
-        else:
-            self._client.command_list_ok_begin()
-            for directory in dirs:
-                self._client.update(directory)
-            self._client.command_list_end()
+        self._client.command_list_ok_begin()
+        for directory in dirs:
+            self._client.update(directory)
+        self._client.command_list_end()
 
 
 def get(mapping, key, alt='', *sanitize_args):
@@ -110,7 +114,14 @@ def _sanitize(tag, return_int=False, str_padding=0):
     # for the mpd tag can be "4", "4/10", and "4,10".
     if not tag:
         return tag
-    tag = str(tag).replace(',', ' ', 1).replace('/', ' ', 1).split()[0]
+    tag = str(tag).replace(',', ' ', 1).replace('/', ' ', 1).split()
+
+    # fix #2842: tag only consist of '/' or ','
+    if len(tag) == 0:
+        tag = ''
+    else:
+        tag = tag[0]
+
     if return_int:
         return int(tag) if tag.isdigit() else 0
 
