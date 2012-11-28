@@ -92,16 +92,18 @@ def update(label):
     netstats = netstat.format_connections()
 
     # XXX replace the shell commands with python code
-    commands = [("Processes", "ps wwu -C mpd".split()),
-            ("Files", ["sh", "-c", "ls -ldh /etc/mpd.conf /var/lib/mpd /var/lib/mpd/* /var/lib/mpd/*/*"]),
-            ]
+    commands = [
+        (_("Processes"), "ps wwu -C mpd".split()),
+        (_("Files"), ["sh", "-c", "ls -ldh /etc/mpd.conf /var/lib/mpd "
+                      "/var/lib/mpd/* /var/lib/mpd/*/*"]),
+    ]
     outputs = [(title, subprocess.Popen(command,
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE
                         ).communicate())
            for title, command in commands]
 
-    sections = [outputs[0], ("Networking", (netstats, "")), outputs[1]]
+    sections = [outputs[0], (_("Networking"), (netstats, "")), outputs[1]]
     text = '\n'.join(["<b>%s</b>\n<tt>%s</tt><i>%s</i>\n" %
               (title, escape_html(stdout), escape_html(stderr))
               for title, (stdout, stderr) in sections])
@@ -113,11 +115,11 @@ def tab_construct():
     vbox = Gtk.VBox(spacing=2)
     vbox.props.border_width = 2
     buttonbox = Gtk.HBox(spacing=2)
-    editbutton = Gtk.Button("Edit /etc/mpd.conf")
+    editbutton = Gtk.Button(_("Edit /etc/mpd.conf"))
     editbutton.connect('clicked', lambda *args: subprocess.Popen(
         ["gksu", "xdg-open", "/etc/mpd.conf"]))
     buttonbox.pack_start(editbutton, False, False, 0)
-    restartbutton = Gtk.Button("Restart the mpd service")
+    restartbutton = Gtk.Button(_("Restart the mpd service"))
     restartbutton.connect('clicked', lambda *args:subprocess.Popen(
             ["gksu", "service", "mpd", "restart"]))
     buttonbox.pack_start(restartbutton, False, False, 0)
@@ -136,4 +138,4 @@ def tab_construct():
     window.show_all()
 
     # (tab content, icon name, tab name, the widget to focus on tab switch)
-    return (window, None, "Local MPD", None)
+    return (window, None, _("Local MPD"), None)
