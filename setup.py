@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+import sys
+if sys.version_info <= (3, 2):
+    sys.stderr.write("Sonata requires Python 3.2+\n")
+    sys.exit(1)
+
 from distutils.dep_util import newer
 import glob
 import os

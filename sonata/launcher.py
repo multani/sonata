@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Sonata is a simple GTK+ client for the Music Player Daemon.
 """
 
@@ -24,12 +24,16 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import sys
+if sys.version_info <= (3, 2):
+    sys.stderr.write("Sonata requires Python 3.2+\n")
+    sys.exit(1)
+
 import gettext
 import locale
 import logging
 import os
 import platform
-import sys
 import threading  # needed for interactive shell
 
 
@@ -107,12 +111,6 @@ def run():
 
 
     ## Check initial dependencies:
-
-    # Test python version:
-    if sys.version_info < (2,5):
-        logger.critical("Sonata requires Python 2.5 or newer. Aborting...")
-        sys.exit(1)
-
     try:
         import mpd
     except:
