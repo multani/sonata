@@ -23,15 +23,6 @@ class MPDClient(object):
         self._commands = None
         self._urlhandlers = None
 
-    def __set_suppress_errors(self, suppress_errors):
-        if suppress_errors:
-            # Well, maybe we still want some very bad errors, who knows
-            self.logger.setLevel(logging.CRITICAL)
-        else:
-            self.logger.setLevel(logging.NOTSET)
-
-    suppress_errors = property(fset=__set_suppress_errors)
-
     def __getattr__(self, attr):
         """
         Wraps all calls from mpd client into a proper function,
@@ -44,11 +35,6 @@ class MPDClient(object):
         return wrapped_cmd
 
     def _call(self, cmd, cmd_name, *args):
-        # This is potentially called (too) many times. In the case the logging is not
-        # active, just don't try to do anything at all. This is supposed to save
-        # some performance in the case it is not active.
-        if self.logger.isEnabledFor(logging.DEBUG):
-            self.logger.debug("Calling MPD %s%r", cmd_name, args)
         try:
             return cmd(*args)
         except (socket.error, mpd.MPDError) as e:

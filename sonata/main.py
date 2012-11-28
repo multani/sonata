@@ -446,7 +446,7 @@ class Base(object):
         uiDescription += ''.join('<accelerator action="%s"/>' % a[0]
                      for a in keyactions + tabactions)
 
-        uiDescription += "</ui>"
+        uiDescription += "</ui>\n"
 
         # Try to connect to MPD:
         self.mpd_connect(blocking=True)
@@ -2967,7 +2967,7 @@ class Base(object):
 
     def on_consume_clicked(self, widget):
         if self.conn:
-            self._toggle_clicked('consume', widget)
+            self.mpd.consume(int(widget.get_active()))
 
     def setup_prefs_callbacks(self):
         extras = preferences.Extras_cbs

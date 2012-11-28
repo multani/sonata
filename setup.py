@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+import sys
+if sys.version_info <= (3, 2):
+    sys.stderr.write("Sonata requires Python 3.2+\n")
+    sys.exit(1)
+
 from distutils.dep_util import newer
 import glob
 import os
@@ -14,19 +19,16 @@ def capture(cmd):
 def generate_translation_files():
     lang_files = []
 
-    if not os.path.exists("mo"):
-        os.mkdir("mo")
-
     langs = (os.path.splitext(l)[0]
              for l in os.listdir('po')
              if l.endswith('po') and l != "messages.po")
 
     for lang in langs:
         pofile = os.path.join("po", "%s.po" % lang)
-        modir = os.path.join("mo", lang)
+        modir = os.path.join("sonata", "share", "locale", lang, "LC_MESSAGES")
         mofile = os.path.join(modir, "sonata.mo")
         if not os.path.exists(modir):
-            os.mkdir(modir)
+            os.makedirs(modir)
 
         lang_files.append(('share/locale/%s/LC_MESSAGES' % lang, [mofile]))
 

@@ -138,15 +138,25 @@ class Args(object):
 class CliMain(object):
 
     def __init__(self, args):
+        global os, mpd, misc, config, mpdh
+        import os
+        import mpd
+        from sonata import config, misc, mpdhelper as mpdh
+
+        # This should disable processing for nearly all logging messages, as
+        # long as no other handlers are configured for special loggers.
+        # Note that using the "-v" command line argument is mostly useless in
+        # this case...
+        logging.root.setLevel(logging.CRITICAL)
+
         self.logger = logging.getLogger(__name__)
         self.config = config.Config(_('Default Profile'),
                                     _("by") + " %A " + _("from") + " %B")
         self.config.settings_load_real()
         args.apply_profile_arg(self.config)
 
-        self.mpd = mpdh.MPDClient()
-        # XXX Should be configurable from the outside
-        self.mpd.suppress_errors = True
+        c = mpd.MPDClient()
+        self.mpd = mpdh.MPDHelper(c)
 
     def mpd_connect(self):
         host, port, password = misc.mpd_env_vars()

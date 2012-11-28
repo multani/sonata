@@ -7,7 +7,7 @@ Adding a new translation
 ------------------------
 
 1. Download the latest sources with git
-	$ git clone git://git.berlios.de/sonata
+	$ git clone git://github.com/multani/sonata
 
 2. Generate a template
 	$ cd po
@@ -28,7 +28,7 @@ Updating an existing translation
 ----------------------
 
 1. Download the latest sources with git
-	$ git clone git://git.berlios.de/sonata
+	$ git clone git://github.com/multani/sonata
 
 2. Update the po file for the language you're updating
 	$ intltool-update <LANGCODE>
