@@ -3260,7 +3260,7 @@ class Base(object):
 
     def menu_popup(self, widget, event):
         if widget == self.window:
-            if event.get_coords().height > self.notebook.get_allocation().height:
+            if event.get_coords()[1] > self.notebook.get_allocation().height:
                 return
         if event.button == 3:
             self.update_menu_visibility(True)
