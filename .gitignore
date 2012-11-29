@@ -1,11 +1,13 @@
 *.py[co]
 *.swp
+*~
 mmkeys.so
 sonata/sonata
-mo/
+sonata/share/locale/*
 tags
 TAGS
 cscope*
 RECORD
 *.egg-info/
 build/
+sonata/genversion.py

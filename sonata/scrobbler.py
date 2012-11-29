@@ -19,7 +19,7 @@ import time
 
 audioscrobbler = None # imported when first needed
 
-import mpdhelper as mpdh
+from sonata import mpdhelper as mpdh
 
 
 class Scrobbler(object):
@@ -42,7 +42,7 @@ class Scrobbler(object):
         # (if as_enabled=True) or if the user enables it in prefs.
         global audioscrobbler
         if audioscrobbler is None:
-            import audioscrobbler
+            from sonata import audioscrobbler
 
     def imported(self):
         """Return True if the audioscrobbler module has been imported"""
@@ -54,7 +54,7 @@ class Scrobbler(object):
            len(self.config.as_username) > 0 and \
            len(self.config.as_password_md5) > 0:
             thread = threading.Thread(target=self.init_thread)
-            thread.setDaemon(True)
+            thread.daemon = True
             thread.start()
 
     def init_thread(self):
@@ -73,7 +73,7 @@ class Scrobbler(object):
                                                   verbose=True)
         try:
             self.scrob_post.auth()
-        except Exception, e:
+        except Exception as e:
             self.logger.error("Error authenticating audioscrobbler: %r", e)
             self.scrob_post = None
         if self.scrob_post:
@@ -151,7 +151,7 @@ class Scrobbler(object):
 
     def np(self, songinfo):
         thread = threading.Thread(target=self.do_np, args=(songinfo,))
-        thread.setDaemon(True)
+        thread.daemon = True
         thread.start()
 
     def do_np(self, songinfo):
@@ -161,11 +161,11 @@ class Scrobbler(object):
                'title' in songinfo and \
                'time' in songinfo:
                 if not 'album' in songinfo:
-                    album = u''
+                    album = ''
                 else:
                     album = mpdh.get(songinfo, 'album')
                 if not 'track' in songinfo:
-                    tracknumber = u''
+                    tracknumber = ''
                 else:
                     tracknumber = mpdh.get(songinfo, 'track')
                 try:
@@ -186,11 +186,11 @@ class Scrobbler(object):
                'title' in prevsonginfo and \
                'time' in prevsonginfo:
                 if not 'album' in prevsonginfo:
-                    album = u''
+                    album = ''
                 else:
                     album = mpdh.get(prevsonginfo, 'album')
                 if not 'track' in prevsonginfo:
-                    tracknumber = u''
+                    tracknumber = ''
                 else:
                     tracknumber = mpdh.get(prevsonginfo, 'track')
                 try:
@@ -205,7 +205,7 @@ class Scrobbler(object):
                     self.logger.critical("Unable to add track to scrobbler")
 
                 thread = threading.Thread(target=self.do_post)
-                thread.setDaemon(True)
+                thread.daemon = True
                 thread.start()
         self.scrob_start_time = ""
 
@@ -217,7 +217,7 @@ class Scrobbler(object):
                 return
             try:
                 self.scrob_post.post()
-            except audioscrobbler.AudioScrobblerConnectionError, e:
+            except audioscrobbler.AudioScrobblerConnectionError as e:
                 self.logger.exception(
                     "Error while posting data to the scrobbler")
             time.sleep(10)

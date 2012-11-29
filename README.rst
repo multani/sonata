@@ -1,109 +1,52 @@
-Sonata, an elegant GTK+ client for the Music Player Daemon
-==========================================================
+Sonata, an elegant GTK+ client for the Music Player Daemon (MPD)
+================================================================
 
-This is my personal repository for Sonata containing various fixes.
+Copyright 2006-2009 Scott Horowitz <stonecrest@gmail.com>
 
-See the ``README.old`` for the official README of the project.
+Thanks to Andrew Conkling et al, for all their hard work on Pygmy!
+Sonata started as a fork of the Pygmy project and is licensed under the GPLv3.
 
-All the following fixes are available in the `integration` branch.
+FEATURES:
+    + Expanded and collapsed views, fullscreen album art mode
+    + Automatic remote and local album art
+    + Library browsing by folders, or by genre/artist/album
+    + User-configurable columns
+    + Automatic fetching of lyrics
+    + Playlist and stream support
+    + Support for editing song tags
+    + Drag-and-drop to copy files
+    + Popup notification
+    + Library and playlist searching, filter as you type
+    + Audioscrobbler (last.fm) 1.2 support
+    + Multiple MPD profiles
+    + Keyboard friendly
+    + Support for multimedia keys
+    + Commandline control
+    + Available in 24 languages
 
-Changelog
----------
+RUNNING:
+    Sonata can be run from source without installation. Simply
+    run './run-sonata' as your user.
 
-Currently, the following things have been changed since the Berlios's version:
+DOCUMENTATION/FAQ:
+    http://sonata.berlios.de/documentation.html
 
-* GTK+'s StatusIcon is fully supported and should provide the same features as
-  the old eggtrayicon module.
+REQUIREMENTS:
+    (Required) Python 3.2 or newer
+    (Required) Python GObject Introspection 3.2 or newer
+    (Required) GTK 3.4 or newer
+    (Required) python-mpd 0.4.4 or newer
+    (Required) MPD 0.15 or newer, possibly on another computer
+    (Optional) taglib and tagpy for editing metadata
+    (Optional) dbus-python for multimedia keys, single instance support
 
-  eggtrayicon is still the 'preferred' way of displaying the status icon, if you
-  have it installed, I suppose this is for good reasons. If you don't have it,
-  Sonata will use the GTK+ StatusIcon and everything should be fine.
+INSTALLATION:
+    Run 'python3 setup.py install' as root.
 
-  This is the `refactor-tray-icon` branch.
+DEVELOPERS:
+    Jonathan Ballet <jon+sonata@multani.info>
 
-* it fixes some UI problems if Sonata tries to reconnect to MPD in some weird
-  cases.
-
-  I had the problem when MPD was brutally shut down and then relaunch, but I
-  heard some users had the same problem in other cases as well, but bugs can be
-  tricky to reproduce.
-
-  This is the `fix-ui-connection` branch.
-
-* There is a whole set of patches I merged:
-
-  * reindentation and PEP8-fication by Francois "Paco" Ribemont and Kirill
-    "KL-7" Lashuk;
-  * some UI fixes related to artists and lyrics and album info (Yann Boulanger);
-  * Sonata only loads the latest version of each plugins;
-  * lyricwiki fixes: etter parsing and presentation (Kirill Lashuk);
-  * more items in the tray menu (Kirill Lashuk);
-  * scrobble after seeking to the beginning (Kirill Lashuk);
-  * improve handling of multi-CD albums: prevent multiple
-    entries and improve art search (Kirill Lashuk);
-  * better fullscreen support (Kirill Lashuk);
-  * fixes weird show up if Sonata is not on the current workspace (Kirill
-    Lashuk);
-
-* I refactored a bit how the lyricwiki plugin works to make it more readable and
-  I fixed the following issues:
-
-  * ``AttributeError: 'NoneType' object has no attribute 'startswith'`` when
-    trying to search for lyrics;
-  * retrieving lyrics from lyrics.wikia.com now works again
-
-  This is the `fix-fetch-lyrics` branch.
-
-
-* Sonata can now by launched by a much proper script. There also a script to
-  launch *all* the unit tests of Sonata (which is zero (well, one dummy test, to
-  be sure it works)), but the infrastructure is there.
-
-  This is the `refactor-launcher` branch.
-
-* "Daniel <quite@hack.org>" added support to toggle fullscreen status from the
-  command line.
-
-* Sonata now use the Python's `logging` module to log things instead of
-  print/sys.std[out|err].write/custom thing, which should render things more
-  uniform and customizable.
-
-  This is the `logging-support` branch.
-
-* I refactored how the MPD object is accessed in the code: the MPD client is now
-  a plain object with nice methods to access MPD functionality, which makes the
-  code sightly better to read. There's still some (hard) work to do to provide a
-  good looking and *uniform* access to the song's info (it's currently a
-  gigantic mess).
-
-  This is the `cleanup-mpd-object` branch.
-
-
-Personal todo list
-------------------
-
-Those are the things I want to work on (as far as I can remember):
-
-* remove Sugar support (what is the status of Sugar actually?);
-* contact the quodlibet team to externalize the mmkeys module;
-* externalisation of code:
-    * remove the scrobbler implementation and use an external, dedicated module
-      to hande Last.fm/Libre.fm protocol and add a dependency on it;
-    * remove the lyrics modules and use an external, dedicated and well tested
-      module to handle lyrics fetching, and add a dependency on it;
-    * remove the covers module and use an external, dedicated and well tested
-      module to handle covers fetching, and add a dependency on it;
-* remove eggtrayicon support (gtk.StatusIcon should be sufficient)
-* port to Python 3 and the new GIR modules
-* BIG code cleanup to simplify many things (remove useless
-  variables/attributes/methods, simplify objects communication, etc. too long to
-  list exhaustingly here I guess and quite subjective).
-* have a look at the performance/memory issues when using a "big" library:
-  Sonata is supposed to be a lightweight music player.
-
-
-Also, I should have a look there:
-
-* sort bugs from Debian: http://bugs.debian.org/cgi-bin/pkgreport.cgi?package=sonata
-* sort bugs from Launchpad: https://bugs.launchpad.net/ubuntu/+source/sonata
-* bugs/patches/feature requests from Berlios/CT
+PAST DEVELOPERS
+    Scott Horowitz <stonecrest@gmail.com>
+    Tuukka Hastrup <Tuukka.Hastrup@iki.fi>
+    Stephen Boyd <bebarino@gmail.com>

@@ -15,9 +15,7 @@
 # playing_song_observers: on_song_change
 ### END PLUGIN INFO
 
-import gtk, pango
 import dbus.service
-from dbus.mainloop.glib import DBusGMainLoop
 
 songlabel = None
 lasttune = ''
@@ -28,7 +26,6 @@ def on_enable(state):
     global tune
     if state and not tune:
         tune = mpdtune()
-        dbus.SessionBus(mainloop = DBusGMainLoop())
     else:
         if tune:
             title = artist = album = ''

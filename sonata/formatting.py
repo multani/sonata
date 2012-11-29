@@ -14,8 +14,8 @@ formatcodes = formatting.formatcodes
 import re
 import os
 
-import mpdhelper as mpdh
-import misc
+from sonata import mpdhelper as mpdh
+from sonata import misc
 
 
 class FormatCode(object):

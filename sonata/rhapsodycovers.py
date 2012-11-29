@@ -1,10 +1,9 @@
 import logging
 import os
-import urllib
-import urllib2
+import urllib.request
 from xml.etree import ElementTree
 
-from pluginsystem import pluginsystem, BuiltinPlugin
+from sonata.pluginsystem import pluginsystem, BuiltinPlugin
 
 class RhapsodyCovers(object):
     def __init__(self):
@@ -29,13 +28,12 @@ class RhapsodyCovers(object):
         url = "%s/%s/%s/data.xml" % (rhapsody_uri, artist, album)
         url = self._sanitize_query(url)
         self.logger.debug("Finding cover from %r", url)
-        request = urllib2.Request(url)
-        opener = urllib2.build_opener()
         try:
-            body = opener.open(request).read()
+            request = urllib.request.urlopen(url)
+            body = request.read()
             xml = ElementTree.fromstring(body)
             imgs = xml.getiterator("img")
-        except Exception, e:
+        except Exception as e:
             self.logger.error("Unable to find cover from %r: %s", url, e)
             return False
 
@@ -46,8 +44,12 @@ class RhapsodyCovers(object):
 
         if not all_images:
             try:
-                urllib.urlretrieve(imglist[-1], dest_filename)
-            except IOError:
+                src  = urllib.request.urlopen(imglist[-1])
+                dest = open(dest_filename, "w")
+                dest.write(src.read())
+            except (IOError, HTTPError, URLError) as e:
+                self.logger.error("Unable to fetch cover image from %r: %s", \
+                                  imglist[-1], e)
                 return False
             return True
         else:
@@ -55,12 +57,14 @@ class RhapsodyCovers(object):
                 imgfound = False
                 for i, image in enumerate(imglist):
                     dest_filename_curr = dest_filename.replace("<imagenum>", str(i+1))
-                    urllib.urlretrieve(image, dest_filename_curr)
+                    src  = urllib.request.urlopen(image)
+                    dest = open(dest_filename_curr, "w")
+                    dest.write(src.read())
                     if not progress_callback(
                         dest_filename_curr, i):
                         return imgfound # cancelled
                     if os.path.exists(dest_filename_curr):
                         imgfound = True
-            except:
-                pass
+            except (IOError, HTTPError, URLError) as e:
+                self.logger.error("Unable to fetch cover image from %r: %s", url, e)
             return imgfound
