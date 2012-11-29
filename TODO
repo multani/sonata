@@ -12,7 +12,6 @@ v1.6.3
 	0.15 has input support for last.fm radio
 
 v1.7
-	remove libegg? statusicon provides everything in gtk 2.16, not yet in pygtk
 	albumartist tag for, e.g., VA albums; composer for classical
 	plugin support
 		- single instance, mmkeys (could remove dbus; faster on startup, less memory)
@@ -54,8 +53,6 @@ clean-up
 	tests:
 		- write automated tests
 		- refactor code into parts that can be tested
-	use the logging module:
-		- log to file if not running on console
 	exceptions:
 		- add class restrictions to most "except:" clauses
 		- add debug logging to most except clauses

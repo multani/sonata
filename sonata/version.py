@@ -2,8 +2,8 @@ import os
 from subprocess import Popen, PIPE
 
 try:
-    import genversion
-    build_ver = genversion.VERSION
+    from sonata.genversion import VERSION
+    build_ver = VERSION
 except ImportError:
     build_ver = None
 

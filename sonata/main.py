@@ -172,8 +172,7 @@ class Base(object):
         self.tabname2focus = dict()
         self.plugintabs = dict()
 
-        self.config = Config(_('Default Profile'),
-                             '%s %%A %s %%B' % (_("by"), _("from")))
+        self.config = Config(_('Default Profile'), _("by %A from %B"))
         self.preferences = preferences.Preferences(self.config,
             self.on_connectkey_pressed, self.on_currsong_notify,
             self.update_infofile, self.settings_save,
@@ -449,7 +448,7 @@ class Base(object):
         uiDescription += ''.join('<accelerator action="%s"/>' % a[0]
                      for a in keyactions + tabactions)
 
-        uiDescription += "</ui>"
+        uiDescription += "</ui>\n"
 
         # Try to connect to MPD:
         self.mpd_connect(blocking=True)
@@ -1066,7 +1065,6 @@ class Base(object):
             return
         self.trying_connection = True
         if self.user_connect or force:
-            self.mpd.disconnect()
             host, port, password = misc.mpd_env_vars()
             if not host:
                 host = self.config.host[self.config.profile_num]
@@ -2944,7 +2942,7 @@ class Base(object):
 
     def on_consume_clicked(self, widget):
         if self.conn:
-            self._toggle_clicked('consume', widget)
+            self.mpd.consume(int(widget.get_active()))
 
     def setup_prefs_callbacks(self):
         extras = preferences.Extras_cbs

@@ -275,7 +275,13 @@ class Library(object):
         if not self.library.props.visible:
             return
 
-        start_row, end_row = self.library.get_visible_range()
+        visible_range = self.library.get_visible_range()
+
+        if visible_range is None:
+            return
+        else:
+            start_row, end_row = visible_range
+
         self.artwork.library_artwork_update(self.librarydata, start_row,
                                             end_row, self.albumpb)
 

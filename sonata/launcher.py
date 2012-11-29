@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Sonata is a simple GTK+ client for the Music Player Daemon.
 """
 
@@ -24,17 +24,26 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import sys
+if sys.version_info <= (3, 2):
+    sys.stderr.write("Sonata requires Python 3.2+\n")
+    sys.exit(1)
+
 import gettext
 import locale
 import logging
 import os
 import platform
-import sys
 import threading  # needed for interactive shell
 
 
 def run():
     """Main entry point of Sonata"""
+
+    # TODO: allow to exit the application with Ctrl+C from the terminal
+    # This is a fix for https://bugzilla.gnome.org/show_bug.cgi?id=622084
+    import signal
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     # XXX insert the correct sonata package dir in sys.path
 
@@ -90,24 +99,20 @@ def run():
 
     # let gettext install _ as a built-in for all modules to see
     # XXX what's the correct way to find the localization?
-    try:
-        gettext.install('sonata',
-                        os.path.join(sonata.__file__.split('/lib')[0],
-                                     'share', 'locale'),
-                        names=["ngettext"])
-    except:
-        logger.warning("Trying to use an old translation")
-        gettext.install('sonata', '/usr/share/locale')
+    locales_path = '/usr/share/locale'
+    for path in [
+        os.path.join(os.path.dirname(sonata.__file__), "share", "locale"),
+        os.path.join(sonata.__file__.split('/lib')[0], 'share', 'locale'),
+    ]:
+        if os.path.exists(path):
+            locales_path = path
+            break
+
+    gettext.install('sonata', locales_path, names=["ngettext"])
     gettext.textdomain('sonata')
 
 
     ## Check initial dependencies:
-
-    # Test python version:
-    if sys.version_info < (2,5):
-        logger.critical("Sonata requires Python 2.5 or newer. Aborting...")
-        sys.exit(1)
-
     try:
         import mpd
     except:
