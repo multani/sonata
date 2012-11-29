@@ -622,7 +622,7 @@ class Artwork(object):
     def download_progress(self, dest_filename_curr, i):
         # This populates Main.imagelist for the remote image window
         if os.path.exists(dest_filename_curr):
-            pix = jdk.pixbuf_new_from_file(dest_filename_curr)
+            pix = GdkPixbuf.Pixbuf.new_from_file(dest_filename_curr)
             pix = pix.scale_simple(148, 148, GdkPixbuf.InterpType.HYPER)
             pix = self.artwork_apply_composite_case(pix, 148, 148)
             pix = img.pixbuf_add_border(pix)

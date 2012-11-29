@@ -102,7 +102,7 @@ class TagEditor():
             ui.change_cursor(None)
             ui.show_msg(self.window, _("No music files with editable tags found."), _("Edit Tags"), 'editTagsError', Gtk.ButtonsType.CLOSE, response_cb=ui.dialog_destroy)
             return
-        editwindow = ui.dialog(parent=self.window, flags=Gtk.DialogFlags.MODAL, role='editTags', resizable=False, separator=False)
+        editwindow = ui.dialog(parent=self.window, flags=Gtk.DialogFlags.MODAL, role='editTags', resizable=False)
         editwindow.set_size_request(375, -1)
         table = Gtk.Table(9, 2, False)
         table.set_row_spacings(2)
