@@ -70,14 +70,6 @@
                       <object class="GtkBox" id="toptop_h_box">
                         <property name="can_focus">False</property>
                         <property name="orientation">horizontal</property>
-<!--
-                        <property name="halign">left</property>
-                        <property name="valign">center</property>
-                        <property name="margin_left">5</property>
-                        <property name="margin_right">5</property>
-                        <property name="margin_top">5</property>
-                        <property name="margin_bottom">5</property>
--->
                         <child>
                           <object class="GtkButton" id="prev_button">
                             <property name="relief">none</property>
@@ -274,4 +266,73 @@
       </object><!--main_h_box-->
     </child>
   </object><!--main_window-->
+  <object class="GtkWindow" id="fullscreen_window">
+    <property name="title" translatable="yes">Cover Art</property>
+    <property name="role">fullscreenWindow</property>
+    <property name="can_focus">False</property>
+    <property name="decorated">True</property>
+    <child>
+      <object class="GtkBox" id="fullscreen_v_box">
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="halign">center</property>
+        <property name="valign">center</property>
+        <child>
+          <object class="GtkBox" id="fullscreen_h_box">
+            <property name="can_focus">False</property>
+            <property name="orientation">horizontal</property>
+            <child>
+              <object class="GtkImage" id="fullscreen_image">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="halign">center</property>
+                <property name="hexpand">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="padding">3</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="fullscreen_label_1">
+            <property name="can_focus">False</property>
+            <property name="halign">center</property>
+          </object><!--fullscreen_label_1-->
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="padding">0</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="fullscreen_label_2">
+            <property name="can_focus">False</property>
+            <property name="halign">center</property>
+          </object><!--fullscreen_label_2-->
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="padding">0</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">True</property>
+        <property name="fill">True</property>
+        <property name="padding">3</property>
+        <property name="position">0</property>
+      </packing>
+    </child>
+  </object><!--fullscreen_window-->
 </interface>

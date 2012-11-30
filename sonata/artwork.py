@@ -101,6 +101,12 @@ class Artwork(object):
     def get_fullscreenalbumlabels(self):
         return self.fullscreenalbumlabel, self.fullscreenalbumlabel2
 
+    def set_fullscreenalbumimage(self, fullscreen_image):
+        self.fullscreenalbumimage = fullscreen_image
+
+    def set_fullscreenalbumlabels(self, labelpair):
+        self.fullscreenalbumlabel, self.fullscreenalbumlabel2 = labelpair
+
     def update_songinfo(self, songinfo):
         self.songinfo = songinfo
 

@@ -258,7 +258,7 @@ class Base(object):
              None, None, self.image_remote),
             ('localimage_menu', Gtk.STOCK_OPEN, _('Use _Local Image...'),
              None, None, self.image_local),
-            ('fullscreencoverart_menu', Gtk.STOCK_FULLSCREEN,
+            ('fullscreen_window_menu', Gtk.STOCK_FULLSCREEN,
              _('_Fullscreen Mode'), 'F11', None, self.fullscreen_cover_art),
             ('resetimage_menu', Gtk.STOCK_CLEAR, _('Reset Image'), None, None,
              self.artwork.on_reset_image),
@@ -363,7 +363,7 @@ class Base(object):
               <popup name="imagemenu">
                 <menuitem action="chooseimage_menu"/>
                 <menuitem action="localimage_menu"/>
-                <menuitem action="fullscreencoverart_menu"/>
+                <menuitem action="fullscreen_window_menu"/>
                 <separator name="FM1"/>
                 <menuitem action="resetimage_menu"/>
               </popup>
@@ -381,7 +381,7 @@ class Base(object):
                   <menuitem action="randommenu"/>
                   <menuitem action="consumemenu"/>
                 </menu>
-                <menuitem action="fullscreencoverart_menu"/>
+                <menuitem action="fullscreen_window_menu"/>
                 <menuitem action="preferencemenu"/>
                 <separator name="FM3"/>
                 <menuitem action="quitmenu"/>
@@ -740,29 +740,22 @@ class Base(object):
         self.tooltip_set_window_width()
 
         # Fullscreen cover art window
-        self.fullscreencoverart = Gtk.Window()
-        self.fullscreencoverart.set_title(_("Cover Art"))
-        self.fullscreencoverart.set_decorated(True)
-        self.fullscreencoverart.fullscreen()
+        self.fullscreen_window = self.builder.get_object("fullscreen_window")
+        self.fullscreen_window.fullscreen()
         bgcolor = Gdk.RGBA()
         bgcolor.parse("black")
-        self.fullscreencoverart\
-            .override_background_color(Gtk.StateFlags.NORMAL, bgcolor)
-        self.fullscreencoverart.add_accel_group(
-            self.UIManager.get_accel_group())
-        fscavbox = Gtk.VBox()
-        fscahbox = Gtk.HBox()
-        self.fullscreenalbumimage = self.artwork.get_fullscreenalbumimage()
-        fscalbl, fscalbl2 = self.artwork.get_fullscreenalbumlabels()
-        fscahbox.pack_start(self.fullscreenalbumimage, True, False, 0)
-        fscavbox.pack_start(ui.label(), True, False, 0)
-        fscavbox.pack_start(fscahbox, False, False, 12)
-        fscavbox.pack_start(fscalbl, False, False, 5)
-        fscavbox.pack_start(fscalbl2, False, False, 5)
-        fscavbox.pack_start(ui.label(), True, False, 0)
+        self.fullscreen_window.override_background_color(Gtk.StateFlags.NORMAL,
+                                                         bgcolor)
+        accel_group = self.UIManager.get_accel_group()
+        self.fullscreen_window.add_accel_group(accel_group)
+        self.fullscreen_image = self.builder.get_object("fullscreen_image")
+        self.artwork.set_fullscreenalbumimage(self.fullscreen_image)
+        fullscreen_label1 = self.builder.get_object("fullscreen_label_1")
+        fullscreen_label2 = self.builder.get_object("fullscreen_label_2")
+        self.artwork.set_fullscreenalbumlabels((fullscreen_label1,
+                                                fullscreen_label2))
         if not self.config.show_covers:
-            ui.hide(self.fullscreenalbumimage)
-        self.fullscreencoverart.add(fscavbox)
+            ui.hide(self.fullscreen_image)
 
         # Connect to signals
         self.window.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
@@ -797,10 +790,10 @@ class Base(object):
         self.notebook.connect('size-allocate', self.on_notebook_resize)
         self.notebook.connect('switch-page', self.on_notebook_page_change)
 
-        self.fullscreencoverart.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
-        self.fullscreencoverart.connect("button-press-event",
-                                        self.fullscreen_cover_art_close, False)
-        self.fullscreencoverart.connect("key-press-event",
+        self.fullscreen_window.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
+        self.fullscreen_window.connect("button-press-event",
+                                       self.fullscreen_cover_art_close, False)
+        self.fullscreen_window.connect("key-press-event",
                                         self.fullscreen_cover_art_close, True)
         for treeview in [self.current_treeview, self.library_treeview,
                          self.playlists_treeview, self.streams_treeview]:
@@ -958,8 +951,7 @@ class Base(object):
             cb(self.get_playing_song())
 
     def get_current_song_text(self):
-        return (self.cursonglabel1.get_text(),
-            self.cursonglabel2.get_text())
+        return (self.cursonglabel1.get_text(), self.cursonglabel2.get_text())
 
     def set_allow_art_search(self):
         self.allow_art_search = True
@@ -1877,7 +1869,7 @@ class Base(object):
             self.notification_width = consts.NOTIFICATION_WIDTH_MIN
 
     def on_currsong_notify(self, _foo=None, _bar=None, force_popup=False):
-        if self.fullscreencoverart.get_property('visible'):
+        if self.fullscreen_window.get_property('visible'):
             return
         if self.sonata_loaded:
             if self.status_is_play_or_pause():
@@ -2671,14 +2663,14 @@ class Base(object):
             Gtk.main_iteration()
 
     def fullscreen_cover_art(self, _widget):
-        if self.fullscreencoverart.get_property('visible'):
-            self.fullscreencoverart.hide()
+        if self.fullscreen_window.get_property('visible'):
+            self.fullscreen_window.hide()
         else:
             self.traytips.hide()
             self.artwork.fullscreen_cover_art_set_image(force_update=True)
-            self.fullscreencoverart.show_all()
+            self.fullscreen_window.show_all()
             # setting up invisible cursor
-            window = self.fullscreencoverart.get_window()
+            window = self.fullscreen_window.get_window()
             window.set_cursor(Gdk.Cursor.new(Gdk.CursorType.BLANK_CURSOR))
 
     def fullscreen_cover_art_close(self, _widget, event, key_press):
@@ -2687,7 +2679,7 @@ class Base(object):
             shortcut = shortcut.replace("<Mod2>", "")
             if shortcut != 'Escape':
                 return
-        self.fullscreencoverart.hide()
+        self.fullscreen_window.hide()
 
     def header_save_column_widths(self):
         if not self.config.withdrawn and self.config.expanded:
