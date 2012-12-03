@@ -28,7 +28,7 @@ class Playlists(object):
     def __init__(self, config, window, mpd, UIManager,
                  update_menu_visibility, iterate_now, on_add_item,
                  on_playlists_button_press, get_current_songs, connected,
-                 add_selected_to_playlist, TAB_PLAYLISTS, new_tab):
+                 add_selected_to_playlist, TAB_PLAYLISTS, add_tab):
         self.config = config
         self.window = window
         self.mpd = mpd
@@ -54,12 +54,12 @@ class Playlists(object):
         self.playlists_selection = self.playlists.get_selection()
         self.playlistswindow = self.builder.get_object('playlists_page_scrolledwindow')
 
-        self.tab_widget = self.builder.get_object('playlists_tab_h_box')
         self.tab_label = self.builder.get_object('playlists_tab_label')
         self.tab_label.set_text(TAB_PLAYLISTS)
 
-        self.tab = (self.playlistswindow, self.tab_widget, TAB_PLAYLISTS,
-                    self.playlists)
+        self.tab_widget = self.builder.get_object('playlists_tab_h_box')
+        self.tab = add_tab(self.playlistswindow, self.tab_widget, TAB_PLAYLISTS,
+                           self.playlists)
 
         self.playlists.connect('button_press_event',
                                self.on_playlists_button_press)

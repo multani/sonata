@@ -20,7 +20,7 @@ from sonata import misc, ui
 
 
 class Streams(object):
-    def __init__(self, config, window, on_streams_button_press, on_add_item, settings_save, TAB_STREAMS, new_tab):
+    def __init__(self, config, window, on_streams_button_press, on_add_item, settings_save, TAB_STREAMS, add_tab):
         self.config = config
         self.window = window
         self.on_streams_button_press = on_streams_button_press
@@ -41,8 +41,8 @@ class Streams(object):
         self.tab_label = self.builder.get_object('streams_tab_label')
         self.tab_label.set_text(TAB_STREAMS)
 
-        self.tab = (self.streamswindow, self.tab_widget, TAB_STREAMS,
-                    self.streams)
+        self.tab = add_tab(self.streamswindow, self.tab_widget, TAB_STREAMS,
+                           self.streams)
 
         self.streams.connect('button_press_event', self.on_streams_button_press)
         self.streams.connect('row_activated', self.on_streams_activated)

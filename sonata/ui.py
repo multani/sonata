@@ -150,14 +150,6 @@ def entry(text=None, password=False, w=-1, h=-1, changed_cb=None):
         tmpentry.connect('changed', changed_cb)
     return tmpentry
 
-def treeview(hint=True, reorder=False, search=True, headers=False):
-    tmptv = Gtk.TreeView()
-    tmptv.set_rules_hint(hint)
-    tmptv.set_reorderable(reorder)
-    tmptv.set_enable_search(search)
-    tmptv.set_headers_visible(headers)
-    return tmptv
-
 def iconview(col=None, space=None, margin=None, itemw=None, selmode=None):
     tmpiv = Gtk.IconView()
     if col:

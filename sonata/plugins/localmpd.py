@@ -117,8 +117,8 @@ def tab_construct():
         os.path.dirname(__file__)))
     builder.set_translation_domain('sonata')
     editbutton = builder.get_object('localmpd_edit_button')
-    editbutton.connect('clicked', lambda *args:subprocess.Popen(
-            ["gksu", "xdg-open", "/etc/mpd.conf"]))
+    editbutton.connect('clicked', lambda *args: subprocess.Popen(
+        ["gksu", "xdg-open", "/etc/mpd.conf"]))
     restartbutton = builder.get_object('localmpd_restart_button')
     restartbutton.connect('clicked', lambda *args:subprocess.Popen(
             ["gksu", "service", "mpd", "restart"]))

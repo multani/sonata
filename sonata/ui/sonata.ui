@@ -168,7 +168,7 @@
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">False</property>
-                                <property name="padding">0</property>
+                                <property name="padding">6</property>
                                 <property name="position">0</property>
                               </packing>
                             </child>
@@ -327,12 +327,6 @@
           </packing>
         </child>
       </object>
-      <packing>
-        <property name="expand">True</property>
-        <property name="fill">True</property>
-        <property name="padding">3</property>
-        <property name="position">0</property>
-      </packing>
     </child>
   </object><!--fullscreen_window-->
 </interface>
