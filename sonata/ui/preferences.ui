@@ -915,8 +915,6 @@
                                                     <property name="has_tooltip">True</property>
                                                     <property name="tooltip_markup" translatable="yes">If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)</property>
                                                     <property name="tooltip_text" translatable="yes">If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many applications support the xmms-info file (Instant Messengers, IRC Clients...)</property>
-                                                    <property name="invisible_char">●</property>
-                                                    <property name="invisible_char_set">True</property><!--FIXME No longer need it?-->
                                                   </object>
                                                   <packing>
                                                     <property name="expand">False</property>
@@ -1332,8 +1330,6 @@
                                       <object class="GtkEntry" id="scrobbler_username_entry">
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
-                                        <property name="invisible_char">•</property>
-                                        <property name="invisible_char_set">True</property>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
