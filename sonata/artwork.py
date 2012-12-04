@@ -84,9 +84,8 @@ class Artwork(object):
     def get_info_image(self):
         return self.info_image
 
-    def set_tray_album_images(self, tray_image1, tray_image2):
-        self.tray_album_image1 = tray_image1
-        self.tray_album_image2 = tray_image2
+    def set_tray_album_image(self, tray_image):
+        self.tray_album_image = tray_image
 
     def get_fullscreenalbumimage(self):
         return self.fullscreenalbumimage
@@ -126,16 +125,9 @@ class Artwork(object):
 
     def artwork_set_tooltip_art(self, pix):
         # Set artwork
-        if not self.is_lang_rtl:
-            pix1 = pix.new_subpixbuf(0, 0, 51, 77)
-            pix2 = pix.new_subpixbuf(51, 0, 26, 77)
-        else:
-            pix1 = pix.new_subpixbuf(26, 0, 51, 77)
-            pix2 = pix.new_subpixbuf(0, 0, 26, 77)
-        self.tray_album_image1.set_from_pixbuf(pix1)
-        self.tray_album_image2.set_from_pixbuf(pix2)
-        del pix1
-        del pix2
+        pix = pix.new_subpixbuf(0, 0, 77, 77)
+        self.tray_album_image.set_from_pixbuf(pix)
+        del pix
 
     def artwork_stop_update(self):
         self.stop_art_update = True

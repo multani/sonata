@@ -333,29 +333,13 @@
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="orientation">vertical</property>
+    <property name="margin">6</property>
     <child>
       <object class="GtkBox" id="tray_h_box">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <child>
-          <object class="GtkEventBox" id="tray_event_box">
-            <child>
-              <object class="GtkImage" id="tray_album_image_1">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="width_request">51</property>
-                <property name="height_request">77</property>
-              </object>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkImage" id="tray_album_image_2">
+          <object class="GtkImage" id="tray_album_image">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="width_request">26</property>
@@ -364,7 +348,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">1</property>
+            <property name="position">0</property>
           </packing>
         </child>
         <child>
@@ -416,7 +400,7 @@
           <packing>
             <property name="expand">True</property>
             <property name="fill">True</property>
-            <property name="position">2</property>
+            <property name="position">1</property>
           </packing>
         </child>
       </object>

@@ -699,15 +699,11 @@ class Base(object):
         # Song notification window:
         self.tray_v_box = self.builder.get_object('tray_v_box')
 
-        self.tray_album_image2 = self.builder.get_object('tray_album_image_2')
-        self.tray_album_image1 = self.builder.get_object('tray_album_image_1')
-        self.tray_event_box = self.builder.get_object('tray_event_box')
-        self.artwork.set_tray_album_images(self.tray_album_image1,
-                                           self.tray_album_image2)
+        self.tray_album_image = self.builder.get_object('tray_album_image')
+        self.artwork.set_tray_album_image(self.tray_album_image)
 
         if not self.config.show_covers:
-            ui.hide(self.tray_event_box)
-            ui.hide(self.tray_album_image2)
+            ui.hide(self.tray_album_image)
 
         self.tray_current_label1 = self.builder.get_object('tray_label_1')
         self.tray_current_label2 = self.builder.get_object('tray_label_2')
@@ -1766,8 +1762,7 @@ class Base(object):
                 self.tray_progressbar.show()
             self.tray_current_label2.show()
             if self.config.show_covers:
-                self.tray_event_box.show()
-                self.tray_album_image2.show()
+                self.tray_album_image.show()
 
             for label in (self.cursonglabel1, self.cursonglabel2,
                           self.tray_current_label1, self.tray_current_label2):
@@ -1820,8 +1815,7 @@ class Base(object):
             else:
                 self.tray_current_label1.set_label(_('Stopped'))
             self.tray_progressbar.hide()
-            self.tray_event_box.hide()
-            self.tray_album_image2.hide()
+            self.tray_album_image.hide()
             self.tray_current_label2.hide()
         self.update_infofile()
 
@@ -3046,9 +3040,9 @@ class Base(object):
             self.traytips.set_size_request(self.notification_width, -1)
             self.artwork.artwork_set_default_icon()
             for widget in [self.imageeventbox, self.info_imagebox,
-                           self.tray_event_box, self.tray_album_image2]:
+                           self.tray_album_image]:
                 widget.set_no_show_all(False)
-                if widget in [self.tray_event_box, self.tray_album_image2]:
+                if widget is self.tray_album_image:
                     if self.status_is_play_or_pause():
                         widget.show_all()
                 else:
@@ -3059,7 +3053,7 @@ class Base(object):
         else:
             self.traytips.set_size_request(self.notification_width-100, -1)
             for widget in [self.imageeventbox, self.info_imagebox,
-                           self.tray_event_box, self.tray_album_image2]:
+                           self.tray_album_image]:
                 ui.hide(widget)
             self.config.show_covers = False
             self.update_cursong()
