@@ -47,14 +47,6 @@ class Artwork(object):
         self.albumimage = ui.image()
         self.albumimage.set_from_file(self.sonatacd)
 
-        self.trayalbumimage1 = ui.image(w=51, h=77, x=1)
-        self.trayalbumeventbox = ui.eventbox(w=59, h=90,
-                                             add=self.trayalbumimage1,
-                                             state=Gtk.StateFlags.SELECTED,
-                                             visible=True)
-
-        self.trayalbumimage2 = ui.image(w=26, h=77)
-
         self.fullscreenalbumimage = ui.image(w=consts.FULLSCREEN_COVER_SIZE,
                                              h=consts.FULLSCREEN_COVER_SIZE,
                                              x=1)
@@ -92,8 +84,9 @@ class Artwork(object):
     def get_info_image(self):
         return self.info_image
 
-    def get_trayalbum(self):
-        return self.trayalbumeventbox, self.trayalbumimage2
+    def set_tray_album_images(self, tray_image1, tray_image2):
+        self.tray_album_image1 = tray_image1
+        self.tray_album_image2 = tray_image2
 
     def get_fullscreenalbumimage(self):
         return self.fullscreenalbumimage
@@ -139,8 +132,8 @@ class Artwork(object):
         else:
             pix1 = pix.new_subpixbuf(26, 0, 51, 77)
             pix2 = pix.new_subpixbuf(0, 0, 26, 77)
-        self.trayalbumimage1.set_from_pixbuf(pix1)
-        self.trayalbumimage2.set_from_pixbuf(pix2)
+        self.tray_album_image1.set_from_pixbuf(pix1)
+        self.tray_album_image2.set_from_pixbuf(pix2)
         del pix1
         del pix2
 

@@ -697,44 +697,27 @@ class Base(object):
         self.last_tab = self.notebook_get_tab_text(self.notebook, 0)
 
         # Song notification window:
-        outtertipbox = Gtk.VBox()
-        tipbox = Gtk.HBox()
+        self.tray_v_box = self.builder.get_object('tray_v_box')
 
-        self.trayalbumeventbox, self.trayalbumimage2 = \
-                self.artwork.get_trayalbum()
+        self.tray_album_image2 = self.builder.get_object('tray_album_image_2')
+        self.tray_album_image1 = self.builder.get_object('tray_album_image_1')
+        self.tray_event_box = self.builder.get_object('tray_event_box')
+        self.artwork.set_tray_album_images(self.tray_album_image1,
+                                           self.tray_album_image2)
 
-        hiddenlbl = ui.label(w=2, h=-1)
-        tipbox.pack_start(hiddenlbl, False, False, 0)
-        tipbox.pack_start(self.trayalbumeventbox, False, False, 0)
-
-        tipbox.pack_start(self.trayalbumimage2, False, False, 0)
         if not self.config.show_covers:
-            ui.hide(self.trayalbumeventbox)
-            ui.hide(self.trayalbumimage2)
-        innerbox = Gtk.VBox()
-        self.traycursonglabel1 = ui.label(markup=_("Playlist"), y=1)
-        self.traycursonglabel2 = ui.label(markup=_("Playlist"), y=0)
-        label1 = ui.label(markup='<span size="10"> </span>')
-        innerbox.pack_start(label1, True, True, 0)
-        innerbox.pack_start(self.traycursonglabel1, True, True, 0)
-        innerbox.pack_start(self.traycursonglabel2, True, True, 0)
+            ui.hide(self.tray_event_box)
+            ui.hide(self.tray_album_image2)
 
-        self.trayprogressbar = Gtk.ProgressBar()
-        self.trayprogressbar.set_pulse_step(0.05)
-        self.trayprogressbar.set_ellipsize(Pango.EllipsizeMode.NONE)
-        self.trayprogressbar.set_show_text(True)
+        self.tray_current_label1 = self.builder.get_object('tray_label_1')
+        self.tray_current_label2 = self.builder.get_object('tray_label_2')
 
-        label2 = ui.label(markup='<span size="10"> </span>')
-        innerbox.pack_start(label2, True, True, 0)
-        innerbox.pack_start(self.trayprogressbar, False, False, 0)
+        self.tray_progressbar = self.builder.get_object('tray_progressbar')
         if not self.config.show_progress:
-            ui.hide(self.trayprogressbar)
-        label3 = ui.label(markup='<span size="10"> </span>')
-        innerbox.pack_start(label3, True, True, 0)
-        tipbox.pack_start(innerbox, True, True, 6)
-        outtertipbox.pack_start(tipbox, False, False, 2)
-        outtertipbox.show_all()
-        self.traytips.add_widget(outtertipbox)
+            ui.hide(self.tray_progressbar)
+
+        self.tray_v_box.show_all()
+        self.traytips.add_widget(self.tray_v_box)
         self.tooltip_set_window_width()
 
         # Fullscreen cover art window
@@ -1780,14 +1763,14 @@ class Base(object):
             # notification popup will have the correct height when being
             # displayed for the first time after a stopped state.
             if self.config.show_progress:
-                self.trayprogressbar.show()
-            self.traycursonglabel2.show()
+                self.tray_progressbar.show()
+            self.tray_current_label2.show()
             if self.config.show_covers:
-                self.trayalbumeventbox.show()
-                self.trayalbumimage2.show()
+                self.tray_event_box.show()
+                self.tray_album_image2.show()
 
             for label in (self.cursonglabel1, self.cursonglabel2,
-                          self.traycursonglabel1, self.traycursonglabel2):
+                          self.tray_current_label1, self.tray_current_label2):
                 label.set_ellipsize(Pango.EllipsizeMode.END)
 
 
@@ -1809,16 +1792,16 @@ class Base(object):
                 self.cursonglabel1.set_markup(newlabel1)
             if newlabel2 != self.cursonglabel2.get_label():
                 self.cursonglabel2.set_markup(newlabel2)
-            if newlabel1 != self.traycursonglabel1.get_label():
-                self.traycursonglabel1.set_markup(newlabel1)
-            if newlabel2 != self.traycursonglabel2.get_label():
-                self.traycursonglabel2.set_markup(newlabel2)
+            if newlabel1 != self.tray_current_label1.get_label():
+                self.tray_current_label1.set_markup(newlabel1)
+            if newlabel2 != self.tray_current_label2.get_label():
+                self.tray_current_label2.set_markup(newlabel2)
             self.expander.set_tooltip_text('%s\n%s' % \
                                            (self.cursonglabel1.get_text(),
                                             self.cursonglabel2.get_text(),))
         else:
             for label in (self.cursonglabel1, self.cursonglabel2,
-                          self.traycursonglabel1, self.cursonglabel2):
+                          self.tray_current_label1, self.cursonglabel2):
                 label.set_ellipsize(Pango.EllipsizeMode.NONE)
 
             self.cursonglabel1.set_markup('<big><b>%s</b></big>' % \
@@ -1831,15 +1814,15 @@ class Base(object):
                                               _('Click to expand'))
             self.expander.set_tooltip_text(self.cursonglabel1.get_text())
             if not self.conn:
-                self.traycursonglabel1.set_label(_('Not Connected'))
+                self.tray_current_label1.set_label(_('Not Connected'))
             elif not self.status:
-                self.traycursonglabel1.set_label(_('No Read Permission'))
+                self.tray_current_label1.set_label(_('No Read Permission'))
             else:
-                self.traycursonglabel1.set_label(_('Stopped'))
-            self.trayprogressbar.hide()
-            self.trayalbumeventbox.hide()
-            self.trayalbumimage2.hide()
-            self.traycursonglabel2.hide()
+                self.tray_current_label1.set_label(_('Stopped'))
+            self.tray_progressbar.hide()
+            self.tray_event_box.hide()
+            self.tray_album_image2.hide()
+            self.tray_current_label2.hide()
         self.update_infofile()
 
     def update_wintitle(self):
@@ -1918,10 +1901,10 @@ class Base(object):
                 self.traytips._real_display(self.tray_icon)
 
     def on_progressbar_notify_fraction(self, *_args):
-        self.trayprogressbar.set_fraction(self.progressbar.get_fraction())
+        self.tray_progressbar.set_fraction(self.progressbar.get_fraction())
 
     def on_progressbar_notify_text(self, *_args):
-        self.trayprogressbar.set_text(self.progressbar.get_text())
+        self.tray_progressbar.set_text(self.progressbar.get_text())
 
     def update_infofile(self):
         if self.config.use_infofile is True:
@@ -3049,7 +3032,7 @@ class Base(object):
     def prefs_progress_toggled(self, button):
         self.config.show_progress = button.get_active()
         func = ui.show if self.config.show_progress else ui.hide
-        for widget in [self.progressbox, self.trayprogressbar]:
+        for widget in [self.progressbox, self.tray_progressbar]:
             func(widget)
 
     # FIXME move into prefs or elsewhere?
@@ -3063,9 +3046,9 @@ class Base(object):
             self.traytips.set_size_request(self.notification_width, -1)
             self.artwork.artwork_set_default_icon()
             for widget in [self.imageeventbox, self.info_imagebox,
-                           self.trayalbumeventbox, self.trayalbumimage2]:
+                           self.tray_event_box, self.tray_album_image2]:
                 widget.set_no_show_all(False)
-                if widget in [self.trayalbumeventbox, self.trayalbumimage2]:
+                if widget in [self.tray_event_box, self.tray_album_image2]:
                     if self.status_is_play_or_pause():
                         widget.show_all()
                 else:
@@ -3076,7 +3059,7 @@ class Base(object):
         else:
             self.traytips.set_size_request(self.notification_width-100, -1)
             for widget in [self.imageeventbox, self.info_imagebox,
-                           self.trayalbumeventbox, self.trayalbumimage2]:
+                           self.tray_event_box, self.tray_album_image2]:
                 ui.hide(widget)
             self.config.show_covers = False
             self.update_cursong()
