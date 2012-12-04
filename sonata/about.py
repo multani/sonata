@@ -19,7 +19,9 @@ class About(object):
         self.about_dialog = None
 
     def about_close(self, _event, _data=None):
-        self.about_dialog.hide()
+        if _data == Gtk.ResponseType.DELETE_EVENT or \
+           _data == Gtk.ResponseType.CANCEL:
+            self.about_dialog.hide()
         return True
 
     def about_shortcuts(self, _button):
