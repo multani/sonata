@@ -48,7 +48,7 @@ versionfile.close()
 
 
 data_files = [
-    ('share/sonata', ['README.old', 'CHANGELOG', 'TODO', 'TRANSLATORS']),
+    ('share/sonata', ['README.rst', 'CHANGELOG', 'TODO', 'TRANSLATORS']),
     ('share/applications', ['sonata.desktop']),
     ('share/man/man1', ['sonata.1']),
 ] + generate_translation_files()

@@ -2506,7 +2506,7 @@ class Base(object):
                                                 Gtk.ResponseType.REJECT),
                                        role='chooseCoverArt',
                                        default=Gtk.ResponseType.ACCEPT,
-                                       separator=False, resizable=False)
+                                       resizable=False)
         choosebutton = self.choose_dialog.add_button(_("C_hoose"),
                                                      Gtk.ResponseType.ACCEPT)
         chooseimage = ui.image(stock=Gtk.STOCK_CONVERT,
