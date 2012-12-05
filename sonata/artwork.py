@@ -55,8 +55,7 @@ class Artwork(object):
         self.fullscreen_cover_art_reset_image()
         self.fullscreen_cover_art_reset_text()
 
-        self.info_image = ui.image(y=0)
-        self.info_image.set_from_file(self.sonatacd_large)
+        self.info_image = None
 
         # local version of Main.songinfo mirrored by update_songinfo
         self.songinfo = None
@@ -83,6 +82,10 @@ class Artwork(object):
 
     def get_info_image(self):
         return self.info_image
+
+    def set_info_image(self, info_image):
+        self.info_image = info_image
+        self.info_image.set_from_file(self.sonatacd_large)
 
     def set_tray_album_image(self, tray_image):
         self.tray_album_image = tray_image

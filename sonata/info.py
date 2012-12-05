@@ -13,7 +13,7 @@ from sonata.pluginsystem import pluginsystem
 
 class Info(object):
 
-    def __init__(self, config, info_image, linkcolor, on_link_click_cb,
+    def __init__(self, config, linkcolor, on_link_click_cb,
                  get_playing_song, TAB_INFO, on_image_activate,
                  on_image_motion_cb, on_image_drop_cb,
                  album_return_artist_and_tracks, add_tab):
@@ -41,8 +41,8 @@ class Info(object):
         self._morelabel = None
         self._searchlabel = None
 
-        self.lyricsText = None
-        self.albumText = None
+        self.lyrics_text = None
+        self.album_text = None
 
         # Info tab
         self.builder = Gtk.Builder()
@@ -55,40 +55,37 @@ class Info(object):
         self.tab = add_tab(self.info_area, self.tab_label_widget,
                            TAB_INFO, self.info_area)
 
-        image_width = -1 if self.config.info_art_enlarged else 152
-        imagebox = ui.eventbox(w=image_width, add=info_image)
-        imagebox.drag_dest_set(Gtk.DestDefaults.HIGHLIGHT |
-                Gtk.DestDefaults.DROP,
-                [Gtk.TargetEntry.new("text/uri-list", 0, 80),
-                 Gtk.TargetEntry.new("text/plain", 0, 80)], Gdk.DragAction.DEFAULT)
-        imagebox.connect('button_press_event', on_image_activate)
-        imagebox.connect('drag_motion', on_image_motion_cb)
-        imagebox.connect('drag_data_received', on_image_drop_cb)
-        self._imagebox = imagebox
+        self._imagebox = self.builder.get_object('info_page_song_eventbox')
+        self.image = self.builder.get_object('info_page_song_image')
+
+        self._imagebox.drag_dest_set(Gtk.DestDefaults.HIGHLIGHT |
+                                     Gtk.DestDefaults.DROP,
+                                     [Gtk.TargetEntry.new("text/uri-list", 0, 80),
+                                      Gtk.TargetEntry.new("text/plain", 0, 80)],
+                                      Gdk.DragAction.DEFAULT)
+        self._imagebox.connect('button_press_event', on_image_activate)
+        self._imagebox.connect('drag_motion', on_image_motion_cb)
+        self._imagebox.connect('drag_data_received', on_image_drop_cb)
 
         self._widgets_initialize()
 
     def _widgets_initialize(self):
-        margin = 5
-        outter_vbox = Gtk.VBox()
-        setupfuncs = (getattr(self, "_widgets_%s" % func)
-                for func in ['song', 'lyrics', 'album'])
-        for setup in setupfuncs:
-            widget = setup()
-            outter_vbox.pack_start(widget, False, False, margin)
+        self._widgets_song()
+        self._widgets_lyrics()
+        self._widgets_album()
 
         # Finish..
         if not self.config.show_lyrics:
             ui.hide(self.info_lyrics)
         if not self.config.show_covers:
             ui.hide(self._imagebox)
-        self.info_area.add_with_viewport(outter_vbox)
 
     def _widgets_song(self):
-        info_song = ui.expander(markup="<b>%s</b>" % _("Song Info"),
-                expand=self.config.info_song_expanded,
-                can_focus=False)
-        info_song.connect("activate", self._expanded, "song")
+        self.info_song = self.builder.get_object('info_page_song_expander')
+        self.info_song.set_expanded(self.config.info_song_expanded)
+        self.info_song_grid = self.builder.get_object('info_page_song_grid')
+
+        self.info_song.connect("activate", self._expanded, "song")
 
         self.info_labels = {}
         self.info_boxes_in_more = []
@@ -103,11 +100,9 @@ class Info(object):
             (_("File"), 'file', False, "", True),
             (_("Bitrate"), 'bitrate', False, "", True)]
 
-        tagtable = Gtk.Table(len(labels), 2)
-        tagtable.set_col_spacings(12)
         for i, (text, name, link, tooltip, in_more) in enumerate(labels):
             label = ui.label(markup="<b>%s:</b>" % text, y=0)
-            tagtable.attach(label, 0, 1, i, i + 1, yoptions=Gtk.AttachOptions.SHRINK)
+            self.info_song_grid.attach(label, 0, i, 1, 1)
             if i == 0:
                 self.info_left_label = label
             # Using set_selectable overrides the hover cursor that
@@ -119,7 +114,7 @@ class Info(object):
                 tmpevbox = ui.eventbox(add=tmplabel2)
                 self._apply_link_signals(tmpevbox, name, tooltip)
             to_pack = tmpevbox if link else tmplabel2
-            tagtable.attach(to_pack, 1, 2, i, i + 1, yoptions=Gtk.AttachOptions.SHRINK)
+            self.info_song_grid.attach(to_pack, 1, i, 2, 1)
             self.info_labels[name] = tmplabel2
             if in_more:
                 self.info_boxes_in_more.append(label)
@@ -135,61 +130,43 @@ class Info(object):
         mischbox = Gtk.HBox()
         mischbox.pack_start(moreevbox, False, False, 3)
         mischbox.pack_start(editevbox, False, False, 3)
-
-        tagtable.attach(mischbox, 0, 2, len(labels), len(labels) + 1)
-        inner_hbox = Gtk.HBox()
-        inner_hbox.pack_start(self._imagebox, False, False, 6)
-        inner_hbox.pack_start(tagtable, False, False, 6)
-        info_song.add(inner_hbox)
-        return info_song
+        self.info_song_grid.attach(mischbox, 0, len(labels), 3, 1)
 
     def _widgets_lyrics(self):
-        horiz_spacing = 2
-        vert_spacing = 1
-        self.info_lyrics = ui.expander(markup="<b>%s</b>" % _("Lyrics"),
-                    expand=self.config.info_lyrics_expanded,
-                    can_focus=False)
+        self.info_lyrics = self.builder.get_object('info_page_lyrics_expander')
+        self.info_lyrics.set_expanded(self.config.info_lyrics_expanded)
         self.info_lyrics.connect("activate", self._expanded, "lyrics")
-        lyricsbox = Gtk.VBox()
-        self.lyricsText = ui.textview(text="", edit=False, wrap=True)
+        self.lyrics_scrolledwindow = self.builder.get_object(
+            'info_page_lyrics_scrolledwindow')
+        self.lyrics_text = self.builder.get_object('info_page_lyrics_textview')
         self._populate_lyrics_tag_table()
-        self.lyricsSw = ui.scrollwindow(policy_x=Gtk.PolicyType.NEVER,
-                                        policy_y=Gtk.PolicyType.NEVER,
-                                        add=self.lyricsText)
-        lyricsbox.pack_start(self.lyricsSw, True, True, vert_spacing)
-        lyricsbox_bottom = Gtk.HBox()
-        self._searchlabel = ui.label(y=0)
-        self._editlyricslabel = ui.label(y=0)
-        searchevbox = ui.eventbox(add=self._searchlabel)
-        editlyricsevbox = ui.eventbox(add=self._editlyricslabel)
-        self._apply_link_signals(searchevbox, 'search',
+        self._searchlabel = self.builder.get_object('info_page_lyrics_search')
+        self._editlyricslabel = self.builder.get_object('info_page_lyrics_edit')
+        search_eventbox = self.builder.get_object(
+            'info_page_lyrics_search_eventbox')
+        edit_eventbox = self.builder.get_object(
+            'info_page_lyrics_edit_eventbox')
+        self._apply_link_signals(search_eventbox, 'search',
                                  _("Search Lyricwiki.org for lyrics"))
-        self._apply_link_signals(editlyricsevbox, 'editlyrics',
+        self._apply_link_signals(edit_eventbox, 'editlyrics',
                                  _("Edit lyrics at Lyricwiki.org"))
-        lyricsbox_bottom.pack_start(searchevbox, False, False, horiz_spacing)
-        lyricsbox_bottom.pack_start(editlyricsevbox, False, False,
-                                    horiz_spacing)
-        lyricsbox.pack_start(lyricsbox_bottom, False, False, vert_spacing)
-        self.info_lyrics.add(lyricsbox)
-        return self.info_lyrics
 
     def _widgets_album(self):
-        info_album = ui.expander(markup="<b>%s</b>" % _("Album Info"),
-                expand=self.config.info_album_expanded,
-                can_focus=False)
-        info_album.connect("activate", self._expanded, "album")
-        self.albumText = ui.textview(text="", edit=False, wrap=True)
-        self.albumSw = ui.scrollwindow(policy_x=Gtk.PolicyType.NEVER,
-                                       policy_y=Gtk.PolicyType.NEVER,
-                                       add=self.albumText)
-        info_album.add(self.albumSw)
-        return info_album
+        self.info_album = self.builder.get_object('info_page_album_expander')
+        self.info_album.set_expanded(self.config.info_album_expanded)
+        self.album_text = self.builder.get_object('info_page_album_textview')
+        self.album_scrolledwindow = self.builder.get_object(
+            'info_page_album_scrolledwindow')
+        self.info_album.connect("activate", self._expanded, "album")
 
     def get_widgets(self):
         return self.info_area
 
     def get_info_imagebox(self):
         return self._imagebox
+
+    def get_info_image(self):
+        return self.image
 
     def show_lyrics_updated(self):
         func = "show" if self.config.show_lyrics else "hide"
@@ -232,11 +209,10 @@ class Info(object):
         """Clear the info widgets of any information"""
         for label in self.info_labels.values():
             label.set_text("")
-        self._editlabel.set_text("")
         self._searchlabel.set_text("")
         self._editlyricslabel.set_text("")
         self._show_lyrics(None, None)
-        self.albumText.get_buffer().set_text("")
+        self.album_text.get_buffer().set_text("")
         self.last_bitrate = ""
 
     def update(self, playing_or_paused, newbitrate, songinfo, update_all):
@@ -290,7 +266,7 @@ class Info(object):
 
     def _update_album(self, songinfo):
         if 'album' not in songinfo:
-            self.albumText.get_buffer().set_text(_("Album name not set."))
+            self.album_text.get_buffer().set_text(_("Album name not set."))
             return
 
         artist, tracks = self.album_return_artist_and_tracks()
@@ -317,7 +293,7 @@ class Info(object):
             albuminfo += "\n\n"
             albuminfo += "\n".join(t for t in tracklist)
 
-        self.albumText.get_buffer().set_text(albuminfo)
+        self.album_text.get_buffer().set_text(albuminfo)
 
     def _update_lyrics(self, songinfo):
         if self.config.show_lyrics:
@@ -423,14 +399,14 @@ class Info(object):
     def _show_lyrics(self, artist_then, title_then, lyrics=None, error=None):
         # For error messages where there is no appropriate info:
         if not artist_then or not title_then:
-            self._searchlabel.set_markup("")
-            self._editlyricslabel.set_markup("")
+            self._searchlabel.set_text("")
+            self._editlyricslabel.set_text("")
             if error:
-                self.lyricsText.get_buffer().set_text(error)
+                self.lyrics_text.get_buffer().set_text(error)
             elif lyrics:
-                self.lyricsText.get_buffer().set_text(lyrics)
+                self.lyrics_text.get_buffer().set_text(lyrics)
             else:
-                self.lyricsText.get_buffer().set_text("")
+                self.lyrics_text.get_buffer().set_text("")
             return
 
         # Verify that we are displaying the correct lyrics:
@@ -445,17 +421,17 @@ class Info(object):
             self._editlyricslabel.set_markup(misc.link_markup(
                 _("edit"), True, True, self.linkcolor))
             if error:
-                self.lyricsText.get_buffer().set_text(error)
+                self.lyrics_text.get_buffer().set_text(error)
             elif lyrics:
                 self._set_lyrics(lyrics)
             else:
-                self.lyricsText.get_buffer().set_text("")
+                self.lyrics_text.get_buffer().set_text("")
 
     def _set_lyrics(self, lyrics):
         if lyrics is None:
             return
 
-        lyrics_buf = self.lyricsText.get_buffer()
+        lyrics_buf = self.lyrics_text.get_buffer()
         lyrics_buf.set_text('')
 
         # pango needs only ampersand to be escaped
@@ -491,7 +467,7 @@ class Info(object):
                 break
 
     def _populate_lyrics_tag_table(self):
-        tag_table = self.lyricsText.get_buffer().get_tag_table()
+        tag_table = self.lyrics_text.get_buffer().get_tag_table()
 
         bold_tag = Gtk.TextTag.new('bold')
         bold_tag.set_property('weight', Pango.Weight.BOLD)
@@ -518,8 +494,8 @@ class Info(object):
         # Resize lyrics/album gtk labels:
         # 45 accounts for vert scrollbar, box paddings, etc..
         labelwidth = notebook_allocation.width - 45
-        self.lyricsSw.set_size_request(labelwidth, -1)
-        self.albumSw.set_size_request(labelwidth, -1)
+        self.lyrics_scrolledwindow.set_size_request(labelwidth, -1)
+        self.album_scrolledwindow.set_size_request(labelwidth, -1)
 
     def target_lyrics_filename(self, artist, title, song_dir,
                                force_location=None):

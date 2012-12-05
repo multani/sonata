@@ -521,8 +521,7 @@ class Base(object):
         libraryactions = self.library.get_libraryactions()
 
         # Info tab
-        self.info = info.Info(self.config, self.artwork.get_info_image(),
-                              linkcolor, self.on_link_click,
+        self.info = info.Info(self.config, linkcolor, self.on_link_click,
                               self.get_playing_song,
                               self.TAB_INFO, self.on_image_activate,
                               self.on_image_motion_cb, self.on_image_drop_cb,
@@ -530,6 +529,8 @@ class Base(object):
                               self.add_tab)
 
         self.info_imagebox = self.info.get_info_imagebox()
+        info_image = self.info.get_info_image()
+        self.artwork.set_info_image(info_image)
 
         # Streams tab
         self.streams = streams.Streams(self.config, self.window,
