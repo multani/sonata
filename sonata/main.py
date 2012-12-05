@@ -1564,8 +1564,6 @@ class Base(object):
                 self.ppbutton.set_image(ui.image(
                     stock=Gtk.STOCK_MEDIA_PLAY,
                     stocksize=Gtk.IconSize.BUTTON))
-                child = self.ppbutton.get_child().get_child().get_children()
-                child[1].set_text('')
                 self.UIManager.get_widget('/traymenu/playmenu').show()
                 self.UIManager.get_widget('/traymenu/pausemenu').hide()
                 self.tray_icon.update_icon(self.path_to_icon('sonata.png'))
@@ -1724,19 +1722,19 @@ class Base(object):
                                       int(self.status['playlistlength']))
                 songs_string = "{} {}".format(self.status['playlistlength'],
                                               songs_text)
+                time_parts = []
                 if hours >= 24:
                     days = int(hours / 24)
                     hours = hours - (days * 24)
                 if days:
                     days_text = ngettext('day', 'days', days)
-                    days_string = "{} {}".format(days, days_text)
+                    time_parts.append("{} {}".format(days, days_text))
                 if hours:
                     hours_text = ngettext('hour', 'hours', hours)
-                    hours_string = "{} {}".format(hours, hours_text)
+                    time_parts.append("{} {}".format(hours, hours_text))
                 if mins:
                     mins_text = ngettext('minute', 'minutes', mins)
-                    mins_string = "{} {}".format(mins, mins_text)
-                time_parts = (days_string, hours_string, mins_string)
+                    time_parts.append("{} {}".format(mins, mins_text))
                 time_string = ', '.join([part for part in time_parts if part])
                 if float(self.status['playlistlength']) > 0:
                     status_text = "{}: {}".format(songs_string, time_string)
