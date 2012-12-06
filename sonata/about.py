@@ -17,6 +17,7 @@ class About(object):
         self.icon_file = icon_file
 
         self.about_dialog = None
+        self.shortcuts_dialog = None
 
     def about_close(self, _event, _data=None):
         if _data == Gtk.ResponseType.DELETE_EVENT or \
@@ -24,7 +25,16 @@ class About(object):
             self.about_dialog.hide()
         return True
 
-    def about_shortcuts(self, _button):
+    def shortcuts_close(self, _event, _data=None):
+        if _data == Gtk.ResponseType.DELETE_EVENT or \
+           _data == Gtk.ResponseType.CANCEL:
+            self.shortcuts_dialog.hide()
+        return True
+
+    def shortcuts_close_click_cb(self, _button):
+        self.shortcuts_dialog.hide()
+
+    def _init_shortcuts_dialog(self):
         # define the shortcuts and their descriptions
         # these are all gettextable
         # Keep them here (not as XML) as they're more convenient this way
@@ -96,7 +106,12 @@ class About(object):
                 [_("Playlist Shortcuts"), playlistshortcuts],
                 [_("Stream Shortcuts"), streamshortcuts],
                 [_("Info Shortcuts"), infoshortcuts]]
-        dialog = self.builder.get_object('shortcuts_dialog')
+        self.shortcuts_dialog = self.builder.get_object('shortcuts_dialog')
+        self.shortcuts_dialog.connect('response', self.shortcuts_close)
+        self.shortcuts_dialog.connect('delete_event', self.shortcuts_close)
+        shortcuts_close_button = self.builder.get_object(
+            'shortcuts_dialog_closebutton')
+        shortcuts_close_button.connect('clicked', self.shortcuts_close_click_cb)
 
         # each pair is a [ heading, shortcutlist ]
         vbox = self.builder.get_object('shortcuts_dialog_content_box')
@@ -116,9 +131,12 @@ class About(object):
 
                 vbox.pack_start(tmphbox, False, False, 2)
             vbox.pack_start(ui.label(text=" "), False, False, 2)
-        dialog.show_all()
-        dialog.run()
-        dialog.destroy()
+
+    def about_shortcuts(self, _button):
+        if not self.shortcuts_dialog:
+            self._init_shortcuts_dialog()
+        self.shortcuts_dialog.show_all()
+        self.shortcuts_dialog.run()
 
     def statstext(self, stats):
         # XXX translate expressions, not words
