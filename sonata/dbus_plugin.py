@@ -26,14 +26,9 @@ import sys
 try:
     import dbus
     import dbus.service
-    if getattr(dbus, "version", (0, 0, 0)) >= (0, 41, 0):
-        import dbus.glib
-    if getattr(dbus, "version", (0, 0, 0)) >= (0, 80, 0):
-        import _dbus_bindings as dbus_bindings
-        NEW_DBUS = True
-    else:
-        import dbus.dbus_bindings as dbus_bindings
-        NEW_DBUS = False
+    import _dbus_bindings as dbus_bindings
+    from dbus.mainloop.glib import DBusGMainLoop
+    DBusGMainLoop(set_as_default=True)
     HAVE_DBUS = True
 except:
     HAVE_DBUS = False
@@ -137,13 +132,10 @@ def start_dbus_interface():
     if HAVE_DBUS:
         try:
             bus = get_session_bus()
-            if NEW_DBUS:
-                retval = bus.request_name("org.MPD.Sonata",
-                                          dbus_bindings.NAME_FLAG_DO_NOT_QUEUE)
-            else:
-                retval = dbus_bindings.bus_request_name(bus.get_connection(),
-                                        "org.MPD.Sonata",
-                                        dbus_bindings.NAME_FLAG_DO_NOT_QUEUE)
+
+            retval = bus.request_name("org.MPD.Sonata",
+                                      dbus_bindings.NAME_FLAG_DO_NOT_QUEUE)
+
             if retval in (dbus_bindings.REQUEST_NAME_REPLY_PRIMARY_OWNER,
                           dbus_bindings.REQUEST_NAME_REPLY_ALREADY_OWNER):
                 pass

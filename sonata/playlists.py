@@ -14,14 +14,11 @@ self.playlists.populate()
 ...
 """
 
-import gtk
-import pango
+from gi.repository import Gtk, Pango, Gdk
 
-import ui
-import misc
-import mpdhelper as mpdh
+from sonata import ui, misc, mpdhelper as mpdh
 
-from pluginsystem import pluginsystem, BuiltinPlugin
+from sonata.pluginsystem import pluginsystem, BuiltinPlugin
 
 
 class Playlists(object):
@@ -29,7 +26,7 @@ class Playlists(object):
     def __init__(self, config, window, mpd, UIManager,
                  update_menu_visibility, iterate_now, on_add_item,
                  on_playlists_button_press, get_current_songs, connected,
-                 add_selected_to_playlist, TAB_PLAYLISTS):
+                 add_selected_to_playlist, TAB_PLAYLISTS, new_tab):
         self.config = config
         self.window = window
         self.mpd = mpd
@@ -50,7 +47,7 @@ class Playlists(object):
         self.playlists_selection = self.playlists.get_selection()
         self.playlistswindow = ui.scrollwindow(add=self.playlists)
 
-        self.tab = (self.playlistswindow, gtk.STOCK_JUSTIFY_CENTER,
+        self.tab = new_tab(self.playlistswindow, Gtk.STOCK_JUSTIFY_CENTER,
                     TAB_PLAYLISTS, self.playlists)
 
         self.playlists.connect('button_press_event',
@@ -59,27 +56,19 @@ class Playlists(object):
         self.playlists.connect('key-press-event', self.playlists_key_press)
 
         # Initialize playlist data and widget
-        self.playlistsdata = gtk.ListStore(str, str)
+        self.playlistsdata = Gtk.ListStore(str, str)
         self.playlists.set_model(self.playlistsdata)
         self.playlists.set_search_column(1)
-        self.playlistsimg = gtk.CellRendererPixbuf()
-        self.playlistscell = gtk.CellRendererText()
-        self.playlistscell.set_property("ellipsize", pango.ELLIPSIZE_END)
-        self.playlistscolumn = gtk.TreeViewColumn()
+        self.playlistsimg = Gtk.CellRendererPixbuf()
+        self.playlistscell = Gtk.CellRendererText()
+        self.playlistscell.set_property("ellipsize", Pango.EllipsizeMode.END)
+        self.playlistscolumn = Gtk.TreeViewColumn()
         self.playlistscolumn.pack_start(self.playlistsimg, False)
         self.playlistscolumn.pack_start(self.playlistscell, True)
-        self.playlistscolumn.set_attributes(self.playlistsimg, stock_id=0)
-        self.playlistscolumn.set_attributes(self.playlistscell, markup=1)
+        self.playlistscolumn.add_attribute(self.playlistsimg, "stock_id", 0)
+        self.playlistscolumn.add_attribute(self.playlistscell, "markup", 1)
         self.playlists.append_column(self.playlistscolumn)
-        self.playlists_selection.set_mode(gtk.SELECTION_MULTIPLE)
-
-        pluginsystem.plugin_infos.append(BuiltinPlugin(
-                'playlists', "Playlists", "A tab for playlists.",
-                {'tabs': 'construct_tab'}, self))
-
-    def construct_tab(self):
-        self.playlistswindow.show_all()
-        return self.tab
+        self.playlists_selection.set_mode(Gtk.SelectionMode.MULTIPLE)
 
     def get_model(self):
         return self.playlistsdata
@@ -99,13 +88,15 @@ class Playlists(object):
         if self.actionGroupPlaylists:
             self.UIManager().remove_action_group(self.actionGroupPlaylists)
             self.actionGroupPlaylists = None
-        self.actionGroupPlaylists = gtk.ActionGroup('MPDPlaylists')
+        self.actionGroupPlaylists = Gtk.ActionGroup('MPDPlaylists')
         self.UIManager().ensure_update()
-        actions = [("Playlist: %s" % playlist.replace("&", ""),
-                gtk.STOCK_JUSTIFY_CENTER,
-                misc.unescape_html(playlist), None, None,
-                self.on_playlist_menu_click)
-                for playlist in playlistinfo]
+        actions = [
+            ("Playlist: %s" % playlist.replace("&", ""),
+             Gtk.STOCK_JUSTIFY_CENTER,
+             ui.quote_label(misc.unescape_html(playlist)),
+             None, None,
+             self.on_playlist_menu_click)
+            for playlist in playlistinfo]
         self.actionGroupPlaylists.add_actions(actions)
         uiDescription = """
             <ui>
@@ -173,8 +164,8 @@ class Playlists(object):
                     if ui.show_msg(self.window,
                                    _(('A playlist with this name already '
                                      'exists. Would you like to replace it?')),
-                                   title, role, gtk.BUTTONS_YES_NO) == \
-                       gtk.RESPONSE_YES:
+                                   title, role, Gtk.ButtonsType.YES_NO) == \
+                       Gtk.ResponseType.YES:
                         return False
                     else:
                         return True
@@ -185,23 +176,23 @@ class Playlists(object):
         if self.connected():
             # Prompt user for playlist name:
             dialog = ui.dialog(title=title, parent=self.window,
-                               flags=gtk.DIALOG_MODAL |
-                               gtk.DIALOG_DESTROY_WITH_PARENT,
-                               buttons=(gtk.STOCK_CANCEL,
-                                        gtk.RESPONSE_REJECT,
-                                        gtk.STOCK_SAVE,
-                                        gtk.RESPONSE_ACCEPT),
-                               role=role, default=gtk.RESPONSE_ACCEPT)
-            hbox = gtk.HBox()
+                               flags=Gtk.DialogFlags.MODAL |
+                               Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                               buttons=(Gtk.STOCK_CANCEL,
+                                        Gtk.ResponseType.REJECT,
+                                        Gtk.STOCK_SAVE,
+                                        Gtk.ResponseType.ACCEPT),
+                               role=role, default=Gtk.ResponseType.ACCEPT)
+            hbox = Gtk.HBox()
             hbox.pack_start(ui.label(text=_('Playlist name:')), False, False,
                             5)
             entry = ui.entry()
             entry.set_activates_default(True)
             hbox.pack_start(entry, True, True, 5)
-            dialog.vbox.pack_start(hbox)
+            dialog.vbox.pack_start(hbox, True, True, 0)
             ui.show(dialog.vbox)
             response = dialog.run()
-            if response == gtk.RESPONSE_ACCEPT:
+            if response == Gtk.ResponseType.ACCEPT:
                 plname = misc.strip_all_slashes(entry.get_text())
             dialog.destroy()
         return plname
@@ -221,9 +212,9 @@ class Playlists(object):
             # Remove case sensitivity
             playlistinfo.sort(key=lambda x: x.lower())
             for item in playlistinfo:
-                self.playlistsdata.append([gtk.STOCK_JUSTIFY_FILL, item])
-            if self.mpd.version >= (0, 13):
-                self.populate_playlists_for_menu(playlistinfo)
+                self.playlistsdata.append([Gtk.STOCK_JUSTIFY_FILL, item])
+
+            self.populate_playlists_for_menu(playlistinfo)
 
     def on_playlist_rename(self, _action):
         plname = self.prompt_for_playlist_name(_("Rename Playlist"),
@@ -246,7 +237,7 @@ class Playlists(object):
                 row = row + 1
 
     def playlists_key_press(self, widget, event):
-        if event.keyval == gtk.gdk.keyval_from_name('Return'):
+        if event.keyval == Gdk.keyval_from_name('Return'):
             self.playlists_activated(widget, widget.get_cursor()[0])
             return True
 

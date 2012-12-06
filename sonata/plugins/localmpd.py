@@ -12,13 +12,13 @@
 # url: http://sonata.berlios.de
 # license: GPL v3 or later
 # [capabilities]
-# tabs: construct_tab
+# tab_construct: tab_construct
 ### END PLUGIN INFO
 
 import subprocess, locale
 from pwd import getpwuid
 
-import gobject, gtk
+from gi.repository import GObject, Gtk
 
 from sonata.misc import escape_html
 
@@ -81,10 +81,10 @@ class Netstat(object):
 
 def update(label):
     # schedule next update
-    gobject.timeout_add(1000, update, label)
+    GObject.timeout_add(1000, update, label)
 
     # don't update if not visible
-    if not label.window or not label.window.is_viewable():
+    if not hasattr(label, "window") or not label.get_window().is_viewable():
         return
 
     netstat = Netstat()
@@ -92,16 +92,18 @@ def update(label):
     netstats = netstat.format_connections()
 
     # XXX replace the shell commands with python code
-    commands = [("Processes", "ps wwu -C mpd".split()),
-            ("Files", ["sh", "-c", "ls -ldh /etc/mpd.conf /var/lib/mpd /var/lib/mpd/* /var/lib/mpd/*/*"]),
-            ]
+    commands = [
+        (_("Processes"), "ps wwu -C mpd".split()),
+        (_("Files"), ["sh", "-c", "ls -ldh /etc/mpd.conf /var/lib/mpd "
+                      "/var/lib/mpd/* /var/lib/mpd/*/*"]),
+    ]
     outputs = [(title, subprocess.Popen(command,
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE
                         ).communicate())
            for title, command in commands]
 
-    sections = [outputs[0], ("Networking", (netstats, "")), outputs[1]]
+    sections = [outputs[0], (_("Networking"), (netstats, "")), outputs[1]]
     text = '\n'.join(["<b>%s</b>\n<tt>%s</tt><i>%s</i>\n" %
               (title, escape_html(stdout), escape_html(stderr))
               for title, (stdout, stderr) in sections])
@@ -109,31 +111,31 @@ def update(label):
                      'replace'))
 
 # nothing magical here, this constructs the parts of the tab when called:
-def construct_tab():
-    vbox = gtk.VBox(spacing=2)
+def tab_construct():
+    vbox = Gtk.VBox(spacing=2)
     vbox.props.border_width = 2
-    buttonbox = gtk.HBox(spacing=2)
-    editbutton = gtk.Button("Edit /etc/mpd.conf")
-    editbutton.connect('clicked', lambda *args:subprocess.Popen(
-            ["gksu", "gedit", "/etc/mpd.conf"]))
-    buttonbox.pack_start(editbutton, False, False)
-    restartbutton = gtk.Button("Restart the mpd service")
+    buttonbox = Gtk.HBox(spacing=2)
+    editbutton = Gtk.Button(_("Edit /etc/mpd.conf"))
+    editbutton.connect('clicked', lambda *args: subprocess.Popen(
+        ["gksu", "xdg-open", "/etc/mpd.conf"]))
+    buttonbox.pack_start(editbutton, False, False, 0)
+    restartbutton = Gtk.Button(_("Restart the mpd service"))
     restartbutton.connect('clicked', lambda *args:subprocess.Popen(
             ["gksu", "service", "mpd", "restart"]))
-    buttonbox.pack_start(restartbutton, False, False)
-    vbox.pack_start(buttonbox, False, False)
-    label = gtk.Label()
+    buttonbox.pack_start(restartbutton, False, False, 0)
+    vbox.pack_start(buttonbox, False, False, 0)
+    label = Gtk.Label(label="...")
     label.set_properties(xalign=0.0, xpad=5, yalign=0.0, ypad=5,
                  selectable=True)
-    vbox.pack_start(label, False, False)
+    vbox.pack_start(label, False, False, 0)
 
     update(label)
 
-    window = gtk.ScrolledWindow()
-    window.set_properties(hscrollbar_policy=gtk.POLICY_AUTOMATIC,
-                  vscrollbar_policy=gtk.POLICY_AUTOMATIC)
+    window = Gtk.ScrolledWindow()
+    window.set_properties(hscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
+                  vscrollbar_policy=Gtk.PolicyType.AUTOMATIC)
     window.add_with_viewport(vbox)
     window.show_all()
 
     # (tab content, icon name, tab name, the widget to focus on tab switch)
-    return (window, None, "Local MPD", None)
+    return (window, None, _("Local MPD"), None)

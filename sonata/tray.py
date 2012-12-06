@@ -1,23 +1,22 @@
 
 import os
-import gobject
-import gtk
 
-from . import ui, img
+from gi.repository import Gtk, GObject, Pango
+
+from sonata import ui, img
 
 
-class TrayIconTips(gtk.Window):
-    """Custom tooltips derived from gtk.Window() that allow for markup text and
+class TrayIconTips(Gtk.Window):
+    """Custom tooltips derived from Gtk.Window() that allow for markup text and
     multiple widgets, e.g. a progress bar. ;)"""
     MARGIN = 4
 
     def __init__(self):
-        gtk.Window.__init__(self, gtk.WINDOW_POPUP)
+        GObject.GObject.__init__(self, type=Gtk.WindowType.POPUP)
         # from gtktooltips.c:gtk_tooltips_force_window
         self.set_app_paintable(True)
         self.set_resizable(False)
         self.set_name("gtk-tooltips")
-        self.connect('expose-event', self._on__expose_event)
 
         self._show_timeout_id = -1
         self.timer_tag = None
@@ -28,7 +27,9 @@ class TrayIconTips(gtk.Window):
     def _calculate_pos(self, tray_icon):
         if tray_icon is not None:
             x, y, _, height = tray_icon.compute_pos()
-        w, h = self.size_request()
+        size = self.size_request()
+        w = size.width
+        h = size.height
 
         screen = self.get_screen()
         pointer_screen, px, py, _ = screen.get_display().get_pointer()
@@ -85,7 +86,7 @@ class TrayIconTips(gtk.Window):
                     monitor.y + (monitor.height - h) / 2
 
     def _start_delay(self, tray_icon):
-        self.timer_tag = gobject.timeout_add(500, self._tips_timeout,
+        self.timer_tag = GObject.timeout_add(500, self._tips_timeout,
                                              tray_icon)
 
     def _tips_timeout(self, tray_icon):
@@ -95,17 +96,8 @@ class TrayIconTips(gtk.Window):
     def _remove_timer(self):
         self.hide()
         if self.timer_tag:
-            gobject.source_remove(self.timer_tag)
+            GObject.source_remove(self.timer_tag)
         self.timer_tag = None
-
-    # from gtktooltips.c:gtk_tooltips_paint_window
-    def _on__expose_event(self, window, _event):
-        w, h = window.size_request()
-        window.style.paint_flat_box(window.window,
-                                    gtk.STATE_NORMAL, gtk.SHADOW_OUT,
-                                    None, window, "tooltip",
-                                    0, 0, w, h)
-        return False
 
     def _real_display(self, tray_icon):
         x, y = self._calculate_pos(tray_icon)
@@ -115,8 +107,8 @@ class TrayIconTips(gtk.Window):
     # Public API
 
     def hide(self):
-        gtk.Window.hide(self)
-        gobject.source_remove(self._show_timeout_id)
+        Gtk.Window.hide(self)
+        GObject.source_remove(self._show_timeout_id)
         self._show_timeout_id = -1
         self.notif_handler = None
 
@@ -124,149 +116,8 @@ class TrayIconTips(gtk.Window):
         self.add(widget_to_add)
 
 
-def get_tray_icon_factory():
-    """Return the class to create the tray icon.
-
-    This will detect the best way to create a tray icon:
-
-        * if the egg.trayicon module is available, then use it
-        * if the gtk.StatusIcon is available, then use it
-        * else, use a dummy tray icon, we should show no tray icon at all
-    """
-
-    # Prevent deprecation warning for egg:
-    import warnings
-    warnings.simplefilter('ignore', DeprecationWarning)
-    try:
-        import egg.trayicon
-        factory = TrayIconEgg
-    except ImportError:
-        try:
-            from sugar.activity import activity
-            factory = TrayIconDummy
-        except ImportError:
-            factory = TrayIconGtk
-    # Reset so that we can see any other deprecation warnings
-    warnings.simplefilter('default', DeprecationWarning)
-
-    return factory
-
-
-class TrayIconDummy(object):
-    """Behave like a tray icon, but do as if no tray icon is available."""
-
-    def __init__(self, window, traymenu, traytips):
-        pass
-
-    def compute_pos(self):
-        pass
-
-    def initialize(self, on_click, on_scroll, on_activate):
-        pass
-
-    def is_visible(self):
-        return False
-
-    def update_icon(self, icon_path):
-        pass
-
-    def show(self):
-        pass
-
-    def hide(self):
-        pass
-
-    def is_available(self):
-        return False
-
-
-class TrayIconEgg(object):
-    """Tray icon which use egg.trayicon module"""
-
-    def __init__(self, window, traymenu, traytips):
-        self.trayicon = None
-        self.trayimage = None
-        self.eggtrayfile = None
-        self.eggtrayheight = None
-        self.trayeventbox = None
-        self.traytips = traytips
-
-    def compute_pos(self):
-        widget = self.trayeventbox
-        x, y = widget.window.get_origin()
-        if widget.flags() & gtk.NO_WINDOW:
-            x += widget.allocation.x
-            y += widget.allocation.y
-        height = widget.allocation.height
-        width = widget.allocation.width
-        return x, y, width, height
-
-    def initialize(self, on_click, on_scroll, on_activate):
-        # Local import to not break if egg.trayicon is not available
-        import egg.trayicon
-        self.trayimage = ui.image()
-        self.trayeventbox = ui.eventbox(add=self.trayimage)
-        self.trayeventbox.connect('button_press_event', on_click)
-        self.trayeventbox.connect('scroll-event', on_scroll)
-        self.trayeventbox.connect('size-allocate', self._systemtray_size)
-        self.trayeventbox.connect_after("event-after", self._motion_cb)
-        self.trayicon = egg.trayicon.TrayIcon("TrayIcon")
-        self.trayicon.add(self.trayeventbox)
-
-    def is_visible(self):
-        return self.trayicon.get_property('visible')
-
-    def update_icon(self, icon_path):
-        self.eggtrayfile = icon_path
-        self._set_tray_image()
-
-    def show(self):
-        self.trayicon.show_all()
-
-    def hide(self):
-        self.trayicon.hide_all()
-
-    def is_available(self):
-        # TODO: does eggtray as any way to know it the systray is available in
-        # the current window manager?
-        return True
-
-    def _set_tray_image(self):
-        if self.eggtrayheight is None:
-            # The tray height has not been computed yet, so we can't display the
-            # tray icon yet.
-            return
-
-        self.trayimage.set_from_pixbuf(
-            img.get_pixbuf_of_size(
-                gtk.gdk.pixbuf_new_from_file(self.eggtrayfile),
-                self.eggtrayheight)[0])
-
-    def _event_handler(self):
-        self.trayeventbox.connect_after("event-after", self._motion_cb)
-
-    def _motion_cb(self, tray_icon, event):
-        if self.traytips.notif_handler != None:
-            return
-        if event.type == gtk.gdk.LEAVE_NOTIFY:
-            self.traytips._remove_timer()
-        if event.type == gtk.gdk.ENTER_NOTIFY:
-            self.traytips._start_delay(self)
-
-    def _systemtray_size(self, widget, _allocation):
-        if widget.allocation.height <= 5:
-            # For vertical panels, height can be 1px, so use width
-            size = widget.allocation.width
-        else:
-            size = widget.allocation.height
-        if not self.eggtrayheight or self.eggtrayheight != size:
-            self.eggtrayheight = size
-            if size > 5 and self.eggtrayfile:
-                self._set_tray_image()
-
-
-class TrayIconGtk(object):
-    """Tray icon which use gtk.StatusIcon"""
+class TrayIcon(object):
+    """Tray icon which use Gtk.StatusIcon"""
 
     def __init__(self, window, traymenu, traytips):
         self.statusicon = None
@@ -275,19 +126,15 @@ class TrayIconGtk(object):
         self.traytips = traytips
 
     def compute_pos(self):
-        _icon_screen, icon_rect, _icon_orient = self.statusicon.get_geometry()
-        x = icon_rect[0]
-        y = icon_rect[1]
-        width = icon_rect[3]
-        height = icon_rect[3]
-        return (x, y, width, height)
+        _ok, _screen, rect, _orient = self.statusicon.get_geometry()
+        return (rect.x, rect.y, rect.height, rect.width)
 
     def initialize(self, on_click, on_scroll, on_activate):
-        self.statusicon = gtk.StatusIcon()
+        self.statusicon = Gtk.StatusIcon()
         self.statusicon.connect('activate', on_activate)
         self.statusicon.connect('button_press_event', on_click)
         self.statusicon.connect('scroll-event', on_scroll)
-        gobject.timeout_add(250, self._iterate_status_icon)
+        GObject.timeout_add(250, self._iterate_status_icon)
 
     def is_visible(self):
         """Visible and/or notification activated"""
@@ -309,7 +156,7 @@ class TrayIconGtk(object):
     def _iterate_status_icon(self):
         if self.is_visible():
             self._tooltip_show_manually()
-        gobject.timeout_add(250, self._iterate_status_icon)
+        GObject.timeout_add(250, self._iterate_status_icon)
 
     def _tooltip_show_manually(self):
         # Since there is no signal to connect to when the user puts their
