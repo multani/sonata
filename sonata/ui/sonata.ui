@@ -438,6 +438,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="model">artwork_liststore</property>
+                <property name="columns">2</property>
                 <property name="item_width">75</property>
               </object>
             </child>
@@ -598,8 +599,8 @@
       </object>
     </child>
     <action-widgets>
-      <action-widget response="0">artwork_cancel_button</action-widget>
-      <action-widget response="0">artwork_choose_button</action-widget>
+      <action-widget response="-6">artwork_cancel_button</action-widget>
+      <action-widget response="-3">artwork_choose_button</action-widget>
     </action-widgets>
   </object>
   <object class="GtkListStore" id="artwork_liststore">

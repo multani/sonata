@@ -533,7 +533,7 @@ class Artwork(object):
 
                 # Artwork for info tab:
                 if self.info_imagebox_get_size_request()[0] == -1:
-                    fullwidth = self.notebook_get_allocation()[2] - 50
+                    fullwidth = self.notebook_get_allocation().width - 50
                     (pix2, w, h) = img.get_pixbuf_of_size(pix, fullwidth)
                 else:
                     (pix2, w, h) = img.get_pixbuf_of_size(pix, 150)

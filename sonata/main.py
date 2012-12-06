@@ -2592,7 +2592,7 @@ class Base(object):
     def image_remote_replace_cover(self, _iconview, path, _artist, _album,
                                    _stream):
         self.artwork.artwork_stop_update()
-        image_num = int(path[0])
+        image_num = path.get_indices()[0]
         if len(self.remotefilelist) > 0:
             filename = self.remotefilelist[image_num]
             if os.path.exists(filename):
