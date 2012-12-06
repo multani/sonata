@@ -1977,7 +1977,6 @@ class Base(object):
     def on_notebook_resize(self, _widget, _event):
         if not self.current.resizing_columns:
             GObject.idle_add(self.header_save_column_widths)
-        GObject.idle_add(self.info.resize_elements, self.notebook.get_allocation())
 
     def on_expand(self, _action):
         if not self.config.expanded:

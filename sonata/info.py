@@ -477,26 +477,6 @@ class Info(object):
         italic_tag.set_property('style', Pango.Style.ITALIC)
         tag_table.add(italic_tag)
 
-    def resize_elements(self, notebook_allocation):
-        # Resize labels in info tab to prevent horiz scrollbar:
-        if self.config.show_covers:
-            # 60 accounts for vert scrollbar, box paddings, etc..
-            labelwidth = notebook_allocation.width - \
-                    self.info_left_label.get_allocation().width - \
-                    self._imagebox.get_allocation().width - 60
-        else:
-            # 60 accounts for vert scrollbar, box paddings, etc..
-            labelwidth = notebook_allocation.width - \
-                    self.info_left_label.get_allocation().width - 60
-        if labelwidth > 100:
-            for label in self.info_labels.values():
-                label.set_size_request(labelwidth, -1)
-        # Resize lyrics/album gtk labels:
-        # 45 accounts for vert scrollbar, box paddings, etc..
-        labelwidth = notebook_allocation.width - 45
-        self.lyrics_scrolledwindow.set_size_request(labelwidth, -1)
-        self.album_scrolledwindow.set_size_request(labelwidth, -1)
-
     def target_lyrics_filename(self, artist, title, song_dir,
                                force_location=None):
         """get the filename of the lyrics of a song"""
