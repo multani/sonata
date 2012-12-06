@@ -17,7 +17,7 @@
 import logging
 import shutil
 import urllib
-import urllib2
+from urllib import error, request, parse
 from xml.etree import ElementTree
 
 from sonata.version import version
@@ -36,9 +36,9 @@ def on_cover_fetch(callback, artist, album, destination, all_images):
         return _cover_fetching(callback,
                                artist, album,
                                destination, all_images)
-    except urllib2.URLError, e:
+    except urllib.error.URLError as e:
         logger.info("Unable to fetch cover from Last.fm: %s", e.reason)
-    except ElementTree.ParseError, e:
+    except ElementTree.ParseError as e:
         logger.info("Unable to process Last.fm response: %s", e)
 
     return False
@@ -47,18 +47,19 @@ def _cover_fetching(callback, artist, album, destination, all_images):
 
     logger.debug("Looking for a cover for %r from %r", album, artist)
 
-    opener = urllib2.build_opener()
+    handler = urllib.request.HTTPHandler()
+    opener = urllib.request.build_opener(handler)
     opener.addheaders = [("User-Agent", make_user_agent())]
 
     def urlretrieve(url, dest):
         logger.debug("Downloading %r into %r", url, dest)
         u = opener.open(url)
-        with open(dest, "w") as fp:
+        with open(dest, "wb") as fp:
             shutil.copyfileobj(u, fp)
 
     # First, find the link to the master release of this album
     search_url = "http://ws.audioscrobbler.com/2.0/?%s" % (
-        urllib.urlencode({
+        urllib.parse.urlencode({
             "method": "album.getInfo",
             "artist": artist,
             "album": album,
@@ -77,7 +78,7 @@ def _cover_fetching(callback, artist, album, destination, all_images):
             filename = destination.replace("<imagenum>", str(i+1))
             try:
                 urlretrieve(image.text, filename)
-            except urllib2.URLError, e:
+            except urllib.error.URLError as e:
                 logger.warning("Can't download %r: %s", image.text, e)
                 continue
 
@@ -97,7 +98,8 @@ def _cover_fetching(callback, artist, album, destination, all_images):
 
 
 def parse_lastfm_xml(content):
-    root = ElementTree.parse(content)
+    et = ElementTree.parse(content)
+    root = et.getroot()
 
     if root.tag != 'lfm':
         msg = "Response should start with 'lfm', starts with %r instead"
@@ -113,4 +115,4 @@ def parse_lastfm_xml(content):
         raise ElementTree.ParseError(msg % (error.get("code"),
                                             error.text))
     else:
-        return tree
+        return et
