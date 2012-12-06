@@ -2474,60 +2474,28 @@ class Base(object):
     def remotefilelist_append(self, elem):
         self.remotefilelist.append(elem)
 
-    def image_remote(self, _widget):
-        self.choose_dialog = ui.dialog(title=_("Choose Cover Art"),
-                                       parent=self.window,
-                                       flags=Gtk.DialogFlags.MODAL,
-                                       buttons=(Gtk.STOCK_CANCEL,
-                                                Gtk.ResponseType.REJECT),
-                                       role='chooseCoverArt',
-                                       default=Gtk.ResponseType.ACCEPT,
-                                       resizable=False)
-        choosebutton = self.choose_dialog.add_button(_("C_hoose"),
-                                                     Gtk.ResponseType.ACCEPT)
-        chooseimage = ui.image(stock=Gtk.STOCK_CONVERT,
-                               stocksize=Gtk.IconSize.BUTTON)
-        choosebutton.set_image(chooseimage)
-        self.imagelist = Gtk.ListStore(int, GdkPixbuf.Pixbuf)
-        # Setting col=2 only shows 1 column with gtk 2.16 while col=-1 shows 2
-        imagewidget = ui.iconview(col=-1, space=0, margin=0, itemw=75,
-                                  selmode=Gtk.SelectionMode.SINGLE)
-        scroll = ui.scrollwindow(policy_x=Gtk.PolicyType.NEVER,
-                                 policy_y=Gtk.PolicyType.ALWAYS, w=360, h=325,
-                                 add=imagewidget)
-        self.choose_dialog.vbox.pack_start(scroll, False, False, 0)
-        hbox = Gtk.HBox()
-        vbox = Gtk.VBox()
-        vbox.pack_start(ui.label(markup='<small> </small>'), False, False, 0)
-        self.remote_artistentry = ui.entry()
-        self.remote_albumentry = ui.entry()
-        text = [("Artist"), _("Album")]
-        labels = [ui.label(text=labelname + ": ") for labelname in text]
-        entries = [self.remote_artistentry, self.remote_albumentry]
-        for entry, label in zip(entries, labels):
-            tmphbox = Gtk.HBox()
-            tmphbox.pack_start(label, False, False, 5)
-            entry.connect('activate', self.image_remote_refresh, imagewidget)
-            tmphbox.pack_start(entry, True, True, 5)
-            vbox.pack_start(tmphbox, True, True, 0)
-        ui.set_widths_equal(labels)
-        vbox.pack_start(ui.label(markup='<small> </small>'), False, False, 0)
-        hbox.pack_start(vbox, True, True, 5)
-        vbox2 = Gtk.VBox()
-        vbox2.pack_start(ui.label(" "), True, True, 0)
-        refreshbutton = ui.button(text=_('_Update'),
-                                  img=ui.image(stock=Gtk.STOCK_REFRESH))
-        refreshbutton.connect('clicked', self.image_remote_refresh,
-                              imagewidget)
-        vbox2.pack_start(refreshbutton, False, False, 5)
-        vbox2.pack_start(ui.label(" "), True, True, 0)
-        hbox.pack_start(vbox2, False, False, 15)
-        searchexpander = ui.expander(text=_("Edit search terms"))
-        searchexpander.add(hbox)
-        self.choose_dialog.vbox.pack_start(searchexpander, True, True, 0)
-        self.choose_dialog.show_all()
+    def _init_choose_dialog(self):
+        self.choose_dialog = self.builder.get_object('artwork_dialog')
+        self.imagelist = self.builder.get_object('artwork_liststore')
+        self.remote_artistentry = self.builder.get_object('artwork_artist_entry')
+        self.remote_albumentry = self.builder.get_object('artwork_album_entry')
+        artist_label = self.builder.get_object('artwork_artist_label')
+        album_label = self.builder.get_object('artwork_album_label')
+
+        text = [_("Artist"), _("Album")]
+        labels = [labelname + ": " for labelname in text]
+        for label, text in zip((artist_label, album_label), labels):
+            label.set_text(text)
+        self.image_widget = self.builder.get_object('artwork_iconview')
+        refresh_button = self.builder.get_object('artwork_update_button')
+        refresh_button.connect('clicked', self.image_remote_refresh,
+                               self.image_widget)
         self.chooseimage_visible = True
         self.remotefilelist = []
+
+    def image_remote(self, _widget):
+        if not self.choose_dialog:
+            self._init_choose_dialog()
         stream = mpdh.get(self.songinfo, 'name', None)
         if stream is not None:
             # Allow saving an image file for a stream:
@@ -2537,15 +2505,17 @@ class Base(object):
             self.remote_dest_filename = self.target_image_filename()
         album = mpdh.get(self.songinfo, 'album', '')
         artist = self.album_current_artist[1]
-        imagewidget.connect('item-activated', self.image_remote_replace_cover,
+        self.image_widget.connect('item-activated', self.image_remote_replace_cover,
                             artist.replace("/", ""), album.replace("/", ""),
                             stream)
         self.choose_dialog.connect('response', self.image_remote_response,
-                                   imagewidget, artist, album, stream)
+                                   self.image_widget, artist, album, stream)
         self.remote_artistentry.set_text(artist)
         self.remote_albumentry.set_text(album)
         self.allow_art_search = True
-        self.image_remote_refresh(None, imagewidget)
+        self.image_remote_refresh(None, self.image_widget)
+        self.choose_dialog.show_all()
+        self.choose_dialog.run()
 
     def image_remote_refresh(self, _entry, imagewidget):
         if not self.allow_art_search:
@@ -2613,9 +2583,9 @@ class Base(object):
                 # Force a resize of the info labels, if needed:
                 GObject.idle_add(self.on_notebook_resize, self.notebook, None)
             except:
-                dialog.destroy()
+                dialog.hide()
         else:
-            dialog.destroy()
+            dialog.hide()
         ui.change_cursor(None)
         self.chooseimage_visible = False
 
@@ -2632,7 +2602,7 @@ class Base(object):
                 # Clean up..
                 misc.remove_dir_recursive(os.path.dirname(filename))
         self.chooseimage_visible = False
-        self.choose_dialog.destroy()
+        self.choose_dialog.hide()
         while self.artwork.artwork_is_downloading_image():
             Gtk.main_iteration()
 
