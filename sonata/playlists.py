@@ -172,7 +172,7 @@ class Playlists(object):
                         return True
         return False
 
-    def prompt_for_playlist_name(self, title, role):
+    def prompt_for_playlist_name(self, title, role, oldname=None):
         """Prompt user for playlist name"""
         plname = None
         if self.connected():
@@ -183,6 +183,8 @@ class Playlists(object):
             self.playlist_name_dialog.set_title(title)
             self.playlist_name_dialog.set_role(role)
             entry = self.builder.get_object('playlist_name_entry')
+            if oldname:
+                entry.set_text(oldname)
             self.playlist_name_dialog.show_all()
             response = self.playlist_name_dialog.run()
             if response == Gtk.ResponseType.ACCEPT:
@@ -205,17 +207,17 @@ class Playlists(object):
             # Remove case sensitivity
             playlistinfo.sort(key=lambda x: x.lower())
             for item in playlistinfo:
-                self.playlistsdata.append([Gtk.STOCK_JUSTIFY_FILL, item])
+                self.playlistsdata.append([Gtk.STOCK_DIRECTORY, item])
 
             self.populate_playlists_for_menu(playlistinfo)
 
     def on_playlist_rename(self, _action):
+        model, selected = self.playlists_selection.get_selected_rows()
+        oldname = misc.unescape_html(
+            model.get_value(model.get_iter(selected[0]), 1))
         plname = self.prompt_for_playlist_name(_("Rename Playlist"),
-                                               'renamePlaylist')
+                                               'renamePlaylist', oldname)
         if plname:
-            model, selected = self.playlists_selection.get_selected_rows()
-            oldname = misc.unescape_html(
-                model.get_value(model.get_iter(selected[0]), 1))
             if self.playlist_name_exists(_("Rename Playlist"),
                                          'renamePlaylistError',
                                          plname, oldname):
