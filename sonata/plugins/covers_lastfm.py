@@ -116,3 +116,21 @@ def parse_lastfm_xml(content):
                                             error.text))
     else:
         return et
+
+
+if __name__ == '__main__':
+    import os
+    import subprocess
+    import tempfile
+    logging.basicConfig(level=logging.DEBUG)
+    fp, dest = tempfile.mkstemp(".png")
+    os.close(fp)
+
+    def callback(*args, **kwargs):
+        print("Call callback with (%r, %r)" % (args, kwargs))
+
+    result = on_cover_fetch(callback,
+                            "Metallica", "Ride the lightning",
+                            dest, False)
+    print(dest)
+    subprocess.call(['xdg-open', dest])
