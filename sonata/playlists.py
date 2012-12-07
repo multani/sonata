@@ -185,6 +185,8 @@ class Playlists(object):
             entry = self.builder.get_object('playlist_name_entry')
             if oldname:
                 entry.set_text(oldname)
+            else:
+                entry.set_text("")
             self.playlist_name_dialog.show_all()
             response = self.playlist_name_dialog.run()
             if response == Gtk.ResponseType.ACCEPT:
