@@ -43,6 +43,7 @@ class Playlists(object):
 
         self.mergepl_id = None
         self.actionGroupPlaylists = None
+        self.playlist_name_dialog = None
 
         self.builder = Gtk.Builder()
         self.builder.add_from_file('{0}/ui/playlists.ui'.format(
@@ -172,29 +173,21 @@ class Playlists(object):
         return False
 
     def prompt_for_playlist_name(self, title, role):
+        """Prompt user for playlist name"""
         plname = None
         if self.connected():
-            # Prompt user for playlist name:
-            dialog = ui.dialog(title=title, parent=self.window,
-                               flags=Gtk.DialogFlags.MODAL |
-                               Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                               buttons=(Gtk.STOCK_CANCEL,
-                                        Gtk.ResponseType.REJECT,
-                                        Gtk.STOCK_SAVE,
-                                        Gtk.ResponseType.ACCEPT),
-                               role=role, default=Gtk.ResponseType.ACCEPT)
-            hbox = Gtk.HBox()
-            hbox.pack_start(ui.label(text=_('Playlist name:')), False, False,
-                            5)
-            entry = ui.entry()
-            entry.set_activates_default(True)
-            hbox.pack_start(entry, True, True, 5)
-            dialog.vbox.pack_start(hbox, True, True, 0)
-            ui.show(dialog.vbox)
-            response = dialog.run()
+            if not self.playlist_name_dialog:
+                self.playlist_name_dialog = self.builder.get_object(
+                    'playlist_name_dialog')
+            self.playlist_name_dialog.set_transient_for(self.window)
+            self.playlist_name_dialog.set_title(title)
+            self.playlist_name_dialog.set_role(role)
+            entry = self.builder.get_object('playlist_name_entry')
+            self.playlist_name_dialog.show_all()
+            response = self.playlist_name_dialog.run()
             if response == Gtk.ResponseType.ACCEPT:
                 plname = misc.strip_all_slashes(entry.get_text())
-            dialog.destroy()
+            self.playlist_name_dialog.hide()
         return plname
 
     def populate(self):

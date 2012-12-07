@@ -83,6 +83,8 @@ class Base(object):
         self.seekidle = None
         self.artwork = None
 
+        self.lyrics_search_dialog = None
+
         self.mpd = mpdh.MPDClient()
         self.conn = False
         # Anything != than self.conn, to actually refresh the UI at startup.
@@ -2092,30 +2094,15 @@ class Base(object):
     def on_lyrics_search(self, _event):
         artist = mpdh.get(self.songinfo, 'artist')
         title = mpdh.get(self.songinfo, 'title')
-        dialog = ui.dialog(
-            title=_('Lyrics Search'), parent=self.window,
-            flags=Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-            buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT, Gtk.STOCK_FIND,
-                     Gtk.ResponseType.ACCEPT), role='lyricsSearch',
-            default=Gtk.ResponseType.ACCEPT)
-        dialog.action_area.get_children()[0].set_label(_("_Search"))
-        dialog.action_area.get_children()[0].set_image(
-            ui.image(stock=Gtk.STOCK_FIND))
-        artist_hbox = Gtk.HBox()
-        artist_label = ui.label(text=_('Artist Name:'))
-        artist_hbox.pack_start(artist_label, False, False, 5)
-        artist_entry = ui.entry(text=artist)
-        artist_hbox.pack_start(artist_entry, True, True, 5)
-        title_hbox = Gtk.HBox()
-        title_label = ui.label(text=_('Song Title:'))
-        title_hbox.pack_start(title_label, False, False, 5)
-        title_entry = ui.entry(title)
-        title_hbox.pack_start(title_entry, True, True, 5)
-        ui.set_widths_equal([artist_label, title_label])
-        dialog.vbox.pack_start(artist_hbox, True, True, 0)
-        dialog.vbox.pack_start(title_hbox, True, True, 0)
-        ui.show(dialog.vbox)
-        response = dialog.run()
+        if not self.lyrics_search_dialog:
+            self.lyrics_search_dialog = self.builder.get_object(
+                'lyrics_search_dialog')
+        artist_entry = self.builder.get_object('lyrics_search_artist_entry')
+        artist_entry.set_text(artist)
+        title_entry = self.builder.get_object('lyrics_search_title_entry')
+        title_entry.set_text(title)
+        self.lyrics_search_dialog.show_all()
+        response = self.lyrics_search_dialog.run()
         if response == Gtk.ResponseType.ACCEPT:
             # Search for new lyrics:
             self.info.get_lyrics_start(
@@ -2126,7 +2113,7 @@ class Base(object):
                 os.path.dirname(mpdh.get(self.songinfo, 'file')),
                 force_fetch=True)
 
-        dialog.destroy()
+        self.lyrics_search_dialog.hide()
 
     def mpd_shuffle(self, _action):
         if self.conn:
