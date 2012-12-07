@@ -418,6 +418,7 @@
     <property name="resizable">False</property>
     <property name="modal">True</property>
     <property name="type_hint">normal</property>
+    <property name="type">toplevel</property>
     <property name="destroy_with_parent">True</property>
     <property name="window_position">center-on-parent</property>
     <property name="transient_for">main_window</property>
@@ -614,7 +615,7 @@
   <object class="GtkDialog" id="lyrics_search_dialog">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
-    <property name="type">popup</property>
+    <property name="type">toplevel</property>
     <property name="title" translatable="yes">Lyrics Search</property>
     <property name="role">lyrics_search</property>
     <property name="resizable">False</property>
@@ -709,6 +710,7 @@
               <object class="GtkEntry" id="lyrics_search_artist_entry">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="truncate_multiline">True</property>
               </object>
               <packing>
                 <property name="left_attach">1</property>
@@ -721,6 +723,7 @@
               <object class="GtkEntry" id="lyrics_search_title_entry">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="truncate_multiline">True</property>
               </object>
               <packing>
                 <property name="left_attach">1</property>

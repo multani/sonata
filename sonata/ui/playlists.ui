@@ -75,7 +75,7 @@
   <object class="GtkDialog" id="playlist_name_dialog">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
-    <property name="type">popup</property>
+    <property name="type">toplevel</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>
     <property name="window_position">center-on-parent</property>
@@ -107,6 +107,8 @@
               <object class="GtkEntry" id="playlist_name_entry">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="truncate_multiline">True</property>
+                <property name="activates_default">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
