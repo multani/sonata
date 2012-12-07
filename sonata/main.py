@@ -686,7 +686,7 @@ class Base(object):
         elif not self.status:
             self.progressbar.set_text(_('No Read Permission'))
 
-        # Update tab positions: XXX move to self.new_tab
+        # Update tab positions:
         self.notebook.reorder_child(self.current.get_widgets(),
                                     self.config.current_tab_pos)
         self.notebook.reorder_child(self.library.get_widgets(),
@@ -883,34 +883,6 @@ class Base(object):
 
         self.tabname2tab[text] = page
         self.tabname2focus[text] = focus
-
-    def new_tab(self, page, stock, text, focus):
-        # create the "ear" of the tab:
-        hbox = Gtk.HBox()
-        hbox.pack_start(ui.image(stock=stock), False, False, 2)
-        hbox.pack_start(ui.label(text=text), False, False, 2)
-        evbox = ui.eventbox(add=hbox)
-        evbox.show_all()
-
-        evbox.connect("button_press_event", self.on_tab_click)
-
-        # create the actual tab:
-        self.notebook.append_page(page, evbox)
-
-        if (text in self.tabname2id and
-            not getattr(self.config,
-                self.tabname2id[text] + '_tab_visible')):
-            ui.hide(page)
-
-        self.notebook.set_tab_reorderable(page, True)
-        if self.config.tabs_expanded:
-            self.notebook.set_tab_label_packing(page, True, True,
-                                                Gtk.PACK_START)
-
-        self.tabname2tab[text] = page
-        self.tabname2focus[text] = focus
-
-        return page
 
     def connected(self):
         ### "Model, logic":

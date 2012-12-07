@@ -49,7 +49,7 @@ def tab_construct():
                   __file__.rstrip("c")), True, True, 0)
     vbox.show_all()
 
-    # the return value goes off to Base.new_tab(page, stock, text, focus):
+    # the return value goes off to Base.add_tab(page, stock, text, focus):
     # (tab content, icon name, tab name, the widget to focus on tab switch)
     return (vbox, None, "Test plugin", None)
 
