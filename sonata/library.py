@@ -1221,7 +1221,7 @@ class Library(object):
             self.libsearchfilter_stop_loop()
             # call library_browse from the main thread to avoid corruption
             # of treeview, fixes #1959
-            gobject.idle_add(self.library_browse, None, self.config.wd)
+            GObject.idle_add(self.library_browse, None, self.config.wd)
             if move_focus:
                 self.library.grab_focus()
 
