@@ -58,7 +58,7 @@
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">False</property>
-                    <property name="padding">0</property>
+                    <property name="padding">6</property>
                     <property name="position">0</property>
                   </packing>
                 </child>
