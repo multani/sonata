@@ -84,9 +84,10 @@ class TagEditor():
         comment_button = self.builder.get_object('tags_save_comment_button')
         buttons = (title_button, artist_button, album_button, year_button,
                    track_button, genre_button, comment_button)
-        names = self.entries.keys()
-        entries = self.entries.values()
-        for name, entry, button in zip(names, entries, buttons):
+        names = ('title', 'artist', 'album', 'year',
+                 'track', 'genre', 'comment')
+        for name, button in zip(names, buttons):
+            entry = self.entries[name]
             entry.connect('changed', self.tags_win_entry_changed)
             button.connect('clicked', self.tags_win_apply_all, name, entry)
 
@@ -157,29 +158,35 @@ class TagEditor():
 
         self.tags_win_update()
         self.edit_window.show_all()
-        response = self.edit_window.run()
         SAVE_ALL = -12
-        done = True
-        if response == SAVE_ALL:
-            self.tagnum = 0
-            while self.tags_next_tag():
-                self.save_tag()
-        elif response == Gtk.ResponseType.ACCEPT:
-            self.save_tag()
-            done = self.tags_next_tag()
-        elif response == Gtk.ResponseType.REJECT:
-            tag_paths = (tag['mpdpath'] for tag in self.tags[:self.tagnum])
-            GObject.idle_add(self.tags_mpd_update, tag_paths)
-            self.tags_set_use_mpdpath(self.use_mpdpaths)
-        if not done:
+        done = False
+
+        while not done:
             # Next file:
-            self.tags_win_update(window, tags, entries, entries_names)
-        else:
-            # To ensure we update the last file in tags_mpd_update
-            self.tagnum = self.tagnum + 1
-            self.tags = None
-            ui.change_cursor(None)
-            self.edit_window.hide()
+            self.tags_win_update()
+            response = self.edit_window.run()
+            if response == SAVE_ALL:
+                self.save_tag()
+                while self.tags_next_tag():
+                    self.tags_win_update()
+                    self.save_tag()
+                done = True
+            elif response == Gtk.ResponseType.ACCEPT:
+                self.save_tag()
+                done = not self.tags_next_tag()
+                if done:
+                    # To ensure we update the last file in tags_mpd_update
+                    self.tagnum = self.tagnum + 1
+            elif response == Gtk.ResponseType.REJECT:
+                done = True
+
+        tag_paths = (tag['mpdpath'] for tag in self.tags[:self.tagnum])
+        GObject.idle_add(self.tags_mpd_update, tag_paths)
+        self.tags_set_use_mpdpath(self.use_mpdpaths)
+
+        self.tags = None
+        ui.change_cursor(None)
+        self.edit_window.hide()
 
     def tags_next_tag(self):
         # Returns true if next tag found (and self.tagnum is updated).
@@ -220,7 +227,7 @@ class TagEditor():
                 tag['track-changed'] = True
         if item == "track":
             # Update the entry for the current song:
-            entry.set_text(self.tags[self.tagnum]['track'])
+            entry.set_text(str(self.tags[self.tagnum]['track']))
 
     def tags_win_update(self):
         current_tag = self.tags[self.tagnum]
@@ -234,7 +241,7 @@ class TagEditor():
             if tag_value == 0:
                 tag_value = ''
             try:
-                entry.set_text(tag_value.strip())
+                entry.set_text(str(tag_value).strip())
             except AttributeError:
                 pass
 
@@ -255,7 +262,7 @@ class TagEditor():
         filetag = tagpy.FileRef(self.tags[self.tagnum]['fullpath'])
         tag = filetag.tag()
         # Set tag fields according to entry text
-        for entry, field in zip(entries, entries_names):
+        for field, entry in self.entries.items():
             tag_value = entry.get_text().strip()
             if field in ('year', 'track'):
                 if len(tag_value) == 0:

@@ -1718,7 +1718,7 @@ class Base(object):
                 else:
                     status_text = ''
                 if updatingdb:
-                    update_string = _(('(updating mpd)'))
+                    update_string = _('(updating mpd)')
                     status_text = "{}: {}".format(status_text, update_string)
             else:
                 status_text = ''

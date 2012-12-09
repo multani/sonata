@@ -3,7 +3,6 @@
   <!-- interface-requires gtk+ 3.0 -->
   <object class="GtkDialog" id="tags_dialog">
     <property name="can_focus">False</property>
-    <property name="border_width">5</property>
     <property name="role">edit_tags</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>
@@ -85,6 +84,9 @@
             <property name="row_spacing">3</property>
             <property name="column_spacing">6</property>
             <property name="row_homogeneous">True</property>
+            <property name="halign">center</property>
+            <property name="margin">12</property>
+            <property name="orientation">vertical</property>
             <child>
               <object class="GtkImage" id="tags_sonata_image">
                 <property name="visible">True</property>
@@ -468,7 +470,8 @@
                     <property name="wrap">True</property>
                     <property name="wrap_mode">word-char</property>
                     <property name="selectable">True</property>
-                    <property name="max_width_chars">25</property>
+                    <property name="width_chars">23</property>
+                    <property name="max_width_chars">23</property>
                   </object>
                   <packing>
                     <property name="expand">True</property>
