@@ -88,11 +88,7 @@ class Preferences():
     def on_prefs_real(self):
         """Display the preferences dialog"""
 
-        self.builder = Gtk.Builder()
-        self.builder.add_from_file('{0}/ui/preferences.ui'.format(
-            os.path.dirname(ui.__file__)))
-        self.builder.set_translation_domain('sonata')
-
+        self.builder = ui.builder('preferences.ui')
         self.prefswindow = self.builder.get_object('preferences_dialog')
         self.prefswindow.set_transient_for(self.window)
         self.prefsnotebook = self.builder.get_object('preferences_notebook')

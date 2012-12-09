@@ -45,9 +45,7 @@ class Info(object):
         self.album_text = None
 
         # Info tab
-        self.builder = Gtk.Builder()
-        self.builder.add_from_file('{0}/ui/info.ui'.format(
-          os.path.dirname(ui.__file__)))
+        self.builder = ui.builder('info.ui')
         self.info_area = self.builder.get_object('info_page_scrolledwindow')
         self.tab_label_widget = self.builder.get_object('info_tab_h_box')
         tab_label = self.builder.get_object('info_tab_label')

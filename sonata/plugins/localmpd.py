@@ -21,6 +21,8 @@ from pwd import getpwuid
 from gi.repository import GObject, Gtk
 
 from sonata.misc import escape_html
+from sonata import ui
+
 
 class Netstat(object):
     TCP_STATE_NAMES = ("ESTABLISHED SYN_SENT SYN_RECV FIN_WAIT1 FIN_WAIT2 "
@@ -112,10 +114,7 @@ def update(label):
 
 # nothing magical here, this constructs the parts of the tab when called:
 def tab_construct():
-    builder = Gtk.Builder()
-    builder.add_from_file('{0}/ui/localmpd.ui'.format(
-        os.path.dirname(__file__)))
-    builder.set_translation_domain('sonata')
+    builder = ui.builder('localmpd.ui', 'plugins')
     editbutton = builder.get_object('localmpd_edit_button')
     editbutton.connect('clicked', lambda *args: subprocess.Popen(
         ["gksu", "xdg-open", "/etc/mpd.conf"]))

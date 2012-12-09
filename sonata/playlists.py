@@ -44,10 +44,7 @@ class Playlists(object):
         self.mergepl_id = None
         self.actionGroupPlaylists = None
 
-        self.builder = Gtk.Builder()
-        self.builder.add_from_file('{0}/ui/playlists.ui'.format(
-            os.path.dirname(ui.__file__)))
-        self.builder.set_translation_domain('sonata')
+        self.builder = ui.builder('playlists.ui')
 
         # Playlists tab
         self.playlists = self.builder.get_object('playlists_page_treeview')

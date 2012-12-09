@@ -88,10 +88,7 @@ class Library(object):
         self.view_caches_reset()
 
         # Library tab
-        self.builder = Gtk.Builder()
-        self.builder.add_from_file('{0}/ui/library.ui'.format(
-            os.path.dirname(ui.__file__)))
-        self.builder.set_translation_domain('sonata')
+        self.builder = ui.builder('library.ui')
 
         self.libraryvbox = self.builder.get_object('library_page_v_box')
         self.library = self.builder.get_object('library_page_treeview')

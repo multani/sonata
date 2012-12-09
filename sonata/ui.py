@@ -1,10 +1,22 @@
 import logging
-
+import os
+import pkg_resources
 import sys
+
 from gi.repository import Gtk, Pango, Gdk, GdkPixbuf, GObject
 
 
 logger = logging.getLogger(__name__)
+
+
+def builder(ui_file, relative_to='.'):
+    builder = Gtk.Builder()
+    builder.set_translation_domain('sonata')
+    ui_path = pkg_resources.resource_filename(
+        'sonata', os.path.join(relative_to, 'ui', ui_file))
+    builder.add_from_file(ui_path)
+
+    return builder
 
 
 def label(text=None, textmn=None, markup=None, x=0, y=0.5, \
