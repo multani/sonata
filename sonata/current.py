@@ -367,7 +367,8 @@ class Current(object):
                 if row is None:
                     return
                 visible_rect = self.current.get_visible_rect()
-                row_rect = self.current.get_background_area(row,
+                row_path = Gtk.TreePath(row)
+                row_rect = self.current.get_background_area(row_path,
                                                             self.columns[0])
                 top_coord = (row_rect.y + row_rect.height - \
                              int(visible_rect.height / 2)) + visible_rect.y
