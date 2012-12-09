@@ -479,6 +479,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="halign">end</property>
+                                <property name="spacing">6</property>
                                 <child>
                                   <object class="GtkLabel" id="lyrics_save_label">
                                     <property name="visible">True</property>
@@ -539,11 +540,13 @@
                                 <property name="can_focus">False</property>
                                 <property name="halign">end</property>
                                 <property name="orientation">vertical</property>
+                                <property name="spacing">6</property>
                                 <child>
                                   <object class="GtkBox" id="art_style_preferences">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="halign">end</property>
+                                    <property name="spacing">6</property>
                                     <child>
                                       <object class="GtkLabel" id="art_style_label">
                                         <property name="visible">True</property>
@@ -585,6 +588,7 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="halign">end</property>
+                                    <property name="spacing">6</property>
                                     <child>
                                       <object class="GtkLabel" id="art_search_label">
                                         <property name="visible">True</property>
@@ -626,6 +630,7 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="halign">end</property>
+                                    <property name="spacing">6</property>
                                     <child>
                                       <object class="GtkLabel" id="art_save_label">
                                         <property name="visible">True</property>
@@ -989,11 +994,13 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="orientation">vertical</property>
+                                <property name="spacing">6</property>
                                 <child>
                                   <object class="GtkBox" id="format_prefs">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="orientation">vertical</property>
+                                    <property name="spacing">6</property>
                                     <child>
                                       <object class="GtkBox" id="format_playlist_box">
                                         <property name="visible">True</property>
@@ -1289,6 +1296,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="orientation">vertical</property>
+                                <property name="spacing">6</property>
                                 <child>
                                   <object class="GtkCheckButton" id="scrobbler_check">
                                     <property name="label" translatable="yes">_Audioscrobbling (Last.fm)</property>
@@ -1312,6 +1320,7 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="halign">end</property>
+                                    <property name="spacing">6</property>
                                     <child>
                                       <object class="GtkLabel" id="scrobbler_username_label">
                                         <property name="visible">True</property>
@@ -1349,6 +1358,7 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="halign">end</property>
+                                    <property name="spacing">6</property>
                                     <child>
                                       <object class="GtkLabel" id="scrobbler_password_label">
                                         <property name="visible">True</property>
@@ -1405,6 +1415,7 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="halign">end</property>
+                                    <property name="spacing">6</property>
                                     <child>
                                       <object class="GtkComboBoxText" id="notification_time_combo">
                                         <property name="visible">True</property>
@@ -1472,6 +1483,7 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="halign">end</property>
+                                    <property name="spacing">6</property>
                                     <child>
                                       <object class="GtkLabel" id="crossfade_label">
                                         <property name="visible">True</property>
