@@ -24,7 +24,6 @@ import gettext
 import logging
 import os
 import warnings
-import signal
 
 import urllib.parse, urllib.request
 import re
@@ -3368,6 +3367,5 @@ class Base(object):
         self.fullscreen_cover_art(None)
 
     def main(self):
-        signal.signal(signal.SIGINT, self.on_delete_event)
         Gtk.main()
 
