@@ -124,8 +124,6 @@ class Config:
 
         self.existing_playlist_option = 0
 
-        self.traytips_notifications_location = 0
-
         # Plugin state
         self.autostart_plugins = []
         self.known_plugins = []
@@ -184,9 +182,6 @@ class Config:
             self.popup_option = conf.getint('player', 'popup_time')
         if conf.has_option('player', 'update_on_start'):
             self.update_on_start = conf.getboolean('player', 'update_on_start')
-        if conf.has_option('player', 'notif_location'):
-            self.traytips_notifications_location = conf.getint('player',
-                                                              'notif_location')
         if conf.has_option('player', 'playback'):
             self.show_playback = conf.getboolean('player', 'playback')
         if conf.has_option('player', 'progressbar'):
@@ -439,8 +434,6 @@ class Config:
         conf.set('player', 'lyrics', str(self.show_lyrics))
         conf.set('player', 'notification', str(self.show_notification))
         conf.set('player', 'popup_time', str(self.popup_option))
-        conf.set('player', 'notif_location',
-                 str(self.traytips_notifications_location))
         conf.set('player', 'playback', str(self.show_playback))
         conf.set('player', 'progressbar', str(self.show_progress))
         conf.set('player', 'trayicon', str(self.show_trayicon))

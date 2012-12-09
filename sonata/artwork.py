@@ -87,9 +87,6 @@ class Artwork(object):
         self.info_image = info_image
         self.info_image.set_from_file(self.sonatacd_large)
 
-    def set_tray_album_image(self, tray_image):
-        self.tray_album_image = tray_image
-
     def get_fullscreenalbumimage(self):
         return self.fullscreenalbumimage
 
@@ -125,12 +122,6 @@ class Artwork(object):
                 except IOError:
                     pass
             self.artwork_update(True)
-
-    def artwork_set_tooltip_art(self, pix):
-        # Set artwork
-        pix = pix.new_subpixbuf(0, 0, 77, 77)
-        self.tray_album_image.set_from_pixbuf(pix)
-        del pix
 
     def artwork_stop_update(self):
         self.stop_art_update = True
@@ -467,8 +458,6 @@ class Artwork(object):
             GObject.idle_add(self.info_image.set_from_file,
                              self.sonatacd_large)
             GObject.idle_add(self.fullscreen_cover_art_reset_image)
-        GObject.idle_add(self.artwork_set_tooltip_art,
-                         GdkPixbuf.Pixbuf.new_from_file(self.sonatacd))
         self.lastalbumart = None
 
         # Also, update row in library:
@@ -523,7 +512,6 @@ class Artwork(object):
                     pix1 = img.pixbuf_add_border(pix1)
                     pix1 = img.pixbuf_pad(pix1, 77, 77)
                     self.albumimage.set_from_pixbuf(pix1)
-                    self.artwork_set_tooltip_art(pix1)
                     del pix1
 
                     # Artwork for library, if current song matches:

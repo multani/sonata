@@ -73,8 +73,6 @@ class Base(object):
         self.iterate_handler = None
         self.local_dest_filename = None
 
-        self.notification_width = None
-
         self.remote_albumentry = None
         self.remote_artistentry = None
         self.remote_dest_filename = None
@@ -107,8 +105,6 @@ class Base(object):
 
         self.trying_connection = False
 
-        self.traytips = tray.TrayIconTips()
-
         # better keep a reference around
         try:
             self.dbus_service = dbus.SonataDBus(self.dbus_show,
@@ -129,6 +125,7 @@ class Base(object):
         self.popuptimes = ['2', '3', '5', '10', '15', '30', _('Entire song')]
 
         self.exit_now = False
+        # FIXME: related to traytips
         self.ignore_toggle_signal = False
 
         self.user_connect = False
@@ -170,7 +167,7 @@ class Base(object):
 
         self.config = Config(_('Default Profile'), _("by %A from %B"))
         self.preferences = preferences.Preferences(self.config,
-            self.on_connectkey_pressed, self.on_currsong_notify,
+            self.on_connectkey_pressed, self.playing_song_change,
             self.update_infofile, self.settings_save,
             self.populate_profiles_for_menu)
 
@@ -607,7 +604,7 @@ class Base(object):
                 else:
                     self.logger.info(_("Found new plug-in %s." % plugin.name))
 
-        self.tray_icon = tray.TrayIcon(self.window, self.traymenu, self.traytips)
+        self.tray_icon = tray.TrayIcon(self.window, self.traymenu)
 
         self.albumimage = self.artwork.get_albumimage()
 
@@ -684,26 +681,6 @@ class Base(object):
                                     self.config.info_tab_pos)
         self.last_tab = self.notebook_get_tab_text(self.notebook, 0)
 
-        # Song notification window:
-        self.tray_v_box = self.builder.get_object('tray_v_box')
-
-        self.tray_album_image = self.builder.get_object('tray_album_image')
-        self.artwork.set_tray_album_image(self.tray_album_image)
-
-        if not self.config.show_covers:
-            ui.hide(self.tray_album_image)
-
-        self.tray_current_label1 = self.builder.get_object('tray_label_1')
-        self.tray_current_label2 = self.builder.get_object('tray_label_2')
-
-        self.tray_progressbar = self.builder.get_object('tray_progressbar')
-        if not self.config.show_progress:
-            ui.hide(self.tray_progressbar)
-
-        self.tray_v_box.show_all()
-        self.traytips.add_widget(self.tray_v_box)
-        self.tooltip_set_window_width()
-
         # Fullscreen cover art window
         self.fullscreen_window = self.builder.get_object("fullscreen_window")
         self.fullscreen_window.fullscreen()
@@ -724,8 +701,6 @@ class Base(object):
 
         # Connect to signals
         self.window.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
-        self.traytips.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
-        self.traytips.connect('button_press_event', self.on_traytips_press)
         self.window.connect('delete_event', self.on_delete_event)
         self.window.connect('configure_event', self.on_window_configure)
         self.window.connect('key-press-event', self.on_topwindow_keypress)
@@ -745,11 +720,8 @@ class Base(object):
         self.expander.connect('activate', self.on_expander_activate)
         self.randommenu.connect('toggled', self.on_random_clicked)
         self.repeatmenu.connect('toggled', self.on_repeat_clicked)
-        self.cursonglabel1.connect('notify::label', self.on_currsong_notify)
-        self.progressbar.connect('notify::fraction',
-                                 self.on_progressbar_notify_fraction)
-        self.progressbar.connect('notify::text',
-                                 self.on_progressbar_notify_text)
+        self.cursonglabel1.connect('notify::label', lambda *args:
+                                   self.playing_song_change())
         self.mainwinhandler = self.window.connect('button_press_event',
                                                   self.on_window_click)
         self.notebook.connect('size-allocate', self.on_notebook_resize)
@@ -828,7 +800,7 @@ class Base(object):
 
         # Ensure that sonata is loaded before we display the notif window
         self.sonata_loaded = True
-        self.on_currsong_notify()
+        self.playing_song_change()
         self.current.center_song_in_list()
 
         gc.disable()
@@ -1514,7 +1486,7 @@ class Base(object):
                 if self.prevstatus != None:
                     if self.prevstatus['state'] == 'pause':
                         # Forces the notification to popup if specified
-                        self.on_currsong_notify()
+                        self.playing_song_change()
                 self.tray_icon.update_icon(self.path_to_icon('sonata_play.png'))
 
             self.playing_song_change()
@@ -1686,19 +1658,7 @@ class Base(object):
 
     def update_cursong(self):
         if self.status_is_play_or_pause():
-            # We must show the trayprogressbar and trayalbumeventbox
-            # before changing self.cursonglabel (and consequently calling
-            # self.on_currsong_notify()) in order to ensure that the
-            # notification popup will have the correct height when being
-            # displayed for the first time after a stopped state.
-            if self.config.show_progress:
-                self.tray_progressbar.show()
-            self.tray_current_label2.show()
-            if self.config.show_covers:
-                self.tray_album_image.show()
-
-            for label in (self.cursonglabel1, self.cursonglabel2,
-                          self.tray_current_label1, self.tray_current_label2):
+            for label in [self.cursonglabel1, self.cursonglabel2]:
                 label.set_ellipsize(Pango.EllipsizeMode.END)
 
 
@@ -1720,16 +1680,12 @@ class Base(object):
                 self.cursonglabel1.set_markup(newlabel1)
             if newlabel2 != self.cursonglabel2.get_label():
                 self.cursonglabel2.set_markup(newlabel2)
-            if newlabel1 != self.tray_current_label1.get_label():
-                self.tray_current_label1.set_markup(newlabel1)
-            if newlabel2 != self.tray_current_label2.get_label():
-                self.tray_current_label2.set_markup(newlabel2)
             self.expander.set_tooltip_text('%s\n%s' % \
                                            (self.cursonglabel1.get_text(),
                                             self.cursonglabel2.get_text(),))
         else:
             for label in (self.cursonglabel1, self.cursonglabel2,
-                          self.tray_current_label1, self.cursonglabel2):
+                          self.cursonglabel2):
                 label.set_ellipsize(Pango.EllipsizeMode.NONE)
 
             self.cursonglabel1.set_markup('<big><b>%s</b></big>' % \
@@ -1741,15 +1697,6 @@ class Base(object):
                 self.cursonglabel2.set_markup('<small>%s</small>' % \
                                               _('Click to expand'))
             self.expander.set_tooltip_text(self.cursonglabel1.get_text())
-            if not self.conn:
-                self.tray_current_label1.set_label(_('Not Connected'))
-            elif not self.status:
-                self.tray_current_label1.set_label(_('No Read Permission'))
-            else:
-                self.tray_current_label1.set_label(_('Stopped'))
-            self.tray_progressbar.hide()
-            self.tray_album_image.hide()
-            self.tray_current_label2.hide()
         self.update_infofile()
 
     def update_wintitle(self):
@@ -1763,74 +1710,6 @@ class Base(object):
         if not self.last_title or self.last_title != newtitle:
             self.window.set_property('title', newtitle)
             self.last_title = newtitle
-
-    def tooltip_set_window_width(self):
-        screen = self.window.get_screen()
-        _pscreen, px, py, _mods = screen.get_display().get_pointer()
-        monitor_num = screen.get_monitor_at_point(px, py)
-        monitor = screen.get_monitor_geometry(monitor_num)
-        self.notification_width = int(monitor.width * 0.30)
-        if self.notification_width > consts.NOTIFICATION_WIDTH_MAX:
-            self.notification_width = consts.NOTIFICATION_WIDTH_MAX
-        elif self.notification_width < consts.NOTIFICATION_WIDTH_MIN:
-            self.notification_width = consts.NOTIFICATION_WIDTH_MIN
-
-    def on_currsong_notify(self, _foo=None, _bar=None, force_popup=False):
-        if self.fullscreen_window.get_property('visible'):
-            return
-        if self.sonata_loaded:
-            if self.status_is_play_or_pause():
-                if self.config.show_covers:
-                    self.traytips.set_size_request(self.notification_width, -1)
-                else:
-                    self.traytips.set_size_request(
-                        self.notification_width - 100, -1)
-            else:
-                self.traytips.set_size_request(-1, -1)
-            if self.config.show_notification or force_popup:
-                try:
-                    GObject.source_remove(self.traytips.notif_handler)
-                except:
-                    pass
-                if self.status_is_play_or_pause():
-                    try:
-                        self.traytips.notifications_location = \
-                                self.config.traytips_notifications_location
-                        self.traytips.use_notifications_location = True
-                        if self.tray_icon.is_visible():
-                            self.traytips._real_display(self.tray_icon)
-                        else:
-                            self.traytips._real_display(None)
-                        if self.config.popup_option != len(self.popuptimes)-1:
-                            if force_popup and \
-                               not self.config.show_notification:
-                                # Used -p argument and notification is disabled
-                                # in player; default to 3 seconds
-                                timeout = 3000
-                            else:
-                                timeout = \
-                                        int(self.popuptimes[
-                                            self.config.popup_option]) * 1000
-                            self.traytips.notif_handler = \
-                                    GObject.timeout_add(timeout,
-                                                        self.traytips.hide)
-                        else:
-                            # -1 indicates that the timeout should be forever.
-                            # We don't want to pass None, because then Sonata
-                            # would think that there is no current notification
-                            self.traytips.notif_handler = -1
-                    except:
-                        pass
-                else:
-                    self.traytips.hide()
-            elif self.traytips.get_property('visible'):
-                self.traytips._real_display(self.tray_icon)
-
-    def on_progressbar_notify_fraction(self, *_args):
-        self.tray_progressbar.set_fraction(self.progressbar.get_fraction())
-
-    def on_progressbar_notify_text(self, *_args):
-        self.tray_progressbar.set_text(self.progressbar.get_text())
 
     def update_infofile(self):
         if self.config.use_infofile is True:
@@ -2527,7 +2406,7 @@ class Base(object):
         if self.fullscreen_window.get_property('visible'):
             self.fullscreen_window.hide()
         else:
-            self.traytips.hide()
+            # FIXME: hide notif
             self.artwork.fullscreen_cover_art_set_image(force_update=True)
             self.fullscreen_window.show_all()
             # setting up invisible cursor
@@ -2586,9 +2465,7 @@ class Base(object):
                 self.withdraw_app_undo()
             # This prevents the tooltip from popping up again until the user
             # leaves and enters the trayicon again
-            # if self.traytips.notif_handler is None and
-            # self.traytips.notif_handler != -1:
-            # self.traytips._remove_timer()
+            # FIXME: remove this?
             GObject.timeout_add(100,
                                 self.tooltip_set_ignore_toggle_signal_false)
 
@@ -2603,10 +2480,6 @@ class Base(object):
         elif event.button == 3: # Right button pops up menu
             self.traymenu.popup(None, None, None, None, event.button, event.time)
         return False
-
-    def on_traytips_press(self, _widget, _event):
-        if self.traytips.get_property('visible'):
-            self.traytips._remove_timer()
 
     def withdraw_app_undo(self):
         desktop = Gdk.get_default_root_window()
@@ -2909,8 +2782,7 @@ class Base(object):
     def prefs_progress_toggled(self, button):
         self.config.show_progress = button.get_active()
         func = ui.show if self.config.show_progress else ui.hide
-        for widget in [self.progressbox, self.tray_progressbar]:
-            func(widget)
+        func(self.progressbox)
 
     # FIXME move into prefs or elsewhere?
     def prefs_art_toggled(self, button, art_prefs):
@@ -2920,23 +2792,15 @@ class Base(object):
         #art_hbox2.set_sensitive(button_active)
         #art_stylized.set_sensitive(button_active)
         if button_active:
-            self.traytips.set_size_request(self.notification_width, -1)
             self.artwork.artwork_set_default_icon()
-            for widget in [self.imageeventbox, self.info_imagebox,
-                           self.tray_album_image]:
+            for widget in [self.imageeventbox, self.info_imagebox]:
                 widget.set_no_show_all(False)
-                if widget is self.tray_album_image:
-                    if self.status_is_play_or_pause():
-                        widget.show_all()
-                else:
-                    widget.show_all()
+                widget.show_all()
             self.config.show_covers = True
             self.update_cursong()
             self.artwork.artwork_update()
         else:
-            self.traytips.set_size_request(self.notification_width-100, -1)
-            for widget in [self.imageeventbox, self.info_imagebox,
-                           self.tray_album_image]:
+            for widget in [self.imageeventbox, self.info_imagebox]:
                 ui.hide(widget)
             self.config.show_covers = False
             self.update_cursong()
@@ -2966,17 +2830,11 @@ class Base(object):
             ui.hide(self.statusbar)
         self.update_statusbar()
 
-    def prefs_notif_toggled(self, button, notifhbox):
-        self.config.show_notification = button.get_active()
-        notifhbox.set_sensitive(self.config.show_notification)
-        if self.config.show_notification:
-            self.on_currsong_notify()
-        else:
-            try:
-                GObject.source_remove(self.traytips.notif_handler)
-            except:
-                pass
-            self.traytips.hide()
+    def prefs_notif_toggled(self, button):
+        active = self.config.show_notification = button.get_active()
+        pluginsystem.emit('notification_toggle', active)
+        # FIXME: force showing if active, else hide
+
 
     def prefs_trayicon_toggled(self, button, minimize):
         # Note that we update the sensitivity of the minimize
@@ -3318,7 +3176,8 @@ class Base(object):
             self.withdraw_app_undo()
 
     def dbus_popup(self):
-        self.on_currsong_notify(force_popup=True)
+        # FIXME: force popup
+        pass
 
     def dbus_fullscreen(self):
         self.fullscreen_cover_art(None)

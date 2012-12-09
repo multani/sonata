@@ -198,13 +198,11 @@ class Preferences():
         notification_options.connect('changed', self._notiftime_changed)
         notification_options.set_active(self.config.popup_option)
         notification_locs = self.builder.get_object('notification_loc_combo')
-        notification_locs.set_active(self.config.traytips_notifications_location)
-        notification_locs.connect('changed', self._notiflocation_changed)
-        notifhbox = self.builder.get_object('notification_box')
-        display_notification.connect('toggled', cbs.notif_toggled,
-            notifhbox)
-        if not self.config.show_notification:
-            notifhbox.set_sensitive(False)
+        display_notification.connect('toggled', cbs.notif_toggled)
+        #notifhbox = self.builder.get_object('notification_box')
+            #otifhbox)
+        #if not self.config.show_notification:
+            #notifhbox.set_sensitive(False)
 
         crossfadespin = self.builder.get_object('crossfade_time')
         crossfadespin.set_value(self.config.xfade)
@@ -545,10 +543,6 @@ class Preferences():
         button_active = button.get_active()
         for widget in widgets:
             widget.set_sensitive(button_active)
-
-    def _notiflocation_changed(self, combobox):
-        self.config.traytips_notifications_location = combobox.get_active()
-        self.renotify()
 
     def _notiftime_changed(self, combobox):
         self.config.popup_option = combobox.get_active()
