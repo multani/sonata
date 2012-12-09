@@ -29,10 +29,7 @@ class Streams(object):
 
         self.stream_edit_dialog = None
 
-        self.builder = Gtk.Builder()
-        self.builder.add_from_file('{0}/ui/streams.ui'.format(
-            os.path.dirname(ui.__file__)))
-        self.builder.set_translation_domain('sonata')
+        self.builder = ui.builder('streams.ui')
 
         # Streams tab
         self.streams = self.builder.get_object('streams_page_treeview')

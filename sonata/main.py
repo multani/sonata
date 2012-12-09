@@ -211,13 +211,10 @@ class Base(object):
                 ui.icon(self.iconfactory, iconname,
                         self.path_to_icon('sonata-%s.png' % iconname))
 
+        self.builder = ui.builder('sonata.ui')
+
         # Main window
         if window is None:
-            self.builder = Gtk.Builder()
-            # FIXME where will the ui directory reside?
-            self.builder.add_from_file('{0}/ui/sonata.ui'.format(
-              os.path.dirname(ui.__file__)))
-            self.builder.set_translation_domain('sonata')
             self.window = self.builder.get_object('main_window')
             self.window_owner = True
         else:

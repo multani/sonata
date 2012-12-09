@@ -170,11 +170,7 @@ class About(object):
         return statslabel
 
     def about_load(self, stats):
-        self.builder = Gtk.Builder()
-        self.builder.add_from_file('{0}/ui/about.ui'.format(
-            os.path.dirname(ui.__file__)))
-        self.builder.set_translation_domain('sonata')
-
+        self.builder = ui.builder('about.ui')
         self.about_dialog = self.builder.get_object('about_dialog')
         try:
             self.about_dialog.set_transient_for(self.parent_window)
