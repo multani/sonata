@@ -80,7 +80,7 @@ def combo(items=None, active=None, changed_cb=None, wrap=1):
     return tmpcb
 
 def comboentry(items=None, active=None, changed_cb=None, wrap=1):
-    tmpcbe = Gtk.combo_box_entry_new_text()
+    tmpcbe = Gtk.ComboBoxText.new()
     tmpcbe = _combo_common(tmpcbe, items, active, changed_cb, wrap)
     return tmpcbe
 
