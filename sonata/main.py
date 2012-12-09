@@ -59,7 +59,7 @@ class Base(object):
 
     ### XXX Warning, a long __init__ ahead:
 
-    def __init__(self, args, window=None):
+    def __init__(self, args):
         self.logger = logging.getLogger(__name__)
 
         # The following attributes were used but not defined here before:
@@ -213,19 +213,14 @@ class Base(object):
         self.builder = ui.builder('sonata.ui')
 
         # Main window
-        if window is None:
-            self.window = self.builder.get_object('main_window')
-            self.window_owner = True
-        else:
-            self.window = window
-            self.window_owner = False
-        if self.window_owner:
-            if self.config.ontop:
-                self.window.set_keep_above(True)
-            if self.config.sticky:
-                self.window.stick()
-            if not self.config.decorated:
-                self.window.set_decorated(False)
+        self.window = self.builder.get_object('main_window')
+
+        if self.config.ontop:
+            self.window.set_keep_above(True)
+        if self.config.sticky:
+            self.window.stick()
+        if not self.config.decorated:
+            self.window.set_decorated(False)
         self.preferences.window = self.window
 
         self.notebook = self.builder.get_object('main_notebook')
@@ -655,17 +650,15 @@ class Base(object):
         self.statusbar = self.builder.get_object('main_statusbar')
         if not self.config.show_statusbar or not self.config.expanded:
             ui.hide(self.statusbar)
-        if self.window_owner:
-            self.window.move(self.config.x, self.config.y)
-            self.window.set_size_request(270, -1)
+        self.window.move(self.config.x, self.config.y)
+        self.window.set_size_request(270, -1)
         if not self.config.expanded:
             ui.hide(self.notebook)
             self.cursonglabel1.set_markup('<big><b>%s</b></big>' %
                                           (_('Stopped'),))
             self.cursonglabel2.set_markup('<small>%s</small>' % (_(('Click to'
                                                                    'expand'))))
-            if self.window_owner:
-                self.window.set_default_size(self.config.w, 1)
+            self.window.set_default_size(self.config.w, 1)
         else:
             self.cursonglabel1.set_markup('<big><b>%s</b></big>' % \
                                           (_('Stopped')))
@@ -673,8 +666,7 @@ class Base(object):
             self.cursonglabel2.set_markup('<small>%s</small>' % (_(('Click to'
                                                                  'collapse'))))
 
-            if self.window_owner:
-                self.window.set_default_size(self.config.w, self.config.h)
+            self.window.set_default_size(self.config.w, self.config.h)
         self.expander.set_tooltip_text(self.cursonglabel1.get_text())
         if not self.conn:
             self.progressbar.set_text(_('Not Connected'))
@@ -788,7 +780,7 @@ class Base(object):
 
         # Ensure that the systemtray icon is added here. This is really only
         # important if we're starting in hidden (minimized-to-tray) mode:
-        if self.window_owner and self.config.withdrawn:
+        if self.config.withdrawn:
             while Gtk.events_pending():
                 Gtk.main_iteration()
 
@@ -813,17 +805,13 @@ class Base(object):
         self.artwork.library_artwork_init(self.librarydata,
                                           consts.LIB_COVER_SIZE)
 
-        if self.window_owner:
-            icon = self.window.render_icon('sonata', Gtk.IconSize.DIALOG)
-            self.window.set_icon(icon)
-
+        icon = self.window.render_icon('sonata', Gtk.IconSize.DIALOG)
+        self.window.set_icon(icon)
         self.streams.populate()
 
         self.iterate_now()
-        if self.window_owner:
-            if self.config.withdrawn:
-                if self.tray_icon.is_visible():
-                    ui.hide(self.window)
+        if self.config.withdrawn and self.tray_icon.is_visible():
+            ui.hide(self.window)
         self.window.show_all()
 
         # Ensure that button images are displayed despite GTK+ theme
@@ -1816,17 +1804,16 @@ class Base(object):
         self.update_infofile()
 
     def update_wintitle(self):
-        if self.window_owner:
-            if self.status_is_play_or_pause():
-                newtitle = formatting.parse(
-                    self.config.titleformat, self.songinfo,
-                    False, True,
-                    self.status.get('time', None))
-            else:
-                newtitle = '[Sonata]'
-            if not self.last_title or self.last_title != newtitle:
-                self.window.set_property('title', newtitle)
-                self.last_title = newtitle
+        if self.status_is_play_or_pause():
+            newtitle = formatting.parse(
+                self.config.titleformat, self.songinfo,
+                False, True,
+                self.status.get('time', None))
+        else:
+            newtitle = '[Sonata]'
+        if not self.last_title or self.last_title != newtitle:
+            self.window.set_property('title', newtitle)
+            self.last_title = newtitle
 
     def tooltip_set_window_width(self):
         screen = self.window.get_screen()
@@ -2019,15 +2006,15 @@ class Base(object):
                                               (_('Click to expand'),))
         # Now we wait for the height of the player to increase, so that
         # we know the list is visible. This is pretty hacky, but works.
-        if self.window_owner:
-            if window_about_to_be_expanded:
-                if not skip_size_check:
-                    while self.window.get_size()[1] == currheight:
-                        Gtk.main_iteration()
-                # Notebook is visible, now resize:
-                self.window.resize(self.config.w, self.config.h)
-            else:
-                self.window.resize(self.config.w, 1)
+        if window_about_to_be_expanded:
+            if not skip_size_check:
+                while self.window.get_size()[1] == currheight:
+                    Gtk.main_iteration()
+            # Notebook is visible, now resize:
+            self.window.resize(self.config.w, self.config.h)
+        else:
+            self.window.resize(self.config.w, 1)
+
         if window_about_to_be_expanded:
             self.config.expanded = True
             if self.status_is_play_or_pause():
@@ -2945,25 +2932,22 @@ class Base(object):
 
     def prefs_ontop_toggled(self, button):
         self.config.ontop = button.get_active()
-        if self.window_owner:
-            self.window.set_keep_above(self.config.ontop)
+        self.window.set_keep_above(self.config.ontop)
 
     def prefs_sticky_toggled(self, button):
         self.config.sticky = button.get_active()
-        if self.window_owner:
-            if self.config.sticky:
-                self.window.stick()
-            else:
-                self.window.unstick()
+        if self.config.sticky:
+            self.window.stick()
+        else:
+            self.window.unstick()
 
     def prefs_decorated_toggled(self, button, prefs_window):
         self.config.decorated = not button.get_active()
-        if self.window_owner:
-            if self.config.decorated != self.window.get_decorated():
-                self.withdraw_app()
-                self.window.set_decorated(self.config.decorated)
-                self.withdraw_app_undo()
-                prefs_window.present()
+        if self.config.decorated != self.window.get_decorated():
+            self.withdraw_app()
+            self.window.set_decorated(self.config.decorated)
+            self.withdraw_app_undo()
+            prefs_window.present()
 
     def prefs_infofile_changed(self, entry, _event):
         if self.config.infofile_path != entry.get_text():
