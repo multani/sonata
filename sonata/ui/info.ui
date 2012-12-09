@@ -1,33 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
-  <object class="GtkBox" id="info_tab_h_box">
+  <object class="GtkEventBox" id="info_tab_eventbox">
+    <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="orientation">horizontal</property>
     <child>
-      <object class="GtkImage" id="info_tab_image">
+      <object class="GtkBox" id="info_tab_h_box">
         <property name="can_focus">False</property>
-        <property name="stock">gtk-file</property>
-      </object><!--info_tab_image-->
-      <packing>
-        <property name="expand">False</property>
-        <property name="fill">False</property>
-        <property name="padding">2</property>
-        <property name="position">0</property>
-      </packing>
+        <property name="orientation">horizontal</property>
+        <child>
+          <object class="GtkImage" id="info_tab_image">
+            <property name="can_focus">False</property>
+            <property name="stock">gtk-file</property>
+          </object><!--info_tab_image-->
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="padding">2</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="info_tab_label">
+            <property name="can_focus">False</property>
+          </object><!--info_tab_label-->
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="padding">2</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object><!--info_tab_h_box-->
     </child>
-    <child>
-      <object class="GtkLabel" id="info_tab_label">
-        <property name="can_focus">False</property>
-      </object><!--info_tab_label-->
-      <packing>
-        <property name="expand">False</property>
-        <property name="fill">False</property>
-        <property name="padding">2</property>
-        <property name="position">1</property>
-      </packing>
-    </child>
-  </object><!--info_tab_h_box-->
+  </object>
   <object class="GtkScrolledWindow" id="info_page_scrolledwindow">
     <property name="can_focus">True</property>
     <property name="shadow_type">none</property>

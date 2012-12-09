@@ -106,7 +106,7 @@ class Library(object):
         self.searchbutton.hide()
         #XXX replaced by breadcrumbs
         self.libraryview = ui.button(relief=Gtk.ReliefStyle.NONE)
-        self.tab_label_widget = self.builder.get_object('library_tab_h_box')
+        self.tab_label_widget = self.builder.get_object('library_tab_eventbox')
         tab_label = self.builder.get_object('library_tab_label')
         tab_label.set_text(TAB_LIBRARY)
 

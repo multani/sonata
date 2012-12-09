@@ -58,7 +58,7 @@ class Playlists(object):
         self.tab_label = self.builder.get_object('playlists_tab_label')
         self.tab_label.set_text(TAB_PLAYLISTS)
 
-        self.tab_widget = self.builder.get_object('playlists_tab_h_box')
+        self.tab_widget = self.builder.get_object('playlists_tab_eventbox')
         self.tab = add_tab(self.playlistswindow, self.tab_widget, TAB_PLAYLISTS,
                            self.playlists)
 

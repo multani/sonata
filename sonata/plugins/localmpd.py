@@ -128,7 +128,7 @@ def tab_construct():
 
     window = builder.get_object('localmpd_scrolledwindow')
     window.show_all()
-    tab_widget = builder.get_object('localmpd_tab_h_box')
+    tab_widget = builder.get_object('localmpd_tab_eventbox')
 
     # (tab content, icon name, tab name, the widget to focus on tab switch)
     return (window, tab_widget, "Local MPD", None)

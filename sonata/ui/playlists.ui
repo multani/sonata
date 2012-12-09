@@ -9,31 +9,37 @@
       <column type="gchararray"/>
     </columns>
   </object>
-  <object class="GtkBox" id="playlists_tab_h_box">
+  <object class="GtkEventBox" id="playlists_tab_eventbox">
+    <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="orientation">horizontal</property>
     <child>
-      <object class="GtkImage" id="playlists_tab_image">
+      <object class="GtkBox" id="playlists_tab_h_box">
         <property name="can_focus">False</property>
-        <property name="stock">gtk-directory</property>
+        <property name="orientation">horizontal</property>
+        <child>
+          <object class="GtkImage" id="playlists_tab_image">
+            <property name="can_focus">False</property>
+            <property name="stock">gtk-directory</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="padding">2</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="playlists_tab_label">
+            <property name="can_focus">False</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="padding">2</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
       </object>
-      <packing>
-        <property name="expand">False</property>
-        <property name="fill">False</property>
-        <property name="padding">2</property>
-        <property name="position">0</property>
-      </packing>
-    </child>
-    <child>
-      <object class="GtkLabel" id="playlists_tab_label">
-        <property name="can_focus">False</property>
-      </object>
-      <packing>
-        <property name="expand">False</property>
-        <property name="fill">False</property>
-        <property name="padding">2</property>
-        <property name="position">1</property>
-      </packing>
     </child>
   </object>
   <object class="GtkScrolledWindow" id="playlists_page_scrolledwindow">
