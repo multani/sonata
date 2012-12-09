@@ -1566,6 +1566,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="shadow_type">in</property>
+                    <property name="margin">12</property>
                     <child>
                       <object class="GtkTreeView" id="plugins_treeview">
                         <property name="visible">True</property>
