@@ -125,6 +125,21 @@ class PluginSystem(object):
     def get_info(self):
         return self.plugin_infos
 
+    def emit(self, capability, *args, **kargs):
+        """Emit and call the callback associated to a capabilities"""
+
+        for plugin, callback in self.get(capability):
+            callback(*args, **kargs)
+
+    def emit_first(self, capability, *args, **kargs):
+        """Call the callbacks and return the result of the first "positive"
+        callback"""
+
+        for plugin, callback in self.get(capability):
+            result = callback(*args, **kargs)
+            if result:
+                return result
+
     def get(self, capability):
         return [(plugin, feature)
             for plugin in self.plugin_infos

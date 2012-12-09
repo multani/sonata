@@ -606,18 +606,15 @@ class Artwork(object):
     def artwork_download_img_to_file(self, artist, album, dest_filename,
                                      all_images=False):
         self.downloading_image = True
-        # Fetch covers from rhapsody.com etc.
-        cover_fetchers = pluginsystem.get('cover_fetching')
-        imgfound = False
-        for _plugin, cb in cover_fetchers:
-            ret = cb(self.download_progress, artist, album, dest_filename,
-                     all_images)
-            if ret:
-                imgfound = True
-                break # XXX if all_images, merge results...
+        # Fetch covers from covers plugins
+        ret = pluginsystem.emit_first('cover_fetching', self.download_progress,
+                                      artist, album, dest_filename, all_images)
+
+        # XXX if all_images and found, merge results...
+        found = bool(ret)
 
         self.downloading_image = False
-        return imgfound
+        return found
 
     def download_progress(self, dest_filename_curr, i):
         # This populates Main.imagelist for the remote image window

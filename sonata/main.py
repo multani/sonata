@@ -971,8 +971,7 @@ class Base(object):
 
     def playing_song_change(self):
         self.artwork.artwork_update()
-        for _plugin, cb in pluginsystem.get('playing_song_observers'):
-            cb(self.get_playing_song())
+        pluginsystem.emit('playing_song_observers', self.get_playing_song())
 
     def get_current_song_text(self):
         return (self.cursonglabel1.get_text(),
