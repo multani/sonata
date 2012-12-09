@@ -13,7 +13,6 @@ Example usage:
 import dbus_plugin as dbus
 self.dbus_service = dbus.SonataDBus(self.dbus_show, self.dbus_toggle,
                                     self.dbus_popup, self.dbus_fullscreen)
-dbus.start_dbus_interface(toggle_arg, popup_arg)
 dbus.init_gnome_mediakeys(self.mpd_pp, self.mpd_stop, self.mpd_prev,
                             self.mpd_next)
 if not dbus.using_gnome_mediakeys():
@@ -127,35 +126,6 @@ def execute_remote_commands(toggle=False, popup=False, fullscreen=False,
             logger.critical(_("Maybe Sonata is not running?"))
             sys.exit(1)
 
-
-def start_dbus_interface():
-    if HAVE_DBUS:
-        try:
-            bus = get_session_bus()
-
-            retval = bus.request_name("org.MPD.Sonata",
-                                      dbus_bindings.NAME_FLAG_DO_NOT_QUEUE)
-
-            if retval in (dbus_bindings.REQUEST_NAME_REPLY_PRIMARY_OWNER,
-                          dbus_bindings.REQUEST_NAME_REPLY_ALREADY_OWNER):
-                pass
-            elif retval in (dbus_bindings.REQUEST_NAME_REPLY_EXISTS,
-                            dbus_bindings.REQUEST_NAME_REPLY_IN_QUEUE):
-                logger.info(
-                    _('An instance of Sonata is already running. '
-                      'Showing it...'))
-                try:
-                    obj = bus.get_object('org.MPD', '/org/MPD/Sonata')
-                    obj.show(dbus_interface='org.MPD.SonataInterface')
-                    sys.exit()
-                except Exception:
-                    # TODO: should we log the exception here?
-                    logger.critical(_("Failed to execute remote command."))
-                    sys.exit(1)
-        except Exception:
-            pass
-        except SystemExit:
-            raise
 
 if HAVE_DBUS:
 

@@ -116,7 +116,6 @@ class Base(object):
                                                 self.dbus_fullscreen)
         except Exception:
             pass
-        dbus.start_dbus_interface()
 
         self.gnome_session_management()
 
@@ -3389,8 +3388,3 @@ class Base(object):
 
     def dbus_fullscreen(self):
         self.fullscreen_cover_art(None)
-
-    def main(self):
-        signal.signal(signal.SIGINT, self.on_delete_event)
-        Gtk.main()
-

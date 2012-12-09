@@ -170,7 +170,20 @@ def run():
 
     from sonata import main
 
-    app = main.Base(args)
+
+    def on_application_activate(application):
+        windows = application.get_windows()
+
+        if windows:
+            for window in windows:
+                window.present()
+        else:
+            sonata = main.Base(args)
+            sonata.window.set_application(application)
+            sonata.window.show()
+
+    app = Gtk.Application(application_id="org.MPD.Sonata")
+    app.connect("activate", on_application_activate)
 
     ## Load the shell
     # yo dawg, I heard you like python,
@@ -195,6 +208,6 @@ def run():
         threading.Thread(target=run_shell).start()
 
     try:
-        app.main()
+        app.run([])
     except KeyboardInterrupt:
         Gtk.main_quit()
