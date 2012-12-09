@@ -117,8 +117,6 @@ class Base(object):
         except Exception:
             pass
 
-        self.gnome_session_management()
-
         misc.create_dir('~/.covers/')
 
         # Initialize vars for GUI
@@ -917,34 +915,6 @@ class Base(object):
 
     def set_allow_art_search(self):
         self.allow_art_search = True
-
-    def gnome_session_management(self):
-        ### XXX The rest:
-        try:
-            import gnome
-            import gnome.ui
-            # Code thanks to quodlibet:
-
-            # XXX gnome.init sets process name, locale...
-            gnome.init("sonata", version)
-
-            misc.setlocale()
-
-            client = gnome.ui.master_client()
-            client.set_restart_style(gnome.ui.RESTART_IF_RUNNING)
-            command = os.path.normpath(os.path.join(os.getcwd(), sys.argv[0]))
-            try:
-                client.set_restart_command([command] + sys.argv[1:])
-            except TypeError:
-                # Fedora systems have a broken gnome-python wrapper for
-                # this function.
-                # http://www.sacredchao.net/quodlibet/ticket/591
-                # http://trac.gajim.org/ticket/929
-                client.set_restart_command(len(sys.argv),
-                                           [command] + sys.argv[1:])
-            client.connect('die', Gtk.main_quit)
-        except:
-            pass
 
     def populate_profiles_for_menu(self):
         host, port, _password = misc.mpd_env_vars()
