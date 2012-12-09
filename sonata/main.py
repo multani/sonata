@@ -857,10 +857,14 @@ class Base(object):
     ### Tab system:
 
     def on_enable_tab(self, _plugin, tab):
-        self.plugintabs[tab] = self.add_tab(*tab())
+        tab_parts = tab()
+        name = tab_parts[2]
+        self.plugintabs[name] = self.add_tab(*tab_parts)
 
     def on_disable_tab(self, _plugin, tab):
-        self.notebook.remove(self.plugintabs.pop(tab))
+        name = tab()[2]
+        tab = self.plugintabs.pop(name)
+        self.notebook.remove(tab)
 
     def add_tab(self, page, label_widget, text, focus):
         label_widget.show_all()
@@ -879,6 +883,7 @@ class Base(object):
 
         self.tabname2tab[text] = page
         self.tabname2focus[text] = focus
+        return page
 
     def connected(self):
         ### "Model, logic":
