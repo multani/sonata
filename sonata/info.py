@@ -362,16 +362,18 @@ class Info(object):
                 lyrics = lyrics[len(header):]
             self._show_lyrics(filename_artist, filename_title, lyrics=lyrics)
         else:
-            # Fetch lyrics from lyricwiki.org etc.
-            lyrics_fetchers = pluginsystem.get('lyrics_fetching')
+            # Fetch lyrics from plugins
             callback = lambda * args: self.get_lyrics_response(
                 filename_artist, filename_title, song_dir, *args)
+
+            lyrics_fetchers = pluginsystem.get('lyrics_fetching')
             if lyrics_fetchers:
                 msg = _("Fetching lyrics...")
-                for _plugin, cb in lyrics_fetchers:
-                    cb(callback, search_artist, search_title)
+                pluginsystem.emit('lyrics_fetching',
+                                  callback, search_artist, search_title)
             else:
                 msg = _("No lyrics plug-in enabled.")
+
             self._show_lyrics(filename_artist, filename_title,
                           lyrics=msg)
 
