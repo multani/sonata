@@ -331,7 +331,7 @@ class Current(object):
             else:
                 self.header_hide_all_indicators(self.current, True)
                 self.column_sorted[0].set_sort_order(Gtk.SortType.DESCENDING)
-                self.column_sorted = (None, Gtk.SortType.descending)
+                self.column_sorted = (None, Gtk.SortType.DESCENDING)
 
     def playlist_retain_view(self, listview, playlistposition):
         # Attempt to retain library position:
