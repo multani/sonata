@@ -77,7 +77,9 @@ setup(
         'sonata': [
             'pixmaps/*.*',
             'ui/*.ui',
+            'ui/*.css',
             'plugins/ui/*.ui',
+            'plugins/ui/*.css',
         ],
     },
     entry_points={
