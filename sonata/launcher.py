@@ -78,19 +78,12 @@ def run():
 
     ## Apply global fixes:
 
-    # hint for gnome.init to set the process name to 'sonata'
     if platform.system() == 'Linux':
-        sys.argv[0] = 'sonata'
-
-    # apply as well:
-        try:
-            import ctypes
-            libc = ctypes.CDLL('libc.so.6')
-            PR_SET_NAME = 15
-            libc.prctl(PR_SET_NAME, sys.argv[0], 0, 0, 0)
-        except Exception: # if it fails, it fails
-            pass
-
+        sys.argv[0] = "sonata"
+        import ctypes
+        libc = ctypes.CDLL('libc.so.6')
+        PR_SET_NAME = 15
+        libc.prctl(PR_SET_NAME, b"sonata", 0, 0, 0)
 
     ## Apply locale and translation:
 
