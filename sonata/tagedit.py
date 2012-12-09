@@ -37,12 +37,9 @@ class TagEditor():
         self.entries = None
         self.tags = None
 
-        self.builder = Gtk.Builder()
-        self.builder.add_from_file('{0}/ui/tagedit.ui'.format(
-            os.path.dirname(ui.__file__)))
-        self.css_provider = Gtk.CssProvider()
-        self.css_provider.load_from_path('{0}/ui/tagedit.css'.format(
-            os.path.dirname(ui.__file__)))
+        self.builder = ui.builder('tagedit.ui')
+        self.css_provider = ui.provider('tagedit.css')
+
 
     def _init_edit_window(self):
         self.edit_window = self.builder.get_object('tags_dialog')

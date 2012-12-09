@@ -18,6 +18,13 @@ def builder(ui_file, relative_to='.'):
 
     return builder
 
+def provider(css_file, relative_to='.'):
+    provider = Gtk.CssProvider()
+    css_path = pkg_resources.resource_filename(
+        'sonata', os.path.join(relative_to, 'ui', css_file))
+    provider.load_from_path(css_path)
+
+    return provider
 
 def label(text=None, textmn=None, markup=None, x=0, y=0.5, \
           wrap=False, select=False, w=-1, h=-1):
