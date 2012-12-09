@@ -47,9 +47,10 @@
   <object class="GtkScrolledWindow" id="streams_page_scrolledwindow">
     <property name="can_focus">True</property>
     <property name="shadow_type">in</property>
+    <property name="margin">3</property>
     <child>
       <object class="GtkTreeView" id="streams_page_treeview">
-          <property name="rules_hint">True</property>
+        <property name="rules_hint">True</property>
         <property name="can_focus">True</property>
         <property name="model">streams_liststore</property>
         <property name="headers_visible">False</property>

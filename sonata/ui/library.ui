@@ -36,8 +36,10 @@
     </child>
   </object>
   <object class="GtkBox" id="library_page_v_box">
-  <property name="can_focus">False</property>
-  <property name="orientation">vertical</property>
+    <property name="can_focus">False</property>
+    <property name="orientation">vertical</property>
+    <property name="margin_right">3</property>
+    <property name="margin_left">3</property>
     <child>
       <object class="CrumbBox" id="library_page_crumbbox">
         <property name="can_focus">False</property>
