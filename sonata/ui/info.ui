@@ -12,6 +12,7 @@
           <object class="GtkImage" id="info_tab_image">
             <property name="can_focus">False</property>
             <property name="stock">gtk-file</property>
+            <property name="icon-size">1</property>
           </object><!--info_tab_image-->
           <packing>
             <property name="expand">False</property>

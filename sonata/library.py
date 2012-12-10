@@ -419,7 +419,7 @@ class Library(object):
 
         # the first crumb is the root of the current view
         self.crumb_section.set_label(label)
-        self.crumb_section_image.set_from_stock(icon, Gtk.IconSize.BUTTON)
+        self.crumb_section_image.set_from_stock(icon, Gtk.IconSize.MENU)
         self.crumb_section.set_tooltip_text(label)
         if self.crumb_section_handler:
             self.crumb_section.disconnect(self.crumb_section_handler)
