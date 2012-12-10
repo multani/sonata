@@ -605,10 +605,15 @@ class Artwork(object):
 
     def artwork_download_img_to_file(self, artist, album, dest_filename,
                                      all_images=False):
+
+        downloader = CoverDownloader(dest_filename, self.download_progress,
+                                     all_images)
+
         self.downloading_image = True
         # Fetch covers from covers plugins
-        ret = pluginsystem.emit_first('cover_fetching', self.download_progress,
-                                      artist, album, dest_filename, all_images)
+        ret = pluginsystem.emit_first('cover_fetching', artist, album,
+                                      downloader.on_save_callback,
+                                      downloader.on_err_cb)
 
         # XXX if all_images and found, merge results...
         found = bool(ret)
@@ -679,4 +684,31 @@ class Artwork(object):
     def have_last(self):
         if self.lastalbumart is not None:
             return True
+        return False
+
+
+class CoverDownloader:
+    def __init__(self, path, progress_cb, all_images):
+        self.path = path
+        self.progress_cb = progress_cb
+        self.max_images = 50 if all_images else 1
+        self.current = 0
+
+    def on_save_callback(self, content_fp):
+        """Return True to continue finding covers, False to stop finding
+        covers."""
+
+        self.current += 1
+        if self.max_images > 1:
+            path = self.path.replace("<imagenum>", str(self.current))
+        else:
+            path = self.path
+
+        with open(path, 'w') as fp:
+            shutil.copyfileobj(content_fp, fp)
+
+        return self.progress_cb(path, self.current-1)
+
+    def on_err_cb(self):
+        """Return True to stop finding, False to continue finding covers."""
         return False
