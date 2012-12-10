@@ -6,6 +6,7 @@ Next release - ?
     + Support MPD's "consume" mode (Anton Lashkov)
     + Use more default icons in the context menus (Anton Lashkov)
     + Up-to-date German translation (Peter Helbing)
+    + Load only the most recent of plugins with the same names
     * Bug: fix population of the "Save to playlist" menu (Zhihao Yuan)
     * Bug: prevent multiple entries and improve art search with multi-CD albums (Kirill Lashuk)
     * Bug: fixes weird show up if Sonata is not on the current workspace (Kirill Lashuk)
@@ -14,6 +15,7 @@ Next release - ?
     * Bug: fix UI status after reconnection to MPD (Jonathan Ballet)
     * Bug: fix crash when searching the library (Kirill Lashuk)
     - Lot of code cleanup and internal changes
+    - Removed Sugar UI support
 
 v1.6.2.1 - September 21, 2009
 	+ Library artwork caching/displaying improvements
