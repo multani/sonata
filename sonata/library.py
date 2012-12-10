@@ -110,7 +110,7 @@ class Library(object):
         self.searchbutton = self.builder.get_object('library_page_searchbox_button')
         self.searchbutton.hide()
         self.libraryview = self.builder.get_object('library_crumb_button')
-        self.tab_label_widget = self.builder.get_object('library_tab_eventbox')
+        self.tab_label_widget = self.builder.get_object('library_tab_h_box')
         tab_label = self.builder.get_object('library_tab_label')
         tab_label.set_text(TAB_LIBRARY)
 

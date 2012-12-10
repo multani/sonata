@@ -47,7 +47,7 @@ class Info(object):
         # Info tab
         self.builder = ui.builder('info.ui')
         self.info_area = self.builder.get_object('info_page_scrolledwindow')
-        self.tab_label_widget = self.builder.get_object('info_tab_eventbox')
+        self.tab_label_widget = self.builder.get_object('info_tab_h_box')
         tab_label = self.builder.get_object('info_tab_label')
         tab_label.set_text(TAB_INFO)
         self.tab = add_tab(self.info_area, self.tab_label_widget,

@@ -36,7 +36,7 @@ class Streams(object):
         self.streams_selection = self.streams.get_selection()
         self.streamswindow = self.builder.get_object('streams_page_scrolledwindow')
 
-        self.tab_widget = self.builder.get_object('streams_tab_eventbox')
+        self.tab_widget = self.builder.get_object('streams_tab_h_box')
         self.tab_label = self.builder.get_object('streams_tab_label')
         self.tab_label.set_text(TAB_STREAMS)
 
