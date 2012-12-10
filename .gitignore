@@ -11,3 +11,5 @@ RECORD
 *.egg-info/
 build/
 sonata/genversion.py
+po/messages.po
+po/untitled.pot
