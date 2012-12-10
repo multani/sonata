@@ -89,20 +89,27 @@ class Library(object):
 
         # Library tab
         self.builder = ui.builder('library.ui')
+        self.css_provider = ui.provider('library.css')
 
         self.libraryvbox = self.builder.get_object('library_page_v_box')
         self.library = self.builder.get_object('library_page_treeview')
         self.library_selection = self.library.get_selection()
-        self.breadcrumbs = self.builder.get_object('library_page_crumbbox')
-        self.breadcrumbs.props.spacing = 2
+        self.breadcrumbs = self.builder.get_object('library_crumbs_box')
+        self.crumb_section = self.builder.get_object(
+            'library_crumb_section_togglebutton')
+        self.crumb_section_image = self.builder.get_object(
+            'library_crumb_section_image')
+        self.crumb_break = self.builder.get_object(
+            'library_crumb_break_box')
+        self.breadcrumbs.set_crumb_break(self.crumb_break)
+        self.crumb_section_handler = None
         expanderwindow2 = self.builder.get_object('library_page_scrolledwindow')
         self.searchbox = self.builder.get_object('library_page_searchbox')
         self.searchcombo = self.builder.get_object('library_page_searchbox_combo')
         self.searchtext = self.builder.get_object('library_page_searchbox_entry')
         self.searchbutton = self.builder.get_object('library_page_searchbox_button')
         self.searchbutton.hide()
-        #XXX replaced by breadcrumbs
-        self.libraryview = ui.button(relief=Gtk.ReliefStyle.NONE)
+        self.libraryview = self.builder.get_object('library_crumb_button')
         self.tab_label_widget = self.builder.get_object('library_tab_eventbox')
         tab_label = self.builder.get_object('library_tab_label')
         tab_label.set_text(TAB_LIBRARY)
@@ -138,8 +145,6 @@ class Library(object):
             (consts.VIEW_GENRE, 'genre',
              Gtk.STOCK_ORIENTATION_PORTRAIT, _("Genres")),
             ]
-
-        self.library_view_assign_image()
 
         self.library.connect('row_activated', self.on_library_row_activated)
         self.library.connect('button_press_event',
@@ -223,26 +228,19 @@ class Library(object):
         elif action.get_name() == 'albumview':
             self.config.lib_view = consts.VIEW_ALBUM
         self.library.grab_focus()
-        self.library_view_assign_image()
         self.libraryposition = {}
         self.libraryselectedpath = {}
         self.library_browse(root=SongRecord(path="/"))
         try:
             if len(self.librarydata) > 0:
                 first = Gtk.TreePath.new_first()
-                to   = Gtk.TreePath.new()
-                to.append_index(len(self.librarydata)-1)
+                to = Gtk.TreePath.new()
+                to.append_index(len(self.librarydata) - 1)
                 self.library_selection.unselect_range(first, to)
         except Exception as e:
             # XXX import logger here in the future
             raise e
         GObject.idle_add(self.library.scroll_to_point, 0, 0)
-
-    def library_view_assign_image(self):
-        _view, _name, icon, label = [v for v in self.VIEWS
-                         if v[0] == self.config.lib_view][0]
-        self.libraryview.set_image(ui.image(stock=icon))
-        self.libraryview.set_label(" " + label)
 
     def view_caches_reset(self):
         # We should call this on first load and whenever mpd is
@@ -304,13 +302,7 @@ class Library(object):
             # the update is over.
             model, selected = self.library_selection.get_selected_rows()
             for path in selected:
-                if model.get_value(model.get_iter(path), 2) == "/":
-                    prev_selection_root = True
-                elif model.get_value(model.get_iter(path), 2) == "..":
-                    prev_selection_parent = True
-                else:
-                    prev_selection.append(model.get_value(model.get_iter(path),
-                                                          1))
+                prev_selection.append(model.get_value(model.get_iter(path), 1))
             self.libraryposition[self.config.wd] = \
                     self.library.get_visible_rect().width
             path_updated = True
@@ -329,8 +321,7 @@ class Library(object):
             if len(rows) > 0:
                 data = self.librarydata.get_value(
                     self.librarydata.get_iter(rows[0]), 2)
-                if not data in ("..", "/"):
-                    self.libraryselectedpath[self.config.wd] = rows[0]
+                self.libraryselectedpath[self.config.wd] = rows[0]
         elif (self.config.lib_view == consts.VIEW_FILESYSTEM and \
               root != self.config.wd) \
         or (self.config.lib_view != consts.VIEW_FILESYSTEM and new_level != \
@@ -422,25 +413,20 @@ class Library(object):
         for b in self.breadcrumbs:
             self.breadcrumbs.remove(b)
 
-        # add the views button first
-        b = ui.button(text=_(" v "), can_focus=False, relief=Gtk.ReliefStyle.NONE)
-        b.connect('clicked', self.library_view_popup)
-        self.breadcrumbs.pack_start(b, False, False, 0)
-        b.show()
-
-        # add the ellipsis explicitly XXX make this unnecessary
-        b = ui.label("...")
-        self.breadcrumbs.pack_start(b, False, False, 0)
-        b.show()
-
         # find info for current view
         view, _name, icon, label = [v for v in self.VIEWS
                           if v[0] == self.config.lib_view][0]
 
         # the first crumb is the root of the current view
-        crumbs = [(label, icon, None, SongRecord(path='/'))]
+        self.crumb_section.set_label(label)
+        self.crumb_section_image.set_from_stock(icon, Gtk.IconSize.BUTTON)
+        self.crumb_section.set_tooltip_text(label)
+        if self.crumb_section_handler:
+            self.crumb_section.disconnect(self.crumb_section_handler)
 
-        # rest of the crumbs are specific to the view
+
+        crumbs = []
+        # crumbs are specific to the view
         if view == consts.VIEW_FILESYSTEM:
             if self.config.wd.path and self.config.wd.path != '/':
                 parts = self.config.wd.path.split('/')
@@ -461,8 +447,8 @@ class Library(object):
             else:
                 keys = 'genre', 'artist', 'album'
                 nkeys = 3
-                parts = (self.config.wd.genre, self.config.wd.album, \
-                         self.config.wd.artist)
+                parts = (self.config.wd.genre, self.config.wd.artist,
+                         self.config.wd.album)
             # append a crumb for each part
             for i, key, part in zip(range(nkeys), keys, parts):
                 if part is None:
@@ -472,8 +458,8 @@ class Library(object):
                 pb, icon = None, None
                 if key == 'album':
                     # Album artwork, with self.alumbpb as a backup:
-                    cache_data = SongRecord(artist=self.config.wd.artist, \
-                                            album=self.config.wd.album, \
+                    cache_data = SongRecord(artist=self.config.wd.artist,
+                                            album=self.config.wd.album,
                                             path=self.config.wd.path)
                     pb = self.artwork.get_library_artwork_cached_pb(cache_data,
                                                                     None)
@@ -485,12 +471,22 @@ class Library(object):
                     icon = Gtk.STOCK_ORIENTATION_PORTRAIT
                 crumbs.append((part, icon, pb, target))
 
+        if not len(crumbs):
+            self.crumb_section.set_active(True)
+            context = self.crumb_section.get_style_context()
+            context.add_class('last_crumb')
+        else:
+            self.crumb_section.set_active(False)
+            context = self.crumb_section.get_style_context()
+            context.remove_class('last_crumb')
+
+        self.crumb_section_handler = self.crumb_section.connect('toggled',
+            self.library_browse, SongRecord(path='/'))
+
         # add a button for each crumb
         for crumb in crumbs:
             text, icon, pb, target = crumb
             text = misc.escape_html(text)
-            if crumb is crumbs[-1]:
-                text = "<b>%s</b>" % text
             label = ui.label(markup=text)
 
             if icon:
@@ -503,27 +499,14 @@ class Library(object):
 
             if crumb is crumbs[-1]:
                 # FIXME makes the button request minimal space:
-                # label.props.ellipsize = Pango.EllipsizeMode.END
-                b.props.active = True
-            # FIXME why doesn't the tooltip show?
+                b.set_active(True)
+                context = b.get_style_context()
+                context.add_class('last_crumb')
+
             b.set_tooltip_text(label.get_label())
             b.connect('toggled', self.library_browse, target)
             self.breadcrumbs.pack_start(b, False, False, 0)
             b.show_all()
-
-    def library_populate_add_parent_rows(self):
-#        return [] # disabled as breadcrumbs replace these
-        if self.config.lib_view == consts.VIEW_FILESYSTEM:
-            bd = [('0', [self.harddiskpb, SongRecord(path='/'),
-                         '/'])]
-            bd += [('1', [self.openpb, SongRecord(path='..'),
-                          '..'])]
-        else:
-            bd = [('0', [self.harddiskpb2, SongRecord(path='/'),
-                         '/'])]
-            bd += [('1', [self.openpb2, SongRecord(path='..'),
-                          '..'])]
-        return bd
 
     def library_populate_filesystem_data(self, path):
         # List all dirs/files at path
@@ -545,10 +528,6 @@ class Library(object):
                              formatting.parse(self.config.libraryformat, item,
                                               True)])]
             bd.sort(key=operator.itemgetter(0))
-            if path != '/' and len(bd) > 0:
-                bd = self.library_populate_add_parent_rows() + bd
-            if path == '/':
-                self.lib_view_filesystem_cache = bd
         return bd
 
     def library_get_toplevel_cache(self, genreview=False, artistview=False,
@@ -734,8 +713,6 @@ class Library(object):
         else:
             # Songs within an album, artist, year, and possibly genre
             bd += self.library_populate_data_songs(genre, artist, album, year)
-        if len(bd) > 0:
-            bd = self.library_populate_add_parent_rows() + bd
         bd.sort(key=lambda key: locale.strxfrm(key[0]))
         return bd
 

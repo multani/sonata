@@ -23,6 +23,10 @@ def provider(css_file, relative_to='.'):
     css_path = pkg_resources.resource_filename(
         'sonata', os.path.join(relative_to, 'ui', css_file))
     provider.load_from_path(css_path)
+    screen = Gdk.Screen.get_default()
+    context = Gtk.StyleContext()
+    context.add_provider_for_screen(screen, provider,
+                                    Gtk.STYLE_PROVIDER_PRIORITY_USER)
 
     return provider
 

@@ -12,7 +12,7 @@ tageditor.on_tags_edit(files, temp_mpdpaths, self.musicdir[self.profile_num])
 import os
 import re
 
-from gi.repository import Gtk, Gdk, GObject
+from gi.repository import Gtk, GObject
 tagpy = None # module loaded when needed
 
 from sonata import ui, misc
@@ -44,10 +44,6 @@ class TagEditor():
     def _init_edit_window(self):
         self.edit_window = self.builder.get_object('tags_dialog')
         self.edit_window.set_transient_for(self.window)
-        screen = Gdk.Screen.get_default()
-        context = Gtk.StyleContext()
-        context.add_provider_for_screen(screen, self.css_provider,
-                                        Gtk.STYLE_PROVIDER_PRIORITY_USER)
         self.file_label = self.builder.get_object('tags_file_label')
         genre_combo = self.builder.get_object('tags_genre_comboboxtext')
         for genre in self.tags_win_genres():

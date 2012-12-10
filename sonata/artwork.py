@@ -190,6 +190,7 @@ class Artwork(object):
             else:
                 i = None
 
+            # FIXME this can segfault (on iter_is_valid)
             if i is not None and self.lib_model.iter_is_valid(i):
 
                 if data.artist is None or data.album is None:

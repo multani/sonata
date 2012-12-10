@@ -1650,7 +1650,8 @@ class Base(object):
         if self.config.show_statusbar:
             if self.conn and self.status:
                 days = None
-                hours, mins, _ = misc.convert_time_raw(self.current.total_time)
+                # FIXME _ is for localization, temporarily __
+                hours, mins, __ = misc.convert_time_raw(self.current.total_time)
                 # Show text:
                 songs_text = ngettext('song', 'songs',
                                       int(self.status['playlistlength']))
