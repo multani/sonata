@@ -186,28 +186,6 @@ class Base(object):
         self.notebook_show_first_tab = not self.config.tabs_expanded or \
                 self.config.withdrawn
 
-        # Add some icons, assign pixbufs:
-        self.iconfactory = Gtk.IconFactory()
-        ui.icon(self.iconfactory, 'sonata', self.path_to_icon('sonata.png'))
-        ui.icon(self.iconfactory, 'artist',
-                self.path_to_icon('sonata-artist.png'))
-        ui.icon(self.iconfactory, 'album', self.path_to_icon('sonata-album.png'))
-        icon_theme = Gtk.IconTheme.get_default()
-        img_res, img_width, _img_height = Gtk.icon_size_lookup(Gtk.IconSize.SMALL_TOOLBAR)
-        if not img_res:
-                self.logger.error("Invalid size of Volume Icon")
-        for iconname in ('stock_volume-mute', 'stock_volume-min',
-                         'stock_volume-med', 'stock_volume-max'):
-            try:
-                ui.icon(self.iconfactory, iconname,
-                        icon_theme.lookup_icon(
-                            iconname, img_width,
-                            Gtk.IconLookupFlags.USE_BUILTIN).get_filename())
-            except:
-                # Fallback to Sonata-included icons:
-                ui.icon(self.iconfactory, iconname,
-                        self.path_to_icon('sonata-%s.png' % iconname))
-
         self.builder = ui.builder('sonata.ui')
 
         # Main window
@@ -222,6 +200,21 @@ class Base(object):
         self.preferences.window = self.window
 
         self.notebook = self.builder.get_object('main_notebook')
+        self.album_image = self.builder.get_object('main_album_image')
+        self.tray_album_image = self.builder.get_object('tray_album_image')
+
+        # Fullscreen cover art window
+        self.fullscreen_window = self.builder.get_object("fullscreen_window")
+        self.fullscreen_window.fullscreen()
+        bgcolor = Gdk.RGBA()
+        bgcolor.parse("black")
+        self.fullscreen_window.override_background_color(Gtk.StateFlags.NORMAL,
+                                                         bgcolor)
+        self.fullscreen_image = self.builder.get_object("fullscreen_image")
+        fullscreen_label1 = self.builder.get_object("fullscreen_label_1")
+        fullscreen_label2 = self.builder.get_object("fullscreen_label_2")
+        if not self.config.show_covers:
+            self.fullscreen_image.hide()
 
         # Artwork
         self.artwork = artwork.Artwork(
@@ -231,7 +224,8 @@ class Base(object):
             self.imagelist_append, self.remotefilelist_append,
             self.notebook.get_allocation, self.set_allow_art_search,
             self.status_is_play_or_pause, self.path_to_icon('sonata-album.png'),
-            self.get_current_song_text)
+            self.get_current_song_text, self.album_image, self.tray_album_image,
+            self.fullscreen_image, fullscreen_label1, fullscreen_label2)
 
 
         # Popup menus:
@@ -565,6 +559,8 @@ class Base(object):
 
         # Main app:
         self.UIManager = Gtk.UIManager()
+        accel_group = self.UIManager.get_accel_group()
+        self.fullscreen_window.add_accel_group(accel_group)
         actionGroup = Gtk.ActionGroup('Actions')
         actionGroup.add_actions(actions)
         actionGroup.add_actions(keyactions)
@@ -588,8 +584,6 @@ class Base(object):
         self.librarymenu = self.UIManager.get_widget('/librarymenu')
         self.library.set_librarymenu(self.librarymenu)
         self.notebookmenu = self.UIManager.get_widget('/notebookmenu')
-        mainvbox = self.builder.get_object('main_v_box')
-        tophbox = self.builder.get_object('top_h_box')
 
         # Autostart plugins
         for plugin in pluginsystem.get_info():
@@ -609,21 +603,17 @@ class Base(object):
 
         self.tray_icon = tray.TrayIcon(self.window, self.traymenu, self.traytips)
 
-        self.albumimage = self.artwork.get_albumimage()
-
         self.imageeventbox = self.builder.get_object('image_event_box')
-        self.imageeventbox.add(self.albumimage)
         self.imageeventbox.drag_dest_set(Gtk.DestDefaults.HIGHLIGHT |
                                          Gtk.DestDefaults.DROP,
                                          [Gtk.TargetEntry.new("text/uri-list", 0, 80),
                                           Gtk.TargetEntry.new("text/plain", 0, 80)],
                                          Gdk.DragAction.DEFAULT)
         if not self.config.show_covers:
-            ui.hide(self.imageeventbox)
-        topvbox = self.builder.get_object('top_v_box')
-        toptophbox = self.builder.get_object('toptop_h_box')
+            self.imageeventbox.hide()
         self.prevbutton = self.builder.get_object('prev_button')
         self.ppbutton = self.builder.get_object('playpause_button')
+        self.ppbutton_image = self.builder.get_object('playpause_button_image')
         self.stopbutton = self.builder.get_object('stop_button')
         self.nextbutton = self.builder.get_object('next_button')
         for mediabutton in (self.prevbutton, self.ppbutton, self.stopbutton,
@@ -687,11 +677,8 @@ class Base(object):
         # Song notification window:
         self.tray_v_box = self.builder.get_object('tray_v_box')
 
-        self.tray_album_image = self.builder.get_object('tray_album_image')
-        self.artwork.set_tray_album_image(self.tray_album_image)
-
         if not self.config.show_covers:
-            ui.hide(self.tray_album_image)
+            self.tray_album_image.hide()
 
         self.tray_current_label1 = self.builder.get_object('tray_label_1')
         self.tray_current_label2 = self.builder.get_object('tray_label_2')
@@ -703,24 +690,6 @@ class Base(object):
         self.tray_v_box.show_all()
         self.traytips.add_widget(self.tray_v_box)
         self.tooltip_set_window_width()
-
-        # Fullscreen cover art window
-        self.fullscreen_window = self.builder.get_object("fullscreen_window")
-        self.fullscreen_window.fullscreen()
-        bgcolor = Gdk.RGBA()
-        bgcolor.parse("black")
-        self.fullscreen_window.override_background_color(Gtk.StateFlags.NORMAL,
-                                                         bgcolor)
-        accel_group = self.UIManager.get_accel_group()
-        self.fullscreen_window.add_accel_group(accel_group)
-        self.fullscreen_image = self.builder.get_object("fullscreen_image")
-        self.artwork.set_fullscreenalbumimage(self.fullscreen_image)
-        fullscreen_label1 = self.builder.get_object("fullscreen_label_1")
-        fullscreen_label2 = self.builder.get_object("fullscreen_label_2")
-        self.artwork.set_fullscreenalbumlabels((fullscreen_label1,
-                                                fullscreen_label2))
-        if not self.config.show_covers:
-            ui.hide(self.fullscreen_image)
 
         # Connect to signals
         self.window.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
@@ -1493,23 +1462,20 @@ class Base(object):
             self.update_wintitle()
             self.info_update(True)
             if self.status['state'] == 'stop':
-                self.ppbutton.set_image(ui.image(
-                    stock=Gtk.STOCK_MEDIA_PLAY,
-                    stocksize=Gtk.IconSize.BUTTON))
+                self.ppbutton_image.set_from_stock(Gtk.STOCK_MEDIA_PLAY,
+                                                   Gtk.IconSize.BUTTON)
                 self.UIManager.get_widget('/traymenu/playmenu').show()
                 self.UIManager.get_widget('/traymenu/pausemenu').hide()
                 self.tray_icon.update_icon(self.path_to_icon('sonata.png'))
             elif self.status['state'] == 'pause':
-                self.ppbutton.set_image(ui.image(
-                    stock=Gtk.STOCK_MEDIA_PLAY,
-                    stocksize=Gtk.IconSize.BUTTON))
+                self.ppbutton_image.set_from_stock(Gtk.STOCK_MEDIA_PLAY,
+                                                   Gtk.IconSize.BUTTON)
                 self.UIManager.get_widget('/traymenu/playmenu').show()
                 self.UIManager.get_widget('/traymenu/pausemenu').hide()
                 self.tray_icon.update_icon(self.path_to_icon('sonata_pause.png'))
             elif self.status['state'] == 'play':
-                self.ppbutton.set_image(ui.image(
-                    stock=Gtk.STOCK_MEDIA_PAUSE,
-                    stocksize=Gtk.IconSize.BUTTON))
+                self.ppbutton_image.set_from_stock(Gtk.STOCK_MEDIA_PAUSE,
+                                                   Gtk.IconSize.BUTTON)
                 self.UIManager.get_widget('/traymenu/playmenu').hide()
                 self.UIManager.get_widget('/traymenu/pausemenu').show()
                 if self.prevstatus != None:
@@ -2938,7 +2904,7 @@ class Base(object):
             self.traytips.set_size_request(self.notification_width-100, -1)
             for widget in [self.imageeventbox, self.info_imagebox,
                            self.tray_album_image]:
-                ui.hide(widget)
+                widget.hide()
             self.config.show_covers = False
             self.update_cursong()
 

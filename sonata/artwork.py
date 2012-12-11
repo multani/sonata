@@ -16,7 +16,8 @@ class Artwork(object):
                  target_image_filename, imagelist_append,
                  remotefilelist_append, notebook_get_allocation,
                  allow_art_search, status_is_play_or_pause, album_filename,
-                 get_current_song_text):
+                 get_current_song_text, album_image, tray_image,
+                 fullscreen_image, fullscreen_label1, fullscreen_label2):
 
         self.config = config
         self.album_filename = album_filename
@@ -44,14 +45,14 @@ class Artwork(object):
         self.currentpb = None
 
         # local UI widgets provided to main by getter methods
-        self.albumimage = ui.image()
+        self.albumimage = album_image
         self.albumimage.set_from_file(self.sonatacd)
 
-        self.fullscreenalbumimage = ui.image(w=consts.FULLSCREEN_COVER_SIZE,
-                                             h=consts.FULLSCREEN_COVER_SIZE,
-                                             x=1)
-        self.fullscreenalbumlabel = ui.label(x=0.5)
-        self.fullscreenalbumlabel2 = ui.label(x=0.5)
+        self.tray_album_image = tray_image
+
+        self.fullscreenalbumimage = fullscreen_image
+        self.fullscreenalbumlabel = fullscreen_label1
+        self.fullscreenalbumlabel2 = fullscreen_label2
         self.fullscreen_cover_art_reset_image()
         self.fullscreen_cover_art_reset_text()
 
@@ -77,30 +78,9 @@ class Artwork(object):
 
         self.artwork_load_cache()
 
-    def get_albumimage(self):
-        return self.albumimage
-
-    def get_info_image(self):
-        return self.info_image
-
     def set_info_image(self, info_image):
         self.info_image = info_image
         self.info_image.set_from_file(self.sonatacd_large)
-
-    def set_tray_album_image(self, tray_image):
-        self.tray_album_image = tray_image
-
-    def get_fullscreenalbumimage(self):
-        return self.fullscreenalbumimage
-
-    def get_fullscreenalbumlabels(self):
-        return self.fullscreenalbumlabel, self.fullscreenalbumlabel2
-
-    def set_fullscreenalbumimage(self, fullscreen_image):
-        self.fullscreenalbumimage = fullscreen_image
-
-    def set_fullscreenalbumlabels(self, labelpair):
-        self.fullscreenalbumlabel, self.fullscreenalbumlabel2 = labelpair
 
     def update_songinfo(self, songinfo):
         self.songinfo = songinfo
