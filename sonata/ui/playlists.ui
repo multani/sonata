@@ -16,6 +16,7 @@
       <object class="GtkImage" id="playlists_tab_image">
         <property name="can_focus">False</property>
         <property name="stock">gtk-directory</property>
+        <property name="icon-size">1</property>
       </object>
       <packing>
         <property name="expand">False</property>

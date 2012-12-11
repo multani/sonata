@@ -13,6 +13,7 @@
       <object class="GtkImage" id="library_tab_image">
         <property name="can_focus">False</property>
         <property name="stock">gtk-harddisk</property>
+        <property name="icon-size">1</property>
       </object><!--library_tab_image-->
       <packing>
         <property name="expand">False</property>
