@@ -223,6 +223,7 @@
                             <child>
                               <object class="GtkEventBox" id="info_song_artist_eventbox">
                                 <property name="visible">True</property>
+                                <property name="visible_window">False</property>
                                 <property name="can_focus">False</property>
                                 <property name="tooltip_text" translatable="yes">Launch artist in Wikipedia</property>
                                 <child>
@@ -253,7 +254,8 @@
                             <property name="can_focus">False</property>
                             <child>
                               <object class="GtkEventBox" id="info_song_album_eventbox">
-                                <property name="visible">True</property>
+                                <property name="visible">False</property>
+                                <property name="visible_window">False</property>
                                 <property name="can_focus">False</property>
                                 <property name="tooltip_text" translatable="yes">Launch album in Wikipedia</property>
                                 <child>
@@ -435,7 +437,8 @@
                             <property name="spacing">6</property>
                             <child>
                               <object class="GtkEventBox" id="info_song_links_more_eventbox">
-                                <property name="visible">True</property>
+                                <property name="visible">False</property>
+                                <property name="visible_window">False</property>
                                 <property name="can_focus">False</property>
                                 <property name="tooltip_text" translatable="yes">Toggle extra tags</property>
                                 <child>
@@ -453,7 +456,8 @@
                             </child>
                             <child>
                               <object class="GtkEventBox" id="info_song_links_edit_eventbox">
-                                <property name="visible">True</property>
+                                <property name="visible">False</property>
+                                <property name="visible_window">False</property>
                                 <property name="can_focus">False</property>
                                 <property name="tooltip_text" translatable="yes">Edit song tags</property>
                                 <child>
@@ -543,7 +547,8 @@
                         <property name="spacing">5</property>
                         <child>
                           <object class="GtkEventBox" id="info_page_lyrics_search_eventbox">
-                            <property name="visible">True</property>
+                            <property name="visible">False</property>
+                            <property name="visible_window">False</property>
                             <property name="can_focus">False</property>
                             <property name="tooltip_text" translatable="yes">Search Lyricwiki.org for lyrics</property>
                             <child>
@@ -562,7 +567,8 @@
                         </child>
                         <child>
                           <object class="GtkEventBox" id="info_page_lyrics_edit_eventbox">
-                            <property name="visible">True</property>
+                            <property name="visible">False</property>
+                            <property name="visible_window">False</property>
                             <property name="can_focus">False</property>
                             <property name="tooltip_text" translatable="yes">Edit lyrics at Lyricwiki.org</property>
                             <child>
