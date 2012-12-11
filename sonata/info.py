@@ -24,13 +24,6 @@ class Info(object):
         self.get_playing_song = get_playing_song
         self.album_return_artist_and_tracks = album_return_artist_and_tracks
 
-        try:
-            self.enc = locale.getpreferredencoding()
-        except:
-            self.logger.exception("Locale cannot be found; please set your "
-                                  "system's locale. Aborting...")
-            sys.exit(1)
-
         self.last_bitrate = None
 
         self.info_boxes_in_more = None
@@ -350,7 +343,7 @@ class Info(object):
             # that prevents lyrics from being found, storing the "not found"
             # will prevent a future release from correctly fetching the lyrics.
             try:
-                with open(filename, 'r') as f:
+                with open(filename, 'r', encoding="utf-8") as f:
                     lyrics = f.read()
             except IOError:
                 pass
@@ -370,7 +363,7 @@ class Info(object):
         if filename:
             # Re-use lyrics from file:
             try:
-                with open(filename, 'r') as f:
+                with open(filename, 'r', encoding="utf-8") as f:
                     lyrics = f.read()
             except IOError:
                 pass
@@ -402,12 +395,9 @@ class Info(object):
             # Save lyrics to file:
             misc.create_dir('~/.lyrics/')
             try:
-                with open(filename, 'w') as f:
+                with open(filename, 'w', encoding="utf-8") as f:
                     lyrics = misc.unescape_html(lyrics)
-                    try:
-                        f.write(lyrics.decode(self.enc).encode('utf8'))
-                    except:
-                        f.write(lyrics)
+                    f.write(lyrics)
             except IOError:
                 pass
 

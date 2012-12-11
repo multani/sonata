@@ -325,7 +325,7 @@ class Artwork(object):
         misc.create_dir('~/.config/sonata/')
         filename = os.path.expanduser("~/.config/sonata/art_cache")
         try:
-            with open(filename, 'w') as f:
+            with open(filename, 'w', encoding="utf8") as f:
                 f.write(repr(self.cache))
         except IOError:
             pass
@@ -334,7 +334,7 @@ class Artwork(object):
         filename = os.path.expanduser("~/.config/sonata/art_cache")
         if os.path.exists(filename):
             try:
-                with open(filename, 'r') as f:
+                with open(filename, 'r', encoding="utf8") as f:
                         self.cache = eval(f.read())
             except (IOError, SyntaxError):
                 self.cache = {}

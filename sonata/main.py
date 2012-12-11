@@ -1979,7 +1979,8 @@ class Base(object):
     def update_infofile(self):
         if self.config.use_infofile is True:
             try:
-                info_file = open(self.config.infofile_path, 'w')
+                info_file = open(self.config.infofile_path, 'w',
+                                 encoding="utf-8")
 
                 if self.status['state'] in ['play']:
                     info_file.write('Status: ' + 'Playing' + '\n')

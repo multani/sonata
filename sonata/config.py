@@ -137,7 +137,9 @@ class Config:
         conf = configparser.RawConfigParser()
         misc.create_dir('~/.config/sonata/')
         if os.path.isfile(os.path.expanduser('~/.config/sonata/sonatarc')):
-            conf.read(os.path.expanduser('~/.config/sonata/sonatarc'))
+            with open(os.path.expanduser('~/.config/sonata/sonatarc'),
+                      encoding="utf8") as fp:
+                conf.readfp(fp)
         else:
             return
         if conf.has_option('connection', 'auto'):
@@ -515,7 +517,8 @@ class Config:
              ','.join(self.known_plugins))
 
         try:
-            with open(os.path.expanduser('~/.config/sonata/sonatarc'), 'w')\
+            with open(os.path.expanduser('~/.config/sonata/sonatarc'), 'w',
+                      encoding="utf-8")\
                     as rc:
                 conf.write(rc)
         except IOError:
