@@ -520,14 +520,9 @@ class Preferences():
 
     def _art_location_changed(self, combobox):
         if combobox.get_active() == consts.ART_LOCATION_CUSTOM:
+            dialog = self.builder.get_object('custom_art_dialog')
             # Prompt user for playlist name:
-            dialog = ui.dialog(title=_("Custom Artwork"), parent=self.window, flags=Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT, buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT, Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT), role='customArtwork', default=Gtk.ResponseType.ACCEPT)
-            hbox = Gtk.HBox()
-            hbox.pack_start(ui.label(text=_('Artwork filename:')), False, False, 5)
-            entry = ui.entry(self.config.art_location_custom_filename)
-            entry.set_activates_default(True)
-            hbox.pack_start(entry, True, True, 5)
-            dialog.vbox.pack_start(hbox, True, True, 0)
+            entry = self.builder.get_object('custom_art_entry')
             dialog.vbox.show_all()
             response = dialog.run()
             if response == Gtk.ResponseType.ACCEPT:
@@ -538,7 +533,7 @@ class Preferences():
             else:
                 # Revert to non-custom item in combobox:
                 combobox.set_active(self.config.art_location)
-            dialog.destroy()
+            dialog.hide()
         self.config.art_location = combobox.get_active()
 
     def _crossfadecheck_toggled(self, button, *widgets):
