@@ -44,8 +44,11 @@ class Info(object):
         self.lyrics_text = None
         self.album_text = None
 
+        self.active = False
+
         # Info tab
         self.builder = ui.builder('info.ui')
+        self.css_provider = ui.provider('info.css')
         self.info_area = self.builder.get_object('info_page_scrolledwindow')
         self.tab_label_widget = self.builder.get_object('info_tab_h_box')
         tab_label = self.builder.get_object('info_tab_label')
@@ -86,49 +89,36 @@ class Info(object):
         self.info_song.connect("activate", self._expanded, "song")
 
         self.info_labels = {}
-        self.info_boxes_in_more = []
-        labels = [(_("Title"), 'title', False, "", False),
-            (_("Artist"), 'artist', True,
-                _("Launch artist in Wikipedia"), False),
-            (_("Album"), 'album', True,
-                 _("Launch album in Wikipedia"), False),
-            (_("Date"), 'date', False, "", False),
-            (_("Track"), 'track', False, "", False),
-            (_("Genre"), 'genre', False, "", False),
-            (_("File"), 'file', False, "", True),
-            (_("Bitrate"), 'bitrate', False, "", True)]
+        names = ('title', 'artist', 'album', 'date',
+                 'track', 'genre', 'file', 'bitrate')
+        for name in names:
+            self.info_labels[name] = self.builder.get_object(
+                'info_song_{}_label'.format(name))
+        artist_eventbox = self.builder.get_object('info_song_artist_eventbox')
+        album_eventbox = self.builder.get_object('info_song_album_eventbox')
+        links = {
+            'artist': artist_eventbox,
+            'album': album_eventbox,}
+        for name, widget in links.items():
+            self._apply_link_signals(widget, name)
+        self._apply_link_class(self.info_labels['artist'])
+        self._apply_link_class(self.info_labels['album'])
 
-        for i, (text, name, link, tooltip, in_more) in enumerate(labels):
-            label = ui.label(markup="<b>%s:</b>" % text, y=0)
-            self.info_song_grid.attach(label, 0, i, 1, 1)
-            if i == 0:
-                self.info_left_label = label
-            # Using set_selectable overrides the hover cursor that
-            # sonata tries to set for the links, and I can't figure
-            # out how to stop that. So we'll disable set_selectable
-            # for those labels until it's figured out.
-            tmplabel2 = ui.label(wrap=True, y=0, select=not link)
-            if link:
-                tmpevbox = ui.eventbox(add=tmplabel2)
-                self._apply_link_signals(tmpevbox, name, tooltip)
-            to_pack = tmpevbox if link else tmplabel2
-            self.info_song_grid.attach(to_pack, 1, i, 2, 1)
-            self.info_labels[name] = tmplabel2
-            if in_more:
-                self.info_boxes_in_more.append(label)
-                self.info_boxes_in_more.append(to_pack)
+        file_label = self.builder.get_object('info_song_file_label_label')
+        bitrate_label = self.builder.get_object('info_song_bitrate_label_label')
+        self.info_boxes_in_more = {
+            'values': (self.info_labels['file'], self.info_labels['bitrate'],),
+            'labels': (file_label, bitrate_label,),}
 
-        self._morelabel = ui.label(y=0)
+        self._morelabel = self.builder.get_object('info_song_links_more_label')
+        self._apply_link_class(self._morelabel)
         self.toggle_more()
-        moreevbox = ui.eventbox(add=self._morelabel)
-        self._apply_link_signals(moreevbox, 'more', _("Toggle extra tags"))
-        self._editlabel = ui.label(y=0)
-        editevbox = ui.eventbox(add=self._editlabel)
-        self._apply_link_signals(editevbox, 'edit', _("Edit song tags"))
-        mischbox = Gtk.HBox()
-        mischbox.pack_start(moreevbox, False, False, 3)
-        mischbox.pack_start(editevbox, False, False, 3)
-        self.info_song_grid.attach(mischbox, 0, len(labels), 3, 1)
+        moreevbox = self.builder.get_object('info_song_links_more_eventbox')
+        self._apply_link_signals(moreevbox, 'more')
+        self._editlabel = self.builder.get_object('info_song_links_edit_label')
+        self._apply_link_class(self._editlabel)
+        editevbox = self.builder.get_object('info_song_links_edit_eventbox')
+        self._apply_link_signals(editevbox, 'edit')
 
     def _widgets_lyrics(self):
         self.info_lyrics = self.builder.get_object('info_page_lyrics_expander')
@@ -140,14 +130,14 @@ class Info(object):
         self._populate_lyrics_tag_table()
         self._searchlabel = self.builder.get_object('info_page_lyrics_search')
         self._editlyricslabel = self.builder.get_object('info_page_lyrics_edit')
+        self._apply_link_class(self._searchlabel)
+        self._apply_link_class(self._editlyricslabel)
         search_eventbox = self.builder.get_object(
             'info_page_lyrics_search_eventbox')
         edit_eventbox = self.builder.get_object(
             'info_page_lyrics_edit_eventbox')
-        self._apply_link_signals(search_eventbox, 'search',
-                                 _("Search Lyricwiki.org for lyrics"))
-        self._apply_link_signals(edit_eventbox, 'editlyrics',
-                                 _("Edit lyrics at Lyricwiki.org"))
+        self._apply_link_signals(search_eventbox, 'search')
+        self._apply_link_signals(edit_eventbox, 'editlyrics')
 
     def _widgets_album(self):
         self.info_album = self.builder.get_object('info_page_album_expander')
@@ -170,27 +160,40 @@ class Info(object):
         func = "show" if self.config.show_lyrics else "hide"
         getattr(ui, func)(self.info_lyrics)
 
-    def _apply_link_signals(self, widget, linktype, tooltip):
+    def _apply_link_signals(self, widget, linktype):
         widget.connect("enter-notify-event", self.on_link_enter)
         widget.connect("leave-notify-event", self.on_link_leave)
         widget.connect("button-press-event", self.on_link_click, linktype)
-        widget.set_tooltip_text(tooltip)
+
+    def _apply_link_class(self, widget):
+        context = widget.get_style_context()
+        context.add_class('link')
 
     def on_link_enter(self, widget, _event):
-        if widget.get_children()[0].get_use_markup():
-            ui.change_cursor(Gdk.Cursor.new(Gdk.CursorType.HAND2))
+        ui.change_cursor(Gdk.Cursor.new(Gdk.CursorType.HAND2))
 
     def on_link_leave(self, _widget, _event):
         ui.change_cursor(None)
 
     def toggle_more(self):
-        text = _("hide") if self.config.info_song_more else _("more")
-        func = "show" if self.config.info_song_more else "hide"
+        if self.config.info_song_more:
+            text = _("hide")
+            func = "show"
+        else:
+            text = _("more")
+            func = "hide"
+        text = "({})".format(text)
+        self._morelabel.set_text(text)
+
         func = getattr(ui, func)
-        self._morelabel.set_markup(misc.link_markup(text, True, True,
-                                self.linkcolor))
-        for hbox in self.info_boxes_in_more:
-            func(hbox)
+        for widget in self.info_boxes_in_more['labels']:
+            func(widget)
+
+        if not self.active and self.config.info_song_more:
+            return
+
+        for widget in self.info_boxes_in_more['values']:
+            func(widget)
 
     def on_link_click(self, _widget, _event, linktype):
         if linktype == 'more':
@@ -206,9 +209,9 @@ class Info(object):
     def clear_info(self):
         """Clear the info widgets of any information"""
         for label in self.info_labels.values():
-            label.set_text("")
-        self._searchlabel.set_text("")
-        self._editlyricslabel.set_text("")
+            label.hide()
+        self._searchlabel.hide()
+        self._editlyricslabel.hide()
         self._show_lyrics(None, None)
         self.album_text.get_buffer().set_text("")
         self.last_bitrate = ""
@@ -220,8 +223,15 @@ class Info(object):
         # do things like select label text.
         if not playing_or_paused:
             self.clear_info()
+            self.active = False
             return
 
+        self.active = True
+
+        for label in self.info_labels.values():
+            if self.config.info_song_more or \
+               not label in self.info_boxes_in_more['values']:
+                label.show()
         bitratelabel = self.info_labels['bitrate']
         if self.last_bitrate != newbitrate:
             bitratelabel.set_text(newbitrate)
@@ -242,12 +252,8 @@ class Info(object):
             label.set_text(mpdh.get(songinfo, name))
 
         tracklabel.set_text(mpdh.get(songinfo, 'track', '', False))
-        artistlabel.set_markup(misc.link_markup(misc.escape_html(
-            mpdh.get(songinfo, 'artist')), False, False,
-            self.linkcolor))
-        albumlabel.set_markup(misc.link_markup(misc.escape_html(
-            mpdh.get(songinfo, 'album')), False, False,
-            self.linkcolor))
+        artistlabel.set_text(misc.escape_html(mpdh.get(songinfo, 'artist')))
+        albumlabel.set_text(misc.escape_html(mpdh.get(songinfo, 'album')))
 
         path = misc.file_from_utf8(os.path.join(
             self.config.musicdir[self.config.profile_num], mpdh.get(songinfo,
@@ -256,11 +262,10 @@ class Info(object):
             filelabel.set_text(os.path.join(
                 self.config.musicdir[self.config.profile_num],
                 mpdh.get(songinfo, 'file')))
-            self._editlabel.set_markup(misc.link_markup(_("edit tags"), True,
-                                                        True, self.linkcolor))
+            self._editlabel.show()
         else:
             filelabel.set_text(mpdh.get(songinfo, 'file'))
-            self._editlabel.set_text("")
+            self._editlabel.hide()
 
     def _update_album(self, songinfo):
         if 'album' not in songinfo:
@@ -397,8 +402,8 @@ class Info(object):
     def _show_lyrics(self, artist_then, title_then, lyrics=None, error=None):
         # For error messages where there is no appropriate info:
         if not artist_then or not title_then:
-            self._searchlabel.set_text("")
-            self._editlyricslabel.set_text("")
+            self._searchlabel.hide()
+            self._editlyricslabel.hide()
             if error:
                 self.lyrics_text.get_buffer().set_text(error)
             elif lyrics:
@@ -414,10 +419,8 @@ class Info(object):
         artist_now = misc.strip_all_slashes(mpdh.get(songinfo, 'artist', None))
         title_now = misc.strip_all_slashes(mpdh.get(songinfo, 'title', None))
         if artist_now == artist_then and title_now == title_then:
-            self._searchlabel.set_markup(misc.link_markup(
-                _("search"), True, True, self.linkcolor))
-            self._editlyricslabel.set_markup(misc.link_markup(
-                _("edit"), True, True, self.linkcolor))
+            self._searchlabel.show()
+            self._editlyricslabel.show()
             if error:
                 self.lyrics_text.get_buffer().set_text(error)
             elif lyrics:
@@ -505,3 +508,4 @@ class Info(object):
 
         return misc.file_from_utf8(
             misc.file_exists_insensitive(file_path))
+
