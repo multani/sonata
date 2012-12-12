@@ -116,14 +116,18 @@ class About(object):
         # each pair is a [ heading, shortcutlist ]
         vbox = self.builder.get_object('shortcuts_dialog_content_box')
         for pair in shortcuts:
-            titlelabel = ui.label(markup="<b>%s</b>" % pair[0])
+            titlelabel = ui.label(text=pair[0])
+            context = titlelabel.get_style_context()
+            context.add_class('heading')
             vbox.pack_start(titlelabel, False, False, 2)
 
             # print the items of [ shortcut, desc ]
             for item in pair[1]:
                 tmphbox = Gtk.HBox()
 
-                tmplabel = ui.label(markup="<b>%s:</b>" % item[0], y=0)
+                tmplabel = ui.label(text='{}:'.format(item[0]), y=0)
+                context = tmplabel.get_style_context()
+                context.add_class('shortcut')
                 tmpdesc = ui.label(text=item[1], wrap=True, y=0)
 
                 tmphbox.pack_start(tmplabel, False, False, 2)
@@ -171,6 +175,7 @@ class About(object):
 
     def about_load(self, stats):
         self.builder = ui.builder('about.ui')
+        self.provider = ui.provider('about.css')
         self.about_dialog = self.builder.get_object('about_dialog')
         try:
             self.about_dialog.set_transient_for(self.parent_window)

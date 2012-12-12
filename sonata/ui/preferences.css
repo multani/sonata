@@ -1,0 +1,9 @@
+GtkLabel.format_available,
+GtkGrid.format_available GtkLabel {
+  font-size: 9;
+}
+
+GtkLabel.format_code {
+  font-family: Monospace;
+}
+

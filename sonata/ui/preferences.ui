@@ -786,7 +786,10 @@
                           <object class="GtkLabel" id="display_frame_label">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="label" translatable="yes">label</property>
+                            <property name="label" translatable="yes">Display</property>
+                            <attributes>
+                              <attribute name="weight" value="bold"/>
+                            </attributes>
                           </object>
                         </child>
                       </object>
@@ -1310,10 +1313,10 @@
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
                                         <property name="xalign">0</property>
-                                        <property name="label" translatable="yes">Available options</property>
-                                        <attributes>
-                                          <attribute name="variant" value="normal"/>
-                                        </attributes>
+                                        <property name="label" translatable="yes">Available options:</property>
+                                        <style>
+                                          <class name="format_available"/>
+                                        </style>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
@@ -1322,29 +1325,32 @@
                                       </packing>
                                     </child>
                                     <child>
-                                      <object class="GtkBox" id="format_avail_descs">
+                                      <object class="GtkGrid" id="format_avail_descs">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
+                                        <property name="column_spacing">12</property>
+                                        <property name="margin">12</property>
+                                        <property name="row_homogeneous">True</property>
+                                        <style>
+                                          <class name="format_available"/>
+                                        </style>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
                                         <child>
                                           <placeholder/>
                                         </child>
                                       </object>
                                       <packing>
-                                        <property name="expand">False</property>
+                                        <property name="expand">True</property>
                                         <property name="fill">True</property>
                                         <property name="position">1</property>
-                                      </packing>
-                                    </child>
-                                    <child>
-                                      <object class="GtkLabel" id="format_additional_label">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="xalign">0</property>
-                                      </object>
-                                      <packing>
-                                        <property name="expand">False</property>
-                                        <property name="fill">True</property>
-                                        <property name="position">2</property>
                                       </packing>
                                     </child>
                                   </object>

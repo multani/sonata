@@ -639,20 +639,16 @@ class Artwork(object):
     def fullscreen_cover_art_set_text(self):
         if self.status_is_play_or_pause():
             line1, line2 = self.get_current_song_text()
-            self.fullscreenalbumlabel.set_markup(('<span size=\'20000\' '
-                                                  'color=\'white\'>%s</span>')
-                                                 % (misc.escape_html(line1)))
-            self.fullscreenalbumlabel2.set_markup(('<span size=\'12000\' '
-                                                   'color=\'white\'>%s</span>')
-                                                  % (misc.escape_html(line2)))
+            self.fullscreenalbumlabel.set_text(misc.escape_html(line1))
+            self.fullscreenalbumlabel2.set_text(misc.escape_html(line2))
+            self.fullscreenalbumlabel.show()
+            self.fullscreenalbumlabel2.show()
         else:
             self.fullscreen_cover_art_reset_text()
 
     def fullscreen_cover_art_reset_text(self):
-        self.fullscreenalbumlabel.set_markup(('<span size=\'20000\' '
-                                              'color=\'white\'> </span>'))
-        self.fullscreenalbumlabel2.set_markup(('<span size=\'12000\' '
-                                               'color=\'white\'> </span>'))
+        self.fullscreenalbumlabel.hide()
+        self.fullscreenalbumlabel2.hide()
 
     def have_last(self):
         if self.lastalbumart is not None:

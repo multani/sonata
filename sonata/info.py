@@ -101,8 +101,6 @@ class Info(object):
             'album': album_eventbox,}
         for name, widget in links.items():
             self._apply_link_signals(widget, name)
-        self._apply_link_class(self.info_labels['artist'])
-        self._apply_link_class(self.info_labels['album'])
 
         file_label = self.builder.get_object('info_song_file_label_label')
         bitrate_label = self.builder.get_object('info_song_bitrate_label_label')
@@ -111,12 +109,10 @@ class Info(object):
             'labels': (file_label, bitrate_label,),}
 
         self._morelabel = self.builder.get_object('info_song_links_more_label')
-        self._apply_link_class(self._morelabel)
         self.toggle_more()
         moreevbox = self.builder.get_object('info_song_links_more_eventbox')
         self._apply_link_signals(moreevbox, 'more')
         self._editlabel = self.builder.get_object('info_song_links_edit_label')
-        self._apply_link_class(self._editlabel)
         editevbox = self.builder.get_object('info_song_links_edit_eventbox')
         self._apply_link_signals(editevbox, 'edit')
 
@@ -130,8 +126,6 @@ class Info(object):
         self._populate_lyrics_tag_table()
         self._searchlabel = self.builder.get_object('info_page_lyrics_search')
         self._editlyricslabel = self.builder.get_object('info_page_lyrics_edit')
-        self._apply_link_class(self._searchlabel)
-        self._apply_link_class(self._editlyricslabel)
         search_eventbox = self.builder.get_object(
             'info_page_lyrics_search_eventbox')
         edit_eventbox = self.builder.get_object(
@@ -164,10 +158,6 @@ class Info(object):
         widget.connect("enter-notify-event", self.on_link_enter)
         widget.connect("leave-notify-event", self.on_link_leave)
         widget.connect("button-press-event", self.on_link_click, linktype)
-
-    def _apply_link_class(self, widget):
-        context = widget.get_style_context()
-        context.add_class('link')
 
     def on_link_enter(self, widget, _event):
         ui.change_cursor(Gdk.Cursor.new(Gdk.CursorType.HAND2))

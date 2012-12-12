@@ -89,6 +89,7 @@ class Preferences():
         """Display the preferences dialog"""
 
         self.builder = ui.builder('preferences.ui')
+        self.provider = ui.provider('preferences.css')
         self.prefswindow = self.builder.get_object('preferences_dialog')
         self.prefswindow.set_transient_for(self.window)
         self.prefsnotebook = self.builder.get_object('preferences_notebook')
@@ -231,9 +232,6 @@ class Preferences():
     def display_tab(self, cbs):
         """Construct and layout the display tab"""
 
-        displaylabel = self.builder.get_object('display_frame_label')
-        displaylabel.set_markup('<b>' + _('Display') + '</b>')
-
         art = self.builder.get_object('art_check')
         art.set_active(self.config.show_covers)
         stylized_combo = self.builder.get_object('art_style_combo')
@@ -345,22 +343,43 @@ class Preferences():
             entry.connect('activate', lambda _, n: n.grab_focus(),
                     next)
 
-        #FIXME doesn't currently use small markup (id="format_avail_label")
-        availableformatbox = self.builder.get_object('format_avail_descs')
-        formatcodes = formatting.formatcodes
-        for codes in [formatcodes[:int((len(formatcodes)+1)/2)],
-                  formatcodes[int((len(formatcodes)+1)/2):]]:
-            rows = '\n'.join('<tt>%%%s</tt> - %s' %
-                    (code.code, code.description)
-                    for code in codes)
-            markup = '<small>' + rows + '</small>'
-            formattinghelp = ui.label(markup=markup)
-            availableformatbox.pack_start(formattinghelp, True, True, 0)
+        format_grid = self.builder.get_object('format_avail_descs')
+        codeset = formatting.formatcodes
+        codes = (codeset[:len(codeset) // 2],
+                 codeset[len(codeset) // 2:])
+        for column_base, codegroup in enumerate(codes):
+            column = column_base * 2
+            for row, code in enumerate(codegroup):
+                format_code = ui.label(text='%{}'.format(code.code))
+                context = format_code.get_style_context()
+                context.add_class('format_code')
+                format_desc = ui.label(text=code.description)
+                format_grid.attach(format_code, column, row, 1, 1)
+                format_grid.attach(format_desc, column + 1, row, 1, 1)
 
         additionalinfo = self.builder.get_object('format_additional_label')
         # FIXME need to either separate markup from localized strings OR
         # include markup in the strings and let the translators work around them
-        additionalinfo.set_markup('<small><tt>{ }</tt> - ' + _('Info displayed only if all enclosed tags are defined') + '\n<tt>|</tt> - ' + _('Creates columns in the current playlist') + '</small>')
+        row = len(codes[0])
+        enclosed_code = ui.label(text='{ }')
+        context = enclosed_code.get_style_context()
+        context.add_class('format_code')
+        enclosed_desc = ui.label(
+            text=_('Info displayed only if all enclosed tags are defined'))
+        column_code = ui.label(text='|')
+        context = column_code.get_style_context()
+        context.add_class('format_code')
+        column_desc = ui.label(
+            text=_('Creates columns in the current playlist'))
+
+        # Dummy row
+        format_grid.attach(ui.label(), 0, row, 4, 1)
+        row += 1
+        format_grid.attach(enclosed_code, 0, row, 1, 1)
+        format_grid.attach(enclosed_desc, 1, row, 3, 1)
+        row += 1
+        format_grid.attach(column_code, 0, row, 1, 1)
+        format_grid.attach(column_desc, 1, row, 3, 1)
 
     def plugins_tab(self, cbs=None):
         """Construct and layout the plugins tab"""

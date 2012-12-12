@@ -1,0 +1,24 @@
+GtkLabel.tray_label2,
+GtkLabel.current_label2 {
+  font-size: 10;
+}
+
+GtkLabel.fullscreen_label2 {
+  font-size: 12;
+}
+
+GtkLabel.tray_label,
+GtkLabel.current_label {
+  font-size: 14;
+  font-weight: bold;
+}
+
+GtkLabel.fullscreen_label {
+  font-size: 20;
+}
+
+GtkLabel.fullscreen_label,
+GtkLabel.fullscreen_label2 {
+  color: white;
+}
+

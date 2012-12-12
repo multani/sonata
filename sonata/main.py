@@ -187,6 +187,7 @@ class Base(object):
                 self.config.withdrawn
 
         self.builder = ui.builder('sonata.ui')
+        self.provider = ui.provider('sonata.css')
 
         # Main window
         self.window = self.builder.get_object('main_window')
@@ -642,19 +643,14 @@ class Base(object):
         self.window.set_size_request(270, -1)
         if not self.config.expanded:
             ui.hide(self.notebook)
-            self.cursonglabel1.set_markup('<big><b>%s</b></big>' %
-                                          (_('Stopped'),))
-            self.cursonglabel2.set_markup('<small>%s</small>' % (_(('Click to'
-                                                                   'expand'))))
+            self.cursonglabel1.set_text(_('Stopped'))
+            self.cursonglabel2.set_text(_('Click to expand'))
             self.window.set_default_size(self.config.w, 1)
         else:
-            self.cursonglabel1.set_markup('<big><b>%s</b></big>' % \
-                                          (_('Stopped')))
-
-            self.cursonglabel2.set_markup('<small>%s</small>' % (_(('Click to'
-                                                                 'collapse'))))
-
+            self.cursonglabel1.set_text(_('Stopped'))
+            self.cursonglabel2.set_text(_('Click to collapse'))
             self.window.set_default_size(self.config.w, self.config.h)
+
         self.expander.set_tooltip_text(self.cursonglabel1.get_text())
         if not self.conn:
             self.progressbar.set_text(_('Not Connected'))
@@ -1670,27 +1666,23 @@ class Base(object):
 
 
             if len(self.config.currsongformat1) > 0:
-                newlabel1 = ('<big><b>%s </b></big>' %
-                         formatting.parse(
-                        self.config.currsongformat1,
-                        self.songinfo, True))
+                newlabel1 = formatting.parse(self.config.currsongformat1,
+                                             self.songinfo, True)
             else:
-                newlabel1 = '<big><b> </b></big>'
+                newlabel1 = ''
             if len(self.config.currsongformat2) > 0:
-                newlabel2 = ('<small>%s </small>' %
-                         formatting.parse(
-                        self.config.currsongformat2,
-                        self.songinfo, True))
+                newlabel2 = formatting.parse(self.config.currsongformat2,
+                                             self.songinfo, True)
             else:
-                newlabel2 = '<small> </small>'
+                newlabel2 = ''
             if newlabel1 != self.cursonglabel1.get_label():
-                self.cursonglabel1.set_markup(newlabel1)
+                self.cursonglabel1.set_text(newlabel1)
             if newlabel2 != self.cursonglabel2.get_label():
-                self.cursonglabel2.set_markup(newlabel2)
+                self.cursonglabel2.set_text(newlabel2)
             if newlabel1 != self.tray_current_label1.get_label():
-                self.tray_current_label1.set_markup(newlabel1)
+                self.tray_current_label1.set_text(newlabel1)
             if newlabel2 != self.tray_current_label2.get_label():
-                self.tray_current_label2.set_markup(newlabel2)
+                self.tray_current_label2.set_text(newlabel2)
             self.expander.set_tooltip_text('%s\n%s' % \
                                            (self.cursonglabel1.get_text(),
                                             self.cursonglabel2.get_text(),))
@@ -1699,21 +1691,18 @@ class Base(object):
                           self.tray_current_label1, self.cursonglabel2):
                 label.set_ellipsize(Pango.EllipsizeMode.NONE)
 
-            self.cursonglabel1.set_markup('<big><b>%s</b></big>' % \
-                                          (_('Stopped'),))
+            self.cursonglabel1.set_text(_('Stopped'))
             if self.config.expanded:
-                self.cursonglabel2.set_markup('<small>%s</small>' % \
-                                              (_('Click to collapse'),))
+                self.cursonglabel2.set_text(_('Click to collapse'))
             else:
-                self.cursonglabel2.set_markup('<small>%s</small>' % \
-                                              _('Click to expand'))
+                self.cursonglabel2.set_text(_('Click to expand'))
             self.expander.set_tooltip_text(self.cursonglabel1.get_text())
             if not self.conn:
-                self.tray_current_label1.set_label(_('Not Connected'))
+                self.tray_current_label1.set_text(_('Not Connected'))
             elif not self.status:
-                self.tray_current_label1.set_label(_('No Read Permission'))
+                self.tray_current_label1.set_text(_('No Read Permission'))
             else:
-                self.tray_current_label1.set_label(_('Stopped'))
+                self.tray_current_label1.set_text(_('Stopped'))
             self.tray_progressbar.hide()
             self.tray_album_image.hide()
             self.tray_current_label2.hide()
@@ -1914,11 +1903,9 @@ class Base(object):
             self.notebook.hide()
         if not self.status_is_play_or_pause():
             if window_about_to_be_expanded:
-                self.cursonglabel2.set_markup('<small>%s</small>' % \
-                                              (_('Click to collapse'),))
+                self.cursonglabel2.set_text(_('Click to collapse'))
             else:
-                self.cursonglabel2.set_markup('<small>%s</small>' % \
-                                              (_('Click to expand'),))
+                self.cursonglabel2.set_text(_('Click to expand'))
         # Now we wait for the height of the player to increase, so that
         # we know the list is visible. This is pretty hacky, but works.
         if window_about_to_be_expanded:

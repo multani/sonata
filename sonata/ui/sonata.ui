@@ -15,6 +15,9 @@
       <object class="GtkLabel" id="current_label_1">
         <property name="can_focus">False</property>
         <property name="xalign">0</property>
+        <style>
+          <class name="current_label"/>
+        </style>
       </object><!--current_label_1-->
       <packing>
         <property name="expand">False</property>
@@ -27,6 +30,9 @@
       <object class="GtkLabel" id="current_label_2">
         <property name="can_focus">False</property>
         <property name="xalign">0</property>
+        <style>
+          <class name="current_label2"/>
+        </style>
       </object><!--current_label_2-->
       <packing>
         <property name="expand">False</property>
@@ -317,6 +323,9 @@
           <object class="GtkLabel" id="fullscreen_label_1">
             <property name="can_focus">False</property>
             <property name="halign">center</property>
+            <style>
+              <class name="fullscreen_label"/>
+            </style>
           </object><!--fullscreen_label_1-->
           <packing>
             <property name="expand">False</property>
@@ -329,6 +338,9 @@
           <object class="GtkLabel" id="fullscreen_label_2">
             <property name="can_focus">False</property>
             <property name="halign">center</property>
+            <style>
+              <class name="fullscreen_label2"/>
+            </style>
           </object><!--fullscreen_label_2-->
           <packing>
             <property name="expand">False</property>
@@ -374,6 +386,9 @@
                 <property name="xalign">0</property>
                 <property name="xpad">6</property>
                 <property name="label" translatable="yes">Playlist</property>
+                <style>
+                  <class name="tray_label"/>
+                </style>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -388,6 +403,9 @@
                 <property name="xalign">0</property>
                 <property name="xpad">6</property>
                 <property name="label" translatable="yes">Playlist</property>
+                <style>
+                  <class name="tray_label2"/>
+                </style>
               </object>
               <packing>
                 <property name="expand">True</property>
