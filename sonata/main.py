@@ -641,15 +641,17 @@ class Base(object):
             ui.hide(self.statusbar)
         self.window.move(self.config.x, self.config.y)
         self.window.set_size_request(270, -1)
+        songlabel1 = '<big>{}</big>'.format(_('Stopped'))
+        self.cursonglabel1.set_markup(songlabel1)
         if not self.config.expanded:
             ui.hide(self.notebook)
-            self.cursonglabel1.set_text(_('Stopped'))
-            self.cursonglabel2.set_text(_('Click to expand'))
+            songlabel2 = _('Click to expand')
             self.window.set_default_size(self.config.w, 1)
         else:
-            self.cursonglabel1.set_text(_('Stopped'))
-            self.cursonglabel2.set_text(_('Click to collapse'))
+            songlabel2 = _('Click to collapse')
             self.window.set_default_size(self.config.w, self.config.h)
+        songlabel2 = '<small>{}</small>'.format(songlabel2)
+        self.cursonglabel2.set_markup(songlabel2)
 
         self.expander.set_tooltip_text(self.cursonglabel1.get_text())
         if not self.conn:
@@ -1670,19 +1672,21 @@ class Base(object):
                                              self.songinfo, True)
             else:
                 newlabel1 = ''
+            newlabel1 = '<big>{}</big>'.format(newlabel1)
             if len(self.config.currsongformat2) > 0:
                 newlabel2 = formatting.parse(self.config.currsongformat2,
                                              self.songinfo, True)
             else:
                 newlabel2 = ''
+            newlabel2 = '<small>{}</small>'.format(newlabel2)
             if newlabel1 != self.cursonglabel1.get_label():
-                self.cursonglabel1.set_text(newlabel1)
+                self.cursonglabel1.set_markup(newlabel1)
             if newlabel2 != self.cursonglabel2.get_label():
-                self.cursonglabel2.set_text(newlabel2)
+                self.cursonglabel2.set_markup(newlabel2)
             if newlabel1 != self.tray_current_label1.get_label():
-                self.tray_current_label1.set_text(newlabel1)
+                self.tray_current_label1.set_markup(newlabel1)
             if newlabel2 != self.tray_current_label2.get_label():
-                self.tray_current_label2.set_text(newlabel2)
+                self.tray_current_label2.set_markup(newlabel2)
             self.expander.set_tooltip_text('%s\n%s' % \
                                            (self.cursonglabel1.get_text(),
                                             self.cursonglabel2.get_text(),))
@@ -1691,18 +1695,23 @@ class Base(object):
                           self.tray_current_label1, self.cursonglabel2):
                 label.set_ellipsize(Pango.EllipsizeMode.NONE)
 
-            self.cursonglabel1.set_text(_('Stopped'))
+            newlabel1 = '<big>{}</big>'.format(_('Stopped'))
+            self.cursonglabel1.set_markup(newlabel1)
             if self.config.expanded:
-                self.cursonglabel2.set_text(_('Click to collapse'))
+                newlabel2 = _('Click to collapse')
             else:
-                self.cursonglabel2.set_text(_('Click to expand'))
+                newlabel2 = _('Click to expand')
+            newlabel2 = '<small>{}</small>'.format(newlabel2)
+            self.cursonglabel2.set_markup(newlabel2)
             self.expander.set_tooltip_text(self.cursonglabel1.get_text())
             if not self.conn:
-                self.tray_current_label1.set_text(_('Not Connected'))
+                traylabel1 = _('Not Connected')
             elif not self.status:
-                self.tray_current_label1.set_text(_('No Read Permission'))
+                traylabel1 = _('No Read Permission')
             else:
-                self.tray_current_label1.set_text(_('Stopped'))
+                traylabel1 = _('Stopped')
+            traylabel1 = '<big>{}</big>'.format(traylabel1)
+            self.tray_current_label1.set_markup(traylabel1)
             self.tray_progressbar.hide()
             self.tray_album_image.hide()
             self.tray_current_label2.hide()

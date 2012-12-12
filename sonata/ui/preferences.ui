@@ -1313,10 +1313,8 @@
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
                                         <property name="xalign">0</property>
-                                        <property name="label" translatable="yes">Available options:</property>
-                                        <style>
-                                          <class name="format_available"/>
-                                        </style>
+                                        <property name="label" translatable="yes">&lt;small&gt;Available options:&lt;/small&gt;</property>
+                                        <property name="use_markup">True</property>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
@@ -1331,9 +1329,6 @@
                                         <property name="column_spacing">12</property>
                                         <property name="margin">12</property>
                                         <property name="row_homogeneous">True</property>
-                                        <style>
-                                          <class name="format_available"/>
-                                        </style>
                                         <child>
                                           <placeholder/>
                                         </child>

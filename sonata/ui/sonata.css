@@ -1,20 +1,14 @@
-GtkLabel.tray_label2,
-GtkLabel.current_label2 {
-  font-size: 10;
-}
-
-GtkLabel.fullscreen_label2 {
-  font-size: 12;
-}
-
 GtkLabel.tray_label,
 GtkLabel.current_label {
-  font-size: 14;
   font-weight: bold;
 }
 
 GtkLabel.fullscreen_label {
-  font-size: 20;
+  font-size: 19.5;/*= 20000 / 1024 */
+}
+
+GtkLabel.fullscreen_label2 {
+  font-size: 11.7;/*= 12000/1024 */
 }
 
 GtkLabel.fullscreen_label,

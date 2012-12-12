@@ -350,10 +350,12 @@ class Preferences():
         for column_base, codegroup in enumerate(codes):
             column = column_base * 2
             for row, code in enumerate(codegroup):
-                format_code = ui.label(text='%{}'.format(code.code))
+                format_code = ui.label(
+                    markup='<small>%{}</small>'.format(code.code))
                 context = format_code.get_style_context()
                 context.add_class('format_code')
-                format_desc = ui.label(text=code.description)
+                format_desc = ui.label(
+                    markup='<small>%{}</small>'.format(code.description))
                 format_grid.attach(format_code, column, row, 1, 1)
                 format_grid.attach(format_desc, column + 1, row, 1, 1)
 
@@ -361,16 +363,18 @@ class Preferences():
         # FIXME need to either separate markup from localized strings OR
         # include markup in the strings and let the translators work around them
         row = len(codes[0])
-        enclosed_code = ui.label(text='{ }')
+        enclosed_code = ui.label(markup='<small>{ }</small>')
         context = enclosed_code.get_style_context()
         context.add_class('format_code')
-        enclosed_desc = ui.label(
-            text=_('Info displayed only if all enclosed tags are defined'))
-        column_code = ui.label(text='|')
+        enclosed_markup = '<small>{}</small>'.format(
+            _('Info displayed only if all enclosed tags are defined'))
+        enclosed_desc = ui.label(markup=enclosed_markup)
+        column_code = ui.label(markup='<small>|</small>')
         context = column_code.get_style_context()
         context.add_class('format_code')
-        column_desc = ui.label(
-            text=_('Creates columns in the current playlist'))
+        column_markup = '<small>{}</small>'.format(
+            _('Creates columns in the current playlist'))
+        column_desc = ui.label(markup=column_markup)
 
         # Dummy row
         format_grid.attach(ui.label(), 0, row, 4, 1)
