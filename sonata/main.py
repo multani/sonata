@@ -721,7 +721,6 @@ class Base(object):
                                                   self.on_window_click)
         self.notebook.connect('size-allocate', self.on_notebook_resize)
         self.notebook.connect('switch-page', self.on_notebook_page_change)
-        self.notebook.connect("button_press_event", self.on_tab_click)
 
         self.fullscreen_window.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
         self.fullscreen_window.connect("button-press-event",
@@ -821,6 +820,7 @@ class Base(object):
 
     def add_tab(self, page, label_widget, text, focus):
         label_widget.show_all()
+        label_widget.connect("button_press_event", self.on_tab_click)
 
         self.notebook.append_page(page, label_widget)
         if (text in self.tabname2id and

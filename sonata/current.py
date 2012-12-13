@@ -74,7 +74,7 @@ class Current(object):
         tab_label = self.builder.get_object('current_tab_label')
         tab_label.set_text(TAB_CURRENT)
 
-        self.tab_label_widget = self.builder.get_object('current_tab_h_box')
+        self.tab_label_widget = self.builder.get_object('current_tab_eventbox')
         self.tab = add_tab(self.vbox_current, self.tab_label_widget,
                            TAB_CURRENT, self.current)
 
