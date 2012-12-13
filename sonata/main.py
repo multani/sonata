@@ -2408,7 +2408,7 @@ class Base(object):
         imagewidget.set_text_column(-1)
         imagewidget.set_model(self.imagelist)
         imagewidget.set_pixbuf_column(1)
-        ui.focus(imagewidget)
+        imagewidget.grab_focus()
         ui.change_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
         thread = threading.Thread(target=self._image_remote_refresh,
                                   args=(imagewidget, None))
@@ -3025,7 +3025,7 @@ class Base(object):
         self.current_tab = self.notebook_get_tab_text(self.notebook, page_num)
         to_focus = self.tabname2focus.get(self.current_tab, None)
         if to_focus:
-            GObject.idle_add(ui.focus, to_focus)
+            GObject.idle_add(to_focus.grab_focus)
 
         GObject.idle_add(self.update_menu_visibility)
         if not self.img_clicked:
