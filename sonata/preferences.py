@@ -376,9 +376,9 @@ class Preferences():
             _('Creates columns in the current playlist'))
         column_desc = ui.label(markup=column_markup)
 
-        # Dummy row
-        format_grid.attach(ui.label(), 0, row, 4, 1)
-        row += 1
+        for widget in (enclosed_code, enclosed_desc):
+            context = widget.get_style_context()
+            context.add_class('additional_format')
         format_grid.attach(enclosed_code, 0, row, 1, 1)
         format_grid.attach(enclosed_desc, 1, row, 3, 1)
         row += 1
