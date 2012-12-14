@@ -2276,7 +2276,8 @@ class Base(object):
             pass
         if pixbuf is None:
             try:
-                pixbuf = GdkPixbuf.PixbufAnimation(filename).get_static_image()
+                pixbuf = GdkPixbuf.PixbufAnimation.new_from_file(filename)
+                pixbuf = pixbuf.get_static_image()
                 width = pixbuf.get_width()
                 height = pixbuf.get_height()
                 if width > height:
@@ -2290,7 +2291,8 @@ class Base(object):
             except:
                 pass
         if pixbuf is None:
-            pixbuf = GdkPixbuf.Pixbuf(GdkPixbuf.Colorspace.RGB, 1, 8, 128, 128)
+            pixbuf = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, 1, 8,
+                                          128, 128)
             pixbuf.fill(0x00000000)
         preview.set_from_pixbuf(pixbuf)
         have_preview = True
