@@ -66,6 +66,7 @@ class Base(object):
 
         self.allow_art_search = None
         self.choose_dialog = None
+        self.image_local_dialog = None
         self.chooseimage_visible = None
 
         self.imagelist = None
@@ -2309,30 +2310,27 @@ class Base(object):
         del pixbuf
         self.call_gc_collect = True
 
-    def image_local(self, _widget):
-        dialog = Gtk.FileChooserDialog(
-            title=_("Open Image"),
-            action=Gtk.FileChooserAction.OPEN,
-            buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-                 Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+    def _image_local_init(self):
+        self.image_local_dialog = self.builder.get_object(
+            'local_artwork_dialog')
         filefilter = Gtk.FileFilter()
         filefilter.set_name(_("Images"))
         filefilter.add_pixbuf_formats()
-        dialog.add_filter(filefilter)
+        self.image_local_dialog.add_filter(filefilter)
         filefilter = Gtk.FileFilter()
         filefilter.set_name(_("All files"))
         filefilter.add_pattern("*")
-        dialog.add_filter(filefilter)
-        preview = ui.image()
-        dialog.set_preview_widget(preview)
-        dialog.set_use_preview_label(False)
-        dialog.connect("update-preview", self.update_preview, preview)
+        self.image_local_dialog.add_filter(filefilter)
+        preview = self.builder.get_object('local_art_preview_image')
+        self.image_local_dialog.connect("update-preview",
+                                        self.update_preview, preview)
+
+    def image_local(self, _widget):
+        if not self.image_local_dialog:
+            self._image_local_init()
         stream = mpdh.get(self.songinfo, 'name', None)
         album = mpdh.get(self.songinfo, 'album', "").replace("/", "")
         artist = self.album_current_artist[1].replace("/", "")
-        dialog.connect("response", self.image_local_response, artist,
-                       album, stream)
-        dialog.set_default_response(Gtk.ResponseType.OK)
         songdir = os.path.dirname(mpdh.get(self.songinfo, 'file'))
         currdir = misc.file_from_utf8(
             os.path.join(self.config.musicdir[self.config.profile_num],
@@ -2345,11 +2343,11 @@ class Base(object):
                 stream)
         else:
             self.local_dest_filename = self.target_image_filename()
-        dialog.show()
+        self.image_local_dialog.show_all()
+        response = self.image_local_dialog.run()
 
-    def image_local_response(self, dialog, response, _artist, _album, _stream):
         if response == Gtk.ResponseType.OK:
-            filename = dialog.get_filenames()[0]
+            filename = self.image_local_dialog.get_filenames()[0]
             # Copy file to covers dir:
             if self.local_dest_filename != filename:
                 shutil.copyfile(filename, self.local_dest_filename)
@@ -2357,7 +2355,7 @@ class Base(object):
             self.artwork.artwork_update(True)
             # Force a resize of the info labels, if needed:
             GObject.idle_add(self.on_notebook_resize, self.notebook, None)
-        dialog.destroy()
+        self.image_local_dialog.hide()
 
     def imagelist_append(self, elem):
         self.imagelist.append(elem)
