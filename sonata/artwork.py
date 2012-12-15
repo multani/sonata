@@ -11,10 +11,8 @@ from sonata.pluginsystem import pluginsystem
 
 class Artwork(object):
 
-    def __init__(self, config, path_to_icon, is_lang_rtl,
-                 info_imagebox_get_size_request, schedule_gc_collect,
-                 target_image_filename, imagelist_append,
-                 remotefilelist_append, notebook_get_allocation,
+    def __init__(self, config, path_to_icon, is_lang_rtl, schedule_gc_collect,
+                 target_image_filename, imagelist_append, remotefilelist_append,
                  allow_art_search, status_is_play_or_pause, album_filename,
                  get_current_song_text, album_image, tray_image,
                  fullscreen_image, fullscreen_label1, fullscreen_label2):
@@ -26,12 +24,10 @@ class Artwork(object):
         self.is_lang_rtl = is_lang_rtl
 
         # callbacks to main XXX refactor to clear this list
-        self.info_imagebox_get_size_request = info_imagebox_get_size_request
         self.schedule_gc_collect = schedule_gc_collect
         self.target_image_filename = target_image_filename
         self.imagelist_append = imagelist_append
         self.remotefilelist_append = remotefilelist_append
-        self.notebook_get_allocation = notebook_get_allocation
         self.allow_art_search = allow_art_search
         self.status_is_play_or_pause = status_is_play_or_pause
         self.get_current_song_text = get_current_song_text
@@ -57,6 +53,7 @@ class Artwork(object):
         self.fullscreen_cover_art_reset_text()
 
         self.info_image = None
+        self.calc_info_image_size = None
 
         # local version of Main.songinfo mirrored by update_songinfo
         self.songinfo = None
@@ -81,6 +78,12 @@ class Artwork(object):
     def set_info_image(self, info_image):
         self.info_image = info_image
         self.info_image.set_from_file(self.sonatacd_large)
+
+    def set_info_imagebox(self, info_imagebox):
+        self.info_imagebox = info_imagebox
+
+    def set_calc_info_image_size(self, func):
+        self.calc_info_image_size = func
 
     def update_songinfo(self, songinfo):
         self.songinfo = songinfo
@@ -513,8 +516,9 @@ class Artwork(object):
                     self.fullscreen_cover_art_set_image()
 
                 # Artwork for info tab:
-                if self.info_imagebox_get_size_request()[0] == -1:
-                    fullwidth = self.notebook_get_allocation().width - 50
+                if self.info_imagebox.get_size_request()[0] == -1:
+                    fullwidth = self.calc_info_image_size()
+                    fullwidth = max(fullwidth, 150)
                     (pix2, w, h) = img.get_pixbuf_of_size(pix, fullwidth)
                 else:
                     (pix2, w, h) = img.get_pixbuf_of_size(pix, 150)
@@ -532,6 +536,8 @@ class Artwork(object):
         self.artwork_set_image(self.lastalbumart, None, None, None, True)
 
     def artwork_apply_composite_case(self, pix, w, h):
+        if not pix:
+            return None
         if self.config.covers_type == consts.COVERS_TYPE_STYLIZED and \
            float(w) / h > 0.5:
             # Rather than merely compositing the case on top of the artwork,

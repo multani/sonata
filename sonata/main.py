@@ -220,13 +220,12 @@ class Base(object):
         # Artwork
         self.artwork = artwork.Artwork(
             self.config, self.path_to_icon, misc.is_lang_rtl(self.window),
-            lambda: self.info_imagebox.get_size_request(),
             self.schedule_gc_collect, self.target_image_filename,
             self.imagelist_append, self.remotefilelist_append,
-            self.notebook.get_allocation, self.set_allow_art_search,
-            self.status_is_play_or_pause, self.path_to_icon('sonata-album.png'),
-            self.get_current_song_text, self.album_image, self.tray_album_image,
-            self.fullscreen_image, fullscreen_label1, fullscreen_label2)
+            self.set_allow_art_search, self.status_is_play_or_pause,
+            self.path_to_icon('sonata-album.png'), self.get_current_song_text,
+            self.album_image, self.tray_album_image, self.fullscreen_image,
+            fullscreen_label1, fullscreen_label2)
 
 
         # Popup menus:
@@ -516,6 +515,8 @@ class Base(object):
         self.info_imagebox = self.info.get_info_imagebox()
         info_image = self.info.get_info_image()
         self.artwork.set_info_image(info_image)
+        self.artwork.set_info_imagebox(self.info_imagebox)
+        self.artwork.set_calc_info_image_size(self.calc_info_image_size)
 
         # Streams tab
         self.streams = streams.Streams(self.config, self.window,
@@ -2047,6 +2048,14 @@ class Base(object):
             if len(filenames) > 0:
                 self.mpd.update(filenames)
                 self.mpd_update_queued = True
+
+    def calc_info_image_size(self):
+        notebook_width = self.notebook.get_allocation().width
+        grid = self.info.info_song_grid
+        grid_allocation = grid.get_allocation()
+        grid_height = grid_allocation.height
+        grid_width = grid.get_preferred_width_for_height(grid_height)[0]
+        return notebook_width - (grid_width + 120)
 
     def on_image_activate(self, widget, event):
         self.window.handler_block(self.mainwinhandler)

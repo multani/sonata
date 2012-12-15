@@ -68,7 +68,6 @@
                       <object class="GtkImage" id="main_album_image">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="icon-size">0</property>
                       </object>
                     </child>
                   </object><!--image_event_box-->
