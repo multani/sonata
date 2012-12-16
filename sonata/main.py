@@ -2379,7 +2379,6 @@ class Base(object):
         refresh_button = self.builder.get_object('artwork_update_button')
         refresh_button.connect('clicked', self.image_remote_refresh,
                                self.image_widget)
-        self.chooseimage_visible = True
         self.remotefilelist = []
 
     def image_remote(self, _widget):
@@ -2402,6 +2401,7 @@ class Base(object):
         self.remote_artistentry.set_text(artist)
         self.remote_albumentry.set_text(album)
         self.allow_art_search = True
+        self.chooseimage_visible = True
         self.image_remote_refresh(None, self.image_widget)
         self.choose_dialog.show_all()
         self.choose_dialog.run()

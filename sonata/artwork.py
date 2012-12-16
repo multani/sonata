@@ -616,7 +616,7 @@ class Artwork(object):
             if i == 0:
                 self.allow_art_search()
 
-        ui.change_cursor(None) # XXX indented twice more?
+            ui.change_cursor(None)
 
         return True # continue to next image
 
