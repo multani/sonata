@@ -606,7 +606,7 @@
                                     <property name="entry_text_column">0</property>
                                     <property name="id_column">1</property>
                                     <items>
-                                      <item translatable="yes">~/.lyrics/</item>
+                                      <item translatable="no">~/.lyrics/</item>
                                       <item translatable="yes">SONG_DIR</item>
                                     </items>
                                   </object>
@@ -757,7 +757,7 @@
                                         <property name="entry_text_column">0</property>
                                         <property name="id_column">1</property>
                                         <items>
-                                          <item translatable="yes">~/.covers/</item>
+                                          <item translatable="no">~/.covers/</item>
                                         </items>
                                       </object>
                                       <packing>

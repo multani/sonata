@@ -13,8 +13,8 @@
 Copyright 2006-2008 Scott Horowitz &lt;stonecrest@gmail.com&gt;</property>
     <property name="comments" translatable="yes">An elegant music client for MPD.</property>
     <property name="website">http://sonata.berlios.de/</property>
-    <property name="website_label" translatable="yes">sonata.berlios.de</property>
-    <property name="license" translatable="yes">Sonata is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version.
+    <property name="website_label" translatable="no">sonata.berlios.de</property>
+    <property name="license" translatable="no">Sonata is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version.
     
 Sonata is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
@@ -22,7 +22,7 @@ You should have received a copy of the GNU General Public License along with thi
     <property name="authors">Scott Horowitz &lt;stonecrest@gmail.com&gt;
 Tuukka Hastrup &lt;Tuukka.Hastrup@iki.fi&gt;
 Stephen Boyd &lt;bebarino@gmail.com&gt;</property>
-    <property name="translator_credits" translatable="yes">ar - Ahmad Farghal &lt;ahmad.farghal@gmail.com&gt;
+    <property name="translator_credits" translatable="no">ar - Ahmad Farghal &lt;ahmad.farghal@gmail.com&gt;
 be@latin - Ihar Hrachyshka &lt;ihar.hrachyshka@gmail.com&gt;
 ca - Franc Rodriguez &lt;franc.rodriguez@tecob.com&gt;
 cs - Jakub Adler &lt;jakubadler@gmail.com&gt;
