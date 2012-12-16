@@ -355,7 +355,7 @@ class Preferences():
                 context = format_code.get_style_context()
                 context.add_class('format_code')
                 format_desc = ui.label(
-                    markup='<small>%{}</small>'.format(code.description))
+                    markup='<small>{}</small>'.format(code.description))
                 format_grid.attach(format_code, column, row, 1, 1)
                 format_grid.attach(format_desc, column + 1, row, 1, 1)
 

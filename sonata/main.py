@@ -162,9 +162,9 @@ class Base(object):
         self.all_tab_names = [self.TAB_CURRENT, self.TAB_LIBRARY,
                               self.TAB_PLAYLISTS, self.TAB_STREAMS,
                               self.TAB_INFO]
-        all_tab_ids = "current library playlists streams info".split()
-        self.tabname2id = dict(zip(self.all_tab_names, all_tab_ids))
-        self.tabid2name = dict(zip(all_tab_ids, self.all_tab_names))
+        self.all_tab_ids = "current library playlists streams info".split()
+        self.tabname2id = dict(zip(self.all_tab_names, self.all_tab_ids))
+        self.tabid2name = dict(zip(self.all_tab_ids, self.all_tab_names))
         self.tabname2tab = dict()
         self.tabname2focus = dict()
         self.plugintabs = dict()
@@ -330,16 +330,16 @@ class Base(object):
             ]
 
         toggle_tabactions = [
-            (self.TAB_CURRENT, None, self.TAB_CURRENT, None, None,
-             self.on_tab_toggle, self.config.current_tab_visible),
-            (self.TAB_LIBRARY, None, self.TAB_LIBRARY, None, None,
-             self.on_tab_toggle, self.config.library_tab_visible),
-            (self.TAB_PLAYLISTS, None, self.TAB_PLAYLISTS, None, None,
-             self.on_tab_toggle, self.config.playlists_tab_visible),
-            (self.TAB_STREAMS, None, self.TAB_STREAMS, None, None,
-             self.on_tab_toggle, self.config.streams_tab_visible),
-            (self.TAB_INFO, None, self.TAB_INFO, None, None,
-             self.on_tab_toggle, self.config.info_tab_visible), ]
+            (self.tabname2id[self.TAB_CURRENT], None, self.TAB_CURRENT,
+             None, None, self.on_tab_toggle, self.config.current_tab_visible),
+            (self.tabname2id[self.TAB_LIBRARY], None, self.TAB_LIBRARY,
+             None, None, self.on_tab_toggle, self.config.library_tab_visible),
+            (self.tabname2id[self.TAB_PLAYLISTS], None, self.TAB_PLAYLISTS,
+             None, None, self.on_tab_toggle, self.config.playlists_tab_visible),
+            (self.tabname2id[self.TAB_STREAMS], None, self.TAB_STREAMS,
+             None, None, self.on_tab_toggle, self.config.streams_tab_visible),
+            (self.tabname2id[self.TAB_INFO], None, self.TAB_INFO,
+             None, None, self.on_tab_toggle, self.config.info_tab_visible), ]
 
         uiDescription = """
             <ui>
@@ -425,7 +425,8 @@ class Base(object):
 
         uiDescription += '<popup name="notebookmenu">'
         uiDescription += ''.join('<menuitem action="%s"/>' % name
-                     for name in self.all_tab_names)
+                     for name in self.all_tab_ids)#FIXME
+
         uiDescription += "</popup>"
 
         uiDescription += ''.join('<accelerator action="%s"/>' % a[0]
@@ -3079,7 +3080,7 @@ class Base(object):
         elif name == self.TAB_INFO:
             self.config.info_tab_visible = toggleAction.get_active()
         # Hide/show:
-        tabnum = self.notebook_get_tab_num(self.notebook, name)
+        tabnum = self.notebook_get_tab_num(self.notebook, self.tabid2name[name])
         if toggleAction.get_active():
             ui.show(self.notebook.get_children()[tabnum])
         else:
