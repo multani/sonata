@@ -34,6 +34,7 @@ sonata/tagedit.py
 sonata/tests/__init__.py
 sonata/tray.py
 sonata/ui.py
+sonata/version.py
 sonata/ui/about.glade
 sonata/ui/current.glade
 sonata/ui/info.glade
@@ -43,4 +44,3 @@ sonata/ui/preferences.glade
 sonata/ui/sonata.glade
 sonata/ui/streams.glade
 sonata/ui/tagedit.glade
-sonata/version.py

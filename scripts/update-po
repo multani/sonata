@@ -5,7 +5,7 @@ cd ..
 
 echo
 echo Updating POTFILES.in...
-find setup.py sonata \( -name "*.py" -o -name "*.ui" \) > po/POTFILES.in
+find setup.py sonata \( -name "*.py" -o -name "*.glade" \) > po/POTFILES.in
 
 cd po
 echo Update messages.po...
