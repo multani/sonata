@@ -45,7 +45,7 @@ class Playlists(object):
         self.actionGroupPlaylists = None
         self.playlist_name_dialog = None
 
-        self.builder = ui.builder('playlists.ui')
+        self.builder = ui.builder('playlists.glade')
 
         # Playlists tab
         self.playlists = self.builder.get_object('playlists_page_treeview')

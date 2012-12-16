@@ -37,7 +37,7 @@ class TagEditor():
         self.entries = None
         self.tags = None
 
-        self.builder = ui.builder('tagedit.ui')
+        self.builder = ui.builder('tagedit.glade')
         self.css_provider = ui.provider('tagedit.css')
 
 

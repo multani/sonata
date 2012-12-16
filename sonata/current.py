@@ -64,7 +64,7 @@ class Current(object):
         self.sel_rows = None
 
         # Current tab
-        self.builder = ui.builder('current.ui')
+        self.builder = ui.builder('current.glade')
         self.current = self.builder.get_object('current_page_treeview')
         self.current_selection = self.current.get_selection()
         self.expanderwindow = self.builder.get_object('current_page_scrolledwindow')

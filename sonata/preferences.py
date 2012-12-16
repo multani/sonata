@@ -88,7 +88,7 @@ class Preferences():
     def on_prefs_real(self):
         """Display the preferences dialog"""
 
-        self.builder = ui.builder('preferences.ui')
+        self.builder = ui.builder('preferences.glade')
         self.provider = ui.provider('preferences.css')
         self.prefswindow = self.builder.get_object('preferences_dialog')
         self.prefswindow.set_transient_for(self.window)

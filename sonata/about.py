@@ -174,7 +174,7 @@ class About(object):
         return statslabel
 
     def about_load(self, stats):
-        self.builder = ui.builder('about.ui')
+        self.builder = ui.builder('about.glade')
         self.provider = ui.provider('about.css')
         self.about_dialog = self.builder.get_object('about_dialog')
         try:
