@@ -240,14 +240,3 @@ def get_files_recursively(dirname):
 
 def _get_files_recursively(filenames, dirname, files):
     filenames.extend([os.path.join(dirname, f) for f in files])
-
-
-def setlocale():
-    try:
-        locale.setlocale(locale.LC_ALL, "")
-        # XXX this makes python-mpd correctly return lowercase
-        # keys for, e.g., playlistinfo() with a turkish locale:
-        locale.setlocale(locale.LC_CTYPE, "C")
-    except:
-        logger.exception("Failed to set locale")
-        sys.exit(1)

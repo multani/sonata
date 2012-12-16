@@ -86,10 +86,6 @@ def run():
         libc.prctl(PR_SET_NAME, b"sonata", 0, 0, 0)
 
     ## Apply locale and translation:
-
-    from sonata import misc
-    misc.setlocale()
-
     # let gettext install _ as a built-in for all modules to see
     # XXX what's the correct way to find the localization?
     locales_path = '/usr/share/locale'
@@ -103,6 +99,7 @@ def run():
 
     gettext.install('sonata', locales_path, names=["ngettext"])
     gettext.textdomain('sonata')
+    locale.bindtextdomain('sonata', locales_path)
 
 
     ## Check initial dependencies:
@@ -133,8 +130,6 @@ def run():
     if not args.skip_gui:
         # importing gtk does sys.setdefaultencoding("utf-8"), sets locale etc.
         from gi.repository import Gtk, Gdk
-        # fix locale
-        misc.setlocale()
     else:
         class FakeModule(object):
             pass
