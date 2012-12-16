@@ -16,11 +16,11 @@ Adding a new translation
 
 3. Translate the strings
 
-4. Join the sonata-translators mailing list:
-	https://lists.berlios.de/mailman/listinfo/sonata-translations
+4. Join the sonata mailing list:
+	https://lists.berlios.de/mailman/listinfo/sonata
 
-5. Send your patch to sonata-translations@lists.berlios.de and Cc
-   the maintainer Stephen Boyd <bebarino@gmail.com>
+5. Send your patch to sonata@lists.berlios.de and Cc
+   the maintainer Jonathan Ballet <jon+sonata@multani.info>
 
 6. Keep the po file updated for future releases ;-)
 
@@ -35,8 +35,8 @@ Updating an existing translation
 
 3. Translate any strings that are new or fuzzy
 
-4. Join the sonata-translators mailing list:
-	https://lists.berlios.de/mailman/listinfo/sonata-translations
+4. Join the sonata mailing list:
+	https://lists.berlios.de/mailman/listinfo/sonata
 
-5. Send your patch to sonata-translations@lists.berlios.de and Cc
-   the maintainer Stephen Boyd <bebarino@gmail.com>
+5. Send your patch to sonata@lists.berlios.de and Cc
+   the maintainer Jonathan Ballet <jon+sonata@multani.info>
