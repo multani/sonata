@@ -352,10 +352,14 @@ class Preferences():
             for row, code in enumerate(codegroup):
                 format_code = ui.label(
                     markup='<small>%{}</small>'.format(code.code))
+                format_code.set_property('yalign', 0)
                 context = format_code.get_style_context()
                 context.add_class('format_code')
                 format_desc = ui.label(
                     markup='<small>{}</small>'.format(code.description))
+                format_desc.set_line_wrap(True)
+                format_desc.set_max_width_chars(15)
+                format_desc.set_property('yalign', 0)
                 format_grid.attach(format_code, column, row, 1, 1)
                 format_grid.attach(format_desc, column + 1, row, 1, 1)
 
@@ -364,17 +368,25 @@ class Preferences():
         # include markup in the strings and let the translators work around them
         row = len(codes[0])
         enclosed_code = ui.label(markup='<small>{ }</small>')
+        enclosed_code.set_property('yalign', 0)
         context = enclosed_code.get_style_context()
         context.add_class('format_code')
         enclosed_markup = '<small>{}</small>'.format(
             _('Info displayed only if all enclosed tags are defined'))
         enclosed_desc = ui.label(markup=enclosed_markup)
+        enclosed_desc.set_line_wrap(True)
+        enclosed_desc.set_max_width_chars(30)
+        enclosed_desc.set_property('yalign', 0)
         column_code = ui.label(markup='<small>|</small>')
+        column_code.set_property('yalign', 0)
         context = column_code.get_style_context()
         context.add_class('format_code')
         column_markup = '<small>{}</small>'.format(
             _('Creates columns in the current playlist'))
         column_desc = ui.label(markup=column_markup)
+        column_desc.set_line_wrap(True)
+        column_desc.set_max_width_chars(30)
+        column_desc.set_property('yalign', 0)
 
         for widget in (enclosed_code, enclosed_desc):
             context = widget.get_style_context()
