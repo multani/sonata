@@ -2369,7 +2369,6 @@ class Base(object):
         self.imagelist = self.builder.get_object('artwork_liststore')
         self.remote_artistentry = self.builder.get_object('artwork_artist_entry')
         self.remote_albumentry = self.builder.get_object('artwork_album_entry')
-
         self.image_widget = self.builder.get_object('artwork_iconview')
         refresh_button = self.builder.get_object('artwork_update_button')
         refresh_button.connect('clicked', self.image_remote_refresh,

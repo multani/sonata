@@ -5,7 +5,7 @@ cd ..
 
 echo
 echo Updating POTFILES.in...
-find setup.py sonata \( -name "*.py" -o -name "*.ui" \) > po/POTFILES.in
+find setup.py sonata \( -name "*.py" -o -name "*.glade" \) > po/POTFILES.in
 
 cd po
 echo Update messages.po...
@@ -20,9 +20,15 @@ do
     then
         continue
     fi
-    echo Updating ${i}...
-    intltool-update "${i%*.po}"
-    echo
+
+    # Generate ;po files only for the specified language.
+    echo "$*" | grep -q "$(echo $i | sed "s/.po$//g")"
+    if [ $? = 0 -o $# = 0 ]
+    then
+        echo Updating ${i}...
+        intltool-update "${i%*.po}"
+        echo
+    fi
 done
 
 echo Cleaning up...
