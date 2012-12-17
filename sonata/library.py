@@ -88,8 +88,8 @@ class Library(object):
         self.view_caches_reset()
 
         # Library tab
-        self.builder = ui.builder('library.glade')
-        self.css_provider = ui.provider('library.css')
+        self.builder = ui.builder('library')
+        self.css_provider = ui.css_provider('library')
 
         self.libraryvbox = self.builder.get_object('library_page_v_box')
         self.library = self.builder.get_object('library_page_treeview')
@@ -487,13 +487,13 @@ class Library(object):
         for crumb in crumbs:
             text, icon, pb, target = crumb
             text = misc.escape_html(text)
-            label = ui.label(markup=text)
+            label = Gtk.Label(text, use_markup=True)
 
             if icon:
-                image = ui.image(stock=icon)
+                image = Gtk.Image.new_from_stock(icon, Gtk.IconSize.MENU)
             elif pb:
                 pb = pb.scale_simple(16, 16, GdkPixbuf.InterpType.HYPER)
-                image = ui.image(pb=pb)
+                image = Gtk.Image.new_from_pixbuf(pb)
 
             b = breadcrumbs.CrumbButton(image, label)
 

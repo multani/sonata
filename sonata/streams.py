@@ -29,7 +29,7 @@ class Streams(object):
 
         self.stream_edit_dialog = None
 
-        self.builder = ui.builder('streams.glade')
+        self.builder = ui.builder('streams')
 
         # Streams tab
         self.streams = self.builder.get_object('streams_page_treeview')

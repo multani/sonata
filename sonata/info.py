@@ -47,8 +47,8 @@ class Info(object):
         self.active = False
 
         # Info tab
-        self.builder = ui.builder('info.glade')
-        self.css_provider = ui.provider('info.css')
+        self.builder = ui.builder('info')
+        self.css_provider = ui.css_provider('info')
         self.info_area = self.builder.get_object('info_page_scrolledwindow')
         self.tab_label_widget = self.builder.get_object('info_tab_eventbox')
         tab_label = self.builder.get_object('info_tab_label')

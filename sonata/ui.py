@@ -13,15 +13,17 @@ def builder(ui_file, relative_to='.'):
     builder = Gtk.Builder()
     builder.set_translation_domain('sonata')
     ui_path = pkg_resources.resource_filename(
-        'sonata', os.path.join(relative_to, 'ui', ui_file))
+        'sonata', os.path.join(relative_to, 'ui', ui_file + ".glade"))
+    logger.debug('Loading %s', ui_path)
     builder.add_from_file(ui_path)
 
     return builder
 
-def provider(css_file, relative_to='.'):
+def css_provider(css_file, relative_to='.'):
     provider = Gtk.CssProvider()
     css_path = pkg_resources.resource_filename(
-        'sonata', os.path.join(relative_to, 'ui', css_file))
+        'sonata', os.path.join(relative_to, 'ui', css_file + ".css"))
+    logger.debug('Loading %s', css_path)
     provider.load_from_path(css_path)
     screen = Gdk.Screen.get_default()
     context = Gtk.StyleContext()
@@ -29,36 +31,6 @@ def provider(css_file, relative_to='.'):
                                     Gtk.STYLE_PROVIDER_PRIORITY_USER)
 
     return provider
-
-def label(text=None, textmn=None, markup=None, x=0, y=0.5, \
-          wrap=False, select=False, w=-1, h=-1):
-    # Defaults to left-aligned, vertically centered
-    tmplabel = Gtk.Label()
-    if text:
-        tmplabel.set_text(text)
-    elif markup:
-        tmplabel.set_markup(markup)
-    elif textmn:
-        tmplabel.set_text_with_mnemonic(textmn)
-    tmplabel.set_alignment(x, y)
-    tmplabel.set_size_request(w, h)
-    tmplabel.set_line_wrap(wrap)
-    tmplabel.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-    tmplabel.set_selectable(select)
-    return tmplabel
-
-
-def image(stock=None, stocksize=Gtk.IconSize.MENU, w=-1, h=-1, \
-          x=0.5, y=0.5, pb=None):
-    if stock:
-        tmpimg = Gtk.Image.new_from_stock(stock, stocksize)
-    elif pb:
-        tmpimg = Gtk.Image.new_from_pixbuf(pb)
-    else:
-        tmpimg = Gtk.Image()
-    tmpimg.set_size_request(w, h)
-    tmpimg.set_alignment(x, y)
-    return tmpimg
 
 
 def show_msg(owner, message, title, role, buttons, default=None, response_cb=None):
