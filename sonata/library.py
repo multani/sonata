@@ -88,8 +88,8 @@ class Library(object):
         self.view_caches_reset()
 
         # Library tab
-        self.builder = ui.builder('library.glade')
-        self.css_provider = ui.provider('library.css')
+        self.builder = ui.builder('library')
+        self.css_provider = ui.css_provider('library')
 
         self.libraryvbox = self.builder.get_object('library_page_v_box')
         self.library = self.builder.get_object('library_page_treeview')

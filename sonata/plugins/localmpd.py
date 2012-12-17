@@ -114,7 +114,7 @@ def update(label):
 
 # nothing magical here, this constructs the parts of the tab when called:
 def tab_construct():
-    builder = ui.builder('localmpd.glade', 'plugins')
+    builder = ui.builder('localmpd', 'plugins')
     editbutton = builder.get_object('localmpd_edit_button')
     editbutton.connect('clicked', lambda *args: subprocess.Popen(
         ["gksu", "xdg-open", "/etc/mpd.conf"]))

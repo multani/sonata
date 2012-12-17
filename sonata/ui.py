@@ -13,15 +13,17 @@ def builder(ui_file, relative_to='.'):
     builder = Gtk.Builder()
     builder.set_translation_domain('sonata')
     ui_path = pkg_resources.resource_filename(
-        'sonata', os.path.join(relative_to, 'ui', ui_file))
+        'sonata', os.path.join(relative_to, 'ui', ui_file + ".glade"))
+    logger.debug('Loading %s', ui_path)
     builder.add_from_file(ui_path)
 
     return builder
 
-def provider(css_file, relative_to='.'):
+def css_provider(css_file, relative_to='.'):
     provider = Gtk.CssProvider()
     css_path = pkg_resources.resource_filename(
-        'sonata', os.path.join(relative_to, 'ui', css_file))
+        'sonata', os.path.join(relative_to, 'ui', css_file + ".css"))
+    logger.debug('Loading %s', css_path)
     provider.load_from_path(css_path)
     screen = Gdk.Screen.get_default()
     context = Gtk.StyleContext()

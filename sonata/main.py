@@ -187,8 +187,8 @@ class Base(object):
         self.notebook_show_first_tab = not self.config.tabs_expanded or \
                 self.config.withdrawn
 
-        self.builder = ui.builder('sonata.glade')
-        self.provider = ui.provider('sonata.css')
+        self.builder = ui.builder('sonata')
+        self.provider = ui.css_provider('sonata')
 
         # Main window
         self.window = self.builder.get_object('main_window')

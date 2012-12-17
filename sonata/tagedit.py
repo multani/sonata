@@ -37,8 +37,8 @@ class TagEditor():
         self.entries = None
         self.tags = None
 
-        self.builder = ui.builder('tagedit.glade')
-        self.css_provider = ui.provider('tagedit.css')
+        self.builder = ui.builder('tagedit')
+        self.css_provider = ui.css_provider('tagedit')
 
 
     def _init_edit_window(self):

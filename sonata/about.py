@@ -172,8 +172,8 @@ class About(object):
         return statslabel
 
     def about_load(self, stats):
-        self.builder = ui.builder('about.glade')
-        self.provider = ui.provider('about.css')
+        self.builder = ui.builder('about')
+        self.provider = ui.css_provider('about')
         self.about_dialog = self.builder.get_object('about_dialog')
         try:
             self.about_dialog.set_transient_for(self.parent_window)
