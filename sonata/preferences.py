@@ -350,7 +350,7 @@ class Preferences():
 
         def make_label(content):
             return Gtk.Label('<small>{}</small>'.format(content),
-                             use_markup=True, xalign=0)
+                             use_markup=True, xalign=0, yalign=0)
 
         for column_base, codegroup in enumerate(codes):
             column = column_base * 2
@@ -358,6 +358,8 @@ class Preferences():
                 format_code = make_label("%{}".format(code.code))
                 format_code.get_style_context().add_class('format_code')
                 format_desc = make_label(code.description)
+                format_desc.set_line_wrap(True)
+                format_desc.set_max_width_chars(15)
                 format_grid.attach(format_code, column, row, 1, 1)
                 format_grid.attach(format_desc, column + 1, row, 1, 1)
 
@@ -369,9 +371,13 @@ class Preferences():
         enclosed_code.get_style_context().add_class('format_code')
         enclosed_desc = make_label(
             _('Info displayed only if all enclosed tags are defined'))
+        enclosed_desc.set_line_wrap(True)
+        enclosed_desc.set_max_width_chars(30)
         column_code = make_label('|')
         column_code.get_style_context().add_class('format_code')
         column_desc = make_label(_('Creates columns in the current playlist'))
+        column_desc.set_line_wrap(True)
+        column_desc.set_max_width_chars(30)
 
         for widget in (enclosed_code, enclosed_desc):
             widget.get_style_context().add_class('additional_format')
