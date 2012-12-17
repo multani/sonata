@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
-  <object class="GtkListStore" id="current_liststore"/>
   <object class="GtkEventBox" id="current_tab_eventbox">
     <property name="visible">False</property>
     <property name="visible_window">False</property>
@@ -49,7 +48,6 @@
           <object class="GtkTreeView" id="current_page_treeview">
             <property name="rules_hint">True</property>
             <property name="can_focus">True</property>
-            <property name="model">current_liststore</property>
             <property name="headers_visible">True</property>
             <property name="headers_clickable">True</property>
             <property name="reorderable">True</property>
