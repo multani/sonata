@@ -30,23 +30,6 @@ def provider(css_file, relative_to='.'):
 
     return provider
 
-def label(text=None, textmn=None, markup=None, x=0, y=0.5, \
-          wrap=False, select=False, w=-1, h=-1):
-    # Defaults to left-aligned, vertically centered
-    tmplabel = Gtk.Label()
-    if text:
-        tmplabel.set_text(text)
-    elif markup:
-        tmplabel.set_markup(markup)
-    elif textmn:
-        tmplabel.set_text_with_mnemonic(textmn)
-    tmplabel.set_alignment(x, y)
-    tmplabel.set_size_request(w, h)
-    tmplabel.set_line_wrap(wrap)
-    tmplabel.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-    tmplabel.set_selectable(select)
-    return tmplabel
-
 
 def show_msg(owner, message, title, role, buttons, default=None, response_cb=None):
     is_button_list = hasattr(buttons, '__getitem__')

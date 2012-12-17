@@ -347,15 +347,17 @@ class Preferences():
         codeset = formatting.formatcodes
         codes = (codeset[:len(codeset) // 2],
                  codeset[len(codeset) // 2:])
+
+        def make_label(content):
+            return Gtk.Label('<small>{}</small>'.format(content),
+                             use_markup=True, xalign=0)
+
         for column_base, codegroup in enumerate(codes):
             column = column_base * 2
             for row, code in enumerate(codegroup):
-                format_code = ui.label(
-                    markup='<small>%{}</small>'.format(code.code))
-                context = format_code.get_style_context()
-                context.add_class('format_code')
-                format_desc = ui.label(
-                    markup='<small>%{}</small>'.format(code.description))
+                format_code = make_label("%{}".format(code.code))
+                format_code.get_style_context().add_class('format_code')
+                format_desc = make_label(code.description)
                 format_grid.attach(format_code, column, row, 1, 1)
                 format_grid.attach(format_desc, column + 1, row, 1, 1)
 
@@ -363,22 +365,16 @@ class Preferences():
         # FIXME need to either separate markup from localized strings OR
         # include markup in the strings and let the translators work around them
         row = len(codes[0])
-        enclosed_code = ui.label(markup='<small>{ }</small>')
-        context = enclosed_code.get_style_context()
-        context.add_class('format_code')
-        enclosed_markup = '<small>{}</small>'.format(
+        enclosed_code = make_label('{ }')
+        enclosed_code.get_style_context().add_class('format_code')
+        enclosed_desc = make_label(
             _('Info displayed only if all enclosed tags are defined'))
-        enclosed_desc = ui.label(markup=enclosed_markup)
-        column_code = ui.label(markup='<small>|</small>')
-        context = column_code.get_style_context()
-        context.add_class('format_code')
-        column_markup = '<small>{}</small>'.format(
-            _('Creates columns in the current playlist'))
-        column_desc = ui.label(markup=column_markup)
+        column_code = make_label('|')
+        column_code.get_style_context().add_class('format_code')
+        column_desc = make_label(_('Creates columns in the current playlist'))
 
         for widget in (enclosed_code, enclosed_desc):
-            context = widget.get_style_context()
-            context.add_class('additional_format')
+            widget.get_style_context().add_class('additional_format')
         format_grid.attach(enclosed_code, 0, row, 1, 1)
         format_grid.attach(enclosed_desc, 1, row, 3, 1)
         row += 1

@@ -487,7 +487,7 @@ class Library(object):
         for crumb in crumbs:
             text, icon, pb, target = crumb
             text = misc.escape_html(text)
-            label = ui.label(markup=text)
+            label = Gtk.Label(text, use_markup=True)
 
             if icon:
                 image = Gtk.Image.new_from_stock(icon, Gtk.IconSize.MENU)

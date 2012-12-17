@@ -115,26 +115,24 @@ class About(object):
 
         # each pair is a [ heading, shortcutlist ]
         vbox = self.builder.get_object('shortcuts_dialog_content_box')
-        for pair in shortcuts:
-            titlelabel = ui.label(text=pair[0])
-            context = titlelabel.get_style_context()
-            context.add_class('heading')
+        for heading, shortcutlist in shortcuts:
+            titlelabel = Gtk.Label(heading, xalign=0)
+            titlelabel.get_style_context().add_class('heading')
             vbox.pack_start(titlelabel, False, False, 2)
 
             # print the items of [ shortcut, desc ]
-            for item in pair[1]:
+            for shortcut, desc in shortcutlist:
                 tmphbox = Gtk.HBox()
 
-                tmplabel = ui.label(text='{}:'.format(item[0]), y=0)
-                context = tmplabel.get_style_context()
-                context.add_class('shortcut')
-                tmpdesc = ui.label(text=item[1], wrap=True, y=0)
+                tmplabel = Gtk.Label('{}:'.format(shortcut), xalign=0)
+                tmplabel.get_style_context().add_class('shortcut')
+                tmpdesc = Gtk.Label(desc, xalign=0, wrap=False)
 
                 tmphbox.pack_start(tmplabel, False, False, 2)
                 tmphbox.pack_start(tmpdesc, True, True, 2)
 
                 vbox.pack_start(tmphbox, False, False, 2)
-            vbox.pack_start(ui.label(text=" "), False, False, 2)
+            vbox.pack_start(Gtk.Label(" "), False, False, 2)
 
     def about_shortcuts(self, _button):
         if not self.shortcuts_dialog:
