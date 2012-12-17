@@ -490,10 +490,10 @@ class Library(object):
             label = ui.label(markup=text)
 
             if icon:
-                image = ui.image(stock=icon)
+                image = Gtk.Image.new_from_stock(icon, Gtk.IconSize.MENU)
             elif pb:
                 pb = pb.scale_simple(16, 16, GdkPixbuf.InterpType.HYPER)
-                image = ui.image(pb=pb)
+                image = Gtk.Image.new_from_pixbuf(pb)
 
             b = breadcrumbs.CrumbButton(image, label)
 

@@ -48,19 +48,6 @@ def label(text=None, textmn=None, markup=None, x=0, y=0.5, \
     return tmplabel
 
 
-def image(stock=None, stocksize=Gtk.IconSize.MENU, w=-1, h=-1, \
-          x=0.5, y=0.5, pb=None):
-    if stock:
-        tmpimg = Gtk.Image.new_from_stock(stock, stocksize)
-    elif pb:
-        tmpimg = Gtk.Image.new_from_pixbuf(pb)
-    else:
-        tmpimg = Gtk.Image()
-    tmpimg.set_size_request(w, h)
-    tmpimg.set_alignment(x, y)
-    return tmpimg
-
-
 def show_msg(owner, message, title, role, buttons, default=None, response_cb=None):
     is_button_list = hasattr(buttons, '__getitem__')
     if not is_button_list:
