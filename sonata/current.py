@@ -386,7 +386,7 @@ class Current(object):
 
     def dnd_after_current_drag_begin(self, _widget, context):
         # Override default image of selected row with sonata icon:
-        context.set_icon_stock('sonata', 0, 0)
+        Gtk.drag_set_icon_stock(context, 'sonata', 0, 0)
 
     def on_current_button_release(self, widget, event):
         if self.sel_rows:
