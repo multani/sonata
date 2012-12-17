@@ -158,6 +158,7 @@
   <object class="GtkDialog" id="preferences_dialog">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
+    <property name="title" translatable="yes">Preferences</property>
     <property name="role">preferences</property>
     <property name="resizable">False</property>
     <property name="destroy_with_parent">True</property>
@@ -166,7 +167,6 @@
       <object class="GtkBox" id="preferences_v_box">
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
-        <property name="spacing">2</property>
         <child>
           <object class="GtkBox" id="preferences_h_box">
             <property name="visible">True</property>
@@ -178,7 +178,10 @@
                 <child>
                   <object class="GtkAlignment" id="preferences_mpd">
                     <property name="can_focus">False</property>
-                    <property name="margin">12</property>
+                    <property name="margin_top">12</property>
+                    <property name="margin_left">6</property>
+                    <property name="margin_right">6</property>
+                    <property name="margin_bottom">6</property>
                     <child>
                       <object class="GtkFrame" id="preferences_mpd_frame">
                         <property name="visible">True</property>
@@ -187,11 +190,16 @@
                         <child>
                           <object class="GtkAlignment" id="preferences_mpd_frame_alignment">
                             <property name="can_focus">False</property>
-                            <property name="margin">12</property>
+                            <property name="margin_top">12</property>
+                            <property name="margin_left">6</property>
+                            <property name="margin_right">6</property>
+                            <property name="margin_bottom">6</property>
                             <child>
-                              <object class="GtkGrid" id="preferences_mpd_grid">
+                              <object class="GtkBox" id="preferences_mpd_v_box">
+                                <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="row_spacing">12</property>
+                                <property name="orientation">vertical</property>
+                                <property name="spacing">12</property>
                                 <child>
                                   <object class="GtkFrame" id="connection_frame">
                                     <property name="visible">True</property>
@@ -200,168 +208,165 @@
                                     <property name="label_xalign">0</property>
                                     <property name="shadow_type">in</property>
                                     <child>
-                                      <object class="GtkAlignment" id="connection_alignment">
+                                      <object class="GtkGrid" id="connection_grid">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
                                         <property name="margin">12</property>
+                                        <property name="row_spacing">6</property>
+                                        <property name="column_spacing">6</property>
+                                        <property name="row_homogeneous">True</property>
                                         <child>
-                                          <object class="GtkGrid" id="connection_grid">
+                                          <object class="GtkEntry" id="connection_name">
+                                            <property name="can_focus">True</property>
+                                            <property name="hexpand">True</property>
+                                            <property name="invisible_char">•</property>
+                                          </object>
+                                          <packing>
+                                            <property name="left_attach">1</property>
+                                            <property name="top_attach">0</property>
+                                            <property name="width">3</property>
+                                            <property name="height">1</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel" id="connection_name_label">
                                             <property name="visible">True</property>
                                             <property name="can_focus">False</property>
-                                            <property name="column_spacing">6</property>
-                                            <property name="column_homogeneous">False</property>
-                                            <property name="row_spacing">6</property>
-                                            <property name="row_homogeneous">True</property>
-                                            <property name="margin">5</property>
-                                            <child>
-                                              <object class="GtkEntry" id="connection_name">
-                                                <property name="can_focus">True</property>
-                                                <property name="hexpand">True</property>
-                                              </object>
-                                              <packing>
-                                                <property name="left_attach">1</property>
-                                                <property name="top_attach">0</property>
-                                                <property name="width">3</property>
-                                                <property name="height">1</property>
-                                              </packing>
-                                            </child>
-                                            <child>
-                                              <object class="GtkLabel" id="connection_name_label">
-                                                <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="xalign">0</property>
-                                                <property name="label" translatable="yes">_Name:</property>
-                                                <property name="use_markup">True</property>
-                                                <property name="use_underline">True</property>
-                                                <property name="mnemonic_widget">connection_name</property>
-                                              </object>
-                                              <packing>
-                                                <property name="left_attach">0</property>
-                                                <property name="top_attach">0</property>
-                                                <property name="width">1</property>
-                                                <property name="height">1</property>
-                                              </packing>
-                                            </child>
-                                            <child>
-                                              <object class="GtkEntry" id="connection_host">
-                                                <property name="can_focus">True</property>
-                                              </object>
-                                              <packing>
-                                                <property name="left_attach">1</property>
-                                                <property name="top_attach">1</property>
-                                                <property name="width">3</property>
-                                                <property name="height">1</property>
-                                              </packing>
-                                            </child>
-                                            <child>
-                                              <object class="GtkLabel" id="connection_host_label">
-                                                <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="xalign">0</property>
-                                                <property name="label" translatable="yes">_Host:</property>
-                                                <property name="use_markup">True</property>
-                                                <property name="use_underline">True</property>
-                                                <property name="mnemonic_widget">connection_host</property>
-                                              </object>
-                                              <packing>
-                                                <property name="left_attach">0</property>
-                                                <property name="top_attach">1</property>
-                                                <property name="width">1</property>
-                                                <property name="height">1</property>
-                                              </packing>
-                                            </child>
-                                            <child>
-                                              <object class="GtkSpinButton" id="connection_port">
-                                                <property name="can_focus">True</property>
-                                                <property name="adjustment">port_adjustment</property>
-                                              </object>
-                                              <packing>
-                                                <property name="left_attach">1</property>
-                                                <property name="top_attach">2</property>
-                                                <property name="width">3</property>
-                                                <property name="height">1</property>
-                                              </packing>
-                                            </child>
-                                            <child>
-                                              <object class="GtkLabel" id="connection_port_label">
-                                                <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="xalign">0</property>
-                                                <property name="label" translatable="yes">_Port:</property>
-                                                <property name="use_markup">True</property>
-                                                <property name="use_underline">True</property>
-                                                <property name="mnemonic_widget">connection_port</property>
-                                              </object>
-                                              <packing>
-                                                <property name="left_attach">0</property>
-                                                <property name="top_attach">2</property>
-                                                <property name="width">1</property>
-                                                <property name="height">1</property>
-                                              </packing>
-                                            </child>
-                                            <child>
-                                              <object class="GtkEntry" id="connection_password">
-                                                <property name="can_focus">True</property>
-                                                <property name="has_tooltip">True</property>
-                                                <property name="tooltip_markup" translatable="yes">Leave blank if no password is required.</property>
-                                                <property name="tooltip_text" translatable="yes">Leave blank if no password is required.</property>
-                                                <property name="visibility">False</property>
-                                              </object>
-                                              <packing>
-                                                <property name="left_attach">1</property>
-                                                <property name="top_attach">3</property>
-                                                <property name="width">3</property>
-                                                <property name="height">1</property>
-                                              </packing>
-                                            </child>
-                                            <child>
-                                              <object class="GtkLabel" id="connection_password_label">
-                                                <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="xalign">0</property>
-                                                <property name="label" translatable="yes">Pa_ssword:</property>
-                                                <property name="use_markup">True</property>
-                                                <property name="use_underline">True</property>
-                                                <property name="mnemonic_widget">connection_password</property>
-                                              </object>
-                                              <packing>
-                                                <property name="left_attach">0</property>
-                                                <property name="top_attach">3</property>
-                                                <property name="width">1</property>
-                                                <property name="height">1</property>
-                                              </packing>
-                                            </child>
-                                            <child>
-                                              <object class="GtkFileChooserButton" id="connection_dir">
-                                                <property name="can_focus">True</property>
-                                                <property name="action">select-folder</property>
-                                                <property name="title" translatable="yes">Select a Music Directory</property>
-                                              </object>
-                                              <packing>
-                                                <property name="left_attach">1</property>
-                                                <property name="top_attach">4</property>
-                                                <property name="width">3</property>
-                                                <property name="height">1</property>
-                                              </packing>
-                                            </child>
-                                            <child>
-                                              <object class="GtkLabel" id="connection_dir_label">
-                                                <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="xalign">0</property>
-                                                <property name="label" translatable="yes">_Music dir:</property>
-                                                <property name="use_markup">True</property>
-                                                <property name="use_underline">True</property>
-                                                <property name="mnemonic_widget">connection_dir</property>
-                                              </object>
-                                              <packing>
-                                                <property name="left_attach">0</property>
-                                                <property name="top_attach">4</property>
-                                                <property name="width">1</property>
-                                                <property name="height">1</property>
-                                              </packing>
-                                            </child>
+                                            <property name="xalign">0</property>
+                                            <property name="label" translatable="yes">_Name:</property>
+                                            <property name="use_markup">True</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="mnemonic_widget">connection_name</property>
                                           </object>
+                                          <packing>
+                                            <property name="left_attach">0</property>
+                                            <property name="top_attach">0</property>
+                                            <property name="width">1</property>
+                                            <property name="height">1</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <object class="GtkEntry" id="connection_host">
+                                            <property name="can_focus">True</property>
+                                            <property name="invisible_char">•</property>
+                                          </object>
+                                          <packing>
+                                            <property name="left_attach">1</property>
+                                            <property name="top_attach">1</property>
+                                            <property name="width">3</property>
+                                            <property name="height">1</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel" id="connection_host_label">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="xalign">0</property>
+                                            <property name="label" translatable="yes">_Host:</property>
+                                            <property name="use_markup">True</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="mnemonic_widget">connection_host</property>
+                                          </object>
+                                          <packing>
+                                            <property name="left_attach">0</property>
+                                            <property name="top_attach">1</property>
+                                            <property name="width">1</property>
+                                            <property name="height">1</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <object class="GtkSpinButton" id="connection_port">
+                                            <property name="can_focus">True</property>
+                                            <property name="invisible_char">•</property>
+                                            <property name="adjustment">port_adjustment</property>
+                                          </object>
+                                          <packing>
+                                            <property name="left_attach">1</property>
+                                            <property name="top_attach">2</property>
+                                            <property name="width">3</property>
+                                            <property name="height">1</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel" id="connection_port_label">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="xalign">0</property>
+                                            <property name="label" translatable="yes">_Port:</property>
+                                            <property name="use_markup">True</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="mnemonic_widget">connection_port</property>
+                                          </object>
+                                          <packing>
+                                            <property name="left_attach">0</property>
+                                            <property name="top_attach">2</property>
+                                            <property name="width">1</property>
+                                            <property name="height">1</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <object class="GtkEntry" id="connection_password">
+                                            <property name="can_focus">True</property>
+                                            <property name="has_tooltip">True</property>
+                                            <property name="tooltip_markup" translatable="yes">Leave blank if no password is required.</property>
+                                            <property name="tooltip_text" translatable="yes">Leave blank if no password is required.</property>
+                                            <property name="visibility">False</property>
+                                            <property name="invisible_char">•</property>
+                                          </object>
+                                          <packing>
+                                            <property name="left_attach">1</property>
+                                            <property name="top_attach">3</property>
+                                            <property name="width">3</property>
+                                            <property name="height">1</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel" id="connection_password_label">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="xalign">0</property>
+                                            <property name="label" translatable="yes">Pa_ssword:</property>
+                                            <property name="use_markup">True</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="mnemonic_widget">connection_password</property>
+                                          </object>
+                                          <packing>
+                                            <property name="left_attach">0</property>
+                                            <property name="top_attach">3</property>
+                                            <property name="width">1</property>
+                                            <property name="height">1</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <object class="GtkFileChooserButton" id="connection_dir">
+                                            <property name="can_focus">True</property>
+                                            <property name="action">select-folder</property>
+                                            <property name="show_hidden">True</property>
+                                            <property name="title" translatable="yes">Select a Music Directory</property>
+                                          </object>
+                                          <packing>
+                                            <property name="left_attach">1</property>
+                                            <property name="top_attach">4</property>
+                                            <property name="width">3</property>
+                                            <property name="height">1</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel" id="connection_dir_label">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="xalign">0</property>
+                                            <property name="label" translatable="yes">_Music dir:</property>
+                                            <property name="use_markup">True</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="mnemonic_widget">connection_dir</property>
+                                          </object>
+                                          <packing>
+                                            <property name="left_attach">0</property>
+                                            <property name="top_attach">4</property>
+                                            <property name="width">1</property>
+                                            <property name="height">1</property>
+                                          </packing>
                                         </child>
                                       </object>
                                     </child>
@@ -423,10 +428,9 @@
                                     </child>
                                   </object>
                                   <packing>
-                                    <property name="left_attach">0</property>
-                                    <property name="top_attach">0</property>
-                                    <property name="width">1</property>
-                                    <property name="height">1</property>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">0</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -442,10 +446,9 @@
                                     <property name="draw_indicator">True</property>
                                   </object>
                                   <packing>
-                                    <property name="left_attach">0</property>
-                                    <property name="top_attach">1</property>
-                                    <property name="width">1</property>
-                                    <property name="height">1</property>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">1</property>
                                   </packing>
                                 </child>
                               </object>
@@ -480,7 +483,10 @@
                 <child>
                   <object class="GtkAlignment" id="preferences_display">
                     <property name="can_focus">False</property>
-                    <property name="margin">12</property>
+                    <property name="margin_top">12</property>
+                    <property name="margin_left">6</property>
+                    <property name="margin_right">6</property>
+                    <property name="margin_bottom">6</property>
                     <child>
                       <object class="GtkFrame" id="preferences_display_frame">
                         <property name="can_focus">False</property>
@@ -813,7 +819,10 @@
                 <child>
                   <object class="GtkAlignment" id="preferences_behavior">
                     <property name="can_focus">False</property>
-                    <property name="margin">12</property>
+                    <property name="margin_top">12</property>
+                    <property name="margin_left">6</property>
+                    <property name="margin_right">6</property>
+                    <property name="margin_bottom">6</property>
                     <child>
                       <object class="GtkFrame" id="behavior_frame">
                         <property name="can_focus">False</property>
@@ -1090,7 +1099,10 @@
                 <child>
                   <object class="GtkAlignment" id="preferences_format">
                     <property name="can_focus">False</property>
-                    <property name="margin">12</property>
+                    <property name="margin_top">12</property>
+                    <property name="margin_left">6</property>
+                    <property name="margin_right">6</property>
+                    <property name="margin_bottom">6</property>
                     <child>
                       <object class="GtkFrame" id="format_frame">
                         <property name="can_focus">False</property>
@@ -1106,194 +1118,154 @@
                                 <property name="orientation">vertical</property>
                                 <property name="spacing">6</property>
                                 <child>
-                                  <object class="GtkBox" id="format_prefs">
+                                  <object class="GtkGrid" id="format_grid">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="orientation">vertical</property>
-                                    <property name="spacing">6</property>
+                                    <property name="column_spacing">12</property>
                                     <child>
-                                      <object class="GtkBox" id="format_playlist_box">
+                                      <object class="GtkLabel" id="format_playlist_label">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
-                                        <child>
-                                          <object class="GtkLabel" id="format_playlist_label">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">False</property>
-                                            <property name="label" translatable="yes">C_urrent playlist:</property>
-                                            <property name="use_underline">True</property>
-                                            <property name="mnemonic_widget">format_playlist_entry</property>
-                                          </object>
-                                          <packing>
-                                            <property name="expand">False</property>
-                                            <property name="fill">True</property>
-                                            <property name="position">0</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkEntry" id="format_playlist_entry">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">True</property>
-                                          </object>
-                                          <packing>
-                                            <property name="expand">False</property>
-                                            <property name="fill">True</property>
-                                            <property name="pack_type">end</property>
-                                            <property name="position">1</property>
-                                          </packing>
-                                        </child>
+                                        <property name="xalign">0</property>
+                                        <property name="label" translatable="yes">C_urrent playlist:</property>
+                                        <property name="use_underline">True</property>
+                                        <property name="mnemonic_widget">format_playlist_entry</property>
                                       </object>
                                       <packing>
-                                        <property name="expand">False</property>
-                                        <property name="fill">True</property>
-                                        <property name="position">0</property>
+                                        <property name="left_attach">0</property>
+                                        <property name="top_attach">0</property>
+                                        <property name="width">1</property>
+                                        <property name="height">1</property>
                                       </packing>
                                     </child>
                                     <child>
-                                      <object class="GtkBox" id="format_library_box">
+                                      <object class="GtkEntry" id="format_playlist_entry">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <child>
-                                          <object class="GtkLabel" id="format_library_label">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">False</property>
-                                            <property name="label" translatable="yes">_Library:</property>
-                                            <property name="use_underline">True</property>
-                                            <property name="mnemonic_widget">format_library_entry</property>
-                                          </object>
-                                          <packing>
-                                            <property name="expand">False</property>
-                                            <property name="fill">True</property>
-                                            <property name="position">0</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkEntry" id="format_library_entry">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">True</property>
-                                          </object>
-                                          <packing>
-                                            <property name="expand">False</property>
-                                            <property name="fill">True</property>
-                                            <property name="pack_type">end</property>
-                                            <property name="position">1</property>
-                                          </packing>
-                                        </child>
+                                        <property name="can_focus">True</property>
+                                        <property name="hexpand">True</property>
+                                        <property name="invisible_char">•</property>
                                       </object>
                                       <packing>
-                                        <property name="expand">False</property>
-                                        <property name="fill">True</property>
-                                        <property name="position">1</property>
+                                        <property name="left_attach">1</property>
+                                        <property name="top_attach">0</property>
+                                        <property name="width">1</property>
+                                        <property name="height">1</property>
                                       </packing>
                                     </child>
                                     <child>
-                                      <object class="GtkBox" id="format_window_box">
+                                      <object class="GtkLabel" id="format_library_label">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
-                                        <child>
-                                          <object class="GtkLabel" id="format_window_label">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">False</property>
-                                            <property name="label" translatable="yes">_Window title:</property>
-                                            <property name="use_underline">True</property>
-                                            <property name="mnemonic_widget">format_window_entry</property>
-                                          </object>
-                                          <packing>
-                                            <property name="expand">False</property>
-                                            <property name="fill">True</property>
-                                            <property name="position">0</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkEntry" id="format_window_entry">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">True</property>
-                                          </object>
-                                          <packing>
-                                            <property name="expand">False</property>
-                                            <property name="fill">True</property>
-                                            <property name="pack_type">end</property>
-                                            <property name="position">1</property>
-                                          </packing>
-                                        </child>
+                                        <property name="xalign">0</property>
+                                        <property name="label" translatable="yes">_Library:</property>
+                                        <property name="use_underline">True</property>
+                                        <property name="mnemonic_widget">format_library_entry</property>
                                       </object>
                                       <packing>
-                                        <property name="expand">False</property>
-                                        <property name="fill">True</property>
-                                        <property name="position">2</property>
+                                        <property name="left_attach">0</property>
+                                        <property name="top_attach">1</property>
+                                        <property name="width">1</property>
+                                        <property name="height">1</property>
                                       </packing>
                                     </child>
                                     <child>
-                                      <object class="GtkBox" id="format_current1_box">
+                                      <object class="GtkEntry" id="format_library_entry">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <child>
-                                          <object class="GtkLabel" id="format_current1_label">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">False</property>
-                                            <property name="label" translatable="yes">Current _song line 1:</property>
-                                            <property name="use_underline">True</property>
-                                            <property name="mnemonic_widget">format_current1_entry</property>
-                                          </object>
-                                          <packing>
-                                            <property name="expand">False</property>
-                                            <property name="fill">True</property>
-                                            <property name="position">0</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkEntry" id="format_current1_entry">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">True</property>
-                                          </object>
-                                          <packing>
-                                            <property name="expand">False</property>
-                                            <property name="fill">True</property>
-                                            <property name="pack_type">end</property>
-                                            <property name="position">1</property>
-                                          </packing>
-                                        </child>
+                                        <property name="can_focus">True</property>
+                                        <property name="invisible_char">•</property>
                                       </object>
                                       <packing>
-                                        <property name="expand">False</property>
-                                        <property name="fill">True</property>
-                                        <property name="position">3</property>
+                                        <property name="left_attach">1</property>
+                                        <property name="top_attach">1</property>
+                                        <property name="width">1</property>
+                                        <property name="height">1</property>
                                       </packing>
                                     </child>
                                     <child>
-                                      <object class="GtkBox" id="format_current2_box">
+                                      <object class="GtkLabel" id="format_window_label">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
-                                        <child>
-                                          <object class="GtkLabel" id="format_current2_label">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">False</property>
-                                            <property name="label" translatable="yes">Current s_ong line 2:</property>
-                                            <property name="use_underline">True</property>
-                                            <property name="mnemonic_widget">format_current2_entry</property>
-                                          </object>
-                                          <packing>
-                                            <property name="expand">False</property>
-                                            <property name="fill">True</property>
-                                            <property name="position">0</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkEntry" id="format_current2_entry">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">True</property>
-                                          </object>
-                                          <packing>
-                                            <property name="expand">False</property>
-                                            <property name="fill">True</property>
-                                            <property name="pack_type">end</property>
-                                            <property name="position">1</property>
-                                          </packing>
-                                        </child>
+                                        <property name="xalign">0</property>
+                                        <property name="label" translatable="yes">_Window title:</property>
+                                        <property name="use_underline">True</property>
+                                        <property name="mnemonic_widget">format_window_entry</property>
                                       </object>
                                       <packing>
-                                        <property name="expand">False</property>
-                                        <property name="fill">True</property>
-                                        <property name="position">4</property>
+                                        <property name="left_attach">0</property>
+                                        <property name="top_attach">2</property>
+                                        <property name="width">1</property>
+                                        <property name="height">1</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkEntry" id="format_window_entry">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="invisible_char">•</property>
+                                      </object>
+                                      <packing>
+                                        <property name="left_attach">1</property>
+                                        <property name="top_attach">2</property>
+                                        <property name="width">1</property>
+                                        <property name="height">1</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="format_current1_label">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <property name="xalign">0</property>
+                                        <property name="label" translatable="yes">Current _song line 1:</property>
+                                        <property name="use_underline">True</property>
+                                        <property name="mnemonic_widget">format_current1_entry</property>
+                                      </object>
+                                      <packing>
+                                        <property name="left_attach">0</property>
+                                        <property name="top_attach">3</property>
+                                        <property name="width">1</property>
+                                        <property name="height">1</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkEntry" id="format_current1_entry">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="invisible_char">•</property>
+                                      </object>
+                                      <packing>
+                                        <property name="left_attach">1</property>
+                                        <property name="top_attach">3</property>
+                                        <property name="width">1</property>
+                                        <property name="height">1</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="format_current2_label">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <property name="xalign">0</property>
+                                        <property name="label" translatable="yes">Current s_ong line 2:</property>
+                                        <property name="use_underline">True</property>
+                                        <property name="mnemonic_widget">format_current2_entry</property>
+                                      </object>
+                                      <packing>
+                                        <property name="left_attach">0</property>
+                                        <property name="top_attach">4</property>
+                                        <property name="width">1</property>
+                                        <property name="height">1</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkEntry" id="format_current2_entry">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="invisible_char">•</property>
+                                      </object>
+                                      <packing>
+                                        <property name="left_attach">1</property>
+                                        <property name="top_attach">4</property>
+                                        <property name="width">1</property>
+                                        <property name="height">1</property>
                                       </packing>
                                     </child>
                                   </object>
@@ -1389,7 +1361,10 @@
                 <child>
                   <object class="GtkAlignment" id="preferences_extras">
                     <property name="can_focus">False</property>
-                    <property name="margin">12</property>
+                    <property name="margin_top">12</property>
+                    <property name="margin_left">6</property>
+                    <property name="margin_right">6</property>
+                    <property name="margin_bottom">6</property>
                     <child>
                       <object class="GtkFrame" id="preferences_extras_frame">
                         <property name="can_focus">False</property>
@@ -1673,7 +1648,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="shadow_type">in</property>
-                    <property name="margin">12</property>
+                    <property name="margin">6</property>
                     <child>
                       <object class="GtkTreeView" id="plugins_treeview">
                         <property name="visible">True</property>
