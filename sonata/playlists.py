@@ -14,6 +14,8 @@ self.playlists.populate()
 ...
 """
 
+import os
+
 from gi.repository import Gtk, Pango, Gdk
 
 from sonata import ui, misc, mpdhelper as mpdh
@@ -26,7 +28,7 @@ class Playlists(object):
     def __init__(self, config, window, mpd, UIManager,
                  update_menu_visibility, iterate_now, on_add_item,
                  on_playlists_button_press, get_current_songs, connected,
-                 add_selected_to_playlist, TAB_PLAYLISTS, new_tab):
+                 add_selected_to_playlist, TAB_PLAYLISTS, add_tab):
         self.config = config
         self.window = window
         self.mpd = mpd
@@ -41,14 +43,21 @@ class Playlists(object):
 
         self.mergepl_id = None
         self.actionGroupPlaylists = None
+        self.playlist_name_dialog = None
+
+        self.builder = ui.builder('playlists')
 
         # Playlists tab
-        self.playlists = ui.treeview()
+        self.playlists = self.builder.get_object('playlists_page_treeview')
         self.playlists_selection = self.playlists.get_selection()
-        self.playlistswindow = ui.scrollwindow(add=self.playlists)
+        self.playlistswindow = self.builder.get_object('playlists_page_scrolledwindow')
 
-        self.tab = new_tab(self.playlistswindow, Gtk.STOCK_JUSTIFY_CENTER,
-                    TAB_PLAYLISTS, self.playlists)
+        self.tab_label = self.builder.get_object('playlists_tab_label')
+        self.tab_label.set_text(TAB_PLAYLISTS)
+
+        self.tab_widget = self.builder.get_object('playlists_tab_eventbox')
+        self.tab = add_tab(self.playlistswindow, self.tab_widget, TAB_PLAYLISTS,
+                           self.playlists)
 
         self.playlists.connect('button_press_event',
                                self.on_playlists_button_press)
@@ -56,19 +65,8 @@ class Playlists(object):
         self.playlists.connect('key-press-event', self.playlists_key_press)
 
         # Initialize playlist data and widget
-        self.playlistsdata = Gtk.ListStore(str, str)
-        self.playlists.set_model(self.playlistsdata)
+        self.playlistsdata = self.builder.get_object('playlists_liststore')
         self.playlists.set_search_column(1)
-        self.playlistsimg = Gtk.CellRendererPixbuf()
-        self.playlistscell = Gtk.CellRendererText()
-        self.playlistscell.set_property("ellipsize", Pango.EllipsizeMode.END)
-        self.playlistscolumn = Gtk.TreeViewColumn()
-        self.playlistscolumn.pack_start(self.playlistsimg, False)
-        self.playlistscolumn.pack_start(self.playlistscell, True)
-        self.playlistscolumn.add_attribute(self.playlistsimg, "stock_id", 0)
-        self.playlistscolumn.add_attribute(self.playlistscell, "markup", 1)
-        self.playlists.append_column(self.playlistscolumn)
-        self.playlists_selection.set_mode(Gtk.SelectionMode.MULTIPLE)
 
     def get_model(self):
         return self.playlistsdata
@@ -171,30 +169,26 @@ class Playlists(object):
                         return True
         return False
 
-    def prompt_for_playlist_name(self, title, role):
+    def prompt_for_playlist_name(self, title, role, oldname=None):
+        """Prompt user for playlist name"""
         plname = None
         if self.connected():
-            # Prompt user for playlist name:
-            dialog = ui.dialog(title=title, parent=self.window,
-                               flags=Gtk.DialogFlags.MODAL |
-                               Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                               buttons=(Gtk.STOCK_CANCEL,
-                                        Gtk.ResponseType.REJECT,
-                                        Gtk.STOCK_SAVE,
-                                        Gtk.ResponseType.ACCEPT),
-                               role=role, default=Gtk.ResponseType.ACCEPT)
-            hbox = Gtk.HBox()
-            hbox.pack_start(ui.label(text=_('Playlist name:')), False, False,
-                            5)
-            entry = ui.entry()
-            entry.set_activates_default(True)
-            hbox.pack_start(entry, True, True, 5)
-            dialog.vbox.pack_start(hbox, True, True, 0)
-            ui.show(dialog.vbox)
-            response = dialog.run()
+            if not self.playlist_name_dialog:
+                self.playlist_name_dialog = self.builder.get_object(
+                    'playlist_name_dialog')
+            self.playlist_name_dialog.set_transient_for(self.window)
+            self.playlist_name_dialog.set_title(title)
+            self.playlist_name_dialog.set_role(role)
+            entry = self.builder.get_object('playlist_name_entry')
+            if oldname:
+                entry.set_text(oldname)
+            else:
+                entry.set_text("")
+            self.playlist_name_dialog.show_all()
+            response = self.playlist_name_dialog.run()
             if response == Gtk.ResponseType.ACCEPT:
                 plname = misc.strip_all_slashes(entry.get_text())
-            dialog.destroy()
+            self.playlist_name_dialog.hide()
         return plname
 
     def populate(self):
@@ -212,17 +206,17 @@ class Playlists(object):
             # Remove case sensitivity
             playlistinfo.sort(key=lambda x: x.lower())
             for item in playlistinfo:
-                self.playlistsdata.append([Gtk.STOCK_JUSTIFY_FILL, item])
+                self.playlistsdata.append([Gtk.STOCK_DIRECTORY, item])
 
             self.populate_playlists_for_menu(playlistinfo)
 
     def on_playlist_rename(self, _action):
+        model, selected = self.playlists_selection.get_selected_rows()
+        oldname = misc.unescape_html(
+            model.get_value(model.get_iter(selected[0]), 1))
         plname = self.prompt_for_playlist_name(_("Rename Playlist"),
-                                               'renamePlaylist')
+                                               'renamePlaylist', oldname)
         if plname:
-            model, selected = self.playlists_selection.get_selected_rows()
-            oldname = misc.unescape_html(
-                model.get_value(model.get_iter(selected[0]), 1))
             if self.playlist_name_exists(_("Rename Playlist"),
                                          'renamePlaylistError',
                                          plname, oldname):

@@ -74,7 +74,13 @@ setup(
     package_dir={"sonata": "sonata"},
     data_files=data_files,
     package_data={
-        'sonata': ['pixmaps/*.*'],
+        'sonata': [
+            'pixmaps/*.*',
+            'ui/*.ui',
+            'ui/*.css',
+            'plugins/ui/*.ui',
+            'plugins/ui/*.css',
+        ],
     },
     entry_points={
         'console_scripts': [

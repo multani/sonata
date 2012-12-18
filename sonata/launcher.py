@@ -86,23 +86,24 @@ def run():
         libc.prctl(PR_SET_NAME, b"sonata", 0, 0, 0)
 
     ## Apply locale and translation:
-
-    from sonata import misc
-    misc.setlocale()
-
-    # let gettext install _ as a built-in for all modules to see
-    # XXX what's the correct way to find the localization?
-    locales_path = '/usr/share/locale'
+    # Try to find a "good" locale directory.
     for path in [
+        # This is useful when working from the source repository
         os.path.join(os.path.dirname(sonata.__file__), "share", "locale"),
+        # This is useful when Sonata is installed in a special place
         os.path.join(sonata.__file__.split('/lib')[0], 'share', 'locale'),
     ]:
         if os.path.exists(path):
             locales_path = path
             break
+    else:
+        # This tells gettext to look at the default place for the translation
+        # files.
+        locales_path = None
 
     gettext.install('sonata', locales_path, names=["ngettext"])
     gettext.textdomain('sonata')
+    locale.bindtextdomain('sonata', locales_path)
 
 
     ## Check initial dependencies:
@@ -133,8 +134,6 @@ def run():
     if not args.skip_gui:
         # importing gtk does sys.setdefaultencoding("utf-8"), sets locale etc.
         from gi.repository import Gtk, Gdk
-        # fix locale
-        misc.setlocale()
     else:
         class FakeModule(object):
             pass
@@ -163,7 +162,20 @@ def run():
 
     from sonata import main
 
-    app = main.Base(args)
+
+    def on_application_activate(application):
+        windows = application.get_windows()
+
+        if windows:
+            for window in windows:
+                window.present()
+        else:
+            sonata = main.Base(args)
+            sonata.window.set_application(application)
+            sonata.window.show()
+
+    app = Gtk.Application(application_id="org.MPD.Sonata")
+    app.connect("activate", on_application_activate)
 
     ## Load the shell
     # yo dawg, I heard you like python,
@@ -188,6 +200,6 @@ def run():
         threading.Thread(target=run_shell).start()
 
     try:
-        app.main()
+        app.run([])
     except KeyboardInterrupt:
         Gtk.main_quit()

@@ -1,10 +1,12 @@
 
-import sys
 import gettext
-import logging
 import locale
+import logging
+import os
 from optparse import OptionParser
+import sys
 
+from sonata import config, misc, mpdhelper as mpdh
 from sonata.version import version
 
 # the mpd commands need a connection to server and exit without gui

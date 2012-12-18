@@ -15,14 +15,17 @@ def convert_time(seconds):
     Converts time in seconds to 'hh:mm:ss' format
     with leading zeros as appropriate and optional hours
     """
-    hours = seconds // 3600
-    seconds -= 3600 * hours
-    minutes = seconds // 60
-    seconds -= 60 * minutes
+    hours, minutes, seconds = convert_time_raw(seconds)
     if hours == 0:
        return "%02d:%02d" %(minutes, seconds)
     return "%02d:%02d:%02d" %(hours, minutes, seconds)
 
+def convert_time_raw(seconds):
+    hours = seconds // 3600
+    seconds -= 3600 * hours
+    minutes = seconds // 60
+    seconds -= 60 * minutes
+    return hours, minutes, seconds
 
 def escape_html(s):
     # & needs to be escaped first, before more are introduced:
@@ -237,14 +240,3 @@ def get_files_recursively(dirname):
 
 def _get_files_recursively(filenames, dirname, files):
     filenames.extend([os.path.join(dirname, f) for f in files])
-
-
-def setlocale():
-    try:
-        locale.setlocale(locale.LC_ALL, "")
-        # XXX this makes python-mpd correctly return lowercase
-        # keys for, e.g., playlistinfo() with a turkish locale:
-        locale.setlocale(locale.LC_CTYPE, "C")
-    except:
-        logger.exception("Failed to set locale")
-        sys.exit(1)
