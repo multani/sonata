@@ -1,11 +1,11 @@
 Next release - ?
-    + Switch to Python 3 and Gtk 3 (Jörg Thalheim & "hobophobe")
+    + Switch to Python 3 and Gtk 3 (Jörg Thalheim & Adam Dane)
+    + Use Glade files to describe the interface and GtkBuilder to build the interface
     + More items in the tray menu (Kirill Lashuk)
     + Better fullscreen support (Kirill Lashuk)
     + Toggle fullscreen from the command line (Daniel)
     + Support MPD's "consume" mode (Anton Lashkov)
     + Use more default icons in the context menus (Anton Lashkov)
-    + Up-to-date German translation (Peter Helbing)
     + Load only the most recent of plugins with the same names
     * Bug: fix population of the "Save to playlist" menu (Zhihao Yuan)
     * Bug: prevent multiple entries and improve art search with multi-CD albums (Kirill Lashuk)
