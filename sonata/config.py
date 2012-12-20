@@ -10,6 +10,7 @@ self.config = config.Config(_('Default Profile'), _("by") + " %A " +\
         _("from") + " %B")
 """
 
+import logging
 import os
 import hashlib
 from configparser import RawConfigParser
@@ -19,6 +20,8 @@ from sonata.song import SongRecord
 
 # Constant to express a None value
 LIB_NODATA = "!NONE!"
+
+logger = logging.getLogger(__name__)
 
 
 class ConfigParser(RawConfigParser):
@@ -165,7 +168,22 @@ class Config:
         for section, attributes in self._options.items():
             for attribute, (opt_key, type, default) in attributes.items():
                 if conf.has_option(section, opt_key):
-                    value = getattr(conf, 'get' + type)(section, opt_key)
+                    try:
+                        value = getattr(conf, 'get' + type)(section, opt_key)
+                    except Exception as e:
+                        # BBB: we need to expect some errors since Sonata uses
+                        # to write None values for "int"-type settings, which
+                        # fail to be loaded when using getint(). The new code
+                        # should write better values each time. Consider
+                        # removing this try/except clause when configuration
+                        # files are "clean".
+                        value = default
+                        # This should be safe in all cases
+                        faulty_value = conf.get(section, opt_key)
+                        logger.warning(
+                            "Can't load %r from section %r (as %s). Value is %r",
+                            opt_key, section, type if type else "str",
+                            faulty_value)
                 else:
                     value = default
                 setattr(self, attribute, value)
