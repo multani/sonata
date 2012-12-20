@@ -13,7 +13,7 @@
 # license: GPL v3 or later
 # [capabilities]
 # enablables: on_enable
-# tabs: construct_tab
+# tab_construct: tab_construct
 # playing_song_observers: on_song_change
 # lyrics_fetching: on_lyrics_fetch
 ### END PLUGIN INFO
@@ -40,7 +40,7 @@ def on_enable(state):
         lyricslabel = None
 
 # this constructs the parts of the tab when called:
-def construct_tab():
+def tab_construct():
     vbox = Gtk.VBox()
     vbox.pack_start(Gtk.Label("Hello world!"), True, True, 0)
     vbox.pack_start(songlabel, True, True, 0)
@@ -49,7 +49,7 @@ def construct_tab():
                   __file__.rstrip("c")), True, True, 0)
     vbox.show_all()
 
-    # the return value goes off to Base.new_tab(page, stock, text, focus):
+    # the return value goes off to Base.add_tab(page, stock, text, focus):
     # (tab content, icon name, tab name, the widget to focus on tab switch)
     return (vbox, None, "Test plugin", None)
 
