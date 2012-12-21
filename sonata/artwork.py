@@ -11,12 +11,11 @@ from sonata.pluginsystem import pluginsystem
 
 class Artwork(object):
 
-    def __init__(self, config, path_to_icon, is_lang_rtl,
-                 info_imagebox_get_size_request, schedule_gc_collect,
-                 target_image_filename, imagelist_append,
-                 remotefilelist_append, notebook_get_allocation,
+    def __init__(self, config, path_to_icon, is_lang_rtl, schedule_gc_collect,
+                 target_image_filename, imagelist_append, remotefilelist_append,
                  allow_art_search, status_is_play_or_pause, album_filename,
-                 get_current_song_text):
+                 get_current_song_text, album_image, tray_image,
+                 fullscreen_image, fullscreen_label1, fullscreen_label2):
 
         self.config = config
         self.album_filename = album_filename
@@ -25,12 +24,10 @@ class Artwork(object):
         self.is_lang_rtl = is_lang_rtl
 
         # callbacks to main XXX refactor to clear this list
-        self.info_imagebox_get_size_request = info_imagebox_get_size_request
         self.schedule_gc_collect = schedule_gc_collect
         self.target_image_filename = target_image_filename
         self.imagelist_append = imagelist_append
         self.remotefilelist_append = remotefilelist_append
-        self.notebook_get_allocation = notebook_get_allocation
         self.allow_art_search = allow_art_search
         self.status_is_play_or_pause = status_is_play_or_pause
         self.get_current_song_text = get_current_song_text
@@ -44,27 +41,19 @@ class Artwork(object):
         self.currentpb = None
 
         # local UI widgets provided to main by getter methods
-        self.albumimage = ui.image()
+        self.albumimage = album_image
         self.albumimage.set_from_file(self.sonatacd)
 
-        self.trayalbumimage1 = ui.image(w=51, h=77, x=1)
-        self.trayalbumeventbox = ui.eventbox(w=59, h=90,
-                                             add=self.trayalbumimage1,
-                                             state=Gtk.StateFlags.SELECTED,
-                                             visible=True)
+        self.tray_album_image = tray_image
 
-        self.trayalbumimage2 = ui.image(w=26, h=77)
-
-        self.fullscreenalbumimage = ui.image(w=consts.FULLSCREEN_COVER_SIZE,
-                                             h=consts.FULLSCREEN_COVER_SIZE,
-                                             x=1)
-        self.fullscreenalbumlabel = ui.label(x=0.5)
-        self.fullscreenalbumlabel2 = ui.label(x=0.5)
+        self.fullscreenalbumimage = fullscreen_image
+        self.fullscreenalbumlabel = fullscreen_label1
+        self.fullscreenalbumlabel2 = fullscreen_label2
         self.fullscreen_cover_art_reset_image()
         self.fullscreen_cover_art_reset_text()
 
-        self.info_image = ui.image(y=0)
-        self.info_image.set_from_file(self.sonatacd_large)
+        self.info_image = None
+        self.calc_info_image_size = None
 
         # local version of Main.songinfo mirrored by update_songinfo
         self.songinfo = None
@@ -86,20 +75,15 @@ class Artwork(object):
 
         self.artwork_load_cache()
 
-    def get_albumimage(self):
-        return self.albumimage
+    def set_info_image(self, info_image):
+        self.info_image = info_image
+        self.info_image.set_from_file(self.sonatacd_large)
 
-    def get_info_image(self):
-        return self.info_image
+    def set_info_imagebox(self, info_imagebox):
+        self.info_imagebox = info_imagebox
 
-    def get_trayalbum(self):
-        return self.trayalbumeventbox, self.trayalbumimage2
-
-    def get_fullscreenalbumimage(self):
-        return self.fullscreenalbumimage
-
-    def get_fullscreenalbumlabels(self):
-        return self.fullscreenalbumlabel, self.fullscreenalbumlabel2
+    def set_calc_info_image_size(self, func):
+        self.calc_info_image_size = func
 
     def update_songinfo(self, songinfo):
         self.songinfo = songinfo
@@ -127,16 +111,9 @@ class Artwork(object):
 
     def artwork_set_tooltip_art(self, pix):
         # Set artwork
-        if not self.is_lang_rtl:
-            pix1 = pix.new_subpixbuf(0, 0, 51, 77)
-            pix2 = pix.new_subpixbuf(51, 0, 26, 77)
-        else:
-            pix1 = pix.new_subpixbuf(26, 0, 51, 77)
-            pix2 = pix.new_subpixbuf(0, 0, 26, 77)
-        self.trayalbumimage1.set_from_pixbuf(pix1)
-        self.trayalbumimage2.set_from_pixbuf(pix2)
-        del pix1
-        del pix2
+        pix = pix.new_subpixbuf(0, 0, 77, 77)
+        self.tray_album_image.set_from_pixbuf(pix)
+        del pix
 
     def artwork_stop_update(self):
         self.stop_art_update = True
@@ -196,6 +173,7 @@ class Artwork(object):
             else:
                 i = None
 
+            # FIXME this can segfault (on iter_is_valid)
             if i is not None and self.lib_model.iter_is_valid(i):
 
                 if data.artist is None or data.album is None:
@@ -325,7 +303,7 @@ class Artwork(object):
         misc.create_dir('~/.config/sonata/')
         filename = os.path.expanduser("~/.config/sonata/art_cache")
         try:
-            with open(filename, 'w') as f:
+            with open(filename, 'w', encoding="utf8") as f:
                 f.write(repr(self.cache))
         except IOError:
             pass
@@ -334,7 +312,7 @@ class Artwork(object):
         filename = os.path.expanduser("~/.config/sonata/art_cache")
         if os.path.exists(filename):
             try:
-                with open(filename, 'r') as f:
+                with open(filename, 'r', encoding="utf8") as f:
                         self.cache = eval(f.read())
             except (IOError, SyntaxError):
                 self.cache = {}
@@ -537,8 +515,9 @@ class Artwork(object):
                     self.fullscreen_cover_art_set_image()
 
                 # Artwork for info tab:
-                if self.info_imagebox_get_size_request()[0] == -1:
-                    fullwidth = self.notebook_get_allocation()[2] - 50
+                if self.info_imagebox.get_size_request()[0] == -1:
+                    fullwidth = self.calc_info_image_size()
+                    fullwidth = max(fullwidth, 150)
                     (pix2, w, h) = img.get_pixbuf_of_size(pix, fullwidth)
                 else:
                     (pix2, w, h) = img.get_pixbuf_of_size(pix, 150)
@@ -556,6 +535,8 @@ class Artwork(object):
         self.artwork_set_image(self.lastalbumart, None, None, None, True)
 
     def artwork_apply_composite_case(self, pix, w, h):
+        if not pix:
+            return None
         if self.config.covers_type == consts.COVERS_TYPE_STYLIZED and \
            float(w) / h > 0.5:
             # Rather than merely compositing the case on top of the artwork,
@@ -633,7 +614,7 @@ class Artwork(object):
             if i == 0:
                 self.allow_art_search()
 
-        ui.change_cursor(None) # XXX indented twice more?
+            ui.change_cursor(None)
 
         return True # continue to next image
 
@@ -662,20 +643,16 @@ class Artwork(object):
     def fullscreen_cover_art_set_text(self):
         if self.status_is_play_or_pause():
             line1, line2 = self.get_current_song_text()
-            self.fullscreenalbumlabel.set_markup(('<span size=\'20000\' '
-                                                  'color=\'white\'>%s</span>')
-                                                 % (misc.escape_html(line1)))
-            self.fullscreenalbumlabel2.set_markup(('<span size=\'12000\' '
-                                                   'color=\'white\'>%s</span>')
-                                                  % (misc.escape_html(line2)))
+            self.fullscreenalbumlabel.set_text(misc.escape_html(line1))
+            self.fullscreenalbumlabel2.set_text(misc.escape_html(line2))
+            self.fullscreenalbumlabel.show()
+            self.fullscreenalbumlabel2.show()
         else:
             self.fullscreen_cover_art_reset_text()
 
     def fullscreen_cover_art_reset_text(self):
-        self.fullscreenalbumlabel.set_markup(('<span size=\'20000\' '
-                                              'color=\'white\'> </span>'))
-        self.fullscreenalbumlabel2.set_markup(('<span size=\'12000\' '
-                                               'color=\'white\'> </span>'))
+        self.fullscreenalbumlabel.hide()
+        self.fullscreenalbumlabel2.hide()
 
     def have_last(self):
         if self.lastalbumart is not None:

@@ -1,43 +1,34 @@
 #!/bin/sh
 
-writelines() {
-   for i in *.py 
-     do
-     if [ ${i} != "__init__.py" ]
-     then
-       echo $2${i} >> $1
-     fi
-   done
-}
-
 cd $(dirname "$0")
+cd ..
 
 echo
 echo Updating POTFILES.in...
+find setup.py sonata \( -name "*.py" -o -name "*.glade" \) > po/POTFILES.in
 
-rm ../po/POTFILES.in
-touch ../po/POTFILES.in
-cd ..
-writelines po/POTFILES.in ./
-cd sonata
-writelines ../po/POTFILES.in ./sonata/
-cd ../po
-
+cd po
 echo Update messages.po...
 echo
 
 intltool-update -p
 mv untitled.pot messages.po
 
-for i in *.po 
-  do
-  if [ "$i" = "messages.po" ]
+for i in *.po
+do
+    if [ "$i" = "messages.po" ]
     then
-    continue
-  fi
-  echo Updating ${i}...
-  intltool-update "${i%*.po}"
-  echo
+        continue
+    fi
+
+    # Generate ;po files only for the specified language.
+    echo "$*" | grep -q "$(echo $i | sed "s/.po$//g")"
+    if [ $? = 0 -o $# = 0 ]
+    then
+        echo Updating ${i}...
+        intltool-update "${i%*.po}"
+        echo
+    fi
 done
 
 echo Cleaning up...

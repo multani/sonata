@@ -4,13 +4,19 @@ import logging
 import os
 import socket
 
-from mpd import MPDError
+import mpd
 
 from sonata.misc import remove_list_duplicates
 
 
-class MPDHelper(object):
-    def __init__(self, client):
+class MPDClient(object):
+    def __init__(self, client=None):
+        if client is None:
+            # Yeah, we really want some unicode returned, otherwise we'll have
+            # to do it by ourselves.
+            client = mpd.MPDClient(use_unicode=True)
+        else:
+            client.use_unicode = True
         self._client = client
         self.logger = logging.getLogger(__name__)
         self._version = None
@@ -31,7 +37,7 @@ class MPDHelper(object):
     def _call(self, cmd, cmd_name, *args):
         try:
             retval = cmd(*args)
-        except (socket.error, MPDError) as e:
+        except (socket.error, mpd.MPDError) as e:
             if cmd_name in ['lsinfo', 'list']:
                 # return sane values, which could be used afterwards
                 return []
@@ -57,7 +63,7 @@ class MPDHelper(object):
             self._version = self._client.mpd_version.split(".")
             self._commands = self._client.commands()
             self._urlhandlers = self._client.urlhandlers()
-        except (socket.error, MPDError) as e:
+        except (socket.error, mpd.MPDError) as e:
             self.logger.error("Error while connecting to MPD: %s", e)
 
     def disconnect(self):

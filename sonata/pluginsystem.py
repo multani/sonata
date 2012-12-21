@@ -169,7 +169,7 @@ class PluginSystem(object):
                                               os.path.join(path, entry))
 
     def load_info(self, path, name):
-        f = open(os.path.join(path, name+".py"), "rt")
+        f = open(os.path.join(path, name+".py"), "rt", encoding="utf-8")
         text = f.read()
         f.close()
 

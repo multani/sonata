@@ -56,9 +56,10 @@ class LyricWiki(object):
                 self.logger.debug("No lyrics found for %r from %r", title, artist)
                 error = _("Lyrics not found")
                 self.call_back(callback, error=error)
-        except:
-            self.logger.exception(
-                "Error while fetching the lyrics for %r from %r", title, artist)
+        except Exception as e:
+            self.logger.error(
+                "Error while fetching the lyrics for %r from %r: %s",
+                title, artist, e)
             error = _("Fetching lyrics failed")
             self.call_back(callback, error=error)
 

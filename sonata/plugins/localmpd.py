@@ -1,5 +1,5 @@
 
-# this is the magic interpreted by Sonata, referring to construct_tab below:
+# this is the magic interpreted by Sonata, referring to tab_construct below:
 
 ### BEGIN PLUGIN INFO
 # [plugin]
@@ -15,12 +15,14 @@
 # tab_construct: tab_construct
 ### END PLUGIN INFO
 
-import subprocess, locale
+import subprocess, locale, os
 from pwd import getpwuid
 
 from gi.repository import GObject, Gtk
 
 from sonata.misc import escape_html
+from sonata import ui
+
 
 class Netstat(object):
     TCP_STATE_NAMES = ("ESTABLISHED SYN_SENT SYN_RECV FIN_WAIT1 FIN_WAIT2 "
@@ -112,30 +114,21 @@ def update(label):
 
 # nothing magical here, this constructs the parts of the tab when called:
 def tab_construct():
-    vbox = Gtk.VBox(spacing=2)
-    vbox.props.border_width = 2
-    buttonbox = Gtk.HBox(spacing=2)
-    editbutton = Gtk.Button(_("Edit /etc/mpd.conf"))
+    builder = ui.builder('localmpd', 'plugins')
+    editbutton = builder.get_object('localmpd_edit_button')
     editbutton.connect('clicked', lambda *args: subprocess.Popen(
         ["gksu", "xdg-open", "/etc/mpd.conf"]))
-    buttonbox.pack_start(editbutton, False, False, 0)
-    restartbutton = Gtk.Button(_("Restart the mpd service"))
+    restartbutton = builder.get_object('localmpd_restart_button')
     restartbutton.connect('clicked', lambda *args:subprocess.Popen(
             ["gksu", "service", "mpd", "restart"]))
-    buttonbox.pack_start(restartbutton, False, False, 0)
-    vbox.pack_start(buttonbox, False, False, 0)
-    label = Gtk.Label(label="...")
-    label.set_properties(xalign=0.0, xpad=5, yalign=0.0, ypad=5,
-                 selectable=True)
-    vbox.pack_start(label, False, False, 0)
 
+    label = builder.get_object('localmpd_data_label')
     update(label)
 
-    window = Gtk.ScrolledWindow()
-    window.set_properties(hscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
-                  vscrollbar_policy=Gtk.PolicyType.AUTOMATIC)
-    window.add_with_viewport(vbox)
+    window = builder.get_object('localmpd_scrolledwindow')
     window.show_all()
+    tab_widget = builder.get_object('localmpd_tab_eventbox')
 
     # (tab content, icon name, tab name, the widget to focus on tab switch)
-    return (window, None, _("Local MPD"), None)
+    return (window, tab_widget, "Local MPD", None)
+

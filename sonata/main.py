@@ -31,8 +31,6 @@ import gc
 import shutil
 import threading
 
-import mpd
-
 from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, Pango
 
 import pkg_resources
@@ -60,7 +58,7 @@ class Base(object):
 
     ### XXX Warning, a long __init__ ahead:
 
-    def __init__(self, args, window=None):
+    def __init__(self, args):
         self.logger = logging.getLogger(__name__)
 
         # The following attributes were used but not defined here before:
@@ -68,6 +66,7 @@ class Base(object):
 
         self.allow_art_search = None
         self.choose_dialog = None
+        self.image_local_dialog = None
         self.chooseimage_visible = None
 
         self.imagelist = None
@@ -84,7 +83,9 @@ class Base(object):
         self.seekidle = None
         self.artwork = None
 
-        self.mpd = mpdh.MPDHelper(mpd.MPDClient())
+        self.lyrics_search_dialog = None
+
+        self.mpd = mpdh.MPDClient()
         self.conn = False
         # Anything != than self.conn, to actually refresh the UI at startup.
         self.prevconn = not self.conn
@@ -117,9 +118,6 @@ class Base(object):
                                                 self.dbus_fullscreen)
         except Exception:
             pass
-        dbus.start_dbus_interface()
-
-        self.gnome_session_management()
 
         misc.create_dir('~/.covers/')
 
@@ -164,9 +162,9 @@ class Base(object):
         self.all_tab_names = [self.TAB_CURRENT, self.TAB_LIBRARY,
                               self.TAB_PLAYLISTS, self.TAB_STREAMS,
                               self.TAB_INFO]
-        all_tab_ids = "current library playlists streams info".split()
-        self.tabname2id = dict(zip(self.all_tab_names, all_tab_ids))
-        self.tabid2name = dict(zip(all_tab_ids, self.all_tab_names))
+        self.all_tab_ids = "current library playlists streams info".split()
+        self.tabname2id = dict(zip(self.all_tab_names, self.all_tab_ids))
+        self.tabid2name = dict(zip(self.all_tab_ids, self.all_tab_names))
         self.tabname2tab = dict()
         self.tabname2focus = dict()
         self.plugintabs = dict()
@@ -189,58 +187,46 @@ class Base(object):
         self.notebook_show_first_tab = not self.config.tabs_expanded or \
                 self.config.withdrawn
 
-        # Add some icons, assign pixbufs:
-        self.iconfactory = Gtk.IconFactory()
-        ui.icon(self.iconfactory, 'sonata', self.path_to_icon('sonata.png'))
-        ui.icon(self.iconfactory, 'artist',
-                self.path_to_icon('sonata-artist.png'))
-        ui.icon(self.iconfactory, 'album', self.path_to_icon('sonata-album.png'))
-        icon_theme = Gtk.IconTheme.get_default()
-        img_res, img_width, _img_height = Gtk.icon_size_lookup(Gtk.IconSize.SMALL_TOOLBAR)
-        if not img_res:
-                self.logger.error("Invalid size of Volume Icon")
-        for iconname in ('stock_volume-mute', 'stock_volume-min',
-                         'stock_volume-med', 'stock_volume-max'):
-            try:
-                ui.icon(self.iconfactory, iconname,
-                        icon_theme.lookup_icon(
-                            iconname, img_width,
-                            Gtk.IconLookupFlags.USE_BUILTIN).get_filename())
-            except:
-                # Fallback to Sonata-included icons:
-                ui.icon(self.iconfactory, iconname,
-                        self.path_to_icon('sonata-%s.png' % iconname))
+        self.builder = ui.builder('sonata')
+        self.provider = ui.css_provider('sonata')
 
         # Main window
-        if window is None:
-            self.window = Gtk.Window(type=Gtk.WindowType.TOPLEVEL)
-            self.window_owner = True
-        else:
-            self.window = window
-            self.window_owner = False
-        if self.window_owner:
-            self.window.set_title('Sonata')
-            self.window.set_role('mainWindow')
-            self.window.set_resizable(True)
-            if self.config.ontop:
-                self.window.set_keep_above(True)
-            if self.config.sticky:
-                self.window.stick()
-            if not self.config.decorated:
-                self.window.set_decorated(False)
+        self.window = self.builder.get_object('main_window')
+
+        if self.config.ontop:
+            self.window.set_keep_above(True)
+        if self.config.sticky:
+            self.window.stick()
+        if not self.config.decorated:
+            self.window.set_decorated(False)
         self.preferences.window = self.window
 
-        self.notebook = Gtk.Notebook()
+        self.notebook = self.builder.get_object('main_notebook')
+        self.album_image = self.builder.get_object('main_album_image')
+        self.tray_album_image = self.builder.get_object('tray_album_image')
+
+        # Fullscreen cover art window
+        self.fullscreen_window = self.builder.get_object("fullscreen_window")
+        self.fullscreen_window.fullscreen()
+        bgcolor = Gdk.RGBA()
+        bgcolor.parse("black")
+        self.fullscreen_window.override_background_color(Gtk.StateFlags.NORMAL,
+                                                         bgcolor)
+        self.fullscreen_image = self.builder.get_object("fullscreen_image")
+        fullscreen_label1 = self.builder.get_object("fullscreen_label_1")
+        fullscreen_label2 = self.builder.get_object("fullscreen_label_2")
+        if not self.config.show_covers:
+            self.fullscreen_image.hide()
 
         # Artwork
         self.artwork = artwork.Artwork(
             self.config, self.path_to_icon, misc.is_lang_rtl(self.window),
-            lambda: self.info_imagebox.get_size_request(),
             self.schedule_gc_collect, self.target_image_filename,
             self.imagelist_append, self.remotefilelist_append,
-            self.notebook.get_allocation, self.set_allow_art_search,
-            self.status_is_play_or_pause, self.path_to_icon('sonata-album.png'),
-            self.get_current_song_text)
+            self.set_allow_art_search, self.status_is_play_or_pause,
+            self.path_to_icon('sonata-album.png'), self.get_current_song_text,
+            self.album_image, self.tray_album_image, self.fullscreen_image,
+            fullscreen_label1, fullscreen_label2)
 
 
         # Popup menus:
@@ -255,7 +241,7 @@ class Base(object):
              None, None, self.image_remote),
             ('localimage_menu', Gtk.STOCK_OPEN, _('Use _Local Image...'),
              None, None, self.image_local),
-            ('fullscreencoverart_menu', Gtk.STOCK_FULLSCREEN,
+            ('fullscreen_window_menu', Gtk.STOCK_FULLSCREEN,
              _('_Fullscreen Mode'), 'F11', None, self.fullscreen_cover_art),
             ('resetimage_menu', Gtk.STOCK_CLEAR, _('Reset Image'), None, None,
              self.artwork.on_reset_image),
@@ -344,23 +330,23 @@ class Base(object):
             ]
 
         toggle_tabactions = [
-            (self.TAB_CURRENT, None, self.TAB_CURRENT, None, None,
-             self.on_tab_toggle, self.config.current_tab_visible),
-            (self.TAB_LIBRARY, None, self.TAB_LIBRARY, None, None,
-             self.on_tab_toggle, self.config.library_tab_visible),
-            (self.TAB_PLAYLISTS, None, self.TAB_PLAYLISTS, None, None,
-             self.on_tab_toggle, self.config.playlists_tab_visible),
-            (self.TAB_STREAMS, None, self.TAB_STREAMS, None, None,
-             self.on_tab_toggle, self.config.streams_tab_visible),
-            (self.TAB_INFO, None, self.TAB_INFO, None, None,
-             self.on_tab_toggle, self.config.info_tab_visible), ]
+            (self.tabname2id[self.TAB_CURRENT], None, self.TAB_CURRENT,
+             None, None, self.on_tab_toggle, self.config.current_tab_visible),
+            (self.tabname2id[self.TAB_LIBRARY], None, self.TAB_LIBRARY,
+             None, None, self.on_tab_toggle, self.config.library_tab_visible),
+            (self.tabname2id[self.TAB_PLAYLISTS], None, self.TAB_PLAYLISTS,
+             None, None, self.on_tab_toggle, self.config.playlists_tab_visible),
+            (self.tabname2id[self.TAB_STREAMS], None, self.TAB_STREAMS,
+             None, None, self.on_tab_toggle, self.config.streams_tab_visible),
+            (self.tabname2id[self.TAB_INFO], None, self.TAB_INFO,
+             None, None, self.on_tab_toggle, self.config.info_tab_visible), ]
 
         uiDescription = """
             <ui>
               <popup name="imagemenu">
                 <menuitem action="chooseimage_menu"/>
                 <menuitem action="localimage_menu"/>
-                <menuitem action="fullscreencoverart_menu"/>
+                <menuitem action="fullscreen_window_menu"/>
                 <separator name="FM1"/>
                 <menuitem action="resetimage_menu"/>
               </popup>
@@ -378,7 +364,7 @@ class Base(object):
                   <menuitem action="randommenu"/>
                   <menuitem action="consumemenu"/>
                 </menu>
-                <menuitem action="fullscreencoverart_menu"/>
+                <menuitem action="fullscreen_window_menu"/>
                 <menuitem action="preferencemenu"/>
                 <separator name="FM3"/>
                 <menuitem action="quitmenu"/>
@@ -439,7 +425,8 @@ class Base(object):
 
         uiDescription += '<popup name="notebookmenu">'
         uiDescription += ''.join('<menuitem action="%s"/>' % name
-                     for name in self.all_tab_names)
+                     for name in self.all_tab_ids)#FIXME
+
         uiDescription += "</popup>"
 
         uiDescription += ''.join('<accelerator action="%s"/>' % a[0]
@@ -482,7 +469,7 @@ class Base(object):
             self.on_current_button_press, self.connected,
             lambda: self.sonata_loaded, lambda: self.songinfo,
             self.update_statusbar, self.iterate_now,
-            lambda: self.library.libsearchfilter_get_style(), self.new_tab)
+            lambda: self.library.libsearchfilter_get_style(), self.add_tab)
 
         self.current_treeview = self.current.get_treeview()
         self.current_selection = self.current.get_selection()
@@ -511,7 +498,7 @@ class Base(object):
             self.current.filtering_entry_make_red,
             self.current.filtering_entry_revert_color,
             self.current.filter_key_pressed, self.on_add_item, self.connected,
-            self.on_library_button_press, self.new_tab,
+            self.on_library_button_press, self.add_tab,
             self.get_multicd_album_root_dir)
 
         self.library_treeview = self.library.get_treeview()
@@ -520,15 +507,18 @@ class Base(object):
         libraryactions = self.library.get_libraryactions()
 
         # Info tab
-        self.info = info.Info(self.config, self.artwork.get_info_image(),
-                              linkcolor, self.on_link_click,
+        self.info = info.Info(self.config, linkcolor, self.on_link_click,
                               self.get_playing_song,
                               self.TAB_INFO, self.on_image_activate,
                               self.on_image_motion_cb, self.on_image_drop_cb,
                               self.album_return_artist_and_tracks,
-                              self.new_tab)
+                              self.add_tab)
 
         self.info_imagebox = self.info.get_info_imagebox()
+        info_image = self.info.get_info_image()
+        self.artwork.set_info_image(info_image)
+        self.artwork.set_info_imagebox(self.info_imagebox)
+        self.artwork.set_calc_info_image_size(self.calc_info_image_size)
 
         # Streams tab
         self.streams = streams.Streams(self.config, self.window,
@@ -536,7 +526,7 @@ class Base(object):
                                        self.on_add_item,
                                        self.settings_save,
                                        self.TAB_STREAMS,
-                                       self.new_tab)
+                                       self.add_tab)
 
         self.streams_treeview = self.streams.get_treeview()
         self.streams_selection = self.streams.get_selection()
@@ -559,7 +549,7 @@ class Base(object):
                                              self.connected,
                                              self.add_selected_to_playlist,
                                              self.TAB_PLAYLISTS,
-                                             self.new_tab)
+                                             self.add_tab)
 
         self.playlists_treeview = self.playlists.get_treeview()
         self.playlists_selection = self.playlists.get_selection()
@@ -573,6 +563,8 @@ class Base(object):
 
         # Main app:
         self.UIManager = Gtk.UIManager()
+        accel_group = self.UIManager.get_accel_group()
+        self.fullscreen_window.add_accel_group(accel_group)
         actionGroup = Gtk.ActionGroup('Actions')
         actionGroup.add_actions(actions)
         actionGroup.add_actions(keyactions)
@@ -596,9 +588,6 @@ class Base(object):
         self.librarymenu = self.UIManager.get_widget('/librarymenu')
         self.library.set_librarymenu(self.librarymenu)
         self.notebookmenu = self.UIManager.get_widget('/notebookmenu')
-        mainhbox = Gtk.HBox()
-        mainvbox = Gtk.VBox()
-        tophbox = Gtk.HBox()
 
         # Autostart plugins
         for plugin in pluginsystem.get_info():
@@ -618,109 +607,62 @@ class Base(object):
 
         self.tray_icon = tray.TrayIcon(self.window, self.traymenu, self.traytips)
 
-        self.albumimage = self.artwork.get_albumimage()
-
-        self.imageeventbox = ui.eventbox(add=self.albumimage)
+        self.imageeventbox = self.builder.get_object('image_event_box')
         self.imageeventbox.drag_dest_set(Gtk.DestDefaults.HIGHLIGHT |
                                          Gtk.DestDefaults.DROP,
                                          [Gtk.TargetEntry.new("text/uri-list", 0, 80),
                                           Gtk.TargetEntry.new("text/plain", 0, 80)],
                                          Gdk.DragAction.DEFAULT)
         if not self.config.show_covers:
-            ui.hide(self.imageeventbox)
-        tophbox.pack_start(self.imageeventbox, False, False, 5)
-        topvbox = Gtk.VBox()
-        toptophbox = Gtk.HBox()
-        self.prevbutton = ui.button(stock=Gtk.STOCK_MEDIA_PREVIOUS,
-                                    relief=Gtk.ReliefStyle.NONE,
-                                    can_focus=False, hidetxt=True)
-        self.ppbutton = ui.button(stock=Gtk.STOCK_MEDIA_PLAY,
-                                  relief=Gtk.ReliefStyle.NONE,
-                                  can_focus=False, hidetxt=True)
-        self.stopbutton = ui.button(stock=Gtk.STOCK_MEDIA_STOP,
-                                    relief=Gtk.ReliefStyle.NONE,
-                                    can_focus=False, hidetxt=True)
-        self.nextbutton = ui.button(stock=Gtk.STOCK_MEDIA_NEXT,
-                                    relief=Gtk.ReliefStyle.NONE,
-                                    can_focus=False, hidetxt=True)
+            self.imageeventbox.hide()
+        self.prevbutton = self.builder.get_object('prev_button')
+        self.ppbutton = self.builder.get_object('playpause_button')
+        self.ppbutton_image = self.builder.get_object('playpause_button_image')
+        self.stopbutton = self.builder.get_object('stop_button')
+        self.nextbutton = self.builder.get_object('next_button')
         for mediabutton in (self.prevbutton, self.ppbutton, self.stopbutton,
                             self.nextbutton):
-            toptophbox.pack_start(mediabutton, False, False, 0)
             if not self.config.show_playback:
                 ui.hide(mediabutton)
-        self.progressbox = Gtk.VBox()
-        self.progresslabel = ui.label(w=-1, h=6)
-        self.progressbox.pack_start(self.progresslabel, True, True, 0)
-        self.progressbar = Gtk.ProgressBar()
-        self.progressbar.set_pulse_step(0.05)
-        self.progressbar.set_ellipsize(Pango.EllipsizeMode.NONE)
-        self.progressbar.set_show_text(True)
+        self.progressbox = self.builder.get_object('progress_box')
+        self.progressbar = self.builder.get_object('progress_bar')
 
-        self.progresseventbox = ui.eventbox(add=self.progressbar, visible=True)
-        self.progressbox.pack_start(self.progresseventbox, False, False, 0)
-        self.progresslabel2 = ui.label(w=-1, h=6)
-        self.progressbox.pack_start(self.progresslabel2, True, True, 0)
-        toptophbox.pack_start(self.progressbox, True, True, 0)
+        self.progresseventbox = self.builder.get_object('progress_event_box')
         if not self.config.show_progress:
             ui.hide(self.progressbox)
-        self.volumebutton = Gtk.VolumeButton()
-        self.volumebutton.set_adjustment(Gtk.Adjustment(0, 0, 100, 5, 5,))
+        self.volumebutton = self.builder.get_object('volume_button')
         if not self.config.show_playback:
             ui.hide(self.volumebutton)
-        toptophbox.pack_start(self.volumebutton, False, False, 0)
-        topvbox.pack_start(toptophbox, False, False, 2)
-        self.expander = ui.expander(text=_("Playlist"),
-                                    expand=self.config.expanded,
-                                    can_focus=False)
-        expanderbox = Gtk.VBox()
-        self.cursonglabel1 = ui.label(y=0)
-        self.cursonglabel2 = ui.label(y=0)
-        expanderbox.pack_start(self.cursonglabel1, True, True, 0)
-        expanderbox.pack_start(self.cursonglabel2, True, True, 0)
+        self.expander = self.builder.get_object('expander')
+        self.expander.set_expanded(self.config.expanded)
+        self.cursonglabel1 = self.builder.get_object('current_label_1')
+        self.cursonglabel2 = self.builder.get_object('current_label_2')
+        expanderbox = self.builder.get_object('expander_label_widget')
         self.expander.set_label_widget(expanderbox)
-        topvbox.pack_start(self.expander, False, False, 2)
-        tophbox.pack_start(topvbox, True, True, 3)
-        mainvbox.pack_start(tophbox, False, False, 5)
-        self.notebook.set_tab_pos(Gtk.PositionType.TOP)
-        self.notebook.set_scrollable(True)
-
-        mainvbox.pack_start(self.notebook, True, True, 5)
-
-        self.statusbar = Gtk.Statusbar()
-        # TODO Find out what to do here
-        #self.statusbar.set_has_resize_grip(True)
+        self.statusbar = self.builder.get_object('main_statusbar')
         if not self.config.show_statusbar or not self.config.expanded:
             ui.hide(self.statusbar)
-        mainvbox.pack_start(self.statusbar, False, False, 0)
-        mainhbox.pack_start(mainvbox, True, True, 3)
-        if self.window_owner:
-            self.window.add(mainhbox)
-            self.window.move(self.config.x, self.config.y)
-            self.window.set_size_request(270, -1)
+        self.window.move(self.config.x, self.config.y)
+        self.window.set_size_request(270, -1)
+        songlabel1 = '<big>{}</big>'.format(_('Stopped'))
+        self.cursonglabel1.set_markup(songlabel1)
         if not self.config.expanded:
             ui.hide(self.notebook)
-            self.cursonglabel1.set_markup('<big><b>%s</b></big>' %
-                                          (_('Stopped'),))
-            self.cursonglabel2.set_markup('<small>%s</small>' % (_(('Click to'
-                                                                   'expand'))))
-            if self.window_owner:
-                self.window.set_default_size(self.config.w, 1)
+            songlabel2 = _('Click to expand')
+            self.window.set_default_size(self.config.w, 1)
         else:
-            self.cursonglabel1.set_markup('<big><b>%s</b></big>' % \
-                                          (_('Stopped')))
+            songlabel2 = _('Click to collapse')
+            self.window.set_default_size(self.config.w, self.config.h)
+        songlabel2 = '<small>{}</small>'.format(songlabel2)
+        self.cursonglabel2.set_markup(songlabel2)
 
-            self.cursonglabel2.set_markup('<small>%s</small>' % (_(('Click to'
-                                                                 'collapse'))))
-
-            if self.window_owner:
-                self.window.set_default_size(self.config.w, self.config.h)
         self.expander.set_tooltip_text(self.cursonglabel1.get_text())
         if not self.conn:
             self.progressbar.set_text(_('Not Connected'))
         elif not self.status:
             self.progressbar.set_text(_('No Read Permission'))
 
-        # Update tab positions: XXX move to self.new_tab
+        # Update tab positions:
         self.notebook.reorder_child(self.current.get_widgets(),
                                     self.config.current_tab_pos)
         self.notebook.reorder_child(self.library.get_widgets(),
@@ -734,70 +676,21 @@ class Base(object):
         self.last_tab = self.notebook_get_tab_text(self.notebook, 0)
 
         # Song notification window:
-        outtertipbox = Gtk.VBox()
-        tipbox = Gtk.HBox()
+        self.tray_v_box = self.builder.get_object('tray_v_box')
 
-        self.trayalbumeventbox, self.trayalbumimage2 = \
-                self.artwork.get_trayalbum()
-
-        hiddenlbl = ui.label(w=2, h=-1)
-        tipbox.pack_start(hiddenlbl, False, False, 0)
-        tipbox.pack_start(self.trayalbumeventbox, False, False, 0)
-
-        tipbox.pack_start(self.trayalbumimage2, False, False, 0)
         if not self.config.show_covers:
-            ui.hide(self.trayalbumeventbox)
-            ui.hide(self.trayalbumimage2)
-        innerbox = Gtk.VBox()
-        self.traycursonglabel1 = ui.label(markup=_("Playlist"), y=1)
-        self.traycursonglabel2 = ui.label(markup=_("Playlist"), y=0)
-        label1 = ui.label(markup='<span size="10"> </span>')
-        innerbox.pack_start(label1, True, True, 0)
-        innerbox.pack_start(self.traycursonglabel1, True, True, 0)
-        innerbox.pack_start(self.traycursonglabel2, True, True, 0)
+            self.tray_album_image.hide()
 
-        self.trayprogressbar = Gtk.ProgressBar()
-        self.trayprogressbar.set_pulse_step(0.05)
-        self.trayprogressbar.set_ellipsize(Pango.EllipsizeMode.NONE)
-        self.trayprogressbar.set_show_text(True)
+        self.tray_current_label1 = self.builder.get_object('tray_label_1')
+        self.tray_current_label2 = self.builder.get_object('tray_label_2')
 
-        label2 = ui.label(markup='<span size="10"> </span>')
-        innerbox.pack_start(label2, True, True, 0)
-        innerbox.pack_start(self.trayprogressbar, False, False, 0)
+        self.tray_progressbar = self.builder.get_object('tray_progressbar')
         if not self.config.show_progress:
-            ui.hide(self.trayprogressbar)
-        label3 = ui.label(markup='<span size="10"> </span>')
-        innerbox.pack_start(label3, True, True, 0)
-        tipbox.pack_start(innerbox, True, True, 6)
-        outtertipbox.pack_start(tipbox, False, False, 2)
-        outtertipbox.show_all()
-        self.traytips.add_widget(outtertipbox)
-        self.tooltip_set_window_width()
+            ui.hide(self.tray_progressbar)
 
-        # Fullscreen cover art window
-        self.fullscreencoverart = Gtk.Window()
-        self.fullscreencoverart.set_title(_("Cover Art"))
-        self.fullscreencoverart.set_decorated(True)
-        self.fullscreencoverart.fullscreen()
-        bgcolor = Gdk.RGBA()
-        bgcolor.parse("black")
-        self.fullscreencoverart\
-            .override_background_color(Gtk.StateFlags.NORMAL, bgcolor)
-        self.fullscreencoverart.add_accel_group(
-            self.UIManager.get_accel_group())
-        fscavbox = Gtk.VBox()
-        fscahbox = Gtk.HBox()
-        self.fullscreenalbumimage = self.artwork.get_fullscreenalbumimage()
-        fscalbl, fscalbl2 = self.artwork.get_fullscreenalbumlabels()
-        fscahbox.pack_start(self.fullscreenalbumimage, True, False, 0)
-        fscavbox.pack_start(ui.label(), True, False, 0)
-        fscavbox.pack_start(fscahbox, False, False, 12)
-        fscavbox.pack_start(fscalbl, False, False, 5)
-        fscavbox.pack_start(fscalbl2, False, False, 5)
-        fscavbox.pack_start(ui.label(), True, False, 0)
-        if not self.config.show_covers:
-            ui.hide(self.fullscreenalbumimage)
-        self.fullscreencoverart.add(fscavbox)
+        self.tray_v_box.show_all()
+        self.traytips.add_widget(self.tray_v_box)
+        self.tooltip_set_window_width()
 
         # Connect to signals
         self.window.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
@@ -832,10 +725,10 @@ class Base(object):
         self.notebook.connect('size-allocate', self.on_notebook_resize)
         self.notebook.connect('switch-page', self.on_notebook_page_change)
 
-        self.fullscreencoverart.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
-        self.fullscreencoverart.connect("button-press-event",
-                                        self.fullscreen_cover_art_close, False)
-        self.fullscreencoverart.connect("key-press-event",
+        self.fullscreen_window.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
+        self.fullscreen_window.connect("button-press-event",
+                                       self.fullscreen_cover_art_close, False)
+        self.fullscreen_window.connect("key-press-event",
                                         self.fullscreen_cover_art_close, True)
         for treeview in [self.current_treeview, self.library_treeview,
                          self.playlists_treeview, self.streams_treeview]:
@@ -855,7 +748,7 @@ class Base(object):
 
         # Ensure that the systemtray icon is added here. This is really only
         # important if we're starting in hidden (minimized-to-tray) mode:
-        if self.window_owner and self.config.withdrawn:
+        if self.config.withdrawn:
             while Gtk.events_pending():
                 Gtk.main_iteration()
 
@@ -880,17 +773,13 @@ class Base(object):
         self.artwork.library_artwork_init(self.librarydata,
                                           consts.LIB_COVER_SIZE)
 
-        if self.window_owner:
-            icon = self.window.render_icon('sonata', Gtk.IconSize.DIALOG)
-            self.window.set_icon(icon)
-
+        icon = self.window.render_icon('sonata', Gtk.IconSize.DIALOG)
+        self.window.set_icon(icon)
         self.streams.populate()
 
         self.iterate_now()
-        if self.window_owner:
-            if self.config.withdrawn:
-                if self.tray_icon.is_visible():
-                    ui.hide(self.window)
+        if self.config.withdrawn and self.tray_icon.is_visible():
+            ui.hide(self.window)
         self.window.show_all()
 
         # Ensure that button images are displayed despite GTK+ theme
@@ -923,24 +812,20 @@ class Base(object):
     ### Tab system:
 
     def on_enable_tab(self, _plugin, tab):
-        self.plugintabs[tab] = self.new_tab(*tab())
+        tab_parts = tab()
+        name = tab_parts[2]
+        self.plugintabs[name] = self.add_tab(*tab_parts)
 
     def on_disable_tab(self, _plugin, tab):
-        self.notebook.remove(self.plugintabs.pop(tab))
+        name = tab()[2]
+        tab = self.plugintabs.pop(name)
+        self.notebook.remove(tab)
 
-    def new_tab(self, page, stock, text, focus):
-        # create the "ear" of the tab:
-        hbox = Gtk.HBox()
-        hbox.pack_start(ui.image(stock=stock), False, False, 2)
-        hbox.pack_start(ui.label(text=text), False, False, 2)
-        evbox = ui.eventbox(add=hbox)
-        evbox.show_all()
+    def add_tab(self, page, label_widget, text, focus):
+        label_widget.show_all()
+        label_widget.connect("button_press_event", self.on_tab_click)
 
-        evbox.connect("button_press_event", self.on_tab_click)
-
-        # create the actual tab:
-        self.notebook.append_page(page, evbox)
-
+        self.notebook.append_page(page, label_widget)
         if (text in self.tabname2id and
             not getattr(self.config,
                 self.tabname2id[text] + '_tab_visible')):
@@ -953,7 +838,6 @@ class Base(object):
 
         self.tabname2tab[text] = page
         self.tabname2focus[text] = focus
-
         return page
 
     def connected(self):
@@ -975,39 +859,10 @@ class Base(object):
             cb(self.get_playing_song())
 
     def get_current_song_text(self):
-        return (self.cursonglabel1.get_text(),
-            self.cursonglabel2.get_text())
+        return (self.cursonglabel1.get_text(), self.cursonglabel2.get_text())
 
     def set_allow_art_search(self):
         self.allow_art_search = True
-
-    def gnome_session_management(self):
-        ### XXX The rest:
-        try:
-            import gnome
-            import gnome.ui
-            # Code thanks to quodlibet:
-
-            # XXX gnome.init sets process name, locale...
-            gnome.init("sonata", version)
-
-            misc.setlocale()
-
-            client = gnome.ui.master_client()
-            client.set_restart_style(gnome.ui.RESTART_IF_RUNNING)
-            command = os.path.normpath(os.path.join(os.getcwd(), sys.argv[0]))
-            try:
-                client.set_restart_command([command] + sys.argv[1:])
-            except TypeError:
-                # Fedora systems have a broken gnome-python wrapper for
-                # this function.
-                # http://www.sacredchao.net/quodlibet/ticket/591
-                # http://trac.gajim.org/ticket/929
-                client.set_restart_command(len(sys.argv),
-                                           [command] + sys.argv[1:])
-            client.connect('die', Gtk.main_quit)
-        except:
-            pass
 
     def populate_profiles_for_menu(self):
         host, port, _password = misc.mpd_env_vars()
@@ -1608,29 +1463,20 @@ class Base(object):
             self.update_wintitle()
             self.info_update(True)
             if self.status['state'] == 'stop':
-                self.ppbutton.set_image(ui.image(
-                    stock=Gtk.STOCK_MEDIA_PLAY,
-                    stocksize=Gtk.IconSize.BUTTON))
-                child = self.ppbutton.get_child().get_child().get_children()
-                child[1].set_text('')
+                self.ppbutton_image.set_from_stock(Gtk.STOCK_MEDIA_PLAY,
+                                                   Gtk.IconSize.BUTTON)
                 self.UIManager.get_widget('/traymenu/playmenu').show()
                 self.UIManager.get_widget('/traymenu/pausemenu').hide()
                 self.tray_icon.update_icon(self.path_to_icon('sonata.png'))
             elif self.status['state'] == 'pause':
-                self.ppbutton.set_image(ui.image(
-                    stock=Gtk.STOCK_MEDIA_PLAY,
-                    stocksize=Gtk.IconSize.BUTTON))
-                child = self.ppbutton.get_child().get_child().get_children()
-                child[1].set_text('')
+                self.ppbutton_image.set_from_stock(Gtk.STOCK_MEDIA_PLAY,
+                                                   Gtk.IconSize.BUTTON)
                 self.UIManager.get_widget('/traymenu/playmenu').show()
                 self.UIManager.get_widget('/traymenu/pausemenu').hide()
                 self.tray_icon.update_icon(self.path_to_icon('sonata_pause.png'))
             elif self.status['state'] == 'play':
-                self.ppbutton.set_image(ui.image(
-                    stock=Gtk.STOCK_MEDIA_PAUSE,
-                    stocksize=Gtk.IconSize.BUTTON))
-                child = self.ppbutton.get_child().get_child().get_children()
-                child[1].set_text('')
+                self.ppbutton_image.set_from_stock(Gtk.STOCK_MEDIA_PAUSE,
+                                                   Gtk.IconSize.BUTTON)
                 self.UIManager.get_widget('/traymenu/playmenu').hide()
                 self.UIManager.get_widget('/traymenu/pausemenu').show()
                 if self.prevstatus != None:
@@ -1767,56 +1613,35 @@ class Base(object):
     def update_statusbar(self, updatingdb=False):
         if self.config.show_statusbar:
             if self.conn and self.status:
-                try:
-                    days = None
-                    hours = None
-                    mins = None
-                    total_time = misc.convert_time(self.current.total_time)
-                    try:
-                        mins = total_time.split(":")[-2]
-                        hours = total_time.split(":")[-3]
-                        if int(hours) >= 24:
-                            days = str(int(hours) / 24)
-                            hours = str(int(hours) - int(days) * 24).zfill(2)
-                    except:
-                        pass
-                    if days:
-                        days_text = ngettext('day', 'days', int(days))
-                    if mins:
-                        if mins.startswith('0') and len(mins) > 1:
-                            mins = mins[1:]
-                        mins_text = ngettext('minute', 'minutes', int(mins))
-                    if hours:
-                        if hours.startswith('0'):
-                            hours = hours[1:]
-                        hours_text = ngettext('hour', 'hours', int(hours))
-                    # Show text:
-                    songs_text = ngettext('song', 'songs',
-                                          int(self.status['playlistlength']))
-                    if int(self.status['playlistlength']) > 0:
-                        if days:
-                            status_text = '%s %s   %s %s, %s %s, %s %s %s' \
-                                    % (str(self.status['playlistlength']),
-                                       songs_text, days, days_text, hours,
-                                       hours_text, _('and'), mins, mins_text,)
-                        elif hours:
-                            status_text = '%s %s   %s %s %s %s %s' % \
-                                    (str(self.status['playlistlength']),
-                                     songs_text, hours, hours_text, _('and'),
-                                     mins, mins_text,)
-                        elif mins:
-                            status_text = '%s %s   %s %s' % \
-                                    (str(self.status['playlistlength']),
-                                     songs_text, mins, mins_text,)
-                        else:
-                            status_text = ''
-                    else:
-                        status_text = ''
-                    if updatingdb:
-                        status_text = '%s   %s' % (status_text, _(('(updating '
-                                                                  'mpd)')),)
-                except:
+                days = None
+                # FIXME _ is for localization, temporarily __
+                hours, mins, __ = misc.convert_time_raw(self.current.total_time)
+                # Show text:
+                songs_text = ngettext('song', 'songs',
+                                      int(self.status['playlistlength']))
+                songs_string = "{} {}".format(self.status['playlistlength'],
+                                              songs_text)
+                time_parts = []
+                if hours >= 24:
+                    days = int(hours / 24)
+                    hours = hours - (days * 24)
+                if days:
+                    days_text = ngettext('day', 'days', days)
+                    time_parts.append("{} {}".format(days, days_text))
+                if hours:
+                    hours_text = ngettext('hour', 'hours', hours)
+                    time_parts.append("{} {}".format(hours, hours_text))
+                if mins:
+                    mins_text = ngettext('minute', 'minutes', mins)
+                    time_parts.append("{} {}".format(mins, mins_text))
+                time_string = ', '.join([part for part in time_parts if part])
+                if float(self.status['playlistlength']) > 0:
+                    status_text = "{}: {}".format(songs_string, time_string)
+                else:
                     status_text = ''
+                if updatingdb:
+                    update_string = _('(updating mpd)')
+                    status_text = "{}: {}".format(status_text, update_string)
             else:
                 status_text = ''
             if status_text != self.last_status_text:
@@ -1832,80 +1657,77 @@ class Base(object):
             # notification popup will have the correct height when being
             # displayed for the first time after a stopped state.
             if self.config.show_progress:
-                self.trayprogressbar.show()
-            self.traycursonglabel2.show()
+                self.tray_progressbar.show()
+            self.tray_current_label2.show()
             if self.config.show_covers:
-                self.trayalbumeventbox.show()
-                self.trayalbumimage2.show()
+                self.tray_album_image.show()
 
             for label in (self.cursonglabel1, self.cursonglabel2,
-                          self.traycursonglabel1, self.traycursonglabel2):
+                          self.tray_current_label1, self.tray_current_label2):
                 label.set_ellipsize(Pango.EllipsizeMode.END)
 
 
             if len(self.config.currsongformat1) > 0:
-                newlabel1 = ('<big><b>%s </b></big>' %
-                         formatting.parse(
-                        self.config.currsongformat1,
-                        self.songinfo, True))
+                newlabel1 = formatting.parse(self.config.currsongformat1,
+                                             self.songinfo, True)
             else:
-                newlabel1 = '<big><b> </b></big>'
+                newlabel1 = ''
+            newlabel1 = '<big>{}</big>'.format(newlabel1)
             if len(self.config.currsongformat2) > 0:
-                newlabel2 = ('<small>%s </small>' %
-                         formatting.parse(
-                        self.config.currsongformat2,
-                        self.songinfo, True))
+                newlabel2 = formatting.parse(self.config.currsongformat2,
+                                             self.songinfo, True)
             else:
-                newlabel2 = '<small> </small>'
+                newlabel2 = ''
+            newlabel2 = '<small>{}</small>'.format(newlabel2)
             if newlabel1 != self.cursonglabel1.get_label():
                 self.cursonglabel1.set_markup(newlabel1)
             if newlabel2 != self.cursonglabel2.get_label():
                 self.cursonglabel2.set_markup(newlabel2)
-            if newlabel1 != self.traycursonglabel1.get_label():
-                self.traycursonglabel1.set_markup(newlabel1)
-            if newlabel2 != self.traycursonglabel2.get_label():
-                self.traycursonglabel2.set_markup(newlabel2)
+            if newlabel1 != self.tray_current_label1.get_label():
+                self.tray_current_label1.set_markup(newlabel1)
+            if newlabel2 != self.tray_current_label2.get_label():
+                self.tray_current_label2.set_markup(newlabel2)
             self.expander.set_tooltip_text('%s\n%s' % \
                                            (self.cursonglabel1.get_text(),
                                             self.cursonglabel2.get_text(),))
         else:
             for label in (self.cursonglabel1, self.cursonglabel2,
-                          self.traycursonglabel1, self.cursonglabel2):
+                          self.tray_current_label1, self.cursonglabel2):
                 label.set_ellipsize(Pango.EllipsizeMode.NONE)
 
-            self.cursonglabel1.set_markup('<big><b>%s</b></big>' % \
-                                          (_('Stopped'),))
+            newlabel1 = '<big>{}</big>'.format(_('Stopped'))
+            self.cursonglabel1.set_markup(newlabel1)
             if self.config.expanded:
-                self.cursonglabel2.set_markup('<small>%s</small>' % \
-                                              (_('Click to collapse'),))
+                newlabel2 = _('Click to collapse')
             else:
-                self.cursonglabel2.set_markup('<small>%s</small>' % \
-                                              _('Click to expand'))
+                newlabel2 = _('Click to expand')
+            newlabel2 = '<small>{}</small>'.format(newlabel2)
+            self.cursonglabel2.set_markup(newlabel2)
             self.expander.set_tooltip_text(self.cursonglabel1.get_text())
             if not self.conn:
-                self.traycursonglabel1.set_label(_('Not Connected'))
+                traylabel1 = _('Not Connected')
             elif not self.status:
-                self.traycursonglabel1.set_label(_('No Read Permission'))
+                traylabel1 = _('No Read Permission')
             else:
-                self.traycursonglabel1.set_label(_('Stopped'))
-            self.trayprogressbar.hide()
-            self.trayalbumeventbox.hide()
-            self.trayalbumimage2.hide()
-            self.traycursonglabel2.hide()
+                traylabel1 = _('Stopped')
+            traylabel1 = '<big>{}</big>'.format(traylabel1)
+            self.tray_current_label1.set_markup(traylabel1)
+            self.tray_progressbar.hide()
+            self.tray_album_image.hide()
+            self.tray_current_label2.hide()
         self.update_infofile()
 
     def update_wintitle(self):
-        if self.window_owner:
-            if self.status_is_play_or_pause():
-                newtitle = formatting.parse(
-                    self.config.titleformat, self.songinfo,
-                    False, True,
-                    self.status.get('time', None))
-            else:
-                newtitle = '[Sonata]'
-            if not self.last_title or self.last_title != newtitle:
-                self.window.set_property('title', newtitle)
-                self.last_title = newtitle
+        if self.status_is_play_or_pause():
+            newtitle = formatting.parse(
+                self.config.titleformat, self.songinfo,
+                False, True,
+                self.status.get('time', None))
+        else:
+            newtitle = '[Sonata]'
+        if not self.last_title or self.last_title != newtitle:
+            self.window.set_property('title', newtitle)
+            self.last_title = newtitle
 
     def tooltip_set_window_width(self):
         screen = self.window.get_screen()
@@ -1919,7 +1741,7 @@ class Base(object):
             self.notification_width = consts.NOTIFICATION_WIDTH_MIN
 
     def on_currsong_notify(self, _foo=None, _bar=None, force_popup=False):
-        if self.fullscreencoverart.get_property('visible'):
+        if self.fullscreen_window.get_property('visible'):
             return
         if self.sonata_loaded:
             if self.status_is_play_or_pause():
@@ -1970,15 +1792,16 @@ class Base(object):
                 self.traytips._real_display(self.tray_icon)
 
     def on_progressbar_notify_fraction(self, *_args):
-        self.trayprogressbar.set_fraction(self.progressbar.get_fraction())
+        self.tray_progressbar.set_fraction(self.progressbar.get_fraction())
 
     def on_progressbar_notify_text(self, *_args):
-        self.trayprogressbar.set_text(self.progressbar.get_text())
+        self.tray_progressbar.set_text(self.progressbar.get_text())
 
     def update_infofile(self):
         if self.config.use_infofile is True:
             try:
-                info_file = open(self.config.infofile_path, 'w')
+                info_file = open(self.config.infofile_path, 'w',
+                                 encoding="utf-8")
 
                 if self.status['state'] in ['play']:
                     info_file.write('Status: ' + 'Playing' + '\n')
@@ -2049,7 +1872,6 @@ class Base(object):
     def on_notebook_resize(self, _widget, _event):
         if not self.current.resizing_columns:
             GObject.idle_add(self.header_save_column_widths)
-        GObject.idle_add(self.info.resize_elements, self.notebook.get_allocation())
 
     def on_expand(self, _action):
         if not self.config.expanded:
@@ -2087,22 +1909,20 @@ class Base(object):
             self.notebook.hide()
         if not self.status_is_play_or_pause():
             if window_about_to_be_expanded:
-                self.cursonglabel2.set_markup('<small>%s</small>' % \
-                                              (_('Click to collapse'),))
+                self.cursonglabel2.set_text(_('Click to collapse'))
             else:
-                self.cursonglabel2.set_markup('<small>%s</small>' % \
-                                              (_('Click to expand'),))
+                self.cursonglabel2.set_text(_('Click to expand'))
         # Now we wait for the height of the player to increase, so that
         # we know the list is visible. This is pretty hacky, but works.
-        if self.window_owner:
-            if window_about_to_be_expanded:
-                if not skip_size_check:
-                    while self.window.get_size()[1] == currheight:
-                        Gtk.main_iteration()
-                # Notebook is visible, now resize:
-                self.window.resize(self.config.w, self.config.h)
-            else:
-                self.window.resize(self.config.w, 1)
+        if window_about_to_be_expanded:
+            if not skip_size_check:
+                while self.window.get_size()[1] == currheight:
+                    Gtk.main_iteration()
+            # Notebook is visible, now resize:
+            self.window.resize(self.config.w, self.config.h)
+        else:
+            self.window.resize(self.config.w, 1)
+
         if window_about_to_be_expanded:
             self.config.expanded = True
             if self.status_is_play_or_pause():
@@ -2164,30 +1984,15 @@ class Base(object):
     def on_lyrics_search(self, _event):
         artist = self.songinfo.artist or ''
         title = self.songinfo.title or ''
-        dialog = ui.dialog(
-            title=_('Lyrics Search'), parent=self.window,
-            flags=Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-            buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT, Gtk.STOCK_FIND,
-                     Gtk.ResponseType.ACCEPT), role='lyricsSearch',
-            default=Gtk.ResponseType.ACCEPT)
-        dialog.action_area.get_children()[0].set_label(_("_Search"))
-        dialog.action_area.get_children()[0].set_image(
-            ui.image(stock=Gtk.STOCK_FIND))
-        artist_hbox = Gtk.HBox()
-        artist_label = ui.label(text=_('Artist Name:'))
-        artist_hbox.pack_start(artist_label, False, False, 5)
-        artist_entry = ui.entry(text=artist)
-        artist_hbox.pack_start(artist_entry, True, True, 5)
-        title_hbox = Gtk.HBox()
-        title_label = ui.label(text=_('Song Title:'))
-        title_hbox.pack_start(title_label, False, False, 5)
-        title_entry = ui.entry(title)
-        title_hbox.pack_start(title_entry, True, True, 5)
-        ui.set_widths_equal([artist_label, title_label])
-        dialog.vbox.pack_start(artist_hbox, True, True, 0)
-        dialog.vbox.pack_start(title_hbox, True, True, 0)
-        ui.show(dialog.vbox)
-        response = dialog.run()
+        if not self.lyrics_search_dialog:
+            self.lyrics_search_dialog = self.builder.get_object(
+                'lyrics_search_dialog')
+        artist_entry = self.builder.get_object('lyrics_search_artist_entry')
+        artist_entry.set_text(artist)
+        title_entry = self.builder.get_object('lyrics_search_title_entry')
+        title_entry.set_text(title)
+        self.lyrics_search_dialog.show_all()
+        response = self.lyrics_search_dialog.run()
         if response == Gtk.ResponseType.ACCEPT:
             # Search for new lyrics:
             self.info.get_lyrics_start(
@@ -2198,7 +2003,7 @@ class Base(object):
                 os.path.dirname(self.songinfo.file),
                 force_fetch=True)
 
-        dialog.destroy()
+        self.lyrics_search_dialog.hide()
 
     def mpd_shuffle(self, _action):
         if self.conn:
@@ -2238,6 +2043,14 @@ class Base(object):
             if len(filenames) > 0:
                 self.mpd.update(filenames)
                 self.mpd_update_queued = True
+
+    def calc_info_image_size(self):
+        notebook_width = self.notebook.get_allocation().width
+        grid = self.info.info_song_grid
+        grid_allocation = grid.get_allocation()
+        grid_height = grid_allocation.height
+        grid_width = grid.get_preferred_width_for_height(grid_height)[0]
+        return notebook_width - (grid_width + 120)
 
     def on_image_activate(self, widget, event):
         self.window.handler_block(self.mainwinhandler)
@@ -2466,7 +2279,8 @@ class Base(object):
             pass
         if pixbuf is None:
             try:
-                pixbuf = GdkPixbuf.PixbufAnimation(filename).get_static_image()
+                pixbuf = GdkPixbuf.PixbufAnimation.new_from_file(filename)
+                pixbuf = pixbuf.get_static_image()
                 width = pixbuf.get_width()
                 height = pixbuf.get_height()
                 if width > height:
@@ -2480,7 +2294,8 @@ class Base(object):
             except:
                 pass
         if pixbuf is None:
-            pixbuf = GdkPixbuf.Pixbuf(GdkPixbuf.Colorspace.RGB, 1, 8, 128, 128)
+            pixbuf = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, 1, 8,
+                                          128, 128)
             pixbuf.fill(0x00000000)
         preview.set_from_pixbuf(pixbuf)
         have_preview = True
@@ -2488,30 +2303,27 @@ class Base(object):
         del pixbuf
         self.call_gc_collect = True
 
-    def image_local(self, _widget):
-        dialog = Gtk.FileChooserDialog(
-            title=_("Open Image"),
-            action=Gtk.FileChooserAction.OPEN,
-            buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-                 Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+    def _image_local_init(self):
+        self.image_local_dialog = self.builder.get_object(
+            'local_artwork_dialog')
         filefilter = Gtk.FileFilter()
         filefilter.set_name(_("Images"))
         filefilter.add_pixbuf_formats()
-        dialog.add_filter(filefilter)
+        self.image_local_dialog.add_filter(filefilter)
         filefilter = Gtk.FileFilter()
         filefilter.set_name(_("All files"))
         filefilter.add_pattern("*")
-        dialog.add_filter(filefilter)
-        preview = ui.image()
-        dialog.set_preview_widget(preview)
-        dialog.set_use_preview_label(False)
-        dialog.connect("update-preview", self.update_preview, preview)
+        self.image_local_dialog.add_filter(filefilter)
+        preview = self.builder.get_object('local_art_preview_image')
+        self.image_local_dialog.connect("update-preview",
+                                        self.update_preview, preview)
+
+    def image_local(self, _widget):
+        if not self.image_local_dialog:
+            self._image_local_init()
         stream = self.songinfo.name
         album = (self.songinfo.album or "").replace("/", "")
         artist = self.album_current_artist[1].replace("/", "")
-        dialog.connect("response", self.image_local_response, artist,
-                       album, stream)
-        dialog.set_default_response(Gtk.ResponseType.OK)
         songdir = os.path.dirname(self.songinfo.file)
         currdir = misc.file_from_utf8(
             os.path.join(self.config.musicdir[self.config.profile_num],
@@ -2524,11 +2336,11 @@ class Base(object):
                 stream)
         else:
             self.local_dest_filename = self.target_image_filename()
-        dialog.show()
+        self.image_local_dialog.show_all()
+        response = self.image_local_dialog.run()
 
-    def image_local_response(self, dialog, response, _artist, _album, _stream):
         if response == Gtk.ResponseType.OK:
-            filename = dialog.get_filenames()[0]
+            filename = self.image_local_dialog.get_filenames()[0]
             # Copy file to covers dir:
             if self.local_dest_filename != filename:
                 shutil.copyfile(filename, self.local_dest_filename)
@@ -2536,7 +2348,7 @@ class Base(object):
             self.artwork.artwork_update(True)
             # Force a resize of the info labels, if needed:
             GObject.idle_add(self.on_notebook_resize, self.notebook, None)
-        dialog.destroy()
+        self.image_local_dialog.hide()
 
     def imagelist_append(self, elem):
         self.imagelist.append(elem)
@@ -2544,60 +2356,20 @@ class Base(object):
     def remotefilelist_append(self, elem):
         self.remotefilelist.append(elem)
 
-    def image_remote(self, _widget):
-        self.choose_dialog = ui.dialog(title=_("Choose Cover Art"),
-                                       parent=self.window,
-                                       flags=Gtk.DialogFlags.MODAL,
-                                       buttons=(Gtk.STOCK_CANCEL,
-                                                Gtk.ResponseType.REJECT),
-                                       role='chooseCoverArt',
-                                       default=Gtk.ResponseType.ACCEPT,
-                                       resizable=False)
-        choosebutton = self.choose_dialog.add_button(_("C_hoose"),
-                                                     Gtk.ResponseType.ACCEPT)
-        chooseimage = ui.image(stock=Gtk.STOCK_CONVERT,
-                               stocksize=Gtk.IconSize.BUTTON)
-        choosebutton.set_image(chooseimage)
-        self.imagelist = Gtk.ListStore(int, GdkPixbuf.Pixbuf)
-        # Setting col=2 only shows 1 column with gtk 2.16 while col=-1 shows 2
-        imagewidget = ui.iconview(col=-1, space=0, margin=0, itemw=75,
-                                  selmode=Gtk.SelectionMode.SINGLE)
-        scroll = ui.scrollwindow(policy_x=Gtk.PolicyType.NEVER,
-                                 policy_y=Gtk.PolicyType.ALWAYS, w=360, h=325,
-                                 add=imagewidget)
-        self.choose_dialog.vbox.pack_start(scroll, False, False, 0)
-        hbox = Gtk.HBox()
-        vbox = Gtk.VBox()
-        vbox.pack_start(ui.label(markup='<small> </small>'), False, False, 0)
-        self.remote_artistentry = ui.entry()
-        self.remote_albumentry = ui.entry()
-        text = [("Artist"), _("Album")]
-        labels = [ui.label(text=labelname + ": ") for labelname in text]
-        entries = [self.remote_artistentry, self.remote_albumentry]
-        for entry, label in zip(entries, labels):
-            tmphbox = Gtk.HBox()
-            tmphbox.pack_start(label, False, False, 5)
-            entry.connect('activate', self.image_remote_refresh, imagewidget)
-            tmphbox.pack_start(entry, True, True, 5)
-            vbox.pack_start(tmphbox, True, True, 0)
-        ui.set_widths_equal(labels)
-        vbox.pack_start(ui.label(markup='<small> </small>'), False, False, 0)
-        hbox.pack_start(vbox, True, True, 5)
-        vbox2 = Gtk.VBox()
-        vbox2.pack_start(ui.label(" "), True, True, 0)
-        refreshbutton = ui.button(text=_('_Update'),
-                                  img=ui.image(stock=Gtk.STOCK_REFRESH))
-        refreshbutton.connect('clicked', self.image_remote_refresh,
-                              imagewidget)
-        vbox2.pack_start(refreshbutton, False, False, 5)
-        vbox2.pack_start(ui.label(" "), True, True, 0)
-        hbox.pack_start(vbox2, False, False, 15)
-        searchexpander = ui.expander(text=_("Edit search terms"))
-        searchexpander.add(hbox)
-        self.choose_dialog.vbox.pack_start(searchexpander, True, True, 0)
-        self.choose_dialog.show_all()
-        self.chooseimage_visible = True
+    def _init_choose_dialog(self):
+        self.choose_dialog = self.builder.get_object('artwork_dialog')
+        self.imagelist = self.builder.get_object('artwork_liststore')
+        self.remote_artistentry = self.builder.get_object('artwork_artist_entry')
+        self.remote_albumentry = self.builder.get_object('artwork_album_entry')
+        self.image_widget = self.builder.get_object('artwork_iconview')
+        refresh_button = self.builder.get_object('artwork_update_button')
+        refresh_button.connect('clicked', self.image_remote_refresh,
+                               self.image_widget)
         self.remotefilelist = []
+
+    def image_remote(self, _widget):
+        if not self.choose_dialog:
+            self._init_choose_dialog()
         stream = self.songinfo.name
         if stream is not None:
             # Allow saving an image file for a stream:
@@ -2607,15 +2379,18 @@ class Base(object):
             self.remote_dest_filename = self.target_image_filename()
         album = self.songinfo.album or ''
         artist = self.album_current_artist[1]
-        imagewidget.connect('item-activated', self.image_remote_replace_cover,
+        self.image_widget.connect('item-activated', self.image_remote_replace_cover,
                             artist.replace("/", ""), album.replace("/", ""),
                             stream)
         self.choose_dialog.connect('response', self.image_remote_response,
-                                   imagewidget, artist, album, stream)
+                                   self.image_widget, artist, album, stream)
         self.remote_artistentry.set_text(artist)
         self.remote_albumentry.set_text(album)
         self.allow_art_search = True
-        self.image_remote_refresh(None, imagewidget)
+        self.chooseimage_visible = True
+        self.image_remote_refresh(None, self.image_widget)
+        self.choose_dialog.show_all()
+        self.choose_dialog.run()
 
     def image_remote_refresh(self, _entry, imagewidget):
         if not self.allow_art_search:
@@ -2628,7 +2403,7 @@ class Base(object):
         imagewidget.set_text_column(-1)
         imagewidget.set_model(self.imagelist)
         imagewidget.set_pixbuf_column(1)
-        ui.focus(imagewidget)
+        imagewidget.grab_focus()
         ui.change_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
         thread = threading.Thread(target=self._image_remote_refresh,
                                   args=(imagewidget, None))
@@ -2683,16 +2458,16 @@ class Base(object):
                 # Force a resize of the info labels, if needed:
                 GObject.idle_add(self.on_notebook_resize, self.notebook, None)
             except:
-                dialog.destroy()
+                dialog.hide()
         else:
-            dialog.destroy()
+            dialog.hide()
         ui.change_cursor(None)
         self.chooseimage_visible = False
 
     def image_remote_replace_cover(self, _iconview, path, _artist, _album,
                                    _stream):
         self.artwork.artwork_stop_update()
-        image_num = int(path[0])
+        image_num = path.get_indices()[0]
         if len(self.remotefilelist) > 0:
             filename = self.remotefilelist[image_num]
             if os.path.exists(filename):
@@ -2702,19 +2477,19 @@ class Base(object):
                 # Clean up..
                 misc.remove_dir_recursive(os.path.dirname(filename))
         self.chooseimage_visible = False
-        self.choose_dialog.destroy()
+        self.choose_dialog.hide()
         while self.artwork.artwork_is_downloading_image():
             Gtk.main_iteration()
 
     def fullscreen_cover_art(self, _widget):
-        if self.fullscreencoverart.get_property('visible'):
-            self.fullscreencoverart.hide()
+        if self.fullscreen_window.get_property('visible'):
+            self.fullscreen_window.hide()
         else:
             self.traytips.hide()
             self.artwork.fullscreen_cover_art_set_image(force_update=True)
-            self.fullscreencoverart.show_all()
+            self.fullscreen_window.show_all()
             # setting up invisible cursor
-            window = self.fullscreencoverart.get_window()
+            window = self.fullscreen_window.get_window()
             window.set_cursor(Gdk.Cursor.new(Gdk.CursorType.BLANK_CURSOR))
 
     def fullscreen_cover_art_close(self, _widget, event, key_press):
@@ -2723,7 +2498,7 @@ class Base(object):
             shortcut = shortcut.replace("<Mod2>", "")
             if shortcut != 'Escape':
                 return
-        self.fullscreencoverart.hide()
+        self.fullscreen_window.hide()
 
     def header_save_column_widths(self):
         if not self.config.withdrawn and self.config.expanded:
@@ -3048,25 +2823,22 @@ class Base(object):
 
     def prefs_ontop_toggled(self, button):
         self.config.ontop = button.get_active()
-        if self.window_owner:
-            self.window.set_keep_above(self.config.ontop)
+        self.window.set_keep_above(self.config.ontop)
 
     def prefs_sticky_toggled(self, button):
         self.config.sticky = button.get_active()
-        if self.window_owner:
-            if self.config.sticky:
-                self.window.stick()
-            else:
-                self.window.unstick()
+        if self.config.sticky:
+            self.window.stick()
+        else:
+            self.window.unstick()
 
     def prefs_decorated_toggled(self, button, prefs_window):
         self.config.decorated = not button.get_active()
-        if self.window_owner:
-            if self.config.decorated != self.window.get_decorated():
-                self.withdraw_app()
-                self.window.set_decorated(self.config.decorated)
-                self.withdraw_app_undo()
-                prefs_window.present()
+        if self.config.decorated != self.window.get_decorated():
+            self.withdraw_app()
+            self.window.set_decorated(self.config.decorated)
+            self.withdraw_app_undo()
+            prefs_window.present()
 
     def prefs_infofile_changed(self, entry, _event):
         if self.config.infofile_path != entry.get_text():
@@ -3095,21 +2867,23 @@ class Base(object):
     def prefs_progress_toggled(self, button):
         self.config.show_progress = button.get_active()
         func = ui.show if self.config.show_progress else ui.hide
-        for widget in [self.progressbox, self.trayprogressbar]:
+        for widget in [self.progressbox, self.tray_progressbar]:
             func(widget)
 
-    def prefs_art_toggled(self, button, art_hbox1, art_hbox2, art_stylized):
+    # FIXME move into prefs or elsewhere?
+    def prefs_art_toggled(self, button, art_prefs):
         button_active = button.get_active()
-        art_hbox1.set_sensitive(button_active)
-        art_hbox2.set_sensitive(button_active)
-        art_stylized.set_sensitive(button_active)
+        art_prefs.set_sensitive(button_active)
+
+        #art_hbox2.set_sensitive(button_active)
+        #art_stylized.set_sensitive(button_active)
         if button_active:
             self.traytips.set_size_request(self.notification_width, -1)
             self.artwork.artwork_set_default_icon()
             for widget in [self.imageeventbox, self.info_imagebox,
-                           self.trayalbumeventbox, self.trayalbumimage2]:
+                           self.tray_album_image]:
                 widget.set_no_show_all(False)
-                if widget in [self.trayalbumeventbox, self.trayalbumimage2]:
+                if widget is self.tray_album_image:
                     if self.status_is_play_or_pause():
                         widget.show_all()
                 else:
@@ -3120,8 +2894,8 @@ class Base(object):
         else:
             self.traytips.set_size_request(self.notification_width-100, -1)
             for widget in [self.imageeventbox, self.info_imagebox,
-                           self.trayalbumeventbox, self.trayalbumimage2]:
-                ui.hide(widget)
+                           self.tray_album_image]:
+                widget.hide()
             self.config.show_covers = False
             self.update_cursong()
 
@@ -3233,14 +3007,20 @@ class Base(object):
 
     def notebook_get_tab_text(self, notebook, tab_num):
         tab = notebook.get_children()[tab_num]
-        child = notebook.get_tab_label(tab).get_child().get_children()[1]
+
+        # FIXME when new UI is done, the top branch expression wins
+        if notebook.get_tab_label(tab).get_children and \
+            len(notebook.get_tab_label(tab).get_children()) is 2:
+            child = notebook.get_tab_label(tab).get_children()[1]
+        else:
+            child = notebook.get_tab_label(tab).get_child().get_children()[1]
         return child.get_text()
 
     def on_notebook_page_change(self, _notebook, _page, page_num):
         self.current_tab = self.notebook_get_tab_text(self.notebook, page_num)
         to_focus = self.tabname2focus.get(self.current_tab, None)
         if to_focus:
-            GObject.idle_add(ui.focus, to_focus)
+            GObject.idle_add(to_focus.grab_focus)
 
         GObject.idle_add(self.update_menu_visibility)
         if not self.img_clicked:
@@ -3252,7 +3032,9 @@ class Base(object):
 
     def menu_popup(self, widget, event):
         if widget == self.window:
-            if event.get_coords()[1] > self.notebook.get_allocation().height:
+            # Prevent the popup from statusbar (if present)
+            height = event.get_coords()[1]
+            if height > self.notebook.get_allocation().height:
                 return
         if event.button == 3:
             self.update_menu_visibility(True)
@@ -3283,7 +3065,7 @@ class Base(object):
         elif name == self.TAB_INFO:
             self.config.info_tab_visible = toggleAction.get_active()
         # Hide/show:
-        tabnum = self.notebook_get_tab_num(self.notebook, name)
+        tabnum = self.notebook_get_tab_num(self.notebook, self.tabid2name[name])
         if toggleAction.get_active():
             ui.show(self.notebook.get_children()[tabnum])
         else:
@@ -3499,5 +3281,3 @@ class Base(object):
     def dbus_fullscreen(self):
         self.fullscreen_cover_art(None)
 
-    def main(self):
-        Gtk.main()

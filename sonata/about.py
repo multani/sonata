@@ -1,39 +1,11 @@
 # coding=utf-8
 
 import gettext
+import os
 
 from gi.repository import Gtk, GdkPixbuf
 
 from sonata import misc, ui
-
-translators = '''\
-ar - Ahmad Farghal <ahmad.farghal@gmail.com>
-be@latin - Ihar Hrachyshka <ihar.hrachyshka@gmail.com>
-ca - Franc Rodriguez <franc.rodriguez@tecob.com>
-cs - Jakub Adler <jakubadler@gmail.com>
-da - Martin Dybdal <dybber@dybber.dk>
-de - Paul Johnson <thrillerator@googlemail.com>
-el_GR - Lazaros Koromilas <koromilaz@gmail.com>
-es - Xoan Sampaiño <xoansampainho@gmail.com>
-et - Mihkel <turakas@gmail.com>
-fi - Ilkka Tuohela <hile@hack.fi>
-fr - Floreal M <florealm@gmail.com>
-it - Gianni Vialetto <forgottencrow@gmail.com>
-ja - Masato Hashimoto <cabezon.hashimoto@gmail.com>
-ko - Jaesung BANG <jaesung@liberotown.com>
-nl - Olivier Keun <litemotiv@gmail.com>
-pl - Tomasz Dominikowski <dominikowski@gmail.com>
-pt_BR - Alex Tercete Matos <alextercete@gmail.com>
-ru - Ivan <bkb.box@bk.ru>
-sk - Robert Hartl <hartl.robert@gmail.com>
-sl - Alan Pepelko <alan.pepelko@gmail.com>
-sv - Daniel Nylander <po@danielnylander.se>
-tr - Gökmen Görgen <gkmngrgn@gmail.com>
-uk - Господарисько Тарас <dogmaton@gmail.com>
-zh_CN - Desmond Chang <dochang@gmail.com>
-zh_TW - Ian-Xue Li <da.mi.spirit@gmail>
-'''
-
 
 class About(object):
 
@@ -45,14 +17,27 @@ class About(object):
         self.icon_file = icon_file
 
         self.about_dialog = None
+        self.shortcuts_dialog = None
 
     def about_close(self, _event, _data=None):
-        self.about_dialog.hide()
+        if _data == Gtk.ResponseType.DELETE_EVENT or \
+           _data == Gtk.ResponseType.CANCEL:
+            self.about_dialog.hide()
         return True
 
-    def about_shortcuts(self, _button):
+    def shortcuts_close(self, _event, _data=None):
+        if _data == Gtk.ResponseType.DELETE_EVENT or \
+           _data == Gtk.ResponseType.CANCEL:
+            self.shortcuts_dialog.hide()
+        return True
+
+    def shortcuts_close_click_cb(self, _button):
+        self.shortcuts_dialog.hide()
+
+    def _init_shortcuts_dialog(self):
         # define the shortcuts and their descriptions
         # these are all gettextable
+        # Keep them here (not as XML) as they're more convenient this way
         mainshortcuts = \
                 [["F1", _("About Sonata")],
                  ["F5", _("Preferences")],
@@ -121,35 +106,39 @@ class About(object):
                 [_("Playlist Shortcuts"), playlistshortcuts],
                 [_("Stream Shortcuts"), streamshortcuts],
                 [_("Info Shortcuts"), infoshortcuts]]
-        dialog = ui.dialog(title=_("Shortcuts"), parent=self.about_dialog,
-                           flags=Gtk.DialogFlags.MODAL |
-                           Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                           buttons=(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE),
-                           role='shortcuts', default=Gtk.ResponseType.CLOSE, h=320)
+        self.shortcuts_dialog = self.builder.get_object('shortcuts_dialog')
+        self.shortcuts_dialog.connect('response', self.shortcuts_close)
+        self.shortcuts_dialog.connect('delete_event', self.shortcuts_close)
+        shortcuts_close_button = self.builder.get_object(
+            'shortcuts_dialog_closebutton')
+        shortcuts_close_button.connect('clicked', self.shortcuts_close_click_cb)
 
         # each pair is a [ heading, shortcutlist ]
-        vbox = Gtk.VBox()
-        for pair in shortcuts:
-            titlelabel = ui.label(markup="<b>%s</b>" % pair[0])
+        vbox = self.builder.get_object('shortcuts_dialog_content_box')
+        for heading, shortcutlist in shortcuts:
+            titlelabel = Gtk.Label(heading, xalign=0)
+            titlelabel.get_style_context().add_class('heading')
             vbox.pack_start(titlelabel, False, False, 2)
 
             # print the items of [ shortcut, desc ]
-            for item in pair[1]:
+            for shortcut, desc in shortcutlist:
                 tmphbox = Gtk.HBox()
 
-                tmplabel = ui.label(markup="<b>%s:</b>" % item[0], y=0)
-                tmpdesc = ui.label(text=item[1], wrap=True, y=0)
+                tmplabel = Gtk.Label('{}:'.format(shortcut), xalign=0)
+                tmplabel.get_style_context().add_class('shortcut')
+                tmpdesc = Gtk.Label(desc, xalign=0, wrap=False)
 
                 tmphbox.pack_start(tmplabel, False, False, 2)
                 tmphbox.pack_start(tmpdesc, True, True, 2)
 
                 vbox.pack_start(tmphbox, False, False, 2)
-            vbox.pack_start(ui.label(text=" "), False, False, 2)
-        scrollbox = ui.scrollwindow(policy_x=Gtk.PolicyType.NEVER, addvp=vbox)
-        dialog.vbox.pack_start(scrollbox, True, True, 2)
-        dialog.show_all()
-        dialog.run()
-        dialog.destroy()
+            vbox.pack_start(Gtk.Label(" "), False, False, 2)
+
+    def about_shortcuts(self, _button):
+        if not self.shortcuts_dialog:
+            self._init_shortcuts_dialog()
+        self.shortcuts_dialog.show_all()
+        self.shortcuts_dialog.run()
 
     def statstext(self, stats):
         # XXX translate expressions, not words
@@ -183,42 +172,25 @@ class About(object):
         return statslabel
 
     def about_load(self, stats):
-        self.about_dialog = Gtk.AboutDialog()
+        self.builder = ui.builder('about')
+        self.provider = ui.css_provider('about')
+        self.about_dialog = self.builder.get_object('about_dialog')
         try:
             self.about_dialog.set_transient_for(self.parent_window)
-            self.about_dialog.set_modal(True)
         except:
             pass
-        self.about_dialog.set_name('Sonata')
-        self.about_dialog.set_role('about')
         self.about_dialog.set_version(self.version)
-        commentlabel = _('An elegant music client for MPD.')
-        self.about_dialog.set_comments(commentlabel)
         if stats:
             self.about_dialog.set_copyright(self.statstext(stats))
-        self.about_dialog.set_license(self.license)
-        self.about_dialog.set_authors(['Scott Horowitz <stonecrest@gmail.com>',
-                                       ('Tuukka Hastrup '
-                                       '<Tuukka.Hastrup@iki.fi>'),
-                                       'Stephen Boyd <bebarino@gmail.com>'])
-        self.about_dialog.set_artists([('Adrian Chromenko <adrian@rest0re.org>'
-                                       '\nhttp://oss.rest0re.org/')])
-        self.about_dialog.set_translator_credits(translators)
-        self.about_dialog.set_website("http://sonata.berlios.de/")
-        self.about_dialog.connect("activate-link", self.show_website)
         large_icon = GdkPixbuf.Pixbuf.new_from_file(self.icon_file)
         self.about_dialog.set_logo(large_icon)
         # Add button to show keybindings:
-        shortcut_button = ui.button(text=_("_Shortcuts"))
-        self.about_dialog.action_area.pack_start(shortcut_button, True, True, 0)
         children = self.about_dialog.action_area.get_children()[-1]
         self.about_dialog.action_area.reorder_child(children, -2)
         # Connect to callbacks
         self.about_dialog.connect('response', self.about_close)
         self.about_dialog.connect('delete_event', self.about_close)
+        shortcut_button = self.builder.get_object('shortcut_button')
         shortcut_button.connect('clicked', self.about_shortcuts)
         self.about_dialog.show_all()
 
-    def show_website(self, _dialog, link):
-        return misc.browser_load(link, self.config.url_browser, \
-                                 self.parent_window)
