@@ -3,7 +3,7 @@ import os
 import pkg_resources
 import sys
 
-from gi.repository import Gtk, Pango, Gdk, GdkPixbuf, GObject
+from gi.repository import Gtk, Gdk
 
 
 logger = logging.getLogger(__name__)

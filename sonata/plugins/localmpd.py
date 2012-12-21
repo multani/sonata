@@ -18,7 +18,7 @@
 import subprocess, locale, os
 from pwd import getpwuid
 
-from gi.repository import GObject, Gtk
+from gi.repository import GLib, Gtk
 
 from sonata.misc import escape_html
 from sonata import ui
@@ -83,7 +83,7 @@ class Netstat(object):
 
 def update(label):
     # schedule next update
-    GObject.timeout_add(1000, update, label)
+    GLib.timeout_add(1000, update, label)
 
     # don't update if not visible
     if not hasattr(label, "window") or not label.get_window().is_viewable():

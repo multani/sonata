@@ -5,7 +5,7 @@ import os
 import locale
 import logging
 
-from gi.repository import Gtk, Pango, Gdk, GdkPixbuf, GObject
+from gi.repository import Gtk, Pango, Gdk, GdkPixbuf
 
 from sonata import ui, misc, consts, mpdhelper as mpdh
 from sonata.pluginsystem import pluginsystem

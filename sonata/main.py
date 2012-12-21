@@ -31,7 +31,7 @@ import gc
 import shutil
 import threading
 
-from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, Pango
+from gi.repository import Gtk, Gdk, GdkPixbuf, GLib, Pango
 
 import pkg_resources
 
@@ -803,7 +803,7 @@ class Base(object):
 
         gc.disable()
 
-        GObject.idle_add(self.header_save_column_widths)
+        GLib.idle_add(self.header_save_column_widths)
 
         pluginsystem.notify_of('tab_construct',
                        self.on_enable_tab,
@@ -1056,8 +1056,7 @@ class Base(object):
         self.prevsonginfo = self.songinfo
 
         # Repeat ad infitum..
-        self.iterate_handler = GObject.timeout_add(self.iterate_time,
-                                                   self.iterate)
+        self.iterate_handler = GLib.timeout_add(self.iterate_time, self.iterate)
 
         if self.config.show_trayicon:
             if self.tray_icon.is_available() and \
@@ -1077,7 +1076,7 @@ class Base(object):
 
     def iterate_stop(self):
         try:
-            GObject.source_remove(self.iterate_handler)
+            GLib.source_remove(self.iterate_handler)
         except:
             pass
 
@@ -1163,7 +1162,7 @@ class Base(object):
             self.tray_icon.update_icon(self.path_to_icon('sonata_disconnect.png'))
             self.info_update(True)
             if self.current.filterbox_visible:
-                GObject.idle_add(self.current.searchfilter_toggle, None)
+                GLib.idle_add(self.current.searchfilter_toggle, None)
             if self.library.search_visible():
                 self.library.on_search_end(None)
             self.handle_change_song()
@@ -1240,8 +1239,8 @@ class Base(object):
             # items to have been shown/hidden before the menu is popped up.
             # Otherwise, if the menu pops up too quickly, it can result in
             # automatically clicking menu items for the user!
-            GObject.idle_add(self.mainmenu.popup, None, None, None,
-                             None, event.button, event.time)
+            GLib.idle_add(self.mainmenu.popup, None, None, None, None,
+                          event.button, event.time)
             # Don't change the selection for a right-click. This
             # will allow the user to select multiple rows and then
             # right-click (instead of right-clicking and having
@@ -1757,7 +1756,7 @@ class Base(object):
                 self.traytips.set_size_request(-1, -1)
             if self.config.show_notification or force_popup:
                 try:
-                    GObject.source_remove(self.traytips.notif_handler)
+                    GLib.source_remove(self.traytips.notif_handler)
                 except:
                     pass
                 if self.status_is_play_or_pause():
@@ -1779,9 +1778,8 @@ class Base(object):
                                 timeout = \
                                         int(self.popuptimes[
                                             self.config.popup_option]) * 1000
-                            self.traytips.notif_handler = \
-                                    GObject.timeout_add(timeout,
-                                                        self.traytips.hide)
+                            self.traytips.notif_handler = GLib.timeout_add(
+                                timeout, self.traytips.hide)
                         else:
                             # -1 indicates that the timeout should be forever.
                             # We don't want to pass None, because then Sonata
@@ -1878,7 +1876,7 @@ class Base(object):
 
     def on_notebook_resize(self, _widget, _event):
         if not self.current.resizing_columns:
-            GObject.idle_add(self.header_save_column_widths)
+            GLib.idle_add(self.header_save_column_widths)
 
     def on_expand(self, _action):
         if not self.config.expanded:
@@ -1933,7 +1931,7 @@ class Base(object):
         if window_about_to_be_expanded:
             self.config.expanded = True
             if self.status_is_play_or_pause():
-                GObject.idle_add(self.current.center_song_in_list)
+                GLib.idle_add(self.current.center_song_in_list)
 
             hints = Gdk.Geometry()
             hints.min_height = -1
@@ -1970,11 +1968,10 @@ class Base(object):
     def on_progressbar_scroll(self, _widget, event):
         if self.status_is_play_or_pause():
             try:
-                GObject.source_remove(self.seekidle)
+                GLib.source_remove(self.seekidle)
             except:
                 pass
-            self.seekidle = GObject.idle_add(self._seek_when_idle,
-                                             event.direction)
+            self.seekidle = GLib.idle_add(self._seek_when_idle, event.direction)
         return True
 
     def _seek_when_idle(self, direction):
@@ -2024,8 +2021,8 @@ class Base(object):
 
     def on_menu_popup(self, _widget):
         self.update_menu_visibility()
-        GObject.idle_add(self.mainmenu.popup, None, None, self.menu_position,
-                         None, 3, 0)
+        GLib.idle_add(self.mainmenu.popup, None, None, self.menu_position, None,
+                      3, 0)
 
     def on_updatedb(self, _action):
         if self.conn:
@@ -2073,7 +2070,7 @@ class Base(object):
                 self.artwork.artwork_set_image_last()
                 self.config.info_art_enlarged = False
             # Force a resize of the info labels, if needed:
-            GObject.idle_add(self.on_notebook_resize, self.notebook, None)
+            GLib.idle_add(self.on_notebook_resize, self.notebook, None)
         elif event.button == 1 and widget != self.info_imagebox:
             if self.config.expanded:
                 if self.current_tab != self.TAB_INFO:
@@ -2100,7 +2097,7 @@ class Base(object):
                 self.UIManager.get_widget(path_resetimage).hide()
                 self.UIManager.get_widget(path_chooseimage).hide()
             self.imagemenu.popup(None, None, None, None, event.button, event.time)
-        GObject.timeout_add(50, self.on_image_activate_after)
+        GLib.timeout_add(50, self.on_image_activate_after)
         return False
 
     def on_image_motion_cb(self, _widget, context, _x, _y, time):
@@ -2356,7 +2353,7 @@ class Base(object):
             # And finally, set the image in the interface:
             self.artwork.artwork_update(True)
             # Force a resize of the info labels, if needed:
-            GObject.idle_add(self.on_notebook_resize, self.notebook, None)
+            GLib.idle_add(self.on_notebook_resize, self.notebook, None)
         self.image_local_dialog.hide()
 
     def imagelist_append(self, elem):
@@ -2425,7 +2422,7 @@ class Base(object):
         artist_search = self.remote_artistentry.get_text()
         album_search = self.remote_albumentry.get_text()
         if len(artist_search) == 0 and len(album_search) == 0:
-            GObject.idle_add(self.image_remote_no_tag_found, imagewidget)
+            GLib.idle_add(self.image_remote_no_tag_found, imagewidget)
             return
         filename = os.path.expanduser("~/.covers/temp/<imagenum>.jpg")
         misc.remove_dir_recursive(os.path.dirname(filename))
@@ -2436,8 +2433,7 @@ class Base(object):
         ui.change_cursor(None)
         if self.chooseimage_visible:
             if not imgfound:
-                GObject.idle_add(self.image_remote_no_covers_found,
-                                 imagewidget)
+                GLib.idle_add(self.image_remote_no_covers_found, imagewidget)
         self.call_gc_collect = True
 
     def image_remote_no_tag_found(self, imagewidget):
@@ -2465,7 +2461,7 @@ class Base(object):
                     imagewidget, imagewidget.get_selected_items()[0], artist,
                     album, stream)
                 # Force a resize of the info labels, if needed:
-                GObject.idle_add(self.on_notebook_resize, self.notebook, None)
+                GLib.idle_add(self.on_notebook_resize, self.notebook, None)
             except:
                 dialog.hide()
         else:
@@ -2556,8 +2552,7 @@ class Base(object):
             # if self.traytips.notif_handler is None and
             # self.traytips.notif_handler != -1:
             # self.traytips._remove_timer()
-            GObject.timeout_add(100,
-                                self.tooltip_set_ignore_toggle_signal_false)
+            GLib.timeout_add(100, self.tooltip_set_ignore_toggle_signal_false)
 
     def systemtray_click(self, _widget, event):
         # Clicking on a system tray icon:
@@ -2624,7 +2619,7 @@ class Base(object):
             self.withdraw_app_undo()
         else:
             self.withdraw_app()
-        GObject.timeout_add(500, self.tooltip_set_ignore_toggle_signal_false)
+        GLib.timeout_add(500, self.tooltip_set_ignore_toggle_signal_false)
 
     def tooltip_set_ignore_toggle_signal_false(self):
         self.ignore_toggle_signal = False
@@ -2909,7 +2904,7 @@ class Base(object):
             self.update_cursong()
 
         # Force a resize of the info labels, if needed:
-        GObject.idle_add(self.on_notebook_resize, self.notebook, None)
+        GLib.idle_add(self.on_notebook_resize, self.notebook, None)
 
     def prefs_stylized_toggled(self, button):
         self.config.covers_type = button.get_active()
@@ -2940,7 +2935,7 @@ class Base(object):
             self.on_currsong_notify()
         else:
             try:
-                GObject.source_remove(self.traytips.notif_handler)
+                GLib.source_remove(self.traytips.notif_handler)
             except:
                 pass
             self.traytips.hide()
@@ -3029,9 +3024,9 @@ class Base(object):
         self.current_tab = self.notebook_get_tab_text(self.notebook, page_num)
         to_focus = self.tabname2focus.get(self.current_tab, None)
         if to_focus:
-            GObject.idle_add(to_focus.grab_focus)
+            GLib.idle_add(to_focus.grab_focus)
 
-        GObject.idle_add(self.update_menu_visibility)
+        GLib.idle_add(self.update_menu_visibility)
         if not self.img_clicked:
             self.last_tab = self.current_tab
 
@@ -3047,8 +3042,8 @@ class Base(object):
                 return
         if event.button == 3:
             self.update_menu_visibility(True)
-            GObject.idle_add(self.mainmenu.popup, None, None, None, None,
-                             event.button, event.time)
+            GLib.idle_add(self.mainmenu.popup, None, None, None, None,
+                          event.button, event.time)
 
     def on_tab_toggle(self, toggleAction):
         name = toggleAction.get_name()

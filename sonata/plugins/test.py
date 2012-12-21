@@ -69,6 +69,6 @@ def on_lyrics_fetch(callback, artist, title):
         (artist, title))
 
     # callback(lyrics, error)
-    GObject.timeout_add(0, callback, None,
-                "%s doesn't have lyrics for %r." %
-                (__name__, (artist, title)))
+    GLib.timeout_add(
+        0, callback, None,
+        "%s doesn't have lyrics for %r." % (__name__, (artist, title)))

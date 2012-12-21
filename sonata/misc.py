@@ -6,6 +6,8 @@ import locale
 import logging
 import sys
 
+from gi.repository import GLib
+
 
 logger = logging.getLogger(__name__)
 
@@ -201,9 +203,8 @@ def browser_load(docslink, browser, window):
 
 
 def file_from_utf8(filename):
-    from gi.repository import GObject
     try:
-        return GObject.filename_from_utf8(filename)
+        return GLib.filename_from_utf8(filename)
     except:
         return filename
 

@@ -5,7 +5,7 @@ import re
 import sys
 import threading # get_lyrics_start starts a thread get_lyrics_thread
 
-from gi.repository import GObject
+from gi.repository import GLib
 
 from sonata import misc, consts, mpdhelper as mpdh
 from sonata.pluginsystem import pluginsystem, BuiltinPlugin
@@ -64,4 +64,4 @@ class LyricWiki(object):
             self.call_back(callback, error=error)
 
     def call_back(self, callback, lyrics=None, error=None):
-        GObject.timeout_add(0, callback, lyrics, error)
+        GLib.timeout_add(0, callback, lyrics, error)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from gi.repository import Gtk, Gdk, GObject, Pango
+from gi.repository import Gtk, Gdk, Pango
 
 
 class CrumbButton(Gtk.ToggleButton):

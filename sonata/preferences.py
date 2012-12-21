@@ -12,7 +12,7 @@ prefs.on_prefs_real(self.window, self.prefs_window_response, tab callbacks...)
 
 import gettext, hashlib
 
-from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
+from gi.repository import Gtk, Gdk, GdkPixbuf
 
 from sonata.config import Config
 from sonata.pluginsystem import pluginsystem

@@ -20,7 +20,7 @@ import re
 import urllib.parse, urllib.request
 import threading # searchfilter_toggle starts thread searchfilter_loop
 
-from gi.repository import Gtk, Gdk, Pango, GObject
+from gi.repository import Gtk, Gdk, Pango, GLib
 
 from sonata import ui, misc, formatting, mpdhelper as mpdh
 
@@ -672,8 +672,8 @@ class Current(object):
             self.header_hide_all_indicators(self.current, False)
         self.iterate_now()
 
-        GObject.idle_add(self.dnd_retain_selection, treeview.get_selection(),
-                         moved_iters)
+        GLib.idle_add(self.dnd_retain_selection, treeview.get_selection(),
+                      moved_iters)
 
     def dnd_retain_selection(self, treeselection, moved_iters):
         treeselection.unselect_all()
@@ -716,7 +716,7 @@ class Current(object):
             qsearch_thread = threading.Thread(target=self.searchfilter_loop)
             qsearch_thread.daemon = True
             qsearch_thread.start()
-            GObject.idle_add(self.filter_entry_grab_focus, self.filterpattern)
+            GLib.idle_add(self.filter_entry_grab_focus, self.filterpattern)
         self.current.set_headers_clickable(not self.filterbox_visible)
 
     def searchfilter_on_enter(self, _entry):
@@ -737,12 +737,11 @@ class Current(object):
         # Lets only trigger the searchfilter_loop if 200ms pass
         # without a change in Gtk.Entry
         try:
-            GObject.source_remove(self.filterbox_source)
+            GLib.source_remove(self.filterbox_source)
         except:
             pass
-        self.filterbox_source = GObject.timeout_add(200,
-                                                self.searchfilter_start_loop,
-                                                editable)
+        self.filterbox_source = GLib.timeout_add(
+            200, self.searchfilter_start_loop, editable)
 
     def searchfilter_start_loop(self, editable):
         self.filterbox_cond.acquire()
@@ -780,7 +779,7 @@ class Current(object):
             prev_rownums = [song for song in self.filter_row_mapping]
             self.filter_row_mapping = []
             if todo == '$$$QUIT###':
-                GObject.idle_add(self.searchfilter_revert_model)
+                GLib.idle_add(self.searchfilter_revert_model)
                 return
             elif len(todo) == 0:
                 for row in self.currentdata:
@@ -844,17 +843,17 @@ class Current(object):
                 self.filterbox_cond.release()
             except:
                 pass
-            GObject.idle_add(self.searchfilter_set_matches, matches,
-                             filterposition, filterselected,
-                             retain_position_and_selection)
+            GLib.idle_add(self.searchfilter_set_matches, matches,
+                          filterposition, filterselected,
+                          retain_position_and_selection)
             self.prevtodo = todo
 
     def searchfilter_revert_model(self):
         self.current.set_model(self.currentdata)
         self.center_song_in_list()
         self.current.thaw_child_notify()
-        GObject.idle_add(self.center_song_in_list)
-        GObject.idle_add(self.current.grab_focus)
+        GLib.idle_add(self.center_song_in_list)
+        GLib.idle_add(self.current.grab_focus)
 
     def searchfilter_set_matches(self, matches, filterposition,
                                  filterselected,
@@ -874,11 +873,10 @@ class Current(object):
             elif len(matches) > 0:
                 self.current.set_cursor(Gtk.TreePath.new_first(), None, False)
             if len(matches) == 0:
-                GObject.idle_add(self.filtering_entry_make_red,
-                                 self.filterpattern)
+                GLib.idle_add(self.filtering_entry_make_red, self.filterpattern)
             else:
-                GObject.idle_add(self.filtering_entry_revert_color,
-                                 self.filterpattern)
+                GLib.idle_add(self.filtering_entry_revert_color,
+                              self.filterpattern)
             self.current.thaw_child_notify()
 
     def searchfilter_key_pressed(self, widget, event):
@@ -892,7 +890,7 @@ class Current(object):
 
             treeview.grab_focus()
             treeview.emit("key-press-event", event)
-            GObject.idle_add(self.filter_entry_grab_focus, widget)
+            GLib.idle_add(self.filter_entry_grab_focus, widget)
 
     def filter_entry_grab_focus(self, widget):
         widget.grab_focus()

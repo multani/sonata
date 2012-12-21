@@ -1,7 +1,7 @@
 
 import os
 
-from gi.repository import Gtk, GObject, Pango
+from gi.repository import Gtk, GLib
 
 from sonata import ui, img
 
@@ -12,13 +12,12 @@ class TrayIconTips(Gtk.Window):
     MARGIN = 4
 
     def __init__(self):
-        GObject.GObject.__init__(self, type=Gtk.WindowType.POPUP)
+        Gtk.Window.__init__(self, type=Gtk.WindowType.POPUP)
         # from gtktooltips.c:gtk_tooltips_force_window
         self.set_app_paintable(True)
         self.set_resizable(False)
         self.set_name("gtk-tooltips")
 
-        self._show_timeout_id = -1
         self.timer_tag = None
         self.notif_handler = None
         self.use_notifications_location = False
@@ -86,8 +85,7 @@ class TrayIconTips(Gtk.Window):
                     monitor.y + (monitor.height - h) / 2
 
     def _start_delay(self, tray_icon):
-        self.timer_tag = GObject.timeout_add(500, self._tips_timeout,
-                                             tray_icon)
+        self.timer_tag = GLib.timeout_add(500, self._tips_timeout, tray_icon)
 
     def _tips_timeout(self, tray_icon):
         self.use_notifications_location = False
@@ -96,7 +94,7 @@ class TrayIconTips(Gtk.Window):
     def _remove_timer(self):
         self.hide()
         if self.timer_tag:
-            GObject.source_remove(self.timer_tag)
+            GLib.source_remove(self.timer_tag)
         self.timer_tag = None
 
     def _real_display(self, tray_icon):
@@ -108,8 +106,6 @@ class TrayIconTips(Gtk.Window):
 
     def hide(self):
         Gtk.Window.hide(self)
-        GObject.source_remove(self._show_timeout_id)
-        self._show_timeout_id = -1
         self.notif_handler = None
 
     def add_widget(self, widget_to_add):
@@ -134,7 +130,7 @@ class TrayIcon(object):
         self.statusicon.connect('activate', on_activate)
         self.statusicon.connect('button_press_event', on_click)
         self.statusicon.connect('scroll-event', on_scroll)
-        GObject.timeout_add(250, self._iterate_status_icon)
+        GLib.timeout_add(250, self._iterate_status_icon)
 
     def is_visible(self):
         """Visible and/or notification activated"""
@@ -156,7 +152,7 @@ class TrayIcon(object):
     def _iterate_status_icon(self):
         if self.is_visible():
             self._tooltip_show_manually()
-        GObject.timeout_add(250, self._iterate_status_icon)
+        GLib.timeout_add(250, self._iterate_status_icon)
 
     def _tooltip_show_manually(self):
         # Since there is no signal to connect to when the user puts their

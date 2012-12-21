@@ -1,7 +1,7 @@
 
 import os
 
-from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
+from gi.repository import Gtk, Gdk, GdkPixbuf, GLib
 
 def valid_image(filename):
     return bool(GdkPixbuf.Pixbuf.get_file_info(filename))
@@ -67,7 +67,7 @@ def single_image_in_dir(dirname):
     # Returns None or a filename if there is exactly one image
     # in the dir.
     try:
-        dirname = GObject.filename_from_utf8(dirname)
+        dirname = GLib.filename_from_utf8(dirname)
     except:
         pass
 

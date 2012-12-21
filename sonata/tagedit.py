@@ -12,7 +12,7 @@ tageditor.on_tags_edit(files, temp_mpdpaths, self.musicdir[self.profile_num])
 import os
 import re
 
-from gi.repository import Gtk, GObject
+from gi.repository import Gtk, GLib
 tagpy = None # module loaded when needed
 
 from sonata import ui, misc
@@ -177,7 +177,7 @@ class TagEditor():
                 done = True
 
         tag_paths = (tag['mpdpath'] for tag in self.tags[:self.tagnum])
-        GObject.idle_add(self.tags_mpd_update, tag_paths)
+        GLib.idle_add(self.tags_mpd_update, tag_paths)
         self.tags_set_use_mpdpath(self.use_mpdpaths)
 
         self.tags = None
@@ -245,7 +245,7 @@ class TagEditor():
             if not current_tag[entry_name + "-changed"]:
                 self.tags_win_entry_revert_color(entry)
 
-        self.curr_mpdpath = GObject.filename_display_name(current_tag['mpdpath'])
+        self.curr_mpdpath = GLib.filename_display_name(current_tag['mpdpath'])
         filename = self.curr_mpdpath
         if not self.use_mpdpaths:
             filename = os.path.basename(filename)

@@ -2,7 +2,7 @@ from __future__ import with_statement
 import os
 import threading # artwork_update starts a thread _artwork_update
 
-from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
+from gi.repository import Gtk, Gdk, GdkPixbuf, GLib
 
 from sonata import img, ui, misc, consts, mpdhelper as mpdh
 from sonata import library
@@ -221,7 +221,7 @@ class Artwork(object):
                     if filename is not None:
                         self.set_library_artwork_cached_filename(cache_key,
                                                                  filename)
-                    GObject.idle_add(self.library_set_cover, i, pb, data)
+                        GLib.idle_add(self.library_set_cover, i, pb, data)
 
                 # Remote processed item from queue:
                 if not remote_art:
@@ -345,8 +345,8 @@ class Artwork(object):
             streamfile = self.artwork_stream_filename(mpdh.get(self.songinfo,
                                                                'name'))
             if os.path.exists(streamfile):
-                GObject.idle_add(self.artwork_set_image, streamfile, None,
-                                 None, None)
+                GLib.idle_add(self.artwork_set_image, streamfile, None, None,
+                              None)
             else:
                 self.artwork_set_default_icon()
         else:
@@ -384,8 +384,7 @@ class Artwork(object):
                 self.misc_img_in_dir = filename
             elif location_type == consts.ART_LOCATION_SINGLE:
                 self.single_img_in_dir = filename
-            GObject.idle_add(self.artwork_set_image, filename, artist, album,
-                             path)
+            GLib.idle_add(self.artwork_set_image, filename, artist, album, path)
             return True
 
         return False
@@ -439,19 +438,18 @@ class Artwork(object):
         self.artwork_set_default_icon(artist, album, path)
         self.artwork_download_img_to_file(artist, album, filename)
         if os.path.exists(filename):
-            GObject.idle_add(self.artwork_set_image, filename, artist, album,
-                             path)
+            GLib.idle_add(self.artwork_set_image, filename, artist, album, path)
             return True
         return False
 
     def artwork_set_default_icon(self, artist=None, album=None, path=None):
         if self.albumimage.get_property('file') != self.sonatacd:
-            GObject.idle_add(self.albumimage.set_from_file, self.sonatacd)
-            GObject.idle_add(self.info_image.set_from_file,
+            GLib.idle_add(self.albumimage.set_from_file, self.sonatacd)
+            GLib.idle_add(self.info_image.set_from_file,
                              self.sonatacd_large)
-            GObject.idle_add(self.fullscreen_cover_art_reset_image)
-        GObject.idle_add(self.artwork_set_tooltip_art,
-                         GdkPixbuf.Pixbuf.new_from_file(self.sonatacd))
+            GLib.idle_add(self.fullscreen_cover_art_reset_image)
+        GLib.idle_add(self.artwork_set_tooltip_art,
+                      GdkPixbuf.Pixbuf.new_from_file(self.sonatacd))
         self.lastalbumart = None
 
         # Also, update row in library:
@@ -459,8 +457,7 @@ class Artwork(object):
             cache_key = library.SongRecord(artist=artist, album=album, path=path)
             self.set_library_artwork_cached_filename(cache_key,
                                                      self.album_filename)
-            GObject.idle_add(self.library_set_image_for_current_song,
-                             cache_key)
+            GLib.idle_add(self.library_set_image_for_current_song, cache_key)
 
     def artwork_get_misc_img_in_path(self, songdir):
         path = os.path.join(self.config.musicdir[self.config.profile_num],

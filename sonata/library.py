@@ -5,7 +5,7 @@ import locale
 import threading # libsearchfilter_toggle starts thread libsearchfilter_loop
 import operator
 
-from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, Pango
+from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Pango
 
 from sonata import ui, misc, consts, formatting, breadcrumbs, mpdhelper as mpdh
 from sonata.song import SongRecord
@@ -169,8 +169,8 @@ class Library(object):
         self.searchcombo.handler_block(searchcombo_changed_handler)
         self.searchcombo.set_active(self.config.last_search_num)
         self.searchcombo.handler_unblock(searchcombo_changed_handler)
-        self.librarydata = Gtk.ListStore(GdkPixbuf.Pixbuf, GObject.TYPE_PYOBJECT,
-                                         str)
+        self.librarydata = Gtk.ListStore(GdkPixbuf.Pixbuf,
+                                         GObject.TYPE_PYOBJECT, str)
         self.library.set_model(self.librarydata)
         self.library.set_search_column(2)
         self.librarycell = Gtk.CellRendererText()
@@ -240,7 +240,7 @@ class Library(object):
         except Exception as e:
             # XXX import logger here in the future
             raise e
-        GObject.idle_add(self.library.scroll_to_point, 0, 0)
+        GLib.idle_add(self.library.scroll_to_point, 0, 0)
 
     def view_caches_reset(self):
         # We should call this on first load and whenever mpd is
@@ -256,9 +256,9 @@ class Library(object):
 
     def on_library_scrolled(self, _widget, _event):
         try:
-            # Use GObject.idle_add so that we can get the visible
+            # Use GLib.idle_add so that we can get the visible
             # state of the treeview
-            GObject.idle_add(self._on_library_scrolled)
+            GLib.idle_add(self._on_library_scrolled)
         except:
             pass
 
@@ -336,10 +336,10 @@ class Library(object):
         # in 5 seconds (first removing any current settings_save timeouts)
         if self.config.wd != root:
             try:
-                GObject.source_remove(self.save_timeout)
+                GLib.source_remove(self.save_timeout)
             except:
                 pass
-            self.save_timeout = GObject.timeout_add(5000, self.settings_save)
+            self.save_timeout = GLib.timeout_add(5000, self.settings_save)
 
         self.config.wd = root
         self.library.freeze_child_notify()
@@ -396,7 +396,7 @@ class Library(object):
 
         # Scroll back to set view for current dir:
         self.library.realize()
-        GObject.idle_add(self.library_set_view, not path_updated)
+        GLib.idle_add(self.library_set_view, not path_updated)
         if len(prev_selection) > 0 or prev_selection_root or \
            prev_selection_parent:
             # Retain pre-update selection:
@@ -1018,8 +1018,8 @@ class Library(object):
             # If the user hovers over an empty row and then back to
             # a row with a search result, this will ensure the tooltip
             # shows up again:
-            GObject.idle_add(self.library_search_tooltips_enable, widget, x, y,
-                             keyboard_mode, None)
+            GLib.idle_add(self.library_search_tooltips_enable, widget, x, y,
+                          keyboard_mode, None)
             return False
         treepath, _col, _x2, _y2 = pathinfo
 
@@ -1032,9 +1032,9 @@ class Library(object):
         if new_tooltip != self.libsearch_last_tooltip:
             self.libsearch_last_tooltip = new_tooltip
             self.library.set_property('has-tooltip', False)
-            GObject.idle_add(self.library_search_tooltips_enable, widget, x, y,
-                             keyboard_mode, tooltip)
-            GObject.idle_add(widget.set_tooltip_markup, new_tooltip)
+            GLib.idle_add(self.library_search_tooltips_enable, widget, x, y,
+                          keyboard_mode, tooltip)
+            GLib.idle_add(widget.set_tooltip_markup, new_tooltip)
             return
 
         self.libsearch_last_tooltip = new_tooltip
@@ -1192,7 +1192,7 @@ class Library(object):
             self.libsearchfilter_stop_loop()
             # call library_browse from the main thread to avoid corruption
             # of treeview, fixes #1959
-            GObject.idle_add(self.library_browse, None, self.config.wd)
+            GLib.idle_add(self.library_browse, None, self.config.wd)
             if move_focus:
                 self.library.grab_focus()
 
@@ -1202,10 +1202,10 @@ class Library(object):
         # Lets only trigger the searchfilter_loop if 200ms pass
         # without a change in Gtk.Entry
         try:
-            GObject.source_remove(self.libfilterbox_source)
+            GLib.source_remove(self.libfilterbox_source)
         except:
             pass
-        self.libfilterbox_source = GObject.timeout_add(
+        self.libfilterbox_source = GLib.timeout_add(
             300, self.libsearchfilter_start_loop, editable)
 
     def libsearchfilter_start_loop(self, editable):
@@ -1234,19 +1234,19 @@ class Library(object):
             searchby = self.search_terms_mpd[self.config.last_search_num]
             if self.prevlibtodo != todo:
                 if todo == '$$$QUIT###':
-                    GObject.idle_add(self.filtering_entry_revert_color,
-                                     self.searchtext)
+                    GLib.idle_add(self.filtering_entry_revert_color,
+                                  self.searchtext)
                     return
                 elif len(todo) > 1:
-                    GObject.idle_add(self.libsearchfilter_do_search,
-                                     searchby, todo)
+                    GLib.idle_add(self.libsearchfilter_do_search, searchby,
+                                  todo)
                 elif len(todo) == 0:
-                    GObject.idle_add(self.filtering_entry_revert_color,
-                                     self.searchtext)
+                    GLib.idle_add(self.filtering_entry_revert_color,
+                                  self.searchtext)
                     self.libsearchfilter_toggle(False)
                 else:
-                    GObject.idle_add(self.filtering_entry_revert_color,
-                                     self.searchtext)
+                    GLib.idle_add(self.filtering_entry_revert_color,
+                                  self.searchtext)
             self.libfilterbox_cond.acquire()
             self.libfilterbox_cmd_buf = '$$$DONE###'
             try:
@@ -1330,12 +1330,11 @@ class Library(object):
                 self.librarydata.remove(j)
         self.library.thaw_child_notify()
         if len(matches) == 0:
-            GObject.idle_add(self.filtering_entry_make_red, self.searchtext)
+            GLib.idle_add(self.filtering_entry_make_red, self.searchtext)
         else:
-            GObject.idle_add(self.library.set_cursor, Gtk.TreePath.new_first(),
-                             None, False)
-            GObject.idle_add(self.filtering_entry_revert_color,
-                             self.searchtext)
+            GLib.idle_add(self.library.set_cursor, Gtk.TreePath.new_first(),
+                          None, False)
+            GLib.idle_add(self.filtering_entry_revert_color, self.searchtext)
 
     def libsearchfilter_key_pressed(self, widget, event):
         self.filter_key_pressed(widget, event, self.library)
@@ -1344,7 +1343,7 @@ class Library(object):
         self.on_library_row_activated(None, None)
 
     def libsearchfilter_set_focus(self):
-        GObject.idle_add(self.searchtext.grab_focus)
+        GLib.idle_add(self.searchtext.grab_focus)
 
     def libsearchfilter_get_style(self):
         return self.searchtext.get_style()
