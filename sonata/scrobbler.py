@@ -83,7 +83,7 @@ class Scrobbler(object):
                              songinfo=None, mpd_time_now=None):
         """Handle changes to play status, submitting info as appropriate"""
         if prevsonginfo and 'time' in prevsonginfo:
-            prevsong_time = mpdh.get(prevsonginfo, 'time')
+            prevsong_time = prevsonginfo.time
         else:
             prevsong_time = None
 
@@ -91,7 +91,7 @@ class Scrobbler(object):
             elapsed_prev = self.elapsed_now
             self.elapsed_now, length = [float(c) for c in
                                         mpd_time_now.split(':')]
-            current_file = mpdh.get(songinfo, 'file')
+            current_file = songinfo.file
             if prevstate == 'stop':
                 # Switched from stop to play, prepare current track:
                 self.prepare(songinfo)
@@ -147,7 +147,7 @@ class Scrobbler(object):
                     self.np(songinfo)
 
                     self.scrob_start_time = str(int(time.time()))
-                    self.scrob_last_prepared = mpdh.get(songinfo, 'file')
+                    self.scrob_last_prepared = songinfo.file
 
     def np(self, songinfo):
         thread = threading.Thread(target=self.do_np, args=(songinfo,))
@@ -160,20 +160,14 @@ class Scrobbler(object):
             if 'artist' in songinfo and \
                'title' in songinfo and \
                'time' in songinfo:
-                if not 'album' in songinfo:
-                    album = ''
-                else:
-                    album = mpdh.get(songinfo, 'album')
-                if not 'track' in songinfo:
-                    tracknumber = ''
-                else:
-                    tracknumber = mpdh.get(songinfo, 'track')
+                album = songinfo.get('albumr', '')
+                tracknumber = songinfo.get('track', '')
                 try:
-                    self.scrob_post.nowplaying(mpdh.get(songinfo, 'artist'),
-                                                mpdh.get(songinfo, 'title'),
-                                                mpdh.get(songinfo, 'time'),
-                                                tracknumber,
-                                                album)
+                    self.scrob_post.nowplaying(songinfo.artist,
+                                               songinfo.title,
+                                               songinfo.time,
+                                               tracknumber,
+                                               album)
                 except:
                     self.logger.exception(
                         "Unable to send 'now playing' data to the scrobbler")
@@ -185,19 +179,13 @@ class Scrobbler(object):
             if 'artist' in prevsonginfo and \
                'title' in prevsonginfo and \
                'time' in prevsonginfo:
-                if not 'album' in prevsonginfo:
-                    album = ''
-                else:
-                    album = mpdh.get(prevsonginfo, 'album')
-                if not 'track' in prevsonginfo:
-                    tracknumber = ''
-                else:
-                    tracknumber = mpdh.get(prevsonginfo, 'track')
+                album = songinfo.get('albumr', '')
+                tracknumber = songinfo.get('track', '')
                 try:
                     self.scrob_post.addtrack(
-                        mpdh.get(prevsonginfo, 'artist'),
-                        mpdh.get(prevsonginfo, 'title'),
-                        mpdh.get(prevsonginfo, 'time'),
+                        prevsonginfo.artist,
+                        prevsonginfo.title,
+                        prevsonginfo.time,
                         self.scrob_start_time,
                         tracknumber,
                         album)

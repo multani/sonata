@@ -197,11 +197,9 @@ class Current(object):
         for path in selected:
             index = path.get_indices()[0]
             if not self.filterbox_visible:
-                item = mpdh.get(self.current_songs[index], 'file')
+                item = self.current_songs[index].file
             else:
-                item = mpdh.get(
-                    self.current_songs[self.filter_row_mapping[index]],
-                    'file')
+                item = self.current_songs[self.filter_row_mapping[index]].file
             if return_abs_paths:
                 filenames.append(
                     os.path.join(self.config.musicdir[self.config.profile_num],
@@ -222,10 +220,8 @@ class Current(object):
             else:
                 weight = [Pango.Weight.NORMAL]
 
-            row = [mpdh.get(track, 'id', 0, True)] + items + weight
-            self.currentdata.append(row)
+            self.currentdata.append([track.id] + items + weight)
 
-        # Keep position
         self.playlist_retain_view(self.current, position.y)
 
     def current_update(self, prevstatus_playlist, new_playlist_length):
@@ -251,7 +247,7 @@ class Current(object):
                 currlen = len(self.currentdata)
 
                 for track in changed_songs:
-                    pos = mpdh.get(track, 'pos', 0, True)
+                    pos = track.pos
 
                     items = [formatting.parse(part, track,
                                   True)
@@ -260,10 +256,8 @@ class Current(object):
                     if pos < currlen:
                         # Update attributes for item:
                         i = self.currentdata.get_iter((pos, ))
-                        trackid = mpdh.get(track, 'id',
-                                    0, True)
-                        if trackid != self.currentdata.get_value(i, 0):
-                            self.currentdata.set_value(i, 0, trackid)
+                        if track.id != self.currentdata.get_value(i, 0):
+                            self.currentdata.set_value(i, 0, track.id)
                         for index in range(len(items)):
                             if items[index] != self.currentdata.get_value(i,
                                                                     index + 1):
@@ -272,9 +266,8 @@ class Current(object):
                         self.current_songs[pos] = track
                     else:
                         # Add new item:
-                        row = [mpdh.get(track, 'id', 0, True)] + \
-                                items + [Pango.Weight.NORMAL]
-                        self.currentdata.append(row)
+                        self.currentdata.append([track.id] + items +
+                                                [Pango.Weight.NORMAL])
                         self.current_songs.append(track)
 
                 if newlen == 0:
@@ -293,16 +286,10 @@ class Current(object):
             self.current_update_skip = False
 
             # Update statusbar time:
-            self.total_time = 0
-            for track in self.current_songs:
-                try:
-                    self.total_time = self.total_time + mpdh.get(track, 'time',
-                                                                 0, True)
-                except:
-                    pass
+            self.total_time = sum(t.time for t in self.current_songs)
 
             if 'pos' in self.songinfo():
-                currsong = mpdh.get(self.songinfo(), 'pos', 0, True)
+                currsong = self.songinfo().pos
                 self.boldrow(currsong)
                 self.prev_boldrow = currsong
 
@@ -363,9 +350,9 @@ class Current(object):
         if self.config.expanded and len(self.currentdata) > 0:
             self.current.realize()
             try:
-                row = mpdh.get(self.songinfo(), 'pos', None)
-                if row is None:
+                if 'pos' not in self.songinfo():
                     return
+                row = self.songinfo().pos
                 visible_rect = self.current.get_visible_rect()
                 row_path = Gtk.TreePath(row)
                 row_rect = self.current.get_background_area(row_path,
@@ -456,21 +443,20 @@ class Current(object):
                 # the end of the list (hence the 'zzzzzzz'):
                 zzz = 'zzzzzzzz'
                 if mode == 'artist':
-                    record["sortby"] = (misc.lower_no_the(mpdh.get(track,
-                                                                    'artist',
-                                                                    zzz)),
-                                mpdh.get(track, 'album', zzz).lower(),
-                                mpdh.get(track, 'disc', '0', True, 0),
-                                mpdh.get(track, 'track', '0', True, 0))
+                    record["sortby"] = (
+                        misc.lower_no_the(track.artist or zzz),
+                        (track.album or zzz).lower(),
+                        track.disc,
+                        track.track)
                 elif mode == 'album':
-                    record["sortby"] = (mpdh.get(track, 'album', zzz).lower(),
-                                mpdh.get(track, 'disc', '0', True, 0),
-                                mpdh.get(track, 'track', '0', True, 0))
+                    record["sortby"] = ((track.album or zzz).lower(),
+                                        track.disc,
+                                        track.track)
                 elif mode == 'file':
-                    record["sortby"] = mpdh.get(track, 'file',
-                                                zzz).lower().split('/')[-1]
+                    record["sortby"] = os.path.basename(track.file or
+                                                        zzz).lower()
                 elif mode == 'dirfile':
-                    record["sortby"] = mpdh.get(track, 'file', zzz).lower()
+                    record["sortby"] = (track.file or zzz).lower()
                 elif mode == 'col':
                     # Sort by column:
                     record["sortby"] = self.currentdata.get_value(
@@ -480,8 +466,9 @@ class Current(object):
                         record["sortby"] = self.sanitize_songlen_for_sorting(
                             record["sortby"], custom_pos)
                 else:
-                    record["sortby"] = mpdh.get(track, mode, zzz).lower()
-                record["id"] = int(track["id"])
+                    record["sortby"] = track.get(mode, zzz).lower()
+
+                record["id"] = track.id
                 songs.append(record)
                 track_num = track_num + 1
 
@@ -563,7 +550,8 @@ class Current(object):
                     listallinfo = self.mpd.listallinfo(paths[i])
                     for item in listallinfo:
                         if 'file' in item:
-                            mpdpaths.append(mpdh.get(item, 'file'))
+                            mpdpaths.append(item['file'])
+
                 # Add local file, available in mpd 0.14. This currently
                 # work because python-mpd does not support unix socket
                 # paths, won't which is needed for authentication for

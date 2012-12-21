@@ -28,6 +28,9 @@ def convert_time_raw(seconds):
     return hours, minutes, seconds
 
 def escape_html(s):
+    if not s: # None or ""
+        return ""
+
     # & needs to be escaped first, before more are introduced:
     s = s.replace('&', '&amp;')
     s = s.replace('<', '&lt;')
@@ -57,7 +60,7 @@ def wiki_to_html(s):
 
 
 def strip_all_slashes(s):
-    if s is None:
+    if not s: # None or ""
         return ""
     s = s.replace("\\", "")
     s = s.replace("/", "")

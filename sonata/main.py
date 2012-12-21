@@ -1551,7 +1551,7 @@ class Base(object):
             self.album_return_artist_name()
         elif self.songinfo and 'artist' in self.songinfo:
             self.album_current_artist = [self.songinfo,
-                                         mpdh.get(self.songinfo, 'artist')]
+                                         self.songinfo.artist]
         else:
             self.album_current_artist = [self.songinfo, ""]
 
@@ -1568,10 +1568,8 @@ class Base(object):
             row = int(self.status['song'])
             self.current.boldrow(row)
             if self.songinfo:
-                song_id = mpdh.get(self.songinfo, 'id') 
-                last_song_id = None if not self.prevsonginfo else mpdh.get(
-                    self.prevsonginfo, 'id')
-                if song_id != last_song_id:
+                if not self.prevsonginfo or self.songinfo.id != \
+                   self.prevsonginfo.id:
                     self.current.center_song_in_list()
             self.current.prev_boldrow = row
 
@@ -1599,8 +1597,7 @@ class Base(object):
                 at, length = [int(c) for c in self.status['time'].split(':')]
                 at_time = misc.convert_time(at)
                 try:
-                    time = misc.convert_time(mpdh.get(self.songinfo,
-                                                      'time', 0, True))
+                    time = misc.convert_time(self.songinfo.time)
                     newtime = at_time + " / " + time
                 except:
                     newtime = at_time
@@ -1812,25 +1809,21 @@ class Base(object):
                     info_file.write('Status: ' + 'Paused' + '\n')
                 elif self.status['state'] in ['stop']:
                     info_file.write('Status: ' + 'Stopped' + '\n')
-                try:
-                    info_file.write('Title: %s - %s\n' %
-                                    (mpdh.get(self.songinfo, 'artist'),
-                                     mpdh.get(self.songinfo, 'title'),))
-                except:
+
+                if self.songinfo.artist:
+                    info_file.write('Title: %s - %s\n' % (
+                        self.songinfo.artist,
+                        (self.songinfo.title or '')))
+                else:
+                    # No Artist in streams
                     try:
-                        # No Arist in streams
-                        info_file.write('Title: %s\n' % \
-                                        (mpdh.get(self.songinfo, 'title'),))
+                        info_file.write('Title: %s\n' % (self.songinfo.title or ''))
                     except:
                         info_file.write('Title: No - ID Tag\n')
-                info_file.write('Album: %s\n' % (mpdh.get(self.songinfo,
-                                                         'album', 'No Data'),))
-                info_file.write('Track: %s\n' % (mpdh.get(self.songinfo,
-                                                          'track', '0'),))
-                info_file.write('File: %s\n' % (mpdh.get(self.songinfo, 'file',
-                                                         'No Data'),))
-                info_file.write('Time: %s\n' % (mpdh.get(self.songinfo, 'time',
-                                                         '0'),))
+                info_file.write('Album: %s\n' % (self.songinfo.album or 'No Data'))
+                info_file.write('Track: %s\n' % self.songinfo.track)
+                info_file.write('File: %s\n' % (self.songinfo.file or 'No Data'))
+                info_file.write('Time: %s\n' % self.songinfo.time)
                 info_file.write('Volume: %s\n' % (self.status['volume'],))
                 info_file.write('Repeat: %s\n' % (self.status['repeat'],))
                 info_file.write('Random: %s\n' % (self.status['random'],))
@@ -1983,15 +1976,14 @@ class Base(object):
             if direction == Gdk.ScrollDirection.UP:
                 seektime = max(0, at + 5)
             elif direction == Gdk.ScrollDirection.DOWN:
-                seektime = min(mpdh.get(self.songinfo, 'time'),
-                           at - 5)
+                seektime = min(self.songinfo.time, at - 5)
             self.seek(int(self.status['song']), seektime)
         except:
             pass
 
     def on_lyrics_search(self, _event):
-        artist = mpdh.get(self.songinfo, 'artist')
-        title = mpdh.get(self.songinfo, 'title')
+        artist = self.songinfo.artist or ''
+        title = self.songinfo.title or ''
         if not self.lyrics_search_dialog:
             self.lyrics_search_dialog = self.builder.get_object(
                 'lyrics_search_dialog')
@@ -2008,7 +2000,7 @@ class Base(object):
                 title_entry.get_text(),
                 artist,
                 title,
-                os.path.dirname(mpdh.get(self.songinfo, 'file')),
+                os.path.dirname(self.songinfo.file),
                 force_fetch=True)
 
         self.lyrics_search_dialog.hide()
@@ -2092,9 +2084,9 @@ class Base(object):
             if self.status_is_play_or_pause():
                 self.UIManager.get_widget(path_chooseimage).show()
                 self.UIManager.get_widget(path_localimage).show()
-                artist = mpdh.get(self.songinfo, 'artist', None)
-                album = mpdh.get(self.songinfo, 'album', None)
-                stream = mpdh.get(self.songinfo, 'name', None)
+                artist = self.songinfo.artist
+                album = self.songinfo.album
+                stream = self.songinfo.name
             if not (artist or album or stream):
                 self.UIManager.get_widget(path_localimage).hide()
                 self.UIManager.get_widget(path_resetimage).hide()
@@ -2154,10 +2146,9 @@ class Base(object):
                     raise e
             paths[i] = os.path.abspath(paths[i])
             if img.valid_image(paths[i]):
-                stream = mpdh.get(self.songinfo, 'name', None)
+                stream = self.songinfo.name
                 if stream is not None:
-                    dest_filename = self.artwork.artwork_stream_filename(
-                        mpdh.get(self.songinfo, 'name'))
+                    dest_filename = self.artwork.artwork_stream_filename(stream)
                 else:
                     dest_filename = self.target_image_filename()
                 if dest_filename != paths[i]:
@@ -2173,13 +2164,13 @@ class Base(object):
         if self.conn:
             # If no info passed, you info from currently playing song:
             if not album:
-                album = mpdh.get(self.songinfo, 'album', "")
+                album = self.songinfo.album or ""
             if not artist:
                 artist = self.album_current_artist[1]
             album = album.replace("/", "")
             artist = artist.replace("/", "")
             if songpath is None:
-                songpath = os.path.dirname(mpdh.get(self.songinfo, 'file'))
+                songpath = os.path.dirname(self.songinfo.file)
             songpath = self.get_multicd_album_root_dir(songpath)
             # Return target filename:
             if force_location is not None:
@@ -2224,15 +2215,14 @@ class Base(object):
         # Includes logic for Various Artists albums to determine
         # the tracks.
         datalist = []
-        album = mpdh.get(self.songinfo, 'album')
+        album = self.songinfo.album or ''
         songs, _playtime, _num_songs = \
                 self.library.library_return_search_items(album=album)
         for song in songs:
-            year = mpdh.get(song, 'date', '')
-            artist = mpdh.get(song, 'artist', '')
-            path = os.path.dirname(mpdh.get(song, 'file'))
-            data = SongRecord(album=album, artist=artist, \
-                                       year=year, path=path)
+            year = song.date or ''
+            artist = song.artist or ''
+            path = os.path.dirname(song.file)
+            data = SongRecord(album=album, artist=artist, year=year, path=path)
             datalist.append(data)
         if len(datalist) > 0:
             datalist = misc.remove_list_duplicates(datalist, case=False)
@@ -2243,20 +2233,21 @@ class Base(object):
                 # compare artists.
                 for dataitem in datalist:
                     if dataitem.artist.lower() == \
-                       mpdh.get(self.songinfo, 'artist').lower() \
+                       str(self.songinfo.artist or '').lower() \
                        or dataitem.artist == library.VARIOUS_ARTISTS \
                        and dataitem.path == \
-                       os.path.dirname(mpdh.get(self.songinfo, 'file')):
+                       os.path.dirname(self.songinfo.file):
+
                         datalist = [dataitem]
                         break
             # Find all songs in album:
             retsongs = []
             for song in songs:
-                if mpdh.get(song, 'album').lower() == datalist[0].album.lower() \
-                   and mpdh.get(song, 'date', None) == datalist[0].year \
+                if (song.album or '').lower() == datalist[0].album.lower() \
+                   and song.date == datalist[0].year \
                    and (datalist[0].artist == library.VARIOUS_ARTISTS \
                         or datalist[0].artist.lower() ==  \
-                        mpdh.get(song, 'artist').lower()):
+                        (song.artist or '').lower()):
                         retsongs.append(song)
 
             return artist, retsongs
@@ -2330,10 +2321,10 @@ class Base(object):
     def image_local(self, _widget):
         if not self.image_local_dialog:
             self._image_local_init()
-        stream = mpdh.get(self.songinfo, 'name', None)
-        album = mpdh.get(self.songinfo, 'album', "").replace("/", "")
+        stream = self.songinfo.name
+        album = (self.songinfo.album or "").replace("/", "")
         artist = self.album_current_artist[1].replace("/", "")
-        songdir = os.path.dirname(mpdh.get(self.songinfo, 'file'))
+        songdir = os.path.dirname(self.songinfo.file)
         currdir = misc.file_from_utf8(
             os.path.join(self.config.musicdir[self.config.profile_num],
                          songdir))
@@ -2379,14 +2370,14 @@ class Base(object):
     def image_remote(self, _widget):
         if not self.choose_dialog:
             self._init_choose_dialog()
-        stream = mpdh.get(self.songinfo, 'name', None)
+        stream = self.songinfo.name
         if stream is not None:
             # Allow saving an image file for a stream:
             self.remote_dest_filename = self.artwork.artwork_stream_filename(
                 stream)
         else:
             self.remote_dest_filename = self.target_image_filename()
-        album = mpdh.get(self.songinfo, 'album', '')
+        album = self.songinfo.album or ''
         artist = self.album_current_artist[1]
         self.image_widget.connect('item-activated', self.image_remote_replace_cover,
                             artist.replace("/", ""), album.replace("/", ""),
@@ -2967,12 +2958,12 @@ class Base(object):
         if linktype == 'artist':
             browser_not_loaded = not misc.browser_load(
                 '%s%s' % (wikipedia_search,
-                          urllib.parse.quote(mpdh.get(self.songinfo, 'artist')),),
+                          urllib.parse.quote(self.songinfo.artist or '')),
                 self.config.url_browser, self.window)
         elif linktype == 'album':
             browser_not_loaded = not misc.browser_load(
                 '%s%s' % (wikipedia_search,
-                          urllib.parse.quote(mpdh.get(self.songinfo, 'album')),),
+                          urllib.parse.quote(self.songinfo.album or '')),
                 self.config.url_browser, self.window)
         elif linktype == 'edit':
             if self.songinfo:
@@ -3209,7 +3200,7 @@ class Base(object):
         if self.current_tab == self.TAB_INFO:
             if self.status_is_play_or_pause():
                 # Use current file in songinfo:
-                mpdpath = mpdh.get(self.songinfo, 'file')
+                mpdpath = self.songinfo.file
                 fullpath = os.path.join(
                     self.config.musicdir[self.config.profile_num], mpdpath)
                 files.append(fullpath)

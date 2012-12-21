@@ -35,7 +35,7 @@ class FormatCode(object):
 
     def format(self, item, wintitle, songpos):
         """Returns the value used in place of the format code"""
-        return mpdh.get(item, self.key, self.default)
+        return str(item.get(self.key, self.default))
 
 
 class NumFormatCode(FormatCode):
@@ -50,8 +50,7 @@ class NumFormatCode(FormatCode):
         self.padding = padding
 
     def format(self, item, wintitle, songpos):
-        return mpdh.get(item, self.key, self.default, False,
-                self.padding)
+        return str(item.get(self.key, self.default)).zfill(self.padding)
 
 
 class PathFormatCode(FormatCode):

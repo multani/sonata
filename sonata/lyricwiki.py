@@ -32,8 +32,8 @@ class LyricWiki(object):
         return urllib.request.quote(str(text).title())
 
     def lyricwiki_editlink(self, songinfo):
-        artist, title = [self.lyricwiki_format(mpdh.get(songinfo, key))
-                 for key in ('artist', 'title')]
+        artist, title = [self.lyricwiki_format(songinfo.get(key))
+                         for key in ('artist', 'title')]
         return ("http://lyrics.wikia.com/index.php?title=%s:%s&action=edit" %
             (artist, title))
 
