@@ -48,9 +48,9 @@ class MPDClient(object):
                 return None
 
         if cmd_name in ['songinfo', 'currentsong']:
-            return SongResult(retval)
+            return MPDSong(retval)
         elif cmd_name in ['plchanges', 'search']:
-            return [SongResult(s) for s in retval]
+            return [MPDSong(s) for s in retval]
         elif cmd_name in ['count']:
             return CountResult(retval)
         else:
@@ -118,7 +118,7 @@ class CountResult(object):
         self.songs = int(m['songs'])
 
 
-class SongResult(object):
+class MPDSong(object):
     """Provide information about a song in a convenient format"""
 
     def __init__(self, mapping):

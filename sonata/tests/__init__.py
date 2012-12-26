@@ -15,7 +15,7 @@ except:
     gettext.textdomain('sonata')
 
 from sonata import misc, song, library
-from sonata.mpdhelper import SongResult
+from sonata.mpdhelper import MPDSong
 
 DOCTEST_FLAGS = (
     doctest.ELLIPSIS |
@@ -79,14 +79,14 @@ class TestSonata(unittest.TestCase):
         self.assertEqual(various_albums2, albums2)
 
 
-class TestSongResult(unittest2.TestCase):
+class TestMPDSong(unittest2.TestCase):
     def test_get_track_number(self):
-        self.assertEqual(1, SongResult({'track': '1'}).track)
-        self.assertEqual(1, SongResult({'track': '1/10'}).track)
-        self.assertEqual(1, SongResult({'track': '1,10'}).track)
+        self.assertEqual(1, MPDSong({'track': '1'}).track)
+        self.assertEqual(1, MPDSong({'track': '1/10'}).track)
+        self.assertEqual(1, MPDSong({'track': '1,10'}).track)
 
     def test_access_attributes(self):
-        song = SongResult({'foo': 'zz', 'id': '5'})
+        song = MPDSong({'foo': 'zz', 'id': '5'})
 
         self.assertEqual(5, song.id)
         self.assertEqual("zz", song.foo)
@@ -94,7 +94,7 @@ class TestSongResult(unittest2.TestCase):
         self.assertEqual(song.foo, song.get("foo"))
 
     def test_get_unknown_attribute(self):
-        song = SongResult({})
+        song = MPDSong({})
         self.assertRaises(KeyError, lambda: song['bla'])
         self.assertEqual(None, song.get('bla'))
         self.assertEqual('foo', song.get('bla', 'foo'))
