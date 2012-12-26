@@ -52,7 +52,7 @@ class MPDClient(object):
         elif cmd_name in ['plchanges', 'search']:
             return [MPDSong(s) for s in retval]
         elif cmd_name in ['count']:
-            return CountResult(retval)
+            return MPDCount(retval)
         else:
             return retval
 
@@ -108,7 +108,7 @@ class MPDClient(object):
         self._client.command_list_end()
 
 
-class CountResult(object):
+class MPDCount(object):
     """Represent the result of the 'count' MPD command"""
 
     __slots__ = ['playtime', 'songs']
