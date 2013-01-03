@@ -79,7 +79,7 @@ class TestSonata(unittest.TestCase):
         self.assertEqual(various_albums2, albums2)
 
 
-class TestMPDSong(unittest2.TestCase):
+class TestMPDSong(unittest.TestCase):
     def test_get_track_number(self):
         self.assertEqual(1, MPDSong({'track': '1'}).track)
         self.assertEqual(1, MPDSong({'track': '1/10'}).track)
