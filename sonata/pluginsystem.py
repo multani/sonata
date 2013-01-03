@@ -9,7 +9,8 @@ import re
 import sonata.plugins
 
 def find_plugin_dirs():
-    return [os.path.expanduser('~/.sonata/plugins'),
+    return [
+        os.path.expanduser('~/.config/sonata/plugins'),
         '/usr/local/lib/sonata/plugins']
 
 # add dirs from sys.path:
