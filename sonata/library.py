@@ -41,16 +41,14 @@ def list_mark_various_artists_albums(albums):
     return albums
 
 class Library(object):
-    def __init__(self, config, mpd, artwork, TAB_LIBRARY, album_filename,
-                 settings_save, filtering_entry_make_red,
-                 filtering_entry_revert_color, filter_key_pressed,
-                 on_add_item, connected, on_library_button_press, add_tab,
-                 get_multicd_album_root_dir):
+    def __init__(self, config, mpd, artwork, TAB_LIBRARY, settings_save,
+                 filtering_entry_make_red, filtering_entry_revert_color,
+                 filter_key_pressed, on_add_item, connected,
+                 on_library_button_press, add_tab, get_multicd_album_root_dir):
         self.artwork = artwork
         self.config = config
         self.mpd = mpd
         self.librarymenu = None # cyclic dependency, set later
-        self.album_filename = album_filename
         self.settings_save = settings_save
         self.filtering_entry_make_red = filtering_entry_make_red
         self.filtering_entry_revert_color = filtering_entry_revert_color
@@ -126,22 +124,23 @@ class Library(object):
                                                Gtk.IconSize.MENU)
         self.harddiskpb = self.library.render_icon(Gtk.STOCK_HARDDISK,
                                                    Gtk.IconSize.MENU)
-        self.albumpb = GdkPixbuf.Pixbuf.new_from_file_at_size(
-            album_filename, consts.LIB_COVER_SIZE, consts.LIB_COVER_SIZE)
+        self.albumpb = self.library.render_icon('sonata-album',
+                                                Gtk.IconSize.LARGE_TOOLBAR)
         self.genrepb = self.library.render_icon('gtk-orientation-portrait',
                                                 Gtk.IconSize.LARGE_TOOLBAR)
-        self.artistpb = self.library.render_icon('artist',
+        self.artistpb = self.library.render_icon('sonata-artist',
                                                  Gtk.IconSize.LARGE_TOOLBAR)
-        self.sonatapb = self.library.render_icon('sonata', Gtk.IconSize.MENU)
+        self.sonatapb = self.library.render_icon('sonata',
+                                                 Gtk.IconSize.LARGE_TOOLBAR)
 
         # list of the library views: (id, name, icon name, label)
         self.VIEWS = [
             (consts.VIEW_FILESYSTEM, 'filesystem',
              Gtk.STOCK_HARDDISK, _("Filesystem")),
             (consts.VIEW_ALBUM, 'album',
-             'album', _("Albums")),
+             'sonata-album', _("Albums")),
             (consts.VIEW_ARTIST, 'artist',
-             'artist', _("Artists")),
+             'sonata-artist', _("Artists")),
             (consts.VIEW_GENRE, 'genre',
              Gtk.STOCK_ORIENTATION_PORTRAIT, _("Genres")),
             ]

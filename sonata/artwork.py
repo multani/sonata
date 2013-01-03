@@ -11,14 +11,14 @@ from sonata.pluginsystem import pluginsystem
 
 class Artwork(object):
 
-    def __init__(self, config, path_to_icon, is_lang_rtl, schedule_gc_collect,
+    def __init__(self, config, is_lang_rtl, schedule_gc_collect,
                  target_image_filename, imagelist_append, remotefilelist_append,
-                 allow_art_search, status_is_play_or_pause, album_filename,
+                 allow_art_search, status_is_play_or_pause,
                  get_current_song_text, album_image, tray_image,
                  fullscreen_image, fullscreen_label1, fullscreen_label2):
 
         self.config = config
-        self.album_filename = album_filename
+        self.album_filename = 'sonata-album'
 
         # constants from main
         self.is_lang_rtl = is_lang_rtl
@@ -33,16 +33,14 @@ class Artwork(object):
         self.get_current_song_text = get_current_song_text
 
         # local pixbufs, image file names
-        self.sonatacd = path_to_icon('sonatacd.png')
-        self.sonatacd_large = path_to_icon('sonatacd_large.png')
-        path = path_to_icon('sonata-case.png')
-        self.casepb = GdkPixbuf.Pixbuf.new_from_file(path)
+        self.sonatacd = Gtk.IconFactory.lookup_default('sonata-cd')
+        self.sonatacd_large = Gtk.IconFactory.lookup_default('sonata-cd-large')
         self.albumpb = None
         self.currentpb = None
 
         # local UI widgets provided to main by getter methods
         self.albumimage = album_image
-        self.albumimage.set_from_file(self.sonatacd)
+        self.albumimage.set_from_icon_set(self.sonatacd, -1)
 
         self.tray_album_image = tray_image
 
@@ -77,7 +75,7 @@ class Artwork(object):
 
     def set_info_image(self, info_image):
         self.info_image = info_image
-        self.info_image.set_from_file(self.sonatacd_large)
+        self.info_image.set_from_icon_set(self.sonatacd_large, -1)
 
     def set_info_imagebox(self, info_imagebox):
         self.info_imagebox = info_imagebox
@@ -251,7 +249,8 @@ class Artwork(object):
             if str(cache_key.artist).lower() == str(row[1].artist).lower() \
             and str(cache_key.album).lower() == str(row[1].album).lower():
                 pb = self.get_library_artwork_cached_pb(cache_key, None)
-                self.lib_model.set_value(row.iter, 0, pb)
+                if pb:
+                    self.lib_model.set_value(row.iter, 0, pb)
 
     def library_set_cover(self, i, pb, data):
         if self.lib_model.iter_is_valid(i):
@@ -442,13 +441,14 @@ class Artwork(object):
         return False
 
     def artwork_set_default_icon(self, artist=None, album=None, path=None):
-        if self.albumimage.get_property('file') != self.sonatacd:
-            GLib.idle_add(self.albumimage.set_from_file, self.sonatacd)
-            GLib.idle_add(self.info_image.set_from_file,
-                             self.sonatacd_large)
-            GLib.idle_add(self.fullscreen_cover_art_reset_image)
-        GLib.idle_add(self.artwork_set_tooltip_art,
-                      GdkPixbuf.Pixbuf.new_from_file(self.sonatacd))
+        GLib.idle_add(self.albumimage.set_from_icon_set,
+                      self.sonatacd, -1)
+        GLib.idle_add(self.info_image.set_from_icon_set,
+                      self.sonatacd_large, -1)
+        GLib.idle_add(self.fullscreen_cover_art_reset_image)
+        GLib.idle_add(self.tray_album_image.set_from_icon_set,
+                      self.sonatacd, -1)
+
         self.lastalbumart = None
 
         # Also, update row in library:
@@ -540,7 +540,12 @@ class Artwork(object):
             # we will scale the artwork so that it isn't covered by the case:
             spine_ratio = float(60) / 600 # From original png
             spine_width = int(w * spine_ratio)
-            case = self.casepb.scale_simple(w, h, GdkPixbuf.InterpType.BILINEAR)
+            case_icon = Gtk.IconFactory.lookup_default('sonata-case')
+
+            # We use the fullscreenalbumimage because it's the biggest we have
+            context = self.fullscreenalbumimage.get_style_context()
+            case_pb = case_icon.render_icon_pixbuf(context, -1)
+            case = case_pb.scale_simple(w, h, GdkPixbuf.InterpType.BILINEAR)
             # Scale pix and shift to the right on a transparent pixbuf:
             pix = pix.scale_simple(w - spine_width, h, GdkPixbuf.InterpType.BILINEAR)
             blank = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, True, 8, w, h)
@@ -551,6 +556,7 @@ class Artwork(object):
             case.composite(blank, 0, 0, w, h, 0, 0, 1, 1,
                            GdkPixbuf.InterpType.BILINEAR, 250)
             del case
+            del case_pb
             return blank
         return pix
 
@@ -631,10 +637,7 @@ class Artwork(object):
         self.fullscreen_cover_art_set_text()
 
     def fullscreen_cover_art_reset_image(self):
-        pix = GdkPixbuf.Pixbuf.new_from_file(self.sonatacd_large)
-        pix = img.pixbuf_pad(pix, consts.FULLSCREEN_COVER_SIZE,
-                             consts.FULLSCREEN_COVER_SIZE)
-        self.fullscreenalbumimage.set_from_pixbuf(pix)
+        self.fullscreenalbumimage.set_from_icon_set(self.sonatacd_large, -1)
         self.currentpb = None
 
     def fullscreen_cover_art_set_text(self):

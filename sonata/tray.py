@@ -137,8 +137,13 @@ class TrayIcon(object):
         return self.statusicon.is_embedded() and \
                 self.statusicon.get_visible()
 
-    def update_icon(self, icon_path):
-        self.statusicon.set_from_file(icon_path)
+    def update_icon(self, icon_name):
+        # FIXME (why doesn't this work instead?):
+        # self.statusicon.set_from_stock(icon_name)
+        context = self.traymenu.get_style_context()
+        icon = Gtk.IconFactory.lookup_default(icon_name)
+        icon_pb = icon.render_icon_pixbuf(context, -1)
+        self.statusicon.set_from_pixbuf(icon_pb)
 
     def show(self):
         self.statusicon.set_visible(True)
