@@ -151,7 +151,7 @@ class Config:
                 'profile_names': ('names', '', [default_profile_name]),
                 'musicdir': ('musicdirs', '', ["~/music"]),
                 'host': ('hosts', '', ['localhost']),
-                'port': ('ports', '', [6600]),
+                'port': ('ports', 'int', [6600]),
                 'password': ('passwords', '', ['']),
             })
         }
@@ -199,8 +199,8 @@ class Config:
                     setattr(self, attribute, [])
 
                 for i in range(num):
-                    name = "%s[%d]" % (key, i)
-                    value = conf.get(section, name)
+                    opt_key = "%s[%d]" % (key, i)
+                    value = getattr(conf, 'get' + type)(section, opt_key)
                     getattr(self, attribute).append(value)
 
         # Finally, load attributes related to the library. This is a bit weird
