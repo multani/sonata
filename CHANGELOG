@@ -1,3 +1,22 @@
+Next release - ?
+    + Switch to Python 3 and Gtk 3 (Jörg Thalheim & Adam Dane)
+    + Use Glade files to describe the interface and GtkBuilder to build the interface
+    + More items in the tray menu (Kirill Lashuk)
+    + Better fullscreen support (Kirill Lashuk)
+    + Toggle fullscreen from the command line (Daniel)
+    + Support MPD's "consume" mode (Anton Lashkov)
+    + Use more default icons in the context menus (Anton Lashkov)
+    + Load only the most recent of plugins with the same names
+    * Bug: fix population of the "Save to playlist" menu (Zhihao Yuan)
+    * Bug: prevent multiple entries and improve art search with multi-CD albums (Kirill Lashuk)
+    * Bug: fixes weird show up if Sonata is not on the current workspace (Kirill Lashuk)
+    * Bug: scrobble after seeking to the beginning (Kirill Lashuk)
+    * Bug: the lyricswiki plugin should now work again (Jonathan Ballet)
+    * Bug: fix UI status after reconnection to MPD (Jonathan Ballet)
+    * Bug: fix crash when searching the library (Kirill Lashuk)
+    - Lot of code cleanup and internal changes
+    - Removed Sugar UI support
+
 v1.6.2.1 - September 21, 2009
 	+ Library artwork caching/displaying improvements
 	+ Lyricwiki screen scraping workaround

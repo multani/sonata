@@ -12,44 +12,44 @@ self.streams.populate()
 ...
 """
 
-import gtk, pango
+import os
 
-import misc, ui
+from gi.repository import Gtk, Gdk, Pango
+
+from sonata import misc, ui
 
 
 class Streams(object):
-    def __init__(self, config, window, on_streams_button_press, on_add_item, settings_save, TAB_STREAMS, new_tab):
+    def __init__(self, config, window, on_streams_button_press, on_add_item, settings_save, TAB_STREAMS, add_tab):
         self.config = config
         self.window = window
         self.on_streams_button_press = on_streams_button_press
         self.on_add_item = on_add_item
         self.settings_save = settings_save
 
-        # Streams tab
-        self.streams = ui.treeview()
-        self.streams_selection = self.streams.get_selection()
-        self.streamswindow = ui.scrollwindow(add=self.streams)
+        self.stream_edit_dialog = None
 
-        self.tab = new_tab(self.streamswindow, gtk.STOCK_NETWORK, TAB_STREAMS, self.streams)
+        self.builder = ui.builder('streams')
+
+        # Streams tab
+        self.streams = self.builder.get_object('streams_page_treeview')
+        self.streams_selection = self.streams.get_selection()
+        self.streamswindow = self.builder.get_object('streams_page_scrolledwindow')
+
+        self.tab_widget = self.builder.get_object('streams_tab_eventbox')
+        self.tab_label = self.builder.get_object('streams_tab_label')
+        self.tab_label.set_text(TAB_STREAMS)
+
+        self.tab = add_tab(self.streamswindow, self.tab_widget, TAB_STREAMS,
+                           self.streams)
 
         self.streams.connect('button_press_event', self.on_streams_button_press)
         self.streams.connect('row_activated', self.on_streams_activated)
         self.streams.connect('key-press-event', self.on_streams_key_press)
 
         # Initialize streams data and widget
-        self.streamsdata = gtk.ListStore(str, str, str)
-        self.streams.set_model(self.streamsdata)
+        self.streamsdata = self.builder.get_object('streams_liststore')
         self.streams.set_search_column(1)
-        self.streamsimg = gtk.CellRendererPixbuf()
-        self.streamscell = gtk.CellRendererText()
-        self.streamscell.set_property("ellipsize", pango.ELLIPSIZE_END)
-        self.streamscolumn = gtk.TreeViewColumn()
-        self.streamscolumn.pack_start(self.streamsimg, False)
-        self.streamscolumn.pack_start(self.streamscell, True)
-        self.streamscolumn.set_attributes(self.streamsimg, stock_id=0)
-        self.streamscolumn.set_attributes(self.streamscell, markup=1)
-        self.streams.append_column(self.streamscolumn)
-        self.streams_selection.set_mode(gtk.SELECTION_MULTIPLE)
 
     def get_model(self):
         return self.streamsdata
@@ -71,10 +71,10 @@ class Streams(object):
                              self.config.stream_uris)]
         streamsinfo.sort(key=lambda x: x["name"].lower()) # Remove case sensitivity
         for item in streamsinfo:
-            self.streamsdata.append([gtk.STOCK_NETWORK, item["name"], item["uri"]])
+            self.streamsdata.append([Gtk.STOCK_NETWORK, item["name"], item["uri"]])
 
     def on_streams_key_press(self, widget, event):
-        if event.keyval == gtk.gdk.keyval_from_name('Return'):
+        if event.keyval == Gdk.keyval_from_name('Return'):
             self.on_streams_activated(widget, widget.get_cursor()[0])
             return True
 
@@ -97,43 +97,39 @@ class Streams(object):
             edit_mode = True
         else:
             edit_mode = False
-        # Prompt user for playlist name:
-        dialog = ui.dialog(title=None, parent=self.window, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, gtk.STOCK_OK, gtk.RESPONSE_ACCEPT), role="streamsNew")
+        if not self.stream_edit_dialog:
+            self.stream_edit_dialog = self.builder.get_object(
+                'stream_edit_dialog')
+        self.stream_edit_dialog.set_transient_for(self.window)
         if edit_mode:
-            dialog.set_title(_("Edit Stream"))
+            self.stream_edit_dialog.set_title(_("Edit Stream"))
         else:
-            dialog.set_title(_("New Stream"))
-        hbox = gtk.HBox()
-        namelabel = ui.label(text=_('Stream name:'))
-        hbox.pack_start(namelabel, False, False, 5)
-        nameentry = ui.entry()
+            self.stream_edit_dialog.set_title(_("New Stream"))
+        nameentry = self.builder.get_object('stream_edit_name_entry')
         if edit_mode:
             nameentry.set_text(self.config.stream_names[stream_num])
-        hbox.pack_start(nameentry, True, True, 5)
-        hbox2 = gtk.HBox()
-        urllabel = ui.label(text=_('Stream URL:'))
-        hbox2.pack_start(urllabel, False, False, 5)
-        urlentry = ui.entry()
+        else:
+            nameentry.set_text("")
+        urlentry = self.builder.get_object('stream_edit_url_entry')
         if edit_mode:
             urlentry.set_text(self.config.stream_uris[stream_num])
-        hbox2.pack_start(urlentry, True, True, 5)
-        ui.set_widths_equal([namelabel, urllabel])
-        dialog.vbox.pack_start(hbox)
-        dialog.vbox.pack_start(hbox2)
-        ui.show(dialog.vbox)
-        response = dialog.run()
-        if response == gtk.RESPONSE_ACCEPT:
+        else:
+            urlentry.set_text("")
+
+        self.stream_edit_dialog.show_all()
+        response = self.stream_edit_dialog.run()
+        if response == Gtk.ResponseType.ACCEPT:
             name = nameentry.get_text()
             uri = urlentry.get_text()
-            if len(name.decode('utf-8')) > 0 and len(uri.decode('utf-8')) > 0:
+            if len(name) > 0 and len(uri) > 0:
                 # Make sure this stream name doesn't already exit:
                 i = 0
                 for item in self.config.stream_names:
                     # Prevent a name collision in edit_mode..
                     if not edit_mode or (edit_mode and i != stream_num):
                         if item == name:
-                            dialog.destroy()
-                            if ui.show_msg(self.window, _("A stream with this name already exists. Would you like to replace it?"), _("New Stream"), 'newStreamError', gtk.BUTTONS_YES_NO) == gtk.RESPONSE_YES:
+                            self.stream_edit_dialog.hide()
+                            if self._prompt_replace():
                                 # Pop existing stream:
                                 self.config.stream_names.pop(i)
                                 self.config.stream_uris.pop(i)
@@ -147,4 +143,11 @@ class Streams(object):
                 self.config.stream_uris.append(uri)
                 self.populate()
                 self.settings_save()
-        dialog.destroy()
+        self.stream_edit_dialog.hide()
+
+    def _prompt_replace(self):
+        prompt = _("A stream with this name already exists. Would you like to replace it?")
+        return ui.show_msg(self.window, prompt, _("New Stream"),
+                           'newStreamError',
+                           Gtk.ButtonsType.YES_NO) == Gtk.ResponseType.YES
+

@@ -1,0 +1,8 @@
+GtkLabel.format_code {
+  font-family: Monospace;
+}
+
+GtkLabel.additional_format {
+  padding-top: 6px;
+}
+

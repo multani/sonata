@@ -1,28 +1,43 @@
 #!/usr/bin/env python
 
-import gtk
+from gi.repository import Gtk, Gdk, Pango
 
 
-class CrumbButton(gtk.ToggleButton):
+class CrumbButton(Gtk.ToggleButton):
     """A ToggleButton tailored for use as a breadcrumb."""
 
     def __init__(self, image, label):
-        gtk.ToggleButton.__init__(self)
+        Gtk.ToggleButton.__init__(self)
 
-        self.set_properties(can_focus=False, relief=gtk.RELIEF_NONE)
+        self.set_properties(can_focus=False, relief=Gtk.ReliefStyle.NONE)
+        self.label = label
 
-        # adapt gtk.Button internal layout code:
-        hbox = gtk.HBox(spacing=2)
-        align = gtk.Alignment(xalign=0.5, yalign=0.5)
-        hbox.pack_start(image, False, False)
-        hbox.pack_start(label, True, True)
+        # adapt Gtk.Button internal layout code:
+        hbox = Gtk.HBox(spacing=2)
+        align = Gtk.Alignment.new(0.5, 0.5, 0, 0)
+        hbox.pack_start(image, False, False, 0)
+        hbox.pack_start(label, True, True, 0)
         align.add(hbox)
 
         self.add(align)
 
+    def ellipsize(self, do_ellipsize=True):
+        can_ellipsize = len(self.label.get_text()) >= 15
+        if do_ellipsize and can_ellipsize:
+            mode = Pango.EllipsizeMode.END
+            width_chars = 15
+        else:
+            mode = Pango.EllipsizeMode.NONE
+            width_chars = -1
 
-class CrumbBox(gtk.Box):
-    """A box layout similar to gtk.HBox, but specifically for breadcrumbs.
+        self.label.set_ellipsize(mode)
+        self.label.set_max_width_chars(width_chars)
+        self.label.set_width_chars(width_chars)
+        return do_ellipsize and can_ellipsize
+
+
+class CrumbBox(Gtk.Box):
+    """A box layout similar to Gtk.HBox, but specifically for breadcrumbs.
 
     * Crumbs in the middle are replaced with an ellipsis if necessary.
     * The root, parent, and current element are always kept visible.
@@ -32,48 +47,39 @@ class CrumbBox(gtk.Box):
     __gtype_name__ = 'CrumbBox'
 
     def __init__(self, *args, **kwargs):
-        gtk.Box.__init__(self, *args, **kwargs)
+        Gtk.Box.__init__(self, *args, **kwargs)
 
-        # FIXME i can't get an internal child ellipsis to render...
-#		gtk.widget_push_composite_child()
-#		self.ellipsis = gtk.Label("...")
-#		self.ellipsis.props.visible = True
-#		gtk.widget_pop_composite_child()
-#		self.ellipsis.set_parent(self)
+    def set_crumb_break(self, widget):
+        self.crumb_break = widget
 
-    def do_size_request(self, requisition):
+    def do_get_preferred_width(self):
         """This gets called to determine the size we request"""
-#		ellipsis_req = self.ellipsis.size_request()
         reqs = [w.size_request() for w in self]
 
-        # This would request "natural" size:
-#		pad = 0 if not reqs else (len(reqs)-1)*self.props.spacing
-#		requisition.width  = sum(    [r[0] for r in reqs]) + pad
-#		requisition.height = max([0]+[r[1] for r in reqs])
-#		return
-
         # Request "minimum" size:
-
-        height = max([0] + [r[1] for r in reqs])
+        heights = [r.height for r in reqs]
+        height = max([0] + heights)
+        widths = [r.width for r in reqs]
+        width = max([0] + widths)
+        natural_width = self._req_sum(reqs)
 
         if len(reqs) == 0: # empty
             width = 0
         elif len(reqs) < 3: # current crumb
-            width = height
+            width = natural_width
         elif len(reqs) == 3: # parent and current
-            width = height + height + self.props.spacing
+            width = 2 * height + self.props.spacing
         elif len(reqs) == 4: # root, parent and current
-            width = height + height + height + 2 * self.props.spacing
-        elif len(reqs) > 4: # root, ellipsis, parent, current
+            width = 3 * height + 2 * self.props.spacing
+        elif len(reqs) > 4: # root, break, parent, current
             pad = 3 * self.props.spacing
-            width = height + reqs[1][0] + height + height + pad
+            width = 3 * height + reqs[1].width + pad
 
-        requisition.width = width
-        requisition.height = height
+        return width, natural_width
 
     def _req_sum(self, reqs):
         pad = 0 if not reqs else (len(reqs)-1) * self.props.spacing
-        return pad + sum([req[0] for req in reqs])
+        return pad + sum([req.width for req in reqs])
 
     def _condense(self, req, w):
 # FIXME show and hide cause a fight in an infinite loop
@@ -81,62 +87,69 @@ class CrumbBox(gtk.Box):
 #			w.get_child().get_child().get_children()[1].hide()
 #		except (AttributeError, IndexError):
 #			pass
-        wr, hr = req
-        return (hr, hr) # XXX simplistic: set square size for now
+        return req # XXX simplistic: set square size for now
 
     def _uncondense(self, w):
+        pass
 #		try:
 #			w.get_child().get_child().get_children()[1].show()
 #		except (AttributeError, IndexError):
-            pass
 
     def _truncate(self, req, amount):
-        wr, hr = req
-        return (wr - amount, hr) # XXX this can be less than hr, even <0
+        req.width -= amount
+        if req.width < 0:
+            req.width = 0
+        return req
 
     def do_size_allocate(self, allocation):
         """This gets called to layout our child widgets"""
+        # XXX allocation seems to stick at some width, no matter how much wider
+        # the window gets, but if we go down the path and back, it goes higher?
+        # Gtk bug?
         x0, y0 = allocation.x, allocation.y
         w0, h0 = allocation.width, allocation.height
 
         crumbs = self.get_children()
 
         if len(crumbs) < 2:
+            if self.crumb_break:
+                self.crumb_break.hide()
+            Gtk.Box.do_size_allocate(self, allocation)
             return
 
-        # FIXME:
-        self.ellipsis = crumbs.pop(1)
-        hidden = [self.ellipsis]
-
-        # Undo any earlier condensing
-        if len(crumbs) > 0:
-            self._uncondense(crumbs[0])
-        if len(crumbs) > 1:
+        # Undo any earlier condensing and ellipsizing
+        for crumb in crumbs:
+            crumb.ellipsize(False)
+        if len(crumbs) > 2:
             self._uncondense(crumbs[-2])
 
         reqs = [w.get_child_requisition() for w in crumbs]
 
-        # If necessary, condense the root crumb
-        if self._req_sum(reqs) > w0 and len(crumbs) > 2:
-            reqs[0] = self._condense(reqs[0], crumbs[0])
+        # Step 1: Try ellipsizing
+        if self._req_sum(reqs) > w0:
+            # We want a descending sort by widths
+            # We ellipsize biggest to smallest to preserve the most crumbs
+            crumbsorted = [(w.width, crumb) for w, crumb in zip(reqs, crumbs)]
+            sorted(crumbsorted, key=lambda crumb: crumb[0], reverse=True)
+            for x, crumb in crumbsorted:
+                if crumb.ellipsize():
+                    i = crumbs.index(crumb)
+                    reqs[i] = crumb.get_child_requisition()
+                    if self._req_sum(reqs) < w0:
+                        break
 
-        # If necessary, replace an increasing amount of the
-        # crumbs after the root with the ellipsis
+        # Step 2: remove as many crumbs as needed except:
+        # Never remove the parent or current
+        hidden = []
         while self._req_sum(reqs) > w0:
-            if self.ellipsis in hidden and len(crumbs) > 3:
-                hidden = [crumbs.pop(1)]
-                reqs.pop(1)
-                crumbs.insert(1, self.ellipsis)
-                req = self.ellipsis.get_child_requisition()
-                reqs.insert(1, req)
-            elif self.ellipsis in crumbs and len(crumbs) > 4:
-                hidden.append(crumbs.pop(2))
-                reqs.pop(2)
+            if len(crumbs) > 2:
+                    hidden.append(crumbs.pop(0))
+                    reqs.pop(0)
             else:
                 break # don't remove the parent
 
         # If necessary, condense the parent crumb
-        if self._req_sum(reqs) > w0 and len(crumbs) > 1:
+        if self._req_sum(reqs) > w0 and len(crumbs) > 2:
             reqs[-2] = self._condense(reqs[-2], crumbs[-2])
 
         # If necessary, truncate the current crumb
@@ -144,47 +157,61 @@ class CrumbBox(gtk.Box):
             reqs[-1] = self._truncate(reqs[-1], self._req_sum(reqs) - w0)
             # Now we are at minimum width
 
+        # Only show the break (ellipsis) if we have hidden crumbs
+        if self.crumb_break:
+            if len(hidden):
+                self.crumb_break.show()
+            else:
+                self.crumb_break.hide()
+
         x = 0
         for w, req in zip(crumbs, reqs):
-            wr, _hr = req
-            w.size_allocate(gtk.gdk.Rectangle(x0 + x, y0, wr, h0))
+            alloc = Gdk.Rectangle()
+            alloc.x = x0 + x
+            alloc.y = y0
+            alloc.width = req.width
+            alloc.height = h0
+            w.size_allocate(alloc)
             w.show()
-            x += wr + self.props.spacing
+            x += req.width + self.props.spacing
 
         for w in hidden:
-            w.size_allocate(gtk.gdk.Rectangle(-1, -1, 0, 0))
+            alloc = Gdk.Rectangle()
+            alloc.x = -1
+            alloc.y = -1
+            alloc.width = 0
+            alloc.height = 0
+            w.size_allocate(alloc)
             w.hide()
 
-#		def do_forall(self, internal, callback, data):
-#			callback(self.ellipsis, data)
-#			for w in self.get_children():
-#				callback(w, data)
+        Gtk.Box.do_size_allocate(self, allocation)
 
 # this file can be run as a simple test program:
+# FIXME or XXX this is out of sync with the rest of file
 if __name__ == '__main__':
-    w = gtk.Window()
+    w = Gtk.Window()
     crumbs = CrumbBox(spacing=2)
 
     items = [
-        (gtk.STOCK_HARDDISK, "Filesystem"),
+        (Gtk.STOCK_HARDDISK, "Filesystem"),
         (None, None), # XXX for ellipsis
-        (gtk.STOCK_OPEN, "home"),
-        (gtk.STOCK_OPEN, "user"),
-        (gtk.STOCK_OPEN, "music"),
-        (gtk.STOCK_OPEN, "genre"),
-        (gtk.STOCK_OPEN, "artist"),
-        (gtk.STOCK_OPEN, "album"),
+        (Gtk.STOCK_OPEN, "home"),
+        (Gtk.STOCK_OPEN, "user"),
+        (Gtk.STOCK_OPEN, "music"),
+        (Gtk.STOCK_OPEN, "genre"),
+        (Gtk.STOCK_OPEN, "artist"),
+        (Gtk.STOCK_OPEN, "album"),
         ]
     for stock, text in items:
         if stock:
-            image = gtk.image_new_from_stock(stock,
-                             gtk.ICON_SIZE_MENU)
-            crumbs.pack_start(CrumbButton(image, gtk.Label(text)))
+            image = Gtk.Image.new_from_stock(stock,
+                             Gtk.IconSize.MENU)
+            crumbs.pack_start(CrumbButton(image, Gtk.Label(label=text)), False, False, 0)
         else:
-            crumbs.pack_start(gtk.Label("..."))
+            crumbs.pack_start(Gtk.Label("..."), False, False, 0)
 
     w.add(crumbs)
-    w.connect('hide', gtk.main_quit)
+    w.connect('hide', Gtk.main_quit)
     w.show_all()
 
-    gtk.main()
+    Gtk.main()

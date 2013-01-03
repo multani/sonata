@@ -1,6 +1,6 @@
 
-import ConfigParser
-import StringIO
+import configparser
+from io import StringIO
 import logging
 import os
 import pkgutil
@@ -37,7 +37,7 @@ class Plugin(object):
         # optional plugin info:
         try:
             self.description = info.get('plugin', 'description')
-        except ConfigParser.NoOptionError:
+        except configparser.NoOptionError:
             self.description = ""
         try:
             self.author = info.get('plugin', 'author')
@@ -49,7 +49,7 @@ class Plugin(object):
             self.author_email = ""
         try:
             self.iconurl = info.get('plugin', 'icon')
-        except ConfigParser.NoOptionError:
+        except configparser.NoOptionError:
             self.iconurl = None
         try:
             self.url = info.get('plugin', 'url')
@@ -169,7 +169,7 @@ class PluginSystem(object):
                                               os.path.join(path, entry))
 
     def load_info(self, path, name):
-        f = open(os.path.join(path, name+".py"), "rt")
+        f = open(os.path.join(path, name+".py"), "rt", encoding="utf-8")
         text = f.read()
         f.close()
 
@@ -177,8 +177,8 @@ class PluginSystem(object):
         infotext = re.search(pat, text, re.MULTILINE).group(1)
         uncommented = '\n'.join(line[1:].strip()
                     for line in infotext.split('\n'))
-        info = ConfigParser.SafeConfigParser()
-        info.readfp(StringIO.StringIO(uncommented))
+        info = configparser.SafeConfigParser()
+        info.readfp(StringIO(uncommented))
 
         plugin = Plugin(path, name, info,
                 lambda:self.import_plugin(name))

@@ -1,0 +1,856 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.0 -->
+  <object class="GtkIconFactory" id="sonata_iconfactory">
+    <sources>
+      <source stock-id="sonata" filename="../pixmaps/sonata.png"/>
+      <source stock-id="artist" filename="../pixmaps/sonata-artist.png"/>
+      <source stock-id="album" filename="../pixmaps/sonata-album.png"/>
+    </sources>
+  </object>
+  <object class="GtkBox" id="expander_label_widget">
+    <property name="can_focus">False</property>
+    <property name="orientation">vertical</property>
+    <child>
+      <object class="GtkLabel" id="current_label_1">
+        <property name="can_focus">False</property>
+        <property name="xalign">0</property>
+        <style>
+          <class name="current_label"/>
+        </style>
+      </object><!--current_label_1-->
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">False</property>
+        <property name="padding">0</property>
+        <property name="position">0</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkLabel" id="current_label_2">
+        <property name="can_focus">False</property>
+        <property name="xalign">0</property>
+        <style>
+          <class name="current_label2"/>
+        </style>
+      </object><!--current_label_2-->
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">False</property>
+        <property name="padding">0</property>
+        <property name="position">1</property>
+      </packing>
+    </child>
+  </object>
+  <object class="GtkAdjustment" id="volume_button_adjustment">
+    <property name="upper">100</property>
+    <property name="step_increment">5</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkWindow" id="main_window">
+    <property name="can_focus">True</property>
+    <property name="title">Sonata</property>
+    <property name="role">mainWindow</property>
+    <child>
+      <object class="GtkBox" id="main_h_box">
+        <property name="can_focus">False</property>
+        <property name="orientation">horizontal</property>
+        <child>
+          <object class="GtkBox" id="main_v_box">
+            <property name="can_focus">False</property>
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkBox" id="top_h_box">
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkEventBox" id="image_event_box">
+                    <child>
+                      <object class="GtkImage" id="main_album_image">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                    </child>
+                  </object><!--image_event_box-->
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="padding">6</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkBox" id="top_v_box">
+                    <property name="can_focus">False</property>
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkBox" id="toptop_h_box">
+                        <property name="can_focus">False</property>
+                        <property name="orientation">horizontal</property>
+                        <child>
+                          <object class="GtkButton" id="prev_button">
+                            <property name="relief">none</property>
+                            <property name="can_focus">False</property>
+                            <property name="margin_right">5</property>
+                            <child>
+                              <object class="GtkImage" id="prev_button_image">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="stock">gtk-media-previous</property>
+                              </object>
+                            </child>
+                          </object><!--prev_button-->
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="padding">0</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="playpause_button">
+                            <property name="relief">none</property>
+                            <property name="can_focus">False</property>
+                            <property name="margin_right">5</property>
+                            <child>
+                              <object class="GtkImage" id="playpause_button_image">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="stock">gtk-media-play</property>
+                              </object>
+                            </child>
+                          </object><!--play_button-->
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="padding">0</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="stop_button">
+                            <property name="relief">none</property>
+                            <property name="can_focus">False</property>
+                            <property name="margin_right">5</property>
+                            <child>
+                              <object class="GtkImage" id="stop_button_image">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="stock">gtk-media-stop</property>
+                              </object>
+                            </child>
+                          </object><!--stop_button-->
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="padding">0</property>
+                            <property name="position">2</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="next_button">
+                            <property name="relief">none</property>
+                            <property name="can_focus">False</property>
+                            <property name="margin_right">5</property>
+                            <child>
+                              <object class="GtkImage" id="next_button_image">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="stock">gtk-media-next</property>
+                              </object>
+                            </child>
+                          </object><!--next_button-->
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="padding">0</property>
+                            <property name="position">3</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkBox" id="progress_box">
+                            <property name="can_focus">False</property>
+                            <property name="orientation">vertical</property>
+                            <property name="margin_right">5</property>
+                            <property name="valign">center</property>
+                            <child>
+                              <object class="GtkEventBox" id="progress_event_box">
+                                <child>
+                                  <object class="GtkProgressBar" id="progress_bar">
+                                    <property name="pulse_step">0.05</property>
+                                    <property name="show_text">True</property>
+                                  </object><!--progress_bar-->
+                                </child>
+                              </object><!--progress_event_box-->
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="padding">6</property>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                          </object><!--progress_box-->
+                          <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
+                            <property name="padding">0</property>
+                            <property name="position">4</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkVolumeButton" id="volume_button">
+                            <property name="adjustment">volume_button_adjustment</property>
+                          </object><!--volume_button-->
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="padding">0</property>
+                            <property name="position">5</property>
+                          </packing>
+                        </child>
+                      </object><!--toptop_h_box-->
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="padding">2</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkExpander" id="expander">
+                        <property name="can_focus">False</property>
+                        <property name="resize_toplevel">False</property>
+                        <property name="label" translatable="yes">Playlist</property>
+                      </object><!--expander-->
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="padding">2</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                  </object><!--top_v_box-->
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object><!--top_h_box-->
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="padding">5</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkNotebook" id="main_notebook">
+                <property name="can_focus">False</property>
+                <property name="scrollable">True</property>
+                <child>
+                  <placeholder/>
+                </child>
+              </object><!--main_notebook-->
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="padding">5</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkStatusbar" id="main_statusbar">
+                <child>
+                  <placeholder/>
+                </child>
+              </object><!--main_statusbar-->
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="padding">0</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+          </object><!--main_v_box-->
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="padding">3</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+      </object><!--main_h_box-->
+    </child>
+  </object><!--main_window-->
+  <object class="GtkWindow" id="fullscreen_window">
+    <property name="title" translatable="yes">Cover Art</property>
+    <property name="role">fullscreenWindow</property>
+    <property name="can_focus">False</property>
+    <property name="decorated">True</property>
+    <child>
+      <object class="GtkBox" id="fullscreen_v_box">
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="halign">center</property>
+        <property name="valign">center</property>
+        <child>
+          <object class="GtkBox" id="fullscreen_h_box">
+            <property name="can_focus">False</property>
+            <property name="orientation">horizontal</property>
+            <child>
+              <object class="GtkImage" id="fullscreen_image">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="halign">center</property>
+                <property name="hexpand">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="padding">3</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="fullscreen_label_1">
+            <property name="can_focus">False</property>
+            <property name="halign">center</property>
+            <style>
+              <class name="fullscreen_label"/>
+            </style>
+          </object><!--fullscreen_label_1-->
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="padding">0</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="fullscreen_label_2">
+            <property name="can_focus">False</property>
+            <property name="halign">center</property>
+            <style>
+              <class name="fullscreen_label2"/>
+            </style>
+          </object><!--fullscreen_label_2-->
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="padding">0</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object><!--fullscreen_window-->
+  <object class="GtkBox" id="tray_v_box">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="orientation">vertical</property>
+    <property name="margin">6</property>
+    <child>
+      <object class="GtkBox" id="tray_h_box">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <child>
+          <object class="GtkImage" id="tray_album_image">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="width_request">26</property>
+            <property name="height_request">77</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkBox" id="tray_inner_v_box">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkLabel" id="tray_label_1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="xalign">0</property>
+                <property name="xpad">6</property>
+                <property name="label" translatable="yes">Playlist</property>
+                <style>
+                  <class name="tray_label"/>
+                </style>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="tray_label_2">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="xalign">0</property>
+                <property name="xpad">6</property>
+                <property name="label" translatable="yes">Playlist</property>
+                <style>
+                  <class name="tray_label2"/>
+                </style>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkProgressBar" id="tray_progressbar">
+                <property name="pulse_step">0.05</property>
+                <property name="show_text">True</property>
+                <property name="margin">6</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">True</property>
+        <property name="fill">True</property>
+        <property name="position">0</property>
+      </packing>
+    </child>
+  </object><!--tray_v_box-->
+  <object class="GtkDialog" id="artwork_dialog">
+    <property name="can_focus">False</property>
+    <property name="title" translatable="yes">Choose Cover Art</property>
+    <property name="role">artwork_chooser</property>
+    <property name="resizable">False</property>
+    <property name="modal">True</property>
+    <property name="type_hint">normal</property>
+    <property name="type">toplevel</property>
+    <property name="destroy_with_parent">True</property>
+    <property name="window_position">center-on-parent</property>
+    <property name="transient_for">main_window</property>
+    <child internal-child="vbox">
+      <object class="GtkBox" id="artwork_v_box">
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkScrolledWindow" id="artwork_scrolledwindow">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="hscrollbar_policy">never</property>
+            <property name="shadow_type">in</property>
+            <property name="width_request">360</property>
+            <property name="height_request">325</property>
+            <child>
+              <object class="GtkIconView" id="artwork_iconview">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="model">artwork_liststore</property>
+                <property name="columns">2</property>
+                <property name="item_width">75</property>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkExpander" id="artwork_expander">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <child>
+              <object class="GtkBox" id="artwork_expander_h_box">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkGrid" id="artwork_expander_grid">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="column_spacing">6</property>
+                    <child>
+                      <object class="GtkLabel" id="artwork_artist_label">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Artist:</property>
+                      </object>
+                      <packing>
+                        <property name="left_attach">0</property>
+                        <property name="top_attach">0</property>
+                        <property name="width">1</property>
+                        <property name="height">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="artwork_album_label">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Album:</property>
+                      </object>
+                      <packing>
+                        <property name="left_attach">0</property>
+                        <property name="top_attach">1</property>
+                        <property name="width">1</property>
+                        <property name="height">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="artwork_artist_entry">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                      </object>
+                      <packing>
+                        <property name="left_attach">1</property>
+                        <property name="top_attach">0</property>
+                        <property name="width">1</property>
+                        <property name="height">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="artwork_album_entry">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                      </object>
+                      <packing>
+                        <property name="left_attach">1</property>
+                        <property name="top_attach">1</property>
+                        <property name="width">1</property>
+                        <property name="height">1</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="artwork_update_button">
+                    <property name="label">gtk-refresh</property>
+                    <property name="use_action_appearance">False</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <property name="use_action_appearance">False</property>
+                    <property name="use_stock">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
+            <child type="label">
+              <object class="GtkLabel" id="artwork_expander_label">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Edit search terms</property>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child internal-child="action_area">
+          <object class="GtkButtonBox" id="artwork_button_box">
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkButton" id="artwork_cancel_button">
+                <property name="label">gtk-cancel</property>
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="artwork_choose_button">
+                <property name="label">gtk-ok</property>
+                <property name="use_action_appearance">False</property>
+                <property name="use_stock">True</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="pack_type">end</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="-6">artwork_cancel_button</action-widget>
+      <action-widget response="-3">artwork_choose_button</action-widget>
+    </action-widgets>
+  </object>
+  <object class="GtkListStore" id="artwork_liststore">
+    <columns>
+      <!-- column-name gint1 -->
+      <column type="gint"/>
+      <!-- column-name GdkPixbuf1 -->
+      <column type="GdkPixbuf"/>
+    </columns>
+  </object>
+  <object class="GtkDialog" id="lyrics_search_dialog">
+    <property name="can_focus">False</property>
+    <property name="border_width">5</property>
+    <property name="type">toplevel</property>
+    <property name="title" translatable="yes">Lyrics Search</property>
+    <property name="role">lyrics_search</property>
+    <property name="resizable">False</property>
+    <property name="modal">True</property>
+    <property name="window_position">center-on-parent</property>
+    <property name="destroy_with_parent">True</property>
+    <property name="type_hint">dialog</property>
+    <property name="transient_for">main_window</property>
+    <child internal-child="vbox">
+      <object class="GtkBox" id="lyrics_search_v_box">
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child internal-child="action_area">
+          <object class="GtkButtonBox" id="lyrics_search_button_box">
+            <property name="can_focus">False</property>
+            <property name="layout_style">end</property>
+            <child>
+              <object class="GtkButton" id="lyrics_search_cancel_button">
+                <property name="label">gtk-cancel</property>
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">False</property>
+                <property name="use_action_appearance">False</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="lyrics_search_find_button">
+                <property name="label">gtk-find</property>
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkGrid" id="lyrics_search_grid">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="column_spacing">6</property>
+            <child>
+              <object class="GtkLabel" id="lyrics_search_artist_label">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">Artist Name:</property>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">0</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="lyrics_search_title_label">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">Song Title:</property>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">1</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkEntry" id="lyrics_search_artist_entry">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="truncate_multiline">True</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">0</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkEntry" id="lyrics_search_title_entry">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="truncate_multiline">True</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">1</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="-2">lyrics_search_cancel_button</action-widget>
+      <action-widget response="-3">lyrics_search_find_button</action-widget>
+    </action-widgets>
+  </object>
+  <object class="GtkImage" id="local_art_preview_image">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+  </object>
+  <object class="GtkFileChooserDialog" id="local_artwork_dialog">
+    <property name="can_focus">False</property>
+    <property name="default_width">600</property>
+    <property name="default_height">400</property>
+    <property name="border_width">5</property>
+    <property name="title" translatable="yes">Open Image</property>
+    <property name="role">local_art_dialog</property>
+    <property name="resizable">True</property>
+    <property name="modal">True</property>
+    <property name="window_position">center-on-parent</property>
+    <property name="destroy_with_parent">True</property>
+    <property name="type_hint">dialog</property>
+    <property name="transient_for">main_window</property>
+    <property name="preview_widget">local_art_preview_image</property>
+    <property name="use_preview_label">False</property>
+    <child internal-child="vbox">
+      <object class="GtkBox" id="local_artwork_v_box">
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child internal-child="action_area">
+          <object class="GtkButtonBox" id="local_artwork_buttonbox">
+            <property name="can_focus">False</property>
+            <property name="layout_style">end</property>
+            <child>
+              <object class="GtkButton" id="local_art_cancel_button">
+                <property name="label">gtk-cancel</property>
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="local_art_open_button">
+                <property name="label">gtk-open</property>
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="has_default">True</property>
+                <property name="can_default">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="-6">local_art_cancel_button</action-widget>
+      <action-widget response="-5">local_art_open_button</action-widget>
+    </action-widgets>
+  </object>
+</interface>

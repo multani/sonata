@@ -14,18 +14,21 @@ self.playlists.populate()
 ...
 """
 
-import gtk
-import pango
-import ui
-import misc
-import mpdhelper as mpdh
+import os
+
+from gi.repository import Gtk, Pango, Gdk
+
+from sonata import ui, misc, mpdhelper as mpdh
+
+from sonata.pluginsystem import pluginsystem, BuiltinPlugin
+
 
 class Playlists(object):
 
     def __init__(self, config, window, mpd, UIManager,
                  update_menu_visibility, iterate_now, on_add_item,
                  on_playlists_button_press, get_current_songs, connected,
-                 add_selected_to_playlist, TAB_PLAYLISTS, new_tab):
+                 add_selected_to_playlist, TAB_PLAYLISTS, add_tab):
         self.config = config
         self.window = window
         self.mpd = mpd
@@ -40,14 +43,21 @@ class Playlists(object):
 
         self.mergepl_id = None
         self.actionGroupPlaylists = None
+        self.playlist_name_dialog = None
+
+        self.builder = ui.builder('playlists')
 
         # Playlists tab
-        self.playlists = ui.treeview()
+        self.playlists = self.builder.get_object('playlists_page_treeview')
         self.playlists_selection = self.playlists.get_selection()
-        self.playlistswindow = ui.scrollwindow(add=self.playlists)
+        self.playlistswindow = self.builder.get_object('playlists_page_scrolledwindow')
 
-        self.tab = new_tab(self.playlistswindow, gtk.STOCK_JUSTIFY_CENTER,
-                    TAB_PLAYLISTS, self.playlists)
+        self.tab_label = self.builder.get_object('playlists_tab_label')
+        self.tab_label.set_text(TAB_PLAYLISTS)
+
+        self.tab_widget = self.builder.get_object('playlists_tab_eventbox')
+        self.tab = add_tab(self.playlistswindow, self.tab_widget, TAB_PLAYLISTS,
+                           self.playlists)
 
         self.playlists.connect('button_press_event',
                                self.on_playlists_button_press)
@@ -55,19 +65,8 @@ class Playlists(object):
         self.playlists.connect('key-press-event', self.playlists_key_press)
 
         # Initialize playlist data and widget
-        self.playlistsdata = gtk.ListStore(str, str)
-        self.playlists.set_model(self.playlistsdata)
+        self.playlistsdata = self.builder.get_object('playlists_liststore')
         self.playlists.set_search_column(1)
-        self.playlistsimg = gtk.CellRendererPixbuf()
-        self.playlistscell = gtk.CellRendererText()
-        self.playlistscell.set_property("ellipsize", pango.ELLIPSIZE_END)
-        self.playlistscolumn = gtk.TreeViewColumn()
-        self.playlistscolumn.pack_start(self.playlistsimg, False)
-        self.playlistscolumn.pack_start(self.playlistscell, True)
-        self.playlistscolumn.set_attributes(self.playlistsimg, stock_id=0)
-        self.playlistscolumn.set_attributes(self.playlistscell, markup=1)
-        self.playlists.append_column(self.playlistscolumn)
-        self.playlists_selection.set_mode(gtk.SELECTION_MULTIPLE)
 
     def get_model(self):
         return self.playlistsdata
@@ -87,11 +86,11 @@ class Playlists(object):
         if self.actionGroupPlaylists:
             self.UIManager().remove_action_group(self.actionGroupPlaylists)
             self.actionGroupPlaylists = None
-        self.actionGroupPlaylists = gtk.ActionGroup('MPDPlaylists')
+        self.actionGroupPlaylists = Gtk.ActionGroup('MPDPlaylists')
         self.UIManager().ensure_update()
         actions = [
             ("Playlist: %s" % playlist.replace("&", ""),
-             gtk.STOCK_JUSTIFY_CENTER,
+             Gtk.STOCK_JUSTIFY_CENTER,
              ui.quote_label(misc.unescape_html(playlist)),
              None, None,
              self.on_playlist_menu_click)
@@ -163,37 +162,33 @@ class Playlists(object):
                     if ui.show_msg(self.window,
                                    _(('A playlist with this name already '
                                      'exists. Would you like to replace it?')),
-                                   title, role, gtk.BUTTONS_YES_NO) == \
-                       gtk.RESPONSE_YES:
+                                   title, role, Gtk.ButtonsType.YES_NO) == \
+                       Gtk.ResponseType.YES:
                         return False
                     else:
                         return True
         return False
 
-    def prompt_for_playlist_name(self, title, role):
+    def prompt_for_playlist_name(self, title, role, oldname=None):
+        """Prompt user for playlist name"""
         plname = None
         if self.connected():
-            # Prompt user for playlist name:
-            dialog = ui.dialog(title=title, parent=self.window,
-                               flags=gtk.DIALOG_MODAL |
-                               gtk.DIALOG_DESTROY_WITH_PARENT,
-                               buttons=(gtk.STOCK_CANCEL,
-                                        gtk.RESPONSE_REJECT,
-                                        gtk.STOCK_SAVE,
-                                        gtk.RESPONSE_ACCEPT),
-                               role=role, default=gtk.RESPONSE_ACCEPT)
-            hbox = gtk.HBox()
-            hbox.pack_start(ui.label(text=_('Playlist name:')), False, False,
-                            5)
-            entry = ui.entry()
-            entry.set_activates_default(True)
-            hbox.pack_start(entry, True, True, 5)
-            dialog.vbox.pack_start(hbox)
-            ui.show(dialog.vbox)
-            response = dialog.run()
-            if response == gtk.RESPONSE_ACCEPT:
+            if not self.playlist_name_dialog:
+                self.playlist_name_dialog = self.builder.get_object(
+                    'playlist_name_dialog')
+            self.playlist_name_dialog.set_transient_for(self.window)
+            self.playlist_name_dialog.set_title(title)
+            self.playlist_name_dialog.set_role(role)
+            entry = self.builder.get_object('playlist_name_entry')
+            if oldname:
+                entry.set_text(oldname)
+            else:
+                entry.set_text("")
+            self.playlist_name_dialog.show_all()
+            response = self.playlist_name_dialog.run()
+            if response == Gtk.ResponseType.ACCEPT:
                 plname = misc.strip_all_slashes(entry.get_text())
-            dialog.destroy()
+            self.playlist_name_dialog.hide()
         return plname
 
     def populate(self):
@@ -211,17 +206,17 @@ class Playlists(object):
             # Remove case sensitivity
             playlistinfo.sort(key=lambda x: x.lower())
             for item in playlistinfo:
-                self.playlistsdata.append([gtk.STOCK_JUSTIFY_FILL, item])
+                self.playlistsdata.append([Gtk.STOCK_DIRECTORY, item])
 
             self.populate_playlists_for_menu(playlistinfo)
 
     def on_playlist_rename(self, _action):
+        model, selected = self.playlists_selection.get_selected_rows()
+        oldname = misc.unescape_html(
+            model.get_value(model.get_iter(selected[0]), 1))
         plname = self.prompt_for_playlist_name(_("Rename Playlist"),
-                                               'renamePlaylist')
+                                               'renamePlaylist', oldname)
         if plname:
-            model, selected = self.playlists_selection.get_selected_rows()
-            oldname = misc.unescape_html(
-                model.get_value(model.get_iter(selected[0]), 1))
             if self.playlist_name_exists(_("Rename Playlist"),
                                          'renamePlaylistError',
                                          plname, oldname):
@@ -236,7 +231,7 @@ class Playlists(object):
                 row = row + 1
 
     def playlists_key_press(self, widget, event):
-        if event.keyval == gtk.gdk.keyval_from_name('Return'):
+        if event.keyval == Gdk.keyval_from_name('Return'):
             self.playlists_activated(widget, widget.get_cursor()[0])
             return True
 

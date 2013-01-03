@@ -13,16 +13,16 @@
 # license: GPL v3 or later
 # [capabilities]
 # enablables: on_enable
-# tabs: construct_tab
+# tab_construct: tab_construct
 # playing_song_observers: on_song_change
 # lyrics_fetching: on_lyrics_fetch
 ### END PLUGIN INFO
 
 # nothing magical from here on
 
-import gobject, gtk, pango
+from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, Pango
 
-from sonata.misc import escape_html
+from .misc import escape_html
 
 songlabel = None
 lyricslabel = None
@@ -31,25 +31,25 @@ lyricslabel = None
 def on_enable(state):
     global songlabel, lyricslabel
     if state:
-        songlabel = gtk.Label("No song info received yet.")
-        songlabel.props.ellipsize = pango.ELLIPSIZE_END
-        lyricslabel = gtk.Label("No lyrics requests yet.")
-        lyricslabel.props.ellipsize = pango.ELLIPSIZE_END
+        songlabel = Gtk.Label("No song info received yet.")
+        songlabel.props.ellipsize = Pango.ELLIPSIZE_END
+        lyricslabel = Gtk.Label("No lyrics requests yet.")
+        lyricslabel.props.ellipsize = Pango.ELLIPSIZE_END
     else:
         songlabel = None
         lyricslabel = None
 
 # this constructs the parts of the tab when called:
-def construct_tab():
-    vbox = gtk.VBox()
-    vbox.pack_start(gtk.Label("Hello world!"))
-    vbox.pack_start(songlabel)
-    vbox.pack_start(lyricslabel)
-    vbox.pack_start(gtk.Label("(You can modify me at %s)" %
-                  __file__.rstrip("c")))
+def tab_construct():
+    vbox = Gtk.VBox()
+    vbox.pack_start(Gtk.Label("Hello world!"), True, True, 0)
+    vbox.pack_start(songlabel, True, True, 0)
+    vbox.pack_start(lyricslabel, True, True, 0)
+    vbox.pack_start(Gtk.Label("(You can modify me at %s)" %
+                  __file__.rstrip("c")), True, True, 0)
     vbox.show_all()
 
-    # the return value goes off to Base.new_tab(page, stock, text, focus):
+    # the return value goes off to Base.add_tab(page, stock, text, focus):
     # (tab content, icon name, tab name, the widget to focus on tab switch)
     return (vbox, None, "Test plugin", None)
 
@@ -69,6 +69,6 @@ def on_lyrics_fetch(callback, artist, title):
         (artist, title))
 
     # callback(lyrics, error)
-    gobject.timeout_add(0, callback, None,
-                "%s doesn't have lyrics for %r." %
-                (__name__, (artist, title)))
+    GLib.timeout_add(
+        0, callback, None,
+        "%s doesn't have lyrics for %r." % (__name__, (artist, title)))

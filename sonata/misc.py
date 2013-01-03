@@ -6,36 +6,28 @@ import locale
 import logging
 import sys
 
+from gi.repository import GLib
+
 
 logger = logging.getLogger(__name__)
 
 
-def convert_time(raw):
-    # Converts raw time to 'hh:mm:ss' with leading zeros as appropriate
-    h, m, s = ['%02d' % c for c in (raw / 3600, (raw % 3600) / 60, raw % 60)]
-    if h == '00':
-        if m.startswith('0'):
-            m = m[1:]
-        return m + ':' + s
-    else:
-        if h.startswith('0'):
-            h = h[1:]
-        return h + ':' + m + ':' + s
+def convert_time(seconds):
+    """
+    Converts time in seconds to 'hh:mm:ss' format
+    with leading zeros as appropriate and optional hours
+    """
+    hours, minutes, seconds = convert_time_raw(seconds)
+    if hours == 0:
+       return "%02d:%02d" %(minutes, seconds)
+    return "%02d:%02d:%02d" %(hours, minutes, seconds)
 
-
-def bold(s):
-    if not (str(s).startswith('<b>') and str(s).endswith('</b>')):
-        return '<b>%s</b>' % s
-    else:
-        return s
-
-
-def unbold(s):
-    if str(s).startswith('<b>') and str(s).endswith('</b>'):
-        return s[3:-4]
-    else:
-        return s
-
+def convert_time_raw(seconds):
+    hours = seconds // 3600
+    seconds -= 3600 * hours
+    minutes = seconds // 60
+    seconds -= 60 * minutes
+    return hours, minutes, seconds
 
 def escape_html(s):
     # & needs to be escaped first, before more are introduced:
@@ -125,7 +117,6 @@ the_re = re.compile('^the ')
 
 
 def lower_no_the(s):
-    s = unicode(s)
     s = the_re.sub('', s.lower())
     s = str(s)
     return s
@@ -192,14 +183,14 @@ def browser_load(docslink, browser, window):
     if browser and browser.strip():
         browsers = [browser.strip()]
     else:
-        browsers = ["gnome-open",    # default, we are a "gnome" app
+        browsers = ["xdg-open",    # default, this respect the used DE
                 "x-www-browser", # default on Debian-based systems
+                "gnome-open",
+                "kde-open",
                 "exo-open",
-                "kfmclient openURL",
                 "firefox",
-                "mozilla",
                 "opera",
-                "chromium-browser"]
+                "chromium"]
     for browser in browsers:
         try:
             subprocess.Popen(browser.split() + [docslink])
@@ -212,17 +203,16 @@ def browser_load(docslink, browser, window):
 
 
 def file_from_utf8(filename):
-    import gobject
     try:
-        return gobject.filename_from_utf8(filename)
+        return GLib.filename_from_utf8(filename)
     except:
         return filename
 
 
 def is_lang_rtl(window):
-    import pango
+    from gi.repository import Pango
     # Check if a RTL (right-to-left) language:
-    return window.get_pango_context().get_base_dir() == pango.DIRECTION_RTL
+    return window.get_pango_context().get_base_dir() == Pango.Direction.RTL
 
 
 def sanitize_musicdir(mdir):
@@ -245,20 +235,9 @@ def mpd_env_vars():
 
 def get_files_recursively(dirname):
     filenames = []
-    os.path.walk(dirname, _get_files_recursively, filenames)
+    os.walk(dirname, _get_files_recursively, filenames)
     return filenames
 
 
 def _get_files_recursively(filenames, dirname, files):
     filenames.extend([os.path.join(dirname, f) for f in files])
-
-
-def setlocale():
-    try:
-        locale.setlocale(locale.LC_ALL, "")
-        # XXX this makes python-mpd correctly return lowercase
-        # keys for, e.g., playlistinfo() with a turkish locale:
-        locale.setlocale(locale.LC_CTYPE, "C")
-    except:
-        logger.exception("Failed to set locale")
-        sys.exit(1)

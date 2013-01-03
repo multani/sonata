@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+import sys
+if sys.version_info <= (3, 2):
+    sys.stderr.write("Sonata requires Python 3.2+\n")
+    sys.exit(1)
+
 from distutils.dep_util import newer
 import glob
 import os
@@ -14,24 +19,21 @@ def capture(cmd):
 def generate_translation_files():
     lang_files = []
 
-    if not os.path.exists("mo"):
-        os.mkdir("mo")
-
     langs = (os.path.splitext(l)[0]
              for l in os.listdir('po')
              if l.endswith('po') and l != "messages.po")
 
     for lang in langs:
         pofile = os.path.join("po", "%s.po" % lang)
-        modir = os.path.join("mo", lang)
+        modir = os.path.join("sonata", "share", "locale", lang, "LC_MESSAGES")
         mofile = os.path.join(modir, "sonata.mo")
         if not os.path.exists(modir):
-            os.mkdir(modir)
+            os.makedirs(modir)
 
         lang_files.append(('share/locale/%s/LC_MESSAGES' % lang, [mofile]))
 
         if newer(pofile, mofile):
-            print "Generating %s" % mofile
+            print("Generating %s" % mofile)
             os.system("msgfmt %s -o %s" % (pofile, mofile))
 
     return lang_files
@@ -46,14 +48,10 @@ versionfile.close()
 
 
 data_files = [
-    ('share/sonata', ['README.old', 'CHANGELOG', 'TODO', 'TRANSLATORS']),
+    ('share/sonata', ['README.rst', 'CHANGELOG', 'TODO', 'TRANSLATORS']),
     ('share/applications', ['sonata.desktop']),
     ('share/man/man1', ['sonata.1']),
 ] + generate_translation_files()
-
-tests_require = [
-    'unittest2',
-]
 
 
 setup(
@@ -74,18 +72,15 @@ setup(
     ],
     packages=["sonata", "sonata.plugins"],
     package_dir={"sonata": "sonata"},
-    ext_modules=[
-        Extension(
-            "mmkeys",
-            ["mmkeys/mmkeyspy.c", "mmkeys/mmkeys.c",
-             "mmkeys/mmkeysmodule.c"],
-            extra_compile_args=capture("pkg-config --cflags gtk+-2.0 pygtk-2.0").split(),
-            extra_link_args=capture("pkg-config --libs gtk+-2.0 pygtk-2.0").split()
-        ),
-    ],
     data_files=data_files,
     package_data={
-        'sonata': ['pixmaps/*.*'],
+        'sonata': [
+            'pixmaps/*.*',
+            'ui/*.ui',
+            'ui/*.css',
+            'plugins/ui/*.ui',
+            'plugins/ui/*.css',
+        ],
     },
     entry_points={
         'console_scripts': [
@@ -93,10 +88,6 @@ setup(
         ]
     },
     test_suite='sonata.tests',
-    tests_require=tests_require,
-    extras_require={
-        'test': tests_require,
-    },
 )
 try:
     os.remove("sonata/genversion.py")
