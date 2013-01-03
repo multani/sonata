@@ -47,7 +47,7 @@ from sonata import preferences, tagedit, \
                 scrobbler, info, \
                 library, streams, \
                 playlists, current, \
-                lyricwiki, rhapsodycovers, \
+                rhapsodycovers, \
                 dbus_plugin as dbus
 from sonata.song import SongRecord
 
@@ -460,7 +460,6 @@ class Base(object):
         self.preferences.scrobbler = self.scrobbler
 
         # Plug-ins imported as modules
-        self.lyricwiki = lyricwiki.LyricWiki()
         self.rhapsodycovers = rhapsodycovers.RhapsodyCovers()
 
         # Current tab
@@ -2974,10 +2973,7 @@ class Base(object):
                 self.on_tags_edit(None)
         elif linktype == 'search':
             self.on_lyrics_search(None)
-        elif linktype == 'editlyrics':
-            browser_not_loaded = not misc.browser_load(
-                self.lyricwiki.lyricwiki_editlink(self.songinfo),
-                self.config.url_browser, self.window)
+
         if browser_not_loaded:
             ui.show_msg(self.window, _('Unable to launch a suitable browser.'),
                         _('Launch Browser'),

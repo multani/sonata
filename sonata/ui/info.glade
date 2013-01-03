@@ -611,29 +611,6 @@
                             <property name="position">0</property>
                           </packing>
                         </child>
-                        <child>
-                          <object class="GtkEventBox" id="info_page_lyrics_edit_eventbox">
-                            <property name="visible">False</property>
-                            <property name="visible_window">False</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Edit lyrics at Lyricwiki.org</property>
-                            <child>
-                              <object class="GtkLabel" id="info_page_lyrics_edit">
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="label" translatable="yes">(edit)</property>
-                                <style>
-                                  <class name="link"/>
-                                </style>
-                              </object>
-                            </child>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">True</property>
-                            <property name="position">1</property>
-                          </packing>
-                        </child>
                       </object>
                       <packing>
                         <property name="expand">False</property>

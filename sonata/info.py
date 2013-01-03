@@ -1,9 +1,11 @@
+
 from __future__ import with_statement
 
 import sys
 import os
 import locale
 import logging
+import threading
 
 from gi.repository import Gtk, Pango, Gdk, GdkPixbuf
 
@@ -28,7 +30,6 @@ class Info(object):
 
         self.info_boxes_in_more = None
         self._editlabel = None
-        self._editlyricslabel = None
         self.info_left_label = None
         self.info_lyrics = None
         self._morelabel = None
@@ -118,13 +119,9 @@ class Info(object):
         self.lyrics_text = self.builder.get_object('info_page_lyrics_textview')
         self._populate_lyrics_tag_table()
         self._searchlabel = self.builder.get_object('info_page_lyrics_search')
-        self._editlyricslabel = self.builder.get_object('info_page_lyrics_edit')
         search_eventbox = self.builder.get_object(
             'info_page_lyrics_search_eventbox')
-        edit_eventbox = self.builder.get_object(
-            'info_page_lyrics_edit_eventbox')
         self._apply_link_signals(search_eventbox, 'search')
-        self._apply_link_signals(edit_eventbox, 'editlyrics')
 
     def _widgets_album(self):
         self.info_album = self.builder.get_object('info_page_album_expander')
@@ -194,7 +191,6 @@ class Info(object):
         for label in self.info_labels.values():
             label.hide()
         self._searchlabel.hide()
-        self._editlyricslabel.hide()
         self._show_lyrics(None, None)
         self.album_text.get_buffer().set_text("")
         self.last_bitrate = ""
@@ -350,18 +346,42 @@ class Info(object):
                 lyrics = lyrics[len(header):]
             self._show_lyrics(filename_artist, filename_title, lyrics=lyrics)
         else:
-            # Fetch lyrics from lyricwiki.org etc.
-            lyrics_fetchers = pluginsystem.get('lyrics_fetching')
-            callback = lambda * args: self.get_lyrics_response(
-                filename_artist, filename_title, song_dir, *args)
-            if lyrics_fetchers:
-                msg = _("Fetching lyrics...")
-                for _plugin, cb in lyrics_fetchers:
-                    cb(callback, search_artist, search_title)
-            else:
-                msg = _("No lyrics plug-in enabled.")
-            self._show_lyrics(filename_artist, filename_title,
-                          lyrics=msg)
+            # Fetch lyrics from plugins.
+            thread = threading.Thread(target=self.fetch_lyrics_from_plugins,
+                                      args=(search_artist, search_title,
+                                            song_dir))
+            thread.start()
+
+    def fetch_lyrics_from_plugins(self, search_artist, search_title, song_dir):
+        lyrics_fetchers = pluginsystem.get('lyrics_fetching')
+        if lyrics_fetchers:
+            self._show_lyrics(search_artist, search_title,
+                              lyrics=_("Fetching lyrics..."))
+            for plugin, get_lyrics in lyrics_fetchers:
+                try:
+                    lyrics = get_lyrics(search_artist, search_title)
+                except Exception as e:
+                    if self.logger.isEnabledFor(logging.DEBUG):
+                        # Be more verbose if we want something verbose
+                        log = self.logger.exception
+                    else:
+                        log = self.logger.warning
+
+                    log("Plugin %s: unable to fetch lyrics (%s)",
+                        plugin.name, e)
+                    continue
+
+                if lyrics:
+                    self.logger.info("Lyrics for %r - %r fetched by %r plugin.",
+                                     search_artist, search_title, plugin.name)
+                    self.get_lyrics_response(search_artist, search_title,
+                                             song_dir, lyrics=lyrics)
+                    return
+            msg = _("Lyrics not found.")
+        else:
+            msg = _("No lyrics plug-in enabled.")
+
+        self._show_lyrics(search_artist, search_title, lyrics=msg)
 
     def get_lyrics_response(self, artist_then, title_then, song_dir,
                 lyrics=None, error=None):
@@ -383,7 +403,6 @@ class Info(object):
         # For error messages where there is no appropriate info:
         if not artist_then or not title_then:
             self._searchlabel.hide()
-            self._editlyricslabel.hide()
             if error:
                 self.lyrics_text.get_buffer().set_text(error)
             elif lyrics:
@@ -400,7 +419,6 @@ class Info(object):
         title_now = misc.strip_all_slashes(mpdh.get(songinfo, 'title', None))
         if artist_now == artist_then and title_now == title_then:
             self._searchlabel.show()
-            self._editlyricslabel.show()
             if error:
                 self.lyrics_text.get_buffer().set_text(error)
             elif lyrics:
