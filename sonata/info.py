@@ -358,11 +358,22 @@ class Info(object):
             self._show_lyrics(search_artist, search_title,
                               lyrics=_("Fetching lyrics..."))
             for plugin, get_lyrics in lyrics_fetchers:
-                lyrics = get_lyrics(search_artist, search_title)
+                try:
+                    lyrics = get_lyrics(search_artist, search_title)
+                except Exception as e:
+                    if self.logger.isEnabledFor(logging.DEBUG):
+                        # Be more verbose if we want something verbose
+                        log = self.logger.exception
+                    else:
+                        log = self.logger.warning
+
+                    log("Plugin %s: unable to fetch lyrics (%s)",
+                        plugin.name, e)
+                    continue
+
                 if lyrics:
-                    self.logger.info(_("Lyrics for '") + search_artist + " - " +
-                                     search_title + _("' fetched by ") +
-                                     plugin.name + _(" plugin."))
+                    self.logger.info("Lyrics for %r - %r fetched by %r plugin.",
+                                     search_artist, search_title, plugin.name)
                     self.get_lyrics_response(search_artist, search_title,
                                              song_dir, lyrics=lyrics)
                     return
