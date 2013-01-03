@@ -228,22 +228,19 @@ class Info(object):
 
         for name in ['title', 'date', 'genre']:
             label = self.info_labels[name]
-            label.set_text(mpdh.get(songinfo, name))
+            label.set_text(songinfo.get(name, ''))
 
-        tracklabel.set_text(mpdh.get(songinfo, 'track', '', False))
-        artistlabel.set_text(misc.escape_html(mpdh.get(songinfo, 'artist')))
-        albumlabel.set_text(misc.escape_html(mpdh.get(songinfo, 'album')))
+        tracklabel.set_text(str(songinfo.track))
+        artistlabel.set_text(misc.escape_html(songinfo.artist))
+        albumlabel.set_text(misc.escape_html(songinfo.album))
 
         path = misc.file_from_utf8(os.path.join(
-            self.config.musicdir[self.config.profile_num], mpdh.get(songinfo,
-                                                                    'file')))
+            self.config.musicdir[self.config.profile_num], songinfo.file))
         if os.path.exists(path):
-            filelabel.set_text(os.path.join(
-                self.config.musicdir[self.config.profile_num],
-                mpdh.get(songinfo, 'file')))
+            filelabel.set_text(path)
             self._editlabel.show()
         else:
-            filelabel.set_text(mpdh.get(songinfo, 'file'))
+            filelabel.set_text(songinfo.file)
             self._editlabel.hide()
 
     def _update_album(self, songinfo):
@@ -255,20 +252,17 @@ class Info(object):
         albuminfo = _("Album info not found.")
 
         if tracks:
-            tracks.sort(key=lambda x: mpdh.get(x, 'track', 0, True))
+            tracks.sort(key=lambda x: x.track)
             playtime = 0
             tracklist = []
             for t in tracks:
-                playtime += mpdh.get(t, 'time', 0, True)
-                tracklist.append("%s. %s" %
-                        (mpdh.get(t, 'track', '0',
-                            False, 2),
-                        mpdh.get(t, 'title',
-                            os.path.basename(
-                                t['file']))))
+                playtime += t.time
+                tracklist.append("%s. %s" % (
+                    str(t.track).zfill(2),
+                    t.get('title', os.path.basename(t.file))))
 
-            album = mpdh.get(songinfo, 'album')
-            year = mpdh.get(songinfo, 'date', None)
+            album = songinfo.album
+            year = songinfo.date
             playtime = misc.convert_time(playtime)
             albuminfo = "\n".join(i for i in (album, artist, year,
                               playtime) if i)
@@ -280,12 +274,9 @@ class Info(object):
     def _update_lyrics(self, songinfo):
         if self.config.show_lyrics:
             if 'artist' in songinfo and 'title' in songinfo:
-                self.get_lyrics_start(mpdh.get(songinfo, 'artist'),
-                                      mpdh.get(songinfo, 'title'),
-                                      mpdh.get(songinfo, 'artist'),
-                                      mpdh.get(songinfo, 'title'),
-                                      os.path.dirname(mpdh.get(songinfo,
-                                                               'file')))
+                self.get_lyrics_start(songinfo.artist, songinfo.title,
+                                      songinfo.artist, songinfo.title,
+                                      os.path.dirname(songinfo.file))
             else:
                 self._show_lyrics(None, None, error=_(('Artist or song title '
                                                        'not set.')))
@@ -415,8 +406,8 @@ class Info(object):
         songinfo = self.get_playing_song()
         if not songinfo:
             return
-        artist_now = misc.strip_all_slashes(mpdh.get(songinfo, 'artist', None))
-        title_now = misc.strip_all_slashes(mpdh.get(songinfo, 'title', None))
+        artist_now = misc.strip_all_slashes(songinfo.artist)
+        title_now = misc.strip_all_slashes(songinfo.title)
         if artist_now == artist_then and title_now == title_then:
             self._searchlabel.show()
             if error:

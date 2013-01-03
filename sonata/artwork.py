@@ -93,7 +93,7 @@ class Artwork(object):
             if 'name' in self.songinfo:
                 # Stream, remove file:
                 misc.remove_file(self.artwork_stream_filename(
-                    mpdh.get(self.songinfo, 'name')))
+                    self.songinfo.name))
             else:
                 # Normal song:
                 misc.remove_file(self.target_image_filename())
@@ -342,8 +342,7 @@ class Artwork(object):
     def _artwork_update(self):
         if 'name' in self.songinfo:
             # Stream
-            streamfile = self.artwork_stream_filename(mpdh.get(self.songinfo,
-                                                               'name'))
+            streamfile = self.artwork_stream_filename(self.songinfo.name)
             if os.path.exists(streamfile):
                 GLib.idle_add(self.artwork_set_image, streamfile, None, None,
                               None)
@@ -351,9 +350,9 @@ class Artwork(object):
                 self.artwork_set_default_icon()
         else:
             # Normal song:
-            artist = mpdh.get(self.songinfo, 'artist', "")
-            album = mpdh.get(self.songinfo, 'album', "")
-            path = os.path.dirname(mpdh.get(self.songinfo, 'file'))
+            artist = self.songinfo.artist or ""
+            album = self.songinfo.album or ""
+            path = os.path.dirname(self.songinfo.file)
             if len(artist) == 0 and len(album) == 0:
                 self.artwork_set_default_icon(artist, album, path)
                 return
@@ -395,7 +394,7 @@ class Artwork(object):
         # to use info from the currently playing song.
 
         if songpath is None:
-            songpath = os.path.dirname(mpdh.get(self.songinfo, 'file'))
+            songpath = os.path.dirname(self.songinfo.file)
 
         # Give precedence to images defined by the user's current
         # art_location config (in case they have multiple valid images
@@ -561,8 +560,7 @@ class Artwork(object):
         # song is displayed
         if self.status_is_play_or_pause() and self.songinfo:
             if 'name' in self.songinfo:
-                value = mpdh.get(self.songinfo, 'name')
-                streamfile = self.artwork_stream_filename(value)
+                streamfile = self.artwork_stream_filename(self.songinfo.name)
                 if filename == streamfile:
                     return True
             else:

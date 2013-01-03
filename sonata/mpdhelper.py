@@ -36,7 +36,7 @@ class MPDClient(object):
 
     def _call(self, cmd, cmd_name, *args):
         try:
-            return cmd(*args)
+            retval = cmd(*args)
         except (socket.error, mpd.MPDError) as e:
             if cmd_name in ['lsinfo', 'list']:
                 # return sane values, which could be used afterwards
@@ -45,6 +45,16 @@ class MPDClient(object):
                 return {}
             else:
                 self.logger.error("%s", e)
+                return None
+
+        if cmd_name in ['songinfo', 'currentsong']:
+            return MPDSong(retval)
+        elif cmd_name in ['plchanges', 'search']:
+            return [MPDSong(s) for s in retval]
+        elif cmd_name in ['count']:
+            return MPDCount(retval)
+        else:
+            return retval
 
     def connect(self, host, port):
         self.disconnect()
@@ -98,40 +108,78 @@ class MPDClient(object):
         self._client.command_list_end()
 
 
-def get(mapping, key, alt='', *sanitize_args):
-    """Get a value from a mpd song and sanitize appropriately.
+class MPDCount(object):
+    """Represent the result of the 'count' MPD command"""
 
-    sanitize_args: Arguments to pass to sanitize
+    __slots__ = ['playtime', 'songs']
 
-    If the value is a list, only the first element is returned.
-    Examples:
-        get({'baz':['foo', 'bar']}, 'baz', '') -> 'foo'
-        get({'baz':34}, 'baz', '', True) -> 34
-    """
-
-    value = mapping.get(key, alt)
-    if isinstance(value, list):
-        value = value[0]
-    return _sanitize(value, *sanitize_args) if sanitize_args else value
+    def __init__(self, m):
+        self.playtime = int(m['playtime'])
+        self.songs = int(m['songs'])
 
 
-def _sanitize(tag, return_int=False, str_padding=0):
-    # Sanitizes a mpd tag; used for numerical tags. Known forms
-    # for the mpd tag can be "4", "4/10", and "4,10".
-    if not tag:
-        return tag
-    tag = str(tag).replace(',', ' ', 1).replace('/', ' ', 1).split()
+class MPDSong(object):
+    """Provide information about a song in a convenient format"""
 
-    # fix #2842: tag only consist of '/' or ','
-    if len(tag) == 0:
-        tag = ''
-    else:
-        tag = tag[0]
+    def __init__(self, mapping):
+        self._mapping = mapping
 
-    if return_int:
-        return int(tag) if tag.isdigit() else 0
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and \
+                self._mapping == other._mapping
 
-    return tag.zfill(str_padding)
+    def __ne__(self, other):
+        return not (self == other)
+
+    def __contains__(self, key):
+        return key in self._mapping
+
+    def __getitem__(self, key):
+        if key not in self:
+            raise KeyError(key)
+        return self.get(key)
+
+    def get(self, key, alt=None):
+        if key in self._mapping and hasattr(self, key):
+            return getattr(self, key)
+        else:
+            return self._mapping.get(key, alt)
+
+    def __getattr__(self, attr):
+        # Get the attribute's value directly into the internal mapping.
+        # This function is not called if the current object has a "real"
+        # attribute set.
+        return self._mapping.get(attr)
+
+    @property
+    def id(self):
+        return int(self._mapping.get('id', 0))
+
+    @property
+    def track(self):
+        value = self._mapping.get('track', '0')
+
+        # The track number can be a bit funky sometimes and contains value like
+        # "4/10" or "4,10" instead of only "4". We tr to clean it up a bit...
+        value = str(value).replace(',', ' ').replace('/', ' ').split()[0]
+        return int(value) if value.isdigit() else 0
+
+    @property
+    def pos(self):
+        v = self._mapping.get('pos', '0')
+        return int(v) if v.isdigit() else 0
+
+    @property
+    def time(self):
+        return int(self._mapping.get('time', 0))
+
+    @property
+    def disc(self):
+        return int(self._mapping.get('disc', 0))
+
+    @property
+    def file(self):
+        return self._mapping.get('file', '') # XXX should be always here?
 
 
 # XXX to be move when we can handle status change in the main interface

@@ -15,13 +15,13 @@ except:
     gettext.textdomain('sonata')
 
 from sonata import misc, song, library
+from sonata.mpdhelper import MPDSong
 
 DOCTEST_FLAGS = (
     doctest.ELLIPSIS |
     doctest.NORMALIZE_WHITESPACE |
     doctest.REPORT_NDIFF
 )
-
 
 class TestSonata(unittest.TestCase):
     def test_convert_time(self):
@@ -77,6 +77,29 @@ class TestSonata(unittest.TestCase):
         albums2 = [song.SongRecord(artist="Tim Pritlove, Holger Klein", album="Not Safe For Work", path="podcasts/Not Save For Work", year=2012)]
         various_albums2 = library.list_mark_various_artists_albums(albums2)
         self.assertEqual(various_albums2, albums2)
+
+
+class TestMPDSong(unittest2.TestCase):
+    def test_get_track_number(self):
+        self.assertEqual(1, MPDSong({'track': '1'}).track)
+        self.assertEqual(1, MPDSong({'track': '1/10'}).track)
+        self.assertEqual(1, MPDSong({'track': '1,10'}).track)
+
+    def test_access_attributes(self):
+        song = MPDSong({'foo': 'zz', 'id': '5'})
+
+        self.assertEqual(5, song.id)
+        self.assertEqual("zz", song.foo)
+        self.assertIsInstance(song.foo, str)
+        self.assertEqual(song.foo, song.get("foo"))
+
+    def test_get_unknown_attribute(self):
+        song = MPDSong({})
+        self.assertRaises(KeyError, lambda: song['bla'])
+        self.assertEqual(None, song.get('bla'))
+        self.assertEqual('foo', song.get('bla', 'foo'))
+        self.assertEqual(None, song.bla)
+
 
 def additional_tests():
     return unittest.TestSuite(
