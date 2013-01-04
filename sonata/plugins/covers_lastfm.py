@@ -48,6 +48,11 @@ def on_cover_fetch(artist, album, on_save_cb, on_err_cb):
     response = opener.open(search_url)
     lastfm = json.loads(response.read().decode('utf-8'))
 
+    if 'error' in lastfm:
+        logger.warning("Can't find cover on Last.fm: %s (err=%d)",
+                       lastfm['message'], lastfm['error'])
+        return
+
     for image in lastfm['album']['image']:
         if image['size'] != 'large':
             continue
