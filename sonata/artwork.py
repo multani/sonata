@@ -708,6 +708,6 @@ class CoverDownloader:
             # dialog...
             return self.progress_cb(path, self.current-1)
 
-    def on_err_cb(self):
+    def on_err_cb(self, reason=None):
         """Return True to stop finding, False to continue finding covers."""
         return False

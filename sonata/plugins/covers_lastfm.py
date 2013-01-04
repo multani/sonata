@@ -62,7 +62,7 @@ def on_cover_fetch(artist, album, on_save_cb, on_err_cb):
             response = opener.open(url)
         except urllib.error.URLError as e:
             logger.warning("Can't download %r: %s", url, e)
-            if on_err_cb():
+            if on_err_cb("Can't download %r: %s" % (url, e)):
                 break
             else:
                 continue
