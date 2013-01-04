@@ -468,7 +468,7 @@
                 <property name="can_focus">True</property>
                 <property name="model">artwork_liststore</property>
                 <property name="columns">2</property>
-                <property name="item_width">75</property>
+                <property name="item_width">162</property>
               </object>
             </child>
           </object>
