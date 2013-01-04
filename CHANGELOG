@@ -1,4 +1,5 @@
 Next release - ?
+    + Fetch covers from Last.fm instead of Rhapsody.com
     + Custom plugins are now stored along the configuration file in ~/.config/sonata/plugins/
     + Switch to Python 3 and Gtk 3 (Jörg Thalheim & Adam Dane)
     + Use Glade files to describe the interface and GtkBuilder to build the interface
