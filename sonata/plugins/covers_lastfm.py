@@ -30,18 +30,6 @@ def make_user_agent():
 
 
 def on_cover_fetch(artist, album, on_save_cb, on_err_cb):
-    try:
-        return _cover_fetching(artist, album, on_save_cb, on_err_cb)
-    except urllib.error.URLError as e:
-        logger.info("Unable to fetch cover from Last.fm: %s", e.reason)
-    except Exception as e:
-        logger.info("Unable to fetch cover from Last.fm: %s", e)
-
-    return False
-
-def _cover_fetching(artist, album, on_save_cb, on_err_cb):
-    logger.debug("Looking for a cover for %r from %r", album, artist)
-
     handler = urllib.request.HTTPHandler()
     opener = urllib.request.build_opener(handler)
     opener.addheaders = [("User-Agent", make_user_agent())]
@@ -60,7 +48,6 @@ def _cover_fetching(artist, album, on_save_cb, on_err_cb):
     response = opener.open(search_url)
     lastfm = json.loads(response.read().decode('utf-8'))
 
-    found = False
     for image in lastfm['album']['image']:
         if image['size'] != 'large':
             continue
@@ -75,11 +62,8 @@ def _cover_fetching(artist, album, on_save_cb, on_err_cb):
             else:
                 continue
 
-        found = True
         if not on_save_cb(response):
             break
-
-    return found
 
 
 if __name__ == '__main__':

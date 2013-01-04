@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 import threading # artwork_update starts a thread _artwork_update
@@ -7,6 +8,9 @@ from gi.repository import Gtk, Gdk, GdkPixbuf, GLib
 from sonata import img, ui, misc, consts, mpdhelper as mpdh
 from sonata import library
 from sonata.pluginsystem import pluginsystem
+
+
+logger = logging.getLogger(__name__)
 
 
 class Artwork:
@@ -588,17 +592,27 @@ class Artwork:
         self.downloading_image = True
         # Fetch covers from covers websites or such...
         cover_fetchers = pluginsystem.get('cover_fetching')
-        imgfound = False
-        for name, callback in cover_fetchers:
-            ret = callback(artist, album,
-                           downloader.on_save_callback,
-                           downloader.on_err_cb)
-            if ret:
-                imgfound = True
-                break # XXX if all_images, merge results...
+        for plugin, callback in cover_fetchers:
+            logger.info("Looking for covers for %r from %r (using %s)",
+                        album, artist, plugin.name)
+
+            try:
+                callback(artist, album,
+                         downloader.on_save_callback, downloader.on_err_cb)
+            except Exception as e:
+                if logger.isEnabledFor(logging.DEBUG):
+                    log = logger.exception
+                else:
+                    log = logger.warning
+
+                log("Error while downloading covers from %s: %s",
+                    plugin.name, e)
+
+            if downloader.found_images:
+                break
 
         self.downloading_image = False
-        return imgfound
+        return downloader.found_images
 
     def download_progress(self, dest_filename_curr, i):
         # This populates Main.imagelist for the remote image window
@@ -663,11 +677,17 @@ class Artwork:
 
 
 class CoverDownloader:
+    """Download covers and store them in temporary files"""
+
     def __init__(self, path, progress_cb, all_images):
         self.path = path
         self.progress_cb = progress_cb
         self.max_images = 50 if all_images else 1
         self.current = 0
+
+    @property
+    def found_images(self):
+        return self.current != 0
 
     def on_save_callback(self, content_fp):
         """Return True to continue finding covers, False to stop finding
