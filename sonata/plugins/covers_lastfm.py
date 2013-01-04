@@ -6,13 +6,11 @@
 # description: Fetch album covers from www.last.fm
 # author: Jonathan Ballet
 # author_email: jon@multani.info
-# url: http://multani.info/projects/sonata/lastfm-covers
+# url: https://github.com/multani/sonata
 # license: GPL v3 or later
 # [capabilities]
 # cover_fetching: on_cover_fetch
 ### END PLUGIN INFO
-
-# TODO: API key specific to Sonata
 
 import logging
 import shutil
@@ -23,12 +21,12 @@ from xml.etree import ElementTree
 from sonata.version import version
 
 
-API_KEY = "166213f4a8ec2e428923dbd9ea9c87b7"
+API_KEY = "41a1b04ed273fe997d2fddc3823dfb0f"
 logger = logging.getLogger(__name__)
 
 
 def make_user_agent():
-    return "Sonata/%s +http://sonata.berlios.de" % version
+    return "Sonata/%s +https://github.com/multani/sonata/" % version
 
 
 def on_cover_fetch(callback, artist, album, destination, all_images):
