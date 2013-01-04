@@ -53,6 +53,5 @@ DEFAULT_PLUGINS = [
     'playlists',
     'streams',
     'lyricwiki',
-    'rhapsodycovers',
     'localmpd',
 ]
