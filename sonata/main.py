@@ -54,7 +54,7 @@ from sonata.song import SongRecord
 from sonata.version import version
 
 
-class Base(object):
+class Base:
 
     ### XXX Warning, a long __init__ ahead:
 

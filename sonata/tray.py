@@ -12,7 +12,7 @@ class TrayIconTips(Gtk.Window):
     MARGIN = 4
 
     def __init__(self):
-        Gtk.Window.__init__(self, type=Gtk.WindowType.POPUP)
+        super().__init__(type=Gtk.WindowType.POPUP)
         # from gtktooltips.c:gtk_tooltips_force_window
         self.set_app_paintable(True)
         self.set_resizable(False)
@@ -112,7 +112,7 @@ class TrayIconTips(Gtk.Window):
         self.add(widget_to_add)
 
 
-class TrayIcon(object):
+class TrayIcon:
     """Tray icon which use Gtk.StatusIcon"""
 
     def __init__(self, window, traymenu, traytips):

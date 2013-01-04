@@ -18,7 +18,7 @@ tagpy = None # module loaded when needed
 from sonata import ui, misc
 
 
-class TagEditor():
+class TagEditor:
     """This class implements a dialog for editing music metadata tags.
 
     When the dialog closes, the callback gets the list of updates made.

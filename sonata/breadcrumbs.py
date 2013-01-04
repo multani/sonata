@@ -7,7 +7,7 @@ class CrumbButton(Gtk.ToggleButton):
     """A ToggleButton tailored for use as a breadcrumb."""
 
     def __init__(self, image, label):
-        Gtk.ToggleButton.__init__(self)
+        super().__init__()
 
         self.set_properties(can_focus=False, relief=Gtk.ReliefStyle.NONE)
         self.label = label
@@ -47,7 +47,7 @@ class CrumbBox(Gtk.Box):
     __gtype_name__ = 'CrumbBox'
 
     def __init__(self, *args, **kwargs):
-        Gtk.Box.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def set_crumb_break(self, widget):
         self.crumb_break = widget

@@ -139,7 +139,7 @@ if HAVE_DBUS:
             session_bus = get_session_bus()
             bus_name = dbus.service.BusName('org.MPD', bus=session_bus)
             object_path = '/org/MPD/Sonata'
-            dbus.service.Object.__init__(self, bus_name, object_path)
+            super().__init__(bus_name, object_path)
 
         @dbus.service.method('org.MPD.SonataInterface')
         def show(self):

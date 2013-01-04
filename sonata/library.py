@@ -40,7 +40,7 @@ def list_mark_various_artists_albums(albums):
                     break
     return albums
 
-class Library(object):
+class Library:
     def __init__(self, config, mpd, artwork, TAB_LIBRARY, album_filename,
                  settings_save, filtering_entry_make_red,
                  filtering_entry_revert_color, filter_key_pressed,

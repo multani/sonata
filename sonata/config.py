@@ -37,7 +37,7 @@ class ConfigParser(RawConfigParser):
         return [int(v) for v in self.getlist(section, name, sep)]
 
 
-class Serializer(object):
+class Serializer:
     """Helper to serialize specific values.
 
     Those methods can be function, but it makes easier to locate and load them

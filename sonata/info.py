@@ -1,6 +1,3 @@
-
-from __future__ import with_statement
-
 import sys
 import os
 import locale
@@ -13,7 +10,7 @@ from sonata import ui, misc, consts, mpdhelper as mpdh
 from sonata.pluginsystem import pluginsystem
 
 
-class Info(object):
+class Info:
 
     def __init__(self, config, linkcolor, on_link_click_cb,
                  get_playing_song, TAB_INFO, on_image_activate,

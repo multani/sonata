@@ -22,7 +22,7 @@ audioscrobbler = None # imported when first needed
 from sonata import mpdhelper as mpdh
 
 
-class Scrobbler(object):
+class Scrobbler:
 
     def __init__(self, config):
         self.logger = logging.getLogger(__name__)

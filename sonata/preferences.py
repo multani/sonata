@@ -19,14 +19,14 @@ from sonata.pluginsystem import pluginsystem
 from sonata import ui, misc, consts, formatting
 import os
 
-class Extras_cbs(object):
+class Extras_cbs:
     """Callbacks and data specific to the extras tab"""
     popuptimes = []
     notif_toggled = None
     crossfade_changed = None
     crossfade_toggled = None
 
-class Display_cbs(object):
+class Display_cbs:
     """Callbacks specific to the display tab"""
     stylized_toggled = None
     art_toggled = None
@@ -36,7 +36,7 @@ class Display_cbs(object):
     lyrics_toggled = None
     trayicon_available = None
 
-class Behavior_cbs(object):
+class Behavior_cbs:
     """Callbacks and data specific to the behavior tab"""
     trayicon_toggled = None
     trayicon_in_use = None
@@ -45,7 +45,7 @@ class Behavior_cbs(object):
     decorated_toggled = None
     infofile_changed = None
 
-class Format_cbs(object):
+class Format_cbs:
     """Callbacks specific to the format tab"""
     currentoptions_changed = None
     libraryoptions_changed = None

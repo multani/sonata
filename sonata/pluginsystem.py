@@ -20,7 +20,7 @@ sonata.plugins.__path__ = pkgutil.extend_path(sonata.plugins.__path__,
 sonata.plugins.__path__ = find_plugin_dirs() + sonata.plugins.__path__
 
 
-class Plugin(object):
+class Plugin:
     def __init__(self, path, name, info, load):
         self.logger = logging.getLogger(__name__)
         self.path = path
@@ -117,7 +117,7 @@ class BuiltinPlugin(Plugin):
         return self._module
 
 
-class PluginSystem(object):
+class PluginSystem:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.plugin_infos = []

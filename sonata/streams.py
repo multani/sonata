@@ -19,7 +19,7 @@ from gi.repository import Gtk, Gdk, Pango
 from sonata import misc, ui
 
 
-class Streams(object):
+class Streams:
     def __init__(self, config, window, on_streams_button_press, on_add_item, settings_save, TAB_STREAMS, add_tab):
         self.config = config
         self.window = window

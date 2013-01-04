@@ -1,4 +1,3 @@
-from __future__ import with_statement
 import os
 import threading # artwork_update starts a thread _artwork_update
 
@@ -9,7 +8,7 @@ from sonata import library
 from sonata.pluginsystem import pluginsystem
 
 
-class Artwork(object):
+class Artwork:
 
     def __init__(self, config, path_to_icon, is_lang_rtl, schedule_gc_collect,
                  target_image_filename, imagelist_append, remotefilelist_append,

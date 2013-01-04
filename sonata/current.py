@@ -25,7 +25,7 @@ from gi.repository import Gtk, Gdk, Pango, GLib
 from sonata import ui, misc, formatting, mpdhelper as mpdh
 
 
-class Current(object):
+class Current:
 
     def __init__(self, config, mpd, TAB_CURRENT, on_current_button_press,
                  connected, sonata_loaded, songinfo, update_statusbar,

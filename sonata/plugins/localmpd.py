@@ -24,7 +24,7 @@ from sonata.misc import escape_html
 from sonata import ui
 
 
-class Netstat(object):
+class Netstat:
     TCP_STATE_NAMES = ("ESTABLISHED SYN_SENT SYN_RECV FIN_WAIT1 FIN_WAIT2 "
                "TIME_WAIT CLOSE CLOSE_WAIT LAST_ACK LISTEN CLOSING"
                .split())

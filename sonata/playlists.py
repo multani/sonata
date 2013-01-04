@@ -23,7 +23,7 @@ from sonata import ui, misc, mpdhelper as mpdh
 from sonata.pluginsystem import pluginsystem, BuiltinPlugin
 
 
-class Playlists(object):
+class Playlists:
 
     def __init__(self, config, window, mpd, UIManager,
                  update_menu_visibility, iterate_now, on_add_item,

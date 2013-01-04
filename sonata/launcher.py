@@ -135,7 +135,7 @@ def run():
         # importing gtk does sys.setdefaultencoding("utf-8"), sets locale etc.
         from gi.repository import Gtk, Gdk
     else:
-        class FakeModule(object):
+        class FakeModule:
             pass
         # make sure the ui modules aren't imported
         for m in 'gtk', 'pango', 'sonata.ui', 'sonata.breadcrumbs':

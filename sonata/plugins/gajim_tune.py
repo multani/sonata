@@ -67,8 +67,8 @@ def on_song_change(songinfo):
 
 class mpdtune(dbus.service.Object):
     def __init__(self):
-        dbus.service.Object.__init__(self, dbus.SessionBus(), '/Player')
+        super().__init__(dbus.SessionBus(), '/Player')
+
     @dbus.service.signal(dbus_interface = 'org.freedesktop.MediaPlayer')
     def TrackChange(self, trackinfo):
         return
-

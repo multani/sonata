@@ -1,5 +1,5 @@
 
-class SongRecord(object):
+class SongRecord:
     """
     A convenient class to store a song
 

@@ -14,7 +14,7 @@ mpd_cmds = ["play", "pause", "stop", "next", "prev", "pp", "info",
             "status", "repeat", "random"]
 
 
-class Args(object):
+class Args:
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)
@@ -135,7 +135,7 @@ class Args(object):
                 sys.exit(1)
 
 
-class CliMain(object):
+class CliMain:
 
     def __init__(self, args):
         global os, mpd, misc, config, mpdh

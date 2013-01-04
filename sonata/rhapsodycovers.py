@@ -5,7 +5,7 @@ from xml.etree import ElementTree
 
 from sonata.pluginsystem import pluginsystem, BuiltinPlugin
 
-class RhapsodyCovers(object):
+class RhapsodyCovers:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         pluginsystem.plugin_infos.append(BuiltinPlugin(

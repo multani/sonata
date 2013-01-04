@@ -9,7 +9,7 @@ import mpd
 from sonata.misc import remove_list_duplicates
 
 
-class MPDClient(object):
+class MPDClient:
     def __init__(self, client=None):
         if client is None:
             # Yeah, we really want some unicode returned, otherwise we'll have
@@ -108,7 +108,7 @@ class MPDClient(object):
         self._client.command_list_end()
 
 
-class MPDCount(object):
+class MPDCount:
     """Represent the result of the 'count' MPD command"""
 
     __slots__ = ['playtime', 'songs']
@@ -118,7 +118,7 @@ class MPDCount(object):
         self.songs = int(m['songs'])
 
 
-class MPDSong(object):
+class MPDSong:
     """Provide information about a song in a convenient format"""
 
     def __init__(self, mapping):

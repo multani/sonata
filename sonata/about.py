@@ -7,7 +7,7 @@ from gi.repository import Gtk, GdkPixbuf
 
 from sonata import misc, ui
 
-class About(object):
+class About:
 
     def __init__(self, parent_window, config, version, licensetext, icon_file):
         self.parent_window = parent_window

@@ -18,15 +18,14 @@ from sonata import mpdhelper as mpdh
 from sonata import misc
 
 
-class FormatCode(object):
+class FormatCode:
     """Implements deafult format code behavior.
 
     Replaces all instances of %code with the value of key or default if the
     key doesn't exist.
     """
 
-    def __init__(self, code, description, column, key,
-            default=_("Unknown")):
+    def __init__(self, code, description, column, key, default=_("Unknown")):
         self.code = code
         self.description = description
         self.column = column
@@ -45,8 +44,7 @@ class NumFormatCode(FormatCode):
     """
 
     def __init__(self, code, description, column, key, default, padding):
-        FormatCode.__init__(self, code, description, column, key,
-                    default)
+        super().__init__(code, description, column, key, default)
         self.padding = padding
 
     def format(self, item, wintitle, songpos):
@@ -61,7 +59,7 @@ class PathFormatCode(FormatCode):
 
         path_func: os.path function to apply
         """
-        FormatCode.__init__(self, code, description, column, key)
+        super().__init__(code, description, column, key)
         self.func = getattr(os.path, path_func)
 
     def format(self, item, wintitle, songpos):
