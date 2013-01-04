@@ -1,4 +1,6 @@
+import logging
 import os
+import shutil
 import threading # artwork_update starts a thread _artwork_update
 
 from gi.repository import Gtk, Gdk, GdkPixbuf, GLib
@@ -6,6 +8,9 @@ from gi.repository import Gtk, Gdk, GdkPixbuf, GLib
 from sonata import img, ui, misc, consts, mpdhelper as mpdh
 from sonata import library
 from sonata.pluginsystem import pluginsystem
+
+
+logger = logging.getLogger(__name__)
 
 
 class Artwork:
@@ -580,19 +585,34 @@ class Artwork:
 
     def artwork_download_img_to_file(self, artist, album, dest_filename,
                                      all_images=False):
+
+        downloader = CoverDownloader(dest_filename, self.download_progress,
+                                     all_images)
+
         self.downloading_image = True
         # Fetch covers from covers websites or such...
         cover_fetchers = pluginsystem.get('cover_fetching')
-        imgfound = False
-        for _plugin, cb in cover_fetchers:
-            ret = cb(self.download_progress, artist, album, dest_filename,
-                     all_images)
-            if ret:
-                imgfound = True
-                break # XXX if all_images, merge results...
+        for plugin, callback in cover_fetchers:
+            logger.info("Looking for covers for %r from %r (using %s)",
+                        album, artist, plugin.name)
+
+            try:
+                callback(artist, album,
+                         downloader.on_save_callback, downloader.on_err_cb)
+            except Exception as e:
+                if logger.isEnabledFor(logging.DEBUG):
+                    log = logger.exception
+                else:
+                    log = logger.warning
+
+                log("Error while downloading covers from %s: %s",
+                    plugin.name, e)
+
+            if downloader.found_images:
+                break
 
         self.downloading_image = False
-        return imgfound
+        return downloader.found_images
 
     def download_progress(self, dest_filename_curr, i):
         # This populates Main.imagelist for the remote image window
@@ -653,4 +673,41 @@ class Artwork:
     def have_last(self):
         if self.lastalbumart is not None:
             return True
+        return False
+
+
+class CoverDownloader:
+    """Download covers and store them in temporary files"""
+
+    def __init__(self, path, progress_cb, all_images):
+        self.path = path
+        self.progress_cb = progress_cb
+        self.max_images = 50 if all_images else 1
+        self.current = 0
+
+    @property
+    def found_images(self):
+        return self.current != 0
+
+    def on_save_callback(self, content_fp):
+        """Return True to continue finding covers, False to stop finding
+        covers."""
+
+        self.current += 1
+        if self.max_images > 1:
+            path = self.path.replace("<imagenum>", str(self.current))
+        else:
+            path = self.path
+
+        with open(path, 'wb') as fp:
+            shutil.copyfileobj(content_fp, fp)
+
+        if self.max_images > 1:
+            # XXX: progress_cb makes sense only if we are downloading several
+            # images, since it is supposed to update the choose artwork
+            # dialog...
+            return self.progress_cb(path, self.current-1)
+
+    def on_err_cb(self, reason=None):
+        """Return True to stop finding, False to continue finding covers."""
         return False
