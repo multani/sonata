@@ -122,7 +122,15 @@ class MPDSong:
     """Provide information about a song in a convenient format"""
 
     def __init__(self, mapping):
-        self._mapping = mapping
+        self._mapping = {}
+        for key, value in mapping.items():
+            # Some attributes may be present several times, which is translated
+            # into a list of values by python-mpd. We keep only the first one,
+            # since Sonata doesn't really support multi-valued attributes at the
+            # moment.
+            if isinstance(value, list):
+                value = value[0]
+            self._mapping[key] = value
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and \

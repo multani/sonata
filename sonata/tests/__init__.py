@@ -100,6 +100,11 @@ class TestMPDSong(unittest.TestCase):
         self.assertEqual('foo', song.get('bla', 'foo'))
         self.assertEqual(None, song.bla)
 
+    def test_access_list_attribute(self):
+        song = MPDSong({'genre': ['a', 'b'], 'foo': ['c', 'd']})
+        self.assertEqual('a', song.genre)
+        self.assertEqual('c', song.foo)
+
 
 def additional_tests():
     return unittest.TestSuite(
