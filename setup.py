@@ -78,8 +78,10 @@ setup(
             'pixmaps/*.*',
             'ui/*.ui',
             'ui/*.css',
+            'ui/*.glade',
             'plugins/ui/*.ui',
             'plugins/ui/*.css',
+            'plugins/ui/*.glade'
         ],
     },
     entry_points={
