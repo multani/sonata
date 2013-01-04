@@ -47,7 +47,6 @@ from sonata import preferences, tagedit, \
                 scrobbler, info, \
                 library, streams, \
                 playlists, current, \
-                rhapsodycovers, \
                 dbus_plugin as dbus
 from sonata.song import SongRecord
 
@@ -458,9 +457,6 @@ class Base:
         self.scrobbler.import_module()
         self.scrobbler.init()
         self.preferences.scrobbler = self.scrobbler
-
-        # Plug-ins imported as modules
-        self.rhapsodycovers = rhapsodycovers.RhapsodyCovers()
 
         # Current tab
         self.current = current.Current(
@@ -2408,7 +2404,7 @@ class Base:
 
     def _image_remote_refresh(self, imagewidget, _ignore):
         self.artwork.stop_art_update = False
-        # Retrieve all images from rhapsody:
+        # Retrieve all images from cover plugins
         artist_search = self.remote_artistentry.get_text()
         album_search = self.remote_albumentry.get_text()
         if len(artist_search) == 0 and len(album_search) == 0:
