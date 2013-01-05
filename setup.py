@@ -76,9 +76,9 @@ setup(
     package_data={
         'sonata': [
             'pixmaps/*.*',
-            'ui/*.ui',
+            'ui/*.glade',
             'ui/*.css',
-            'plugins/ui/*.ui',
+            'plugins/ui/*.glade',
             'plugins/ui/*.css',
         ],
     },
