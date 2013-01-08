@@ -922,20 +922,24 @@ class Library(object):
         seconds -= 3600 * hours
         minutes = seconds // 60
         seconds -= 60 * minutes
+        songs_text = ngettext('{count} song', '{count} songs',
+                              num_songs).format(count=num_songs)
+        seconds_text = ngettext('{count} second', '{count} seconds',
+                                seconds).format(count=seconds)
+        minutes_text = ngettext('{count} minute', '{count} minutes',
+                                minutes).format(count=minutes)
+        hours_text = ngettext('{count} hour', '{count} hours',
+                              hours).format(count=hours)
+        time_parts = [songs_text]
         if hours > 0:
-            return "\n<small><span weight='light'>%s %s, %s %s, %s %s</span></small>" \
-                    % (num_songs, ngettext('song', 'songs', num_songs),
-                       seconds, ngettext('hour', 'hours', hours),
-                       seconds, ngettext('minute', 'minutes', minutes))
+            time_parts.extend([hours_text, minutes_text])
         elif minutes > 0:
-            return "\n<small><span weight='light'>%s %s, %s %s, %s %s</span></small>" \
-                    % (num_songs, ngettext('song', 'songs', num_songs),
-                       minutes, ngettext('minute', 'minutes', minutes),
-                       seconds, ngettext('second', 'secondes', seconds))
+            time_parts.extend([minutes_text, seconds_text])
         else:
-            return "\n<small><span weight='light'>%s %s, %s %s</span></small>" \
-                    % (num_songs, ngettext('song', 'songs', num_songs),
-                       seconds, ngettext('second', 'secondes', seconds))
+            time_parts.extend([seconds_text])
+        display_markup = "\n<small><span weight='light'>{}</span></small>"
+        display_text = ', '.join(time_parts)
+        return display_markup.format(display_text)
 
     def library_retain_selection(self, prev_selection, prev_selection_root,
                                  prev_selection_parent):

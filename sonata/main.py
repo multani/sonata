@@ -1615,31 +1615,33 @@ class Base(object):
                 # FIXME _ is for localization, temporarily __
                 hours, mins, __ = misc.convert_time_raw(self.current.total_time)
                 # Show text:
-                songs_text = ngettext('song', 'songs',
-                                      int(self.status['playlistlength']))
-                songs_string = "{} {}".format(self.status['playlistlength'],
-                                              songs_text)
+                songs_count = int(self.status['playlistlength'])
+                songs_text = ngettext('{count} song', '{count} songs',
+                                     songs_count).format(count=songs_count)
                 time_parts = []
                 if hours >= 24:
                     days = int(hours / 24)
                     hours = hours - (days * 24)
                 if days:
-                    days_text = ngettext('day', 'days', days)
-                    time_parts.append("{} {}".format(days, days_text))
+                    days_text = ngettext('{count} day', '{count} days',
+                                         days).format(count=days)
+                    time_parts.append(days_text)
                 if hours:
-                    hours_text = ngettext('hour', 'hours', hours)
-                    time_parts.append("{} {}".format(hours, hours_text))
+                    hours_text = ngettext('{count} hour', '{count} hours',
+                                          hours).format(count=hours)
+                    time_parts.append(hours_text)
                 if mins:
-                    mins_text = ngettext('minute', 'minutes', mins)
-                    time_parts.append("{} {}".format(mins, mins_text))
-                time_string = ', '.join([part for part in time_parts if part])
-                if float(self.status['playlistlength']) > 0:
-                    status_text = "{}: {}".format(songs_string, time_string)
+                    mins_text = ngettext('{count} minute', '{count} minutes',
+                                         mins).format(count=mins)
+                    time_parts.append(mins_text)
+                time_text = ', '.join([part for part in time_parts if part])
+                if int(self.status['playlistlength']) > 0:
+                    status_text = "{}: {}".format(songs_text, time_text)
                 else:
                     status_text = ''
                 if updatingdb:
-                    update_string = _('(updating mpd)')
-                    status_text = "{}: {}".format(status_text, update_string)
+                    update_text = _('(updating mpd)')
+                    status_text = "{}: {}".format(status_text, update_text)
             else:
                 status_text = ''
             if status_text != self.last_status_text:

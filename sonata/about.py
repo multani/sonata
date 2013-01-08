@@ -141,35 +141,34 @@ class About(object):
         self.shortcuts_dialog.run()
 
     def statstext(self, stats):
-        # XXX translate expressions, not words
-        statslabel = '%s %s.\n' % (stats['songs'],
-                                   ngettext('song', 'songs',
-                                            int(stats['songs'])))
-        statslabel += '%s %s.\n' % (stats['albums'],
-                                    ngettext('album', 'albums',
-                                             int(stats['albums'])))
-        statslabel += '%s %s.\n' % (stats['artists'],
-                                   ngettext('artist', 'artists',
-                                            int(stats['artists'])))
+        song_count = int(stats['songs'])
+        song_text = ngettext('{count} song.', '{count} songs.',
+                             song_count).format(count=song_count)
+        album_count = int(stats['albums'])
+        album_text = ngettext('{count} album.', '{count} albums.',
+                              album_count).format(count=album_count)
+        artist_count = int(stats['artists'])
+        artist_text = ngettext('{count} artist.', '{count} artists.',
+                               artist_count).format(count=artist_count)
 
         try:
             db_playtime = float(stats['db_playtime'])
-            hours_of_playtime = int(misc.convert_time(db_playtime).split(':')[-3])
+            hours = int(misc.convert_time(db_playtime).split(':')[-3])
         except:
-            hours_of_playtime = 0
-        if hours_of_playtime >= 24:
-            days_of_playtime = round(hours_of_playtime / 24, 1)
-            statslabel += '%s %s.' % (days_of_playtime,
-                                      ngettext('day of bliss',
-                                               'days of bliss',
-                                               int(days_of_playtime)))
+            hours = 0
+        if hours >= 24:
+            days = round(hours / 24, 1)
+            time_text = ngettext('{count} day of bliss.',
+                                 '{count} days of bliss.',
+                                 days).format(count=days)
         else:
-            statslabel += '%s %s.' % (hours_of_playtime,
-                                      ngettext('hour of bliss',
-                                               'hours of bliss',
-                                               int(hours_of_playtime)))
+            time_text = ngettext('{count} hour of bliss.',
+                                 '{count} hours of bliss.',
+                                 hours).format(count=hours)
 
-        return statslabel
+        parts = (song_text, album_text, artist_text, time_text)
+        live_parts = [part for part in parts if part is not None]
+        return '\n'.join(live_parts)
 
     def about_load(self, stats):
         self.builder = ui.builder('about')
