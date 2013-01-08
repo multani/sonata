@@ -19,9 +19,6 @@ class MPDClient:
             client.use_unicode = True
         self._client = client
         self.logger = logging.getLogger(__name__)
-        self._version = None
-        self._commands = None
-        self._urlhandlers = None
 
     def __getattr__(self, attr):
         """
@@ -56,42 +53,11 @@ class MPDClient:
         else:
             return retval
 
-    def connect(self, host, port):
-        self.disconnect()
-        try:
-            self._client.connect(host, port)
-            self._version = self._client.mpd_version.split(".")
-            self._commands = self._client.commands()
-            self._urlhandlers = self._client.urlhandlers()
-        except (socket.error, mpd.MPDError) as e:
-            self.logger.error("Error while connecting to MPD: %s", e)
-
-    def disconnect(self):
-        # Reset to default values
-        self._version = None
-        self._commands = None
-        self._urlhandlers = None
-        try:
-            # We really don't care, if connections breaks, before we
-            # could disconnect.
-            self._client.close()
-            return self._client.disconnect()
-        except:
-            pass
-
     @property
     def version(self):
-        return self._version
+        return tuple(int(part) for part in self._client.mpd_version.split("."))
 
-    @property
-    def commands(self):
-        return self._commands
-
-    @property
-    def urlhandlers(self):
-        return self._urlhandlers
-
-    def update(self,  paths):
+    def update(self, paths):
         if mpd_is_updating(self.status()):
             return
 
