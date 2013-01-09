@@ -32,6 +32,14 @@ def css_provider(css_file, relative_to='.'):
 
     return provider
 
+def builder_string(ui_file, relative_to='.'):
+    ui_path = pkg_resources.resource_filename(
+        'sonata', os.path.join(relative_to, 'ui', ui_file + ".glade"))
+    logger.debug('Loading %s', ui_path)
+
+    with open(ui_path, 'r') as builder_file:
+        string = builder_file.read()
+    return string
 
 def show_msg(owner, message, title, role, buttons, default=None, response_cb=None):
     is_button_list = hasattr(buttons, '__getitem__')

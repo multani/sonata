@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.0 -->
+  <object class="GtkIconFactory" id="sonata_iconfactory">
+    <sources>
+      <source stock-id="sonata-play" filename="{base_path}/sonata-play.png"/>
+      <source stock-id="sonata-artist" filename="{base_path}/sonata-artist.png"/>
+      <source stock-id="sonata-cd-large" filename="{base_path}/sonatacd-large.png"/>
+      <source stock-id="sonata-disconnect" filename="{base_path}/sonata-disconnect.png"/>
+      <source stock-id="sonata-large" filename="{base_path}/sonata-large.png"/>
+      <source stock-id="sonata-cd" filename="{base_path}/sonatacd.png"/>
+      <source stock-id="sonata" filename="{base_path}/sonata.png"/>
+      <source stock-id="sonata-case" filename="{base_path}/sonata-case.png"/>
+      <source stock-id="sonata-album" filename="{base_path}/sonata-album.png"/>
+      <source stock-id="sonata-pause" filename="{base_path}/sonata-pause.png"/>
+    </sources>
+  </object>
+</interface>

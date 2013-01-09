@@ -189,6 +189,13 @@ class Base:
         self.builder = ui.builder('sonata')
         self.provider = ui.css_provider('sonata')
 
+        icon_factory_src = ui.builder_string('icons')
+        icon_path = pkg_resources.resource_filename(__name__, "pixmaps")
+        icon_factory_src = icon_factory_src.format(base_path=icon_path)
+        self.builder.add_from_string(icon_factory_src)
+        icon_factory = self.builder.get_object('sonata_iconfactory')
+        Gtk.IconFactory.add_default(icon_factory)
+
         # Main window
         self.window = self.builder.get_object('main_window')
 
@@ -219,13 +226,12 @@ class Base:
 
         # Artwork
         self.artwork = artwork.Artwork(
-            self.config, self.path_to_icon, misc.is_lang_rtl(self.window),
+            self.config, misc.is_lang_rtl(self.window),
             self.schedule_gc_collect, self.target_image_filename,
             self.imagelist_append, self.remotefilelist_append,
             self.set_allow_art_search, self.status_is_play_or_pause,
-            self.path_to_icon('sonata-album.png'), self.get_current_song_text,
-            self.album_image, self.tray_album_image, self.fullscreen_image,
-            fullscreen_label1, fullscreen_label2)
+            self.get_current_song_text, self.album_image, self.tray_album_image,
+            self.fullscreen_image, fullscreen_label1, fullscreen_label2)
 
 
         # Popup menus:
@@ -489,8 +495,7 @@ class Base:
         # Library tab
         self.library = library.Library(
             self.config, self.mpd, self.artwork, self.TAB_LIBRARY,
-            self.path_to_icon('sonata-album.png'), self.settings_save,
-            self.current.filtering_entry_make_red,
+            self.settings_save, self.current.filtering_entry_make_red,
             self.current.filtering_entry_revert_color,
             self.current.filter_key_pressed, self.on_add_item, self.connected,
             self.on_library_button_press, self.add_tab,
@@ -1154,7 +1159,7 @@ class Base:
             self.currentdata.clear()
             if self.current_treeview.get_model():
                 self.current_treeview.get_model().clear()
-            self.tray_icon.update_icon(self.path_to_icon('sonata_disconnect.png'))
+            self.tray_icon.update_icon('sonata-disconnect')
             self.info_update(True)
             if self.current.filterbox_visible:
                 GLib.idle_add(self.current.searchfilter_toggle, None)
@@ -1461,13 +1466,13 @@ class Base:
                                                    Gtk.IconSize.BUTTON)
                 self.UIManager.get_widget('/traymenu/playmenu').show()
                 self.UIManager.get_widget('/traymenu/pausemenu').hide()
-                self.tray_icon.update_icon(self.path_to_icon('sonata.png'))
+                icon = 'sonata'
             elif self.status['state'] == 'pause':
                 self.ppbutton_image.set_from_stock(Gtk.STOCK_MEDIA_PLAY,
                                                    Gtk.IconSize.BUTTON)
                 self.UIManager.get_widget('/traymenu/playmenu').show()
                 self.UIManager.get_widget('/traymenu/pausemenu').hide()
-                self.tray_icon.update_icon(self.path_to_icon('sonata_pause.png'))
+                icon = 'sonata-pause'
             elif self.status['state'] == 'play':
                 self.ppbutton_image.set_from_stock(Gtk.STOCK_MEDIA_PAUSE,
                                                    Gtk.IconSize.BUTTON)
@@ -1477,8 +1482,11 @@ class Base:
                     if self.prevstatus['state'] == 'pause':
                         # Forces the notification to popup if specified
                         self.on_currsong_notify()
-                self.tray_icon.update_icon(self.path_to_icon('sonata_play.png'))
+                icon = 'sonata-play'
+            else:
+                icon = 'sonata-disconnect'
 
+            self.tray_icon.update_icon(icon)
             self.playing_song_change()
             if self.status_is_play_or_pause():
                 self.current.center_song_in_list()
@@ -3170,15 +3178,6 @@ class Base:
                          'pl', 'update', 'sort', 'tag']:
                 self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
 
-    def path_to_icon(self, icon_name):
-        full_filename = pkg_resources.resource_filename( __name__, \
-                                                        "pixmaps/%s" % icon_name)
-        if os.path.exists(full_filename):
-            return full_filename
-        else:
-            self.logger.critical("Icon %r cannot be found. Aborting...", icon_name)
-            sys.exit(1)
-
     def on_tags_edit(self, _widget):
         ui.change_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
         while Gtk.events_pending():
@@ -3222,11 +3221,8 @@ class Base:
         self.mpd_update_queued = True
 
     def on_about(self, _action):
-        about_dialog = about.About(self.window,
-                                   self.config,
-                                   version,
-                                   __license__,
-                                   self.path_to_icon('sonata_large.png'))
+        about_dialog = about.About(self.window, self.config, version,
+                                   __license__)
 
         stats = None
         if self.conn:
@@ -3252,7 +3248,7 @@ class Base:
             self.tray_icon.show()
         else:
             self.tray_icon.hide()
-        self.tray_icon.update_icon(self.path_to_icon('sonata.png'))
+        self.tray_icon.update_icon('sonata')
 
     def dbus_show(self):
         self.window.hide()

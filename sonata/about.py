@@ -9,12 +9,11 @@ from sonata import misc, ui
 
 class About:
 
-    def __init__(self, parent_window, config, version, licensetext, icon_file):
+    def __init__(self, parent_window, config, version, licensetext):
         self.parent_window = parent_window
         self.config = config
         self.version = version
         self.license = licensetext
-        self.icon_file = icon_file
 
         self.about_dialog = None
         self.shortcuts_dialog = None
@@ -181,8 +180,10 @@ class About:
         self.about_dialog.set_version(self.version)
         if stats:
             self.about_dialog.set_copyright(self.statstext(stats))
-        large_icon = GdkPixbuf.Pixbuf.new_from_file(self.icon_file)
-        self.about_dialog.set_logo(large_icon)
+        context = self.about_dialog.get_style_context()
+        logo_icon = Gtk.IconFactory.lookup_default('sonata-large')
+        logo_pb = logo_icon.render_icon_pixbuf(context, -1)
+        self.about_dialog.set_logo(logo_pb)
         # Add button to show keybindings:
         children = self.about_dialog.action_area.get_children()[-1]
         self.about_dialog.action_area.reorder_child(children, -2)

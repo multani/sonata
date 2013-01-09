@@ -1,13 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
-  <object class="GtkIconFactory" id="sonata_iconfactory">
-    <sources>
-      <source stock-id="sonata" filename="../pixmaps/sonata.png"/>
-      <source stock-id="artist" filename="../pixmaps/sonata-artist.png"/>
-      <source stock-id="album" filename="../pixmaps/sonata-album.png"/>
-    </sources>
-  </object>
   <object class="GtkBox" id="expander_label_widget">
     <property name="can_focus">False</property>
     <property name="orientation">vertical</property>
