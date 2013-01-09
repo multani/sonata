@@ -85,6 +85,11 @@ class TestMPDSong(unittest.TestCase):
         self.assertEqual(1, MPDSong({'track': '1/10'}).track)
         self.assertEqual(1, MPDSong({'track': '1,10'}).track)
 
+    def test_get_disc_number(self):
+        self.assertEqual(1, MPDSong({'disc': '1'}).disc)
+        self.assertEqual(1, MPDSong({'disc': '1/10'}).disc)
+        self.assertEqual(1, MPDSong({'disc': '1,10'}).disc)
+
     def test_access_attributes(self):
         song = MPDSong({'foo': 'zz', 'id': '5'})
 

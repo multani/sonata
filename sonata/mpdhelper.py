@@ -131,12 +131,7 @@ class MPDSong:
 
     @property
     def track(self):
-        value = self._mapping.get('track', '0')
-
-        # The track number can be a bit funky sometimes and contains value like
-        # "4/10" or "4,10" instead of only "4". We tr to clean it up a bit...
-        value = str(value).replace(',', ' ').replace('/', ' ').split()[0]
-        return int(value) if value.isdigit() else 0
+        return cleanup_numeric(self._mapping.get('track', '0'))
 
     @property
     def pos(self):
@@ -149,12 +144,16 @@ class MPDSong:
 
     @property
     def disc(self):
-        return int(self._mapping.get('disc', 0))
+        return cleanup_numeric(self._mapping.get('disc', 0))
 
     @property
     def file(self):
         return self._mapping.get('file', '') # XXX should be always here?
 
+def cleanup_numeric(value):
+    # track and disc can be oddly formatted (eg, '4/10')
+    value = str(value).replace(',', ' ').replace('/', ' ').split()[0]
+    return int(value) if value.isdigit() else 0
 
 # XXX to be move when we can handle status change in the main interface
 def mpd_is_updating(status):
