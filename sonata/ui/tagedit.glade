@@ -2,11 +2,11 @@
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
   <object class="GtkDialog" id="tags_dialog">
+    <property name="width_request">375</property>
     <property name="can_focus">False</property>
     <property name="role">edit_tags</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>
-    <property name="width_request">375</property>
     <property name="window_position">center-on-parent</property>
     <property name="destroy_with_parent">True</property>
     <property name="type_hint">dialog</property>
@@ -26,10 +26,10 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="no_show_all">True</property>
                 <property name="use_action_appearance">False</property>
                 <property name="image">tags_saveall_image</property>
                 <property name="use_underline">True</property>
-                <property name="no_show_all">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -81,12 +81,12 @@
           <object class="GtkGrid" id="tags_grid">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="row_spacing">3</property>
-            <property name="column_spacing">6</property>
-            <property name="row_homogeneous">True</property>
             <property name="halign">center</property>
             <property name="margin">12</property>
             <property name="orientation">vertical</property>
+            <property name="row_spacing">3</property>
+            <property name="column_spacing">6</property>
+            <property name="row_homogeneous">True</property>
             <child>
               <object class="GtkImage" id="tags_sonata_image">
                 <property name="visible">True</property>
@@ -280,14 +280,14 @@
             <child>
               <object class="GtkButton" id="tags_save_title_button">
                 <property name="use_action_appearance">False</property>
+                <property name="width_request">12</property>
+                <property name="height_request">12</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
-                <property name="width_request">12</property>
-                <property name="height_request">12</property>
                 <property name="halign">center</property>
                 <property name="valign">center</property>
+                <property name="use_action_appearance">False</property>
               </object>
               <packing>
                 <property name="left_attach">5</property>
@@ -299,14 +299,14 @@
             <child>
               <object class="GtkButton" id="tags_save_artist_button">
                 <property name="use_action_appearance">False</property>
+                <property name="width_request">12</property>
+                <property name="height_request">12</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
-                <property name="width_request">12</property>
-                <property name="height_request">12</property>
                 <property name="halign">center</property>
                 <property name="valign">center</property>
+                <property name="use_action_appearance">False</property>
               </object>
               <packing>
                 <property name="left_attach">5</property>
@@ -318,14 +318,14 @@
             <child>
               <object class="GtkButton" id="tags_save_album_button">
                 <property name="use_action_appearance">False</property>
+                <property name="width_request">12</property>
+                <property name="height_request">12</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
-                <property name="width_request">12</property>
-                <property name="height_request">12</property>
                 <property name="halign">center</property>
                 <property name="valign">center</property>
+                <property name="use_action_appearance">False</property>
               </object>
               <packing>
                 <property name="left_attach">5</property>
@@ -337,14 +337,14 @@
             <child>
               <object class="GtkButton" id="tags_save_year_button">
                 <property name="use_action_appearance">False</property>
+                <property name="width_request">12</property>
+                <property name="height_request">12</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
-                <property name="width_request">12</property>
-                <property name="height_request">12</property>
                 <property name="halign">center</property>
                 <property name="valign">center</property>
+                <property name="use_action_appearance">False</property>
               </object>
               <packing>
                 <property name="left_attach">2</property>
@@ -356,14 +356,14 @@
             <child>
               <object class="GtkButton" id="tags_save_genre_button">
                 <property name="use_action_appearance">False</property>
+                <property name="width_request">12</property>
+                <property name="height_request">12</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
-                <property name="width_request">12</property>
-                <property name="height_request">12</property>
                 <property name="halign">center</property>
                 <property name="valign">center</property>
+                <property name="use_action_appearance">False</property>
               </object>
               <packing>
                 <property name="left_attach">5</property>
@@ -375,14 +375,14 @@
             <child>
               <object class="GtkButton" id="tags_save_comment_button">
                 <property name="use_action_appearance">False</property>
+                <property name="width_request">12</property>
+                <property name="height_request">12</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
-                <property name="width_request">12</property>
-                <property name="height_request">12</property>
                 <property name="halign">center</property>
                 <property name="valign">center</property>
+                <property name="use_action_appearance">False</property>
               </object>
               <packing>
                 <property name="left_attach">5</property>
@@ -394,14 +394,14 @@
             <child>
               <object class="GtkButton" id="tags_save_track_button">
                 <property name="use_action_appearance">False</property>
+                <property name="width_request">12</property>
+                <property name="height_request">12</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
-                <property name="width_request">12</property>
-                <property name="height_request">12</property>
                 <property name="halign">center</property>
                 <property name="valign">center</property>
+                <property name="use_action_appearance">False</property>
               </object>
               <packing>
                 <property name="left_attach">5</property>
@@ -497,9 +497,9 @@
       </object>
     </child>
     <action-widgets>
+      <action-widget response="-12">tags_saveall_button</action-widget>
       <action-widget response="-2">tags_cancel_button</action-widget>
       <action-widget response="-3">tags_save_button</action-widget>
-      <action-widget response="-12">tags_saveall_button</action-widget>
     </action-widgets>
   </object>
   <object class="GtkImage" id="tags_saveall_image">

@@ -1,51 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
-  <object class="GtkListStore" id="library_liststore"/>
   <object class="GtkImage" id="library_crumb_section_image">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
   </object>
-  <object class="GtkEventBox" id="library_tab_eventbox">
-    <property name="visible">False</property>
-    <property name="visible_window">False</property>
-    <property name="can_focus">False</property>
-    <child>
-      <object class="GtkBox" id="library_tab_h_box">
-        <property name="can_focus">False</property>
-        <property name="orientation">horizontal</property>
-        <child>
-          <object class="GtkImage" id="library_tab_image">
-            <property name="can_focus">False</property>
-            <property name="stock">gtk-harddisk</property>
-            <property name="icon-size">1</property>
-          </object><!--library_tab_image-->
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="padding">2</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="library_tab_label">
-            <property name="can_focus">False</property>
-          </object><!--library_tab_label-->
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="padding">2</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
-      </object><!--library_tab_h_box-->
-    </child>
-  </object>
+  <object class="GtkListStore" id="library_liststore"/>
   <object class="GtkBox" id="library_page_v_box">
     <property name="can_focus">False</property>
-    <property name="orientation">vertical</property>
-    <property name="margin_right">3</property>
     <property name="margin_left">3</property>
+    <property name="margin_right">3</property>
+    <property name="orientation">vertical</property>
     <child>
       <object class="GtkBox" id="library_page_crumbbox">
         <property name="can_focus">False</property>
@@ -98,22 +63,11 @@
               <object class="GtkBox" id="library_crumb_break_box">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <!--<child>
-                  <object class="GtkArrow" id="library_crumb_break_arrow_1">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>-->
                 <child>
                   <object class="GtkLabel" id="library_crumb_break_label">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="label" translatable="no">...</property>
+                    <property name="label">...</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -121,17 +75,6 @@
                     <property name="position">0</property>
                   </packing>
                 </child>
-                <!--<child>
-                  <object class="GtkArrow" id="library_crumb_break_arrow_2">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">2</property>
-                  </packing>
-                </child>-->
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -176,37 +119,33 @@
         <property name="shadow_type">in</property>
         <child>
           <object class="GtkTreeView" id="library_page_treeview">
-            <property name="rules_hint">True</property>
             <property name="can_focus">True</property>
             <property name="model">library_liststore</property>
             <property name="headers_visible">False</property>
             <property name="headers_clickable">False</property>
-            <property name="reorderable">False</property>
-            <property name="enable_search">True</property>
+            <property name="rules_hint">True</property>
             <child internal-child="selection">
               <object class="GtkTreeSelection" id="library_page_treeview_selection">
                 <property name="mode">multiple</property>
               </object>
             </child>
-          </object><!--library_page_treeview-->
+          </object>
         </child>
-      </object><!--library_page_scrolledwindow-->
+      </object>
       <packing>
         <property name="expand">True</property>
         <property name="fill">True</property>
-        <property name="padding">0</property>
         <property name="position">1</property>
       </packing>
     </child>
     <child>
       <object class="GtkBox" id="library_page_searchbox">
         <property name="can_focus">True</property>
-        <property name="orientation">horizontal</property>
         <child>
           <object class="GtkLabel" id="library_page_searchbox_label">
             <property name="can_focus">True</property>
             <property name="label" translatable="yes">Search:</property>
-          </object><!--library_page_searchbox_label-->
+          </object>
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
@@ -218,7 +157,7 @@
           <object class="GtkEntry" id="library_page_searchbox_entry">
             <property name="can_focus">True</property>
             <property name="tooltip_text" translatable="yes">Search library</property>
-          </object><!--library_page_searchbox_entry-->
+          </object>
           <packing>
             <property name="expand">True</property>
             <property name="fill">True</property>
@@ -229,7 +168,6 @@
         <child>
           <object class="GtkComboBoxText" id="library_page_searchbox_combo">
             <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
             <property name="tooltip_text" translatable="yes">Search terms</property>
             <items>
               <item translatable="yes">Artist</item>
@@ -239,7 +177,7 @@
               <item translatable="yes">Filename</item>
               <item translatable="yes">Everything</item>
             </items>
-          </object><!--library_page_searchbox_combo-->
+          </object>
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
@@ -251,18 +189,19 @@
           <object class="GtkButton" id="library_page_searchbox_button">
             <property name="use_action_appearance">False</property>
             <property name="can_focus">True</property>
-            <property name="relief">none</property>
             <property name="receives_default">False</property>
             <property name="no_show_all">True</property>
             <property name="tooltip_text" translatable="yes">End Search</property>
+            <property name="use_action_appearance">False</property>
+            <property name="relief">none</property>
             <child>
               <object class="GtkImage" id="library_page_searchbox_button_image">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="stock">gtk-clear</property>
-              </object><!--library_page_searchbox_closebutton_image-->
+              </object>
             </child>
-          </object><!--library_page_searchbox_button-->
+          </object>
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
@@ -270,7 +209,7 @@
             <property name="position">3</property>
           </packing>
         </child>
-      </object><!--library_page_searchbox-->
+      </object>
       <packing>
         <property name="expand">False</property>
         <property name="fill">False</property>
@@ -278,5 +217,38 @@
         <property name="position">2</property>
       </packing>
     </child>
-  </object><!--library_page_v_box-->
+  </object>
+  <object class="GtkEventBox" id="library_tab_eventbox">
+    <property name="can_focus">False</property>
+    <property name="visible_window">False</property>
+    <child>
+      <object class="GtkBox" id="library_tab_h_box">
+        <property name="can_focus">False</property>
+        <child>
+          <object class="GtkImage" id="library_tab_image">
+            <property name="can_focus">False</property>
+            <property name="stock">gtk-harddisk</property>
+            <property name="icon-size">1</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="padding">2</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="library_tab_label">
+            <property name="can_focus">False</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="padding">2</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
 </interface>

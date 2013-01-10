@@ -1,14 +1,97 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
-  <object class="GtkEventBox" id="current_tab_eventbox">
-    <property name="visible">False</property>
-    <property name="visible_window">False</property>
+  <object class="GtkBox" id="current_page_v_box">
     <property name="can_focus">False</property>
+    <property name="orientation">vertical</property>
+    <property name="margin">3</property>
+    <child>
+      <object class="GtkScrolledWindow" id="current_page_scrolledwindow">
+        <property name="can_focus">True</property>
+        <property name="shadow_type">in</property>
+        <child>
+          <object class="GtkTreeView" id="current_page_treeview">
+            <property name="can_focus">True</property>
+            <property name="reorderable">True</property>
+            <property name="rules_hint">True</property>
+            <property name="enable_search">False</property>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection" id="current_page_treeview_selection">
+                <property name="mode">multiple</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">True</property>
+        <property name="fill">True</property>
+        <property name="position">0</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkBox" id="current_page_filterbox">
+        <property name="can_focus">True</property>
+        <property name="no_show_all">True</property>
+        <child>
+          <object class="GtkLabel" id="current_page_filterbox_label">
+            <property name="can_focus">True</property>
+            <property name="label" translatable="yes">Filter:</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="padding">5</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="current_page_filterbox_entry">
+            <property name="can_focus">True</property>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="padding">5</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="current_page_filterbox_closebutton">
+            <property name="use_action_appearance">False</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">False</property>
+            <property name="use_action_appearance">False</property>
+            <property name="relief">none</property>
+            <child>
+              <object class="GtkImage" id="current_page_filterbox_closebutton_image">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="stock">gtk-close</property>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">False</property>
+        <property name="padding">5</property>
+        <property name="position">1</property>
+      </packing>
+    </child>
+  </object>
+  <object class="GtkEventBox" id="current_tab_eventbox">
+    <property name="can_focus">False</property>
+    <property name="visible_window">False</property>
     <child>
       <object class="GtkBox" id="current_tab_h_box">
         <property name="can_focus">False</property>
-        <property name="orientation">horizontal</property>
         <child>
           <object class="GtkImage" id="current_tab_image">
             <property name="can_focus">False</property>
@@ -36,93 +119,4 @@
       </object>
     </child>
   </object>
-  <object class="GtkBox" id="current_page_v_box">
-    <property name="can_focus">False</property>
-    <property name="orientation">vertical</property>
-    <property name="margin">3</property>
-    <child>
-      <object class="GtkScrolledWindow" id="current_page_scrolledwindow">
-        <property name="can_focus">True</property>
-        <property name="shadow_type">in</property>
-        <child>
-          <object class="GtkTreeView" id="current_page_treeview">
-            <property name="rules_hint">True</property>
-            <property name="can_focus">True</property>
-            <property name="headers_visible">True</property>
-            <property name="headers_clickable">True</property>
-            <property name="reorderable">True</property>
-            <property name="enable_search">False</property>
-            <child internal-child="selection">
-              <object class="GtkTreeSelection" id="current_page_treeview_selection">
-                <property name="mode">multiple</property>
-              </object>
-            </child>
-          </object><!--current_page_treeview-->
-        </child>
-      </object><!--current_page_scrolledwindow-->
-      <packing>
-        <property name="expand">True</property>
-        <property name="fill">True</property>
-        <property name="padding">0</property>
-        <property name="position">0</property>
-      </packing>
-    </child>
-    <child>
-      <object class="GtkBox" id="current_page_filterbox">
-        <property name="can_focus">True</property>
-        <property name="orientation">horizontal</property>
-        <property name="no_show_all">True</property>
-        <child>
-          <object class="GtkLabel" id="current_page_filterbox_label">
-            <property name="can_focus">True</property>
-            <property name="label" translatable="yes">Filter:</property>
-          </object><!--current_page_filterbox_label-->
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="padding">5</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkEntry" id="current_page_filterbox_entry">
-            <property name="can_focus">True</property>
-          </object><!--current_page_filterbox_entry-->
-          <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
-            <property name="padding">5</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkButton" id="current_page_filterbox_closebutton">
-            <property name="use_action_appearance">False</property>
-            <property name="can_focus">True</property>
-            <property name="relief">none</property>
-            <property name="receives_default">False</property>
-            <child>
-              <object class="GtkImage" id="current_page_filterbox_closebutton_image">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="stock">gtk-close</property>
-              </object><!--current_page_filterbox_closebutton_image-->
-            </child>
-          </object><!--current_page_filterbox_closebutton-->
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="padding">0</property>
-            <property name="position">2</property>
-          </packing>
-        </child>
-      </object><!--current_page_filterbox-->
-      <packing>
-        <property name="expand">False</property>
-        <property name="fill">False</property>
-        <property name="padding">5</property>
-        <property name="position">1</property>
-      </packing>
-    </child>
-  </object><!--current_page_v_box-->
 </interface>

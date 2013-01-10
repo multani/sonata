@@ -49,9 +49,9 @@
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
                 <property name="can_default">True</property>
                 <property name="has_default">True</property>
+                <property name="receives_default">True</property>
                 <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
               </object>
@@ -178,9 +178,9 @@
                 <child>
                   <object class="GtkAlignment" id="preferences_mpd">
                     <property name="can_focus">False</property>
-                    <property name="margin_top">12</property>
                     <property name="margin_left">6</property>
                     <property name="margin_right">6</property>
+                    <property name="margin_top">12</property>
                     <property name="margin_bottom">6</property>
                     <child>
                       <object class="GtkFrame" id="preferences_mpd_frame">
@@ -190,9 +190,9 @@
                         <child>
                           <object class="GtkAlignment" id="preferences_mpd_frame_alignment">
                             <property name="can_focus">False</property>
-                            <property name="margin_top">12</property>
                             <property name="margin_left">6</property>
                             <property name="margin_right">6</property>
+                            <property name="margin_top">12</property>
                             <property name="margin_bottom">6</property>
                             <child>
                               <object class="GtkBox" id="preferences_mpd_v_box">
@@ -390,7 +390,10 @@
                                         </child>
                                         <child>
                                           <object class="GtkButton" id="connection_add_profile">
+                                            <property name="use_action_appearance">False</property>
                                             <property name="can_focus">False</property>
+                                            <property name="receives_default">False</property>
+                                            <property name="use_action_appearance">False</property>
                                             <child>
                                               <object class="GtkImage" id="add_profile_image">
                                                 <property name="visible">True</property>
@@ -408,7 +411,10 @@
                                         </child>
                                         <child>
                                           <object class="GtkButton" id="connection_remove_profile">
+                                            <property name="use_action_appearance">False</property>
                                             <property name="can_focus">False</property>
+                                            <property name="receives_default">False</property>
+                                            <property name="use_action_appearance">False</property>
                                             <child>
                                               <object class="GtkImage" id="remove_profile_image">
                                                 <property name="visible">True</property>
@@ -483,9 +489,9 @@
                 <child>
                   <object class="GtkAlignment" id="preferences_display">
                     <property name="can_focus">False</property>
-                    <property name="margin_top">12</property>
                     <property name="margin_left">6</property>
                     <property name="margin_right">6</property>
+                    <property name="margin_top">12</property>
                     <property name="margin_bottom">6</property>
                     <child>
                       <object class="GtkFrame" id="preferences_display_frame">
@@ -612,7 +618,7 @@
                                     <property name="entry_text_column">0</property>
                                     <property name="id_column">1</property>
                                     <items>
-                                      <item translatable="no">~/.lyrics/</item>
+                                      <item>~/.lyrics/</item>
                                       <item translatable="yes">SONG_DIR</item>
                                     </items>
                                   </object>
@@ -763,7 +769,7 @@
                                         <property name="entry_text_column">0</property>
                                         <property name="id_column">1</property>
                                         <items>
-                                          <item translatable="no">~/.covers/</item>
+                                          <item>~/.covers/</item>
                                         </items>
                                       </object>
                                       <packing>
@@ -819,9 +825,9 @@
                 <child>
                   <object class="GtkAlignment" id="preferences_behavior">
                     <property name="can_focus">False</property>
-                    <property name="margin_top">12</property>
                     <property name="margin_left">6</property>
                     <property name="margin_right">6</property>
+                    <property name="margin_top">12</property>
                     <property name="margin_bottom">6</property>
                     <child>
                       <object class="GtkFrame" id="behavior_frame">
@@ -1099,9 +1105,9 @@
                 <child>
                   <object class="GtkAlignment" id="preferences_format">
                     <property name="can_focus">False</property>
-                    <property name="margin_top">12</property>
                     <property name="margin_left">6</property>
                     <property name="margin_right">6</property>
+                    <property name="margin_top">12</property>
                     <property name="margin_bottom">6</property>
                     <child>
                       <object class="GtkFrame" id="format_frame">
@@ -1361,9 +1367,9 @@
                 <child>
                   <object class="GtkAlignment" id="preferences_extras">
                     <property name="can_focus">False</property>
-                    <property name="margin_top">12</property>
                     <property name="margin_left">6</property>
                     <property name="margin_right">6</property>
+                    <property name="margin_top">12</property>
                     <property name="margin_bottom">6</property>
                     <child>
                       <object class="GtkFrame" id="preferences_extras_frame">
@@ -1684,12 +1690,10 @@
                             </child>
                             <child>
                               <object class="GtkCellRendererText" id="plugins_text_renderer">
+                                <property name="width_chars">30</property>
                                 <property name="wrap_mode">word</property>
                                 <property name="wrap_width">10</property>
-                                <property name="width_chars">30</property>
                                 <property name="max_width_chars">30</property>
-                                <!--The *max_chars keep cells from adding useless
-                                    vertical spacing.  Maybe a Gtk+ bug? -->
                               </object>
                               <attributes>
                                 <attribute name="markup">2</attribute>

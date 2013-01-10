@@ -4,17 +4,16 @@
   <object class="GtkAboutDialog" id="about_dialog">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
-    <property name="type">toplevel</property>
-    <property name="modal">True</property>
     <property name="role">about</property>
+    <property name="modal">True</property>
     <property name="type_hint">dialog</property>
     <property name="program_name">Sonata</property>
     <property name="copyright" translatable="yes">Sonata, an elegant GTK+ client for the Music Player Daemon
 Copyright 2006-2008 Scott Horowitz &lt;stonecrest@gmail.com&gt;</property>
     <property name="comments" translatable="yes">An elegant music client for MPD.</property>
     <property name="website">http://sonata.berlios.de/</property>
-    <property name="website_label" translatable="no">sonata.berlios.de</property>
-    <property name="license" translatable="no">Sonata is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version.
+    <property name="website_label">sonata.berlios.de</property>
+    <property name="license">Sonata is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version.
     
 Sonata is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
@@ -22,7 +21,7 @@ You should have received a copy of the GNU General Public License along with thi
     <property name="authors">Scott Horowitz &lt;stonecrest@gmail.com&gt;
 Tuukka Hastrup &lt;Tuukka.Hastrup@iki.fi&gt;
 Stephen Boyd &lt;bebarino@gmail.com&gt;</property>
-    <property name="translator_credits" translatable="no">ar - Ahmad Farghal &lt;ahmad.farghal@gmail.com&gt;
+    <property name="translator_credits">ar - Ahmad Farghal &lt;ahmad.farghal@gmail.com&gt;
 be@latin - Ihar Hrachyshka &lt;ihar.hrachyshka@gmail.com&gt;
 ca - Franc Rodriguez &lt;franc.rodriguez@tecob.com&gt;
 cs - Jakub Adler &lt;jakubadler@gmail.com&gt;
@@ -50,8 +49,6 @@ zh_TW - Ian-Xue Li &lt;da.mi.spirit@gmail&gt;</property>
     <property name="artists">Adrian Chromenko &lt;adrian@rest0re.org&gt;
 oss.rest0re.org &lt;http://oss.rest0re.org/&gt;</property>
     <property name="wrap_license">True</property>
-    <!-- If this is enabled, the license button goes away.
-    <property name="license_type">gpl-3-0</property>-->
     <child internal-child="vbox">
       <object class="GtkBox" id="aboutdialog-vbox1">
         <property name="can_focus">False</property>
@@ -64,13 +61,18 @@ oss.rest0re.org &lt;http://oss.rest0re.org/&gt;</property>
             <child>
               <object class="GtkButton" id="shortcut_button">
                 <property name="label" translatable="yes">_Shortcuts</property>
-                <property name="use_underline">True</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_action_appearance">False</property>
+                <property name="use_underline">True</property>
               </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">3</property>
+              </packing>
             </child>
           </object>
           <packing>
@@ -93,7 +95,6 @@ oss.rest0re.org &lt;http://oss.rest0re.org/&gt;</property>
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
     <property name="title" translatable="yes">Shortcuts</property>
-    <property name="type">toplevel</property>
     <property name="role">shortcuts</property>
     <property name="modal">True</property>
     <property name="window_position">center-on-parent</property>
@@ -110,8 +111,8 @@ oss.rest0re.org &lt;http://oss.rest0re.org/&gt;</property>
           <object class="GtkScrolledWindow" id="shortcuts_dialog_scrollwindow">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="shadow_type">in</property>
             <property name="hscrollbar_policy">never</property>
+            <property name="shadow_type">in</property>
             <child>
               <object class="GtkViewport" id="shortcuts_dialog_viewport">
                 <property name="visible">True</property>
