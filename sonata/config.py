@@ -12,7 +12,6 @@ self.config = config.Config(_('Default Profile'), _("by") + " %A " +\
 
 import logging
 import os
-import hashlib
 from configparser import RawConfigParser
 
 from sonata import misc, consts
@@ -65,10 +64,6 @@ class Config:
         self.wd = SongRecord(path="/")
 
         self._options = {
-            'audioscrobbler': {
-                'as_enabled': ('use_audioscrobbler', 'boolean', False),
-                'as_password_md5': ('password_md5', '', ''),
-                'as_username': ('username', '', '')},
             'connection': {
                 'autoconnect': ('auto', 'boolean', True),
                 'profile_num': ('profile_num', 'int', 0)},

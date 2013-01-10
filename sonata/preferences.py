@@ -10,14 +10,14 @@ prefs = preferences.Preferences()
 prefs.on_prefs_real(self.window, self.prefs_window_response, tab callbacks...)
 """
 
-import gettext, hashlib
+import os
 
 from gi.repository import Gtk, Gdk, GdkPixbuf
 
 from sonata.config import Config
 from sonata.pluginsystem import pluginsystem
 from sonata import ui, misc, consts, formatting
-import os
+
 
 class Extras_cbs:
     """Callbacks and data specific to the extras tab"""
@@ -174,19 +174,7 @@ class Preferences():
 
     def extras_tab(self, cbs):
         """Construct and layout the extras tab"""
-        if not self.scrobbler.imported():
-            self.config.as_enabled = False
 
-        as_checkbox = self.builder.get_object('scrobbler_check')
-        as_checkbox.set_active(self.config.as_enabled)
-        as_user_label = self.builder.get_object('scrobbler_username_label')
-        as_user_entry = self.builder.get_object('scrobbler_username_entry')
-        as_user_entry.set_text(self.config.as_username)
-        as_user_entry.connect('changed', self._as_username_changed)
-        as_pass_label = self.builder.get_object('scrobbler_password_label')
-        as_pass_entry = self.builder.get_object('scrobbler_password_entry')
-        as_pass_entry.set_text(self.config.as_password_md5)
-        as_pass_entry.connect('changed', self._as_password_changed)
         display_notification = self.builder.get_object('notification_check')
         display_notification.set_active(self.config.show_notification)
 
@@ -221,13 +209,6 @@ class Preferences():
         crossfadecheck.set_active(self.config.xfade_enabled)
         crossfadecheck.toggled() # Force the toggled callback
 
-        as_checkbox.connect('toggled', self._as_enabled_toggled,
-            as_user_entry, as_pass_entry, as_user_label,
-            as_pass_label)
-        if not self.config.as_enabled or not self.scrobbler.imported():
-            for widget in (as_user_entry, as_pass_entry,
-                    as_user_label, as_pass_label):
-                widget.set_sensitive(False)
 
     def display_tab(self, cbs):
         """Construct and layout the display tab"""
@@ -443,27 +424,6 @@ class Preferences():
     def _config_widget_active(self, widget, member):
         """Sets a config attribute to the widget's active value"""
         setattr(self.config, member, widget.get_active())
-
-    def _as_enabled_toggled(self, checkbox, *widgets):
-        if checkbox.get_active():
-            self.scrobbler.import_module(True)
-        if self.scrobbler.imported():
-            self.config.as_enabled = checkbox.get_active()
-            self.scrobbler.init()
-            for widget in widgets:
-                widget.set_sensitive(self.config.as_enabled)
-        elif checkbox.get_active():
-            checkbox.set_active(False)
-
-    def _as_username_changed(self, entry):
-        if self.scrobbler.imported():
-            self.config.as_username = entry.get_text()
-            self.scrobbler.auth_changed()
-
-    def _as_password_changed(self, entry):
-        if self.scrobbler.imported():
-            self.config.as_password_md5 = hashlib.md5(entry.get_text()).hexdigest()
-            self.scrobbler.auth_changed()
 
     def _nameentry_changed(self, entry, profile_combo, remove_profiles):
         if not self.updating_nameentry:

@@ -44,7 +44,7 @@ from sonata.config import Config
 
 from sonata import preferences, tagedit, \
                 artwork, about, \
-                scrobbler, info, \
+                info, \
                 library, streams, \
                 playlists, current, \
                 dbus_plugin as dbus
@@ -457,12 +457,6 @@ class Base:
                     self.window.style_get_property("link-color").to_string()
         except:
             linkcolor = None
-
-        # Audioscrobbler
-        self.scrobbler = scrobbler.Scrobbler(self.config)
-        self.scrobbler.import_module()
-        self.scrobbler.init()
-        self.preferences.scrobbler = self.scrobbler
 
         # Current tab
         self.current = current.Current(
@@ -1519,7 +1513,9 @@ class Base:
                 self.mpd_updated_db()
         self.mpd_update_queued = False
 
-        if self.config.as_enabled:
+        # send information to scrobblers, etc.
+        plugins = pluginsystem.get('handle_change_status')
+        if plugins:
             if self.prevstatus:
                 prevstate = self.prevstatus['state']
             else:
@@ -1531,13 +1527,12 @@ class Base:
 
             if state in ('play', 'pause'):
                 mpd_time_now = self.status['time']
-                self.scrobbler.handle_change_status(state, prevstate,
-                                                    self.prevsonginfo,
-                                                    self.songinfo,
-                                                    mpd_time_now)
+                for _plugin, cb in plugins:
+                    cb(state, prevstate, self.prevsonginfo, self.songinfo,
+                       mpd_time_now)
             elif state == 'stop':
-                self.scrobbler.handle_change_status(state, prevstate,
-                                                    self.prevsonginfo)
+                for _plugin, cb in plugins:
+                    cb(state, prevstate, self.prevsonginfo)
 
     def mpd_updated_db(self):
         self.library.view_caches_reset()
@@ -1859,8 +1854,6 @@ class Base:
                 return True
         self.settings_save()
         self.artwork.artwork_save_cache()
-        if self.config.as_enabled:
-            self.scrobbler.save_cache()
         if self.conn and self.config.stop_on_exit:
             self.mpd_stop(None)
         sys.exit()

@@ -1380,106 +1380,11 @@
                             <property name="can_focus">False</property>
                             <property name="margin">12</property>
                             <child>
-                              <object class="GtkBox" id="scrobbler_box">
+                              <object class="GtkBox" id="extras_box">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="orientation">vertical</property>
                                 <property name="spacing">6</property>
-                                <child>
-                                  <object class="GtkCheckButton" id="scrobbler_check">
-                                    <property name="label" translatable="yes">_Audioscrobbling (Last.fm)</property>
-                                    <property name="use_action_appearance">False</property>
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="receives_default">False</property>
-                                    <property name="use_action_appearance">False</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="xalign">0</property>
-                                    <property name="draw_indicator">True</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">0</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <object class="GtkBox" id="scrobbler_username_box">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="halign">end</property>
-                                    <property name="spacing">6</property>
-                                    <child>
-                                      <object class="GtkLabel" id="scrobbler_username_label">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="label" translatable="yes">_Username:</property>
-                                        <property name="use_underline">True</property>
-                                        <property name="mnemonic_widget">scrobbler_username_entry</property>
-                                      </object>
-                                      <packing>
-                                        <property name="expand">False</property>
-                                        <property name="fill">True</property>
-                                        <property name="position">0</property>
-                                      </packing>
-                                    </child>
-                                    <child>
-                                      <object class="GtkEntry" id="scrobbler_username_entry">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">True</property>
-                                      </object>
-                                      <packing>
-                                        <property name="expand">False</property>
-                                        <property name="fill">True</property>
-                                        <property name="position">1</property>
-                                      </packing>
-                                    </child>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">1</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <object class="GtkBox" id="scrobbler_password_box">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="halign">end</property>
-                                    <property name="spacing">6</property>
-                                    <child>
-                                      <object class="GtkLabel" id="scrobbler_password_label">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="label" translatable="yes">_Password:</property>
-                                        <property name="use_underline">True</property>
-                                        <property name="mnemonic_widget">scrobbler_password_entry</property>
-                                      </object>
-                                      <packing>
-                                        <property name="expand">False</property>
-                                        <property name="fill">True</property>
-                                        <property name="position">0</property>
-                                      </packing>
-                                    </child>
-                                    <child>
-                                      <object class="GtkEntry" id="scrobbler_password_entry">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">True</property>
-                                        <property name="visibility">False</property>
-                                      </object>
-                                      <packing>
-                                        <property name="expand">False</property>
-                                        <property name="fill">True</property>
-                                        <property name="position">1</property>
-                                      </packing>
-                                    </child>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">2</property>
-                                  </packing>
-                                </child>
                                 <child>
                                   <object class="GtkCheckButton" id="notification_check">
                                     <property name="label" translatable="yes">Popup _notification on song changes</property>
