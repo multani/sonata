@@ -56,7 +56,13 @@ def on_cover_fetch(artist, album, on_save_cb, on_err_cb):
     for image in lastfm['album']['image']:
         if image['size'] != 'large':
             continue
+
         url = image['#text']
+        if url == '':
+            logger.info("Found an album on Last.fm, but no cover :( %s",
+                        lastfm['album']['url'])
+            continue
+
         logger.debug("Downloading %r", url)
         try:
             response = opener.open(url)
