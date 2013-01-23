@@ -1320,7 +1320,7 @@ class Base:
         while Gtk.events_pending():
             Gtk.main_iteration()
         if f:
-            if misc.is_binary(f):
+            if type(f) is bytes:
                 # Binary file, just add it:
                 self.mpd.add(item)
             else:
