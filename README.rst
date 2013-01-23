@@ -1,52 +1,119 @@
-Sonata, an elegant GTK+ client for the Music Player Daemon (MPD)
-================================================================
+Sonata, an elegant GTK 3 client for the `Music Player Daemon`_
+==============================================================
 
-Copyright 2006-2009 Scott Horowitz <stonecrest@gmail.com>
+Sonata is a client for the `Music Player Daemon`_ featuring:
 
-Thanks to Andrew Conkling et al, for all their hard work on Pygmy!
++ Expanded and collapsed views, fullscreen album art mode
++ Automatic remote and local album art
++ Library browsing by folders, or by genre/artist/album
++ User-configurable columns
++ Automatic fetching of lyrics and covers
++ Playlist and stream support
++ Support for editing song tags
++ Drag-and-drop to copy files
++ Popup notification
++ Library and playlist searching, filter as you type
++ Audioscrobbler (Last.fm) 1.2 support
++ Multiple MPD profiles
++ Keyboard friendly
++ Support for multimedia keys
++ Commandline control
++ Available in 24 languages
+
+Sonata is written using the `Python programming language`_ and uses the GTK 3
+toolkit.
+
 Sonata started as a fork of the Pygmy project and is licensed under the GPLv3.
+Thanks to Andrew Conkling et al, for all their hard work on Pygmy!
 
-FEATURES:
-    + Expanded and collapsed views, fullscreen album art mode
-    + Automatic remote and local album art
-    + Library browsing by folders, or by genre/artist/album
-    + User-configurable columns
-    + Automatic fetching of lyrics
-    + Playlist and stream support
-    + Support for editing song tags
-    + Drag-and-drop to copy files
-    + Popup notification
-    + Library and playlist searching, filter as you type
-    + Audioscrobbler (last.fm) 1.2 support
-    + Multiple MPD profiles
-    + Keyboard friendly
-    + Support for multimedia keys
-    + Commandline control
-    + Available in 24 languages
+Using Sonata
+============
 
-RUNNING:
-    Sonata can be run from source without installation. Simply
-    run './run-sonata' as your user.
+Requirements
+------------
 
-DOCUMENTATION/FAQ:
-    http://sonata.berlios.de/documentation.html
+In order to run Sonata, you will need the following dependencies:
 
-REQUIREMENTS:
-    (Required) Python 3.2 or newer
-    (Required) Python GObject Introspection 3.2 or newer
-    (Required) GTK 3.4 or newer
-    (Required) python-mpd 0.4.4 or newer
-    (Required) MPD 0.15 or newer, possibly on another computer
-    (Optional) taglib and tagpy for editing metadata
-    (Optional) dbus-python for multimedia keys, single instance support
+* Python >= 3.2
+* `PyGObject`_ (aka Python GObject Introspection) (you need a *recent* version)
+* GTK >= 3.4
+* `python-mpd2` >= 0.4.6
+* MPD >= 0.15 (possibly on another computer)
+* taglib and tagpy for editing metadata (Optional)
+* dbus-python for multimedia keys (Optional)
 
-INSTALLATION:
-    Run 'python3 setup.py install' as root.
+Sonata can currently be downloaded from the Git repository using::
 
-DEVELOPERS:
-    Jonathan Ballet <jon+sonata@multani.info>
+    $ git clone git://github.com/multani/sonata.git
+    $ cd sonata
 
-PAST DEVELOPERS
-    Scott Horowitz <stonecrest@gmail.com>
-    Tuukka Hastrup <Tuukka.Hastrup@iki.fi>
-    Stephen Boyd <bebarino@gmail.com>
+To run Sonata, you can either install it in a dedicated directory (as root)::
+
+    # python setup.py install
+
+Or you can run it straight from the directory (without prior installation)::
+
+    $ ./run-sonata
+
+
+Website, documentation, help, etc.
+==================================
+
+The official documentation is located at
+http://sonata.berlios.de/documentation.html
+
+You can ask for feature requests or report bugs on Github at
+https://github.com/multani/sonata/issues
+
+There's a (somewhat alive) mailing list available at
+https://lists.berlios.de/mailman/listinfo/sonata-users
+
+Contributing
+============
+
+If you are interested to hack on Sonata, please consider the following:
+
+#. Clone the repository or fork it on Github;
+#. **For each** feature, bug fix, refactor, anything, you want to submit, create
+   a branch with a name which reflects what you want to do;
+#. Commit your changes related to *this* thing in this branch;
+#. Signal your changes with one of the following:
+
+   * open a pull request on Github;
+   * send a mail to jon@multani.info with the URL of your repository, the
+     name of the branch you want to be merged, and a meaningful description of
+     your work;
+   * or send me your patch(es) to jon@multani.info using ``git send-email``.
+
+I hate, hate, *hate* having to review commits touching lot of unrelated things,
+this is the easiest way for your changes not to be merged. Try to stay focus on
+one clearly defined thing and it should be much easier to merge.
+
+
+See also
+========
+
+You can also find Sonata in other places on the Internet:
+
+* http://sonata.berlios.de/ : this is the original Sonata website. It has not
+  been updated since a while but still has interesting screenshots.
+* http://codingteam.net/project/sonata/ : this is another fork with a different
+  team and different perspectives. Our code bases diverge quite a bit now.
+
+Copyright
+=========
+
+* Copyright 2006-2009 Scott Horowitz <stonecrest@gmail.com>
+* Copyright 2009-2013 Jonathan Ballet <jon@multani.info>
+
+Sonata is currently developed by Jonathan Ballet <jon@multani.info> and other
+contributors. Many thanks to the past developers:
+
+* Scott Horowitz <stonecrest@gmail.com>
+* Tuukka Hastrup <Tuukka.Hastrup@iki.fi>
+* Stephen Boyd <bebarino@gmail.com>
+
+.. _Music Player Daemon: http://musicpd.org
+.. _PyGObject: https://live.gnome.org/PyGObject
+.. _python-mpd2: http://pypi.python.org/pypi/python-mpd2/
+.. _python programming language: http://www.python.org/

@@ -4,7 +4,6 @@ Next release - ?
 New features
 ''''''''''''
 
-    * Simpler API for cover fetching plugins
     * Fetch covers from Last.fm instead of Rhapsody.com
     * Custom plugins are now stored along the configuration file in ~/.config/sonata/plugins/
     * Switch to Python 3 and Gtk 3 (Jörg Thalheim & Adam Dane)
@@ -29,6 +28,7 @@ Bug fixes
 Internal changes
 ''''''''''''''''
 
+    * Simpler API for cover fetching plugins
     * Lot of code cleanup and internal changes
     * Removed Sugar UI support
     * Use Glade files to describe the interface and GtkBuilder to build the interface
