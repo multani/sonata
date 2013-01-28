@@ -190,7 +190,10 @@ class Config:
 
         # Load all the attributes which have several values and are indexed.
         for section, (index_name, attributes) in self._indexed_options.items():
-            num = conf.getint(section, index_name)
+            if not conf.has_option(section, index_name):
+                num = 0
+            else:
+                num = conf.getint(section, index_name)
 
             for attribute, (key, type, default) in attributes.items():
                 if num == 0:
