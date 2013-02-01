@@ -1286,7 +1286,7 @@ class Library:
             for row in self.prevlibtodo_base_results:
                 is_match = True
                 for regexp in regexps:
-                    if not regexp.match(row.get(searchby, '')).lower():
+                    if not regexp.match(row.get(searchby, '').lower()):
                         is_match = False
                         break
                 if is_match:
