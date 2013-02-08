@@ -35,7 +35,7 @@ Requirements
 In order to run Sonata, you will need the following dependencies:
 
 * Python >= 3.2
-* `PyGObject`_ (aka Python GObject Introspection) (you need a *recent* version)
+* `PyGObject`_ (aka Python GObject Introspection) (3.7.4 or more recommended)
 * GTK >= 3.4
 * `python-mpd2` >= 0.4.6
 * MPD >= 0.15 (possibly on another computer)
