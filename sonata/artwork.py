@@ -465,10 +465,9 @@ class Artwork:
     def artwork_get_misc_img_in_path(self, songdir):
         path = os.path.join(self.config.musicdir[self.config.profile_num],
                             songdir)
-        dir = misc.file_from_utf8(path)
-        if os.path.exists(dir):
+        if os.path.exists(path):
             for name in consts.ART_LOCATIONS_MISC:
-                filename = os.path.join(dir, name)
+                filename = os.path.join(path, name)
                 if os.path.exists(filename):
                     return filename
         return False

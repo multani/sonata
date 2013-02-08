@@ -231,8 +231,8 @@ class Info:
         artistlabel.set_text(misc.escape_html(songinfo.artist))
         albumlabel.set_text(misc.escape_html(songinfo.album))
 
-        path = misc.file_from_utf8(os.path.join(
-            self.config.musicdir[self.config.profile_num], songinfo.file))
+        path = os.path.join(self.config.musicdir[self.config.profile_num],
+                            songinfo.file)
         if os.path.exists(path):
             filelabel.set_text(path)
             self._editlabel.show()
@@ -492,6 +492,5 @@ class Info:
         file_path = os.path.join(*file_map[lyrics_loc])
         file_path = os.path.expanduser(file_path) % (artist, title)
 
-        return misc.file_from_utf8(
-            misc.file_exists_insensitive(file_path))
+        return misc.file_exists_insensitive(file_path)
 

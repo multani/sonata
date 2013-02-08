@@ -2199,7 +2199,7 @@ class Base:
                     self.config.musicdir[self.config.profile_num],
                     songpath, self.config.art_location_custom_filename)
             targetfile = misc.file_exists_insensitive(targetfile)
-            return misc.file_from_utf8(targetfile)
+            return targetfile
 
     def get_multicd_album_root_dir(self, albumpath):
         """Go one dir upper for multicd albums
@@ -2327,9 +2327,8 @@ class Base:
         album = (self.songinfo.album or "").replace("/", "")
         artist = self.album_current_artist[1].replace("/", "")
         songdir = os.path.dirname(self.songinfo.file)
-        currdir = misc.file_from_utf8(
-            os.path.join(self.config.musicdir[self.config.profile_num],
-                         songdir))
+        currdir = os.path.join(self.config.musicdir[self.config.profile_num],
+                               songdir)
         if self.config.art_location != consts.ART_LOCATION_HOMECOVERS:
             dialog.set_current_folder(currdir)
         if stream is not None:

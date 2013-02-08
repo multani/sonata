@@ -205,13 +205,6 @@ def browser_load(docslink, browser, window):
     return True
 
 
-def file_from_utf8(filename):
-    try:
-        return GLib.filename_from_utf8(filename)
-    except:
-        return filename
-
-
 def is_lang_rtl(window):
     from gi.repository import Pango
     # Check if a RTL (right-to-left) language:

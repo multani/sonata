@@ -526,8 +526,7 @@ class Current:
         drop_info = treeview.get_dest_row_at_pos(x, y)
 
         if selection.data is not None:
-            if not os.path.isdir(misc.file_from_utf8(
-                self.config.musicdir[self.config.profile_num])):
+            if not os.path.isdir(self.config.musicdir[self.config.profile_num]):
                 return
             # DND from outside sonata:
             uri = selection.data.strip()
@@ -556,12 +555,12 @@ class Current:
                 # work because python-mpd does not support unix socket
                 # paths, won't which is needed for authentication for
                 # local files. It's also therefore untested.
-                if os.path.isdir(misc.file_from_utf8(paths[i])):
+                if os.path.isdir(paths[i]):
                     filenames = misc.get_files_recursively(paths[i])
                 else:
                     filenames = [paths[i]]
                 for filename in filenames:
-                    if os.path.exists(misc.file_from_utf8(filename)):
+                    if os.path.exists(filename):
                         mpdpaths.append("file://" + urllib.parse.quote(filename))
             if len(mpdpaths) > 0:
                 # Items found, add to list at drop position:

@@ -108,7 +108,7 @@ class TagEditor:
             ui.change_cursor(None)
             return
 
-        if not os.path.isdir(misc.file_from_utf8(music_dir)):
+        if not os.path.isdir(music_dir):
             ui.show_msg(self.window, _("The path %s does not exist. Please specify a valid music directory in preferences.") % music_dir, _("Edit Tags"), 'editTagsError', Gtk.ButtonsType.CLOSE, response_cb=ui.dialog_destroy)
             ui.change_cursor(None)
             return
@@ -128,7 +128,7 @@ class TagEditor:
              'artist-changed': False, 'album-changed': False,
              'year-changed': False, 'track-changed': False,
              'genre-changed': False, 'comment-changed': False,
-             'fullpath': misc.file_from_utf8(filename),
+             'fullpath': filename,
              'mpdpath': path,}
             for filename, path in zip(files, temp_mpdpaths)]
 
