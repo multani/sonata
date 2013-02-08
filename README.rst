@@ -35,12 +35,18 @@ Requirements
 In order to run Sonata, you will need the following dependencies:
 
 * Python >= 3.2
-* `PyGObject`_ (aka Python GObject Introspection) (3.7.4 or more recommended)
+* `PyGObject`_ (aka Python GObject Introspection) (3.7.4 or more recommended,
+  earlier versions may also work)
 * GTK >= 3.4
 * `python-mpd2` >= 0.4.6
 * MPD >= 0.15 (possibly on another computer)
 * taglib and tagpy for editing metadata (Optional)
 * dbus-python for multimedia keys (Optional)
+
+.. warning: Sonata depends on `PyGObject`_ which is still quite new and gets
+    regular fixes. Although versions 3.4.x shipped in most distributions at the
+    time of writing are OK most of the time, unexpected bugs may occur which are
+    fixed by more recent versions.
 
 Sonata can currently be downloaded from the Git repository using::
 
