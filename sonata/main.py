@@ -469,8 +469,7 @@ class Base:
             self.config, self.mpd, self.TAB_CURRENT,
             self.on_current_button_press, self.connected,
             lambda: self.sonata_loaded, lambda: self.songinfo,
-            self.update_statusbar, self.iterate_now,
-            lambda: self.library.libsearchfilter_get_style(), self.add_tab)
+            self.update_statusbar, self.iterate_now, self.add_tab)
 
         self.current_treeview = self.current.get_treeview()
         self.current_selection = self.current.get_selection()
@@ -495,11 +494,9 @@ class Base:
         # Library tab
         self.library = library.Library(
             self.config, self.mpd, self.artwork, self.TAB_LIBRARY,
-            self.settings_save, self.current.filtering_entry_make_red,
-            self.current.filtering_entry_revert_color,
-            self.current.filter_key_pressed, self.on_add_item, self.connected,
-            self.on_library_button_press, self.add_tab,
-            self.get_multicd_album_root_dir)
+            self.settings_save, self.current.filter_key_pressed,
+            self.on_add_item, self.connected, self.on_library_button_press,
+            self.add_tab, self.get_multicd_album_root_dir)
 
         self.library_treeview = self.library.get_treeview()
         self.library_selection = self.library.get_selection()

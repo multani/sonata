@@ -29,7 +29,7 @@ class Current:
 
     def __init__(self, config, mpd, TAB_CURRENT, on_current_button_press,
                  connected, sonata_loaded, songinfo, update_statusbar,
-                 iterate_now, libsearchfilter_get_style, add_tab):
+                 iterate_now, add_tab):
         self.config = config
         self.mpd = mpd
         self.on_current_button_press = on_current_button_press
@@ -38,7 +38,6 @@ class Current:
         self.songinfo = songinfo
         self.update_statusbar = update_statusbar
         self.iterate_now = iterate_now
-        self.libsearchfilter_get_style = libsearchfilter_get_style
 
         self.store = None
         self.filterbox_visible = False
@@ -50,7 +49,6 @@ class Current:
         # TreeViewColumn, order
         self.column_sorted = (None, Gtk.SortType.DESCENDING)
         self.total_time = 0
-        self.edit_style_orig = None
         self.resizing_columns = None
         self.prev_boldrow = -1
         self.playlist_pos_before_filter = None
@@ -632,7 +630,6 @@ class Current:
         if self.filterbox_visible:
             ui.hide(self.filterbox)
             self.filterbox_visible = False
-            self.edit_style_orig = self.libsearchfilter_get_style()
             self.filterpattern.set_text("")
             self.view.set_model(self.store)
         elif self.connected():
@@ -704,14 +701,6 @@ class Current:
             treeview.grab_focus()
             treeview.emit("key-press-event", event)
             GLib.idle_add(self.filter_entry_grab_focus, widget)
-
-    def filtering_entry_make_red(self, editable):
-        color = Gdk.RGBA()
-        color.parse("red")
-        editable.override_color(Gtk.StateFlags.NORMAL, color)
-
-    def filtering_entry_revert_color(self, editable):
-        editable.set_style(self.edit_style_orig)
 
     def boldrow(self, row):
         if row > -1:
