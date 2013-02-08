@@ -311,6 +311,10 @@ pyscrobbler_version = '1.0.0.0' # This is set to 1.0 while we use
                              # UPDATE responses with anything less.
 
 
+def lines_from_utf8(lines):
+    return [line.decode('utf-8') for line in lines]
+
+
 class AudioScrobblerError(Exception):
 
     """
@@ -634,7 +638,7 @@ class AudioScrobblerPost:
         if self.authenticated:
             return True
 
-        timestamp = str(int(time.time()))
+        timestamp = str(int(time.time())).encode('ascii')
         md5_password = self.params['md5_password']
         auth_token = hashlib.md5(md5_password + timestamp).hexdigest()
 
@@ -647,7 +651,7 @@ class AudioScrobblerPost:
         p['t'] = timestamp
         p['a'] = auth_token
 
-        plist = [(k, urllib.parse.quote_plus(v.encode('utf8'))) \
+        plist = [(k, urllib.parse.quote_plus(v).encode('utf-8'))
                  for k, v in p.items()]
 
         authparams = urllib.parse.urlencode(plist)
@@ -664,7 +668,7 @@ class AudioScrobblerPost:
             message = error.reason#.args[1]
             raise AudioScrobblerConnectionError('network', code, message)
 
-        response = url_handle.readlines()
+        response = lines_from_utf8(url_handle.readlines())
         if len(response) == 0:
             raise AudioScrobblerHandshakeError(('Got nothing back from '
                                                 'the server'))
@@ -699,11 +703,7 @@ class AudioScrobblerPost:
 
         elif response[0].startswith('FAILED'):
             self.authenticated = False
-            reason = response[0][6:]
-            try:
-                msg = reason.decode('utf8').encode(enc)
-            except:
-                msg = reason
+            msg = response[0][6:]
             raise AudioScrobblerHandshakeError(msg)
 
         else:
@@ -800,22 +800,14 @@ class AudioScrobblerPost:
 
         p = {}
         p['s'] = self.auth_details['s']
-        try:
-            p['a'] = artist_name.encode('utf8')
-            p['t'] = song_title.encode('utf8')
-            p['b'] = album.encode('utf8')
-            p['l'] = length.encode('utf8')
-            p['n'] = tracknumber.encode('utf8')
-            p['m'] = mbid.encode('utf8')
-        except:
-            p['a'] = artist_name
-            p['t'] = song_title
-            p['b'] = album
-            p['l'] = length.encode('utf8')
-            p['n'] = tracknumber.encode('utf8')
-            p['m'] = mbid.encode('utf8')
+        p['a'] = artist_name
+        p['t'] = song_title
+        p['b'] = album
+        p['l'] = str(length)
+        p['n'] = str(tracknumber)
+        p['m'] = str(mbid)
 
-        npdata = urllib.parse.urlencode(p)
+        npdata = urllib.parse.urlencode(p).encode('utf-8')
 
         req = urllib.request.Request(url=self.npurl, data=npdata)
 
@@ -833,7 +825,7 @@ class AudioScrobblerPost:
                 "%s", AudioScrobblerConnectionError('network', code, message))
             return
 
-        response = url_handle.readlines()
+        response = lines_from_utf8(url_handle.readlines())
         if response[0].startswith('OK'):
             self.log("Now playing track updated ('%s' by '%s')." % (p['t'],
                                                                     p['a']))
@@ -863,7 +855,7 @@ class AudioScrobblerPost:
 
         self.auth()
         params.update(self.auth_details)
-        postdata = urllib.parse.urlencode(params)
+        postdata = urllib.parse.urlencode(params).encode('utf-8')
         req = urllib.request.Request(url=self.posturl, data=postdata)
 
         now = datetime.datetime.utcnow()
@@ -889,7 +881,7 @@ class AudioScrobblerPost:
             raise AudioScrobblerConnectionError('network', code, message)
 
         self.last_post = now
-        response = url_handle.readlines()
+        response = lines_from_utf8(url_handle.readlines())
 
         # Test the various responses possibilities:
         if response[0].startswith('OK'):
@@ -929,7 +921,7 @@ class AudioScrobblerPost:
             count += 1
 
         try:
-            conf.write(file(filename, 'w'))
+            conf.write(open(filename, 'w'))
         except IOError:
             pass
 

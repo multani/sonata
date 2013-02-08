@@ -160,7 +160,7 @@ class Scrobbler:
             if 'artist' in songinfo and \
                'title' in songinfo and \
                'time' in songinfo:
-                album = songinfo.get('albumr', '')
+                album = songinfo.get('album', '')
                 tracknumber = songinfo.get('track', '')
                 try:
                     self.scrob_post.nowplaying(songinfo.artist,
@@ -179,8 +179,8 @@ class Scrobbler:
             if 'artist' in prevsonginfo and \
                'title' in prevsonginfo and \
                'time' in prevsonginfo:
-                album = songinfo.get('albumr', '')
-                tracknumber = songinfo.get('track', '')
+                album = prevsonginfo.get('album', '')
+                tracknumber = prevsonginfo.get('track', '')
                 try:
                     self.scrob_post.addtrack(
                         prevsonginfo.artist,
