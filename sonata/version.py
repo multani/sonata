@@ -8,7 +8,7 @@ except ImportError:
     build_ver = None
 
 # Should be the most recent release
-default_version = "v1.6.2.1"
+default_version = "v1.7a1"
 
 def _version():
     '''Get the version number of the sources
