@@ -125,6 +125,9 @@ class MPDSong:
         # attribute set.
         return self._mapping.get(attr)
 
+    def values(self):
+        return self._mapping.values()
+
     @property
     def id(self):
         return int(self._mapping.get('id', 0))

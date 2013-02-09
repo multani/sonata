@@ -1,6 +1,11 @@
 Next release - ?
 ----------------
 
+Bug fixes
+'''''''''
+
+    * Fix search in library (using a specific filter or the 'everything' filter)
+
 
 1.7a1 (2013-02-08)
 ------------------
