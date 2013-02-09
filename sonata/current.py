@@ -175,14 +175,14 @@ class Current:
         return self.current_songs
 
     def dnd_get_data_for_file_managers(self, _treeview, context, selection,
-                                       _info, _timestamp):
+                                       _info, timestamp):
 
         if not os.path.isdir(self.config.musicdir[self.config.profile_num]):
             # Prevent the DND mouse cursor from looking like we can DND
             # when we clearly can't.
             return
 
-        context.drag_status(Gdk.DragAction.COPY, context.start_time)
+        Gdk.drag_status(context, Gdk.DragAction.COPY, timestamp)
 
         filenames = self.get_selected_filenames(True)
         uris = ["file://%s" % urllib.parse.quote(filename)
@@ -525,11 +525,11 @@ class Current:
                timestamp):
         drop_info = treeview.get_dest_row_at_pos(x, y)
 
-        if selection.data is not None:
+        if selection.get_data():
             if not os.path.isdir(self.config.musicdir[self.config.profile_num]):
                 return
             # DND from outside sonata:
-            uri = selection.data.strip()
+            uri = selection.get_data().strip().decode('utf-8')
             path = urllib.request.url2pathname(uri)
             paths = path.rsplit('\n')
             mpdpaths = []
@@ -614,7 +614,7 @@ class Current:
                     else:
                         self.current_songs.pop(index)
                         self.mpd.moveid(songid, dest - 1)
-                    model.insert(dest, model[index])
+                    model.insert(dest, tuple(model[index]))
                     moved_iters += [model.get_iter((dest,))]
                     model.remove(i)
                 else:
@@ -626,7 +626,7 @@ class Current:
                     else:
                         self.current_songs.pop(index)
                         self.mpd.moveid(songid, dest)
-                    model.insert(dest + 1, model[index])
+                    model.insert(dest + 1, tuple(model[index]))
                     moved_iters += [model.get_iter((dest + 1,))]
                     model.remove(i)
             else:
@@ -635,7 +635,7 @@ class Current:
                 self.mpd.moveid(songid, dest)
                 self.current_songs.insert(dest + 1, self.current_songs[index])
                 self.current_songs.pop(index)
-                model.insert(dest + 1, model[index])
+                model.insert(dest + 1, tuple(model[index]))
                 moved_iters += [model.get_iter((dest + 1,))]
                 model.remove(i)
             # now fixup
@@ -654,8 +654,9 @@ class Current:
         # we are manipulating the model manually for speed, so...
         self.current_update_skip = True
 
-        if drag_context.action == Gdk.DragAction.MOVE:
-            drag_context.finish(True, True, timestamp)
+        # Gdk.DragContext.get_action() returns a bitmask of actions
+        if drag_context.get_actions() & Gdk.DragAction.MOVE:
+            Gdk.drag_finish(drag_context, True, True, timestamp)
             self.header_hide_all_indicators(self.current, False)
         self.iterate_now()
 
