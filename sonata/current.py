@@ -521,8 +521,7 @@ class Current:
             self.mpd.command_list_end()
             self.iterate_now()
 
-    def on_dnd(self, treeview, drag_context, x, y, selection, _info,
-               timestamp):
+    def on_dnd(self, treeview, drag_context, x, y, selection, _info, timestamp):
         drop_info = treeview.get_dest_row_at_pos(x, y)
 
         if selection.get_data():
@@ -586,10 +585,9 @@ class Current:
         drag_sources = []
         for path in selected:
             index = path[0]
-            i = model.get_iter(path)
-            songid = self.current_get_songid(i, model)
-            text = model.get_value(i, 1)
-            drag_sources.append([index, i, songid, text])
+            treeiter = model.get_iter(path)
+            songid = self.current_get_songid(treeiter, model)
+            drag_sources.append([index, treeiter, songid])
 
         # Keep track of the moved iters so we can select them afterwards
         moved_iters = []
@@ -598,46 +596,36 @@ class Current:
         # the entire playlist from refreshing
         offset = 0
         self.mpd.command_list_ok_begin()
-        for source in drag_sources:
-            index, i, songid, text = source
+        for index, treeiter, songid in drag_sources:
             if drop_info:
                 destpath, position = drop_info
                 dest = destpath[0] + offset
                 if dest < index:
                     offset = offset + 1
+                pop_from = index
+                move_to = dest
                 if position in (Gtk.TreeViewDropPosition.BEFORE,
                                 Gtk.TreeViewDropPosition.INTO_OR_BEFORE):
-                    self.current_songs.insert(dest, self.current_songs[index])
+                    insert_to = dest
                     if dest < index + 1:
-                        self.current_songs.pop(index + 1)
-                        self.mpd.moveid(songid, dest)
+                        pop_from = index + 1
                     else:
-                        self.current_songs.pop(index)
-                        self.mpd.moveid(songid, dest - 1)
-                    model.insert(dest, tuple(model[index]))
-                    moved_iters += [model.get_iter((dest,))]
-                    model.remove(i)
+                        move_to = dest - 1
                 else:
-                    self.current_songs.insert(dest + 1,
-                                              self.current_songs[index])
+                    insert_to = dest + 1
                     if dest < index:
-                        self.current_songs.pop(index + 1)
-                        self.mpd.moveid(songid, dest + 1)
-                    else:
-                        self.current_songs.pop(index)
-                        self.mpd.moveid(songid, dest)
-                    model.insert(dest + 1, tuple(model[index]))
-                    moved_iters += [model.get_iter((dest + 1,))]
-                    model.remove(i)
+                        pop_from = index + 1
+                        move_to = insert_to
             else:
-                #dest = int(self.status['playlistlength']) - 1
                 dest = len(self.currentdata) - 1
-                self.mpd.moveid(songid, dest)
-                self.current_songs.insert(dest + 1, self.current_songs[index])
-                self.current_songs.pop(index)
-                model.insert(dest + 1, tuple(model[index]))
-                moved_iters += [model.get_iter((dest + 1,))]
-                model.remove(i)
+                insert_to = dest + 1
+
+            self.current_songs.insert(insert_to, self.current_songs[index])
+            self.current_songs.pop(pop_from)
+            self.mpd.moveid(songid, move_to)
+            moved_iters.append(model.insert(insert_to, tuple(model[index])))
+            model.remove(treeiter)
+
             # now fixup
             for source in drag_sources:
                 if dest < index:
