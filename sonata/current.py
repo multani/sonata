@@ -345,23 +345,10 @@ class Current:
                 column.set_sort_indicator(False)
 
     def center_song_in_list(self, _event=None):
-        if self.filterbox_visible:
-            return
-        if self.config.expanded and len(self.currentdata) > 0:
-            self.current.realize()
-            try:
-                if 'pos' not in self.songinfo():
-                    return
-                row = self.songinfo().pos
-                visible_rect = self.current.get_visible_rect()
-                row_path = Gtk.TreePath(row)
-                row_rect = self.current.get_background_area(row_path,
-                                                            self.columns[0])
-                top_coord = (row_rect.y + row_rect.height - \
-                             int(visible_rect.height / 2)) + visible_rect.y
-                self.current.scroll_to_point(-1, top_coord)
-            except:
-                pass
+        if not self.filterbox_visible and self.config.expanded and \
+           len(self.currentdata) > 0:
+            row_path = Gtk.TreePath(self.songinfo().pos)
+            self.current.scroll_to_cell(row_path, None, True, 0.5, 0.5)
 
     def current_get_songid(self, i, model):
         return int(model.get_value(i, 0))
