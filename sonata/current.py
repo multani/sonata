@@ -648,13 +648,13 @@ class Current:
             self.header_hide_all_indicators(self.current, False)
         self.iterate_now()
 
-        GLib.idle_add(self.dnd_retain_selection, treeview.get_selection(),
-                      moved_iters)
-
-    def dnd_retain_selection(self, treeselection, moved_iters):
-        treeselection.unselect_all()
+        selection = treeview.get_selection()
+        selection.unselect_all()
         for i in moved_iters:
-            treeselection.select_iter(i)
+            selection.select_iter(i)
+
+        if moved_iters:
+            treeview.scroll_to_cell(model.get_path(moved_iters[0]), None)
 
     def on_current_click(self, _treeview, path, _column):
         model = self.current.get_model()
