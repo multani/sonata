@@ -1104,7 +1104,7 @@ class Base:
                 self.withdraw_app()
             return
         elif shortcut == 'Delete':
-            self.on_remove(None)
+            return self.on_remove(None)
         if self.current_tab == self.TAB_CURRENT:
             if event.get_state() & (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.MOD1_MASK):
                 return

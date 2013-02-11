@@ -18,7 +18,6 @@ self.current.current_update(prevstatus_playlist, self.status['playlistlength'])
 import os
 import re
 import urllib.parse, urllib.request
-import threading # searchfilter_toggle starts thread searchfilter_loop
 
 from gi.repository import Gtk, Gdk, Pango, GLib
 
@@ -43,23 +42,17 @@ class Current:
         self.store = None
         self.filterbox_visible = False
         self.current_update_skip = False
-        # Mapping between filter rows and self.store rows
-        self.filter_row_mapping = []
         self.columnformat = None
         self.columns = None
 
         self.current_songs = None
-        self.filterbox_cmd_buf = None
-        self.filterbox_cond = None
-        self.filterbox_source = None
+        self.refilter_handler_id = None
         # TreeViewColumn, order
         self.column_sorted = (None, Gtk.SortType.DESCENDING)
         self.total_time = 0
         self.edit_style_orig = None
         self.resizing_columns = None
         self.prev_boldrow = -1
-        self.prevtodo = None
-        self.plpos = None
         self.playlist_pos_before_filter = None
         self.sel_rows = None
 
@@ -89,10 +82,8 @@ class Current:
                              self.on_current_button_release)
 
         self.filter_changed_handler = self.filterpattern.connect('changed',
-                                                self.searchfilter_feed_loop)
+                                                self.searchfilter_key_pressed)
         self.filterpattern.connect('activate', self.searchfilter_on_enter)
-        self.filterpattern.connect('key-press-event',
-                                   self.searchfilter_key_pressed)
         filterclosebutton = self.builder.get_object(
             'current_page_filterbox_closebutton')
         filterclosebutton.connect('clicked', self.searchfilter_toggle)
@@ -200,10 +191,7 @@ class Current:
 
         for path in selected:
             index = path.get_indices()[0]
-            if not self.filterbox_visible:
-                item = self.current_songs[index].file
-            else:
-                item = self.current_songs[self.filter_row_mapping[index]].file
+            item = self.current_songs[index].file
             if return_abs_paths:
                 filenames.append(
                     os.path.join(self.config.musicdir[self.config.profile_num],
@@ -237,10 +225,8 @@ class Current:
             self.view.freeze_child_notify()
 
             if not self.current_update_skip:
-
-                if not self.filterbox_visible:
-                    self.view.set_model(None)
-
+                save_model = self.view.get_model()
+                self.view.set_model(None)
                 if prevstatus_playlist:
                     changed_songs = self.mpd.plchanges(prevstatus_playlist)
                 else:
@@ -284,9 +270,7 @@ class Current:
                         self.store.remove(it)
                     self.current_songs = self.current_songs[:newlen]
 
-                if not self.filterbox_visible:
-                    self.view.set_model(self.store)
-
+                self.view.set_model(save_model)
             self.current_update_skip = False
 
             # Update statusbar time:
@@ -297,13 +281,6 @@ class Current:
                 self.boldrow(currsong)
                 self.prev_boldrow = currsong
 
-            if self.filterbox_visible:
-                # Refresh filtered results:
-                # Hacky, but this ensures we retain the
-                # self.view position/selection
-                self.prevtodo = "RETAIN_POS_AND_SEL"
-                self.plpos = playlistposition
-                self.searchfilter_feed_loop(self.filterpattern)
             elif self.sonata_loaded():
                 self.playlist_retain_view(self.view, playlistposition)
                 self.view.thaw_child_notify()
@@ -569,7 +546,7 @@ class Current:
             return
 
         # Otherwise, it's a DND just within the current playlist
-        model = treeview.get_model()
+        model = self.store
         _foobar, selected = self.current_selection.get_selected_rows()
 
         # calculate all this now before we start moving stuff
@@ -666,25 +643,23 @@ class Current:
             self.filterbox_visible = False
             self.edit_style_orig = self.libsearchfilter_get_style()
             self.filterpattern.set_text("")
-            self.searchfilter_stop_loop()
+            self.view.set_model(self.store)
         elif self.connected():
             self.playlist_pos_before_filter = \
                     self.view.get_visible_rect().height
             self.filterbox_visible = True
-            self.filterpattern.handler_block(self.filter_changed_handler)
-            self.filterpattern.set_text(initial_text)
-            self.filterpattern.handler_unblock(self.filter_changed_handler)
-            self.prevtodo = 'foo'
+            with self.filterpattern.handler_block(self.filter_changed_handler):
+                self.filterpattern.set_text(initial_text)
             ui.show(self.filterbox)
-            # extra thread for background search work, synchronized
-            # with a condition and its internal mutex
-            self.filterbox_cond = threading.Condition()
-            self.filterbox_cmd_buf = initial_text
-            qsearch_thread = threading.Thread(target=self.searchfilter_loop)
-            qsearch_thread.daemon = True
-            qsearch_thread.start()
-            GLib.idle_add(self.filter_entry_grab_focus, self.filterpattern)
+            self.filterpattern.grab_focus()
         self.view.set_headers_clickable(not self.filterbox_visible)
+
+    def model_filter_func(self, model, iter, regex):
+        row = model.get(iter, 1, *range(len(self.columnformat)- 1)[1:])
+        for cell in row:
+            if regex.match(cell.lower()):
+                return True
+        return False
 
     def searchfilter_on_enter(self, _entry):
         model, selected = self.view.get_selection().get_selected_rows()
@@ -700,154 +675,34 @@ class Current:
             self.searchfilter_toggle(None)
             self.mpd.playid(song_id)
 
-    def searchfilter_feed_loop(self, editable):
-        # Lets only trigger the searchfilter_loop if 200ms pass
-        # without a change in Gtk.Entry
+    def searchfilter_key_pressed(self, widget):
+        # We have something new to search, try first to cancel the previous
+        # search.
         try:
-            GLib.source_remove(self.filterbox_source)
-        except:
+            GLib.source_remove(self.refilter_handler_id)
+        except TypeError: # self.refilter_handler_id is None
             pass
-        self.filterbox_source = GLib.timeout_add(
-            200, self.searchfilter_start_loop, editable)
 
-    def searchfilter_start_loop(self, editable):
-        self.filterbox_cond.acquire()
-        self.filterbox_cmd_buf = editable.get_text()
-        self.filterbox_cond.notifyAll()
-        self.filterbox_cond.release()
+        text = widget.get_text()
+        if text == '':
+            # Nothing to search for, just display the whole model.
+            self.view.set_model(self.store)
+            return
 
-    def searchfilter_stop_loop(self):
-        self.filterbox_cond.acquire()
-        self.filterbox_cmd_buf = '$$$QUIT###'
-        self.filterbox_cond.notifyAll()
-        self.filterbox_cond.release()
+        regex = misc.escape_html(text)
+        regex = re.escape(regex)
+        regex = '.*' + regex.replace(' ', ' .*').lower()
+        filter_regex = re.compile(regex)
 
-    def searchfilter_loop(self):
-        while self.filterbox_visible:
-            # copy the last command or pattern safely
-            self.filterbox_cond.acquire()
-            try:
-                while(self.filterbox_cmd_buf == '$$$DONE###'):
-                    self.filterbox_cond.wait()
-                todo = self.filterbox_cmd_buf
-                self.filterbox_cond.release()
-            except:
-                todo = self.filterbox_cmd_buf
-            self.view.freeze_child_notify()
-            matches = Gtk.ListStore(*([int] + [str] * len(self.columnformat)))
-            matches.clear()
-            filterposition = self.view.get_visible_rect().height
-            _model, selected = self.current_selection.get_selected_rows()
-            filterselected = [path for path in selected]
-            rownum = 0
-            # Store previous rownums in temporary list, in case we are
-            # about to populate the songfilter with a subset of the
-            # current filter. This will allow us to preserve the mapping.
-            prev_rownums = [song for song in self.filter_row_mapping]
-            self.filter_row_mapping = []
-            if todo == '$$$QUIT###':
-                GLib.idle_add(self.searchfilter_revert_model)
-                return
-            elif len(todo) == 0:
-                for row in self.store:
-                    self.filter_row_mapping.append(rownum)
-                    rownum = rownum + 1
-                    song_info = [row[0]]
-                    for i in range(len(self.columnformat)):
-                        song_info.append(row[i + 1])
-                    matches.append(song_info)
-            else:
-                # this make take some seconds... and we'll escape the search
-                # text because we'll be searching for a match in items
-                # that are also escaped.
-                todo = misc.escape_html(todo)
-                todo = re.escape(todo)
-                todo = '.*' + todo.replace(' ', ' .*').lower()
-                regexp = re.compile(todo)
-                rownum = 0
-                if self.prevtodo in todo and len(self.prevtodo) > 0:
-                    # If the user's current filter is a subset of the
-                    # previous selection (e.g. "h" -> "ha"), search
-                    # for files only in the current model, not the
-                    # entire self.store
-                    subset = True
-                    use_data = self.view.get_model()
-                    if len(use_data) != len(prev_rownums):
-                        # Not exactly sure why this happens sometimes
-                        # so lets just revert to prevent a possible, but
-                        # infrequent, crash. The only downside is speed.
-                        subset = False
-                        use_data = self.store
-                else:
-                    subset = False
-                    use_data = self.store
-                for row in use_data:
-                    song_info = [row[0]]
-                    for i in range(len(self.columnformat)):
-                        song_info.append(row[i + 1])
-                    # Search for matches in all columns:
-                    for i in range(len(self.columnformat)):
-                        if regexp.match(song_info[i + 1].lower()):
-                            matches.append(song_info)
-                            if subset:
-                                self.filter_row_mapping.append(
-                                    prev_rownums[rownum])
-                            else:
-                                self.filter_row_mapping.append(rownum)
-                            break
-                    rownum = rownum + 1
-            if self.prevtodo == todo or self.prevtodo == "RETAIN_POS_AND_SEL":
-                # mpd update, retain view of treeview:
-                retain_position_and_selection = True
-                if self.plpos:
-                    filterposition = self.plpos
-                    self.plpos = None
-            else:
-                retain_position_and_selection = False
-            self.filterbox_cond.acquire()
-            self.filterbox_cmd_buf = '$$$DONE###'
-            try:
-                self.filterbox_cond.release()
-            except:
-                pass
-            GLib.idle_add(self.searchfilter_set_matches, matches,
-                          filterposition, filterselected,
-                          retain_position_and_selection)
-            self.prevtodo = todo
+        def set_filtering_function(regex):
+            # Creates a Gtk.TreeModelFilter
+            filter_model = self.store.filter_new()
+            filter_model.set_visible_func(self.model_filter_func, regex)
+            self.view.set_model(filter_model)
 
-    def searchfilter_revert_model(self):
-        self.view.set_model(self.store)
-        self.center_song_in_list()
-        self.view.thaw_child_notify()
-        GLib.idle_add(self.center_song_in_list)
-        GLib.idle_add(self.view.grab_focus)
-
-    def searchfilter_set_matches(self, matches, filterposition,
-                                 filterselected,
-                                 retain_position_and_selection):
-        self.filterbox_cond.acquire()
-        flag = self.filterbox_cmd_buf
-        self.filterbox_cond.release()
-        # blit only when widget is still ok (segfault candidate, Gtk bug?)
-        # and no other search is running, avoid pointless work and don't
-        # confuse the user
-        if (self.view.get_property('visible') and flag == '$$$DONE###'):
-            self.view.set_model(matches)
-            if retain_position_and_selection and filterposition:
-                self.playlist_retain_view(self.view, filterposition)
-                for path in filterselected:
-                    self.current_selection.select_path(path)
-            elif len(matches) > 0:
-                self.view.set_cursor(Gtk.TreePath.new_first(), None, False)
-            if len(matches) == 0:
-                GLib.idle_add(self.filtering_entry_make_red, self.filterpattern)
-            else:
-                GLib.idle_add(self.filtering_entry_revert_color,
-                              self.filterpattern)
-            self.view.thaw_child_notify()
-
-    def searchfilter_key_pressed(self, widget, event):
-        self.filter_key_pressed(widget, event, self.view)
+        # Delay slightly the new search, in case something else is coming.
+        self.refilter_handler_id = GLib.timeout_add(
+            250, set_filtering_function, filter_regex)
 
     def filter_key_pressed(self, widget, event, treeview):
         if event.keyval == Gdk.keyval_from_name('Down') or \
@@ -858,10 +713,6 @@ class Current:
             treeview.grab_focus()
             treeview.emit("key-press-event", event)
             GLib.idle_add(self.filter_entry_grab_focus, widget)
-
-    def filter_entry_grab_focus(self, widget):
-        widget.grab_focus()
-        widget.set_position(-1)
 
     def filtering_entry_make_red(self, editable):
         color = Gdk.RGBA()
@@ -898,22 +749,9 @@ class Current:
             # we are manipulating the model manually for speed, so...
             self.current_update_skip = True
             selected.reverse()
-            if not self.filterbox_visible:
-                # If we remove an item from the filtered results, this
-                # causes a visual refresh in the interface.
-                self.view.set_model(None)
             self.mpd.command_list_ok_begin()
-            for path in selected:
-                if not self.filterbox_visible:
-                    rownum = path.get_indices()[0]
-                else:
-                    rownum = self.filter_row_mapping[path.get_indices()[0]]
-                i = self.store.get_iter((rownum, 0))
-                self.mpd.deleteid(
-                    self.current_get_songid(i, self.store))
-                # Prevents the entire playlist from refreshing:
-                self.current_songs.pop(rownum)
-                self.store.remove(i)
+            for i in (model.get_iter(path) for path in selected):
+                song_id = model.get(i, 0)[0]
+                self.mpd.deleteid(song_id)
+                self.store.remove(model.convert_iter_to_child_iter(i))
             self.mpd.command_list_end()
-            if not self.filterbox_visible:
-                self.view.set_model(model)
