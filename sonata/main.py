@@ -2621,8 +2621,12 @@ class Base:
 
     # Change volume on mousewheel over systray icon:
     def systemtray_scroll(self, widget, event):
+        direction = event.get_scroll_direction()[1]
         if self.conn:
-            self.volumebutton.emit("scroll-event", event.copy())
+            if direction == Gdk.ScrollDirection.UP:
+                self.on_volume_raise()
+            elif direction == Gdk.ScrollDirection.DOWN:
+                self.on_volume_lower()
 
     def switch_to_tab_name(self, tab_name):
         self.notebook.set_current_page(self.notebook_get_tab_num(self.notebook,
@@ -2640,11 +2644,11 @@ class Base:
         self.notebook.prev_page()
 
     # Volume control
-    def on_volume_lower(self, _action):
+    def on_volume_lower(self, _action=None):
         new_volume = int(self.volumebutton.get_value()) - 5
         self.volumebutton.set_value(new_volume)
 
-    def on_volume_raise(self, _action):
+    def on_volume_raise(self, _action=None):
         new_volume = int(self.volumebutton.get_value()) + 5
         self.volumebutton.set_value(new_volume)
 
