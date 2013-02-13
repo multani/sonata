@@ -772,7 +772,7 @@ class AudioScrobblerPost:
                         'b[%s]': album.encode('utf8'),
                         'm[%s]': mbid.encode('utf8'),
                         'r[%s]': '',
-                        'n[%s]': tracknumber.encode('utf8'),
+                        'n[%s]': str(tracknumber),
                         'o[%s]': source.encode('utf8'),
                         }
             except:
@@ -783,7 +783,7 @@ class AudioScrobblerPost:
                         'b[%s]': album,
                         'm[%s]': mbid.encode('utf8'),
                         'r[%s]': '',
-                        'n[%s]': tracknumber.encode('utf8'),
+                        'n[%s]': str(tracknumber),
                         'o[%s]': source.encode('utf8'),
                         }
             self.cache.append(track)
