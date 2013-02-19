@@ -5,6 +5,7 @@ Bug fixes
 '''''''''
 
     * Fix search in library (using a specific filter or the 'everything' filter)
+    * Fix multiple issues related to drag-and-drop of songs in the current playlist
 
 
 1.7a1 (2013-02-08)
