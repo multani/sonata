@@ -175,14 +175,14 @@ class Current:
         return self.current_songs
 
     def dnd_get_data_for_file_managers(self, _treeview, context, selection,
-                                       _info, _timestamp):
+                                       _info, timestamp):
 
         if not os.path.isdir(self.config.musicdir[self.config.profile_num]):
             # Prevent the DND mouse cursor from looking like we can DND
             # when we clearly can't.
             return
 
-        context.drag_status(Gdk.DragAction.COPY, context.start_time)
+        Gdk.drag_status(context, Gdk.DragAction.COPY, timestamp)
 
         filenames = self.get_selected_filenames(True)
         uris = ["file://%s" % urllib.parse.quote(filename)
@@ -508,15 +508,14 @@ class Current:
             self.mpd.command_list_end()
             self.iterate_now()
 
-    def on_dnd(self, treeview, drag_context, x, y, selection, _info,
-               timestamp):
+    def on_dnd(self, treeview, drag_context, x, y, selection, _info, timestamp):
         drop_info = treeview.get_dest_row_at_pos(x, y)
 
-        if selection.data is not None:
+        if selection.get_data():
             if not os.path.isdir(self.config.musicdir[self.config.profile_num]):
                 return
             # DND from outside sonata:
-            uri = selection.data.strip()
+            uri = selection.get_data().strip().decode('utf-8')
             path = urllib.request.url2pathname(uri)
             paths = path.rsplit('\n')
             mpdpaths = []
@@ -573,10 +572,9 @@ class Current:
         drag_sources = []
         for path in selected:
             index = path[0]
-            i = model.get_iter(path)
-            songid = self.current_get_songid(i, model)
-            text = model.get_value(i, 1)
-            drag_sources.append([index, i, songid, text])
+            treeiter = model.get_iter(path)
+            songid = self.current_get_songid(treeiter, model)
+            drag_sources.append([index, treeiter, songid])
 
         # Keep track of the moved iters so we can select them afterwards
         moved_iters = []
@@ -585,46 +583,36 @@ class Current:
         # the entire playlist from refreshing
         offset = 0
         self.mpd.command_list_ok_begin()
-        for source in drag_sources:
-            index, i, songid, text = source
+        for index, treeiter, songid in drag_sources:
             if drop_info:
                 destpath, position = drop_info
                 dest = destpath[0] + offset
                 if dest < index:
                     offset = offset + 1
+                pop_from = index
+                move_to = dest
                 if position in (Gtk.TreeViewDropPosition.BEFORE,
                                 Gtk.TreeViewDropPosition.INTO_OR_BEFORE):
-                    self.current_songs.insert(dest, self.current_songs[index])
+                    insert_to = dest
                     if dest < index + 1:
-                        self.current_songs.pop(index + 1)
-                        self.mpd.moveid(songid, dest)
+                        pop_from = index + 1
                     else:
-                        self.current_songs.pop(index)
-                        self.mpd.moveid(songid, dest - 1)
-                    model.insert(dest, model[index])
-                    moved_iters += [model.get_iter((dest,))]
-                    model.remove(i)
+                        move_to = dest - 1
                 else:
-                    self.current_songs.insert(dest + 1,
-                                              self.current_songs[index])
+                    insert_to = dest + 1
                     if dest < index:
-                        self.current_songs.pop(index + 1)
-                        self.mpd.moveid(songid, dest + 1)
-                    else:
-                        self.current_songs.pop(index)
-                        self.mpd.moveid(songid, dest)
-                    model.insert(dest + 1, model[index])
-                    moved_iters += [model.get_iter((dest + 1,))]
-                    model.remove(i)
+                        pop_from = index + 1
+                        move_to = insert_to
             else:
-                #dest = int(self.status['playlistlength']) - 1
                 dest = len(self.currentdata) - 1
-                self.mpd.moveid(songid, dest)
-                self.current_songs.insert(dest + 1, self.current_songs[index])
-                self.current_songs.pop(index)
-                model.insert(dest + 1, model[index])
-                moved_iters += [model.get_iter((dest + 1,))]
-                model.remove(i)
+                insert_to = dest + 1
+
+            self.current_songs.insert(insert_to, self.current_songs[index])
+            self.current_songs.pop(pop_from)
+            self.mpd.moveid(songid, move_to)
+            moved_iters.append(model.insert(insert_to, tuple(model[index])))
+            model.remove(treeiter)
+
             # now fixup
             for source in drag_sources:
                 if dest < index:
@@ -641,18 +629,19 @@ class Current:
         # we are manipulating the model manually for speed, so...
         self.current_update_skip = True
 
-        if drag_context.action == Gdk.DragAction.MOVE:
-            drag_context.finish(True, True, timestamp)
+        # Gdk.DragContext.get_action() returns a bitmask of actions
+        if drag_context.get_actions() & Gdk.DragAction.MOVE:
+            Gdk.drag_finish(drag_context, True, True, timestamp)
             self.header_hide_all_indicators(self.current, False)
         self.iterate_now()
 
-        GLib.idle_add(self.dnd_retain_selection, treeview.get_selection(),
-                      moved_iters)
-
-    def dnd_retain_selection(self, treeselection, moved_iters):
-        treeselection.unselect_all()
+        selection = treeview.get_selection()
+        selection.unselect_all()
         for i in moved_iters:
-            treeselection.select_iter(i)
+            selection.select_iter(i)
+
+        if moved_iters:
+            treeview.scroll_to_cell(model.get_path(moved_iters[0]), None)
 
     def on_current_click(self, _treeview, path, _column):
         model = self.current.get_model()
