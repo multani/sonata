@@ -347,6 +347,8 @@ class Info:
 
         lyrics_fetchers = pluginsystem.get('lyrics_fetching')
         if lyrics_fetchers:
+            self.logger.info("Looking for lyrics for %r - %r...",
+                             search_artist, search_title)
             self._show_lyrics(search_artist, search_title,
                               lyrics=_("Fetching lyrics..."))
             for plugin, get_lyrics in lyrics_fetchers:
@@ -371,6 +373,7 @@ class Info:
                     return
             msg = _("Lyrics not found.")
         else:
+            self.logger.info("Can't look for lyrics, no plugin enabled.")
             msg = _("No lyrics plug-in enabled.")
 
         self._show_lyrics(search_artist, search_title, lyrics=msg)

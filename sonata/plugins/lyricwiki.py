@@ -54,4 +54,6 @@ def get_lyrics(artist, title, recurse_count=0):
 
 
 if __name__ == "__main__":
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
     print(get_lyrics("Anti-Flag", "Death Of A Nation"))
