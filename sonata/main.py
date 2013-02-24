@@ -1382,37 +1382,6 @@ class Base:
         self.on_add_item(widget, play_after)
         self.iterate_now()
 
-    def menu_position(self, _menu):
-        if self.config.expanded:
-            _x, y, width, _height = self.current_treeview.get_allocation()
-            # Find first selected visible row and popup the menu
-            # from there
-            if self.current_tab == self.TAB_CURRENT:
-                widget = self.current_treeview
-                column = self.current.columns[0]
-            elif self.current_tab == self.TAB_LIBRARY:
-                widget = self.library_treeview
-                column = self.library.librarycolumn
-            elif self.current_tab == self.TAB_PLAYLISTS:
-                widget = self.playlists_treeview
-                column = self.playlists.playlistscolumn
-            elif self.current_tab == self.TAB_STREAMS:
-                widget = self.streams_treeview
-                column = self.streams.streamscolumn
-            rows = widget.get_selection().get_selected_rows()[1]
-            visible_rect = widget.get_visible_rect()
-            row_y = 0
-            for row in rows:
-                row_rect = widget.get_background_area(row, column)
-                if row_rect.y + row_rect.height <= visible_rect.height \
-                   and row_rect.y >= 0:
-                    row_y = row_rect.y + 30
-                    break
-            return (self.config.x + width - 150, self.config.y + y + row_y,
-                    True)
-        else:
-            return (self.config.x + 250, self.config.y + 80, True)
-
     def handle_change_status(self):
         # Called when one of the following items are changed:
         #  1. Current playlist (song added, removed, etc)
@@ -2018,8 +1987,7 @@ class Base:
 
     def on_menu_popup(self, _widget):
         self.update_menu_visibility()
-        GLib.idle_add(self.mainmenu.popup, None, None, self.menu_position, None,
-                      3, 0)
+        GLib.idle_add(self.mainmenu.popup, None, None, None, None, 3, 0)
 
     def on_updatedb(self, _action):
         if self.conn:
