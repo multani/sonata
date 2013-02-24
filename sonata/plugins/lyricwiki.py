@@ -15,7 +15,7 @@
 
 import logging
 import re
-import urllib.request
+from urllib.request import quote, urlopen
 
 
 logger = logging.getLogger(__name__)
@@ -26,15 +26,11 @@ EMPTY_LYRICS = "&lt;!-- PUT LYRICS HERE (and delete this entire line) -->"
 RE_REDIRECT = re.compile(r"#REDIRECT \[\[(.*):(.*)\]\]")
 
 
-def quote(value):
-    return urllib.request.quote(str(value).title())
-
-
 def get_lyrics(artist, title, recurse_count=0):
     addr = BASE_URL + 'title=%s:%s&action=edit' % (quote(artist), quote(title))
 
     logger.info("Downloading lyrics from %r", addr)
-    content = urllib.request.urlopen(addr).read().decode('utf-8')
+    content = urlopen(addr).read().decode('utf-8')
 
     if RE_REDIRECT.search(content):
         if recurse_count >= 10:
@@ -58,4 +54,4 @@ def get_lyrics(artist, title, recurse_count=0):
 
 
 if __name__ == "__main__":
-    print(get_lyrics("anti-flag", "Death Of A Nation"))
+    print(get_lyrics("Anti-Flag", "Death Of A Nation"))

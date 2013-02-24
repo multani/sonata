@@ -341,6 +341,10 @@ class Info:
             thread.start()
 
     def fetch_lyrics_from_plugins(self, search_artist, search_title, song_dir):
+        # Homogenize search patterns, so plugins don't have to do it.
+        search_artist = str(search_artist).title()
+        search_title = str(search_title).title()
+
         lyrics_fetchers = pluginsystem.get('lyrics_fetching')
         if lyrics_fetchers:
             self._show_lyrics(search_artist, search_title,
