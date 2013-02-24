@@ -759,9 +759,6 @@ class Base:
         #if not dbus.using_gnome_mediakeys():
         #    pass
 
-        # Set up current view
-        self.currentdata = self.current.get_model()
-
         # Initialize playlist data and widget
         self.playlistsdata = self.playlists.get_model()
 
@@ -1156,9 +1153,7 @@ class Base:
                                 self.prevbutton, self.nextbutton,
                                 self.volumebutton):
                 mediabutton.set_property('sensitive', False)
-            self.currentdata.clear()
-            if self.current_treeview.get_model():
-                self.current_treeview.get_model().clear()
+            self.current.clear()
             self.tray_icon.update_icon('sonata-disconnect')
             self.info_update(True)
             if self.current.filterbox_visible:
@@ -2767,8 +2762,6 @@ class Base:
     def prefs_currentoptions_changed(self, entry, _event):
         if self.config.currentformat != entry.get_text():
             self.config.currentformat = entry.get_text()
-            for column in self.current_treeview.get_columns():
-                self.current_treeview.remove_column(column)
             self.current.initialize_columns()
             self.current.update_format()
 
@@ -3057,7 +3050,8 @@ class Base:
                 self.UIManager.get_widget('/mainmenu/' + menu + 'menu/').hide()
             return
         elif self.current_tab == self.TAB_CURRENT:
-            if len(self.currentdata) > 0:
+            # XXX this should move to the current.py module
+            if not self.current.is_empty():
                 if self.current_selection.count_selected_rows() > 0:
                     for menu in ['remove', 'tag']:
                         self.UIManager.get_widget('/mainmenu/%smenu/' % \
