@@ -748,10 +748,13 @@ class Current:
         elif len(selected) > 0:
             # we are manipulating the model manually for speed, so...
             self.current_update_skip = True
-            selected.reverse()
             self.mpd.command_list_ok_begin()
-            for i in (model.get_iter(path) for path in selected):
+            for i in (model.get_iter(path) for path in reversed(selected)):
                 song_id = model.get(i, 0)[0]
                 self.mpd.deleteid(song_id)
-                self.store.remove(model.convert_iter_to_child_iter(i))
+                if model != self.store:
+                    # model is different if there is a filter currently applied.
+                    # So we retrieve the iter of the wrapped model...
+                    i = model.convert_iter_to_child_iter(i)
+                self.store.remove(i)
             self.mpd.command_list_end()
