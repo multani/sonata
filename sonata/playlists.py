@@ -7,7 +7,7 @@ import playlists
 self.playlists = playlists.Playlists(self.config, self.window,
 self.client, lambda:self.UIManager, self.update_menu_visibility,
 self.iterate_now, self.on_add_item, self.on_playlists_button_press,
-self.get_current_songs, self.connected, self.TAB_PLAYLISTS)
+self.connected, self.TAB_PLAYLISTS)
 playlistswindow, playlistsevbox = self.playlists.get_widgets()
 ...
 self.playlists.populate()
@@ -27,7 +27,7 @@ class Playlists:
 
     def __init__(self, config, window, mpd, UIManager,
                  update_menu_visibility, iterate_now, on_add_item,
-                 on_playlists_button_press, get_current_songs, connected,
+                 on_playlists_button_press, connected,
                  add_selected_to_playlist, TAB_PLAYLISTS, add_tab):
         self.config = config
         self.window = window
@@ -37,7 +37,6 @@ class Playlists:
         self.iterate_now = iterate_now # XXX Do we really need this?
         self.on_add_item = on_add_item
         self.on_playlists_button_press = on_playlists_button_press
-        self.get_current_songs = get_current_songs
         self.add_selected_to_playlist = add_selected_to_playlist
         self.connected = connected
 

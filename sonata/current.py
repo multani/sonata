@@ -21,7 +21,8 @@ import urllib.parse, urllib.request
 
 from gi.repository import Gtk, Gdk, Pango, GLib
 
-from sonata import ui, misc, formatting, mpdhelper as mpdh
+from sonata import ui, misc, formatting
+from sonata.mpdhelper import MPDSong
 
 
 class Current:
@@ -45,7 +46,6 @@ class Current:
         self.columnformat = None
         self.columns = None
 
-        self.current_songs = None
         self.refilter_handler_id = None
         # TreeViewColumn, order
         self.column_sorted = (None, Gtk.SortType.DESCENDING)
@@ -127,9 +127,9 @@ class Current:
         # Initialize current playlist data and widget
         self.resizing_columns = False
         self.columnformat = self.config.currentformat.split("|")
-        current_columns = [int] + [str] * len(self.columnformat) + [int]
+        current_columns = [MPDSong] + [str] * len(self.columnformat) + [int]
+        previous_tracks = (item[0] for item in (self.store or []))
         self.store = Gtk.ListStore(*(current_columns))
-        self.view.set_model(self.store)
         cellrenderer = Gtk.CellRendererText()
         cellrenderer.set_property("ellipsize", Pango.EllipsizeMode.END)
         cellrenderer.set_property("weight-set", True)
@@ -165,9 +165,8 @@ class Current:
         self.view.set_headers_visible(num_columns > 1 and \
                                          self.config.show_header)
         self.view.set_headers_clickable(not self.filterbox_visible)
-
-    def get_current_songs(self):
-        return self.current_songs
+        self.update_format(previous_tracks)
+        self.view.set_model(self.store)
 
     def dnd_get_data_for_file_managers(self, _treeview, context, selection,
                                        _info, timestamp):
@@ -191,7 +190,7 @@ class Current:
 
         for path in selected:
             index = path.get_indices()[0]
-            item = self.current_songs[index].file
+            item = self.store[index][0].file
             if return_abs_paths:
                 filenames.append(
                     os.path.join(self.config.musicdir[self.config.profile_num],
@@ -200,21 +199,24 @@ class Current:
                 filenames.append(item)
         return filenames
 
-    def update_format(self):
-        position = self.view.get_visible_rect()
+    def update_format(self, tracks):
+        view_realized = self.view.get_realized()
+        if view_realized:
+            position = self.view.get_visible_rect()
 
-        for i, track in enumerate(self.current_songs):
+        for i, track in enumerate(tracks):
             items = [formatting.parse(part, track, True)
                      for part in self.columnformat]
 
-            if mpdh.get(self.songinfo(), 'pos', 0, True) == i:
+            if self.songinfo().pos == i:
                 weight = [Pango.Weight.BOLD]
             else:
                 weight = [Pango.Weight.NORMAL]
 
-            self.store.append([track.id] + items + weight)
+            self.store.append([track] + items + weight)
 
-        self.playlist_retain_view(self.view, position.y)
+        if view_realized:
+            self.playlist_retain_view(self.view, position.y)
 
     def current_update(self, prevstatus_playlist, new_playlist_length):
         if self.connected():
@@ -231,7 +233,7 @@ class Current:
                     changed_songs = self.mpd.plchanges(prevstatus_playlist)
                 else:
                     changed_songs = self.mpd.plchanges(0)
-                    self.current_songs = []
+
 
                 newlen = int(new_playlist_length)
                 currlen = len(self.store)
@@ -239,42 +241,35 @@ class Current:
                 for track in changed_songs:
                     pos = track.pos
 
-                    items = [formatting.parse(part, track,
-                                  True)
-                         for part in self.columnformat]
+                    items = [formatting.parse(part, track, True)
+                             for part in self.columnformat]
 
                     if pos < currlen:
                         # Update attributes for item:
                         i = self.store.get_iter((pos, ))
-                        if track.id != self.store.get_value(i, 0):
-                            self.store.set_value(i, 0, track.id)
+                        if track.id != self.store.get_value(i, 0).id:
+                            self.store.set_value(i, 0, track)
                         for index in range(len(items)):
-                            if items[index] != self.store.get_value(i,
-                                                                    index + 1):
-                                self.store.set_value(i, index + 1,
-                                                           items[index])
-                        self.current_songs[pos] = track
+                            if items[index] != self.store.get_value(i, index+1):
+                                self.store.set_value(i, index + 1, items[index])
                     else:
                         # Add new item:
-                        self.store.append([track.id] + items +
-                                                [Pango.Weight.NORMAL])
-                        self.current_songs.append(track)
+                        self.store.append(
+                            [track] + items + [Pango.Weight.NORMAL])
 
                 if newlen == 0:
                     self.store.clear()
-                    self.current_songs = []
                 else:
                     # Remove excess songs:
                     for i in range(currlen - newlen):
                         it = self.store.get_iter((currlen - 1 - i,))
                         self.store.remove(it)
-                    self.current_songs = self.current_songs[:newlen]
 
                 self.view.set_model(save_model)
             self.current_update_skip = False
 
             # Update statusbar time:
-            self.total_time = sum(t.time for t in self.current_songs)
+            self.total_time = sum(item[0].time for item in self.store)
 
             if 'pos' in self.songinfo():
                 currsong = self.songinfo().pos
@@ -332,7 +327,7 @@ class Current:
             self.view.scroll_to_cell(row_path, None, True, 0.5, 0.5)
 
     def current_get_songid(self, i, model):
-        return int(model.get_value(i, 0))
+        return model.get_value(i, 0).id
 
     def on_current_drag_begin(self, _widget, _context):
         self.sel_rows = False
@@ -405,7 +400,7 @@ class Current:
                 custom_sort, custom_pos = self.sort_get_first_format_tag(
                     self.config.currentformat, col_num, 'L')
 
-            for track in self.current_songs:
+            for track in (item[0] for item in self.store):
                 record = {}
                 # Those items that don't have the specified tag will be put at
                 # the end of the list (hence the 'zzzzzzz'):
@@ -560,8 +555,7 @@ class Current:
         # Keep track of the moved iters so we can select them afterwards
         moved_iters = []
 
-        # We will manipulate self.current_songs and model to prevent
-        # the entire playlist from refreshing
+        # Will manipulate model to prevent the entire playlist from refreshing
         offset = 0
         self.mpd.command_list_ok_begin()
         for index, treeiter, songid in drag_sources:
@@ -588,8 +582,6 @@ class Current:
                 dest = len(self.store) - 1
                 insert_to = dest + 1
 
-            self.current_songs.insert(insert_to, self.current_songs[index])
-            self.current_songs.pop(pop_from)
             self.mpd.moveid(songid, move_to)
             moved_iters.append(model.insert(insert_to, tuple(model[index])))
             model.remove(treeiter)
@@ -750,8 +742,7 @@ class Current:
             self.current_update_skip = True
             self.mpd.command_list_ok_begin()
             for i in (model.get_iter(path) for path in reversed(selected)):
-                song_id = model.get(i, 0)[0]
-                self.mpd.deleteid(song_id)
+                self.mpd.deleteid(model.get(i, 0)[0].id)
                 if model != self.store:
                     # model is different if there is a filter currently applied.
                     # So we retrieve the iter of the wrapped model...

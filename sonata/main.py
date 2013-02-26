@@ -545,7 +545,6 @@ class Base:
                                              self.iterate_now,
                                              self.on_add_item,
                                              self.on_playlists_button_press,
-                                             self.current.get_current_songs,
                                              self.connected,
                                              self.add_selected_to_playlist,
                                              self.TAB_PLAYLISTS,
@@ -2763,7 +2762,6 @@ class Base:
         if self.config.currentformat != entry.get_text():
             self.config.currentformat = entry.get_text()
             self.current.initialize_columns()
-            self.current.update_format()
 
     def prefs_libraryoptions_changed(self, entry, _event):
         if self.config.libraryformat != entry.get_text():

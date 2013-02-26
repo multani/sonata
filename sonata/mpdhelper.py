@@ -4,6 +4,7 @@ import logging
 import os
 import socket
 
+from gi.repository import GObject
 import mpd
 
 from sonata.misc import remove_list_duplicates
@@ -84,7 +85,8 @@ class MPDCount:
         self.songs = int(m['songs'])
 
 
-class MPDSong:
+# Inherits from GObject for to be stored in Gtk's ListStore
+class MPDSong(GObject.GObject):
     """Provide information about a song in a convenient format"""
 
     def __init__(self, mapping):
@@ -97,6 +99,7 @@ class MPDSong:
             if isinstance(value, list):
                 value = value[0]
             self._mapping[key] = value
+        super().__init__()
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and \
