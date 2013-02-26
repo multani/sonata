@@ -1527,16 +1527,7 @@ class Base:
         #  2. Position in playlist (e.g. if playlist is sorted)
         # Note that the song does not have to be playing; it can reflect the
         # next song that will be played.
-        self.current.unbold_boldrow(self.current.prev_boldrow)
-
-        if self.status and 'song' in self.status:
-            row = int(self.status['song'])
-            self.current.boldrow(row)
-            if self.songinfo:
-                if not self.prevsonginfo or self.songinfo.id != \
-                   self.prevsonginfo.id:
-                    self.current.center_song_in_list()
-            self.current.prev_boldrow = row
+        self.current.on_song_change(self.status)
 
         self.album_get_artist()
 

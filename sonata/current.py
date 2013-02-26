@@ -114,6 +114,15 @@ class Current:
     def clear(self):
         self.store.clear()
 
+    def on_song_change(self, status):
+        self.unbold_boldrow(self.prev_boldrow)
+
+        if status and 'song' in status:
+            row = int(status['song'])
+            self.boldrow(row)
+            self.center_song_in_list()
+            self.prev_boldrow = row
+
     def get_treeview(self):
         return self.view
 
@@ -225,6 +234,7 @@ class Current:
                 playlistposition = self.view.get_visible_rect().height
 
             self.view.freeze_child_notify()
+            self.unbold_boldrow(self.prev_boldrow)
 
             if not self.current_update_skip:
                 save_model = self.view.get_model()
