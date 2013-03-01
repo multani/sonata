@@ -123,6 +123,22 @@ class Current:
             self.center_song_in_list()
             self.prev_boldrow = row
 
+    def try_keep_position(func):
+        """Decorator to keep the position of the view while updating it"""
+
+        def do_try_keep_position(self, *args, **kwargs):
+            realized = self.view.get_realized()
+            if realized:
+                position = self.view.get_visible_rect()
+
+            result = func(self, *args, **kwargs)
+
+            if realized:
+                self.view.scroll_to_point(-1, position.y)
+
+            return result
+        return do_try_keep_position
+
     def get_treeview(self):
         return self.view
 
@@ -132,6 +148,7 @@ class Current:
     def get_filterbox_visible(self):
         return self.filterbox_visible
 
+    @try_keep_position
     def initialize_columns(self):
         # Initialize current playlist data and widget
         self.resizing_columns = False
@@ -209,10 +226,6 @@ class Current:
         return filenames
 
     def update_format(self, tracks):
-        view_realized = self.view.get_realized()
-        if view_realized:
-            position = self.view.get_visible_rect()
-
         for i, track in enumerate(tracks):
             items = [formatting.parse(part, track, True)
                      for part in self.columnformat]
@@ -224,15 +237,9 @@ class Current:
 
             self.store.append([track] + items + weight)
 
-        if view_realized:
-            self.playlist_retain_view(self.view, position.y)
-
+    @try_keep_position
     def current_update(self, prevstatus_playlist, new_playlist_length):
         if self.connected():
-
-            if self.sonata_loaded():
-                playlistposition = self.view.get_visible_rect().height
-
             self.view.freeze_child_notify()
             self.unbold_boldrow(self.prev_boldrow)
 
@@ -286,10 +293,7 @@ class Current:
                 self.boldrow(currsong)
                 self.prev_boldrow = currsong
 
-            elif self.sonata_loaded():
-                self.playlist_retain_view(self.view, playlistposition)
-                self.view.thaw_child_notify()
-
+            self.view.thaw_child_notify()
             self.header_update_column_indicators()
             self.update_statusbar()
             ui.change_cursor(None)
@@ -305,21 +309,6 @@ class Current:
                 self.header_hide_all_indicators(self.view, True)
                 self.column_sorted[0].set_sort_order(Gtk.SortType.DESCENDING)
                 self.column_sorted = (None, Gtk.SortType.DESCENDING)
-
-    def playlist_retain_view(self, listview, playlistposition):
-        # Attempt to retain library position:
-        try:
-            # This is the weirdest thing I've ever seen. But if, for
-            # example, you edit a song twice, the position of the
-            # playlist will revert to the top the second time because
-            # we are telling gtk to scroll to the same point as
-            # before. So we will simply scroll to the top and then
-            # back to the actual position. The first position change
-            # shouldn't be visible by the user.
-            listview.scroll_to_point(-1, 0)
-            listview.scroll_to_point(-1, playlistposition)
-        except:
-            pass
 
     def header_hide_all_indicators(self, treeview, show_sorted_column):
         if not show_sorted_column:
