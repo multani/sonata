@@ -1876,7 +1876,8 @@ class Base:
         if window_about_to_be_expanded:
             if not skip_size_check:
                 while self.window.get_size()[1] == currheight:
-                    Gtk.main_iteration()
+                    while Gtk.events_pending():
+                        Gtk.main_iteration()
             # Notebook is visible, now resize:
             self.window.resize(self.config.w, self.config.h)
         else:
@@ -2347,7 +2348,8 @@ class Base:
         self.allow_art_search = False
         self.artwork.artwork_stop_update()
         while self.artwork.artwork_is_downloading_image():
-            Gtk.main_iteration()
+            while Gtk.events_pending():
+                Gtk.main_iteration()
         self.imagelist.clear()
         imagewidget.set_text_column(-1)
         imagewidget.set_model(self.imagelist)
@@ -2428,7 +2430,8 @@ class Base:
         self.chooseimage_visible = False
         self.choose_dialog.hide()
         while self.artwork.artwork_is_downloading_image():
-            Gtk.main_iteration()
+            while Gtk.events_pending():
+                Gtk.main_iteration()
 
     def header_save_column_widths(self):
         if not self.config.withdrawn and self.config.expanded:
