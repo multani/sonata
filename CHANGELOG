@@ -5,6 +5,8 @@ Bug fixes
 '''''''''
 
     * fix crashs on Gtk.TextView when updating the lyrics of a song
+    * fix withdrawn mode by fixing incorrect usage of threads and Gtk
+      eco-system
 
 
 1.7a2 (2013-11-26)
