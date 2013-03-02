@@ -1,60 +1,206 @@
-v1.6.3
-	sonata freezes with gail/accessibility enabled during new library searching
-	translations - bold, commas for arabic (ahmad farghal email)
-	#3992: enabling/disabling outputs
-	#4370: number in playlist
-	contextual statusbar depending on tab opened? (michael email)
-	save to playlist.. default to selected files? pref?
-	tag editing - support for composer, disc
-	song queue (mpd-git will be bringing it back)
-	search results - show albums, artists, genres that match
-	right-click on tab bar (michael email)
-	0.15 has input support for last.fm radio
+Cleanup:
+--------
 
-v1.7
-	albumartist tag for, e.g., VA albums; composer for classical
-	plugin support
-		- single instance, mmkeys (could remove dbus; faster on startup, less memory)
-		- artwork
-		- lyrics
-		- system tray
-		- audioscrobbler
-		- popup notification
-		- tag editing
-		- #2419 dynamic playlist (patch)
-		- #2454 Add as Next Track (patch)
-		- #4007 stop after track ('single' command in 0.15)
-		- #Zeroconf/avahi (patch)
+* remove useless self. (start in Stream, Playlist) so that we really know
+  the locality of things
+* extract constants (path for config and directories) so they can be reused
+  (no more magic values)
+* try: play more with Gtk signals: don't overtest self.conn but disconnect
+  signals when not connected to MPD, and reconnect signals when connected to
+  MPD again?
+* improve perf
 
-Future:
-	support for new idle command (waiting on python-mpd)
-	work with mpd's new "allow authenticated local users to add any local file to the playlist"
-		- waiting on python-mpd to implement unix socket paths
-		- dnd from a file manager (implemented and untested because of above)
-		- new library browsing mode to open any file?
-		  remember: no tags and implications for remote mpd users.
-	crop songs in current playlist?
-	mpd statistics
-	better playlist support (mpd 0.13+ only):
-		ability to view songs, reorder songs, remove songs, etc
-	lazy loading of the treeview
-		http://log.emmanuelebassi.net/documentation/lazy-loading/
-		http://blogs.gnome.org/jamesh/2006/03/31/re-lazy-loading/
+  * must start faster (as fast as py2/gtk2 at least)
+  * improve *PyGObject* perfs first?
 
-clean-up
-	extract duplicate code into functions, classes etc.
-	document interfaces and implementation
-	modularity:
-		- limit module size to 1000 lines
-		- limit dependencies between modules
-	style:
-		- rewrite unpythonic or complicated parts
-		- fix reasonable pychecker/pylint warnings
-	tests:
-		- write automated tests
-		- refactor code into parts that can be tested
-	exceptions:
-		- add class restrictions to most "except:" clauses
-		- add debug logging to most except clauses
-	threading:
-		- design, document, and implement a bug-free use of threads
+* rework artwork cache (broken since 12df68). Is it really useful?
+* lyrics:
+
+  * check why at startup unkown lyrics are fetched 2 or 3 times, and fix it
+
+
+Plugins:
+--------
+
+* instead of::
+
+    lyrics_fetchers = pluginsystem.get('lyrics_fetching')
+    if lyrics_fetchers:
+        for plugin, get_lyrics in lyrics_fetchers:
+
+  have something like::
+
+    pluginsystem.execute('lyrics_fetching', callback_one_plugin, *args, **kwargs)
+
+* work on plugin repositories (see https://github.com/multani/sonata/pull/17)
+* load/reload new plugins without restart
+* find an API to limit global states in plugin (no need to have globals as such)
+* make plugins easier to write:
+
+  * limit the work to be done in the plugin (if it needs to be done in
+    each plugin, then there's a problem):
+
+    * see stuff like
+      https://github.com/multani/sonata/commit/e5a966de350daa19a5adbb9ec78c29334bab74fa
+
+  * provide more API to access Sonata's content/features:
+
+    * save/restore config values
+
+* fix cover plugin: it always download the first cover, even if another one has
+  been selected
+* fix cover plugin: doesn't download any cover when several cover plugins are
+  enabled
+
+
+UI:
+---
+
+* remote artwork dialog:
+
+  * on no result, display the message in the middle, disable "can be selected"
+    state, disable 'OK' button
+
+* library:
+
+  * browse an album with a cover -> the cover appears in the breadcrumb.  Close
+    Sonata, reopen, go to Libraryy again -> the album is already browsed, but
+    the cover doesn't appear in the breadcrumd (need to go to the Album view
+    again, load all the covers, then it works)
+
+* lyrics:
+
+  * when no lyrics, improve the rendering (writing "No lyric" or "Fetching
+    lyrics failed" instead of the lyrics is not very nice/pretty...)
+
+* general:
+
+  * remove the hard-coded shortcuts in the About a window and try to regenerate
+    them from Gtk.AccelMap.get(): they are obsolete, they are a pain in the ass
+    to gather by hand, and they are probably all set up in this map anyway.
+
+* current:
+
+  * consume mode slow when changing song (rebuild of the model after each songs?)
+  * bold on playing song stays in the current playlist in consume mode
+
+
+Gtk 3:
+------
+
+* in Info tab, more/less should hide boxes containing both labels, instead
+  of hiding each labels separately
+* remove other deprecated calls:
+
+  * GtkBox -> GtkGrid ?
+  * size_request() -> get_preferrred_width/height
+
+
+CLI:
+----
+
+* delete class Args (useless)
+* use argparse instead
+* remove local imports + globals to modules (W. T. F. ?!)
+* simplify the best we can (do we need all those _execute_() methods?)
+
+
+Threads:
+--------
+
+* log with thread-id enable, and see what's going on
+* do we have to access MPD from different threads (Mic92 from python-mpd
+  says the module is not thread-safe, but Sonata steps clearly on this).
+* codingteam has a number of thread-related issues reported. Fix those, look
+  for similar pattern to see if they can be fixed as well
+* **ultimately: remove as much threading code as possible**
+
+
+MPD:
+----
+
+* implements missing MPD features:
+
+  * stickers (need to found a common database for stickers' values, cf.
+    http://sourceforge.net/mailarchive/forum.php?thread_name=50E7F811.50607%40beatradar.no&forum_name=musicpd-dev-team)
+  * idle-mode
+  * what else?
+
+* if playlists change while Sonata is running, the playlists' list desn't get
+  refreshed
+* bug when creating a playlist with a "/" (forbidden by MPD, but Sonata should
+  konw how to react)
+* bug when renaming playlist (see mpd log from Sonata, can't rename same
+  playlist twice)
+* if was connected and MPD is shutdown, it sometimes log "Already connected" ->
+  what's happening?
+
+
+Old TODO file
+=============
+
+::
+
+    v1.6.3
+        sonata freezes with gail/accessibility enabled during new library searching
+        translations - bold, commas for arabic (ahmad farghal email)
+        #3992: enabling/disabling outputs
+        #4370: number in playlist
+        contextual statusbar depending on tab opened? (michael email)
+        save to playlist.. default to selected files? pref?
+        tag editing - support for composer, disc
+        song queue (mpd-git will be bringing it back)
+        search results - show albums, artists, genres that match
+        right-click on tab bar (michael email)
+        0.15 has input support for last.fm radio
+
+    v1.7
+        albumartist tag for, e.g., VA albums; composer for classical
+        plugin support
+            - single instance, mmkeys (could remove dbus; faster on startup, less memory)
+            - artwork
+            - lyrics
+            - system tray
+            - audioscrobbler
+            - popup notification
+            - tag editing
+            - #2419 dynamic playlist (patch)
+            - #2454 Add as Next Track (patch)
+            - #4007 stop after track ('single' command in 0.15)
+            - #Zeroconf/avahi (patch)
+
+    Future:
+        support for new idle command (waiting on python-mpd)
+        work with mpd's new "allow authenticated local users to add any local file to the playlist"
+            - waiting on python-mpd to implement unix socket paths
+            - dnd from a file manager (implemented and untested because of above)
+            - new library browsing mode to open any file?
+              remember: no tags and implications for remote mpd users.
+        crop songs in current playlist?
+        mpd statistics
+        better playlist support (mpd 0.13+ only):
+            ability to view songs, reorder songs, remove songs, etc
+        lazy loading of the treeview
+            http://log.emmanuelebassi.net/documentation/lazy-loading/
+            http://blogs.gnome.org/jamesh/2006/03/31/re-lazy-loading/
+
+    clean-up
+        extract duplicate code into functions, classes etc.
+        document interfaces and implementation
+        modularity:
+            - limit module size to 1000 lines
+            - limit dependencies between modules
+        style:
+            - rewrite unpythonic or complicated parts
+            - fix reasonable pychecker/pylint warnings
+        tests:
+            - write automated tests
+            - refactor code into parts that can be tested
+        exceptions:
+            - add class restrictions to most "except:" clauses
+            - add debug logging to most except clauses
+        threading:
+            - design, document, and implement a bug-free use of threads
+
+    ```
+    # vim:ft=rst tw=80
