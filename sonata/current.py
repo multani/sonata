@@ -1,19 +1,4 @@
-
-"""
-This module handles the mpd current playlist and provides a user
-interface for it.
-
-Example usage:
-import current
-self.current = current.Current(self.config, self.client, self.TAB_CURRENT,
-    self.on_current_button_press, self.connected, lambda:self.sonata_loaded,
-    lambda:self.songinfo, self.update_statusbar, self.iterate_now,
-    lambda:self.library.libsearchfilter_get_style())
-vbox_current, playlistevbox = self.current.get_widgets()
-...
-self.current.current_update(prevstatus_playlist, self.status['playlistlength'])
-...
-"""
+"""Handle the mpd current playlist and provides a user interface for it."""
 
 import os
 import re
@@ -26,13 +11,12 @@ from sonata.mpdhelper import MPDSong
 
 
 class Current:
-
-    def __init__(self, config, mpd, TAB_CURRENT, on_current_button_press,
+    def __init__(self, config, mpd, name, on_button_press,
                  connected, sonata_loaded, songinfo, update_statusbar,
                  iterate_now, add_tab):
         self.config = config
         self.mpd = mpd
-        self.on_current_button_press = on_current_button_press
+        self.on_button_press = on_button_press
         self.connected = connected
         self.sonata_loaded = sonata_loaded
         self.songinfo = songinfo
@@ -41,7 +25,7 @@ class Current:
 
         self.store = None
         self.filterbox_visible = False
-        self.current_update_skip = False
+        self.update_skip = False
         self.columnformat = None
         self.columns = None
 
@@ -55,56 +39,50 @@ class Current:
         self.sel_rows = None
 
         # Current tab
-        self.builder = ui.builder('current')
-        self.view = self.builder.get_object('current_page_treeview')
-        self.current_selection = self.view.get_selection()
-        self.expanderwindow = self.builder.get_object('current_page_scrolledwindow')
-        self.filterpattern = self.builder.get_object('current_page_filterbox_entry')
-        self.filterbox = self.builder.get_object('current_page_filterbox')
-        self.vbox_current = self.builder.get_object('current_page_v_box')
-        tab_label = self.builder.get_object('current_tab_label')
-        tab_label.set_text(TAB_CURRENT)
+        builder = ui.builder('current')
+        self.view = builder.get_object('current_page_treeview')
+        self.selection = self.view.get_selection()
+        self.filterpattern = builder.get_object('current_page_filterbox_entry')
+        self.filterbox = builder.get_object('current_page_filterbox')
+        self.vbox = builder.get_object('current_page_v_box')
+        builder.get_object('current_tab_label').set_text(name)
 
-        self.tab_label_widget = self.builder.get_object('current_tab_eventbox')
-        self.tab = add_tab(self.vbox_current, self.tab_label_widget,
-                           TAB_CURRENT, self.view)
+        tab_label_widget = builder.get_object('current_tab_eventbox')
+        self.tab = add_tab(self.vbox, tab_label_widget, name, self.view)
 
-        self.view.connect('drag_data_received', self.on_dnd)
-        self.view.connect('row_activated', self.on_current_click)
-        self.view.connect('button_press_event',
-                             self.on_current_button_press)
-        self.view.connect('drag-begin', self.on_current_drag_begin)
-        self.view.connect_after('drag-begin',
-                                   self.dnd_after_current_drag_begin)
-        self.view.connect('button_release_event',
-                             self.on_current_button_release)
+        self.view.connect('drag-data-received', self.on_dnd_received)
+        self.view.connect('row-activated', self.on_click)
+        self.view.connect('button-press-event', self.on_button_press)
+        self.view.connect('drag-begin', self.on_drag_begin)
+        self.view.connect_after('drag-begin', self.on_dnd_after_drag_begin)
+        self.view.connect('button-release-event', self.on_button_release)
 
-        self.filter_changed_handler = self.filterpattern.connect('changed',
-                                                self.searchfilter_key_pressed)
+        self.filter_changed_handler = self.filterpattern.connect(
+            'changed', self.searchfilter_key_pressed)
         self.filterpattern.connect('activate', self.searchfilter_on_enter)
-        filterclosebutton = self.builder.get_object(
+        filterclosebutton = builder.get_object(
             'current_page_filterbox_closebutton')
         filterclosebutton.connect('clicked', self.searchfilter_toggle)
 
         # Set up current view
         self.initialize_columns()
-        self.current_selection.set_mode(Gtk.SelectionMode.MULTIPLE)
+        self.selection.set_mode(Gtk.SelectionMode.MULTIPLE)
+
         target_reorder = ('MY_TREE_MODEL_ROW', Gtk.TargetFlags.SAME_WIDGET, 0)
         target_file_managers = ('text/uri-list', 0, 0)
-        self.view.enable_model_drag_source(Gdk.ModifierType.BUTTON1_MASK,
-                                              [target_reorder,
-                                               target_file_managers],
-                                              Gdk.DragAction.COPY |
-                                              Gdk.DragAction.DEFAULT)
-        self.view.enable_model_drag_dest([target_reorder,
-                                             target_file_managers],
-                                            Gdk.DragAction.MOVE |
-                                            Gdk.DragAction.DEFAULT)
-        self.view.connect('drag-data-get',
-                             self.dnd_get_data_for_file_managers)
+
+        self.view.enable_model_drag_source(
+            Gdk.ModifierType.BUTTON1_MASK,
+            [target_reorder, target_file_managers],
+            Gdk.DragAction.COPY | Gdk.DragAction.DEFAULT)
+        self.view.enable_model_drag_dest(
+            [target_reorder, target_file_managers],
+            Gdk.DragAction.MOVE | Gdk.DragAction.DEFAULT)
+
+        self.view.connect('drag-data-get', self.dnd_get_data_for_file_managers)
 
     def get_widgets(self):
-        return self.vbox_current
+        return self.vbox
 
     def is_empty(self):
         return len(self.store) == 0
@@ -141,7 +119,7 @@ class Current:
         return self.view
 
     def get_selection(self):
-        return self.current_selection
+        return self.selection
 
     def get_filterbox_visible(self):
         return self.filterbox_visible
@@ -182,7 +160,7 @@ class Current:
                     column.set_fixed_width(max(width, 10))
                 except:
                     column.set_fixed_width(150)
-            column.connect('clicked', self.on_current_column_click)
+            column.connect('clicked', self.on_column_click)
             self.view.append_column(column)
 
         self.view.set_fixed_height_mode(True)
@@ -209,7 +187,7 @@ class Current:
         selection.set_uris(uris)
 
     def get_selected_filenames(self, return_abs_paths):
-        _model, selected = self.current_selection.get_selected_rows()
+        _model, selected = self.selection.get_selected_rows()
         filenames = []
 
         for path in selected:
@@ -241,7 +219,7 @@ class Current:
             self.view.freeze_child_notify()
             self.unbold_boldrow(self.prev_boldrow)
 
-            if not self.current_update_skip:
+            if not self.update_skip:
                 save_model = self.view.get_model()
                 self.view.set_model(None)
                 if prevstatus_playlist:
@@ -281,7 +259,7 @@ class Current:
                         self.store.remove(it)
 
                 self.view.set_model(save_model)
-            self.current_update_skip = False
+            self.update_skip = False
 
             # Update statusbar time:
             self.total_time = sum(item[0].time for item in self.store)
@@ -323,17 +301,17 @@ class Current:
             row_path = Gtk.TreePath(self.songinfo().pos)
             self.view.scroll_to_cell(row_path, None, True, 0.5, 0.5)
 
-    def current_get_songid(self, i, model):
+    def get_songid(self, i, model):
         return model.get_value(i, 0).id
 
-    def on_current_drag_begin(self, _widget, _context):
+    def on_drag_begin(self, _widget, _context):
         self.sel_rows = False
 
-    def dnd_after_current_drag_begin(self, _widget, context):
+    def on_dnd_after_drag_begin(self, _widget, context):
         # Override default image of selected row with sonata icon:
         Gtk.drag_set_icon_stock(context, 'sonata', 0, 0)
 
-    def on_current_button_release(self, widget, event):
+    def on_button_release(self, widget, event):
         if self.sel_rows:
             self.sel_rows = False
             # User released mouse, select single row:
@@ -343,7 +321,7 @@ class Current:
                                                         int(event.y))
             selection.select_path(path)
 
-    def on_current_column_click(self, column):
+    def on_column_click(self, column):
         columns = self.view.get_columns()
         col_num = 0
         for col in columns:
@@ -481,7 +459,7 @@ class Current:
             self.mpd.command_list_end()
             self.iterate_now()
 
-    def on_dnd(self, treeview, drag_context, x, y, selection, _info, timestamp):
+    def on_dnd_received(self, treeview, drag_context, x, y, selection, _info, timestamp):
         drop_info = treeview.get_dest_row_at_pos(x, y)
 
         if selection.get_data():
@@ -539,14 +517,14 @@ class Current:
 
         # Otherwise, it's a DND just within the current playlist
         model = self.store
-        _foobar, selected = self.current_selection.get_selected_rows()
+        _foobar, selected = self.selection.get_selected_rows()
 
         # calculate all this now before we start moving stuff
         drag_sources = []
         for path in selected:
             index = path[0]
             treeiter = model.get_iter(path)
-            songid = self.current_get_songid(treeiter, model)
+            songid = self.get_songid(treeiter, model)
             drag_sources.append([index, treeiter, songid])
 
         # Keep track of the moved iters so we can select them afterwards
@@ -597,7 +575,7 @@ class Current:
         self.mpd.command_list_end()
 
         # we are manipulating the model manually for speed, so...
-        self.current_update_skip = True
+        self.update_skip = True
 
         # Gdk.DragContext.get_action() returns a bitmask of actions
         if drag_context.get_actions() & Gdk.DragAction.MOVE:
@@ -613,14 +591,14 @@ class Current:
         if moved_iters:
             treeview.scroll_to_cell(model.get_path(moved_iters[0]), None)
 
-    def on_current_click(self, _treeview, path, _column):
+    def on_click(self, _treeview, path, _column):
         model = self.view.get_model()
         if self.filterbox_visible:
             self.searchfilter_on_enter(None)
             return
         try:
             i = model.get_iter(path)
-            self.mpd.playid(self.current_get_songid(i, model))
+            self.mpd.playid(self.get_songid(i, model))
         except:
             pass
         self.sel_rows = False
@@ -654,11 +632,10 @@ class Current:
         song_id = None
         if len(selected) > 0:
             # If items are selected, play the first selected item:
-            song_id = self.current_get_songid(model.get_iter(selected[0]),
-                                              model)
+            song_id = self.get_songid(model.get_iter(selected[0]), model)
         elif len(model) > 0:
             # If nothing is selected: play the first item:
-            song_id = self.current_get_songid(model.get_iter_first(), model)
+            song_id = self.get_songid(model.get_iter_first(), model)
         if song_id:
             self.searchfilter_toggle(None)
             self.mpd.playid(song_id)
@@ -719,15 +696,13 @@ class Current:
                 pass
 
     def on_remove(self):
-        treeviewsel = self.current_selection
-        model, selected = treeviewsel.get_selected_rows()
-        if len(selected) == len(self.store) and \
-           not self.filterbox_visible:
+        model, selected = self.selection.get_selected_rows()
+        if len(selected) == len(self.store) and not self.filterbox_visible:
             # Everything is selected, clear:
             self.mpd.clear()
         elif len(selected) > 0:
             # we are manipulating the model manually for speed, so...
-            self.current_update_skip = True
+            self.update_skip = True
             self.mpd.command_list_ok_begin()
             for i in (model.get_iter(path) for path in reversed(selected)):
                 self.mpd.deleteid(model.get(i, 0)[0].id)
