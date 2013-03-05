@@ -155,8 +155,7 @@ class CliMain:
         self.config.settings_load_real()
         args.apply_profile_arg(self.config)
 
-        c = mpd.MPDClient()
-        self.mpd = mpdh.MPDHelper(c)
+        self.mpd = mpdh.MPDClient()
 
     def mpd_connect(self):
         host, port, password = misc.mpd_env_vars()

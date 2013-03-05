@@ -10,6 +10,7 @@ Bug fixes
     * Some lyrics from LyricsWiki redirects to another page. The plugin now
       follows those redirect to find the actual lyrics.
     * Fix multiple issues related to drag-and-drop of songs in the current playlist
+    * Fix error while using Sonata's command line interface
 
 
 1.7a1 (2013-02-08)
