@@ -88,3 +88,12 @@ def change_cursor(cursortype):
         # some toplevel windows have no drawing area
         if gdk_window != None:
             gdk_window.set_cursor(cursortype)
+
+def set_entry_invalid(editable):
+    color = Gdk.RGBA()
+    color.parse("red")
+    editable.override_color(Gtk.StateFlags.NORMAL, color)
+
+def reset_entry_marking(editable):
+    editable.override_color(Gtk.StateFlags.NORMAL, None)
+

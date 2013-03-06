@@ -11,6 +11,12 @@ Bug fixes
       follows those redirect to find the actual lyrics.
     * Fix multiple issues related to drag-and-drop of songs in the current playlist
     * Fix error while using Sonata's command line interface
+    * Fix filtering songs in the current playlist
+
+Internal changes
+''''''''''''''''
+
+    * Simplified the `current` module. It should also now use less memory than before.
 
 
 1.7a1 (2013-02-08)

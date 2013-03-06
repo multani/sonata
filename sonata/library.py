@@ -43,7 +43,6 @@ def list_mark_various_artists_albums(albums):
 
 class Library:
     def __init__(self, config, mpd, artwork, TAB_LIBRARY, settings_save,
-                 filtering_entry_make_red, filtering_entry_revert_color,
                  filter_key_pressed, on_add_item, connected,
                  on_library_button_press, add_tab, get_multicd_album_root_dir):
         self.artwork = artwork
@@ -51,8 +50,6 @@ class Library:
         self.mpd = mpd
         self.librarymenu = None # cyclic dependency, set later
         self.settings_save = settings_save
-        self.filtering_entry_make_red = filtering_entry_make_red
-        self.filtering_entry_revert_color = filtering_entry_revert_color
         self.filter_key_pressed = filter_key_pressed
         self.on_add_item = on_add_item
         self.connected = connected
@@ -1235,19 +1232,16 @@ class Library:
             searchby = self.search_terms_mpd[self.config.last_search_num]
             if self.prevlibtodo != todo:
                 if todo == '$$$QUIT###':
-                    GLib.idle_add(self.filtering_entry_revert_color,
-                                  self.searchtext)
+                    GLib.idle_add(ui.reset_entry_marking, self.searchtext)
                     return
                 elif len(todo) > 1:
                     GLib.idle_add(self.libsearchfilter_do_search, searchby,
                                   todo)
                 elif len(todo) == 0:
-                    GLib.idle_add(self.filtering_entry_revert_color,
-                                  self.searchtext)
+                    GLib.idle_add(ui.reset_entry_marking, self.searchtext)
                     self.libsearchfilter_toggle(False)
                 else:
-                    GLib.idle_add(self.filtering_entry_revert_color,
-                                  self.searchtext)
+                    GLib.idle_add(ui.reset_entry_marking, self.searchtext)
             self.libfilterbox_cond.acquire()
             self.libfilterbox_cmd_buf = '$$$DONE###'
             try:
@@ -1329,11 +1323,11 @@ class Library:
                 self.librarydata.remove(j)
         self.library.thaw_child_notify()
         if len(matches) == 0:
-            GLib.idle_add(self.filtering_entry_make_red, self.searchtext)
+            GLib.idle_add(ui.set_entry_invalid, self.searchtext)
         else:
             GLib.idle_add(self.library.set_cursor, Gtk.TreePath.new_first(),
                           None, False)
-            GLib.idle_add(self.filtering_entry_revert_color, self.searchtext)
+            GLib.idle_add(ui.reset_entry_marking, self.searchtext)
 
     def libsearchfilter_key_pressed(self, widget, event):
         self.filter_key_pressed(widget, event, self.library)

@@ -1,141 +1,137 @@
-
-"""
-This module handles the mpd current playlist and provides a user
-interface for it.
-
-Example usage:
-import current
-self.current = current.Current(self.config, self.client, self.TAB_CURRENT,
-    self.on_current_button_press, self.connected, lambda:self.sonata_loaded,
-    lambda:self.songinfo, self.update_statusbar, self.iterate_now,
-    lambda:self.library.libsearchfilter_get_style())
-vbox_current, playlistevbox = self.current.get_widgets()
-...
-self.current.current_update(prevstatus_playlist, self.status['playlistlength'])
-...
-"""
+"""Handle the mpd current playlist and provides a user interface for it."""
 
 import os
 import re
 import urllib.parse, urllib.request
-import threading # searchfilter_toggle starts thread searchfilter_loop
 
 from gi.repository import Gtk, Gdk, Pango, GLib
 
-from sonata import ui, misc, formatting, mpdhelper as mpdh
+from sonata import ui, misc, formatting
+from sonata.mpdhelper import MPDSong
 
 
 class Current:
-
-    def __init__(self, config, mpd, TAB_CURRENT, on_current_button_press,
+    def __init__(self, config, mpd, name, on_button_press,
                  connected, sonata_loaded, songinfo, update_statusbar,
-                 iterate_now, libsearchfilter_get_style, add_tab):
+                 iterate_now, add_tab):
         self.config = config
         self.mpd = mpd
-        self.on_current_button_press = on_current_button_press
+        self.on_button_press = on_button_press
         self.connected = connected
         self.sonata_loaded = sonata_loaded
         self.songinfo = songinfo
         self.update_statusbar = update_statusbar
         self.iterate_now = iterate_now
-        self.libsearchfilter_get_style = libsearchfilter_get_style
 
-        self.currentdata = None
+        self.store = None
         self.filterbox_visible = False
-        self.current_update_skip = False
-        # Mapping between filter rows and self.currentdata rows
-        self.filter_row_mapping = []
+        self.update_skip = False
         self.columnformat = None
         self.columns = None
 
-        self.current_songs = None
-        self.filterbox_cmd_buf = None
-        self.filterbox_cond = None
-        self.filterbox_source = None
+        self.refilter_handler_id = None
         # TreeViewColumn, order
         self.column_sorted = (None, Gtk.SortType.DESCENDING)
         self.total_time = 0
-        self.edit_style_orig = None
         self.resizing_columns = None
         self.prev_boldrow = -1
-        self.prevtodo = None
-        self.plpos = None
         self.playlist_pos_before_filter = None
         self.sel_rows = None
 
         # Current tab
-        self.builder = ui.builder('current')
-        self.current = self.builder.get_object('current_page_treeview')
-        self.current_selection = self.current.get_selection()
-        self.expanderwindow = self.builder.get_object('current_page_scrolledwindow')
-        self.filterpattern = self.builder.get_object('current_page_filterbox_entry')
-        self.filterbox = self.builder.get_object('current_page_filterbox')
-        self.vbox_current = self.builder.get_object('current_page_v_box')
-        tab_label = self.builder.get_object('current_tab_label')
-        tab_label.set_text(TAB_CURRENT)
+        builder = ui.builder('current')
+        self.view = builder.get_object('current_page_treeview')
+        self.selection = self.view.get_selection()
+        self.filterpattern = builder.get_object('current_page_filterbox_entry')
+        self.filterbox = builder.get_object('current_page_filterbox')
+        self.vbox = builder.get_object('current_page_v_box')
+        builder.get_object('current_tab_label').set_text(name)
 
-        self.tab_label_widget = self.builder.get_object('current_tab_eventbox')
-        self.tab = add_tab(self.vbox_current, self.tab_label_widget,
-                           TAB_CURRENT, self.current)
+        tab_label_widget = builder.get_object('current_tab_eventbox')
+        self.tab = add_tab(self.vbox, tab_label_widget, name, self.view)
 
-        self.current.connect('drag_data_received', self.on_dnd)
-        self.current.connect('row_activated', self.on_current_click)
-        self.current.connect('button_press_event',
-                             self.on_current_button_press)
-        self.current.connect('drag-begin', self.on_current_drag_begin)
-        self.current.connect_after('drag-begin',
-                                   self.dnd_after_current_drag_begin)
-        self.current.connect('button_release_event',
-                             self.on_current_button_release)
+        self.view.connect('drag-data-received', self.on_dnd_received)
+        self.view.connect('row-activated', self.on_click)
+        self.view.connect('button-press-event', self.on_button_press)
+        self.view.connect('drag-begin', self.on_drag_begin)
+        self.view.connect_after('drag-begin', self.on_dnd_after_drag_begin)
+        self.view.connect('button-release-event', self.on_button_release)
 
-        self.filter_changed_handler = self.filterpattern.connect('changed',
-                                                self.searchfilter_feed_loop)
+        self.filter_changed_handler = self.filterpattern.connect(
+            'changed', self.searchfilter_key_pressed)
         self.filterpattern.connect('activate', self.searchfilter_on_enter)
-        self.filterpattern.connect('key-press-event',
-                                   self.searchfilter_key_pressed)
-        filterclosebutton = self.builder.get_object(
+        filterclosebutton = builder.get_object(
             'current_page_filterbox_closebutton')
         filterclosebutton.connect('clicked', self.searchfilter_toggle)
 
         # Set up current view
         self.initialize_columns()
-        self.current_selection.set_mode(Gtk.SelectionMode.MULTIPLE)
+        self.selection.set_mode(Gtk.SelectionMode.MULTIPLE)
+
         target_reorder = ('MY_TREE_MODEL_ROW', Gtk.TargetFlags.SAME_WIDGET, 0)
         target_file_managers = ('text/uri-list', 0, 0)
-        self.current.enable_model_drag_source(Gdk.ModifierType.BUTTON1_MASK,
-                                              [target_reorder,
-                                               target_file_managers],
-                                              Gdk.DragAction.COPY |
-                                              Gdk.DragAction.DEFAULT)
-        self.current.enable_model_drag_dest([target_reorder,
-                                             target_file_managers],
-                                            Gdk.DragAction.MOVE |
-                                            Gdk.DragAction.DEFAULT)
-        self.current.connect('drag-data-get',
-                             self.dnd_get_data_for_file_managers)
 
-    def get_model(self):
-        return self.currentdata
+        self.view.enable_model_drag_source(
+            Gdk.ModifierType.BUTTON1_MASK,
+            [target_reorder, target_file_managers],
+            Gdk.DragAction.COPY | Gdk.DragAction.DEFAULT)
+        self.view.enable_model_drag_dest(
+            [target_reorder, target_file_managers],
+            Gdk.DragAction.MOVE | Gdk.DragAction.DEFAULT)
+
+        self.view.connect('drag-data-get', self.dnd_get_data_for_file_managers)
 
     def get_widgets(self):
-        return self.vbox_current
+        return self.vbox
+
+    def is_empty(self):
+        return len(self.store) == 0
+
+    def clear(self):
+        self.store.clear()
+
+    def on_song_change(self, status):
+        self.unbold_boldrow(self.prev_boldrow)
+
+        if status and 'song' in status:
+            row = int(status['song'])
+            self.boldrow(row)
+            self.center_song_in_list()
+            self.prev_boldrow = row
+
+    def try_keep_position(func):
+        """Decorator to keep the position of the view while updating it"""
+
+        def do_try_keep_position(self, *args, **kwargs):
+            realized = self.view.get_realized()
+            if realized:
+                position = self.view.get_visible_rect()
+
+            result = func(self, *args, **kwargs)
+
+            if realized:
+                self.view.scroll_to_point(-1, position.y)
+
+            return result
+        return do_try_keep_position
 
     def get_treeview(self):
-        return self.current
+        return self.view
 
     def get_selection(self):
-        return self.current_selection
+        return self.selection
 
     def get_filterbox_visible(self):
         return self.filterbox_visible
 
+    @try_keep_position
     def initialize_columns(self):
         # Initialize current playlist data and widget
         self.resizing_columns = False
         self.columnformat = self.config.currentformat.split("|")
-        current_columns = [int] + [str] * len(self.columnformat) + [int]
-        self.currentdata = Gtk.ListStore(*(current_columns))
-        self.current.set_model(self.currentdata)
+        current_columns = [MPDSong] + [str] * len(self.columnformat) + [int]
+        previous_tracks = (item[0] for item in (self.store or []))
+        self.store = Gtk.ListStore(*(current_columns))
         cellrenderer = Gtk.CellRendererText()
         cellrenderer.set_property("ellipsize", Pango.EllipsizeMode.END)
         cellrenderer.set_property("weight-set", True)
@@ -143,11 +139,12 @@ class Current:
         num_columns = len(self.columnformat)
         if num_columns != len(self.config.columnwidths):
             # Number of columns changed, set columns equally spaced:
-            self.config.columnwidths = [self.current.get_allocation().width / \
+            self.config.columnwidths = [self.view.get_allocation().width / \
                                         num_columns] * num_columns
 
-        colnames = formatting.parse_colnames(
-            self.config.currentformat)
+        colnames = formatting.parse_colnames(self.config.currentformat)
+        for column in self.view.get_columns():
+            self.view.remove_column(column)
         self.columns = [Gtk.TreeViewColumn(name, cellrenderer, markup=(i + 1))
                 for i, name in enumerate(colnames)]
         for tree in self.columns:
@@ -163,16 +160,15 @@ class Current:
                     column.set_fixed_width(max(width, 10))
                 except:
                     column.set_fixed_width(150)
-            column.connect('clicked', self.on_current_column_click)
-            self.current.append_column(column)
+            column.connect('clicked', self.on_column_click)
+            self.view.append_column(column)
 
-        self.current.set_fixed_height_mode(True)
-        self.current.set_headers_visible(num_columns > 1 and \
+        self.view.set_fixed_height_mode(True)
+        self.view.set_headers_visible(num_columns > 1 and \
                                          self.config.show_header)
-        self.current.set_headers_clickable(not self.filterbox_visible)
-
-    def get_current_songs(self):
-        return self.current_songs
+        self.view.set_headers_clickable(not self.filterbox_visible)
+        self.update_format(previous_tracks)
+        self.view.set_model(self.store)
 
     def dnd_get_data_for_file_managers(self, _treeview, context, selection,
                                        _info, timestamp):
@@ -191,15 +187,12 @@ class Current:
         selection.set_uris(uris)
 
     def get_selected_filenames(self, return_abs_paths):
-        _model, selected = self.current_selection.get_selected_rows()
+        _model, selected = self.selection.get_selected_rows()
         filenames = []
 
         for path in selected:
             index = path.get_indices()[0]
-            if not self.filterbox_visible:
-                item = self.current_songs[index].file
-            else:
-                item = self.current_songs[self.filter_row_mapping[index]].file
+            item = self.store[index][0].file
             if return_abs_paths:
                 filenames.append(
                     os.path.join(self.config.musicdir[self.config.profile_num],
@@ -208,102 +201,75 @@ class Current:
                 filenames.append(item)
         return filenames
 
-    def update_format(self):
-        position = self.current.get_visible_rect()
-
-        for i, track in enumerate(self.current_songs):
+    def update_format(self, tracks):
+        for i, track in enumerate(tracks):
             items = [formatting.parse(part, track, True)
                      for part in self.columnformat]
 
-            if mpdh.get(self.songinfo(), 'pos', 0, True) == i:
+            if self.songinfo().pos == i:
                 weight = [Pango.Weight.BOLD]
             else:
                 weight = [Pango.Weight.NORMAL]
 
-            self.currentdata.append([track.id] + items + weight)
+            self.store.append([track] + items + weight)
 
-        self.playlist_retain_view(self.current, position.y)
-
+    @try_keep_position
     def current_update(self, prevstatus_playlist, new_playlist_length):
         if self.connected():
+            self.view.freeze_child_notify()
+            self.unbold_boldrow(self.prev_boldrow)
 
-            if self.sonata_loaded():
-                playlistposition = self.current.get_visible_rect().height
-
-            self.current.freeze_child_notify()
-
-            if not self.current_update_skip:
-
-                if not self.filterbox_visible:
-                    self.current.set_model(None)
-
+            if not self.update_skip:
+                save_model = self.view.get_model()
+                self.view.set_model(None)
                 if prevstatus_playlist:
                     changed_songs = self.mpd.plchanges(prevstatus_playlist)
                 else:
                     changed_songs = self.mpd.plchanges(0)
-                    self.current_songs = []
+
 
                 newlen = int(new_playlist_length)
-                currlen = len(self.currentdata)
+                currlen = len(self.store)
 
                 for track in changed_songs:
                     pos = track.pos
 
-                    items = [formatting.parse(part, track,
-                                  True)
-                         for part in self.columnformat]
+                    items = [formatting.parse(part, track, True)
+                             for part in self.columnformat]
 
                     if pos < currlen:
                         # Update attributes for item:
-                        i = self.currentdata.get_iter((pos, ))
-                        if track.id != self.currentdata.get_value(i, 0):
-                            self.currentdata.set_value(i, 0, track.id)
+                        i = self.store.get_iter((pos, ))
+                        if track.id != self.store.get_value(i, 0).id:
+                            self.store.set_value(i, 0, track)
                         for index in range(len(items)):
-                            if items[index] != self.currentdata.get_value(i,
-                                                                    index + 1):
-                                self.currentdata.set_value(i, index + 1,
-                                                           items[index])
-                        self.current_songs[pos] = track
+                            if items[index] != self.store.get_value(i, index+1):
+                                self.store.set_value(i, index + 1, items[index])
                     else:
                         # Add new item:
-                        self.currentdata.append([track.id] + items +
-                                                [Pango.Weight.NORMAL])
-                        self.current_songs.append(track)
+                        self.store.append(
+                            [track] + items + [Pango.Weight.NORMAL])
 
                 if newlen == 0:
-                    self.currentdata.clear()
-                    self.current_songs = []
+                    self.store.clear()
                 else:
                     # Remove excess songs:
                     for i in range(currlen - newlen):
-                        it = self.currentdata.get_iter((currlen - 1 - i,))
-                        self.currentdata.remove(it)
-                    self.current_songs = self.current_songs[:newlen]
+                        it = self.store.get_iter((currlen - 1 - i,))
+                        self.store.remove(it)
 
-                if not self.filterbox_visible:
-                    self.current.set_model(self.currentdata)
-
-            self.current_update_skip = False
+                self.view.set_model(save_model)
+            self.update_skip = False
 
             # Update statusbar time:
-            self.total_time = sum(t.time for t in self.current_songs)
+            self.total_time = sum(item[0].time for item in self.store)
 
             if 'pos' in self.songinfo():
                 currsong = self.songinfo().pos
                 self.boldrow(currsong)
                 self.prev_boldrow = currsong
 
-            if self.filterbox_visible:
-                # Refresh filtered results:
-                # Hacky, but this ensures we retain the
-                # self.current position/selection
-                self.prevtodo = "RETAIN_POS_AND_SEL"
-                self.plpos = playlistposition
-                self.searchfilter_feed_loop(self.filterpattern)
-            elif self.sonata_loaded():
-                self.playlist_retain_view(self.current, playlistposition)
-                self.current.thaw_child_notify()
-
+            self.view.thaw_child_notify()
             self.header_update_column_indicators()
             self.update_statusbar()
             ui.change_cursor(None)
@@ -312,28 +278,13 @@ class Current:
         # If we just sorted a column, display the sorting arrow:
         if self.column_sorted[0]:
             if self.column_sorted[1] == Gtk.SortType.DESCENDING:
-                self.header_hide_all_indicators(self.current, True)
+                self.header_hide_all_indicators(self.view, True)
                 self.column_sorted[0].set_sort_order(Gtk.SortType.ASCENDING)
                 self.column_sorted = (None, Gtk.SortType.ASCENDING)
             else:
-                self.header_hide_all_indicators(self.current, True)
+                self.header_hide_all_indicators(self.view, True)
                 self.column_sorted[0].set_sort_order(Gtk.SortType.DESCENDING)
                 self.column_sorted = (None, Gtk.SortType.DESCENDING)
-
-    def playlist_retain_view(self, listview, playlistposition):
-        # Attempt to retain library position:
-        try:
-            # This is the weirdest thing I've ever seen. But if, for
-            # example, you edit a song twice, the position of the
-            # playlist will revert to the top the second time because
-            # we are telling gtk to scroll to the same point as
-            # before. So we will simply scroll to the top and then
-            # back to the actual position. The first position change
-            # shouldn't be visible by the user.
-            listview.scroll_to_point(-1, 0)
-            listview.scroll_to_point(-1, playlistposition)
-        except:
-            pass
 
     def header_hide_all_indicators(self, treeview, show_sorted_column):
         if not show_sorted_column:
@@ -346,21 +297,21 @@ class Current:
 
     def center_song_in_list(self, _event=None):
         if not self.filterbox_visible and self.config.expanded and \
-           len(self.currentdata) > 0:
+           len(self.store) > 0:
             row_path = Gtk.TreePath(self.songinfo().pos)
-            self.current.scroll_to_cell(row_path, None, True, 0.5, 0.5)
+            self.view.scroll_to_cell(row_path, None, True, 0.5, 0.5)
 
-    def current_get_songid(self, i, model):
-        return int(model.get_value(i, 0))
+    def get_songid(self, i, model):
+        return model.get_value(i, 0).id
 
-    def on_current_drag_begin(self, _widget, _context):
+    def on_drag_begin(self, _widget, _context):
         self.sel_rows = False
 
-    def dnd_after_current_drag_begin(self, _widget, context):
+    def on_dnd_after_drag_begin(self, _widget, context):
         # Override default image of selected row with sonata icon:
         Gtk.drag_set_icon_stock(context, 'sonata', 0, 0)
 
-    def on_current_button_release(self, widget, event):
+    def on_button_release(self, widget, event):
         if self.sel_rows:
             self.sel_rows = False
             # User released mouse, select single row:
@@ -370,8 +321,8 @@ class Current:
                                                         int(event.y))
             selection.select_path(path)
 
-    def on_current_column_click(self, column):
-        columns = self.current.get_columns()
+    def on_column_click(self, column):
+        columns = self.view.get_columns()
         col_num = 0
         for col in columns:
             col_num = col_num + 1
@@ -396,7 +347,7 @@ class Current:
 
     def sort(self, mode, column=None):
         if self.connected():
-            if not self.currentdata:
+            if not self.store:
                 return
 
             while Gtk.events_pending():
@@ -424,7 +375,7 @@ class Current:
                 custom_sort, custom_pos = self.sort_get_first_format_tag(
                     self.config.currentformat, col_num, 'L')
 
-            for track in self.current_songs:
+            for track in (item[0] for item in self.store):
                 record = {}
                 # Those items that don't have the specified tag will be put at
                 # the end of the list (hence the 'zzzzzzz'):
@@ -446,8 +397,8 @@ class Current:
                     record["sortby"] = (track.file or zzz).lower()
                 elif mode == 'col':
                     # Sort by column:
-                    record["sortby"] = self.currentdata.get_value(
-                        self.currentdata.get_iter((track_num, 0)),
+                    record["sortby"] = self.store.get_value(
+                        self.store.get_iter((track_num, 0)),
                         col_num).lower()
                     if custom_sort:
                         record["sortby"] = self.sanitize_songlen_for_sorting(
@@ -494,12 +445,12 @@ class Current:
 
     def on_sort_reverse(self, _action):
         if self.connected():
-            if not self.currentdata:
+            if not self.store:
                 return
             while Gtk.events_pending():
                 Gtk.main_iteration()
             top = 0
-            bot = len(self.currentdata)-1
+            bot = len(self.store)-1
             self.mpd.command_list_ok_begin()
             while top < bot:
                 self.mpd.swap(top, bot)
@@ -508,7 +459,7 @@ class Current:
             self.mpd.command_list_end()
             self.iterate_now()
 
-    def on_dnd(self, treeview, drag_context, x, y, selection, _info, timestamp):
+    def on_dnd_received(self, treeview, drag_context, x, y, selection, _info, timestamp):
         drop_info = treeview.get_dest_row_at_pos(x, y)
 
         if selection.get_data():
@@ -558,29 +509,28 @@ class Current:
                     else:
                         songid = destpath[0] + 1
                 else:
-                    songid = len(self.currentdata)
+                    songid = len(self.store)
                 for mpdpath in mpdpaths:
                     self.mpd.addid(mpdpath, songid)
             self.iterate_now()
             return
 
         # Otherwise, it's a DND just within the current playlist
-        model = treeview.get_model()
-        _foobar, selected = self.current_selection.get_selected_rows()
+        model = self.store
+        _foobar, selected = self.selection.get_selected_rows()
 
         # calculate all this now before we start moving stuff
         drag_sources = []
         for path in selected:
             index = path[0]
             treeiter = model.get_iter(path)
-            songid = self.current_get_songid(treeiter, model)
+            songid = self.get_songid(treeiter, model)
             drag_sources.append([index, treeiter, songid])
 
         # Keep track of the moved iters so we can select them afterwards
         moved_iters = []
 
-        # We will manipulate self.current_songs and model to prevent
-        # the entire playlist from refreshing
+        # Will manipulate model to prevent the entire playlist from refreshing
         offset = 0
         self.mpd.command_list_ok_begin()
         for index, treeiter, songid in drag_sources:
@@ -604,11 +554,9 @@ class Current:
                         pop_from = index + 1
                         move_to = insert_to
             else:
-                dest = len(self.currentdata) - 1
+                dest = len(self.store) - 1
                 insert_to = dest + 1
 
-            self.current_songs.insert(insert_to, self.current_songs[index])
-            self.current_songs.pop(pop_from)
             self.mpd.moveid(songid, move_to)
             moved_iters.append(model.insert(insert_to, tuple(model[index])))
             model.remove(treeiter)
@@ -627,12 +575,12 @@ class Current:
         self.mpd.command_list_end()
 
         # we are manipulating the model manually for speed, so...
-        self.current_update_skip = True
+        self.update_skip = True
 
         # Gdk.DragContext.get_action() returns a bitmask of actions
         if drag_context.get_actions() & Gdk.DragAction.MOVE:
             Gdk.drag_finish(drag_context, True, True, timestamp)
-            self.header_hide_all_indicators(self.current, False)
+            self.header_hide_all_indicators(self.view, False)
         self.iterate_now()
 
         selection = treeview.get_selection()
@@ -643,14 +591,14 @@ class Current:
         if moved_iters:
             treeview.scroll_to_cell(model.get_path(moved_iters[0]), None)
 
-    def on_current_click(self, _treeview, path, _column):
-        model = self.current.get_model()
+    def on_click(self, _treeview, path, _column):
+        model = self.view.get_model()
         if self.filterbox_visible:
             self.searchfilter_on_enter(None)
             return
         try:
             i = model.get_iter(path)
-            self.mpd.playid(self.current_get_songid(i, model))
+            self.mpd.playid(self.get_songid(i, model))
         except:
             pass
         self.sel_rows = False
@@ -660,190 +608,66 @@ class Current:
         if self.filterbox_visible:
             ui.hide(self.filterbox)
             self.filterbox_visible = False
-            self.edit_style_orig = self.libsearchfilter_get_style()
             self.filterpattern.set_text("")
-            self.searchfilter_stop_loop()
+            self.view.set_model(self.store)
         elif self.connected():
             self.playlist_pos_before_filter = \
-                    self.current.get_visible_rect().height
+                    self.view.get_visible_rect().height
             self.filterbox_visible = True
-            self.filterpattern.handler_block(self.filter_changed_handler)
-            self.filterpattern.set_text(initial_text)
-            self.filterpattern.handler_unblock(self.filter_changed_handler)
-            self.prevtodo = 'foo'
+            with self.filterpattern.handler_block(self.filter_changed_handler):
+                self.filterpattern.set_text(initial_text)
             ui.show(self.filterbox)
-            # extra thread for background search work, synchronized
-            # with a condition and its internal mutex
-            self.filterbox_cond = threading.Condition()
-            self.filterbox_cmd_buf = initial_text
-            qsearch_thread = threading.Thread(target=self.searchfilter_loop)
-            qsearch_thread.daemon = True
-            qsearch_thread.start()
-            GLib.idle_add(self.filter_entry_grab_focus, self.filterpattern)
-        self.current.set_headers_clickable(not self.filterbox_visible)
+            self.filterpattern.grab_focus()
+        self.view.set_headers_clickable(not self.filterbox_visible)
+
+    def model_filter_func(self, model, iter, regex):
+        row = model.get(iter, 1, *range(len(self.columnformat)- 1)[1:])
+        for cell in row:
+            if regex.match(cell.lower()):
+                return True
+        return False
 
     def searchfilter_on_enter(self, _entry):
-        model, selected = self.current.get_selection().get_selected_rows()
+        model, selected = self.view.get_selection().get_selected_rows()
         song_id = None
         if len(selected) > 0:
             # If items are selected, play the first selected item:
-            song_id = self.current_get_songid(model.get_iter(selected[0]),
-                                              model)
+            song_id = self.get_songid(model.get_iter(selected[0]), model)
         elif len(model) > 0:
             # If nothing is selected: play the first item:
-            song_id = self.current_get_songid(model.get_iter_first(), model)
+            song_id = self.get_songid(model.get_iter_first(), model)
         if song_id:
             self.searchfilter_toggle(None)
             self.mpd.playid(song_id)
 
-    def searchfilter_feed_loop(self, editable):
-        # Lets only trigger the searchfilter_loop if 200ms pass
-        # without a change in Gtk.Entry
+    def searchfilter_key_pressed(self, widget):
+        # We have something new to search, try first to cancel the previous
+        # search.
         try:
-            GLib.source_remove(self.filterbox_source)
-        except:
+            GLib.source_remove(self.refilter_handler_id)
+        except TypeError: # self.refilter_handler_id is None
             pass
-        self.filterbox_source = GLib.timeout_add(
-            200, self.searchfilter_start_loop, editable)
 
-    def searchfilter_start_loop(self, editable):
-        self.filterbox_cond.acquire()
-        self.filterbox_cmd_buf = editable.get_text()
-        self.filterbox_cond.notifyAll()
-        self.filterbox_cond.release()
+        text = widget.get_text()
+        if text == '':
+            # Nothing to search for, just display the whole model.
+            self.view.set_model(self.store)
+            return
 
-    def searchfilter_stop_loop(self):
-        self.filterbox_cond.acquire()
-        self.filterbox_cmd_buf = '$$$QUIT###'
-        self.filterbox_cond.notifyAll()
-        self.filterbox_cond.release()
+        regex = misc.escape_html(text)
+        regex = re.escape(regex)
+        regex = '.*' + regex.replace(' ', ' .*').lower()
+        filter_regex = re.compile(regex)
 
-    def searchfilter_loop(self):
-        while self.filterbox_visible:
-            # copy the last command or pattern safely
-            self.filterbox_cond.acquire()
-            try:
-                while(self.filterbox_cmd_buf == '$$$DONE###'):
-                    self.filterbox_cond.wait()
-                todo = self.filterbox_cmd_buf
-                self.filterbox_cond.release()
-            except:
-                todo = self.filterbox_cmd_buf
-            self.current.freeze_child_notify()
-            matches = Gtk.ListStore(*([int] + [str] * len(self.columnformat)))
-            matches.clear()
-            filterposition = self.current.get_visible_rect().height
-            _model, selected = self.current_selection.get_selected_rows()
-            filterselected = [path for path in selected]
-            rownum = 0
-            # Store previous rownums in temporary list, in case we are
-            # about to populate the songfilter with a subset of the
-            # current filter. This will allow us to preserve the mapping.
-            prev_rownums = [song for song in self.filter_row_mapping]
-            self.filter_row_mapping = []
-            if todo == '$$$QUIT###':
-                GLib.idle_add(self.searchfilter_revert_model)
-                return
-            elif len(todo) == 0:
-                for row in self.currentdata:
-                    self.filter_row_mapping.append(rownum)
-                    rownum = rownum + 1
-                    song_info = [row[0]]
-                    for i in range(len(self.columnformat)):
-                        song_info.append(row[i + 1])
-                    matches.append(song_info)
-            else:
-                # this make take some seconds... and we'll escape the search
-                # text because we'll be searching for a match in items
-                # that are also escaped.
-                todo = misc.escape_html(todo)
-                todo = re.escape(todo)
-                todo = '.*' + todo.replace(' ', ' .*').lower()
-                regexp = re.compile(todo)
-                rownum = 0
-                if self.prevtodo in todo and len(self.prevtodo) > 0:
-                    # If the user's current filter is a subset of the
-                    # previous selection (e.g. "h" -> "ha"), search
-                    # for files only in the current model, not the
-                    # entire self.currentdata
-                    subset = True
-                    use_data = self.current.get_model()
-                    if len(use_data) != len(prev_rownums):
-                        # Not exactly sure why this happens sometimes
-                        # so lets just revert to prevent a possible, but
-                        # infrequent, crash. The only downside is speed.
-                        subset = False
-                        use_data = self.currentdata
-                else:
-                    subset = False
-                    use_data = self.currentdata
-                for row in use_data:
-                    song_info = [row[0]]
-                    for i in range(len(self.columnformat)):
-                        song_info.append(row[i + 1])
-                    # Search for matches in all columns:
-                    for i in range(len(self.columnformat)):
-                        if regexp.match(song_info[i + 1].lower()):
-                            matches.append(song_info)
-                            if subset:
-                                self.filter_row_mapping.append(
-                                    prev_rownums[rownum])
-                            else:
-                                self.filter_row_mapping.append(rownum)
-                            break
-                    rownum = rownum + 1
-            if self.prevtodo == todo or self.prevtodo == "RETAIN_POS_AND_SEL":
-                # mpd update, retain view of treeview:
-                retain_position_and_selection = True
-                if self.plpos:
-                    filterposition = self.plpos
-                    self.plpos = None
-            else:
-                retain_position_and_selection = False
-            self.filterbox_cond.acquire()
-            self.filterbox_cmd_buf = '$$$DONE###'
-            try:
-                self.filterbox_cond.release()
-            except:
-                pass
-            GLib.idle_add(self.searchfilter_set_matches, matches,
-                          filterposition, filterselected,
-                          retain_position_and_selection)
-            self.prevtodo = todo
+        def set_filtering_function(regex):
+            # Creates a Gtk.TreeModelFilter
+            filter_model = self.store.filter_new()
+            filter_model.set_visible_func(self.model_filter_func, regex)
+            self.view.set_model(filter_model)
 
-    def searchfilter_revert_model(self):
-        self.current.set_model(self.currentdata)
-        self.center_song_in_list()
-        self.current.thaw_child_notify()
-        GLib.idle_add(self.center_song_in_list)
-        GLib.idle_add(self.current.grab_focus)
-
-    def searchfilter_set_matches(self, matches, filterposition,
-                                 filterselected,
-                                 retain_position_and_selection):
-        self.filterbox_cond.acquire()
-        flag = self.filterbox_cmd_buf
-        self.filterbox_cond.release()
-        # blit only when widget is still ok (segfault candidate, Gtk bug?)
-        # and no other search is running, avoid pointless work and don't
-        # confuse the user
-        if (self.current.get_property('visible') and flag == '$$$DONE###'):
-            self.current.set_model(matches)
-            if retain_position_and_selection and filterposition:
-                self.playlist_retain_view(self.current, filterposition)
-                for path in filterselected:
-                    self.current_selection.select_path(path)
-            elif len(matches) > 0:
-                self.current.set_cursor(Gtk.TreePath.new_first(), None, False)
-            if len(matches) == 0:
-                GLib.idle_add(self.filtering_entry_make_red, self.filterpattern)
-            else:
-                GLib.idle_add(self.filtering_entry_revert_color,
-                              self.filterpattern)
-            self.current.thaw_child_notify()
-
-    def searchfilter_key_pressed(self, widget, event):
-        self.filter_key_pressed(widget, event, self.current)
+        # Delay slightly the new search, in case something else is coming.
+        self.refilter_handler_id = GLib.timeout_add(
+            250, set_filtering_function, filter_regex)
 
     def filter_key_pressed(self, widget, event, treeview):
         if event.keyval == Gdk.keyval_from_name('Down') or \
@@ -855,22 +679,10 @@ class Current:
             treeview.emit("key-press-event", event)
             GLib.idle_add(self.filter_entry_grab_focus, widget)
 
-    def filter_entry_grab_focus(self, widget):
-        widget.grab_focus()
-        widget.set_position(-1)
-
-    def filtering_entry_make_red(self, editable):
-        color = Gdk.RGBA()
-        color.parse("red")
-        editable.override_color(Gtk.StateFlags.NORMAL, color)
-
-    def filtering_entry_revert_color(self, editable):
-        editable.set_style(self.edit_style_orig)
-
     def boldrow(self, row):
         if row > -1:
             try:
-                self.currentdata[row][-1] = Pango.Weight.BOLD
+                self.store[row][-1] = Pango.Weight.BOLD
             except IndexError:
                 # The row might not exist anymore
                 pass
@@ -878,38 +690,25 @@ class Current:
     def unbold_boldrow(self, row):
         if row > -1:
             try:
-                self.currentdata[row][-1] = Pango.Weight.NORMAL
+                self.store[row][-1] = Pango.Weight.NORMAL
             except IndexError:
                 # The row might not exist anymore
                 pass
 
     def on_remove(self):
-        treeviewsel = self.current_selection
-        model, selected = treeviewsel.get_selected_rows()
-        if len(selected) == len(self.currentdata) and \
-           not self.filterbox_visible:
+        model, selected = self.selection.get_selected_rows()
+        if len(selected) == len(self.store) and not self.filterbox_visible:
             # Everything is selected, clear:
             self.mpd.clear()
         elif len(selected) > 0:
             # we are manipulating the model manually for speed, so...
-            self.current_update_skip = True
-            selected.reverse()
-            if not self.filterbox_visible:
-                # If we remove an item from the filtered results, this
-                # causes a visual refresh in the interface.
-                self.current.set_model(None)
+            self.update_skip = True
             self.mpd.command_list_ok_begin()
-            for path in selected:
-                if not self.filterbox_visible:
-                    rownum = path.get_indices()[0]
-                else:
-                    rownum = self.filter_row_mapping[path.get_indices()[0]]
-                i = self.currentdata.get_iter((rownum, 0))
-                self.mpd.deleteid(
-                    self.current_get_songid(i, self.currentdata))
-                # Prevents the entire playlist from refreshing:
-                self.current_songs.pop(rownum)
-                self.currentdata.remove(i)
+            for i in (model.get_iter(path) for path in reversed(selected)):
+                self.mpd.deleteid(model.get(i, 0)[0].id)
+                if model != self.store:
+                    # model is different if there is a filter currently applied.
+                    # So we retrieve the iter of the wrapped model...
+                    i = model.convert_iter_to_child_iter(i)
+                self.store.remove(i)
             self.mpd.command_list_end()
-            if not self.filterbox_visible:
-                self.current.set_model(model)

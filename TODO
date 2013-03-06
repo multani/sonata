@@ -82,7 +82,6 @@ UI:
 * current:
 
   * consume mode slow when changing song (rebuild of the model after each songs?)
-  * bold on playing song stays in the current playlist in consume mode
 
 
 Gtk 3:
