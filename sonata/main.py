@@ -429,7 +429,7 @@ class Base:
         uiDescription += "</ui>\n"
 
         # Try to connect to MPD:
-        self.mpd_connect(blocking=True)
+        self.mpd_connect()
         if self.conn:
             self.status = self.mpd.status()
             self.iterate_time = self.iterate_time_when_connected
@@ -904,17 +904,7 @@ class Base:
             self.config.profile_num = profile.get_current_value()
             self.on_connectkey_pressed(None)
 
-    def mpd_connect(self, blocking=False, force=False):
-        if blocking:
-            self._mpd_connect(blocking, force)
-        else:
-            thread = threading.Thread(target=self._mpd_connect,
-                                      args=(blocking, force))
-            thread.name = "MPD"
-            thread.daemon = True
-            thread.start()
-
-    def _mpd_connect(self, _blocking, force):
+    def mpd_connect(self, force=False):
         if self.trying_connection:
             return
         self.trying_connection = True
