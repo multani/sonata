@@ -17,6 +17,7 @@ Bug fixes
     * Fix multiple issues related to drag-and-drop of songs in the current playlist
     * Fix error while using Sonata's command line interface
     * Fix filtering songs in the current playlist
+    * Fix DND of custom artwork images in the main window
 
 Internal changes
 ''''''''''''''''

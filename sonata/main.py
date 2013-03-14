@@ -2034,7 +2034,7 @@ class Base:
         return False
 
     def on_image_motion_cb(self, _widget, context, _x, _y, time):
-        context.drag_status(Gdk.DragAction.COPY, time)
+        Gdk.drag_status(context, Gdk.DragAction.COPY, time)
         return True
 
     def on_image_drop_cb(self, _widget, _context, _x, _y, selection,
