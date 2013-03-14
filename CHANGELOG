@@ -13,6 +13,9 @@ Internal changes
 ''''''''''''''''
 
     * slightly better performance when updating the library
+    * threading improvements:
+
+      - use GIO instead of a thread to download drag-and-droped covers
 
 
 1.7a2 (2013-11-26)
