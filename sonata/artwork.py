@@ -225,72 +225,69 @@ class Artwork(GObject.GObject):
                 i = None
 
             # FIXME this can segfault (on iter_is_valid)
-            if i is not None and self.lib_model.iter_is_valid(i):
+            if i is None or not self.lib_model.iter_is_valid(i):
+                continue
 
-                if data.artist is None or data.album is None:
-                    if remote_art:
-                        self.lib_art_rows_remote.pop(0)
-                    else:
-                        self.lib_art_rows_local.pop(0)
-
-                cache_key = SongRecord(artist=data.artist, album=data.album,
-                                       path=data.path)
-
-                # Try to replace default icons with cover art:
-                pb = self.get_library_artwork_cached_pb(cache_key, None)
-
-                if pb is not None and not remote_art:
-                    # Continue to rescan for local artwork if we are
-                    # displaying the default album image, in case the user
-                    # has added a local image since we first scanned.
-                    filename = self.get_library_artwork_cached_filename(
-                        cache_key)
-                    if os.path.basename(filename) == os.path.basename(
-                        self.album_filename):
-                        pb = None
-
-                filename = None
-
-                # No cached pixbuf, try local/remote search:
-                if pb is None:
-                    if not remote_art:
-                        pb, filename = self.library_get_album_cover(data.path,
-                                                        data.artist, data.album,
-                                                        self.lib_art_pb_size)
-                    else:
-                        filename = artwork_path_from_data(
-                            data.artist, data.album, data.path, self.config)
-                        self.artwork_download_img_to_file(data.artist, data.album,
-                                                          filename)
-                        pb, filename = self.library_get_album_cover(data.path,
-                                                            data.artist, data.album,
-                                                        self.lib_art_pb_size)
-
-                # Set pixbuf icon in model; add to cache
-                if pb is not None:
-                    if filename is not None:
-                        self.set_library_artwork_cached_filename(cache_key,
-                                                                 filename)
-                        GLib.idle_add(self.library_set_cover, i, pb, data)
-
-                # Remote processed item from queue:
-                if not remote_art:
-                    if len(self.lib_art_rows_local) > 0 and \
-                       (i, data, icon) == self.lib_art_rows_local[0]:
-                        self.lib_art_rows_local.pop(0)
-                        if pb is None and self.config.covers_pref == \
-                           consts.ART_LOCAL_REMOTE:
-                            # No local art found, add to remote queue for later
-                            self.lib_art_rows_remote.append((i, data, icon))
+            if data.artist is None or data.album is None:
+                if remote_art:
+                    self.lib_art_rows_remote.pop(0)
                 else:
-                    if len(self.lib_art_rows_remote) > 0 and \
-                       (i, data, icon) == self.lib_art_rows_remote[0]:
-                        self.lib_art_rows_remote.pop(0)
-                        if pb is None:
-                            # No remote art found, store self.albumpb
-                            # filename in cache
-                            self.set_library_artwork_cached_filename(cache_key,
-                                                        self.album_filename)
+                    self.lib_art_rows_local.pop(0)
+
+            cache_key = SongRecord(artist=data.artist, album=data.album,
+                                   path=data.path)
+
+            # Try to replace default icons with cover art:
+            pb = self.get_library_artwork_cached_pb(cache_key, None)
+
+            if pb is not None and not remote_art:
+                # Continue to rescan for local artwork if we are
+                # displaying the default album image, in case the user
+                # has added a local image since we first scanned.
+                filename = self.get_library_artwork_cached_filename(cache_key)
+                if os.path.basename(filename) == os.path.basename(
+                    self.album_filename):
+                    pb = None
+
+            filename = None
+
+            # No cached pixbuf, try local/remote search:
+            if pb is None:
+                pb, filename = self.library_get_album_cover(data.path,
+                                                            data.artist,
+                                                            data.album,
+                                                            self.lib_art_pb_size)
+                if remote_art:
+                    filename = artwork_path_from_data(data.artist, data.album,
+                                                      data.path, self.config)
+                    self.artwork_download_img_to_file(data.artist, data.album,
+                                                      filename)
+
+            # Set pixbuf icon in model; add to cache
+            if pb is not None:
+                if filename is not None:
+                    self.set_library_artwork_cached_filename(cache_key,
+                                                             filename)
+                    GLib.idle_add(self.library_set_cover, i, pb, data)
+
+            # Remote processed item from queue:
+            if not remote_art:
+                if len(self.lib_art_rows_local) > 0 and \
+                   (i, data, icon) == self.lib_art_rows_local[0]:
+                    self.lib_art_rows_local.pop(0)
+                    if pb is None and self.config.covers_pref == \
+                       consts.ART_LOCAL_REMOTE:
+                        # No local art found, add to remote queue for later
+                        self.lib_art_rows_remote.append((i, data, icon))
+            else:
+                if len(self.lib_art_rows_remote) > 0 and \
+                   (i, data, icon) == self.lib_art_rows_remote[0]:
+                    self.lib_art_rows_remote.pop(0)
+                    if pb is None:
+                        # No remote art found, store self.albumpb
+                        # filename in cache
+                        self.set_library_artwork_cached_filename(cache_key,
+                                                    self.album_filename)
 
     def library_set_image_for_current_song(self, cache_key):
         # Search through the rows in the library to see
