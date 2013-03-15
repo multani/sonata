@@ -234,8 +234,8 @@ class Artwork(GObject.GObject):
                 else:
                     self.lib_art_rows_local.pop(0)
 
-            cache_key = SongRecord(artist=data.artist, album=data.album,
-                                   path=data.path)
+            cache_key = tuple(SongRecord(artist=data.artist, album=data.album,
+                                         path=data.path))
 
             # Try to replace default icons with cover art:
             pb = self.get_library_artwork_cached_pb(cache_key, None)
