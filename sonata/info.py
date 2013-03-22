@@ -463,7 +463,7 @@ class Info:
             new_width = 150
 
         (pix2, w, h) = img.get_pixbuf_of_size(pixbuf, new_width)
-        # XXX apply composite cover on top of pix2
+        pix2 = img.do_style_cover(self.config, pix2, w, h)
         pix2 = img.pixbuf_add_border(pix2)
 
         self.image.set_from_pixbuf(pix2)

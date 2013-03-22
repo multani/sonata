@@ -132,9 +132,9 @@ class Artwork(GObject.GObject):
         self.lib_art_rows_local = []
         self.lib_art_rows_remote = []
         self.lib_art_pb_size = 0
-        self.cache = {}
 
-        self.artwork_load_cache()
+        self.cache = ArtworkCache(self.config)
+        self.cache.load()
 
     def update_songinfo(self, songinfo):
         self.songinfo = songinfo
@@ -221,10 +221,10 @@ class Artwork(GObject.GObject):
             else:
                 continue
 
-            cache_key = tuple(SongRecord(artist=data.artist, album=data.album,
-                                         path=data.path))
+            cache_key = SongRecord(artist=data.artist, album=data.album,
+                                         path=data.path)
             # Try to replace default icons with cover art:
-            pb = self.get_library_artwork_cached_pb(cache_key, None)
+            pb = self.cache.get_pixbuf(cache_key, self.lib_art_pb_size)
             cb(i, data, icon, cache_key, pb)
 
 
@@ -235,7 +235,7 @@ class Artwork(GObject.GObject):
             # Continue to rescan for local artwork if we are
             # displaying the default album image, in case the user
             # has added a local image since we first scanned.
-            filename = self.get_library_artwork_cached_filename(cache_key)
+            filename = self.cache.get(cache_key)
             if os.path.basename(filename) == os.path.basename(
                 self.album_filename):
                 filename = None
@@ -248,7 +248,7 @@ class Artwork(GObject.GObject):
 
         # Set pixbuf icon in model; add to cache
         if pb is not None and filename is not None:
-            self.set_library_artwork_cached_filename(cache_key, filename)
+            self.cache.set(cache_key, filename)
             GLib.idle_add(self.library_set_cover, i, pb, data)
 
         if pb is None and self.config.covers_pref == consts.ART_LOCAL_REMOTE:
@@ -272,13 +272,12 @@ class Artwork(GObject.GObject):
 
         # Set pixbuf icon in model; add to cache
         if pb is not None and filename is not None:
-            self.set_library_artwork_cached_filename(cache_key, filename)
+            self.cache.set(cache_key, filename)
             GLib.idle_add(self.library_set_cover, i, pb, data)
 
         if pb is None:
             # No remote art found, store self.albumpb filename in cache
-            self.set_library_artwork_cached_filename(cache_key,
-                                                     self.album_filename)
+            self.cache.set(cache_key, self.album_filename)
 
 
     def library_set_image_for_current_song(self, cache_key):
@@ -289,7 +288,7 @@ class Artwork(GObject.GObject):
         for row in self.lib_model:
             if str(cache_key.artist).lower() == str(row[1].artist).lower() \
             and str(cache_key.album).lower() == str(row[1].album).lower():
-                pb = self.get_library_artwork_cached_pb(cache_key, None)
+                pb = self.cache.get_pixbuf(cache_key, self.lib_art_pb_size)
                 if pb:
                     self.lib_model.set_value(row.iter, 0, pb)
 
@@ -310,54 +309,9 @@ class Artwork(GObject.GObject):
                 return (None, None)
             w = coverpb.get_width()
             h = coverpb.get_height()
-            coverpb = self.artwork_apply_composite_case(coverpb, w, h)
+            coverpb = img.do_style_cover(self.config, coverpb, w, h)
             return (coverpb, coverfile)
         return (None, None)
-
-    def set_library_artwork_cached_filename(self, cache_key, filename):
-        self.cache[cache_key] = filename
-
-    def get_library_artwork_cached_filename(self, cache_key):
-        try:
-            return self.cache[cache_key]
-        except:
-            return None
-
-    def get_library_artwork_cached_pb(self, cache_key, origpb):
-        filename = self.get_library_artwork_cached_filename(cache_key)
-        if filename is not None:
-            if os.path.exists(filename):
-                pb = GdkPixbuf.Pixbuf.new_from_file_at_size(filename,
-                                                          self.lib_art_pb_size,
-                                                          self.lib_art_pb_size)
-                return self.artwork_apply_composite_case(pb,
-                                                         self.lib_art_pb_size,
-                                                         self.lib_art_pb_size)
-            else:
-                self.cache.pop(cache_key)
-                return origpb
-        else:
-            return origpb
-
-    def artwork_save_cache(self):
-        misc.create_dir('~/.config/sonata/')
-        filename = os.path.expanduser("~/.config/sonata/art_cache")
-        try:
-            with open(filename, 'w', encoding="utf8") as f:
-                f.write(repr(self.cache))
-        except IOError:
-            pass
-
-    def artwork_load_cache(self):
-        filename = os.path.expanduser("~/.config/sonata/art_cache")
-        if os.path.exists(filename):
-            try:
-                with open(filename, 'r', encoding="utf8") as f:
-                        self.cache = eval(f.read())
-            except (IOError, SyntaxError):
-                self.cache = {}
-        else:
-            self.cache = {}
 
     def artwork_update(self, force=False):
         if force:
@@ -490,8 +444,7 @@ class Artwork(GObject.GObject):
         # Also, update row in library:
         if artist is not None:
             cache_key = SongRecord(artist=artist, album=album, path=path)
-            self.set_library_artwork_cached_filename(cache_key,
-                                                     self.album_filename)
+            self.cache.set(cache_key, self.album_filename)
             GLib.idle_add(self.library_set_image_for_current_song, cache_key)
 
     def artwork_get_misc_img_in_path(self, songdir):
@@ -528,12 +481,11 @@ class Artwork(GObject.GObject):
                     # Store in cache
                     cache_key = SongRecord(artist=artist, album=album,
                                            path=path)
-                    self.set_library_artwork_cached_filename(cache_key,
-                                                             filename)
+                    self.cache.set(cache_key, filename)
 
                     # Artwork for tooltip, left-top of player:
                     (pix1, w, h) = img.get_pixbuf_of_size(pix, 75)
-                    pix1 = self.artwork_apply_composite_case(pix1, w, h)
+                    pix1 = img.do_style_cover(self.config, pix1, w, h)
                     pix1 = img.pixbuf_add_border(pix1)
                     pix1 = img.pixbuf_pad(pix1, 77, 77)
                     self.albumimage.set_from_pixbuf(pix1)
@@ -552,31 +504,6 @@ class Artwork(GObject.GObject):
 
     def artwork_set_image_last(self):
         self.artwork_set_image(self.lastalbumart, None, None, None, True)
-
-    def artwork_apply_composite_case(self, pix, w, h):
-        if not pix:
-            return None
-        if self.config.covers_type == consts.COVERS_TYPE_STYLIZED and \
-           float(w) / h > 0.5:
-            # Rather than merely compositing the case on top of the artwork,
-            # we will scale the artwork so that it isn't covered by the case:
-            spine_ratio = float(60) / 600 # From original png
-            spine_width = int(w * spine_ratio)
-            case_pb = Gtk.Image.new_from_pixbuf(pix).render_icon_pixbuf('sonata-case', -1)
-            case = case_pb.scale_simple(w, h, GdkPixbuf.InterpType.BILINEAR)
-            # Scale pix and shift to the right on a transparent pixbuf:
-            pix = pix.scale_simple(w - spine_width, h, GdkPixbuf.InterpType.BILINEAR)
-            blank = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, True, 8, w, h)
-            blank.fill(0x00000000)
-            pix.copy_area(0, 0, pix.get_width(), pix.get_height(), blank,
-                          spine_width, 0)
-            # Composite case and scaled pix:
-            case.composite(blank, 0, 0, w, h, 0, 0, 1, 1,
-                           GdkPixbuf.InterpType.BILINEAR, 250)
-            del case
-            del case_pb
-            return blank
-        return pix
 
     def artwork_is_for_playing_song(self, filename):
         # Since there can be multiple threads that are getting album art,
@@ -639,7 +566,7 @@ class Artwork(GObject.GObject):
         if os.path.exists(dest_filename_curr):
             pix = GdkPixbuf.Pixbuf.new_from_file(dest_filename_curr)
             pix = pix.scale_simple(148, 148, GdkPixbuf.InterpType.HYPER)
-            pix = self.artwork_apply_composite_case(pix, 148, 148)
+            pix = img.do_style_cover(self.config, pix, 148, 148)
             pix = img.pixbuf_add_border(pix)
             if self.stop_art_update:
                 del pix
@@ -695,3 +622,57 @@ class CoverDownloader:
     def on_err_cb(self, reason=None):
         """Return True to stop finding, False to continue finding covers."""
         return False
+
+
+class ArtworkCache:
+    def __init__(self, config, path=None):
+        self.logger = logging.getLogger('sonata.artwork.cache')
+        self._cache = {}
+        self.config = config
+        self.path = path if path is not None else \
+                os.path.expanduser("~/.config/sonata/art_cache")
+
+    def set(self, key, value):
+        self.logger.debug("Setting %r to %r", key, value)
+        self._cache[key] = value
+
+    def get(self, key):
+        self.logger.debug("Requesting for %r", key)
+        return self._cache.get(key)
+
+    def get_pixbuf(self, key, size, default=None):
+        self.logger.debug("Requesting pixbuf for %r", key)
+        try:
+            path = self._cache[key]
+        except KeyError:
+            return default
+
+        if not os.path.exists(path):
+            self._cache.pop(key, None)
+            return default
+
+        try:
+            p = GdkPixbuf.Pixbuf.new_from_file_at_size(path, size, size)
+        except:
+            self.logger.exception("Unable to load %r at size (%d, %d)",
+                                  path, size, size)
+            raise
+        return img.do_style_cover(self.config, p, size, size)
+
+    def save(self):
+        self.logger.debug("Saving to %s", self.path)
+        misc.create_dir(os.path.dirname(self.path))
+        try:
+            with open(self.path, 'w', encoding="utf8") as f:
+                f.write(repr(self._cache))
+        except IOError as e:
+            self.logger.info("Unable to save: %s", e)
+
+    def load(self):
+        self.logger.debug("Loading from %s", self.path)
+        self._cache = {}
+        try:
+            with open(self.path, 'r', encoding="utf8") as f:
+                self._cache = eval(f.read())
+        except (IOError, SyntaxError) as e:
+            self.logger.info("Unable to load: %s", e)

@@ -1753,7 +1753,7 @@ class Base:
                 self.withdraw_app()
                 return True
         self.settings_save()
-        self.artwork.artwork_save_cache()
+        self.artwork.cache.save()
         if self.config.as_enabled:
             self.scrobbler.save_cache()
         if self.conn and self.config.stop_on_exit:
@@ -3076,6 +3076,7 @@ class Base:
 
 class FullscreenApp:
     def __init__(self, config, get_fullscreen_info):
+        self.config = config
         self.get_fullscreen_info = get_fullscreen_info
         self.currentpb = None
         builder = ui.builder('sonata')
@@ -3135,8 +3136,9 @@ class FullscreenApp:
                 self.reset()
             else:
                 # Artwork for fullscreen cover mode
-                (pix3, w, h) = img.get_pixbuf_of_size(self.currentpb,
-                                                  consts.FULLSCREEN_COVER_SIZE)
+                (pix3, w, h) = img.get_pixbuf_of_size(
+                    self.currentpb, consts.FULLSCREEN_COVER_SIZE)
+                pix3 = img.do_style_cover(self.config, pix3, w, h)
                 pix3 = img.pixbuf_pad(pix3, consts.FULLSCREEN_COVER_SIZE,
                                       consts.FULLSCREEN_COVER_SIZE)
                 self.image.set_from_pixbuf(pix3)

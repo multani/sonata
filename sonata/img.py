@@ -3,6 +3,9 @@ import os
 
 from gi.repository import Gtk, Gdk, GdkPixbuf, GLib
 
+from sonata import consts
+
+
 def valid_image(filename):
     return bool(GdkPixbuf.Pixbuf.get_file_info(filename))
 
@@ -80,3 +83,44 @@ def single_image_in_dir(dirname):
     if len(imgfiles) != 1:
         return None
     return os.path.join(dirname, imgfiles[0])
+
+
+def do_style_cover(config, pix, w, h):
+    """Style a cover, according to the specified configuration."""
+
+    if config.covers_type == consts.COVERS_TYPE_STYLIZED:
+        return composite_case(pix, w, h)
+    else:
+        return pix
+
+
+def composite_case(pix, w, h):
+    """Blend the cover with a 'case' cover, for maximum beauty."""
+
+    if w / h <= 0.5:
+        return pix
+
+    # Rather than merely compositing the case on top of the artwork,
+    # we will scale the artwork so that it isn't covered by the case:
+    spine_ratio = 60 / 600 # From original png
+    spine_width = int(w * spine_ratio)
+    #case_icon = Gtk.IconFactory.lookup_default('sonata-case')
+
+    ## We use the fullscreenalbumimage because it's the biggest we have
+    #context = self.fullscreenalbumimage.get_style_context()
+    #case_pb = case_icon.render_icon_pixbuf(context, -1)
+    i = Gtk.Image.new_from_pixbuf(pix)
+    case_pb = i.render_icon_pixbuf('sonata-case', -1)
+    case = case_pb.scale_simple(w, h, GdkPixbuf.InterpType.BILINEAR)
+    # Scale pix and shift to the right on a transparent pixbuf:
+    pix = pix.scale_simple(w - spine_width, h, GdkPixbuf.InterpType.BILINEAR)
+    blank = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, True, 8, w, h)
+    blank.fill(0x00000000)
+    pix.copy_area(0, 0, pix.get_width(), pix.get_height(), blank,
+                  spine_width, 0)
+    # Composite case and scaled pix:
+    case.composite(blank, 0, 0, w, h, 0, 0, 1, 1,
+                   GdkPixbuf.InterpType.BILINEAR, 250)
+    del case
+    del case_pb
+    return blank

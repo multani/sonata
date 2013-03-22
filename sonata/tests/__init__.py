@@ -70,7 +70,11 @@ class TestSonata(unittest.TestCase):
         albums = [song.SongRecord(artist=item[0], album=item[1],
                                   path=item[2], year=item[3]) for item in data]
         various_albums = library.list_mark_various_artists_albums(albums)
-        albums[0].artist = library.VARIOUS_ARTISTS
+
+        album = albums[0]._asdict()
+        album['artist'] = library.VARIOUS_ARTISTS
+        albums[0] = song.SongRecord(**album)
+
         self.assertEqual(various_albums, albums)
 
         # Test single argument

@@ -31,7 +31,9 @@ def list_mark_various_artists_albums(albums):
             if j == consts.NUM_ARTISTS_FOR_VA - 1:
                 VA = True
         if VA:
-            albums[i].artist = VARIOUS_ARTISTS
+            album = albums[i]._asdict()
+            album['artist'] = VARIOUS_ARTISTS
+            albums[i] = SongRecord(**album)
             j = 1
             while i + j <= len(albums) - 1:
                 if albums[i].album.lower() == albums[i + j].album.lower() \
@@ -457,8 +459,8 @@ class Library:
                     cache_data = SongRecord(artist=self.config.wd.artist,
                                             album=self.config.wd.album,
                                             path=self.config.wd.path)
-                    pb = self.artwork.get_library_artwork_cached_pb(cache_data,
-                                                                    None)
+                    pb = self.artwork.cache.get_pixbuf(cache_data,
+                                                       consts.LIB_COVER_SIZE)
                     if pb is None:
                         icon = 'album'
                 elif key == 'artist':
@@ -542,7 +544,8 @@ class Library:
             if pb == self.albumpb:
                 key = SongRecord(path=info[1].path, artist=info[1].artist,
                                  album=info[1].album)
-                pb2 = self.artwork.get_library_artwork_cached_pb(key, None)
+                pb2 = self.artwork.cache.get_pixbuf(key,
+                                                    consts.LIB_COVER_SIZE)
                 if pb2 is not None:
                     info[0] = pb2
         return bd
@@ -699,8 +702,9 @@ class Library:
                         ordered_year = year
                         if ordered_year == self.NOTAG:
                             ordered_year = '9999'
-                        pb = self.artwork.get_library_artwork_cached_pb(
-                            cache_data, self.albumpb)
+                        pb = self.artwork.cache.get_pixbuf(
+                            cache_data, consts.LIB_COVER_SIZE,
+                            self.albumpb)
                         bd += [(ordered_year + misc.lower_no_the(album),
                                 [pb, data, display])]
             # Now, songs not in albums:
