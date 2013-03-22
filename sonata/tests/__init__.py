@@ -113,6 +113,5 @@ class TestMPDSong(unittest.TestCase):
 
 def additional_tests():
     return unittest.TestSuite(
-        # TODO: add files which use doctests here
-      #  doctest.DocFileSuite('../audioscrobbler.py', optionflags=DOCTEST_FLAGS),
+       doctest.DocFileSuite('../artwork.py', optionflags=DOCTEST_FLAGS),
     )

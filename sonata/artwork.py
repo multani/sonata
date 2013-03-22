@@ -1,16 +1,80 @@
+import functools
 import logging
 import os
+import re
 import shutil
 import threading # artwork_update starts a thread _artwork_update
 
 from gi.repository import Gtk, Gdk, GdkPixbuf, GLib, GObject
 
 from sonata import img, ui, misc, consts, mpdhelper as mpdh
-from sonata import library
+from sonata.song import SongRecord
 from sonata.pluginsystem import pluginsystem
 
 
+COVERS_DIR = os.path.expanduser("~/.covers")
+COVERS_TEMP_DIR = os.path.join(COVERS_DIR, 'temp')
 logger = logging.getLogger(__name__)
+
+
+def artwork_path_from_song(song, config, dir=None):
+    return artwork_path_from_data(
+        song.artist, song.album, os.path.dirname(song.file or ''), config, dir)
+
+
+def artwork_path_from_data(artist, album, path, config, dir=None):
+    artist = (artist or "").replace("/", "")
+    album = (album or "").replace("/", "")
+    path = get_multicd_album_root_dir(path)
+
+    # Return target filename:
+    if dir is None:
+        dir = config.art_location
+
+    music_dir = os.path.join(config.musicdir[config.profile_num], path)
+
+    if dir == consts.ART_LOCATION_HOMECOVERS:
+        cover = os.path.join(COVERS_DIR, "%s-%s.jpg" % (artist, album))
+    elif dir == consts.ART_LOCATION_COVER:
+        cover = os.path.join(music_dir, "cover.jpg")
+    elif dir == consts.ART_LOCATION_FOLDER:
+        cover = os.path.join(music_dir, "folder.jpg")
+    elif dir == consts.ART_LOCATION_ALBUM:
+        cover = os.path.join(music_dir, "album.jpg")
+    elif dir == consts.ART_LOCATION_CUSTOM:
+        cover = os.path.join(music_dir, config.art_location_custom_filename)
+
+    return misc.file_exists_insensitive(cover)
+
+def get_multicd_album_root_dir(albumpath):
+    """Go one dir upper for multicd albums
+
+    >>> from sonata.artwork import get_multicd_album_root_dir as f
+    >>> f('Moonspell/1995 - Wolfheart/cd 2')
+    'Moonspell/1995 - Wolfheart'
+    >>> f('2007 - Dark Passion Play/CD3')
+    '2007 - Dark Passion Play'
+    >>> f('Ayreon/2008 - 01011001/CD 1 - Y')
+    'Ayreon/2008 - 01011001'
+
+    """
+
+    if re.compile(r'(?i)cd\s*\d+').match(os.path.split(albumpath)[1]):
+        albumpath = os.path.split(albumpath)[0]
+    return albumpath
+
+
+def artwork_path(song, config):
+    if song.name is not None:
+        f = artwork_stream(song.name)
+    else:
+        f = artwork_path_from_song(song, config)
+    return f
+
+
+def artwork_stream(stream_name):
+    return os.path.join(os.path.expanduser('~/.covers'), "%s.jpg" %
+                        stream_name.replace("/", ""))
 
 
 class Artwork(GObject.GObject):
@@ -22,7 +86,7 @@ class Artwork(GObject.GObject):
     }
 
     def __init__(self, config, is_lang_rtl, schedule_gc_collect,
-                 target_image_filename, imagelist_append, remotefilelist_append,
+                 imagelist_append, remotefilelist_append,
                  allow_art_search, status_is_play_or_pause,
                  album_image, tray_image):
         super().__init__()
@@ -35,7 +99,6 @@ class Artwork(GObject.GObject):
 
         # callbacks to main XXX refactor to clear this list
         self.schedule_gc_collect = schedule_gc_collect
-        self.target_image_filename = target_image_filename
         self.imagelist_append = imagelist_append
         self.remotefilelist_append = remotefilelist_append
         self.allow_art_search = allow_art_search
@@ -80,16 +143,15 @@ class Artwork(GObject.GObject):
         if self.songinfo:
             if 'name' in self.songinfo:
                 # Stream, remove file:
-                misc.remove_file(self.artwork_stream_filename(
-                    self.songinfo.name))
+                misc.remove_file(artwork_stream(self.songinfo.name))
             else:
                 # Normal song:
-                misc.remove_file(self.target_image_filename())
-                misc.remove_file(self.target_image_filename(
-                    consts.ART_LOCATION_HOMECOVERS))
+                misc.remove_file(artwork_path_from_song(self.songinfo, self.config))
+                misc.remove_file(artwork_path_from_song(
+                    self.songinfo, self.config, consts.ART_LOCATION_HOMECOVERS))
                 # Use blank cover as the artwork
-                dest_filename = self.target_image_filename(
-                    consts.ART_LOCATION_HOMECOVERS)
+                dest_filename = artwork_path_from_song(self.songinfo, self.config,
+                                                 consts.ART_LOCATION_HOMECOVERS)
                 try:
                     emptyfile = open(dest_filename, 'w')
                     emptyfile.close()
@@ -171,9 +233,8 @@ class Artwork(GObject.GObject):
                     else:
                         self.lib_art_rows_local.pop(0)
 
-                cache_key = library.SongRecord(artist=data.artist,
-                                               album=data.album,
-                                               path=data.path)
+                cache_key = SongRecord(artist=data.artist, album=data.album,
+                                       path=data.path)
 
                 # Try to replace default icons with cover art:
                 pb = self.get_library_artwork_cached_pb(cache_key, None)
@@ -197,8 +258,8 @@ class Artwork(GObject.GObject):
                                                         data.artist, data.album,
                                                         self.lib_art_pb_size)
                     else:
-                        filename = self.target_image_filename(None, data.path,
-                                                              data.artist, data.album)
+                        filename = artwork_path_from_data(
+                            data.artist, data.album, data.path, self.config)
                         self.artwork_download_img_to_file(data.artist, data.album,
                                                           filename)
                         pb, filename = self.library_get_album_cover(data.path,
@@ -331,7 +392,7 @@ class Artwork(GObject.GObject):
     def _artwork_update(self):
         if 'name' in self.songinfo:
             # Stream
-            streamfile = self.artwork_stream_filename(self.songinfo.name)
+            streamfile = artwork_stream(self.songinfo.name)
             if os.path.exists(streamfile):
                 GLib.idle_add(self.artwork_set_image, streamfile, None, None,
                               None)
@@ -345,7 +406,7 @@ class Artwork(GObject.GObject):
             if len(artist) == 0 and len(album) == 0:
                 self.artwork_set_default_icon(artist, album, path)
                 return
-            filename = self.target_image_filename()
+            filename = artwork_path_from_song(self.songinfo, self.config)
             if filename == self.lastalbumart:
                 # No need to update..
                 self.stop_art_update = False
@@ -357,15 +418,12 @@ class Artwork(GObject.GObject):
                     imgfound = self.artwork_check_for_remote(artist, album,
                                                              path, filename)
 
-    def artwork_stream_filename(self, streamname):
-        return os.path.join(os.path.expanduser('~/.covers'),
-                "%s.jpg" % streamname.replace("/", ""))
-
     def artwork_check_for_local(self, artist, album, path):
         self.artwork_set_default_icon(artist, album, path)
         self.misc_img_in_dir = None
         self.single_img_in_dir = None
-        location_type, filename = self.artwork_get_local_image()
+        location_type, filename = self.artwork_get_local_image(
+            self.songinfo.file, self.songinfo.artist, self.songinfo.album)
 
         if location_type is not None and filename:
             if location_type == consts.ART_LOCATION_MISC:
@@ -385,10 +443,13 @@ class Artwork(GObject.GObject):
         if songpath is None:
             songpath = os.path.dirname(self.songinfo.file)
 
+        get_artwork_path_from_song = functools.partial(artwork_path_from_data,
+            artist, album, songpath, self.config)
+
         # Give precedence to images defined by the user's current
         # art_location config (in case they have multiple valid images
         # that can be used for cover art).
-        testfile = self.target_image_filename(None, songpath, artist, album)
+        testfile = get_artwork_path_from_song()
         if os.path.exists(testfile):
             return self.config.art_location, testfile
 
@@ -398,13 +459,11 @@ class Artwork(GObject.GObject):
                    consts.ART_LOCATION_ALBUM,
                    consts.ART_LOCATION_FOLDER]
         for location in simplelocations:
-            testfile = self.target_image_filename(location, songpath, artist,
-                                                  album)
+            testfile = get_artwork_path_from_song(location)
             if os.path.exists(testfile):
                 return location, testfile
 
-        testfile = self.target_image_filename(consts.ART_LOCATION_CUSTOM,
-                                              songpath, artist, album)
+        testfile = get_artwork_path_from_song(consts.ART_LOCATION_CUSTOM)
         if self.config.art_location == consts.ART_LOCATION_CUSTOM and \
            len(self.config.art_location_custom_filename) > 0 and \
            os.path.exists(testfile):
@@ -441,7 +500,7 @@ class Artwork(GObject.GObject):
 
         # Also, update row in library:
         if artist is not None:
-            cache_key = library.SongRecord(artist=artist, album=album, path=path)
+            cache_key = SongRecord(artist=artist, album=album, path=path)
             self.set_library_artwork_cached_filename(cache_key,
                                                      self.album_filename)
             GLib.idle_add(self.library_set_image_for_current_song, cache_key)
@@ -478,8 +537,8 @@ class Artwork(GObject.GObject):
 
                 if not info_img_only:
                     # Store in cache
-                    cache_key = library.SongRecord(artist=artist, album=album,
-                                                 path=path)
+                    cache_key = SongRecord(artist=artist, album=album,
+                                           path=path)
                     self.set_library_artwork_cached_filename(cache_key,
                                                              filename)
 
@@ -536,17 +595,17 @@ class Artwork(GObject.GObject):
         # song is displayed
         if self.status_is_play_or_pause() and self.songinfo:
             if 'name' in self.songinfo:
-                streamfile = self.artwork_stream_filename(self.songinfo.name)
+                streamfile = artwork_stream(self.songinfo.name)
                 if filename == streamfile:
                     return True
             else:
                 # Normal song:
-                if (filename in \
-                   [self.target_image_filename(consts.ART_LOCATION_HOMECOVERS),
-                     self.target_image_filename(consts.ART_LOCATION_COVER),
-                     self.target_image_filename(consts.ART_LOCATION_ALBUM),
-                     self.target_image_filename(consts.ART_LOCATION_FOLDER),
-                     self.target_image_filename(consts.ART_LOCATION_CUSTOM)] or
+                if (filename in [artwork_path_from_song(self.songinfo, self.config, l)
+                                 for l in [consts.ART_LOCATION_HOMECOVERS,
+                                           consts.ART_LOCATION_COVER,
+                                           consts.ART_LOCATION_ALBUM,
+                                           consts.ART_LOCATION_FOLDER,
+                                           consts.ART_LOCATION_CUSTOM]] or
                     (self.misc_img_in_dir and \
                      filename == self.misc_img_in_dir) or
                     (self.single_img_in_dir and filename == \

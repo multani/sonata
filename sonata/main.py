@@ -217,7 +217,7 @@ class Base:
         # Artwork
         self.artwork = artwork.Artwork(
             self.config, misc.is_lang_rtl(self.window),
-            self.schedule_gc_collect, self.target_image_filename,
+            self.schedule_gc_collect,
             self.imagelist_append, self.remotefilelist_append,
             self.set_allow_art_search, self.status_is_play_or_pause,
             self.album_image, self.tray_album_image)
@@ -485,7 +485,7 @@ class Base:
             self.config, self.mpd, self.artwork, self.TAB_LIBRARY,
             self.settings_save, self.current.filter_key_pressed,
             self.on_add_item, self.connected, self.on_library_button_press,
-            self.add_tab, self.get_multicd_album_root_dir)
+            self.add_tab)
 
         self.library_treeview = self.library.get_treeview()
         self.library_selection = self.library.get_selection()
@@ -2014,12 +2014,7 @@ class Base:
                     "Hum, the URI at '%s' doesn't look like an image...", uri)
                 continue
 
-            # XXX: this should be in artwork
-            stream = self.songinfo.name
-            if stream is not None:
-                destination = self.artwork.artwork_stream_filename(stream)
-            else:
-                destination = self.target_image_filename()
+            destination = artwork.artwork_path(self.songinfo, self.config)
 
             self.logger.info("Trying to download '%s' (to '%s') ...", uri,
                              destination)
@@ -2037,11 +2032,9 @@ class Base:
             self.logger.warning("Can't retrieve %s: %s", source, e)
             return
 
-        # XXX move to artwork
-        art_dir = os.path.expanduser('~/.covers/temp')
-        misc.create_dir(art_dir)
-
-        with tempfile.NamedTemporaryFile(dir=art_dir, delete=False) as t:
+        misc.create_dir(artwork.COVERS_TEMP_DIR)
+        with tempfile.NamedTemporaryFile(dir=artwork.COVERS_TEMP_DIR,
+                                         delete=False) as t:
             t.write(contents)
 
         if not img.valid_image(t.name):
@@ -2052,60 +2045,6 @@ class Base:
 
         os.rename(t.name, destination)
         self.artwork.artwork_update(True)
-
-    def target_image_filename(self, force_location=None, songpath=None,
-                              artist=None, album=None):
-        # Only pass songpath, artist, and album if we are trying to get the
-        # filename for an album that isn't currently playing
-        if self.conn:
-            # If no info passed, you info from currently playing song:
-            if not album:
-                album = self.songinfo.album or ""
-            if not artist:
-                artist = self.album_current_artist[1]
-            album = album.replace("/", "")
-            artist = artist.replace("/", "")
-            if songpath is None:
-                songpath = os.path.dirname(self.songinfo.file)
-            songpath = self.get_multicd_album_root_dir(songpath)
-            # Return target filename:
-            if force_location is not None:
-                art_loc = force_location
-            else:
-                art_loc = self.config.art_location
-            if art_loc == consts.ART_LOCATION_HOMECOVERS:
-                targetfile = os.path.join(os.path.expanduser("~/.covers"),
-                                          "%s-%s.jpg" % (artist, album))
-            elif art_loc == consts.ART_LOCATION_COVER:
-                targetfile = os.path.join(
-                    self.config.musicdir[self.config.profile_num],
-                    songpath, "cover.jpg")
-            elif art_loc == consts.ART_LOCATION_FOLDER:
-                targetfile = os.path.join(
-                    self.config.musicdir[self.config.profile_num],
-                    songpath, "folder.jpg")
-            elif art_loc == consts.ART_LOCATION_ALBUM:
-                targetfile = os.path.join(
-                    self.config.musicdir[self.config.profile_num],
-                    songpath, "album.jpg")
-            elif art_loc == consts.ART_LOCATION_CUSTOM:
-                targetfile = os.path.join(
-                    self.config.musicdir[self.config.profile_num],
-                    songpath, self.config.art_location_custom_filename)
-            targetfile = misc.file_exists_insensitive(targetfile)
-            return targetfile
-
-    def get_multicd_album_root_dir(self, albumpath):
-        """Go one dir upper for multicd albums
-        Examples:
-            'Moonspell/1995 - Wolfheart/cd 2' -> 'Moonspell/1995 - Wolfheart'
-            '2007 - Dark Passion Play/CD3' -> '2007 - Dark Passion Play'
-            'Ayreon/2008 - 01011001/CD 1 - Y' -> 'Ayreon/2008 - 01011001'
-        """
-
-        if re.compile(r'(?i)cd\s*\d+').match(os.path.split(albumpath)[1]):
-            albumpath = os.path.split(albumpath)[0]
-        return albumpath
 
     def album_return_artist_and_tracks(self):
         # Includes logic for Various Artists albums to determine
@@ -2225,12 +2164,8 @@ class Base:
                                songdir)
         if self.config.art_location != consts.ART_LOCATION_HOMECOVERS:
             dialog.set_current_folder(currdir)
-        if stream is not None:
-            # Allow saving an image file for a stream:
-            self.local_dest_filename = self.artwork.artwork_stream_filename(
-                stream)
-        else:
-            self.local_dest_filename = self.target_image_filename()
+        self.local_dest_filename = artwork.artwork_path(self.songinfo,
+                                                        self.config)
         self.image_local_dialog.show_all()
         response = self.image_local_dialog.run()
 
@@ -2265,13 +2200,10 @@ class Base:
     def image_remote(self, _widget):
         if not self.choose_dialog:
             self._init_choose_dialog()
+
         stream = self.songinfo.name
-        if stream is not None:
-            # Allow saving an image file for a stream:
-            self.remote_dest_filename = self.artwork.artwork_stream_filename(
-                stream)
-        else:
-            self.remote_dest_filename = self.target_image_filename()
+        self.remote_dest_filename = artwork.artwork_path(self.songinfo,
+                                                         self.config)
         album = self.songinfo.album or ''
         artist = self.album_current_artist[1]
         self.image_widget.connect('item-activated', self.image_remote_replace_cover,
@@ -2315,7 +2247,7 @@ class Base:
         if len(artist_search) == 0 and len(album_search) == 0:
             GLib.idle_add(self.image_remote_no_tag_found, imagewidget)
             return
-        filename = os.path.expanduser("~/.covers/temp/<imagenum>.jpg")
+        filename = os.path.join(artwork.COVERS_TEMP_DIR, "<imagenum>.jpg")
         misc.remove_dir_recursive(os.path.dirname(filename))
         misc.create_dir(os.path.dirname(filename))
         imgfound = self.artwork.artwork_download_img_to_file(artist_search,

@@ -8,6 +8,7 @@ import operator
 from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Pango
 
 from sonata import ui, misc, consts, formatting, breadcrumbs, mpdhelper as mpdh
+from sonata.artwork import get_multicd_album_root_dir
 from sonata.song import SongRecord
 
 
@@ -44,7 +45,7 @@ def list_mark_various_artists_albums(albums):
 class Library:
     def __init__(self, config, mpd, artwork, TAB_LIBRARY, settings_save,
                  filter_key_pressed, on_add_item, connected,
-                 on_library_button_press, add_tab, get_multicd_album_root_dir):
+                 on_library_button_press, add_tab):
         self.artwork = artwork
         self.config = config
         self.mpd = mpd
@@ -54,7 +55,6 @@ class Library:
         self.on_add_item = on_add_item
         self.connected = connected
         self.on_library_button_press = on_library_button_press
-        self.get_multicd_album_root_dir = get_multicd_album_root_dir
 
         self.NOTAG = _("Untagged")
         self.search_terms = [_('Artist'), _('Title'), _('Album'), _('Genre'),
@@ -585,7 +585,7 @@ class Library:
                     album = item['album']
                     artist = item.get('artist', self.NOTAG)
                     year = item.get('date', self.NOTAG)
-                    path = self.get_multicd_album_root_dir(
+                    path = get_multicd_album_root_dir(
                         os.path.dirname(item['file']))
                     data = SongRecord(album=album, artist=artist,
                                       year=year, path=path)
