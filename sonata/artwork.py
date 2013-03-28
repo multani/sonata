@@ -31,7 +31,7 @@ def artwork_path_from_data(artist, album, path, config, dir=None):
     if dir is None:
         dir = config.art_location
 
-    music_dir = os.path.join(config.musicdir[config.profile_num], path)
+    music_dir = os.path.join(config.current_musicdir, path)
 
     if dir == consts.ART_LOCATION_HOMECOVERS:
         cover = os.path.join(COVERS_DIR, "%s-%s.jpg" % (artist, album))
@@ -416,8 +416,7 @@ class Artwork(GObject.GObject):
             return consts.ART_LOCATION_MISC, \
                     self.artwork_get_misc_img_in_path(songpath)
 
-        path = os.path.join(self.config.musicdir[self.config.profile_num],
-                            songpath)
+        path = os.path.join(self.config.current_musicdir, songpath)
         testfile = img.single_image_in_dir(path)
         if testfile is not None:
             return consts.ART_LOCATION_SINGLE, testfile
@@ -448,8 +447,7 @@ class Artwork(GObject.GObject):
             GLib.idle_add(self.library_set_image_for_current_song, cache_key)
 
     def artwork_get_misc_img_in_path(self, songdir):
-        path = os.path.join(self.config.musicdir[self.config.profile_num],
-                            songdir)
+        path = os.path.join(self.config.current_musicdir, songdir)
         if os.path.exists(path):
             for name in consts.ART_LOCATIONS_MISC:
                 filename = os.path.join(path, name)

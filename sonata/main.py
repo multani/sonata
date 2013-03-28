@@ -2160,8 +2160,7 @@ class Base:
         album = (self.songinfo.album or "").replace("/", "")
         artist = self.album_current_artist[1].replace("/", "")
         songdir = os.path.dirname(self.songinfo.file)
-        currdir = os.path.join(self.config.musicdir[self.config.profile_num],
-                               songdir)
+        currdir = os.path.join(self.config.current_musicdir, songdir)
         if self.config.art_location != consts.ART_LOCATION_HOMECOVERS:
             dialog.set_current_folder(currdir)
         self.local_dest_filename = artwork.artwork_path(self.songinfo,
@@ -2998,16 +2997,14 @@ class Base:
                 # Use current file in songinfo:
                 mpdpath = self.songinfo.file
                 fullpath = os.path.join(
-                    self.config.musicdir[self.config.profile_num], mpdpath)
+                    self.config.current_musicdir, mpdpath)
                 files.append(fullpath)
                 temp_mpdpaths.append(mpdpath)
         elif self.current_tab == self.TAB_LIBRARY:
             # Populates files array with selected library items:
             items = self.library.get_path_child_filenames(False)
             for item in items:
-                files.append(
-                    os.path.join(self.config.musicdir[self.config.profile_num],
-                                 item))
+                files.append(os.path.join(self.config.current_musicdir, item))
                 temp_mpdpaths.append(item)
         elif self.current_tab == self.TAB_CURRENT:
             # Populates files array with selected current playlist items:
@@ -3019,7 +3016,7 @@ class Base:
                                       self.tags_set_use_mpdpath)
         tageditor.set_use_mpdpaths(self.config.tags_use_mpdpath)
         tageditor.on_tags_edit(files, temp_mpdpaths,
-                               self.config.musicdir[self.config.profile_num])
+                               self.config.current_musicdir)
 
     def tags_set_use_mpdpath(self, use_mpdpath):
         self.config.tags_use_mpdpath = use_mpdpath
