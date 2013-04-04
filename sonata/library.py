@@ -402,9 +402,6 @@ class Library:
             self.library_retain_selection(prev_selection, prev_selection_root,
                                           prev_selection_parent)
 
-        # Update library artwork as necessary
-        self.on_library_scrolled(None, None)
-
         self.update_breadcrumbs()
 
     def update_breadcrumbs(self):

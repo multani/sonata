@@ -1186,8 +1186,6 @@ class Base:
             if self.current.sel_rows:
                 for row in self.current.sel_rows:
                     treeselection.select_path(row)
-        # Update lib artwork
-        self.library.on_library_scrolled(None, None)
 
     def on_library_button_press(self, widget, event):
         if self.on_button_press(widget, event, False):
