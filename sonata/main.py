@@ -199,6 +199,8 @@ class Base:
         # Main window
         self.window = self.builder.get_object('main_window')
 
+        self.fullscreen = FullscreenApp(self.config, self.get_fullscreen_info)
+
         if self.config.ontop:
             self.window.set_keep_above(True)
         if self.config.sticky:
@@ -211,27 +213,13 @@ class Base:
         self.album_image = self.builder.get_object('main_album_image')
         self.tray_album_image = self.builder.get_object('tray_album_image')
 
-        # Fullscreen cover art window
-        self.fullscreen_window = self.builder.get_object("fullscreen_window")
-        self.fullscreen_window.fullscreen()
-        bgcolor = Gdk.RGBA()
-        bgcolor.parse("black")
-        self.fullscreen_window.override_background_color(Gtk.StateFlags.NORMAL,
-                                                         bgcolor)
-        self.fullscreen_image = self.builder.get_object("fullscreen_image")
-        fullscreen_label1 = self.builder.get_object("fullscreen_label_1")
-        fullscreen_label2 = self.builder.get_object("fullscreen_label_2")
-        if not self.config.show_covers:
-            self.fullscreen_image.hide()
-
         # Artwork
         self.artwork = artwork.Artwork(
             self.config, misc.is_lang_rtl(self.window),
             self.schedule_gc_collect, self.target_image_filename,
             self.imagelist_append, self.remotefilelist_append,
             self.set_allow_art_search, self.status_is_play_or_pause,
-            self.get_current_song_text, self.album_image, self.tray_album_image,
-            self.fullscreen_image, fullscreen_label1, fullscreen_label2)
+            self.album_image, self.tray_album_image)
 
 
         # Popup menus:
@@ -247,7 +235,7 @@ class Base:
             ('localimage_menu', Gtk.STOCK_OPEN, _('Use _Local Image...'),
              None, None, self.image_local),
             ('fullscreen_window_menu', Gtk.STOCK_FULLSCREEN,
-             _('_Fullscreen Mode'), 'F11', None, self.fullscreen_cover_art),
+             _('_Fullscreen Mode'), 'F11', None, self.on_fullscreen_change),
             ('resetimage_menu', Gtk.STOCK_CLEAR, _('Reset Image'), None, None,
              self.artwork.on_reset_image),
             ('playmenu', Gtk.STOCK_MEDIA_PLAY, _('_Play'), None, None,
@@ -559,7 +547,7 @@ class Base:
         # Main app:
         self.UIManager = Gtk.UIManager()
         accel_group = self.UIManager.get_accel_group()
-        self.fullscreen_window.add_accel_group(accel_group)
+        self.fullscreen.add_accel_group(accel_group)
         actionGroup = Gtk.ActionGroup('Actions')
         actionGroup.add_actions(actions)
         actionGroup.add_actions(keyactions)
@@ -720,11 +708,6 @@ class Base:
         self.notebook.connect('size-allocate', self.on_notebook_resize)
         self.notebook.connect('switch-page', self.on_notebook_page_change)
 
-        self.fullscreen_window.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
-        self.fullscreen_window.connect("button-press-event",
-                                       self.fullscreen_cover_art_close, False)
-        self.fullscreen_window.connect("key-press-event",
-                                        self.fullscreen_cover_art_close, True)
         for treeview in [self.current_treeview, self.library_treeview,
                          self.playlists_treeview, self.streams_treeview]:
             treeview.connect('popup_menu', self.on_menu_popup)
@@ -734,6 +717,10 @@ class Base:
         for widget in [self.ppbutton, self.prevbutton, self.stopbutton,
                        self.nextbutton, self.progresseventbox, self.expander]:
             widget.connect('button_press_event', self.menu_popup)
+
+        self.artwork.connect('artwork-changed',
+                             self.fullscreen.on_artwork_changed)
+        self.artwork.connect('artwork-reset', self.fullscreen.reset)
 
         self.systemtray_initialize()
 
@@ -850,8 +837,9 @@ class Base:
         for _plugin, cb in pluginsystem.get('playing_song_observers'):
             cb(self.get_playing_song())
 
-    def get_current_song_text(self):
-        return (self.cursonglabel1.get_text(), self.cursonglabel2.get_text())
+    def get_fullscreen_info(self):
+        return (self.status_is_play_or_pause(), self.cursonglabel1.get_text(),
+                self.cursonglabel2.get_text())
 
     def set_allow_art_search(self):
         self.allow_art_search = True
@@ -1695,7 +1683,7 @@ class Base:
             self.notification_width = consts.NOTIFICATION_WIDTH_MIN
 
     def on_currsong_notify(self, _foo=None, _bar=None, force_popup=False):
-        if self.fullscreen_window.get_property('visible'):
+        if self.fullscreen.on_fullscreen:
             return
         if self.sonata_loaded:
             if self.status_is_play_or_pause():
@@ -1788,6 +1776,13 @@ class Base:
     #################
     # Gui Callbacks #
     #################
+
+    def on_fullscreen_change(self, _widget=None):
+        if self.fullscreen.on_fullscreen:
+            self.traytips.show()
+        else:
+            self.traytips.hide()
+        self.fullscreen.on_fullscreen_change()
 
     def on_delete_event_yes(self, _widget):
         self.exit_now = True
@@ -2421,25 +2416,6 @@ class Base:
         self.choose_dialog.hide()
         while self.artwork.artwork_is_downloading_image():
             Gtk.main_iteration()
-
-    def fullscreen_cover_art(self, _widget):
-        if self.fullscreen_window.get_property('visible'):
-            self.fullscreen_window.hide()
-        else:
-            self.traytips.hide()
-            self.artwork.fullscreen_cover_art_set_image(force_update=True)
-            self.fullscreen_window.show_all()
-            # setting up invisible cursor
-            window = self.fullscreen_window.get_window()
-            window.set_cursor(Gdk.Cursor.new(Gdk.CursorType.BLANK_CURSOR))
-
-    def fullscreen_cover_art_close(self, _widget, event, key_press):
-        if key_press:
-            shortcut = Gtk.accelerator_name(event.keyval, event.get_state())
-            shortcut = shortcut.replace("<Mod2>", "")
-            if shortcut != 'Escape':
-                return
-        self.fullscreen_window.hide()
 
     def header_save_column_widths(self):
         if not self.config.withdrawn and self.config.expanded:
@@ -3206,5 +3182,85 @@ class Base:
         self.on_currsong_notify(force_popup=True)
 
     def dbus_fullscreen(self):
-        self.fullscreen_cover_art(None)
+        self.on_fullscreen_change()
 
+
+class FullscreenApp:
+    def __init__(self, config, get_fullscreen_info):
+        self.get_fullscreen_info = get_fullscreen_info
+        self.currentpb = None
+        builder = ui.builder('sonata')
+        self.window = builder.get_object("fullscreen_window")
+        self.window.fullscreen()
+        color = Gdk.RGBA()
+        color.parse("black")
+        self.window.override_background_color(Gtk.StateFlags.NORMAL, color)
+        self.window.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
+        self.window.connect("button-press-event", self.on_close, False)
+        self.window.connect("key-press-event", self.on_close, True)
+        self.image = builder.get_object("fullscreen_image")
+        self.album_label_1 = builder.get_object("fullscreen_label_1")
+        self.album_label_2 = builder.get_object("fullscreen_label_2")
+        self.reset()
+
+        if not config.show_covers:
+            self.image.hide()
+
+    def add_accel_group(self, group):
+        self.window.add_accel_group(group)
+
+    @property
+    def on_fullscreen(self):
+        return self.window.get_property('visible')
+
+    def on_fullscreen_change(self, _widget=None):
+        if self.on_fullscreen:
+            self.window.hide()
+        else:
+            self.set_image(force_update=True)
+            self.window.show_all()
+            # setting up invisible cursor
+            window = self.window.get_window()
+            window.set_cursor(Gdk.Cursor.new(Gdk.CursorType.BLANK_CURSOR))
+
+    def on_close(self, _widget, event, key_press):
+        if key_press:
+            shortcut = Gtk.accelerator_name(event.keyval, event.get_state())
+            shortcut = shortcut.replace("<Mod2>", "")
+            if shortcut != 'Escape':
+                return
+        self.window.hide()
+
+    def on_artwork_changed(self, artwork_obj, pixbuf):
+        self.set_text()
+        self.set_image()
+        self.currentpb = pixbuf
+
+    def reset(self, *args, **kwargs):
+        self.image.set_from_icon_set(ui.icon('sonata-cd'), -1)
+        self.currentpb = None
+
+    def set_image(self, force_update=False):
+        if self.image.get_property('visible') or force_update:
+            if self.currentpb is None:
+                self.reset()
+            else:
+                # Artwork for fullscreen cover mode
+                (pix3, w, h) = img.get_pixbuf_of_size(self.currentpb,
+                                                  consts.FULLSCREEN_COVER_SIZE)
+                pix3 = img.pixbuf_pad(pix3, consts.FULLSCREEN_COVER_SIZE,
+                                      consts.FULLSCREEN_COVER_SIZE)
+                self.image.set_from_pixbuf(pix3)
+                del pix3
+        self.set_text()
+
+    def set_text(self):
+        is_play_or_pause, line1, line2 = self.get_fullscreen_info()
+        self.album_label_1.set_text(misc.escape_html(line1))
+        self.album_label_2.set_text(misc.escape_html(line2))
+        if is_play_or_pause:
+            self.album_label_1.show()
+            self.album_label_2.show()
+        else:
+            self.album_label_1.hide()
+            self.album_label_2.hide()

@@ -24,8 +24,7 @@ class Artwork(GObject.GObject):
     def __init__(self, config, is_lang_rtl, schedule_gc_collect,
                  target_image_filename, imagelist_append, remotefilelist_append,
                  allow_art_search, status_is_play_or_pause,
-                 get_current_song_text, album_image, tray_image,
-                 fullscreen_image, fullscreen_label1, fullscreen_label2):
+                 album_image, tray_image):
         super().__init__()
 
         self.config = config
@@ -41,7 +40,6 @@ class Artwork(GObject.GObject):
         self.remotefilelist_append = remotefilelist_append
         self.allow_art_search = allow_art_search
         self.status_is_play_or_pause = status_is_play_or_pause
-        self.get_current_song_text = get_current_song_text
 
         # local pixbufs, image file names
         self.sonatacd = Gtk.IconFactory.lookup_default('sonata-cd')
@@ -54,12 +52,6 @@ class Artwork(GObject.GObject):
         self.albumimage.set_from_icon_set(self.sonatacd, -1)
 
         self.tray_album_image = tray_image
-
-        self.fullscreenalbumimage = fullscreen_image
-        self.fullscreenalbumlabel = fullscreen_label1
-        self.fullscreenalbumlabel2 = fullscreen_label2
-        self.fullscreen_cover_art_reset_image()
-        self.fullscreen_cover_art_reset_text()
 
         # local version of Main.songinfo mirrored by update_songinfo
         self.songinfo = None
@@ -334,8 +326,6 @@ class Artwork(GObject.GObject):
         else:
             self.artwork_set_default_icon()
 
-        self.fullscreen_cover_art_set_text()
-
     def _artwork_update(self):
         if 'name' in self.songinfo:
             # Stream
@@ -442,7 +432,6 @@ class Artwork(GObject.GObject):
         GLib.idle_add(self.albumimage.set_from_icon_set,
                       self.sonatacd, -1)
         self.emit('artwork-reset')
-        GLib.idle_add(self.fullscreen_cover_art_reset_image)
         GLib.idle_add(self.tray_album_image.set_from_icon_set,
                       self.sonatacd, -1)
 
@@ -503,9 +492,6 @@ class Artwork(GObject.GObject):
 
                     # Artwork for library, if current song matches:
                     self.library_set_image_for_current_song(cache_key)
-
-                    # Artwork for fullscreen
-                    self.fullscreen_cover_art_set_image()
 
                 self.emit('artwork-changed', pix)
                 del pix
@@ -621,39 +607,6 @@ class Artwork(GObject.GObject):
             ui.change_cursor(None)
 
         return True # continue to next image
-
-    def fullscreen_cover_art_set_image(self, force_update=False):
-        if self.fullscreenalbumimage.get_property('visible') or force_update:
-            if self.currentpb is None:
-                self.fullscreen_cover_art_reset_image()
-            else:
-                # Artwork for fullscreen cover mode
-                (pix3, w, h) = img.get_pixbuf_of_size(self.currentpb,
-                                                  consts.FULLSCREEN_COVER_SIZE)
-                pix3 = self.artwork_apply_composite_case(pix3, w, h)
-                pix3 = img.pixbuf_pad(pix3, consts.FULLSCREEN_COVER_SIZE,
-                                      consts.FULLSCREEN_COVER_SIZE)
-                self.fullscreenalbumimage.set_from_pixbuf(pix3)
-                del pix3
-        self.fullscreen_cover_art_set_text()
-
-    def fullscreen_cover_art_reset_image(self):
-        self.fullscreenalbumimage.set_from_icon_set(self.sonatacd_large, -1)
-        self.currentpb = None
-
-    def fullscreen_cover_art_set_text(self):
-        if self.status_is_play_or_pause():
-            line1, line2 = self.get_current_song_text()
-            self.fullscreenalbumlabel.set_text(misc.escape_html(line1))
-            self.fullscreenalbumlabel2.set_text(misc.escape_html(line2))
-            self.fullscreenalbumlabel.show()
-            self.fullscreenalbumlabel2.show()
-        else:
-            self.fullscreen_cover_art_reset_text()
-
-    def fullscreen_cover_art_reset_text(self):
-        self.fullscreenalbumlabel.hide()
-        self.fullscreenalbumlabel2.hide()
 
     def have_last(self):
         if self.lastalbumart is not None:
