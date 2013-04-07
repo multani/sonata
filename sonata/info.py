@@ -6,7 +6,7 @@ import threading
 
 from gi.repository import Gtk, Pango, Gdk, GdkPixbuf
 
-from sonata import ui, misc, consts, mpdhelper as mpdh
+from sonata import ui, misc, consts, mpdhelper as mpdh, img
 from sonata.pluginsystem import pluginsystem
 
 
@@ -49,6 +49,7 @@ class Info:
 
         self._imagebox = self.builder.get_object('info_page_song_eventbox')
         self.image = self.builder.get_object('info_page_song_image')
+        self.image.set_from_icon_set(ui.icon('sonata-cd-large'), -1)
 
         self._imagebox.drag_dest_set(Gtk.DestDefaults.HIGHLIGHT |
                                      Gtk.DestDefaults.DROP,
@@ -133,9 +134,6 @@ class Info:
 
     def get_info_imagebox(self):
         return self._imagebox
-
-    def get_info_image(self):
-        return self.image
 
     def show_lyrics_updated(self):
         func = "show" if self.config.show_lyrics else "hide"
@@ -501,3 +499,25 @@ class Info:
 
         return misc.file_exists_insensitive(file_path)
 
+    def on_artwork_changed(self, artwork_obj, pixbuf):
+        if self._imagebox.get_size_request()[0] == -1:
+            notebook_width = self.info_song_grid.get_parent().get_allocation().width
+            grid = self.info_song_grid
+            grid_allocation = grid.get_allocation()
+            grid_height = grid_allocation.height
+            grid_width = grid.get_preferred_width_for_height(grid_height)[0]
+            fullwidth = notebook_width - (grid_width + 120)
+            new_width = max(fullwidth, 150)
+        else:
+            new_width = 150
+
+        (pix2, w, h) = img.get_pixbuf_of_size(pixbuf, new_width)
+        # XXX apply composite cover on top of pix2
+        pix2 = img.pixbuf_add_border(pix2)
+
+        self.image.set_from_pixbuf(pix2)
+        del pix2
+        del pixbuf
+
+    def on_artwork_reset(self, artwork_obj):
+        self.image.set_from_icon_set(ui.icon('sonata-cd-large'), -1)

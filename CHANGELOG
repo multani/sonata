@@ -1,6 +1,11 @@
 Next release - ?
 ----------------
 
+New features
+''''''''''''
+
+    * Download bigger covers from Last.fm
+
 Bug fixes
 '''''''''
 
@@ -17,6 +22,7 @@ Internal changes
 ''''''''''''''''
 
     * Simplified the `current` module. It should also now use less memory than before.
+    * Provide a new GObject signal to notify on artwork change and artwork reset.
 
 
 1.7a1 (2013-02-08)

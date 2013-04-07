@@ -3,7 +3,7 @@ import os
 import shutil
 import threading # artwork_update starts a thread _artwork_update
 
-from gi.repository import Gtk, Gdk, GdkPixbuf, GLib
+from gi.repository import Gtk, Gdk, GdkPixbuf, GLib, GObject
 
 from sonata import img, ui, misc, consts, mpdhelper as mpdh
 from sonata import library
@@ -13,13 +13,20 @@ from sonata.pluginsystem import pluginsystem
 logger = logging.getLogger(__name__)
 
 
-class Artwork:
+class Artwork(GObject.GObject):
+
+    __gsignals__ = {
+        'artwork-changed': (GObject.SIGNAL_RUN_FIRST, None,
+                            (GdkPixbuf.Pixbuf,)),
+        'artwork-reset': (GObject.SIGNAL_RUN_FIRST, None, ()),
+    }
 
     def __init__(self, config, is_lang_rtl, schedule_gc_collect,
                  target_image_filename, imagelist_append, remotefilelist_append,
                  allow_art_search, status_is_play_or_pause,
                  get_current_song_text, album_image, tray_image,
                  fullscreen_image, fullscreen_label1, fullscreen_label2):
+        super().__init__()
 
         self.config = config
         self.album_filename = 'sonata-album'
@@ -54,9 +61,6 @@ class Artwork:
         self.fullscreen_cover_art_reset_image()
         self.fullscreen_cover_art_reset_text()
 
-        self.info_image = None
-        self.calc_info_image_size = None
-
         # local version of Main.songinfo mirrored by update_songinfo
         self.songinfo = None
 
@@ -76,16 +80,6 @@ class Artwork:
         self.cache = {}
 
         self.artwork_load_cache()
-
-    def set_info_image(self, info_image):
-        self.info_image = info_image
-        self.info_image.set_from_icon_set(self.sonatacd_large, -1)
-
-    def set_info_imagebox(self, info_imagebox):
-        self.info_imagebox = info_imagebox
-
-    def set_calc_info_image_size(self, func):
-        self.calc_info_image_size = func
 
     def update_songinfo(self, songinfo):
         self.songinfo = songinfo
@@ -447,8 +441,7 @@ class Artwork:
     def artwork_set_default_icon(self, artist=None, album=None, path=None):
         GLib.idle_add(self.albumimage.set_from_icon_set,
                       self.sonatacd, -1)
-        GLib.idle_add(self.info_image.set_from_icon_set,
-                      self.sonatacd_large, -1)
+        self.emit('artwork-reset')
         GLib.idle_add(self.fullscreen_cover_art_reset_image)
         GLib.idle_add(self.tray_album_image.set_from_icon_set,
                       self.sonatacd, -1)
@@ -514,17 +507,7 @@ class Artwork:
                     # Artwork for fullscreen
                     self.fullscreen_cover_art_set_image()
 
-                # Artwork for info tab:
-                if self.info_imagebox.get_size_request()[0] == -1:
-                    fullwidth = self.calc_info_image_size()
-                    fullwidth = max(fullwidth, 150)
-                    (pix2, w, h) = img.get_pixbuf_of_size(pix, fullwidth)
-                else:
-                    (pix2, w, h) = img.get_pixbuf_of_size(pix, 150)
-                pix2 = self.artwork_apply_composite_case(pix2, w, h)
-                pix2 = img.pixbuf_add_border(pix2)
-                self.info_image.set_from_pixbuf(pix2)
-                del pix2
+                self.emit('artwork-changed', pix)
                 del pix
 
                 self.lastalbumart = filename

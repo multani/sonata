@@ -97,3 +97,6 @@ def set_entry_invalid(editable):
 def reset_entry_marking(editable):
     editable.override_color(Gtk.StateFlags.NORMAL, None)
 
+
+def icon(name):
+    return Gtk.IconFactory.lookup_default(name)

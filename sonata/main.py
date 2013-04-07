@@ -510,12 +510,11 @@ class Base:
                               self.on_image_motion_cb, self.on_image_drop_cb,
                               self.album_return_artist_and_tracks,
                               self.add_tab)
-
+        self.artwork.connect('artwork-changed',
+                             self.info.on_artwork_changed)
+        self.artwork.connect('artwork-reset',
+                             self.info.on_artwork_reset)
         self.info_imagebox = self.info.get_info_imagebox()
-        info_image = self.info.get_info_image()
-        self.artwork.set_info_image(info_image)
-        self.artwork.set_info_imagebox(self.info_imagebox)
-        self.artwork.set_calc_info_image_size(self.calc_info_image_size)
 
         # Streams tab
         self.streams = streams.Streams(self.config, self.window,
@@ -1995,14 +1994,6 @@ class Base:
             if len(filenames) > 0:
                 self.mpd.update(filenames)
                 self.mpd_update_queued = True
-
-    def calc_info_image_size(self):
-        notebook_width = self.notebook.get_allocation().width
-        grid = self.info.info_song_grid
-        grid_allocation = grid.get_allocation()
-        grid_height = grid_allocation.height
-        grid_width = grid.get_preferred_width_for_height(grid_height)[0]
-        return notebook_width - (grid_width + 120)
 
     def on_image_activate(self, widget, event):
         self.window.handler_block(self.mainwinhandler)

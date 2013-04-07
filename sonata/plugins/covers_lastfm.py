@@ -54,7 +54,7 @@ def on_cover_fetch(artist, album, on_save_cb, on_err_cb):
         return
 
     for image in lastfm['album']['image']:
-        if image['size'] != 'large':
+        if image['size'] != 'mega':
             continue
 
         url = image['#text']
