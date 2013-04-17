@@ -462,7 +462,8 @@ class Preferences():
 
     def _as_password_changed(self, entry):
         if self.scrobbler.imported():
-            self.config.as_password_md5 = hashlib.md5(entry.get_text()).hexdigest()
+            self.config.as_password_md5 = hashlib.md5(
+                entry.get_text().encode('utf-8')).hexdigest()
             self.scrobbler.auth_changed()
 
     def _nameentry_changed(self, entry, profile_combo, remove_profiles):
