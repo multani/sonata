@@ -49,7 +49,7 @@ def run():
 
     logging.basicConfig(
         level=logging.WARNING,
-        format="[%(asctime)s] %(name)s: %(message)s",
+        format="[%(asctime)s] [%(threadName)s] %(name)s: %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
         stream=sys.stderr)
 
@@ -197,7 +197,7 @@ def run():
             # because we can't close the shell thread easily
             from gi.repository import Gtk
             Gtk.main_quit()
-        threading.Thread(target=run_shell).start()
+        threading.Thread(target=run_shell, name="Shell").start()
 
     try:
         app.run([])

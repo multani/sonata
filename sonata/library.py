@@ -1180,6 +1180,7 @@ class Library:
             self.libfilterbox_cond = threading.Condition()
             self.libfilterbox_cmd_buf = self.searchtext.get_text()
             qsearch_thread = threading.Thread(target=self.libsearchfilter_loop)
+            qsearch_thread.name = "LibraryFilter"
             qsearch_thread.daemon = True
             qsearch_thread.start()
         elif self.search_visible():

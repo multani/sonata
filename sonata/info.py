@@ -334,6 +334,7 @@ class Info:
         else:
             # Fetch lyrics from plugins.
             thread = threading.Thread(target=self.fetch_lyrics_from_plugins,
+                                      name="LyricsFetcher",
                                       args=(search_artist, search_title,
                                             song_dir))
             thread.start()

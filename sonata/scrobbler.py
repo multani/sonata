@@ -54,6 +54,7 @@ class Scrobbler:
            len(self.config.as_username) > 0 and \
            len(self.config.as_password_md5) > 0:
             thread = threading.Thread(target=self.init_thread)
+            thread.name = "Scrobbler"
             thread.daemon = True
             thread.start()
 
@@ -151,6 +152,7 @@ class Scrobbler:
 
     def np(self, songinfo):
         thread = threading.Thread(target=self.do_np, args=(songinfo,))
+        thread.name = "ScrobblerNowPlaying"
         thread.daemon = True
         thread.start()
 
@@ -193,6 +195,7 @@ class Scrobbler:
                     self.logger.critical("Unable to add track to scrobbler")
 
                 thread = threading.Thread(target=self.do_post)
+                thread.name = "ScrobblerPost"
                 thread.daemon = True
                 thread.start()
         self.scrob_start_time = ""
