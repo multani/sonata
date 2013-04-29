@@ -512,11 +512,7 @@ class Artwork(GObject.GObject):
             # we will scale the artwork so that it isn't covered by the case:
             spine_ratio = float(60) / 600 # From original png
             spine_width = int(w * spine_ratio)
-            case_icon = Gtk.IconFactory.lookup_default('sonata-case')
-
-            # We use the fullscreenalbumimage because it's the biggest we have
-            context = self.fullscreenalbumimage.get_style_context()
-            case_pb = case_icon.render_icon_pixbuf(context, -1)
+            case_pb = Gtk.Image.new_from_pixbuf(pix).render_icon_pixbuf('sonata-case', -1)
             case = case_pb.scale_simple(w, h, GdkPixbuf.InterpType.BILINEAR)
             # Scale pix and shift to the right on a transparent pixbuf:
             pix = pix.scale_simple(w - spine_width, h, GdkPixbuf.InterpType.BILINEAR)
