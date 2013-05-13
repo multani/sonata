@@ -463,7 +463,7 @@ class Library:
                     if pb is None:
                         icon = 'album'
                 elif key == 'artist':
-                    icon = 'artist'
+                    icon = 'sonata-artist'
                 else:
                     icon = Gtk.STOCK_ORIENTATION_PORTRAIT
                 crumbs.append((part, icon, pb, target))
