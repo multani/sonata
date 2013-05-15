@@ -18,6 +18,7 @@ Bug fixes
     * Fix error while using Sonata's command line interface
     * Fix filtering songs in the current playlist
     * Fix DND of custom artwork images in the main window
+    * Fix breadcrumb icon in the library while browsing an album while in Artist view
 
 Internal changes
 ''''''''''''''''
