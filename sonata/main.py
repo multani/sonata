@@ -464,7 +464,7 @@ class Base:
 
         currentactions = [
             ('centerplaylistkey', None, 'Center Playlist Key', '<Ctrl>i',
-             None, self.current.center_song_in_list),
+             None, lambda event: self.current.center_song_in_list(True)),
             ('sortbyartist', None, _('By Artist'), None, None,
              self.current.on_sort_by_artist),
             ('sortbyalbum', None, _('By Album'), None, None,
@@ -778,7 +778,7 @@ class Base:
         # Ensure that sonata is loaded before we display the notif window
         self.sonata_loaded = True
         self.on_currsong_notify()
-        self.current.center_song_in_list()
+        self.current.center_song_in_list(True)
 
         gc.disable()
 

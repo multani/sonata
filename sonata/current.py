@@ -295,10 +295,21 @@ class Current:
             else:
                 column.set_sort_indicator(False)
 
-    def center_song_in_list(self, _event=None):
+    def center_song_in_list(self, do_select_current_song=False):
         if not self.filterbox_visible and self.config.expanded and \
            len(self.store) > 0:
             row_path = Gtk.TreePath(self.songinfo().pos)
+            if do_select_current_song:
+                selection = self.view.get_selection()
+                selection.unselect_all()
+                selection.select_path(row_path)
+                self.view.set_cursor(row_path)
+                self.view.grab_focus()
+
+            # For some reason, calling view.set_cursor() after
+            # view.scroll_to_cell() changes the scrolling position of the view
+            # (the selected item appears at the top of the view, not in the
+            # center anymore).
             self.view.scroll_to_cell(row_path, None, True, 0.5, 0.5)
 
     def get_songid(self, i, model):
