@@ -1302,6 +1302,7 @@ class Base:
                 # Binary file, just add it:
                 self.mpd.add(item)
             else:
+                f = f.decode()
                 if "[playlist]" in f:
                     # pls:
                     self.stream_parse_pls(f)
