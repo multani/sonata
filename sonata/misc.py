@@ -78,7 +78,7 @@ def _rmgeneric(path, __func__):
 
 
 def is_binary(f):
-    if '\0' in f: # found null byte
+    if b'\0' in f: # found null byte
         return True
     return False
 
