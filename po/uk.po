@@ -14,6 +14,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #. define the shortcuts and their descriptions
 #. these are all gettextable
@@ -742,16 +744,20 @@ msgstr "Кінець пошуку"
 #. Show text:
 #: .././sonata/library.py:761 .././sonata/main.py:1763
 #: .././sonata/main.py:3331
+#, fuzzy
 msgid "song"
 msgid_plural "songs"
 msgstr[0] "композиція"
 msgstr[1] "композицій"
+msgstr[2] ""
 
 #: .././sonata/library.py:761 .././sonata/main.py:1757
+#, fuzzy
 msgid "minute"
 msgid_plural "minutes"
 msgstr[0] "хвилина"
 msgstr[1] "хвилин"
+msgstr[2] ""
 
 #: .././sonata/library.py:849
 #, fuzzy
