@@ -6,6 +6,8 @@ New features
 
     * Download bigger covers from Last.fm
     * Centering the current song using Ctrl+i now also selects the current song
+    * Use Transifex as a translation plateform. See
+      https://www.transifex.com/projects/p/sonata/
 
 Bug fixes
 '''''''''
