@@ -95,6 +95,22 @@ I hate, hate, *hate* having to review commits touching lot of unrelated things,
 this is the easiest way for your changes not to be merged. Try to stay focus on
 one clearly defined thing and it should be much easier to merge.
 
+Translations
+------------
+
+.. note:: See the `TRANSLATORS` file for more information!
+
+You can translate Sonata using the `dedicated Transifex project
+page <https://www.transifex.com/projects/p/sonata/>`_.
+
+Sonata's translation can be done via the `Transifex`_ plateform. You need to
+subscribe to `Transifex`_ first, then to add yourself as a member of the
+`Transifex Sonata`_ project under the language your are interested to translate
+into.
+
+Once a translation is done, *be sure to contact the maintainer of Sonata* to
+announce there's a new translation to include!
+
 
 See also
 ========
@@ -123,3 +139,5 @@ contributors. Many thanks to the past developers:
 .. _PyGObject: https://live.gnome.org/PyGObject
 .. _python-mpd2: http://pypi.python.org/pypi/python-mpd2/
 .. _python programming language: http://www.python.org/
+.. _transifex: https://www.transifex.com
+.. _transifex sonata: https://www.transifex.com/projects/p/sonata/

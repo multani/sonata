@@ -1,10 +1,76 @@
-Sonata provides a quick and easy way of creating a translation for 
+Sonata provides a quick and easy way of creating a translation for
 your language. If you find this software useful and are capable of
 adding a language that has not yet been translated, it would be
 greatly appreciated.
 
+Sonata uses the `Transifex plateform
+<https://www.transifex.com/projects/p/sonata/>`_ as a translation helping
+plateform, although you can probably also use any `gettext` compatible
+translation editor.
+
+In order to add a new translation or update a new translation, you can subscribe
+to the `Transifex <https://www.transifex.com>`_ project and add yourself to the
+team of translators according to your preferred language on the `Sonata project
+page <https://www.transifex.com/projects/p/sonata/>`_.
+
+Once you have a new translation ready, feel free to contact the Sonat's mailing
+list at sonata@lists.berlis.de (registration required at
+https://lists.berlios.de/mailman/listinfo/sonata beforehand) or to contact the
+author by email so your translation will be included in the next release!
+
+
+Instrutions (mostly for developers)
+===================================
+
+Using Transifex
+---------------
+
+You need the `Transifex client <http://help.transifex.com/features/client/>`_ and
+to configure your Transifex configuration file (probably ``~/.transifexrc``)
+according to `the official
+documentation <http://help.transifex.com/features/client/#transifexrc>`_::
+
+    [https://www.transifex.com]
+    hostname = https://www.transifex.com
+    token =
+
+    username = YOUR TRANSIFEX USERNAME
+    password = YOUR TRANSIFEX PASSWORD
+
+You can use then the ``tx`` command line tool to get or send the translation
+files from/to Transifex:
+
+    To refresh the translation strings on Transifex (so that new translation
+    strings are available to translators)::
+
+        $ tx push -s
+
+    To get/update translations from/to Transifex::
+
+        $ tx pull -l fr # Get the latest French translation from transifex.com
+        ...
+        $ tx push -t fr # Send the latest French translation to transifex.com
+
+
+You can read the `officiel Transifex
+documentation <http://help.transifex.com/features/client/>`_ for more information
+about using the Transifex client.
+
+
+Managing the translation without Transifex
+------------------------------------------
+
+You can use the script in ``script/update-po`` which wraps ``intltool``, or
+directly ``intltool`` if you want, to manage the translation directly from the
+Sonata repository.
+
+.. warning:: Note that Transifex is the preferred plateform to manage
+    translations, and that it should be keep up-to-date with respect to the
+    content of the source tree.
+
+
 Adding a new translation
-------------------------
+''''''''''''''''''''''''
 
 1. Download the latest sources with git
 	$ git clone git://github.com/multani/sonata
@@ -16,16 +82,8 @@ Adding a new translation
 
 3. Translate the strings
 
-4. Join the sonata mailing list:
-	https://lists.berlios.de/mailman/listinfo/sonata
-
-5. Send your patch to sonata@lists.berlios.de and Cc
-   the maintainer Jonathan Ballet <jon+sonata@multani.info>
-
-6. Keep the po file updated for future releases ;-)
-
 Updating an existing translation
-----------------------
+''''''''''''''''''''''''''''''''
 
 1. Download the latest sources with git
 	$ git clone git://github.com/multani/sonata
@@ -35,8 +93,4 @@ Updating an existing translation
 
 3. Translate any strings that are new or fuzzy
 
-4. Join the sonata mailing list:
-	https://lists.berlios.de/mailman/listinfo/sonata
-
-5. Send your patch to sonata@lists.berlios.de and Cc
-   the maintainer Jonathan Ballet <jon+sonata@multani.info>
+.. vim:ft=rst

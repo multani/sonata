@@ -1,37 +1,42 @@
 #!/bin/sh
 
-cd $(dirname "$0")
-cd ..
+PACKAGE=Sonata
+INTLTOOL_UPDATE="intltool-update --gettext-package=$PACKAGE"
 
-echo
+if ! which intltool-update > /dev/null
+then
+    echo "You need intltool-update to update the translation files!" > /dev/fd/2
+    exit 1
+fi
+
+cd $(dirname "$0")/../po
+
+rm -f missing
 echo Updating POTFILES.in...
-find setup.py sonata \( -name "*.py" -o -name "*.glade" \) | sort > po/POTFILES.in
+$INTLTOOL_UPDATE -m
 
-cd po
-echo Update messages.po...
-echo
+if [ -f missing ]
+then
+    exit 1
+fi
 
-intltool-update -p
-mv untitled.pot messages.po
+echo Updating $PACKAGE.pot...
+$INTLTOOL_UPDATE -p
 
 for i in *.po
 do
-    if [ "$i" = "messages.po" ]
-    then
-        continue
-    fi
-
     # Generate ;po files only for the specified language.
     echo "$*" | grep -q "$(echo $i | sed "s/.po$//g")"
     if [ $? = 0 -o $# = 0 ]
     then
-        echo Updating ${i}...
-        intltool-update "${i%*.po}"
-        echo
+        echo Updating $i...
+        $INTLTOOL_UPDATE "${i%*.po}"
+
+        echo Purging old translations from $i...
+        msgattrib --output-file="$i" --no-obsolete "$i"
     fi
 done
 
-echo Cleaning up...
-echo
 
-rm untitled.pot
+echo "Translation status:"
+$INTLTOOL_UPDATE -r
