@@ -8,6 +8,11 @@ New features
     * Centering the current song using Ctrl+i now also selects the current song
     * Use Transifex as a translation plateform. See
       https://www.transifex.com/projects/p/sonata/
+    * Update translations:
+
+        - Russian (thanks Stas!)
+        - Ukrainian (thanks Stas!)
+        - French (thanks Jon!)
 
 Bug fixes
 '''''''''
