@@ -2437,7 +2437,7 @@ class Base:
                     self.config.columnwidths[i] = colwidth
         self.current.resizing_columns = False
 
-    def systemtray_activate(self, _status_icon):
+    def on_tray_activate(self, _status_icon):
         # Clicking on a Gtk.StatusIcon:
         if not self.ignore_toggle_signal:
             # This prevents the user clicking twice in a row quickly
@@ -2466,11 +2466,11 @@ class Base:
             # self.traytips._remove_timer()
             GLib.timeout_add(100, self.tooltip_set_ignore_toggle_signal_false)
 
-    def systemtray_click(self, _widget, event):
+    def on_tray_click(self, _widget, event):
         # Clicking on a system tray icon:
         # Left button shows/hides window(s)
         if event.button == 1 and not self.ignore_toggle_signal:
-            self.systemtray_activate(None)
+            self.on_tray_activate(None)
         elif event.button == 2: # Middle button will play/pause
             if self.conn:
                 self.mpd_pp(None)
@@ -2537,7 +2537,7 @@ class Base:
         self.ignore_toggle_signal = False
 
     # Change volume on mousewheel over systray icon:
-    def systemtray_scroll(self, widget, event):
+    def on_tray_scroll(self, widget, event):
         direction = event.get_scroll_direction()[1]
         if self.conn:
             if direction == Gdk.ScrollDirection.UP:
@@ -3158,9 +3158,9 @@ class Base:
     def systemtray_initialize(self):
         # Make system tray 'icon' to sit in the system tray
         self.tray_icon.initialize(
-            self.systemtray_click,
-            self.systemtray_scroll,
-            self.systemtray_activate,
+            self.on_tray_click,
+            self.on_tray_scroll,
+            self.on_tray_activate,
         )
 
         if self.config.show_trayicon:
