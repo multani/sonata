@@ -2957,6 +2957,7 @@ class Base:
 
     def on_tab_toggle(self, toggleAction):
         name = toggleAction.get_name()
+        label = toggleAction.get_label()
         if not toggleAction.get_active():
             # Make sure we aren't hiding the last visible tab:
             num_tabs_vis = 0
@@ -2968,15 +2969,15 @@ class Base:
                 toggleAction.set_active(True)
                 return
         # Store value:
-        if name == self.TAB_CURRENT:
+        if label == self.TAB_CURRENT:
             self.config.current_tab_visible = toggleAction.get_active()
-        elif name == self.TAB_LIBRARY:
+        elif label == self.TAB_LIBRARY:
             self.config.library_tab_visible = toggleAction.get_active()
-        elif name == self.TAB_PLAYLISTS:
+        elif label == self.TAB_PLAYLISTS:
             self.config.playlists_tab_visible = toggleAction.get_active()
-        elif name == self.TAB_STREAMS:
+        elif label == self.TAB_STREAMS:
             self.config.streams_tab_visible = toggleAction.get_active()
-        elif name == self.TAB_INFO:
+        elif label == self.TAB_INFO:
             self.config.info_tab_visible = toggleAction.get_active()
         # Hide/show:
         tabnum = self.notebook_get_tab_num(self.notebook, self.tabid2name[name])
