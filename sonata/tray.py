@@ -125,10 +125,9 @@ class TrayIcon:
         _ok, _screen, rect, _orient = self.statusicon.get_geometry()
         return (rect.x, rect.y, rect.height, rect.width)
 
-    def initialize(self, on_click, on_scroll, on_activate):
+    def initialize(self, on_click, on_scroll):
         self.statusicon = Gtk.StatusIcon()
-        self.statusicon.connect('activate', on_activate)
-        self.statusicon.connect('button_press_event', on_click)
+        self.statusicon.connect('button-press-event', on_click)
         self.statusicon.connect('scroll-event', on_scroll)
         GLib.timeout_add(250, self._iterate_status_icon)
 

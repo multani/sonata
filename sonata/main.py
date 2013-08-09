@@ -2437,9 +2437,10 @@ class Base:
                     self.config.columnwidths[i] = colwidth
         self.current.resizing_columns = False
 
-    def on_tray_activate(self, _status_icon):
-        # Clicking on a Gtk.StatusIcon:
-        if not self.ignore_toggle_signal:
+    def on_tray_click(self, _widget, event):
+        # Clicking on a system tray icon:
+        # Left button shows/hides window(s)
+        if event.button == 1 and not self.ignore_toggle_signal:
             # This prevents the user clicking twice in a row quickly
             # and having the second click not revert to the intial
             # state
@@ -2466,16 +2467,13 @@ class Base:
             # self.traytips._remove_timer()
             GLib.timeout_add(100, self.tooltip_set_ignore_toggle_signal_false)
 
-    def on_tray_click(self, _widget, event):
-        # Clicking on a system tray icon:
-        # Left button shows/hides window(s)
-        if event.button == 1 and not self.ignore_toggle_signal:
-            self.on_tray_activate(None)
         elif event.button == 2: # Middle button will play/pause
             if self.conn:
                 self.mpd_pp(None)
+
         elif event.button == 3: # Right button pops up menu
             self.traymenu.popup(None, None, None, None, event.button, event.time)
+
         return False
 
     def on_traytips_press(self, _widget, _event):
@@ -3160,7 +3158,6 @@ class Base:
         self.tray_icon.initialize(
             self.on_tray_click,
             self.on_tray_scroll,
-            self.on_tray_activate,
         )
 
         if self.config.show_trayicon:
