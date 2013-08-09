@@ -28,6 +28,8 @@ Bug fixes
     * Fix DND of custom artwork images in the main window
     * Fix breadcrumb icon in the library while browsing an album while in Artist view
     * Fix saving the visibility flag of tabs: https://github.com/multani/sonata/issues/45
+    * Fix hiding/showing the main window even if it's not the active widget:
+      https://github.com/multani/sonata/issues/43
 
 Internal changes
 ''''''''''''''''

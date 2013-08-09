@@ -2453,9 +2453,7 @@ class Base:
             # mpd is not running and sonata is started with
             # self.config.withdrawn = True
             window = self.window.get_window()
-            if window and \
-               not (window.get_state() & Gdk.WindowState.WITHDRAWN) and \
-               self.window.is_active():
+            if window and not (window.get_state() & Gdk.WindowState.WITHDRAWN):
                 # Window is not withdrawn and is active (has toplevel focus):
                 self.withdraw_app()
             else:
