@@ -2437,9 +2437,10 @@ class Base:
                     self.config.columnwidths[i] = colwidth
         self.current.resizing_columns = False
 
-    def systemtray_activate(self, _status_icon):
-        # Clicking on a Gtk.StatusIcon:
-        if not self.ignore_toggle_signal:
+    def on_tray_click(self, _widget, event):
+        # Clicking on a system tray icon:
+        # Left button shows/hides window(s)
+        if event.button == 1 and not self.ignore_toggle_signal:
             # This prevents the user clicking twice in a row quickly
             # and having the second click not revert to the intial
             # state
@@ -2447,14 +2448,12 @@ class Base:
             path_showmenu = '/traymenu/showmenu'
             prev_state = self.UIManager.get_widget(path_showmenu).get_active()
             self.UIManager.get_widget(path_showmenu).set_active(not prev_state)
-            if not self.window.get_window():
-                # For some reason, self.window.window is not defined if
-                # mpd is not running and sonata is started with
-                # self.config.withdrawn = True
-                self.withdraw_app_undo()
-            elif not (self.window.get_window().get_state() & \
-                      Gdk.WindowState.WITHDRAWN) and \
-                    self.window.is_active():
+
+            # For some reason, self.window.window is not defined if
+            # mpd is not running and sonata is started with
+            # self.config.withdrawn = True
+            window = self.window.get_window()
+            if window and not (window.get_state() & Gdk.WindowState.WITHDRAWN):
                 # Window is not withdrawn and is active (has toplevel focus):
                 self.withdraw_app()
             else:
@@ -2466,16 +2465,13 @@ class Base:
             # self.traytips._remove_timer()
             GLib.timeout_add(100, self.tooltip_set_ignore_toggle_signal_false)
 
-    def systemtray_click(self, _widget, event):
-        # Clicking on a system tray icon:
-        # Left button shows/hides window(s)
-        if event.button == 1 and not self.ignore_toggle_signal:
-            self.systemtray_activate(None)
         elif event.button == 2: # Middle button will play/pause
             if self.conn:
                 self.mpd_pp(None)
+
         elif event.button == 3: # Right button pops up menu
             self.traymenu.popup(None, None, None, None, event.button, event.time)
+
         return False
 
     def on_traytips_press(self, _widget, _event):
@@ -2537,7 +2533,7 @@ class Base:
         self.ignore_toggle_signal = False
 
     # Change volume on mousewheel over systray icon:
-    def systemtray_scroll(self, widget, event):
+    def on_tray_scroll(self, widget, event):
         direction = event.get_scroll_direction()[1]
         if self.conn:
             if direction == Gdk.ScrollDirection.UP:
@@ -3158,9 +3154,8 @@ class Base:
     def systemtray_initialize(self):
         # Make system tray 'icon' to sit in the system tray
         self.tray_icon.initialize(
-            self.systemtray_click,
-            self.systemtray_scroll,
-            self.systemtray_activate,
+            self.on_tray_click,
+            self.on_tray_scroll,
         )
 
         if self.config.show_trayicon:
