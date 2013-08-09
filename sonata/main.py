@@ -2448,14 +2448,14 @@ class Base:
             path_showmenu = '/traymenu/showmenu'
             prev_state = self.UIManager.get_widget(path_showmenu).get_active()
             self.UIManager.get_widget(path_showmenu).set_active(not prev_state)
-            if not self.window.get_window():
-                # For some reason, self.window.window is not defined if
-                # mpd is not running and sonata is started with
-                # self.config.withdrawn = True
-                self.withdraw_app_undo()
-            elif not (self.window.get_window().get_state() & \
-                      Gdk.WindowState.WITHDRAWN) and \
-                    self.window.is_active():
+
+            # For some reason, self.window.window is not defined if
+            # mpd is not running and sonata is started with
+            # self.config.withdrawn = True
+            window = self.window.get_window()
+            if window and \
+               not (window.get_state() & Gdk.WindowState.WITHDRAWN) and \
+               self.window.is_active():
                 # Window is not withdrawn and is active (has toplevel focus):
                 self.withdraw_app()
             else:
