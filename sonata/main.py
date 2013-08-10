@@ -1297,49 +1297,21 @@ class Base:
                     pass
         while Gtk.events_pending():
             Gtk.main_iteration()
+
+        # By default, if we don't know how to handle the content of the stream
+        # URI, just add it to MPD.
+        items = [item]
         if f:
             try:
                 f = f.decode()
             except UnicodeDecodeError:
-                # Binary file, just add it:
-                self.mpd.add(item)
+                self.logger.info("Adding binary stream from %s", item)
             else:
-                if "[playlist]" in f:
-                    # pls:
-                    self.stream_parse_pls(f)
-                elif "#EXTM3U" in f:
-                    # extended m3u:
-                    self.stream_parse_m3u(f)
-                elif "http://" in f:
-                    # m3u or generic list:
-                    self.stream_parse_m3u(f)
-                else:
-                    # Something else..
-                    self.mpd.add(item)
-        else:
+                items = streams.parse_stream(item, f)
+
+        for item in items:
             # Hopefully just a regular stream, try to add it:
             self.mpd.add(item)
-
-    def stream_parse_pls(self, f):
-        lines = f.split("\n")
-        for line in lines:
-            line = line.replace('\r', '')
-            delim = line.find("=") + 1
-            if delim > 0:
-                line = line[delim:]
-                if len(line) > 7 and line[0:7] == 'http://':
-                    self.mpd.add(line)
-                elif len(line) > 6 and line[0:6] == 'ftp://':
-                    self.mpd.add(line)
-
-    def stream_parse_m3u(self, f):
-        lines = f.split("\n")
-        for line in lines:
-            line = line.replace('\r', '')
-            if len(line) > 7 and line[0:7] == 'http://':
-                self.mpd.add(line)
-            elif len(line) > 6 and line[0:6] == 'ftp://':
-                self.mpd.add(line)
 
     def on_replace_item_play(self, widget):
         self.on_replace_item(widget, True)

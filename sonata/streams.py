@@ -19,6 +19,44 @@ from gi.repository import Gtk, Gdk, Pango
 from sonata import misc, ui
 
 
+def parse_stream(stream_uri, content):
+
+    if "[playlist]" in content:
+        # pls:
+        return parse_pls(content)
+    elif "#EXTM3U" in content:
+        # extended m3u:
+        return parse_m3u(content)
+    elif "http://" in content:
+        # m3u or generic list:
+        return parse_m3u(content)
+    else:
+        return [stream_uri]
+
+
+def parse_pls(f):
+    lines = f.split("\n")
+    for line in lines:
+        line = line.replace('\r', '')
+        delim = line.find("=") + 1
+        if delim > 0:
+            line = line[delim:]
+            if len(line) > 7 and line[0:7] == 'http://':
+                yield line
+            elif len(line) > 6 and line[0:6] == 'ftp://':
+                yield line
+
+
+def parse_m3u(f):
+    lines = f.split("\n")
+    for line in lines:
+        line = line.replace('\r', '')
+        if len(line) > 7 and line[0:7] == 'http://':
+            yield line
+        elif len(line) > 6 and line[0:6] == 'ftp://':
+            yield line
+
+
 class Streams:
     def __init__(self, config, window, on_streams_button_press, on_add_item, settings_save, TAB_STREAMS, add_tab):
         self.config = config
