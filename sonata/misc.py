@@ -77,12 +77,6 @@ def _rmgeneric(path, __func__):
         pass
 
 
-def is_binary(f):
-    if '\0' in f: # found null byte
-        return True
-    return False
-
-
 def link_markup(s, enclose_in_parentheses, small, linkcolor):
     if enclose_in_parentheses:
         s = "(%s)" % s
