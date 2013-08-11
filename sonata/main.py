@@ -1272,7 +1272,7 @@ class Base:
             self.mpd.playlistadd(plname, song)
         self.mpd.command_list_end()
 
-    def stream_parse_and_add(self, item):
+    def stream_parse_and_add(self, uri):
         # We need to do different things depending on if this is
         # a normal stream, pls, m3u, etc..
         # Note that we will only download the first 4000 bytes
@@ -1280,17 +1280,17 @@ class Base:
             Gtk.main_iteration()
         f = None
         try:
-            request = urllib.request.Request(item)
+            request = urllib.request.Request(uri)
             opener = urllib.request.build_opener()
             f = opener.open(request).read(4000)
         except:
             try:
-                request = urllib.request.Request("http://" + item)
+                request = urllib.request.Request("http://" + uri)
                 opener = urllib.request.build_opener()
                 f = opener.open(request).read(4000)
             except:
                 try:
-                    request = urllib.request.Request("file://" + item)
+                    request = urllib.request.Request("file://" + uri)
                     opener = urllib.request.build_opener()
                     f = opener.open(request).read(4000)
                 except:
@@ -1300,14 +1300,14 @@ class Base:
 
         # By default, if we don't know how to handle the content of the stream
         # URI, just add it to MPD.
-        items = [item]
+        items = [uri]
         if f:
             try:
                 f = f.decode()
             except UnicodeDecodeError:
-                self.logger.info("Adding binary stream from %s", item)
+                self.logger.info("Adding binary stream from %s", uri)
             else:
-                items = streams.parse_stream(item, f)
+                items = streams.parse_stream(uri, f)
 
         for item in items:
             # Hopefully just a regular stream, try to add it:
