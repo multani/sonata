@@ -1273,41 +1273,35 @@ class Base:
         self.mpd.command_list_end()
 
     def stream_parse_and_add(self, uri):
-        # We need to do different things depending on if this is
-        # a normal stream, pls, m3u, etc..
-        # Note that we will only download the first 4000 bytes
-        while Gtk.events_pending():
-            Gtk.main_iteration()
-        f = None
-        try:
-            request = urllib.request.Request(uri)
-            opener = urllib.request.build_opener()
-            f = opener.open(request).read(4000)
-        except:
-            try:
-                request = urllib.request.Request("http://" + uri)
-                opener = urllib.request.build_opener()
-                f = opener.open(request).read(4000)
-            except:
-                try:
-                    request = urllib.request.Request("file://" + uri)
-                    opener = urllib.request.build_opener()
-                    f = opener.open(request).read(4000)
-                except:
-                    pass
-        while Gtk.events_pending():
-            Gtk.main_iteration()
-
         # By default, if we don't know how to handle the content of the stream
         # URI, just add it to MPD.
         items = [uri]
-        if f:
+
+        # Try different URI, in case we don't have a good one.
+        # XXX: we should build new URI only if it makes sense. If .open() fails
+        # because a URI starting with "file://" doesn't exist anymore, it
+        # doesn't really matter to add file:// in front of it to try again.
+        for try_uri in [uri, "http://" + uri, "file://" + uri]:
+            while Gtk.events_pending():
+                Gtk.main_iteration()
+
+            try:
+                # Note that we will only download the first 4000 bytes
+                request = urllib.request.Request(uri)
+                opener = urllib.request.build_opener()
+                f = opener.open(request).read(4000)
+            except:
+                continue
+
+            # URI openable!
             try:
                 f = f.decode()
             except UnicodeDecodeError:
                 self.logger.info("Adding binary stream from %s", uri)
             else:
                 items = streams.parse_stream(uri, f)
+
+            break
 
         for item in items:
             # Hopefully just a regular stream, try to add it:
