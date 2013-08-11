@@ -1273,10 +1273,6 @@ class Base:
         self.mpd.command_list_end()
 
     def stream_parse_and_add(self, uri):
-        # By default, if we don't know how to handle the content of the stream
-        # URI, just add it to MPD.
-        items = [uri]
-
         # Try different URI, in case we don't have a good one.
         # XXX: we should build new URI only if it makes sense. If .open() fails
         # because a URI starting with "file://" doesn't exist anymore, it
@@ -1286,25 +1282,19 @@ class Base:
                 Gtk.main_iteration()
 
             try:
-                # Note that we will only download the first 4000 bytes
                 request = urllib.request.Request(uri)
                 opener = urllib.request.build_opener()
-                f = opener.open(request).read(4000)
+                fp = opener.open(request)
             except:
+                # We fail, maybe we'll just add the URI to MPD as it.
+                items = [uri]
                 continue
 
             # URI openable!
-            try:
-                f = f.decode()
-            except UnicodeDecodeError:
-                self.logger.info("Adding binary stream from %s", uri)
-            else:
-                items = streams.parse_stream(uri, f)
-
+            items = streams.parse_stream(try_uri, fp)
             break
 
         for item in items:
-            # Hopefully just a regular stream, try to add it:
             self.mpd.add(item)
 
     def on_replace_item_play(self, widget):

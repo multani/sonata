@@ -12,6 +12,7 @@ self.streams.populate()
 ...
 """
 
+import logging
 import os
 
 from gi.repository import Gtk, Gdk, Pango
@@ -19,7 +20,20 @@ from gi.repository import Gtk, Gdk, Pango
 from sonata import misc, ui
 
 
-def parse_stream(stream_uri, content):
+logger = logging.getLogger(__name__)
+
+
+def parse_stream(stream_uri, fp):
+    default = [stream_uri]
+
+    # We only download the first 4k bytes, which should be sufficient to get an
+    # idea if the stream is a M3U/PLS/etc. playlist or a binary file.
+    content = fp.read(4000)
+    try:
+        content = content.decode()
+    except UnicodeDecodeError: # Looks a binary content...
+        logger.info("Adding binary stream from %s", stream_uri)
+        return default
 
     if "[playlist]" in content:
         # pls:
@@ -31,7 +45,7 @@ def parse_stream(stream_uri, content):
         # m3u or generic list:
         return parse_m3u(content)
     else:
-        return [stream_uri]
+        return default
 
 
 def parse_pls(f):
