@@ -31,6 +31,9 @@ def parse_stream(stream_uri, fp):
     content = fp.read(4000)
     try:
         content = content.decode()
+        # If we can decode the first bytes, then read up to 64k bytes to parse
+        # this as a playlist.
+        content = content + fp.read(60000).decode()
     except UnicodeDecodeError: # Looks a binary content...
         logger.info("Adding binary stream from %s", stream_uri)
         return default
