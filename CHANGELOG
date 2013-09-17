@@ -30,6 +30,7 @@ Bug fixes
     * Fix saving the visibility flag of tabs: https://github.com/multani/sonata/issues/45
     * Fix hiding/showing the main window even if it's not the active widget:
       https://github.com/multani/sonata/issues/43
+    * Deleting a track doesn't toggle the filter bar anymore in the current playlist.
 
 Internal changes
 ''''''''''''''''

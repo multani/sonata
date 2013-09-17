@@ -1095,10 +1095,15 @@ class Base:
             # XXX this isn't the right thing with GTK input methods:
             text = chr(Gdk.keyval_to_unicode(event.keyval))
 
-            # We only want to toggle open the filterbar if the key press
-            # is actual text! This will ensure that we skip, e.g., F5, Alt,
-            # Ctrl, ...
-            if text != "\x00" and text.strip():
+            # Filter out those keys and don't toggle the filter bar if they are
+            # pressed.
+            filter_out = set([
+                '\x00', # F5, Alt, etc.
+                '\x08', # Backspace
+                '\x7f', # Delete
+            ])
+
+            if text not in filter_out and text.strip():
                 if not self.current.filterbox_visible:
                     if text != "/":
                         self.current.searchfilter_toggle(None, text)
