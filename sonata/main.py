@@ -1005,7 +1005,8 @@ class Base:
                     self.last_consume = self.status['consume']
                     return
         except:
-            pass
+            self.logger.exception("Unhandled error while updating status:")
+
         self.prevstatus = self.status
         self.prevsonginfo = self.songinfo
         self.conn = False
