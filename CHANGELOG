@@ -31,6 +31,7 @@ Bug fixes
     * Fix hiding/showing the main window even if it's not the active widget:
       https://github.com/multani/sonata/issues/43
     * Deleting a track doesn't toggle the filter bar anymore in the current playlist.
+    * Better support for MPD 0.18
 
 Internal changes
 ''''''''''''''''

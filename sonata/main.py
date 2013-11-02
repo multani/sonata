@@ -993,13 +993,17 @@ class Base:
                             self.status['random'] == '1')
                     if not self.last_consume or self.last_consume != self.status['consume']:
                         self.consumemenu.set_active(self.status['consume'] == '1')
-                    if self.status['xfade'] == '0':
-                        self.config.xfade_enabled = False
-                    else:
-                        self.config.xfade_enabled = True
-                        self.config.xfade = int(self.status['xfade'])
-                        if self.config.xfade > 30:
-                            self.config.xfade = 30
+
+                    self.config.xfade_enabled = False
+                    if 'xfade' in self.status:
+                        xfade = int(self.status['xfade'])
+
+                        if xfade != 0:
+                            self.config.xfade_enabled = True
+                            self.config.xfade = xfade
+                            if self.config.xfade > 30:
+                                self.config.xfade = 30
+
                     self.last_repeat = self.status['repeat']
                     self.last_random = self.status['random']
                     self.last_consume = self.status['consume']
