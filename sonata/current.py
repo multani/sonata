@@ -218,53 +218,20 @@ class Current:
             self.store.append([track] + items + weight)
 
     @try_keep_position
-    def current_update(self, prevstatus_playlist, new_playlist_length):
+    def current_update(self, prevstatus_playlist, new_length):
         if self.connected():
-            self.view.freeze_child_notify()
             self.unbold_boldrow(self.prev_boldrow)
 
             if not self.update_skip:
-                save_model = self.view.get_model()
-                self.view.set_model(None)
+                self.update_skip = True
                 if not prevstatus_playlist:
                     prevstatus_playlist = 0
 
                 changed_songs = self.mpd.plchanges(prevstatus_playlist)
-                logger.info("Playlist changed, %d new songs",
-                            len(changed_songs))
+                logger.info("Playlist changed, %d new songs", len(changed_songs))
 
-                newlen = int(new_playlist_length)
-                currlen = len(self.store)
-
-                for track in changed_songs:
-                    pos = track.pos
-
-                    items = [formatting.parse(part, track, True)
-                             for part in self.columnformat]
-
-                    if pos < currlen:
-                        # Update attributes for item:
-                        i = self.store.get_iter((pos, ))
-                        if track.id != self.store.get_value(i, 0).id:
-                            self.store.set_value(i, 0, track)
-                        for index in range(len(items)):
-                            if items[index] != self.store.get_value(i, index+1):
-                                self.store.set_value(i, index + 1, items[index])
-                    else:
-                        # Add new item:
-                        self.store.append(
-                            [track] + items + [Pango.Weight.NORMAL])
-
-                if newlen == 0:
-                    self.store.clear()
-                else:
-                    # Remove excess songs:
-                    for i in range(currlen - newlen):
-                        it = self.store.get_iter((currlen - 1 - i,))
-                        self.store.remove(it)
-
-                self.view.set_model(save_model)
-            self.update_skip = False
+                loader = self.populate_playlist(changed_songs, new_length)
+                GLib.idle_add(next, loader)
 
             # Update statusbar time:
             self.total_time = sum(item[0].time for item in self.store)
@@ -274,10 +241,52 @@ class Current:
                 self.boldrow(currsong)
                 self.prev_boldrow = currsong
 
-            self.view.thaw_child_notify()
             self.header_update_column_indicators()
             self.update_statusbar()
             ui.change_cursor(None)
+
+
+    def populate_playlist(self, changed_songs, new_length):
+        self.view.freeze_child_notify()
+        old_length = len(self.store)
+
+        for i, track in enumerate(changed_songs):
+            pos = track.pos
+
+            items = [formatting.parse(part, track, True)
+                     for part in self.columnformat]
+
+            if pos < old_length:
+                # Update attributes for item:
+                it = self.store.get_iter((pos, ))
+                if track.id != self.store.get_value(it, 0).id:
+                    self.store.set_value(it, 0, track)
+                for index in range(len(items)):
+                    if items[index] != self.store.get_value(it, index+1):
+                        self.store.set_value(it, index + 1, items[index])
+            else:
+                # Add new item:
+                self.store.append(
+                    [track] + items + [Pango.Weight.NORMAL])
+
+            if i % 20 == 0: # Yield to main loop once in a while
+                self.view.thaw_child_notify()
+                yield True
+                self.view.freeze_child_notify()
+
+        if new_length == 0:
+            self.store.clear()
+        else:
+            # Remove excess songs:
+            for i in range(old_length - new_length):
+                it = self.store.get_iter((old_length - 1 - i,))
+                self.store.remove(it)
+
+        self.view.thaw_child_notify()
+
+        self.update_skip = False
+        yield False # Stop idle_add()
+
 
     def header_update_column_indicators(self):
         # If we just sorted a column, display the sorting arrow:

@@ -1391,7 +1391,7 @@ class Base:
             if self.prevstatus:
                 prevstatus_playlist = self.prevstatus['playlist']
             self.current.current_update(prevstatus_playlist,
-                                        self.status['playlistlength'])
+                                        int(self.status['playlistlength']))
 
         # Update progress frequently if we're playing
         if self.status_is_play_or_pause():
