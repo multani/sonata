@@ -1,5 +1,6 @@
 """Handle the mpd current playlist and provides a user interface for it."""
 
+import logging
 import os
 import re
 import urllib.parse, urllib.request
@@ -8,6 +9,9 @@ from gi.repository import Gtk, Gdk, Pango, GLib
 
 from sonata import ui, misc, formatting
 from sonata.mpdhelper import MPDSong
+
+
+logger = logging.getLogger(__name__)
 
 
 class Current:
@@ -222,11 +226,12 @@ class Current:
             if not self.update_skip:
                 save_model = self.view.get_model()
                 self.view.set_model(None)
-                if prevstatus_playlist:
-                    changed_songs = self.mpd.plchanges(prevstatus_playlist)
-                else:
-                    changed_songs = self.mpd.plchanges(0)
+                if not prevstatus_playlist:
+                    prevstatus_playlist = 0
 
+                changed_songs = self.mpd.plchanges(prevstatus_playlist)
+                logger.info("Playlist changed, %d new songs",
+                            len(changed_songs))
 
                 newlen = int(new_playlist_length)
                 currlen = len(self.store)
