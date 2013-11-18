@@ -40,7 +40,7 @@ In order to run Sonata, you will need the following dependencies:
 * GTK >= 3.4
 * `python-mpd2` >= 0.4.6
 * MPD >= 0.15 (possibly on another computer)
-* taglib and tagpy for editing metadata (Optional)
+* taglib and tagpy >= 2013.1 for editing metadata (Optional)
 * dbus-python for multimedia keys (Optional)
 
 .. warning: Sonata depends on `PyGObject`_ which is still quite new and gets
