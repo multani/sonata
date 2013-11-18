@@ -62,6 +62,22 @@ Or you can run it straight from the directory (without prior installation)::
     $ ./run-sonata
 
 
+Sonata in Linux distributions
+-----------------------------
+
+This version of Sonata is available in several distributions:
+
+.. note:: For distribution-specific comments, please contact the packagers at
+    the specified URLs!
+
+* Archlinux: available in `AUR as sonata-git
+  <https://aur.archlinux.org/packages/sonata-git/>`_
+* Gentoo: available in the `stuff overlay`_::
+
+    sudo layman -a stuff
+    sudo emerge -av =sonata-9999
+
+
 Website, documentation, help, etc.
 ==================================
 
@@ -141,3 +157,4 @@ contributors. Many thanks to the past developers:
 .. _python programming language: http://www.python.org/
 .. _transifex: https://www.transifex.com
 .. _transifex sonata: https://www.transifex.com/projects/p/sonata/
+.. _stuff overlay: https://github.com/megabaks/stuff/tree/master/media-sound/sonata
