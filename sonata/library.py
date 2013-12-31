@@ -45,8 +45,8 @@ class Library(object):
 
         self.NOTAG = _("Untagged")
         self.VAstr = _("Various Artists")
-        self.search_terms = [_('Artist'), _('Title'), _('Album'), _('Genre'), _('Filename'), _('Everything')]
-        self.search_terms_mpd = ['artist', 'title', 'album', 'genre', 'file', 'any']
+        self.search_terms = [_('Artist'), _('Title'), _('Album'), _('Genre'), _('Filename'), _('Composer'), _('Everything!')]
+        self.search_terms_mpd = ['artist', 'title', 'album', 'genre', 'file', 'composer', 'any']
 
         self.libfilterbox_cmd_buf = None
         self.libfilterbox_cond = None
