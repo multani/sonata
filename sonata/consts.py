@@ -22,8 +22,9 @@ class Constants:
         self.ART_LOCAL_REMOTE = 1
         self.VIEW_FILESYSTEM = 0
         self.VIEW_ARTIST = 1
-        self.VIEW_GENRE = 2
-        self.VIEW_ALBUM = 3
+        self.VIEW_COMPOSER = 2
+        self.VIEW_GENRE = 3
+        self.VIEW_ALBUM = 4
         self.LYRIC_TIMEOUT = 10
         self.NOTIFICATION_WIDTH_MAX = 500
         self.NOTIFICATION_WIDTH_MIN = 350
@@ -44,9 +45,10 @@ class Constants:
         self.COVERS_TYPE_STANDARD = 0
         self.COVERS_TYPE_STYLIZED = 1
         self.LIB_LEVEL_GENRE = 0
-        self.LIB_LEVEL_ARTIST = 1
-        self.LIB_LEVEL_ALBUM = 2
-        self.LIB_LEVEL_SONG = 3
+        self.LIB_LEVEL_COMPOSER = 1
+        self.LIB_LEVEL_ARTIST = 2
+        self.LIB_LEVEL_ALBUM = 3
+        self.LIB_LEVEL_SONG = 4
         self.NUM_ARTISTS_FOR_VA = 2
 
         # the names of the plug-ins that will be enabled by default

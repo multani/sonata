@@ -350,6 +350,9 @@ class Current(object):
                 self.sort('col' + str(col_num), column)
                 return
 
+    def on_sort_by_composer(self, _action):
+        self.sort('composer')
+
     def on_sort_by_artist(self, _action):
         self.sort('artist')
 
@@ -398,7 +401,12 @@ class Current(object):
                 # Those items that don't have the specified tag will be put at
                 # the end of the list (hence the 'zzzzzzz'):
                 zzz = 'zzzzzzzz'
-                if mode == 'artist':
+                if mode == 'composer':
+                    record["sortby"] =  (misc.lower_no_the(mpdh.get(track, 'composer', zzz)),
+                                mpdh.get(track, 'artist', zzz).lower(),
+                                mpdh.get(track, 'disc', '0', True, 0),
+                                mpdh.get(track, 'track', '0', True, 0))
+                elif mode == 'artist':
                     record["sortby"] =  (misc.lower_no_the(mpdh.get(track, 'artist', zzz)),
                                 mpdh.get(track, 'album', zzz).lower(),
                                 mpdh.get(track, 'disc', '0', True, 0),

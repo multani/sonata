@@ -87,6 +87,7 @@ class Base(object):
 
         self.remote_albumentry = None
         self.remote_artistentry = None
+        self.remote_composerentry = None
         self.remote_dest_filename = None
         self.remotefilelist = None
         self.seekidle = None
@@ -197,6 +198,7 @@ class Base(object):
         self.iconfactory = gtk.IconFactory()
         ui.icon(self.iconfactory, 'sonata', self.find_path('sonata.png'))
         ui.icon(self.iconfactory, 'artist', self.find_path('sonata-artist.png'))
+        ui.icon(self.iconfactory, 'composer', self.find_path('sonata-composer.png'))
         ui.icon(self.iconfactory, 'album', self.find_path('sonata-album.png'))
         icon_theme = gtk.icon_theme_get_default()
         if HAVE_SUGAR:
@@ -340,6 +342,7 @@ class Base(object):
                 <menuitem action="rmmenu"/>
                 <menu action="sortmenu">
                   <menuitem action="sortbytitle"/>
+                  <menuitem action="sortbycomposer"/>
                   <menuitem action="sortbyartist"/>
                   <menuitem action="sortbyalbum"/>
                   <menuitem action="sortbyfile"/>
@@ -368,6 +371,7 @@ class Base(object):
               </popup>
               <popup name="librarymenu">
                 <menuitem action="filesystemview"/>
+                <menuitem action="composerview"/>
                 <menuitem action="artistview"/>
                 <menuitem action="genreview"/>
                 <menuitem action="albumview"/>
@@ -423,6 +427,7 @@ class Base(object):
 
         currentactions = [
             ('centerplaylistkey', None, 'Center Playlist Key', '<Ctrl>i', None, self.current.center_song_in_list),
+            ('sortbycomposer', None, _('By Composer'), None, None, self.current.on_sort_by_composer),
             ('sortbyartist', None, _('By Artist'), None, None, self.current.on_sort_by_artist),
             ('sortbyalbum', None, _('By Album'), None, None, self.current.on_sort_by_album),
             ('sortbytitle', None, _('By Song Title'), None, None, self.current.on_sort_by_title),
@@ -1787,9 +1792,12 @@ class Base(object):
                     info_file.write('Title: ' + mpdh.get(self.songinfo, 'artist') + ' - ' + mpdh.get(self.songinfo, 'title') + '\n')
                 except:
                     try:
-                        info_file.write('Title: ' + mpdh.get(self.songinfo, 'title') + '\n') # No Arist in streams
+                        info_file.write('Title: ' + mpdh.get(self.songinfo, 'composer') + ' - ' + mpdh.get(self.songinfo, 'title') + '\n')
                     except:
-                        info_file.write('Title: No - ID Tag\n')
+                        try:
+                            info_file.write('Title: ' + mpdh.get(self.songinfo, 'title') + '\n') # No Arist in streams
+                        except:
+                            info_file.write('Title: No - ID Tag\n')
                 info_file.write('Album: ' + mpdh.get(self.songinfo, 'album', 'No Data') + '\n')
                 info_file.write('Track: ' + mpdh.get(self.songinfo, 'track', '0') + '\n')
                 info_file.write('File: ' + mpdh.get(self.songinfo, 'file', 'No Data') + '\n')
@@ -2035,16 +2043,18 @@ class Base(object):
                 else:
                     self.switch_to_tab_name(self.last_tab)
         elif event.button == 3:
+            composer = None
             artist = None
             album = None
             stream = None
             if self.status_is_play_or_pause():
                 self.UIManager.get_widget('/imagemenu/chooseimage_menu/').show()
                 self.UIManager.get_widget('/imagemenu/localimage_menu/').show()
+                composer = mpdh.get(self.songinfo, 'composer', None)
                 artist = mpdh.get(self.songinfo, 'artist', None)
                 album = mpdh.get(self.songinfo, 'album', None)
                 stream = mpdh.get(self.songinfo, 'name', None)
-            if not (artist or album or stream):
+            if not (composer or artist or album or stream):
                 self.UIManager.get_widget('/imagemenu/localimage_menu/').hide()
                 self.UIManager.get_widget('/imagemenu/resetimage_menu/').hide()
                 self.UIManager.get_widget('/imagemenu/chooseimage_menu/').hide()
@@ -2282,11 +2292,12 @@ class Base(object):
         hbox = gtk.HBox()
         vbox = gtk.VBox()
         vbox.pack_start(ui.label(markup='<small> </small>'), False, False, 0)
+        self.remote_composerentry = ui.entry()
         self.remote_artistentry = ui.entry()
         self.remote_albumentry = ui.entry()
-        text = [("Artist"), _("Album")]
+        text = [("Composer"), ("Artist"), _("Album")]
         labels = [ui.label(text=labelname + ": ") for labelname in text]
-        entries = [self.remote_artistentry, self.remote_albumentry]
+        entries = [self.remote_composerentry, self.remote_artistentry, self.remote_albumentry]
         for entry, label in zip(entries, labels):
             tmphbox = gtk.HBox()
             tmphbox.pack_start(label, False, False, 5)
@@ -2319,6 +2330,7 @@ class Base(object):
         artist = self.album_current_artist[1]
         imagewidget.connect('item-activated', self.image_remote_replace_cover, artist.replace("/", ""), album.replace("/", ""), stream)
         self.choose_dialog.connect('response', self.image_remote_response, imagewidget, artist, album, stream)
+        self.remote_composerentry.set_text(composer)
         self.remote_artistentry.set_text(artist)
         self.remote_albumentry.set_text(album)
         self.allow_art_search = True
@@ -2888,7 +2900,9 @@ class Base(object):
 
     def on_link_click(self, linktype):
         browser_not_loaded = False
-        if linktype == 'artist':
+        if linktype == 'composer':
+            browser_not_loaded = not misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + urllib.quote(mpdh.get(self.songinfo, 'composer')), self.config.url_browser, self.window)
+        elif linktype == 'artist':
             browser_not_loaded = not misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + urllib.quote(mpdh.get(self.songinfo, 'artist')), self.config.url_browser, self.window)
         elif linktype == 'album':
             browser_not_loaded = not misc.browser_load("http://www.wikipedia.org/wiki/Special:Search/" + urllib.quote(mpdh.get(self.songinfo, 'album')), self.config.url_browser, self.window)
@@ -3130,7 +3144,8 @@ class Base(object):
         if self.conn:
             # Extract some MPD stats:
             mpdstats = mpdh.call(self.client, 'stats')
-            stats = {'artists': mpdstats['artists'],
+            stats = {'composers': mpdstats['composers'],
+                 'artists': mpdstats['artists'],
                  'albums': mpdstats['albums'],
                  'songs': mpdstats['songs'],
                  'db_playtime': mpdstats['db_playtime'],
