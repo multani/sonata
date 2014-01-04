@@ -265,6 +265,7 @@ class Library(object):
 
     def library_browse(self, _widget=None, root=None):
         # Populates the library list with entries
+        #print "root = ", root
         if not self.connected():
             return
 
@@ -347,12 +348,17 @@ class Library(object):
                     bd = self.library_populate_toplevel_data(artistview=True)
             elif self.config.lib_view == consts.VIEW_COMPOSER:
                 composer, album, artist, year = self.library_get_data(self.config.wd, 'composer', 'album', 'artist', 'year')
-                if composer is not None and artist is not None and album is not None and year is not None:
-                    bd = self.library_populate_data(composer=composer, artist=artist, album=album, year=year)
-                elif composer is not None and artist is not None and album is not None:
-                    bd = self.library_populate_data(composer=composer, artist=artist, album=album)
+                # print "config.wd = ", self.config.wd
+                # print "composer = ", composer
+                # print "artist = ", artist
+                if composer is not None and artist is not None and year is not None:
+                    bd = self.library_populate_data(composer=composer, artist=artist, year=year)
                 elif composer is not None and artist is not None:
                     bd = self.library_populate_data(composer=composer, artist=artist)
+                elif album is not None:
+                    bd = self.library_populate_data(album=album)
+                elif artist is not None:
+                    bd = self.library_populate_data(artist=artist)
                 elif composer is not None:
                     bd = self.library_populate_data(composer=composer)
                 else:
@@ -371,6 +377,7 @@ class Library(object):
             if len(bd) == 0:
                 # Nothing found; go up a level until we reach the top level
                 # or results are found
+                #print "Nothing found!"
                 last_wd = self.config.wd
                 self.config.wd = self.library_get_parent()
                 if self.config.wd == last_wd:
@@ -443,6 +450,7 @@ class Library(object):
                 if part is None:
                     continue
                 partdata = dict(zip(keys, parts)[:i+1])
+                #print "partdata = ", partdata
                 target = self.library_set_data(**partdata)
                 pb, icon = None, None
                 if key == 'album':
@@ -454,6 +462,8 @@ class Library(object):
                         icon = 'album'
                 elif key == 'artist':
                     icon = 'artist'
+                elif key == 'composer':
+                    icon = 'composer'
                 else:
                     icon = gtk.STOCK_ORIENTATION_PORTRAIT
                 crumbs.append((part, icon, pb, target))
@@ -461,6 +471,7 @@ class Library(object):
         # add a button for each crumb
         for crumb in crumbs:
             text, icon, pb, target = crumb
+            #print "target = ", target
             text = misc.escape_html(text)
             if crumb is crumbs[-1]:
                 text = "<b>%s</b>" % text
@@ -726,7 +737,7 @@ class Library(object):
     def library_populate_data_songs(self, composer, genre, artist, album, year):
         bd = []
         if composer is not None:
-            songs, _playtime, _num_songs = self.library_return_search_items(composer=composer, artist=artist, album=album, year=year)
+            songs, _playtime, _num_songs = self.library_return_search_items(composer=composer, genre=genre, artist=artist, album=album, year=year)
         elif genre is not None:
             songs, _playtime, _num_songs = self.library_return_search_items(genre=genre, artist=artist, album=album, year=year)
         else:
@@ -984,6 +995,7 @@ class Library(object):
 
     def on_library_key_press(self, widget, event):
         if event.keyval == gtk.gdk.keyval_from_name('Return'):
+            #print "key_press: ", widget.get_cursor()[0]
             self.on_library_row_activated(widget, widget.get_cursor()[0])
             return True
 
@@ -1034,6 +1046,12 @@ class Library(object):
             else:
                 return
         value = self.librarydata.get_value(self.librarydata.get_iter(path), 1)
+
+        #print "value = ", value
+        # print "path = ", path
+        # print "self.librarydata.get_iter(path) = ", self.librarydata.get_iter(path)
+        # print "self.librarydata = ", self.librarydata
+
         icon = self.librarydata.get_value(self.librarydata.get_iter(path), 0)
         if icon == self.sonatapb:
             # Song found, add item
@@ -1077,6 +1095,7 @@ class Library(object):
         if not self.search_visible():
             if self.library.is_focus():
                 value = self.library_get_parent()
+                #print "value = ", value
                 self.library_browse(None, value)
                 return True
 

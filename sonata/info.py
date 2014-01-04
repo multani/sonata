@@ -77,6 +77,8 @@ class Info(object):
         self.info_labels = {}
         self.info_boxes_in_more = []
         labels = [(_("Title"), 'title', False, "", False),
+            (_("Composer"), 'composer', True,
+                _("Launch composer in Wikipedia"), False),
             (_("Artist"), 'artist', True,
                 _("Launch artist in Wikipedia"), False),
             (_("Album"), 'album', True,
@@ -232,6 +234,7 @@ class Info(object):
                 getattr(self, "_update_%s" % func)(songinfo)
 
     def _update_song(self, songinfo):
+        composerlabel = self.info_labels['composer']
         artistlabel = self.info_labels['artist']
         tracklabel = self.info_labels['track']
         albumlabel = self.info_labels['album']
@@ -242,6 +245,9 @@ class Info(object):
             label.set_text(mpdh.get(songinfo, name))
 
         tracklabel.set_text(mpdh.get(songinfo, 'track', '', False))
+        composerlabel.set_markup(misc.link_markup(misc.escape_html(
+            mpdh.get(songinfo, 'composer')), False, False,
+            self.linkcolor))
         artistlabel.set_markup(misc.link_markup(misc.escape_html(
             mpdh.get(songinfo, 'artist')), False, False,
             self.linkcolor))

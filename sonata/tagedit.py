@@ -85,8 +85,9 @@ class TagEditor():
         # Initialize:
         self.tagnum = -1
 
-        tags = [{'title':'', 'artist':'', 'album':'', 'year':'', 'track':'',
+        tags = [{'title':'', 'composer':'', 'artist':'', 'album':'', 'year':'', 'track':'',
              'genre':'', 'comment':'', 'title-changed':False,
+             'composer-changed':False,
              'artist-changed':False, 'album-changed':False,
              'year-changed':False, 'track-changed':False,
              'genre-changed':False, 'comment-changed':False,
@@ -123,6 +124,7 @@ class TagEditor():
         filehbox.pack_start(blanklabel, False, False, 2)
 
         titlelabel, titleentry, titlebutton, titlehbox = self._create_label_entry_button_hbox(_("Title:"))
+        composerlabel, composerentry, composerbutton, composerhbox = self._create_label_entry_button_hbox(_("Composer:"))
         artistlabel, artistentry, artistbutton, artisthbox = self._create_label_entry_button_hbox(_("Artist:"))
         albumlabel, albumentry, albumbutton, albumhbox = self._create_label_entry_button_hbox(_("Album:"))
         yearlabel, yearentry, yearbutton, yearhbox = self._create_label_entry_button_hbox(_("Year:"))
@@ -149,9 +151,9 @@ class TagEditor():
 
         commentlabel, commententry, commentbutton, commenthbox = self._create_label_entry_button_hbox(_("Comment:"))
 
-        ui.set_widths_equal([titlelabel, artistlabel, albumlabel, yearlabel, genrelabel, commentlabel, sonataicon])
+        ui.set_widths_equal([titlelabel, composerlabel, artistlabel, albumlabel, yearlabel, genrelabel, commentlabel, sonataicon])
         genrecombo.set_size_request(-1, titleentry.size_request()[1])
-        tablewidgets = [ui.label(), filehbox, ui.label(), titlehbox, artisthbox, albumhbox, yearandtrackhbox, genrehbox, commenthbox, ui.label()]
+        tablewidgets = [ui.label(), filehbox, ui.label(), titlehbox, composerhbox, artisthbox, albumhbox, yearandtrackhbox, genrehbox, commenthbox, ui.label()]
         for i, widget in enumerate(tablewidgets):
             table.attach(widget, 1, 2, i+1, i+2, gtk.FILL|gtk.EXPAND, gtk.FILL|gtk.EXPAND, 2, 0)
         editwindow.vbox.pack_start(table)
@@ -163,9 +165,9 @@ class TagEditor():
         editwindow.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT)
         editwindow.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT)
         editwindow.connect('delete_event', self.tags_win_hide, tags)
-        entries = [titleentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry]
-        buttons = [titlebutton, artistbutton, albumbutton, yearbutton, trackbutton, genrebutton, commentbutton]
-        entries_names = ["title", "artist", "album", "year", "track", "genre", "comment"]
+        entries = [titleentry, composerentry, artistentry, albumentry, yearentry, trackentry, genreentry, commententry]
+        buttons = [titlebutton, composerbutton, artistbutton, albumbutton, yearbutton, trackbutton, genrebutton, commentbutton]
+        entries_names = ["title", "composer", "artist", "album", "year", "track", "genre", "comment"]
         editwindow.connect('response', self.tags_win_response, tags, entries, entries_names)
         if saveall_button:
             saveall_button.connect('clicked', self.tags_win_save_all, editwindow, tags, entries, entries_names)
@@ -215,7 +217,7 @@ class TagEditor():
     def tags_win_apply_all(self, _button, item, tags, entry):
         for tagnum, tag in enumerate(tags):
             tagnum = tagnum + 1
-            if item in ("title", "album", "artist", "genre", "comment"):
+            if item in ("title", "album", "composer", "artist", "genre", "comment"):
                 tag[item] = entry.get_text()
                 tag[item + '-changed'] = True
             elif item == "year":
@@ -235,14 +237,23 @@ class TagEditor():
             entry.set_text(str(tags[self.tagnum]['track']))
 
     def tags_win_update(self, window, tags, entries, entries_names):
+        #print "entries_names = ", entries_names
         current_tag = tags[self.tagnum]
+        #print "current_tag = ", current_tag
         tag = tagpy.FileRef(current_tag['fullpath']).tag()
+        mpegtag = tagpy.mpeg.File(current_tag['fullpath']).ID3v2Tag()
+        #print "tag = ", tag
         # Update interface:
         for entry, entry_name in zip(entries, entries_names):
             # Only retrieve info from the file if the info hasn't changed
             if not current_tag[entry_name + "-changed"]:
-                current_tag[entry_name] = getattr(tag, entry_name, '')
+                if not entry_name in ['composer']:
+                    current_tag[entry_name] = getattr(tag, entry_name, '')
+                else:
+                    current_tag[entry_name] = self.getOtherFromTag(mpegtag, entry_name)
             tag_value = current_tag[entry_name]
+            #print "entry_name = ", entry_name
+            #print "tag_value: ", tag_value
             if tag_value == 0:
                 tag_value = ''
             entry.set_text(str(tag_value).strip())
@@ -260,6 +271,16 @@ class TagEditor():
         window.set_title(_("Edit Tags - %s of %s") %
                     (self.tagnum+1, len(tags)))
         self.tags_win_set_sensitive(window.action_area)
+
+    def getOtherFromTag( self, mtag, nm ):
+        # workaround to get other fields e.g. composer (ajd)
+        codes = { 'composer': "TCOM" }
+        cd = codes[ nm ]
+        #print "cd = ", cd
+        frmlst =  mtag.frameListMap()
+        res = frmlst[cd][0].toString()
+        #print "attr: = ", res
+        return res
 
     def tags_win_set_sensitive(self, action_area):
         # Hacky workaround to allow the user to click the save button again when the
