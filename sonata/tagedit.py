@@ -242,7 +242,7 @@ class TagEditor():
         #print "current_tag = ", current_tag
         tag = tagpy.FileRef(current_tag['fullpath']).tag()
         mpegtag = tagpy.mpeg.File(current_tag['fullpath']).ID3v2Tag()
-        #print "tag = ", tag
+        #print "tag = ", dir(tag)
         # Update interface:
         for entry, entry_name in zip(entries, entries_names):
             # Only retrieve info from the file if the info hasn't changed
@@ -278,9 +278,25 @@ class TagEditor():
         cd = codes[ nm ]
         #print "cd = ", cd
         frmlst =  mtag.frameListMap()
-        res = frmlst[cd][0].toString()
+        #print "frmlst = ", frmlst.keys()
+        try:
+            res = frmlst[cd][0].toString()
+        except:
+            res = ""
         #print "attr: = ", res
         return res
+
+    def setOtherToTag( self, mtag, nm, val ):
+        # workaround to set other fields e.g. composer (ajd)
+        codes = { 'composer': "TCOM" }
+        cd = codes[ nm ]
+        #print "cd = ", cd
+        frmlst =  mtag.frameListMap()
+        try:
+            frmlst[cd][0].setText( val )
+        except:
+            print "Failed to set {}.".format( nm )
+
 
     def tags_win_set_sensitive(self, action_area):
         # Hacky workaround to allow the user to click the save button again when the
@@ -304,6 +320,8 @@ class TagEditor():
                 gtk.main_iteration()
             filetag = tagpy.FileRef(tags[self.tagnum]['fullpath'])
             tag = filetag.tag()
+            mpegfiletag = tagpy.mpeg.File(tags[self.tagnum]['fullpath'])
+            mpegtag = mpegfiletag.ID3v2Tag()
             # Set tag fields according to entry text
             for entry, field in zip(entries, entries_names):
                 tag_value = entry.get_text().strip()
@@ -314,9 +332,12 @@ class TagEditor():
                 if field is 'comment':
                     if len(tag_value) == 0:
                         tag_value = ' '
-                setattr(tag, field, tag_value)
+                if not field in ( 'composer' ):
+                    setattr(tag, field, tag_value)
+                else:
+                    self.setOtherToTag( mpegtag, field, tag_value )
 
-            save_success = filetag.save()
+            save_success = filetag.save() and mpegfiletag.save() 
             if not (save_success): # FIXME: was (save_success and self.conn and self.status):
                 ui.show_msg(self.window, _("Unable to save tag to music file."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=ui.dialog_destroy)
             if self.tags_next_tag(tags):
