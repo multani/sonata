@@ -533,11 +533,12 @@ class FetchLyricsWorker:
                                               title_then, song_dir)
             # Save lyrics to file:
             misc.create_dir('~/.lyrics/')
+            self.logger.info("Saving lyrics to: %s", filename)
             try:
                 with open(filename, 'w', encoding="utf-8") as f:
                     lyrics = misc.unescape_html(lyrics)
                     f.write(lyrics)
-            except IOError:
-                pass
+            except IOError as e:
+                self.logger.warning("Can't save lyrics to %s: %s", filename, e)
 
         self.communicate(artist_then, title_then, lyrics, error)
