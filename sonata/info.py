@@ -4,10 +4,37 @@ import locale
 import logging
 import threading
 
-from gi.repository import Gtk, Pango, Gdk, GdkPixbuf
+from gi.repository import Gtk, Pango, Gdk, GdkPixbuf, GLib
 
 from sonata import ui, misc, consts, mpdhelper as mpdh, img
 from sonata.pluginsystem import pluginsystem
+
+
+def target_lyrics_filename(cfg, artist, title, song_dir, force_location=None):
+    """Get the filename of the lyrics of a song"""
+
+    lyrics_loc = force_location if force_location else cfg.lyrics_location
+
+    if song_dir is not None:
+        song_dir.replace('%', '%%')
+
+    music_dir = cfg.musicdir[cfg.profile_num].replace('%', '%%')
+    pattern1 = "%s-%s.txt"
+    pattern2 = "%s - %s.txt"
+
+    # Note: *_ALT searching is for compatibility with other mpd clients
+    # (like ncmpcpp):
+    file_map = {
+        consts.LYRICS_LOCATION_HOME: ("~/.lyrics", pattern1),
+        consts.LYRICS_LOCATION_PATH: (music_dir, song_dir, pattern1),
+        consts.LYRICS_LOCATION_HOME_ALT: ("~/.lyrics", pattern2),
+        consts.LYRICS_LOCATION_PATH_ALT: (music_dir, song_dir, pattern2),
+    }
+
+    file_path = os.path.join(*file_map[lyrics_loc])
+    file_path = os.path.expanduser(file_path) % (artist, title)
+
+    return misc.file_exists_insensitive(file_path)
 
 
 class Info:
@@ -283,8 +310,8 @@ class Info:
             consts.LYRICS_LOCATION_HOME_ALT,
             consts.LYRICS_LOCATION_PATH_ALT]
         for location in locations:
-            filename = self.target_lyrics_filename(artist, title,
-                                song_dir, location)
+            filename = target_lyrics_filename(self.config, artist, title,
+                                              song_dir, location)
             if os.path.exists(filename):
                 return filename
 
@@ -332,66 +359,19 @@ class Info:
                 lyrics = lyrics[len(header):]
             self._show_lyrics(filename_artist, filename_title, lyrics=lyrics)
         else:
+            def communicate(artist_then, title_then, lyrics=None, error=None):
+                """Schedule actions from the plugin thread into the main
+                thread"""
+                GLib.idle_add(self._show_lyrics, artist_then, title_then,
+                              lyrics, error)
+
             # Fetch lyrics from plugins.
-            thread = threading.Thread(target=self.fetch_lyrics_from_plugins,
-                                      name="LyricsFetcher",
-                                      args=(search_artist, search_title,
-                                            song_dir))
+            thread = threading.Thread(
+                name="LyricsFetcher",
+                target=FetchLyricsWorker,
+                args=(self.config, communicate,
+                      search_artist, search_title, song_dir))
             thread.start()
-
-    def fetch_lyrics_from_plugins(self, search_artist, search_title, song_dir):
-        # Homogenize search patterns, so plugins don't have to do it.
-        search_artist = str(search_artist).title()
-        search_title = str(search_title).title()
-
-        lyrics_fetchers = pluginsystem.get('lyrics_fetching')
-        if lyrics_fetchers:
-            self.logger.info("Looking for lyrics for %r - %r...",
-                             search_artist, search_title)
-            self._show_lyrics(search_artist, search_title,
-                              lyrics=_("Fetching lyrics..."))
-            for plugin, get_lyrics in lyrics_fetchers:
-                try:
-                    lyrics = get_lyrics(search_artist, search_title)
-                except Exception as e:
-                    if self.logger.isEnabledFor(logging.DEBUG):
-                        # Be more verbose if we want something verbose
-                        log = self.logger.exception
-                    else:
-                        log = self.logger.warning
-
-                    log("Plugin %s: unable to fetch lyrics (%s)",
-                        plugin.name, e)
-                    continue
-
-                if lyrics:
-                    self.logger.info("Lyrics for %r - %r fetched by %r plugin.",
-                                     search_artist, search_title, plugin.name)
-                    self.get_lyrics_response(search_artist, search_title,
-                                             song_dir, lyrics=lyrics)
-                    return
-            msg = _("Lyrics not found.")
-        else:
-            self.logger.info("Can't look for lyrics, no plugin enabled.")
-            msg = _("No lyrics plug-in enabled.")
-
-        self._show_lyrics(search_artist, search_title, lyrics=msg)
-
-    def get_lyrics_response(self, artist_then, title_then, song_dir,
-                lyrics=None, error=None):
-        if lyrics and not error:
-            filename = self.target_lyrics_filename(artist_then, title_then,
-                                                   song_dir)
-            # Save lyrics to file:
-            misc.create_dir('~/.lyrics/')
-            try:
-                with open(filename, 'w', encoding="utf-8") as f:
-                    lyrics = misc.unescape_html(lyrics)
-                    f.write(lyrics)
-            except IOError:
-                pass
-
-        self._show_lyrics(artist_then, title_then, lyrics, error)
 
     def _show_lyrics(self, artist_then, title_then, lyrics=None, error=None):
         # For error messages where there is no appropriate info:
@@ -470,36 +450,6 @@ class Info:
         italic_tag.set_property('style', Pango.Style.ITALIC)
         tag_table.add(italic_tag)
 
-    def target_lyrics_filename(self, artist, title, song_dir,
-                               force_location=None):
-        """get the filename of the lyrics of a song"""
-
-        cfg = self.config # alias for easier access
-
-        # FIXME Why did we have this condition here: if self.conn:
-        lyrics_loc = force_location if force_location else cfg.lyrics_location
-
-        if song_dir is not None:
-            song_dir.replace('%', '%%')
-
-        music_dir = cfg.musicdir[cfg.profile_num].replace('%', '%%')
-        pattern1 = "%s-%s.txt"
-        pattern2 = "%s - %s.txt"
-
-        # Note: *_ALT searching is for compatibility with other mpd clients
-        # (like ncmpcpp):
-        file_map = {
-            consts.LYRICS_LOCATION_HOME: ("~/.lyrics", pattern1),
-            consts.LYRICS_LOCATION_PATH: (music_dir, song_dir, pattern1),
-            consts.LYRICS_LOCATION_HOME_ALT: ("~/.lyrics", pattern2),
-            consts.LYRICS_LOCATION_PATH_ALT: (music_dir, song_dir, pattern2),
-        }
-
-        file_path = os.path.join(*file_map[lyrics_loc])
-        file_path = os.path.expanduser(file_path) % (artist, title)
-
-        return misc.file_exists_insensitive(file_path)
-
     def on_artwork_changed(self, artwork_obj, pixbuf):
         if self._imagebox.get_size_request()[0] == -1:
             notebook_width = self.info_song_grid.get_parent().get_allocation().width
@@ -522,3 +472,72 @@ class Info:
 
     def on_artwork_reset(self, artwork_obj):
         self.image.set_from_icon_set(ui.icon('sonata-cd-large'), -1)
+
+
+class FetchLyricsWorker:
+    """Thread worker to fetch lyrics for a song
+
+    This must use the `communicate` method to commuicate with the main thread to
+    update the GUI.
+    """
+
+    def __init__(self, config, communicate, search_artist, search_title, song_dir):
+        self.config = config
+        self.communicate = communicate
+        self.logger = logging.getLogger(__name__)
+
+        self.fetch_lyrics(search_artist, search_title, song_dir)
+
+    def fetch_lyrics(self, search_artist, search_title, song_dir):
+        # Homogenize search patterns, so plugins don't have to do it.
+        search_artist = str(search_artist).title()
+        search_title = str(search_title).title()
+
+        lyrics_fetchers = pluginsystem.get('lyrics_fetching')
+        if lyrics_fetchers:
+            self.logger.info("Looking for lyrics for %r - %r...",
+                             search_artist, search_title)
+            self.communicate(search_artist, search_title,
+                             lyrics=_("Fetching lyrics..."))
+            for plugin, get_lyrics in lyrics_fetchers:
+                try:
+                    lyrics = get_lyrics(search_artist, search_title)
+                except Exception as e:
+                    if self.logger.isEnabledFor(logging.DEBUG):
+                        # Be more verbose if we want something verbose
+                        log = self.logger.exception
+                    else:
+                        log = self.logger.warning
+
+                    log("Plugin %s: unable to fetch lyrics (%s)",
+                        plugin.name, e)
+                    continue
+
+                if lyrics:
+                    self.logger.info("Lyrics for %r - %r fetched by %r plugin.",
+                                     search_artist, search_title, plugin.name)
+                    self.get_lyrics_response(search_artist, search_title,
+                                             song_dir, lyrics=lyrics)
+                    return
+            msg = _("Lyrics not found.")
+        else:
+            self.logger.info("Can't look for lyrics, no plugin enabled.")
+            msg = _("No lyrics plug-in enabled.")
+
+        self.communicate(search_artist, search_title, lyrics=msg)
+
+    def get_lyrics_response(self, artist_then, title_then, song_dir,
+                lyrics=None, error=None):
+        if lyrics and not error:
+            filename = target_lyrics_filename(self.config, artist_then,
+                                              title_then, song_dir)
+            # Save lyrics to file:
+            misc.create_dir('~/.lyrics/')
+            try:
+                with open(filename, 'w', encoding="utf-8") as f:
+                    lyrics = misc.unescape_html(lyrics)
+                    f.write(lyrics)
+            except IOError:
+                pass
+
+        self.communicate(artist_then, title_then, lyrics, error)
