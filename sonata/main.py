@@ -909,6 +909,7 @@ class Base:
         else:
             thread = threading.Thread(target=self._mpd_connect,
                                       args=(blocking, force))
+            thread.name = "MPD"
             thread.daemon = True
             thread.start()
 
@@ -2055,6 +2056,7 @@ class Base:
             paths = path.rsplit('\n')
             thread = threading.Thread(target=self.on_image_drop_cb_thread,
                                       args=(paths,))
+            thread.name = "ImageDrop"
             thread.daemon = True
             thread.start()
 
@@ -2354,6 +2356,7 @@ class Base:
         ui.change_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
         thread = threading.Thread(target=self._image_remote_refresh,
                                   args=(imagewidget, None))
+        thread.name = "ImageRemoteRefresh"
         thread.daemon = True
         thread.start()
 

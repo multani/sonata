@@ -116,6 +116,7 @@ class Artwork(GObject.GObject):
 
         self.lib_art_cond = threading.Condition()
         thread = threading.Thread(target=self._library_artwork_update)
+        thread.name = "ArtworkLibraryUpdate"
         thread.daemon = True
         thread.start()
 
@@ -321,6 +322,7 @@ class Artwork(GObject.GObject):
 
         if self.status_is_play_or_pause():
             thread = threading.Thread(target=self._artwork_update)
+            thread.name = "ArtworkUpdate"
             thread.daemon = True
             thread.start()
         else:
