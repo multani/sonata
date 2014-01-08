@@ -9,6 +9,11 @@ Bug fixes
       https://github.com/multani/sonata/issues/41
       https://github.com/multani/sonata/issues/38
 
+Internal changes
+''''''''''''''''
+
+    * slightly better performance when updating the library
+
 
 1.7a2 (2013-11-26)
 ------------------
