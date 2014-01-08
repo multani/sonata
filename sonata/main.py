@@ -29,9 +29,10 @@ import urllib.parse, urllib.request
 import re
 import gc
 import shutil
+import tempfile
 import threading
 
-from gi.repository import Gtk, Gdk, GdkPixbuf, GLib, Pango
+from gi.repository import Gtk, Gdk, GdkPixbuf, Gio, GLib, Pango
 
 import pkg_resources
 
@@ -428,7 +429,7 @@ class Base:
         uiDescription += "</ui>\n"
 
         # Try to connect to MPD:
-        self.mpd_connect(blocking=True)
+        self.mpd_connect()
         if self.conn:
             self.status = self.mpd.status()
             self.iterate_time = self.iterate_time_when_connected
@@ -903,17 +904,7 @@ class Base:
             self.config.profile_num = profile.get_current_value()
             self.on_connectkey_pressed(None)
 
-    def mpd_connect(self, blocking=False, force=False):
-        if blocking:
-            self._mpd_connect(blocking, force)
-        else:
-            thread = threading.Thread(target=self._mpd_connect,
-                                      args=(blocking, force))
-            thread.name = "MPD"
-            thread.daemon = True
-            thread.start()
-
-    def _mpd_connect(self, _blocking, force):
+    def mpd_connect(self, force=False):
         if self.trying_connection:
             return
         self.trying_connection = True
@@ -2006,62 +1997,60 @@ class Base:
 
     def on_image_drop_cb(self, _widget, _context, _x, _y, selection,
                          _info, _time):
-        if self.status_is_play_or_pause():
-            uri = selection.data.strip()
-            path = urllib.request.url2pathname(uri)
-            paths = path.rsplit('\n')
-            thread = threading.Thread(target=self.on_image_drop_cb_thread,
-                                      args=(paths,))
-            thread.name = "ImageDrop"
-            thread.daemon = True
-            thread.start()
+        if not self.status_is_play_or_pause():
+            return
 
-    def on_image_drop_cb_thread(self, paths):
-        for i, path in enumerate(paths):
-            remove_after_set = False
-            paths[i] = path.rstrip('\r')
-            # Clean up (remove preceding "file://" or "file:")
-            if paths[i].startswith('file://'):
-                paths[i] = paths[i][7:]
-            elif paths[i].startswith('file:'):
-                paths[i] = paths[i][5:]
-            elif re.match('^(https?|ftp)://', paths[i]):
-                try:
-                    # Eliminate query arguments and extract extension
-                    # & filename
-                    path = urllib.parse.urlparse(paths[i]).path
-                    extension = os.path.splitext(path)[1][1:]
-                    filename = os.path.split(path)[1]
-                    if img.extension_is_valid(extension):
-                        # Save to temp dir.. we will delete the image
-                        # afterwards
-                        dest_file = os.path.expanduser('~/.covers/temp/%s' % \
-                                                       (filename,))
-                        misc.create_dir('~/.covers/temp')
-                        src  = urllib.request.urlopen(paths[i], dest_file)
-                        dest = open(dest_file, "w+")
-                        dest.write(src.read())
-                        paths[i] = dest_file
-                        remove_after_set = True
-                    else:
-                        continue
-                except Exception as e:
-                    self.logger.critical("Can't retrieve cover: %s", e)
-                    # cleanup undone file
-                    misc.remove_file(paths[i])
-                    raise e
-            paths[i] = os.path.abspath(paths[i])
-            if img.valid_image(paths[i]):
-                stream = self.songinfo.name
-                if stream is not None:
-                    dest_filename = self.artwork.artwork_stream_filename(stream)
-                else:
-                    dest_filename = self.target_image_filename()
-                if dest_filename != paths[i]:
-                    shutil.copyfile(paths[i], dest_filename)
-                self.artwork.artwork_update(True)
-                if remove_after_set:
-                    misc.remove_file(paths[i])
+        data = selection.get_data().strip().decode('utf-8')
+        for uri in data.rsplit('\n'):
+            uri = uri.rstrip('\r')
+            if not uri:
+                continue
+
+            extension = os.path.splitext(
+                urllib.parse.urlparse(uri).path)[1][1:]
+            if not img.extension_is_valid(extension):
+                self.logger.debug(
+                    "Hum, the URI at '%s' doesn't look like an image...", uri)
+                continue
+
+            # XXX: this should be in artwork
+            stream = self.songinfo.name
+            if stream is not None:
+                destination = self.artwork.artwork_stream_filename(stream)
+            else:
+                destination = self.target_image_filename()
+
+            self.logger.info("Trying to download '%s' (to '%s') ...", uri,
+                             destination)
+
+            f = Gio.File.new_for_uri(uri)
+            f.load_contents_async(
+                None, self.on_image_drop_load_contents_async_end,
+                destination)
+
+    def on_image_drop_load_contents_async_end(self, file, result, destination):
+        source = result.get_source_object().get_uri()
+        try:
+            success, contents, etag = file.load_contents_finish(result)
+        except GLib.GError as e:
+            self.logger.warning("Can't retrieve %s: %s", source, e)
+            return
+
+        # XXX move to artwork
+        art_dir = os.path.expanduser('~/.covers/temp')
+        misc.create_dir(art_dir)
+
+        with tempfile.NamedTemporaryFile(dir=art_dir, delete=False) as t:
+            t.write(contents)
+
+        if not img.valid_image(t.name):
+            self.logger.warning("Downloaded '%s', but it's not an image :(",
+                                source)
+            misc.remove_file(t.name)
+            return
+
+        os.rename(t.name, destination)
+        self.artwork.artwork_update(True)
 
     def target_image_filename(self, force_location=None, songpath=None,
                               artist=None, album=None):

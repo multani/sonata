@@ -13,6 +13,13 @@ Internal changes
 ''''''''''''''''
 
     * slightly better performance when updating the library
+    * threading improvements:
+
+      - use GIO instead of a thread to download drag-and-droped covers
+      - remove the MPD from a dedicated thread. It works as good (if not
+        better) as before since the threaded code was poorly written anyway and
+        rendered the additionnal basically useless. This move is not definitive
+        but something better will probably come up some day.
 
 
 1.7a2 (2013-11-26)
