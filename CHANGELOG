@@ -5,6 +5,9 @@ Bug fixes
 '''''''''
 
     * fix crashs on Gtk.TextView when updating the lyrics of a song
+    * Fix streams parsing:
+      https://github.com/multani/sonata/issues/41
+      https://github.com/multani/sonata/issues/38
 
 
 1.7a2 (2013-11-26)

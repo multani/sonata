@@ -1283,72 +1283,30 @@ class Base:
             self.mpd.playlistadd(plname, song)
         self.mpd.command_list_end()
 
-    def stream_parse_and_add(self, item):
-        # We need to do different things depending on if this is
-        # a normal stream, pls, m3u, etc..
-        # Note that we will only download the first 4000 bytes
-        while Gtk.events_pending():
-            Gtk.main_iteration()
-        f = None
-        try:
-            request = urllib.request.Request(item)
-            opener = urllib.request.build_opener()
-            f = opener.open(request).read(4000)
-        except:
+    def stream_parse_and_add(self, uri):
+        # Try different URI, in case we don't have a good one.
+        # XXX: we should build new URI only if it makes sense. If .open() fails
+        # because a URI starting with "file://" doesn't exist anymore, it
+        # doesn't really matter to add file:// in front of it to try again.
+        for try_uri in [uri, "http://" + uri, "file://" + uri]:
+            while Gtk.events_pending():
+                Gtk.main_iteration()
+
             try:
-                request = urllib.request.Request("http://" + item)
+                request = urllib.request.Request(uri)
                 opener = urllib.request.build_opener()
-                f = opener.open(request).read(4000)
+                fp = opener.open(request)
             except:
-                try:
-                    request = urllib.request.Request("file://" + item)
-                    opener = urllib.request.build_opener()
-                    f = opener.open(request).read(4000)
-                except:
-                    pass
-        while Gtk.events_pending():
-            Gtk.main_iteration()
-        if f:
-            if misc.is_binary(f):
-                # Binary file, just add it:
-                self.mpd.add(item)
-            else:
-                if "[playlist]" in f:
-                    # pls:
-                    self.stream_parse_pls(f)
-                elif "#EXTM3U" in f:
-                    # extended m3u:
-                    self.stream_parse_m3u(f)
-                elif "http://" in f:
-                    # m3u or generic list:
-                    self.stream_parse_m3u(f)
-                else:
-                    # Something else..
-                    self.mpd.add(item)
-        else:
-            # Hopefully just a regular stream, try to add it:
+                # We fail, maybe we'll just add the URI to MPD as it.
+                items = [uri]
+                continue
+
+            # URI openable!
+            items = streams.parse_stream(try_uri, fp)
+            break
+
+        for item in items:
             self.mpd.add(item)
-
-    def stream_parse_pls(self, f):
-        lines = f.split("\n")
-        for line in lines:
-            line = line.replace('\r', '')
-            delim = line.find("=") + 1
-            if delim > 0:
-                line = line[delim:]
-                if len(line) > 7 and line[0:7] == 'http://':
-                    self.mpd.add(line)
-                elif len(line) > 6 and line[0:6] == 'ftp://':
-                    self.mpd.add(line)
-
-    def stream_parse_m3u(self, f):
-        lines = f.split("\n")
-        for line in lines:
-            line = line.replace('\r', '')
-            if len(line) > 7 and line[0:7] == 'http://':
-                self.mpd.add(line)
-            elif len(line) > 6 and line[0:6] == 'ftp://':
-                self.mpd.add(line)
 
     def on_replace_item_play(self, widget):
         self.on_replace_item(widget, True)

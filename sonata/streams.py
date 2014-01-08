@@ -12,11 +12,66 @@ self.streams.populate()
 ...
 """
 
+import logging
 import os
 
 from gi.repository import Gtk, Gdk, Pango
 
 from sonata import misc, ui
+
+
+logger = logging.getLogger(__name__)
+
+
+def parse_stream(stream_uri, fp):
+    default = [stream_uri]
+
+    # We only download the first 4k bytes, which should be sufficient to get an
+    # idea if the stream is a M3U/PLS/etc. playlist or a binary file.
+    content = fp.read(4000)
+    try:
+        content = content.decode()
+        # If we can decode the first bytes, then read up to 64k bytes to parse
+        # this as a playlist.
+        content = content + fp.read(60000).decode()
+    except UnicodeDecodeError: # Looks a binary content...
+        logger.info("Adding binary stream from %s", stream_uri)
+        return default
+
+    if "[playlist]" in content:
+        # pls:
+        return parse_pls(content)
+    elif "#EXTM3U" in content:
+        # extended m3u:
+        return parse_m3u(content)
+    elif "http://" in content:
+        # m3u or generic list:
+        return parse_m3u(content)
+    else:
+        return default
+
+
+def parse_pls(f):
+    lines = f.split("\n")
+    for line in lines:
+        line = line.replace('\r', '')
+        delim = line.find("=") + 1
+        if delim > 0:
+            line = line[delim:]
+            if len(line) > 7 and line[0:7] == 'http://':
+                yield line
+            elif len(line) > 6 and line[0:6] == 'ftp://':
+                yield line
+
+
+def parse_m3u(f):
+    lines = f.split("\n")
+    for line in lines:
+        line = line.replace('\r', '')
+        if len(line) > 7 and line[0:7] == 'http://':
+            yield line
+        elif len(line) > 6 and line[0:6] == 'ftp://':
+            yield line
 
 
 class Streams:
