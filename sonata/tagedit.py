@@ -16,6 +16,8 @@ import gtk, gobject
 tagpy = None # module loaded when needed
 
 import ui, misc
+#from ctypes import *
+#from ptr import *
 
 
 class TagEditor():
@@ -236,12 +238,52 @@ class TagEditor():
             # Update the entry for the current song:
             entry.set_text(str(tags[self.tagnum]['track']))
 
+    def getFileFormat(self, fpath):
+        _, fileext = os.path.splitext( fpath )
+        ftype = ""
+        if fileext in [ ".ogg", ".oga", ".OGG", ".OGA" ]:
+            ftype = "oga"
+        elif fileext in [ ".mp3", ".MP3" ]:
+            ftype = "mp3"
+        else:
+            ftype = ""
+        return ftype
+
+    def getTagCode(self, ext, nm ):
+        print "ext = ", ext
+        print "nm = ", nm
+        if ext == "mp3":
+            codes = { 'composer': "TCOM" }
+        elif ext == "oga":
+            codes = { 'composer': "COMPOSER" }
+        else:
+            return ""
+        return codes[ nm ]
+
+    def getFileOb( self, fpath, ext):
+        if ext == "mp3":
+            return tagpy.mpeg.File( fpath )
+        elif ext == "oga":
+            return tagpy.ogg.vorbis.File( fpath )
+        else:
+            return tagpy.FileRef( fpath )
+
+    def getTagOb( self, fob, ext ):
+        if ext == "mp3":
+            return fob.ID3v2Tag()
+        else:
+            return fob.tag()
+
+
     def tags_win_update(self, window, tags, entries, entries_names):
         #print "entries_names = ", entries_names
         current_tag = tags[self.tagnum]
         #print "current_tag = ", current_tag
-        tag = tagpy.FileRef(current_tag['fullpath']).tag()
-        mpegtag = tagpy.mpeg.File(current_tag['fullpath']).ID3v2Tag()
+        fpath = current_tag['fullpath']
+        ext = self.getFileFormat( fpath )
+        #print "fpath = ", fpath
+        fob = self.getFileOb( fpath, ext )
+        tag = self.getTagOb( fob, ext )
         #print "tag = ", dir(tag)
         # Update interface:
         for entry, entry_name in zip(entries, entries_names):
@@ -250,7 +292,7 @@ class TagEditor():
                 if not entry_name in ['composer']:
                     current_tag[entry_name] = getattr(tag, entry_name, '')
                 else:
-                    current_tag[entry_name] = self.getOtherFromTag(mpegtag, entry_name)
+                    current_tag[entry_name] = self.getOtherFromTag( tag, ext, entry_name )
             tag_value = current_tag[entry_name]
             #print "entry_name = ", entry_name
             #print "tag_value: ", tag_value
@@ -272,30 +314,58 @@ class TagEditor():
                     (self.tagnum+1, len(tags)))
         self.tags_win_set_sensitive(window.action_area)
 
-    def getOtherFromTag( self, mtag, nm ):
+    def getOtherFromTag( self, tag, ext, nm ):
         # workaround to get other fields e.g. composer (ajd)
-        codes = { 'composer': "TCOM" }
-        cd = codes[ nm ]
-        #print "cd = ", cd
-        frmlst =  mtag.frameListMap()
-        #print "frmlst = ", frmlst.keys()
-        try:
-            res = frmlst[cd][0].toString()
-        except:
-            res = ""
-        #print "attr: = ", res
-        return res
+        cd = self.getTagCode( ext, nm )
+        
+        print "cd = ", cd
 
-    def setOtherToTag( self, mtag, nm, val ):
+        if ext == "mp3":
+            frmlstmp =  tag.frameListMap()
+            #print "frmlst = ", frmlst.keys()
+            try:
+                res = frmlstmp[cd][0].toString()
+            except:
+                res = ""
+            #print "attr: = ", res
+            return res
+        elif ext == "oga":
+            try:
+                xiphcomp = tag.fieldListMap()[ cd ]
+                res = xiphcomp[ 0 ]
+            except:
+                res = ""
+            return res
+        else:
+            return ""
+            
+
+    def setOtherToTag( self, tag, ext, nm, val ):
         # workaround to set other fields e.g. composer (ajd)
-        codes = { 'composer': "TCOM" }
-        cd = codes[ nm ]
-        #print "cd = ", cd
-        frmlst =  mtag.frameListMap()
-        try:
-            frmlst[cd][0].setText( val )
-        except:
-            print "Failed to set {}.".format( nm )
+        ### Must check file type!!!!
+        cd = self.getTagCode( ext, nm )
+        if ext == "mp3":
+            frmlstmp =  tag.frameListMap()
+            try:
+                frmlstmp[cd][0].setText( val )
+            except:
+                newframe = tagpy.id3v2.TextIdentificationFrame( cd )
+                newframe.setText( val )
+                tag.addFrame( newframe )
+        elif ext == "oga":
+            #try:
+            tag.addField( cd, val, True )
+            #pckt = xiphprops.render().encode('utf-8')
+            #print "pckt = \n", pckt
+            #fob.setPacket( 1, pckt )
+            #print "new fob: \n", fob.packet( 1 )
+            #save_success = fob.save()
+            #print "saved fob: \n", fob.packet( 1 )
+            # except:
+            #     newframe = tagpy.id3v2.TextIdentificationFrame( cd )
+            #     newframe.setText( val )
+            #     mtag.addFrame( newframe )
+            
 
 
     def tags_win_set_sensitive(self, action_area):
@@ -312,16 +382,23 @@ class TagEditor():
             self.tags_win_response(window, gtk.RESPONSE_ACCEPT, tags, entries, entries_names)
 
     def tags_win_response(self, window, response, tags, entries, entries_names):
+        #print "entries_names = ", entries_names
+        current_tag = tags[self.tagnum]
+        #print "current_tag = ", current_tag
+
         if response == gtk.RESPONSE_REJECT:
             self.tags_win_hide(window, None, tags)
         elif response == gtk.RESPONSE_ACCEPT:
             window.action_area.set_sensitive(False)
             while window.action_area.get_property("sensitive") or gtk.events_pending():
                 gtk.main_iteration()
-            filetag = tagpy.FileRef(tags[self.tagnum]['fullpath'])
-            tag = filetag.tag()
-            mpegfiletag = tagpy.mpeg.File(tags[self.tagnum]['fullpath'])
-            mpegtag = mpegfiletag.ID3v2Tag()
+            fpath = current_tag['fullpath']
+            ext = self.getFileFormat( fpath )
+            #print "fpath = ", fpath
+            fob = self.getFileOb( fpath, ext )
+            tag = self.getTagOb( fob, ext )
+            #print "tag = ", dir(tag)
+
             # Set tag fields according to entry text
             for entry, field in zip(entries, entries_names):
                 tag_value = entry.get_text().strip()
@@ -335,9 +412,9 @@ class TagEditor():
                 if not field in ( 'composer' ):
                     setattr(tag, field, tag_value)
                 else:
-                    self.setOtherToTag( mpegtag, field, tag_value )
+                    self.setOtherToTag( tag, ext, field, tag_value )
 
-            save_success = filetag.save() and mpegfiletag.save() 
+            save_success = fob.save()
             if not (save_success): # FIXME: was (save_success and self.conn and self.status):
                 ui.show_msg(self.window, _("Unable to save tag to music file."), _("Edit Tags"), 'editTagsError', gtk.BUTTONS_CLOSE, response_cb=ui.dialog_destroy)
             if self.tags_next_tag(tags):
