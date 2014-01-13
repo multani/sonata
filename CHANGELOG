@@ -8,6 +8,8 @@ Bug fixes
     * Fix streams parsing:
       https://github.com/multani/sonata/issues/41
       https://github.com/multani/sonata/issues/38
+    * fix withdrawn mode by fixing incorrect usage of threads and Gtk
+      eco-system
 
 Internal changes
 ''''''''''''''''
