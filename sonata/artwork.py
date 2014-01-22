@@ -17,34 +17,37 @@ COVERS_TEMP_DIR = os.path.join(COVERS_DIR, 'temp')
 logger = logging.getLogger(__name__)
 
 
-def artwork_path_from_song(song, config, dir=None):
-    return artwork_path_from_data(
-        song.artist, song.album, os.path.dirname(song.file or ''), config, dir)
+def artwork_path_from_song(song, config, location_type=None):
+    return artwork_path_from_data(song.artist, song.album,
+                                  os.path.dirname(song.file), config,
+                                  location_type)
 
 
-def artwork_path_from_data(artist, album, path, config, dir=None):
+def artwork_path_from_data(artist, album, song_dir, config, location_type=None):
+    """Return the artwork path for the specified data"""
+
     artist = (artist or "").replace("/", "")
     album = (album or "").replace("/", "")
-    path = get_multicd_album_root_dir(path)
+    song_folder = os.path.join(
+        config.current_musicdir,
+        get_multicd_album_root_dir(song_dir)
+    )
 
-    # Return target filename:
-    if dir is None:
-        dir = config.art_location
+    if location_type is None:
+        location_type = config.art_location
 
-    music_dir = os.path.join(config.current_musicdir, path)
+    if location_type == consts.ART_LOCATION_HOMECOVERS:
+        paths = (COVERS_DIR, "%s-%s.jpg" % (artist, album))
+    elif location_type == consts.ART_LOCATION_COVER:
+        paths = (song_folder, "cover.jpg")
+    elif location_type == consts.ART_LOCATION_FOLDER:
+        paths = (song_folder, "folder.jpg")
+    elif location_type == consts.ART_LOCATION_ALBUM:
+        paths = (song_folder, "album.jpg")
+    elif location_type == consts.ART_LOCATION_CUSTOM:
+        paths = (song_folder, config.art_location_custom_filename)
 
-    if dir == consts.ART_LOCATION_HOMECOVERS:
-        cover = os.path.join(COVERS_DIR, "%s-%s.jpg" % (artist, album))
-    elif dir == consts.ART_LOCATION_COVER:
-        cover = os.path.join(music_dir, "cover.jpg")
-    elif dir == consts.ART_LOCATION_FOLDER:
-        cover = os.path.join(music_dir, "folder.jpg")
-    elif dir == consts.ART_LOCATION_ALBUM:
-        cover = os.path.join(music_dir, "album.jpg")
-    elif dir == consts.ART_LOCATION_CUSTOM:
-        cover = os.path.join(music_dir, config.art_location_custom_filename)
-
-    return misc.file_exists_insensitive(cover)
+    return os.path.join(*paths)
 
 def get_multicd_album_root_dir(albumpath):
     """Go one dir upper for multicd albums
@@ -297,8 +300,8 @@ class Artwork(GObject.GObject):
             if self.lib_model.get_value(i, 1) == data:
                 self.lib_model.set_value(i, 0, pb)
 
-    def library_get_album_cover(self, dirname, artist, album, pb_size):
-        _tmp, coverfile = self.artwork_get_local_image(dirname, artist, album)
+    def library_get_album_cover(self, song_dir, artist, album, pb_size):
+        _tmp, coverfile = self.artwork_get_local_image(artist, album, song_dir)
         if coverfile:
             try:
                 coverpb = GdkPixbuf.Pixbuf.new_from_file_at_size(coverfile,
@@ -366,7 +369,8 @@ class Artwork(GObject.GObject):
         self.misc_img_in_dir = None
         self.single_img_in_dir = None
         location_type, filename = self.artwork_get_local_image(
-            self.songinfo.file, self.songinfo.artist, self.songinfo.album)
+            self.songinfo.artist, self.songinfo.album,
+            os.path.dirname(self.songinfo.file))
 
         if location_type is not None and filename:
             if location_type == consts.ART_LOCATION_MISC:
@@ -378,16 +382,16 @@ class Artwork(GObject.GObject):
 
         return False
 
-    def artwork_get_local_image(self, songpath=None, artist=None, album=None):
+    def artwork_get_local_image(self, artist, album, song_dir=None):
         # Returns a tuple (location_type, filename) or (None, None).
-        # Only pass a songpath, artist, and album if we don't want
+        # Only pass a artist, album and song directory if we don't want
         # to use info from the currently playing song.
 
-        if songpath is None:
-            songpath = os.path.dirname(self.songinfo.file)
+        if song_dir is None:
+            song_dir = os.path.dirname(self.songinfo.file)
 
         get_artwork_path_from_song = functools.partial(artwork_path_from_data,
-            artist, album, songpath, self.config)
+            artist, album, song_dir, self.config)
 
         # Give precedence to images defined by the user's current
         # art_location config (in case they have multiple valid images
@@ -412,11 +416,11 @@ class Artwork(GObject.GObject):
            os.path.exists(testfile):
             return consts.ART_LOCATION_CUSTOM, testfile
 
-        if self.artwork_get_misc_img_in_path(songpath):
+        if self.artwork_get_misc_img_in_path(song_dir):
             return consts.ART_LOCATION_MISC, \
-                    self.artwork_get_misc_img_in_path(songpath)
+                    self.artwork_get_misc_img_in_path(song_dir)
 
-        path = os.path.join(self.config.current_musicdir, songpath)
+        path = os.path.join(self.config.current_musicdir, song_dir)
         testfile = img.single_image_in_dir(path)
         if testfile is not None:
             return consts.ART_LOCATION_SINGLE, testfile

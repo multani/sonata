@@ -115,7 +115,8 @@ class TestMPDSong(unittest.TestCase):
         self.assertEqual('c', song.foo)
 
 
-def additional_tests():
-    return unittest.TestSuite(
-       doctest.DocFileSuite('../artwork.py', optionflags=DOCTEST_FLAGS),
-    )
+def load_tests(loader, tests, ignore):
+    tests.addTests(doctest.DocTestSuite(
+        'sonata.artwork',
+        optionflags=DOCTEST_FLAGS))
+    return tests

@@ -88,6 +88,9 @@ setup(
         ]
     },
     test_suite='sonata.tests',
+    tests_require=[
+        'mock',
+    ]
 )
 try:
     os.remove("sonata/genversion.py")
