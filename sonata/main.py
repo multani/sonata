@@ -2009,7 +2009,7 @@ class Base:
 
             extension = os.path.splitext(
                 urllib.parse.urlparse(uri).path)[1][1:]
-            if not img.extension_is_valid(extension):
+            if extension not in img.VALID_EXTENSIONS:
                 self.logger.debug(
                     "Hum, the URI at '%s' doesn't look like an image...", uri)
                 continue

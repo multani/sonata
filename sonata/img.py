@@ -1,9 +1,17 @@
-
+import itertools
 import os
 
 from gi.repository import Gtk, Gdk, GdkPixbuf, GLib
 
 from sonata import consts
+
+
+VALID_EXTENSIONS =  set(
+    itertools.chain.from_iterable(
+        fmt.get_extensions()
+        for fmt in GdkPixbuf.Pixbuf.get_formats()
+    )
+)
 
 
 def valid_image(filename):
@@ -52,37 +60,6 @@ def pixbuf_pad(pix, w, h):
     y_pos = int((h - height) / 2)
     pix.copy_area(0, 0, width, height, transpbox, x_pos, y_pos)
     return transpbox
-
-
-def extension_is_valid(extension):
-    for imgformat in GdkPixbuf.Pixbuf.get_formats():
-        if extension.lower() in imgformat.get_extensions():
-            return True
-    return False
-
-
-def is_imgfile(filename):
-    ext = os.path.splitext(filename)[1][1:]
-    return extension_is_valid(ext)
-
-
-def single_image_in_dir(dirname):
-    # Returns None or a filename if there is exactly one image
-    # in the dir.
-    try:
-        dirname = GLib.filename_from_utf8(dirname)
-    except:
-        pass
-
-    try:
-        files = os.listdir(dirname)
-    except OSError:
-        return None
-
-    imgfiles = [f for f in files if is_imgfile(f)]
-    if len(imgfiles) != 1:
-        return None
-    return os.path.join(dirname, imgfiles[0])
 
 
 def do_style_cover(config, pix, w, h):

@@ -12,6 +12,12 @@ from setuptools import setup, Extension
 from sonata.version import version
 
 
+tests_require = []
+if sys.version_info < (3, 3):
+    # Available as unittest.mock since 3.3
+    tests_require.append('mock')
+
+
 def capture(cmd):
     return os.popen(cmd).read().strip()
 
@@ -88,9 +94,7 @@ setup(
         ]
     },
     test_suite='sonata.tests',
-    tests_require=[
-        'mock',
-    ]
+    tests_require=tests_require,
 )
 try:
     os.remove("sonata/genversion.py")
