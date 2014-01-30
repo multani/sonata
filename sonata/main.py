@@ -53,7 +53,6 @@ from sonata.song import SongRecord
 
 from sonata.version import version
 
-
 class Base:
 
     ### XXX Warning, a long __init__ ahead:
@@ -274,7 +273,9 @@ class Base:
              self.on_replace_item_play),
             ('rmmenu', None, _('_Delete...'), None, None, self.on_remove),
             ('sortshuffle', None, _('Shuffle'), '<Alt>r', None,
-             self.mpd_shuffle), ]
+             self.mpd_shuffle),
+            ('sortshufflealbums', None, _('Shuffle Albums'), None, None,
+             self.mpd_shufflealbums), ]
 
         keyactions = [
             ('expandkey', None, 'Expand Key', '<Alt>Down', None,
@@ -385,6 +386,7 @@ class Base:
                   <menuitem action="sortbydirfile"/>
                   <separator name="FM3"/>
                   <menuitem action="sortshuffle"/>
+                  <menuitem action="sortshufflealbums"/>
                   <menuitem action="sortreverse"/>
                 </menu>
                 <menu action="plmenu">
@@ -1919,6 +1921,15 @@ class Base:
             while Gtk.events_pending():
                 Gtk.main_iteration()
             self.mpd.shuffle()
+
+    def mpd_shufflealbums(self, _action):
+        if self.conn:
+            if not self.status or self.status['playlistlength'] == '0':
+                return
+            ui.change_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
+            while Gtk.events_pending():
+                Gtk.main_iteration()
+            self.mpd.shuffle_albums()
 
     def on_menu_popup(self, _widget):
         self.update_menu_visibility()
