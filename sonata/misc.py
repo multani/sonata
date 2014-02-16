@@ -177,6 +177,7 @@ def file_exists_insensitive(filename):
 
 
 def browser_load(docslink, browser, window):
+    logger.debug("Loading URL: %s", docslink)
     if browser and browser.strip():
         browsers = [browser.strip()]
     else:

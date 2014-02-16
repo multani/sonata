@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 import gettext
+import locale
 import logging
 import os
 import warnings
@@ -2824,28 +2825,31 @@ class Base:
         self.iterate_now()
 
     def on_link_click(self, linktype):
-        browser_not_loaded = False
-        wikipedia_search = "http://www.wikipedia.org/wiki/Special:Search/"
-        if linktype == 'artist':
-            browser_not_loaded = not misc.browser_load(
-                '%s%s' % (wikipedia_search,
-                          urllib.parse.quote(self.songinfo.artist or '')),
-                self.config.url_browser, self.window)
-        elif linktype == 'album':
-            browser_not_loaded = not misc.browser_load(
-                '%s%s' % (wikipedia_search,
-                          urllib.parse.quote(self.songinfo.album or '')),
-                self.config.url_browser, self.window)
+        if linktype in ['artist', 'album']:
+            query = getattr(self.songinfo, linktype) or ''
+            try:
+                wikipedia_locale = locale.getdefaultlocale()[0].split('_')[0]
+            except Exception as e:
+                self.logger.debug("Can't find locale for Wikipedia: %s", e)
+                wikipedia_locale = 'en'
+
+            url = "http://{locale}.wikipedia.org/wiki/Special:Search/{query}"\
+                    .format(locale=wikipedia_locale,
+                            query=urllib.parse.quote(query))
+            browser_loaded = misc.browser_load(
+                url, self.config.url_browser, self.window)
+
+            if not browser_loaded:
+                ui.show_msg(self.window,
+                            _('Unable to launch a suitable browser.'),
+                            _('Launch Browser'), 'browserLoadError',
+                            Gtk.ButtonsType.CLOSE)
+
         elif linktype == 'edit':
             if self.songinfo:
                 self.on_tags_edit(None)
         elif linktype == 'search':
             self.on_lyrics_search(None)
-
-        if browser_not_loaded:
-            ui.show_msg(self.window, _('Unable to launch a suitable browser.'),
-                        _('Launch Browser'),
-                        'browserLoadError', Gtk.ButtonsType.CLOSE)
 
     def on_tab_click(self, _widget, event):
         if event.button == 3:
