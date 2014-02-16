@@ -66,7 +66,6 @@ class Base:
 
         self.allow_art_search = None
         self.choose_dialog = None
-        self.image_local_dialog = None
         self.chooseimage_visible = None
 
         self.imagelist = None
@@ -2199,24 +2198,22 @@ class Base:
         del pixbuf
         self.call_gc_collect = True
 
-    def _image_local_init(self):
-        self.image_local_dialog = self.builder.get_object(
-            'local_artwork_dialog')
+    def image_local(self, _widget):
+        dialog = self.builder.get_object('local_artwork_dialog')
+
         filefilter = Gtk.FileFilter()
         filefilter.set_name(_("Images"))
         filefilter.add_pixbuf_formats()
-        self.image_local_dialog.add_filter(filefilter)
+        dialog.add_filter(filefilter)
+
         filefilter = Gtk.FileFilter()
         filefilter.set_name(_("All files"))
         filefilter.add_pattern("*")
-        self.image_local_dialog.add_filter(filefilter)
-        preview = self.builder.get_object('local_art_preview_image')
-        self.image_local_dialog.connect("update-preview",
-                                        self.update_preview, preview)
+        dialog.add_filter(filefilter)
 
-    def image_local(self, _widget):
-        if not self.image_local_dialog:
-            self._image_local_init()
+        preview = self.builder.get_object('local_art_preview_image')
+        dialog.connect("update-preview", self.update_preview, preview)
+
         stream = self.songinfo.name
         album = (self.songinfo.album or "").replace("/", "")
         artist = self.album_current_artist[1].replace("/", "")
@@ -2231,11 +2228,11 @@ class Base:
                 stream)
         else:
             self.local_dest_filename = self.target_image_filename()
-        self.image_local_dialog.show_all()
-        response = self.image_local_dialog.run()
+        dialog.show_all()
+        response = dialog.run()
 
         if response == Gtk.ResponseType.OK:
-            filename = self.image_local_dialog.get_filenames()[0]
+            filename = dialog.get_filenames()[0]
             # Copy file to covers dir:
             if self.local_dest_filename != filename:
                 shutil.copyfile(filename, self.local_dest_filename)
@@ -2243,7 +2240,7 @@ class Base:
             self.artwork.artwork_update(True)
             # Force a resize of the info labels, if needed:
             GLib.idle_add(self.on_notebook_resize, self.notebook, None)
-        self.image_local_dialog.hide()
+        dialog.hide()
 
     def imagelist_append(self, elem):
         self.imagelist.append(elem)

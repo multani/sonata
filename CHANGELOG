@@ -10,6 +10,7 @@ Bug fixes
       https://github.com/multani/sonata/issues/38
     * fix withdrawn mode by fixing incorrect usage of threads and Gtk
       eco-system
+    * choosing a local artwork wasn't working anymore
 
 Internal changes
 ''''''''''''''''
