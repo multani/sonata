@@ -19,6 +19,7 @@ Bug fixes
     * fix withdrawn mode by fixing incorrect usage of threads and Gtk
       eco-system
     * choosing a local artwork wasn't working anymore
+    * fix artwork caching
 
 Internal changes
 ''''''''''''''''
@@ -31,6 +32,9 @@ Internal changes
         better) as before since the threaded code was poorly written anyway and
         rendered the additionnal basically useless. This move is not definitive
         but something better will probably come up some day.
+
+    * Looking for covers isn't as filesystem expensive as before, but it
+      doesn't check for multiple possible cases in the cover name anymore.
 
 
 1.7a2 (2013-11-26)

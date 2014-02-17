@@ -256,8 +256,7 @@ class Info:
         artistlabel.set_text(misc.escape_html(songinfo.artist))
         albumlabel.set_text(misc.escape_html(songinfo.album))
 
-        path = os.path.join(self.config.musicdir[self.config.profile_num],
-                            songinfo.file)
+        path = os.path.join(self.config.current_musicdir, songinfo.file)
         if os.path.exists(path):
             filelabel.set_text(path)
             self._editlabel.show()
@@ -463,7 +462,7 @@ class Info:
             new_width = 150
 
         (pix2, w, h) = img.get_pixbuf_of_size(pixbuf, new_width)
-        # XXX apply composite cover on top of pix2
+        pix2 = img.do_style_cover(self.config, pix2, w, h)
         pix2 = img.pixbuf_add_border(pix2)
 
         self.image.set_from_pixbuf(pix2)

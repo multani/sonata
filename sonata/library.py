@@ -8,6 +8,7 @@ import operator
 from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Pango
 
 from sonata import ui, misc, consts, formatting, breadcrumbs, mpdhelper as mpdh
+from sonata.artwork import get_multicd_album_root_dir
 from sonata.song import SongRecord
 
 
@@ -30,7 +31,9 @@ def list_mark_various_artists_albums(albums):
             if j == consts.NUM_ARTISTS_FOR_VA - 1:
                 VA = True
         if VA:
-            albums[i].artist = VARIOUS_ARTISTS
+            album = albums[i]._asdict()
+            album['artist'] = VARIOUS_ARTISTS
+            albums[i] = SongRecord(**album)
             j = 1
             while i + j <= len(albums) - 1:
                 if albums[i].album.lower() == albums[i + j].album.lower() \
@@ -44,7 +47,7 @@ def list_mark_various_artists_albums(albums):
 class Library:
     def __init__(self, config, mpd, artwork, TAB_LIBRARY, settings_save,
                  filter_key_pressed, on_add_item, connected,
-                 on_library_button_press, add_tab, get_multicd_album_root_dir):
+                 on_library_button_press, add_tab):
         self.artwork = artwork
         self.config = config
         self.mpd = mpd
@@ -54,7 +57,6 @@ class Library:
         self.on_add_item = on_add_item
         self.connected = connected
         self.on_library_button_press = on_library_button_press
-        self.get_multicd_album_root_dir = get_multicd_album_root_dir
 
         self.NOTAG = _("Untagged")
         self.search_terms = [_('Artist'), _('Title'), _('Album'), _('Genre'),
@@ -457,8 +459,8 @@ class Library:
                     cache_data = SongRecord(artist=self.config.wd.artist,
                                             album=self.config.wd.album,
                                             path=self.config.wd.path)
-                    pb = self.artwork.get_library_artwork_cached_pb(cache_data,
-                                                                    None)
+                    pb = self.artwork.cache.get_pixbuf(cache_data,
+                                                       consts.LIB_COVER_SIZE)
                     if pb is None:
                         icon = 'album'
                 elif key == 'artist':
@@ -542,7 +544,8 @@ class Library:
             if pb == self.albumpb:
                 key = SongRecord(path=info[1].path, artist=info[1].artist,
                                  album=info[1].album)
-                pb2 = self.artwork.get_library_artwork_cached_pb(key, None)
+                pb2 = self.artwork.cache.get_pixbuf(key,
+                                                    consts.LIB_COVER_SIZE)
                 if pb2 is not None:
                     info[0] = pb2
         return bd
@@ -585,7 +588,7 @@ class Library:
                     album = item['album']
                     artist = item.get('artist', self.NOTAG)
                     year = item.get('date', self.NOTAG)
-                    path = self.get_multicd_album_root_dir(
+                    path = get_multicd_album_root_dir(
                         os.path.dirname(item['file']))
                     data = SongRecord(album=album, artist=artist,
                                       year=year, path=path)
@@ -699,8 +702,9 @@ class Library:
                         ordered_year = year
                         if ordered_year == self.NOTAG:
                             ordered_year = '9999'
-                        pb = self.artwork.get_library_artwork_cached_pb(
-                            cache_data, self.albumpb)
+                        pb = self.artwork.cache.get_pixbuf(
+                            cache_data, consts.LIB_COVER_SIZE,
+                            self.albumpb)
                         bd += [(ordered_year + misc.lower_no_the(album),
                                 [pb, data, display])]
             # Now, songs not in albums:
