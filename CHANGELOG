@@ -20,6 +20,7 @@ Bug fixes
       eco-system
     * choosing a local artwork wasn't working anymore
     * fix artwork caching
+    * keep the selected tab when hiding/showing Sonata using the tray icon
 
 Internal changes
 ''''''''''''''''
