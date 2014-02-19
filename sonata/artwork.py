@@ -102,7 +102,12 @@ class ArtworkLocator:
         if specific_kind is None:
             specific_kind = self.config.art_location
 
-        return next(iter(locations_map[specific_kind]))
+        try:
+            result = next(iter(locations_map[specific_kind]))
+        except StopIteration: # We tried an empty location :(
+            result = None
+        return result
+
 
     def path_from_song(self, song, specific_kind=None):
         """Same as `path()` but using a Song object."""

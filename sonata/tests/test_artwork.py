@@ -88,6 +88,14 @@ class TestArtworkPathFinder(unittest.TestCase):
         res = self._call_artwork_path_from_data()
         self.assertEqual('/foo/To/Ta/bar.png', res)
 
+    def test_find_path_from_data_as_custom_without_filename(self):
+        self.config.art_location_custom_filename = ""
+        self.config.art_location = consts.ART_LOCATION_CUSTOM
+
+        res = self._call_artwork_path_from_data()
+        # We tried CUSTOM without a valid custom filename :/
+        self.assertEqual(None, res)
+
     def test_find_path_from_data_force_location_type(self):
         self.config.art_location = "foo bar" # Should not be used
 
