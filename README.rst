@@ -73,7 +73,7 @@ This version of Sonata is available in several distributions:
 * Archlinux: available in `AUR as sonata-git
   <https://aur.archlinux.org/packages/sonata-git/>`_
 * Fedora: `Sonata
-  <https://admin.fedoraproject.org/pkgdb/acls/name/sonata>`_
+  <https://apps.fedoraproject.org/packages/sonata>`_
 * Gentoo: available in the `stuff overlay`_::
 
     sudo layman -a stuff
