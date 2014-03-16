@@ -1,5 +1,6 @@
 all:
 	@echo "Use 'make pull' or 'make push'"
+	@echo "(You need a 'berlios' host configured in ~/.ssh/config)"
 
 
 pull:
