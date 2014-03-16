@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Sonata Music Client for MPD - Documentation</title>
+    <link rel="stylesheet" type="text/css" href="screenstyle.css" />
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  </head>
+  <body>
+    <div class="container">
+
+      <div class="titleblock"><h1>Sonata</h1><p><i>An elegant music client for MPD</i></p></div>
+
+      <div><ul class="navbar">
+      <li><a href="index.html" class="nav">Home</a></li>
+      <li><a href="screenshots.html" class="nav">Screenshots</a></li>
+      <li><a href="download.html" class="nav">Download</a></li>
+      <li><a href="documentation.html" class="nav">Docs</a></li>
+      <li><a href="changelog.html" class="nav">Changelog</a></li>
+      <li><a href="support.html" class="nav">Support</a></li>
+      </ul></div>
+
+      <div class="content2">
+
+    <h2>Documentation</h2>
+
+    <p><a href="#overview">Overview</a><br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#parts">Main parts of the interface</a><br/>
+      <a href="#faq">FAQ</a><br/>
+      <a href="#shortcuts">Shortcuts</a><br/></p>
+
+    <p><b><a name="overview">Overview</a></b></p>
+
+    <p>Sonata is designed to be an elegant and intuitive interface
+      for your music collection via the Music Player Daemon
+      (MPD). Most actions are accessed through right-click popup
+      menus. The main window can be collapsed into a <em>mini</em>
+      view or expanded by clicking on the current song (with
+      the <tt>&gt;</tt> sign next to it).
+    </p>
+
+    <p>In the expanded view, the tabbed interface includes your
+      current playlist, info about the current song, your library
+      (browse by folders, genres, artists, or albums), your saved
+      playlists, and any streams (pls/m3u supported). You can
+      reorder the tabs by drag-and-dropping, and hide any of them
+      via a popup menu.
+    </p>
+
+    <p><b><a name="parts">Main parts of the interface</a></b></p>
+    <p><em>For the quickest access, see
+      the <a href="#shortcuts">keyboard shortcuts</a>.</em>
+    </p>
+    <dl>
+      <dt>Album art</dt>
+      <dd>Via a popup menu here, you can choose a remote or local
+        image file, or go to a fullscreen album art view.
+      </dd>
+      <dt>Playback controls</dt>
+      <dd>Sonata relays your playback commands to MPD. You can
+        seek within the current track by clicking on the progress
+        bar. The target of the volume control is set in the MPD
+        configuration file.
+      </dd>
+      <dt>Preferences</dt>
+      <dd>You can go through the settings here to customize Sonata
+        to your liking. You can also add connection profiles for
+        remote MPD servers, as well as activate audioscrobbling
+        (<a href="http://last.fm/">Last.fm</a>) support, track
+        cross-fading in MPD, and a now-playing status file.
+      </dd>
+      <dt>Current tab</dt>
+      <dd>MPD plays the songs from this current playlist. You can
+        add tracks from the library, playlists, or streams. You
+        can save the tracks into a playlist as well.
+        Pressing <tt>/</tt> (or simply starting to type)
+        brings up a text filter for the tracks.
+      </dd>
+      <dt>Info tab</dt>
+      <dd>Info about the currently playing track contains song
+        tags, album info, and lyrics.
+      </dd>
+      <dt>Library tab</dt>
+      <dd>This is the library of your music files that MPD knows
+        about. The top folder is set in the MPD configuration
+        file, and you can use the Update command in the popup menu
+        to make MPD check for changes. If the files are local, you
+        can open the tag editor here.<br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; By clicking the icon on the
+        bottom-left, you can choose to browse the library starting
+        from the top folder, or from a list of genres, artists, or
+        albums. By choosing the type of search on the
+        bottom-center and typing into the text field on the
+        bottom-right, you can search for tracks.
+      </dd>
+      <dt>Playlists tab</dt>
+      <dd>MPD has a folder of playlists. You can rename and delete
+        existing playlists here.
+      </dd>
+      <dt>Streams tab</dt>
+      <dd>Sonata keeps a list of Internet streams for you. You can
+        manage the entries here. The name you can choose freely,
+        the stream URL should either point directly to a stream
+        that MPD can play or to an m3u/pls document that lists
+        such streams.
+      </dd>
+      <dt>Tray status icon</dt>
+      <dd>The status icon on the system tray (if your desktop
+        environment provides one in its panels) lets you show and
+        hide the main window of Sonata with a mouse click. The
+        scroll wheel controls volume here. The popup menu includes
+        playback controls as well as the command for quitting
+        Sonata.
+      </dd>
+      <dt>Tag editor</dt>
+      <dd>You can select single or multiple files in the Current
+        and Library tabs and edit their metadata tags within Sonata,
+        if they are local files.
+      </dd>
+    </dl>
+
+    <p><b><a name="faq">FAQ</a></b></p>
+
+    <p>Frequently asked questions and answers about Sonata are kept at
+      the <a href="http://mpd.wikia.com/wiki/Client:Sonata/FAQ">MPD
+      wiki page Client:Sonata/FAQ</a>.</p>
+
+    <p><b><a name="shortcuts">Shortcuts</a></b></p>
+
+    <p>Note: This list can also be found by going to About > Shortcuts.</p>
+
+    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u>Main Shortcuts</u>:<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>F1</b>: About Sonata<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>F5</b>: Preferences<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>F11</b>: Fullscreen Artwork Mode<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Alt-[1-5]</b>: Switch to [1st-5th] tab<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Alt-C</b>: Connect to MPD<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Alt-D</b>: Disconnect from MPD<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Alt-R</b>: Randomize current playlist<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Alt-Down</b>: Expand player<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Alt-Left</b>: Switch to previous tab<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Alt-Right</b>: Switch to next tab<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Alt-Up</b>: Collapse player<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-H</b>: Search library<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-Q</b>: Quit<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-Shift-U</b>: Update entire library<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Menu</b>: Display popup menu<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Escape</b>: Minimize to system tray (if enabled)<br/></p>
+
+    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u>Playback Shortcuts</u>:<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-Left</b>: Previous track<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-Right</b>: Next track<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-P</b>: Play/Pause<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-S</b>: Stop<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-Minus</b>: Lower the volume<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-Plus</b>: Raise the volume<br/></p>
+
+    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u>Current Shortcuts</u>:<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Alt-R</b>: Randomize list<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Enter/Space</b>: Play selected song<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Delete</b>: Remove selected song(s)<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-I</b>: Center currently playing song<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-T</b>: Edit selected song's tags<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-Shift-S</b>: Save playlist<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-Delete</b>: Clear list<br/></p>
+
+    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u>Library Shortcuts</u>:<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Enter/Space</b>: Add selected song(s) or enter directory<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Backspace</b>: Go to parent directory<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-D</b>: Add selected song(s) or directory(s)<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-R</b>: Replace with selected song(s) or directory(s)<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-T</b>: Edit selected song's tags<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-Shift-D</b>: Add selected item(s) and play<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-Shift-R</b>: Replace with selected item(s) and play<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-U</b>: Update selected item(s)/path(s)<br/></p>
+
+    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u>Playlist Shortcuts</u>:<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Enter/Space</b>: Add selected playlist(s)<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Delete</b>: Remove selected playlist(s)<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-D</b>: Add selected playlist(s)<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-R</b>: Replace with selected playlist(s)<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-Shift-D</b>: Add selected playlist(s) and play<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-Shift-R</b>: Replace with selected playlist(s) and play<br/></p>
+
+    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u>Stream Shortcuts</u>:<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Enter/Space</b>: Add selected stream(s)<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Delete</b>: Remove selected stream(s)<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-D</b>: Add selected stream(s)<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-R</b>: Replace with selected stream(s)<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-Shift-D</b>: Add selected stream(s) and play<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-Shift-R</b>: Replace with selected stream(s) and play<br/></p>
+
+    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u>Info Shortcuts</u>:<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Ctrl-T</b>: Edit playing song's tags<br/></p>
+      </div>
+
+      <div class="footer">
+    <div class="right">
+      <p>&copy; 2008-2009 Scott Horowitz - 2009-2014 Jonathan Ballet</p>
+    </div>
+    <br/>
+      </div>
+
+    </div>
+  </body>
+</html>
