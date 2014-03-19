@@ -1919,9 +1919,6 @@ class Base:
         if self.conn:
             if not self.status or self.status['playlistlength'] == '0':
                 return
-            ui.change_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
-            while Gtk.events_pending():
-                Gtk.main_iteration()
             self.mpd.shuffle_albums()
 
     def on_menu_popup(self, _widget):
