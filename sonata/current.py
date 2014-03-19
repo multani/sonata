@@ -173,7 +173,7 @@ class Current:
     def dnd_get_data_for_file_managers(self, _treeview, context, selection,
                                        _info, timestamp):
 
-        if not os.path.isdir(self.config.musicdir[self.config.profile_num]):
+        if not os.path.isdir(self.config.current_musicdir):
             # Prevent the DND mouse cursor from looking like we can DND
             # when we clearly can't.
             return
@@ -195,8 +195,7 @@ class Current:
             item = self.store[index][0].file
             if return_abs_paths:
                 filenames.append(
-                    os.path.join(self.config.musicdir[self.config.profile_num],
-                                 item))
+                    os.path.join(self.config.current_musicdir, item))
             else:
                 filenames.append(item)
         return filenames
@@ -474,7 +473,7 @@ class Current:
         drop_info = treeview.get_dest_row_at_pos(x, y)
 
         if selection.get_data():
-            if not os.path.isdir(self.config.musicdir[self.config.profile_num]):
+            if not os.path.isdir(self.config.current_musicdir):
                 return
             # DND from outside sonata:
             uri = selection.get_data().strip().decode('utf-8')
@@ -483,7 +482,7 @@ class Current:
             mpdpaths = []
             # Strip off paranthesis so that we can DND entire music dir
             # if we wish.
-            musicdir = self.config.musicdir[self.config.profile_num][:-1]
+            musicdir = self.config.current_musicdir[:-1]
             for i, path in enumerate(paths):
                 paths[i] = path.rstrip('\r')
                 if paths[i].startswith('file://'):

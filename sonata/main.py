@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 import gettext
+import locale
 import logging
 import os
 import warnings
@@ -65,7 +66,6 @@ class Base:
 
         self.allow_art_search = None
         self.choose_dialog = None
-        self.image_local_dialog = None
         self.chooseimage_visible = None
 
         self.imagelist = None
@@ -183,9 +183,6 @@ class Base:
             self.user_connect = True
         args.apply_profile_arg(self.config)
 
-        self.notebook_show_first_tab = not self.config.tabs_expanded or \
-                self.config.withdrawn
-
         self.builder = ui.builder('sonata')
         self.provider = ui.css_provider('sonata')
 
@@ -216,7 +213,7 @@ class Base:
         # Artwork
         self.artwork = artwork.Artwork(
             self.config, misc.is_lang_rtl(self.window),
-            self.schedule_gc_collect, self.target_image_filename,
+            self.schedule_gc_collect,
             self.imagelist_append, self.remotefilelist_append,
             self.set_allow_art_search, self.status_is_play_or_pause,
             self.album_image, self.tray_album_image)
@@ -487,7 +484,7 @@ class Base:
             self.config, self.mpd, self.artwork, self.TAB_LIBRARY,
             self.settings_save, self.current.filter_key_pressed,
             self.on_add_item, self.connected, self.on_library_button_press,
-            self.add_tab, self.get_multicd_album_root_dir)
+            self.add_tab)
 
         self.library_treeview = self.library.get_treeview()
         self.library_selection = self.library.get_selection()
@@ -1755,7 +1752,7 @@ class Base:
                 self.withdraw_app()
                 return True
         self.settings_save()
-        self.artwork.artwork_save_cache()
+        self.artwork.cache.save()
         if self.config.as_enabled:
             self.scrobbler.save_cache()
         if self.conn and self.config.stop_on_exit:
@@ -1843,11 +1840,7 @@ class Base:
             hints.min_width = -1
             hints.max_width = -1
             self.window.set_geometry_hints(self.window, hints, Gdk.WindowHints.USER_SIZE)
-        if self.notebook_show_first_tab:
-            # Sonata was launched in collapsed state. Ensure we display
-            # first tab:
-            self.notebook_show_first_tab = False
-            self.notebook.set_current_page(0)
+
         # Put focus to the notebook:
         self.on_notebook_page_change(self.notebook, 0,
                                      self.notebook.get_current_page())
@@ -2020,17 +2013,12 @@ class Base:
 
             extension = os.path.splitext(
                 urllib.parse.urlparse(uri).path)[1][1:]
-            if not img.extension_is_valid(extension):
+            if extension not in img.VALID_EXTENSIONS:
                 self.logger.debug(
                     "Hum, the URI at '%s' doesn't look like an image...", uri)
                 continue
 
-            # XXX: this should be in artwork
-            stream = self.songinfo.name
-            if stream is not None:
-                destination = self.artwork.artwork_stream_filename(stream)
-            else:
-                destination = self.target_image_filename()
+            destination = artwork.artwork_path(self.songinfo, self.config)
 
             self.logger.info("Trying to download '%s' (to '%s') ...", uri,
                              destination)
@@ -2048,11 +2036,9 @@ class Base:
             self.logger.warning("Can't retrieve %s: %s", source, e)
             return
 
-        # XXX move to artwork
-        art_dir = os.path.expanduser('~/.covers/temp')
-        misc.create_dir(art_dir)
-
-        with tempfile.NamedTemporaryFile(dir=art_dir, delete=False) as t:
+        misc.create_dir(artwork.COVERS_TEMP_DIR)
+        with tempfile.NamedTemporaryFile(dir=artwork.COVERS_TEMP_DIR,
+                                         delete=False) as t:
             t.write(contents)
 
         if not img.valid_image(t.name):
@@ -2063,60 +2049,6 @@ class Base:
 
         os.rename(t.name, destination)
         self.artwork.artwork_update(True)
-
-    def target_image_filename(self, force_location=None, songpath=None,
-                              artist=None, album=None):
-        # Only pass songpath, artist, and album if we are trying to get the
-        # filename for an album that isn't currently playing
-        if self.conn:
-            # If no info passed, you info from currently playing song:
-            if not album:
-                album = self.songinfo.album or ""
-            if not artist:
-                artist = self.album_current_artist[1]
-            album = album.replace("/", "")
-            artist = artist.replace("/", "")
-            if songpath is None:
-                songpath = os.path.dirname(self.songinfo.file)
-            songpath = self.get_multicd_album_root_dir(songpath)
-            # Return target filename:
-            if force_location is not None:
-                art_loc = force_location
-            else:
-                art_loc = self.config.art_location
-            if art_loc == consts.ART_LOCATION_HOMECOVERS:
-                targetfile = os.path.join(os.path.expanduser("~/.covers"),
-                                          "%s-%s.jpg" % (artist, album))
-            elif art_loc == consts.ART_LOCATION_COVER:
-                targetfile = os.path.join(
-                    self.config.musicdir[self.config.profile_num],
-                    songpath, "cover.jpg")
-            elif art_loc == consts.ART_LOCATION_FOLDER:
-                targetfile = os.path.join(
-                    self.config.musicdir[self.config.profile_num],
-                    songpath, "folder.jpg")
-            elif art_loc == consts.ART_LOCATION_ALBUM:
-                targetfile = os.path.join(
-                    self.config.musicdir[self.config.profile_num],
-                    songpath, "album.jpg")
-            elif art_loc == consts.ART_LOCATION_CUSTOM:
-                targetfile = os.path.join(
-                    self.config.musicdir[self.config.profile_num],
-                    songpath, self.config.art_location_custom_filename)
-            targetfile = misc.file_exists_insensitive(targetfile)
-            return targetfile
-
-    def get_multicd_album_root_dir(self, albumpath):
-        """Go one dir upper for multicd albums
-        Examples:
-            'Moonspell/1995 - Wolfheart/cd 2' -> 'Moonspell/1995 - Wolfheart'
-            '2007 - Dark Passion Play/CD3' -> '2007 - Dark Passion Play'
-            'Ayreon/2008 - 01011001/CD 1 - Y' -> 'Ayreon/2008 - 01011001'
-        """
-
-        if re.compile(r'(?i)cd\s*\d+').match(os.path.split(albumpath)[1]):
-            albumpath = os.path.split(albumpath)[0]
-        return albumpath
 
     def album_return_artist_and_tracks(self):
         # Includes logic for Various Artists albums to determine
@@ -2210,43 +2142,37 @@ class Base:
         del pixbuf
         self.call_gc_collect = True
 
-    def _image_local_init(self):
-        self.image_local_dialog = self.builder.get_object(
-            'local_artwork_dialog')
+    def image_local(self, _widget):
+        dialog = self.builder.get_object('local_artwork_dialog')
+
         filefilter = Gtk.FileFilter()
         filefilter.set_name(_("Images"))
         filefilter.add_pixbuf_formats()
-        self.image_local_dialog.add_filter(filefilter)
+        dialog.add_filter(filefilter)
+
         filefilter = Gtk.FileFilter()
         filefilter.set_name(_("All files"))
         filefilter.add_pattern("*")
-        self.image_local_dialog.add_filter(filefilter)
-        preview = self.builder.get_object('local_art_preview_image')
-        self.image_local_dialog.connect("update-preview",
-                                        self.update_preview, preview)
+        dialog.add_filter(filefilter)
 
-    def image_local(self, _widget):
-        if not self.image_local_dialog:
-            self._image_local_init()
+        preview = self.builder.get_object('local_art_preview_image')
+        dialog.connect("update-preview", self.update_preview, preview)
+
         stream = self.songinfo.name
         album = (self.songinfo.album or "").replace("/", "")
         artist = self.album_current_artist[1].replace("/", "")
         songdir = os.path.dirname(self.songinfo.file)
-        currdir = os.path.join(self.config.musicdir[self.config.profile_num],
-                               songdir)
+        currdir = os.path.join(self.config.current_musicdir, songdir)
         if self.config.art_location != consts.ART_LOCATION_HOMECOVERS:
             dialog.set_current_folder(currdir)
-        if stream is not None:
-            # Allow saving an image file for a stream:
-            self.local_dest_filename = self.artwork.artwork_stream_filename(
-                stream)
-        else:
-            self.local_dest_filename = self.target_image_filename()
-        self.image_local_dialog.show_all()
-        response = self.image_local_dialog.run()
+
+        self.local_dest_filename = artwork.artwork_path(self.songinfo,
+                                                        self.config)
+        dialog.show_all()
+        response = dialog.run()
 
         if response == Gtk.ResponseType.OK:
-            filename = self.image_local_dialog.get_filenames()[0]
+            filename = dialog.get_filenames()[0]
             # Copy file to covers dir:
             if self.local_dest_filename != filename:
                 shutil.copyfile(filename, self.local_dest_filename)
@@ -2254,7 +2180,7 @@ class Base:
             self.artwork.artwork_update(True)
             # Force a resize of the info labels, if needed:
             GLib.idle_add(self.on_notebook_resize, self.notebook, None)
-        self.image_local_dialog.hide()
+        dialog.hide()
 
     def imagelist_append(self, elem):
         self.imagelist.append(elem)
@@ -2276,13 +2202,10 @@ class Base:
     def image_remote(self, _widget):
         if not self.choose_dialog:
             self._init_choose_dialog()
+
         stream = self.songinfo.name
-        if stream is not None:
-            # Allow saving an image file for a stream:
-            self.remote_dest_filename = self.artwork.artwork_stream_filename(
-                stream)
-        else:
-            self.remote_dest_filename = self.target_image_filename()
+        self.remote_dest_filename = artwork.artwork_path(self.songinfo,
+                                                         self.config)
         album = self.songinfo.album or ''
         artist = self.album_current_artist[1]
         self.image_widget.connect('item-activated', self.image_remote_replace_cover,
@@ -2326,7 +2249,7 @@ class Base:
         if len(artist_search) == 0 and len(album_search) == 0:
             GLib.idle_add(self.image_remote_no_tag_found, imagewidget)
             return
-        filename = os.path.expanduser("~/.covers/temp/<imagenum>.jpg")
+        filename = os.path.join(artwork.COVERS_TEMP_DIR, "<imagenum>.jpg")
         misc.remove_dir_recursive(os.path.dirname(filename))
         misc.create_dir(os.path.dirname(filename))
         imgfound = self.artwork.artwork_download_img_to_file(artist_search,
@@ -2465,11 +2388,6 @@ class Base:
         self.notebook.set_no_show_all(False)
         self.config.withdrawn = False
         self.UIManager.get_widget('/traymenu/showmenu').set_active(True)
-        if self.notebook_show_first_tab and self.config.expanded:
-            # Sonata was launched in withdrawn state. Ensure we display
-            # first tab:
-            self.notebook_show_first_tab = False
-            self.notebook.set_current_page(0)
         self.withdraw_app_undo_present_and_focus()
 
     def withdraw_app_undo_present_and_focus(self):
@@ -2838,28 +2756,31 @@ class Base:
         self.iterate_now()
 
     def on_link_click(self, linktype):
-        browser_not_loaded = False
-        wikipedia_search = "http://www.wikipedia.org/wiki/Special:Search/"
-        if linktype == 'artist':
-            browser_not_loaded = not misc.browser_load(
-                '%s%s' % (wikipedia_search,
-                          urllib.parse.quote(self.songinfo.artist or '')),
-                self.config.url_browser, self.window)
-        elif linktype == 'album':
-            browser_not_loaded = not misc.browser_load(
-                '%s%s' % (wikipedia_search,
-                          urllib.parse.quote(self.songinfo.album or '')),
-                self.config.url_browser, self.window)
+        if linktype in ['artist', 'album']:
+            query = getattr(self.songinfo, linktype) or ''
+            try:
+                wikipedia_locale = locale.getdefaultlocale()[0].split('_')[0]
+            except Exception as e:
+                self.logger.debug("Can't find locale for Wikipedia: %s", e)
+                wikipedia_locale = 'en'
+
+            url = "http://{locale}.wikipedia.org/wiki/Special:Search/{query}"\
+                    .format(locale=wikipedia_locale,
+                            query=urllib.parse.quote(query))
+            browser_loaded = misc.browser_load(
+                url, self.config.url_browser, self.window)
+
+            if not browser_loaded:
+                ui.show_msg(self.window,
+                            _('Unable to launch a suitable browser.'),
+                            _('Launch Browser'), 'browserLoadError',
+                            Gtk.ButtonsType.CLOSE)
+
         elif linktype == 'edit':
             if self.songinfo:
                 self.on_tags_edit(None)
         elif linktype == 'search':
             self.on_lyrics_search(None)
-
-        if browser_not_loaded:
-            ui.show_msg(self.window, _('Unable to launch a suitable browser.'),
-                        _('Launch Browser'),
-                        'browserLoadError', Gtk.ButtonsType.CLOSE)
 
     def on_tab_click(self, _widget, event):
         if event.button == 3:
@@ -3077,16 +2998,14 @@ class Base:
                 # Use current file in songinfo:
                 mpdpath = self.songinfo.file
                 fullpath = os.path.join(
-                    self.config.musicdir[self.config.profile_num], mpdpath)
+                    self.config.current_musicdir, mpdpath)
                 files.append(fullpath)
                 temp_mpdpaths.append(mpdpath)
         elif self.current_tab == self.TAB_LIBRARY:
             # Populates files array with selected library items:
             items = self.library.get_path_child_filenames(False)
             for item in items:
-                files.append(
-                    os.path.join(self.config.musicdir[self.config.profile_num],
-                                 item))
+                files.append(os.path.join(self.config.current_musicdir, item))
                 temp_mpdpaths.append(item)
         elif self.current_tab == self.TAB_CURRENT:
             # Populates files array with selected current playlist items:
@@ -3098,7 +3017,7 @@ class Base:
                                       self.tags_set_use_mpdpath)
         tageditor.set_use_mpdpaths(self.config.tags_use_mpdpath)
         tageditor.on_tags_edit(files, temp_mpdpaths,
-                               self.config.musicdir[self.config.profile_num])
+                               self.config.current_musicdir)
 
     def tags_set_use_mpdpath(self, use_mpdpath):
         self.config.tags_use_mpdpath = use_mpdpath
@@ -3155,6 +3074,7 @@ class Base:
 
 class FullscreenApp:
     def __init__(self, config, get_fullscreen_info):
+        self.config = config
         self.get_fullscreen_info = get_fullscreen_info
         self.currentpb = None
         builder = ui.builder('sonata')
@@ -3214,8 +3134,9 @@ class FullscreenApp:
                 self.reset()
             else:
                 # Artwork for fullscreen cover mode
-                (pix3, w, h) = img.get_pixbuf_of_size(self.currentpb,
-                                                  consts.FULLSCREEN_COVER_SIZE)
+                (pix3, w, h) = img.get_pixbuf_of_size(
+                    self.currentpb, consts.FULLSCREEN_COVER_SIZE)
+                pix3 = img.do_style_cover(self.config, pix3, w, h)
                 pix3 = img.pixbuf_pad(pix3, consts.FULLSCREEN_COVER_SIZE,
                                       consts.FULLSCREEN_COVER_SIZE)
                 self.image.set_from_pixbuf(pix3)

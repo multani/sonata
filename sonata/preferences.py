@@ -417,14 +417,14 @@ class Preferences():
             self.last_tab = self.prefsnotebook.get_current_page()
             #XXX: These two are probably never triggered
             if self.config.show_lyrics and self.config.lyrics_location != consts.LYRICS_LOCATION_HOME:
-                if not os.path.isdir(self.config.musicdir[self.config.profile_num]):
+                if not os.path.isdir(self.config.current_musicdir):
                     ui.show_msg(self.window, _("To save lyrics to the music file's directory, you must specify a valid music directory."), _("Music Dir Verification"), 'musicdirVerificationError', Gtk.ButtonsType.CLOSE)
                     # Set music_dir entry focused:
                     self.prefsnotebook.set_current_page(0)
                     self.direntry.grab_focus()
                     return
             if self.config.show_covers and self.config.art_location != consts.ART_LOCATION_HOMECOVERS:
-                if not os.path.isdir(self.config.musicdir[self.config.profile_num]):
+                if not os.path.isdir(self.config.current_musicdir):
                     ui.show_msg(self.window, _("To save artwork to the music file's directory, you must specify a valid music directory."), _("Music Dir Verification"), 'musicdirVerificationError', Gtk.ButtonsType.CLOSE)
                     # Set music_dir entry focused:
                     self.prefsnotebook.set_current_page(0)

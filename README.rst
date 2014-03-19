@@ -65,7 +65,14 @@ Or you can run it straight from the directory (without prior installation)::
 Sonata in Linux distributions
 -----------------------------
 
-This version of Sonata is available in several distributions:
+You can find on the website `official releases of Sonata packaged in various
+distributions <http://sonata.berlios.de/download.html>`_.
+
+
+Development version
+'''''''''''''''''''
+
+This development version of Sonata is also available in several distributions:
 
 .. note:: For distribution-specific comments, please contact the packagers at
     the specified URLs!

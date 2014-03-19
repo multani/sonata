@@ -110,7 +110,7 @@ def run():
     try:
         import mpd
     except:
-        logger.critical("Sonata requires python-mpd. Aborting...")
+        logger.critical("Sonata requires python-mpd2. Aborting...")
         sys.exit(1)
 
 

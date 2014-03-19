@@ -1,6 +1,14 @@
 Future release (not yet released!)
 ----------------------------------
 
+New features
+''''''''''''
+
+    * redirect to the localized Wikipedia according to the user's local,
+      instead of redirecting to the English one.
+      https://github.com/multani/sonata/issues/61
+
+
 Bug fixes
 '''''''''
 
@@ -10,6 +18,9 @@ Bug fixes
       https://github.com/multani/sonata/issues/38
     * fix withdrawn mode by fixing incorrect usage of threads and Gtk
       eco-system
+    * choosing a local artwork wasn't working anymore
+    * fix artwork caching
+    * keep the selected tab when hiding/showing Sonata using the tray icon
 
 Internal changes
 ''''''''''''''''
@@ -22,6 +33,9 @@ Internal changes
         better) as before since the threaded code was poorly written anyway and
         rendered the additionnal basically useless. This move is not definitive
         but something better will probably come up some day.
+
+    * Looking for covers isn't as filesystem expensive as before, but it
+      doesn't check for multiple possible cases in the cover name anymore.
 
 
 1.7a2 (2013-11-26)

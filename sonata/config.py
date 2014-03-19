@@ -156,6 +156,10 @@ class Config:
             })
         }
 
+    @property
+    def current_musicdir(self):
+        return self.musicdir[self.profile_num]
+
     def settings_load_real(self):
         """Load configuration from file"""
 
