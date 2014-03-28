@@ -78,13 +78,13 @@ class ArtworkLocator:
         try:
             files = os.listdir(song_dir)
         except OSError:
-            return None
+            return
 
         get_ext = lambda path: os.path.splitext(path)[1][1:]
 
         artworks = [f for f in files if get_ext(f) in img.VALID_EXTENSIONS]
         if len(artworks) != 1:
-            return None
+            return
 
         yield os.path.join(song_dir, artworks[0])
 
