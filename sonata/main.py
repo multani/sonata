@@ -775,7 +775,6 @@ class Base:
 
         # Ensure that sonata is loaded before we display the notif window
         self.sonata_loaded = True
-        self.on_currsong_notify()
         self.current.center_song_in_list(True)
 
         gc.disable()
