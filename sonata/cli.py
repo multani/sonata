@@ -84,6 +84,11 @@ class Args:
         # Update default log level
         logging.root.setLevel(sum(options.log_level))
 
+        if logging.root.level >= logging.DEBUG:
+            # Only display MPD logs if we area really trying to debug hard
+            # (-vvv)
+            logging.getLogger('mpd').setLevel(logging.WARNING)
+
         if options.toggle:
             options.start_visibility = True
         if options.popup or options.fullscreen and options.start_visibility is None:
