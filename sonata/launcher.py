@@ -30,7 +30,6 @@ if sys.version_info <= (3, 2):
     sys.exit(1)
 
 import gettext
-import locale
 import logging
 import os
 import platform
@@ -103,7 +102,7 @@ def run():
 
     gettext.install('sonata', locales_path, names=["ngettext"])
     gettext.textdomain('sonata')
-    locale.bindtextdomain('sonata', locales_path)
+    gettext.bindtextdomain('sonata', locales_path)
 
 
     ## Check initial dependencies:
