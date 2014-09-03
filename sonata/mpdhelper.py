@@ -1,6 +1,7 @@
 
 import functools
 import logging
+import operator
 import os
 import socket
 
@@ -47,7 +48,7 @@ class MPDClient:
 
         if cmd_name in ['songinfo', 'currentsong']:
             return MPDSong(retval)
-        elif cmd_name in ['plchanges', 'search']:
+        elif cmd_name in ['plchanges', 'search', 'playlistinfo']:
             return [MPDSong(s) for s in retval]
         elif cmd_name in ['count']:
             return MPDCount(retval)
