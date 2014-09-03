@@ -8,6 +8,7 @@ from gi.repository import GObject
 import mpd
 
 from sonata.misc import remove_list_duplicates
+from sonata.albumlist import AlbumList
 
 
 class MPDClient:
@@ -73,6 +74,10 @@ class MPDClient:
         for directory in dirs:
             self._client.update(directory)
         self._client.command_list_end()
+
+    def shuffle_albums(self):
+        al = AlbumList(self._client)
+        al.shuffle_albums()
 
 
 class MPDCount:
