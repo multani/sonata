@@ -19,11 +19,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import collections
 import sys
 import gettext
 import locale
 import logging
 import os
+import operator
+import random
 import warnings
 
 import urllib.parse, urllib.request
@@ -272,7 +275,7 @@ class Base:
             ('sortshuffle', None, _('Shuffle'), '<Alt>r', None,
              self.mpd_shuffle),
             ('sortshufflealbums', None, _('Shuffle Albums'), None, None,
-             self.mpd_shufflealbums), ]
+             self.mpd_shuffle_albums), ]
 
         keyactions = [
             ('expandkey', None, 'Expand Key', '<Alt>Down', None,
@@ -1915,11 +1918,42 @@ class Base:
                 Gtk.main_iteration()
             self.mpd.shuffle()
 
-    def mpd_shufflealbums(self, _action):
-        if self.conn:
-            if not self.status or self.status['playlistlength'] == '0':
-                return
-            self.mpd.shuffle_albums()
+    def mpd_shuffle_albums(self, _action):
+        """Shuffle by albums.
+
+        Shuffle songs from the current playlist by their albums, while keeping
+        the related songs together.
+        """
+
+        if not self.conn or \
+           not self.status or \
+           self.status['playlistlength'] == '0':
+            return
+
+        albums = collections.defaultdict(lambda: [])
+
+        # Fetch albums
+        for song in self.mpd.playlistinfo():
+            if "album" in song:
+                k = song.album
+            else:
+                # We consider a song without album info to be a one song
+                # album and use the title as album name.
+                if 'title' in song:
+                    k = song.title
+                else:
+                    # If there is not even a title in the song we ignore it,
+                    # which which will cause it to end up at the end of the
+                    # playlist, during shuffling.
+                    continue
+            albums[k].append(song)
+
+        album_names = list(albums.keys())
+        random.shuffle(album_names)
+        for album in album_names:
+            for song in sorted(albums[album], key=operator.attrgetter('track'),
+                               reverse=True):
+                self.mpd.moveid(song["id"], 0)
 
     def on_menu_popup(self, _widget):
         self.update_menu_visibility()
