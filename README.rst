@@ -23,7 +23,8 @@ Sonata is a client for the `Music Player Daemon`_ featuring:
 Sonata is written using the `Python programming language`_ and uses the GTK 3
 toolkit.
 
-Sonata started as a fork of the Pygmy project and is licensed under the GPLv3.
+Sonata started as a fork of the Pygmy project and is licensed under the GPLv3 or
+later.
 Thanks to Andrew Conkling et al, for all their hard work on Pygmy!
 
 Using Sonata
