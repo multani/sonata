@@ -1634,8 +1634,8 @@ msgstr "bestand_pad"
 #~ msgid "_Update Path"
 #~ msgstr "_Bijwerken"
 
-#~ msgid "Website: http://sonata.berlios.de/"
-#~ msgstr "Website: http://sonata.berlios.de/"
+#~ msgid "Website: http://www.nongnu.org/sonata/"
+#~ msgstr "Website: http://www.nongnu.org/sonata/"
 
 #~ msgid "Enable Audioscrobbler"
 #~ msgstr "Audioscrobbler inschakelen"

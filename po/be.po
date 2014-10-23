@@ -1647,8 +1647,8 @@ msgstr "ściežka_fajłu"
 #~ msgid "_Update Path"
 #~ msgstr "_Aktualizuj"
 
-#~ msgid "Website: http://sonata.berlios.de/"
-#~ msgstr "Sajt: http://sonata.berlios.de/"
+#~ msgid "Website: http://www.nongnu.org/sonata/"
+#~ msgstr "Sajt: http://www.nongnu.org/sonata/"
 
 #~ msgid "Enable Audioscrobbler"
 #~ msgstr "Uklučy Audioscrobbler"

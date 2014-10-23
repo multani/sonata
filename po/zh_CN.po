@@ -1543,8 +1543,8 @@ msgstr "显示文件路径"
 #~ msgid "_Update Path"
 #~ msgstr "更新(_U)"
 
-#~ msgid "Website: http://sonata.berlios.de/"
-#~ msgstr "网站： http://sonata.berlios.de/"
+#~ msgid "Website: http://www.nongnu.org/sonata/"
+#~ msgstr "网站： http://www.nongnu.org/sonata/"
 
 #~ msgid "Enable Audioscrobbler"
 #~ msgstr "启用 Audioscrobbler"

@@ -9,7 +9,7 @@
 # description: A simple test plugin.
 # author: Tuukka Hastrup
 # author_email: Tuukka.Hastrup@iki.fi
-# url: http://sonata.berlios.de
+# url: http://www.nongnu.org/sonata/
 # license: GPL v3 or later
 # [capabilities]
 # enablables: on_enable

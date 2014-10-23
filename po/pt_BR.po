@@ -1689,8 +1689,8 @@ msgstr "O caminho"
 #~ msgid "_Update Path"
 #~ msgstr "_Atualizar biblioteca"
 
-#~ msgid "Website: http://sonata.berlios.de/"
-#~ msgstr "Página: http://sonata.berlios.de/"
+#~ msgid "Website: http://www.nongnu.org/sonata/"
+#~ msgstr "Página: http://www.nongnu.org/sonata/"
 
 #~ msgid "Enable Audioscrobbler"
 #~ msgstr "Habilitar Audioscrobbler"
