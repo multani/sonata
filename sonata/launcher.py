@@ -120,7 +120,8 @@ def run():
         locales_path = None
 
     locale.setlocale(locale.LC_ALL, '')
-    locale.bindtextdomain('sonata', locales_path)
+    if hasattr(locale, 'bindtextdomain'):
+        locale.bindtextdomain('sonata', locales_path)
     gettext.install('sonata', locales_path, names=["ngettext"])
     gettext.textdomain('sonata')
     gettext.bindtextdomain('sonata', locales_path)
