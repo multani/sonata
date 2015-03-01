@@ -119,9 +119,17 @@ def run():
         # files.
         locales_path = None
 
+    # Gtk.Builder uses gettext functions from C library. Enable
+    # correct localization for these functions with the locale
+    # module. See:
+    # https://docs.python.org/3/library/locale.html#access-to-message-catalogs
     locale.setlocale(locale.LC_ALL, '')
+
+    # bindtextdomain() is GNU libc specific and may not be available
+    # on other systems (e.g. OSX)
     if hasattr(locale, 'bindtextdomain'):
         locale.bindtextdomain('sonata', locales_path)
+
     gettext.install('sonata', locales_path, names=["ngettext"])
     gettext.textdomain('sonata')
     gettext.bindtextdomain('sonata', locales_path)
