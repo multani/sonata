@@ -176,7 +176,9 @@ class MPDSong(GObject.GObject):
 
 def cleanup_numeric(value):
     # track and disc can be oddly formatted (eg, '4/10')
-    value = str(value).replace(',', ' ').replace('/', ' ').split()[0]
+    value = str(value).replace(',', ' ').replace('/', ' ')
+    if not value.isspace():
+        value = value.split()[0]
     return int(value) if value.isdigit() else 0
 
 # XXX to be move when we can handle status change in the main interface
