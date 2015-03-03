@@ -123,16 +123,32 @@ def run():
     # correct localization for these functions with the locale
     # module. See:
     # https://docs.python.org/3/library/locale.html#access-to-message-catalogs
-    locale.setlocale(locale.LC_ALL, '')
+    try:
+        locale.setlocale(locale.LC_ALL, '')
+        gettext.install('sonata', locales_path, names=["ngettext"])
 
-    # bindtextdomain() is GNU libc specific and may not be available
-    # on other systems (e.g. OSX)
-    if hasattr(locale, 'bindtextdomain'):
-        locale.bindtextdomain('sonata', locales_path)
+        # bindtextdomain() is GNU libc specific and may not be available
+        # on other systems (e.g. OSX)
+        if hasattr(locale, 'bindtextdomain'):
+            locale.bindtextdomain('sonata', locales_path)
 
-    gettext.install('sonata', locales_path, names=["ngettext"])
-    gettext.textdomain('sonata')
-    gettext.bindtextdomain('sonata', locales_path)
+        gettext.textdomain('sonata')
+        gettext.bindtextdomain('sonata', locales_path)
+    except locale.Error as e:
+        # If locale is not supported by C library, the initial call to
+        # locale.setlocale will fail and raise an exception. Any Glade
+        # strings would not be translated. But native python strings
+        # would still be translated if the .mo files are included in
+        # sonata!
+        #
+        # To prevent a mix of languages, disable translation for both:
+        # 1. explicitly set locale to 'C' (default strings)
+        # 2. don't provide python gettext with any translatable
+        #    strings (localedir=None), but still install the required
+        #    _() function
+        print("setlocale() failed: %s, falling back to default locale." % e)
+        locale.setlocale(locale.LC_ALL, 'C')
+        gettext.install(True, localedir=None, names=["ngettext"])
 
 
     ## Check initial dependencies:
