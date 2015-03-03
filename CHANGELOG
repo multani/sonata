@@ -23,6 +23,8 @@ Bug fixes
     * choosing a local artwork wasn't working anymore
     * fix artwork caching
     * keep the selected tab when hiding/showing Sonata using the tray icon
+    * correctly handle tracks without a definitely reasonable track or disc
+      value (Peter Helbing)
 
 Internal changes
 ''''''''''''''''
