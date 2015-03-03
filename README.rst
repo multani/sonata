@@ -23,7 +23,8 @@ Sonata is a client for the `Music Player Daemon`_ featuring:
 Sonata is written using the `Python programming language`_ and uses the GTK 3
 toolkit.
 
-Sonata started as a fork of the Pygmy project and is licensed under the GPLv3.
+Sonata started as a fork of the Pygmy project and is licensed under the GPLv3 or
+later.
 Thanks to Andrew Conkling et al, for all their hard work on Pygmy!
 
 Using Sonata
@@ -40,7 +41,7 @@ In order to run Sonata, you will need the following dependencies:
 * GTK >= 3.4
 * `python-mpd2` >= 0.4.6
 * MPD >= 0.15 (possibly on another computer)
-* taglib and tagpy >= 2013.1 for editing metadata (Optional)
+* tagpy >= 2013.1 for editing metadata (Optional)
 * dbus-python for multimedia keys (Optional)
 
 .. warning: Sonata depends on `PyGObject`_ which is still quite new and gets
@@ -66,7 +67,7 @@ Sonata in Linux distributions
 -----------------------------
 
 You can find on the website `official releases of Sonata packaged in various
-distributions <http://sonata.berlios.de/download.html>`_.
+distributions <http://www.nongnu.org/download.html>`_.
 
 
 Development version
@@ -88,60 +89,23 @@ This development version of Sonata is also available in several distributions:
 Website, documentation, help, etc.
 ==================================
 
-The official documentation is located at
-http://sonata.berlios.de/documentation.html
+You can find the official documentation on `Sonata's website
+<http://www.nongnu.org/sonata/documentation.html>`.
 
 You can ask for feature requests or report bugs on Github at
-https://github.com/multani/sonata/issues
+`<https://github.com/multani/sonata/issues>`.
 
 There's a (somewhat alive) mailing list available at
-https://lists.berlios.de/mailman/listinfo/sonata-users
-
-Contributing
-============
-
-If you are interested to hack on Sonata, please consider the following:
-
-#. Clone the repository or fork it on Github;
-#. **For each** feature, bug fix, refactor, anything, you want to submit, create
-   a branch with a name which reflects what you want to do;
-#. Commit your changes related to *this* thing in this branch;
-#. Signal your changes with one of the following:
-
-   * open a pull request on Github;
-   * send a mail to jon@multani.info with the URL of your repository, the
-     name of the branch you want to be merged, and a meaningful description of
-     your work;
-   * or send me your patch(es) to jon@multani.info using ``git send-email``.
-
-I hate, hate, *hate* having to review commits touching lot of unrelated things,
-this is the easiest way for your changes not to be merged. Try to stay focus on
-one clearly defined thing and it should be much easier to merge.
-
-Translations
-------------
-
-.. note:: See the `TRANSLATORS` file for more information!
-
-You can translate Sonata using the `dedicated Transifex project
-page <https://www.transifex.com/projects/p/sonata/>`_.
-
-Sonata's translation can be done via the `Transifex`_ plateform. You need to
-subscribe to `Transifex`_ first, then to add yourself as a member of the
-`Transifex Sonata`_ project under the language your are interested to translate
-into.
-
-Once a translation is done, *be sure to contact the maintainer of Sonata* to
-announce there's a new translation to include!
-
+`<https://lists.nongnu.org/mailman/listinfo/sonata-users>`.
 
 See also
 ========
 
 You can also find Sonata in other places on the Internet:
 
-* http://sonata.berlios.de/ : this is the original Sonata website. It has not
-  been updated since a while but still has interesting screenshots.
+* http://sonata.berlios.de/ : this was the original Sonata website but Berlios
+  shut down this hosting facility somewhere in March 2014 along with the mailing
+  list.
 * http://codingteam.net/project/sonata/ : this is another fork with a different
   team and different perspectives. Our code bases diverge quite a bit now.
 

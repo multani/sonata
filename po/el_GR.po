@@ -1606,8 +1606,8 @@ msgstr "Εμφάνιση μονοπατιού αρχείου"
 #~ msgid "_Update Path"
 #~ msgstr "Α_νανέωση Μονοπατιού"
 
-#~ msgid "Website: http://sonata.berlios.de/"
-#~ msgstr "Ιστοσελίδα: http://sonata.berlios.de/"
+#~ msgid "Website: http://www.nongnu.org/sonata/"
+#~ msgstr "Ιστοσελίδα: http://www.nongnu.org/sonata/"
 
 #~ msgid "Enable Audioscrobbler"
 #~ msgstr "Ενεργοποίηση του Audioscrobbler"

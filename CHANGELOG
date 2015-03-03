@@ -7,6 +7,8 @@ New features
     * redirect to the localized Wikipedia according to the user's local,
       instead of redirecting to the English one.
       https://github.com/multani/sonata/issues/61
+    * add "Shuffle by album"
+      https://github.com/multani/sonata/pull/59
 
 
 Bug fixes
@@ -21,6 +23,8 @@ Bug fixes
     * choosing a local artwork wasn't working anymore
     * fix artwork caching
     * keep the selected tab when hiding/showing Sonata using the tray icon
+    * correctly handle tracks without a definitely reasonable track or disc
+      value (Peter Helbing)
 
 Internal changes
 ''''''''''''''''

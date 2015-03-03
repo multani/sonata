@@ -6,7 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Sonata 1.6.2\n"
-"Report-Msgid-Bugs-To: https://developer.berlios.de/bugs/?group_id=7323\n"
+"Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-04-11 13:21-0600\n"
 "PO-Revision-Date: 2009-10-13 16:27+0900\n"
 "Last-Translator: Jaesung <jaesung@liberotown.com>\n"

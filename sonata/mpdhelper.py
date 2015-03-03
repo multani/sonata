@@ -1,6 +1,24 @@
+# Copyright 2006-2009 Scott Horowitz <stonecrest@gmail.com>
+# Copyright 2009-2014 Jonathan Ballet <jon@multani.info>
+#
+# This file is part of Sonata.
+#
+# Sonata is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Sonata is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Sonata.  If not, see <http://www.gnu.org/licenses/>.
 
 import functools
 import logging
+import operator
 import os
 import socket
 
@@ -47,7 +65,7 @@ class MPDClient:
 
         if cmd_name in ['songinfo', 'currentsong']:
             return MPDSong(retval)
-        elif cmd_name in ['plchanges', 'search']:
+        elif cmd_name in ['plchanges', 'search', 'playlistinfo']:
             return [MPDSong(s) for s in retval]
         elif cmd_name in ['count']:
             return MPDCount(retval)
@@ -156,10 +174,42 @@ class MPDSong(GObject.GObject):
     def file(self):
         return self._mapping.get('file', '') # XXX should be always here?
 
+
 def cleanup_numeric(value):
+    """Return a integer value from some not-so-integer values
+
+    For example, a track number can have the value ``4/10`` (the fourth track of
+    on a 10 songs album), so we want in this case to get the value ``4``:
+
+    >>> cleanup_numeric('4/10')
+    4
+
+    or:
+
+    >>> cleanup_numeric('5,12')
+    5
+
+    Of course, a simple value is correctly retrieved:
+
+    >>> cleanup_numeric('42')
+    42
+
+    All the other cases basically return 0:
+
+    >>> cleanup_numeric('/')
+    0
+    >>> cleanup_numeric(',')
+    0
+    >>> cleanup_numeric('')
+    0
+
+    """
     # track and disc can be oddly formatted (eg, '4/10')
-    value = str(value).replace(',', ' ').replace('/', ' ').split()[0]
+    value = str(value).replace(',', ' ').replace('/', ' ').strip()
+    if value:
+        value = value.split()[0]
     return int(value) if value.isdigit() else 0
+
 
 # XXX to be move when we can handle status change in the main interface
 def mpd_is_updating(status):

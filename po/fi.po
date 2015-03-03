@@ -1592,8 +1592,8 @@ msgstr "Näytä tiedoston polku"
 #~ msgid "The popup argument requires D-Bus. Aborting."
 #~ msgstr "Ponnahdusikkunat vaativat D-Bus:in, keskeytetään."
 
-#~ msgid "Website: http://sonata.berlios.de/"
-#~ msgstr "Www-sivusto: http://sonata.berlios.de/"
+#~ msgid "Website: http://www.nongnu.org/sonata/"
+#~ msgstr "Www-sivusto: http://www.nongnu.org/sonata/"
 
 #~ msgid ""
 #~ "PyGTK+ 2.10 or gnome-python-extras not found, system tray support "

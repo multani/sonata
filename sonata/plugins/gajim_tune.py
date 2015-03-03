@@ -8,7 +8,7 @@
 # description: Update the MPRIS (in Gajim etc.) tune information.
 # author: Fomin Denis
 # author_email: fominde@gmail.com
-# url: http://sonata.berlios.de
+# url: http://www.nongnu.org/sonata/
 # license: GPL v3 or later
 # [capabilities]
 # enablables: on_enable

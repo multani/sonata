@@ -1587,8 +1587,8 @@ msgstr "Mostrar la ruta al fichero"
 #~ msgid "_Update Path"
 #~ msgstr "_Actualizar"
 
-#~ msgid "Website: http://sonata.berlios.de/"
-#~ msgstr "Sitio web: http://sonata.berlios.de/"
+#~ msgid "Website: http://www.nongnu.org/sonata/"
+#~ msgstr "Sitio web: http://www.nongnu.org/sonata/"
 
 #~ msgid "Enable Audioscrobbler"
 #~ msgstr "Habilitar informe de canción"

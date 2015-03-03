@@ -1,4 +1,21 @@
 #!/usr/bin/python
+# Copyright 2006-2009 Scott Horowitz <stonecrest@gmail.com>
+# Copyright 2009-2014 Jonathan Ballet <jon@multani.info>
+#
+# This file is part of Sonata.
+#
+# Sonata is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Sonata is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Sonata.  If not, see <http://www.gnu.org/licenses/>.
 
 import doctest
 import unittest
@@ -22,6 +39,11 @@ DOCTEST_FLAGS = (
     doctest.NORMALIZE_WHITESPACE |
     doctest.REPORT_NDIFF
 )
+
+DOCTEST_MODULES = [
+    'artwork',
+    'mpdhelper',
+]
 
 class TestSonata(unittest.TestCase):
     def test_convert_time(self):
@@ -88,11 +110,15 @@ class TestMPDSong(unittest.TestCase):
         self.assertEqual(1, MPDSong({'track': '1'}).track)
         self.assertEqual(1, MPDSong({'track': '1/10'}).track)
         self.assertEqual(1, MPDSong({'track': '1,10'}).track)
+        self.assertEqual(0, MPDSong({'track': '/'}).track)
+        self.assertEqual(0, MPDSong({'track': ','}).track)
 
     def test_get_disc_number(self):
         self.assertEqual(1, MPDSong({'disc': '1'}).disc)
         self.assertEqual(1, MPDSong({'disc': '1/10'}).disc)
         self.assertEqual(1, MPDSong({'disc': '1,10'}).disc)
+        self.assertEqual(0, MPDSong({'disc': '/'}).disc)
+        self.assertEqual(0, MPDSong({'disc': ','}).disc)
 
     def test_access_attributes(self):
         song = MPDSong({'foo': 'zz', 'id': '5'})
@@ -116,7 +142,8 @@ class TestMPDSong(unittest.TestCase):
 
 
 def load_tests(loader, tests, ignore):
-    tests.addTests(doctest.DocTestSuite(
-        'sonata.artwork',
-        optionflags=DOCTEST_FLAGS))
+    for sub_module in DOCTEST_MODULES:
+        test = doctest.DocTestSuite('sonata.%s' % sub_module,
+                                    optionflags=DOCTEST_FLAGS)
+        tests.addTests(test)
     return tests

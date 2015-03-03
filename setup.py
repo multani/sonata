@@ -66,7 +66,7 @@ setup(
     description='GTK+ client for the Music Player Daemon (MPD).',
     author='Scott Horowitz',
     author_email='stonecrest@gmail.com',
-    url='http://sonata.berlios.de/',
+    url='http://www.nongnu.org/sonata/',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: X11 Applications',
