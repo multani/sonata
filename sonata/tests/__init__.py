@@ -40,6 +40,11 @@ DOCTEST_FLAGS = (
     doctest.REPORT_NDIFF
 )
 
+DOCTEST_MODULES = [
+    'artwork',
+    'mpdhelper',
+]
+
 class TestSonata(unittest.TestCase):
     def test_convert_time(self):
         self.assertEqual(misc.convert_time(60*4+4), "04:04")
@@ -137,7 +142,8 @@ class TestMPDSong(unittest.TestCase):
 
 
 def load_tests(loader, tests, ignore):
-    tests.addTests(doctest.DocTestSuite(
-        'sonata.artwork',
-        optionflags=DOCTEST_FLAGS))
+    for sub_module in DOCTEST_MODULES:
+        test = doctest.DocTestSuite('sonata.%s' % sub_module,
+                                    optionflags=DOCTEST_FLAGS)
+        tests.addTests(test)
     return tests

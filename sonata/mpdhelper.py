@@ -174,12 +174,42 @@ class MPDSong(GObject.GObject):
     def file(self):
         return self._mapping.get('file', '') # XXX should be always here?
 
+
 def cleanup_numeric(value):
+    """Return a integer value from some not-so-integer values
+
+    For example, a track number can have the value ``4/10`` (the fourth track of
+    on a 10 songs album), so we want in this case to get the value ``4``:
+
+    >>> cleanup_numeric('4/10')
+    4
+
+    or:
+
+    >>> cleanup_numeric('5,12')
+    5
+
+    Of course, a simple value is correctly retrieved:
+
+    >>> cleanup_numeric('42')
+    42
+
+    All the other cases basically return 0:
+
+    >>> cleanup_numeric('/')
+    0
+    >>> cleanup_numeric(',')
+    0
+    >>> cleanup_numeric('')
+    0
+
+    """
     # track and disc can be oddly formatted (eg, '4/10')
-    value = str(value).replace(',', ' ').replace('/', ' ')
-    if not value.isspace():
+    value = str(value).replace(',', ' ').replace('/', ' ').strip()
+    if value:
         value = value.split()[0]
     return int(value) if value.isdigit() else 0
+
 
 # XXX to be move when we can handle status change in the main interface
 def mpd_is_updating(status):
