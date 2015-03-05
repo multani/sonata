@@ -137,7 +137,7 @@ def run():
         # 2. don't provide python gettext with any translatable
         #    strings (localedir=None), but still install the required
         #    _() function
-        print("setlocale() failed: %s, falling back to default locale." % e)
+        logger.error("setlocale() failed: %s. Falling back to default locale.", e)
         locale.setlocale(locale.LC_ALL, 'C')
         gettext.install(True, localedir=None, names=["ngettext"])
     else:
