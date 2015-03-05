@@ -23,6 +23,8 @@ Bug fixes
     * choosing a local artwork wasn't working anymore
     * fix artwork caching
     * keep the selected tab when hiding/showing Sonata using the tray icon
+    * fix translation of of Glade dialogs (Peter Helbing)
+      https://github.com/multani/sonata/pull/75
 
 Internal changes
 ''''''''''''''''
