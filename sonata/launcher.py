@@ -125,15 +125,6 @@ def run():
     # https://docs.python.org/3/library/locale.html#access-to-message-catalogs
     try:
         locale.setlocale(locale.LC_ALL, '')
-        gettext.install('sonata', locales_path, names=["ngettext"])
-
-        # bindtextdomain() is GNU libc specific and may not be available
-        # on other systems (e.g. OSX)
-        if hasattr(locale, 'bindtextdomain'):
-            locale.bindtextdomain('sonata', locales_path)
-
-        gettext.textdomain('sonata')
-        gettext.bindtextdomain('sonata', locales_path)
     except locale.Error as e:
         # If locale is not supported by C library, the initial call to
         # locale.setlocale will fail and raise an exception. Any Glade
@@ -149,6 +140,16 @@ def run():
         print("setlocale() failed: %s, falling back to default locale." % e)
         locale.setlocale(locale.LC_ALL, 'C')
         gettext.install(True, localedir=None, names=["ngettext"])
+    else:
+        gettext.install('sonata', locales_path, names=["ngettext"])
+
+        # bindtextdomain() is GNU libc specific and may not be available
+        # on other systems (e.g. OSX)
+        if hasattr(locale, 'bindtextdomain'):
+            locale.bindtextdomain('sonata', locales_path)
+
+        gettext.textdomain('sonata')
+        gettext.bindtextdomain('sonata', locales_path)
 
 
     ## Check initial dependencies:
