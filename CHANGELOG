@@ -25,6 +25,9 @@ Bug fixes
     * keep the selected tab when hiding/showing Sonata using the tray icon
     * correctly handle tracks without a definitely reasonable track or disc
       value (Peter Helbing)
+      https://github.com/multani/sonata/pull/74
+    * fix translation of of Glade dialogs (Peter Helbing)
+      https://github.com/multani/sonata/pull/75
 
 Internal changes
 ''''''''''''''''

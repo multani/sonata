@@ -48,6 +48,7 @@ if sys.version_info <= (3, 2):
     sys.exit(1)
 
 import gettext
+import locale
 import logging
 import os
 import platform
@@ -118,9 +119,37 @@ def run():
         # files.
         locales_path = None
 
-    gettext.install('sonata', locales_path, names=["ngettext"])
-    gettext.textdomain('sonata')
-    gettext.bindtextdomain('sonata', locales_path)
+    # Gtk.Builder uses gettext functions from C library. Enable
+    # correct localization for these functions with the locale
+    # module. See:
+    # https://docs.python.org/3/library/locale.html#access-to-message-catalogs
+    try:
+        locale.setlocale(locale.LC_ALL, '')
+    except locale.Error as e:
+        # If locale is not supported by C library, the initial call to
+        # locale.setlocale will fail and raise an exception. Any Glade
+        # strings would not be translated. But native python strings
+        # would still be translated if the .mo files are included in
+        # sonata!
+        #
+        # To prevent a mix of languages, disable translation for both:
+        # 1. explicitly set locale to 'C' (default strings)
+        # 2. don't provide python gettext with any translatable
+        #    strings (localedir=None), but still install the required
+        #    _() function
+        logger.error("setlocale() failed: %s. Falling back to default locale.", e)
+        locale.setlocale(locale.LC_ALL, 'C')
+        gettext.install(True, localedir=None, names=["ngettext"])
+    else:
+        gettext.install('sonata', locales_path, names=["ngettext"])
+
+        # bindtextdomain() is GNU libc specific and may not be available
+        # on other systems (e.g. OSX)
+        if hasattr(locale, 'bindtextdomain'):
+            locale.bindtextdomain('sonata', locales_path)
+
+        gettext.textdomain('sonata')
+        gettext.bindtextdomain('sonata', locales_path)
 
 
     ## Check initial dependencies:
