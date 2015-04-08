@@ -47,6 +47,8 @@ class Display_cbs:
     """Callbacks specific to the display tab"""
     stylized_toggled = None
     art_toggled = None
+    resize_toggled = None
+    resize_changed = None
     playback_toggled = None
     progress_toggled = None
     statusbar_toggled = None
@@ -259,6 +261,11 @@ class Preferences():
         art_combo = self.builder.get_object('art_search_combo')
         art_combo.set_active(self.config.covers_pref)
         art_combo.connect('changed', self._config_widget_active, 'covers_pref')
+        art_resize = self.builder.get_object('art_resize_check')
+        art_resize.set_active(self.config.resize_covers)
+        art_resize_prefs = self.builder.get_object('art_resize_value')
+        art_resize_prefs.set_sensitive(self.config.resize_covers)
+        art_resize_prefs.set_value(self.config.resize_covers_value)
 
         #FIXME move into preferences_display.ui?
         art_location = self.builder.get_object('art_save_combo')
@@ -270,6 +277,8 @@ class Preferences():
         art_location.connect('changed', self._art_location_changed)
 
         art.connect('toggled', cbs.art_toggled, art_prefs)
+        art_resize.connect('toggled', cbs.resize_toggled, art_resize_prefs)
+        art_resize_prefs.connect('changed', cbs.resize_changed)
         playback = self.builder.get_object('playback_buttons_check')
         playback.set_active(self.config.show_playback)
         playback.connect('toggled', cbs.playback_toggled)
