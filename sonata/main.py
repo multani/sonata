@@ -1234,8 +1234,12 @@ class Base:
             if self.current_tab == self.TAB_LIBRARY:
                 items = self.library.get_path_child_filenames(True)
                 self.mpd.command_list_ok_begin()
-                for item in items:
-                    self.mpd.add(item)
+                for item in items:     
+                     if item.endswith('.pls') or item.endswith('.PLS') or \
+                        item.endswith('.m3u') or item.endswith('.M3U'):
+                            self.mpd.load(item)
+                     else:
+                            self.mpd.add(item)
                 self.mpd.command_list_end()
             elif self.current_tab == self.TAB_PLAYLISTS:
                 model, selected = self.playlists_selection.get_selected_rows()
@@ -3054,7 +3058,9 @@ class Base:
         self.mpd_update_queued = True
 
     def on_about(self, _action):
-        about_dialog = about.About(self.window, self.config, version, "" )
+#`        about_dialog = about.About(self.window, self.config, version,
+#                                   __license__)
+        about_dialog = about.About(self.window, self.config, version, "")
 
         stats = None
         if self.conn:
