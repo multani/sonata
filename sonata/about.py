@@ -26,11 +26,10 @@ from sonata import misc, ui
 
 class About:
 
-    def __init__(self, parent_window, config, version, licensetext):
+    def __init__(self, parent_window, config, version):
         self.parent_window = parent_window
         self.config = config
         self.version = version
-        self.license = licensetext
 
         self.about_dialog = None
         self.shortcuts_dialog = None

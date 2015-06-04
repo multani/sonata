@@ -28,6 +28,7 @@ Bug fixes
       https://github.com/multani/sonata/pull/74
     * fix translation of of Glade dialogs (Peter Helbing)
       https://github.com/multani/sonata/pull/75
+    * fix opening the About dialog (based on Rocus van Oosten report).
 
 Internal changes
 ''''''''''''''''
@@ -551,3 +552,5 @@ v0.5 - September 12, 2006
 	+ Bug: Doesn't properly retain view when browsing playlist
 	+ Added documentation
 	+ Other bugfixes, tweaks
+
+# vim:ft=rst

@@ -3054,8 +3054,7 @@ class Base:
         self.mpd_update_queued = True
 
     def on_about(self, _action):
-        about_dialog = about.About(self.window, self.config, version,
-                                   __license__)
+        about_dialog = about.About(self.window, self.config, version)
 
         stats = None
         if self.conn:
