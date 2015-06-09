@@ -706,6 +706,7 @@ class Base:
         self.mainwinhandler = self.window.connect('button_press_event',
                                                   self.on_window_click)
         self.notebook.connect('size-allocate', self.on_notebook_resize)
+        self.notebook.connect('size-allocate', self.info.on_viewport_resize)
         self.notebook.connect('switch-page', self.on_notebook_page_change)
 
         for treeview in [self.current_treeview, self.library_treeview,

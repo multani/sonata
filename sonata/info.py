@@ -82,6 +82,8 @@ class Info:
 
         self.active = False
 
+        self.pixbuf = None # Unscaled pixbuf for on_viewport_resize
+
         # Info tab
         self.builder = ui.builder('info')
         self.css_provider = ui.css_provider('info')
@@ -194,6 +196,9 @@ class Info:
 
     def on_link_leave(self, _widget, _event):
         ui.change_cursor(None)
+
+    def on_viewport_resize(self, _widget, _event):
+        self.on_artwork_changed(None, self.pixbuf)
 
     def toggle_more(self):
         if self.config.info_song_more:
@@ -467,25 +472,33 @@ class Info:
         italic_tag.set_property('style', Pango.Style.ITALIC)
         tag_table.add(italic_tag)
 
-    def on_artwork_changed(self, artwork_obj, pixbuf):
+    def _calculate_artwork_size(self):
         if self._imagebox.get_size_request()[0] == -1:
-            notebook_width = self.info_song_grid.get_parent().get_allocation().width
+            notebook_width = self.info_area.get_allocation().width
+            lyrics_width = self.info_lyrics.get_allocation().width
             grid = self.info_song_grid
             grid_allocation = grid.get_allocation()
             grid_height = grid_allocation.height
-            grid_width = grid.get_preferred_width_for_height(grid_height)[0]
-            fullwidth = notebook_width - (grid_width + 120)
-            new_width = max(fullwidth, 150)
+            grid_width = grid.get_preferred_width_for_height(grid_height)[1]
+            fullwidth = notebook_width - lyrics_width - (grid_width)
+            return max(min(0.5 * notebook_width, fullwidth), 150)
         else:
-            new_width = 150
+            return 150
 
-        (pix2, w, h) = img.get_pixbuf_of_size(pixbuf, new_width)
-        pix2 = img.do_style_cover(self.config, pix2, w, h)
-        pix2 = img.pixbuf_add_border(pix2)
+    def on_artwork_changed(self, artwork_obj, pixbuf):
+        if pixbuf is not None:
+            self.pixbuf = pixbuf
+            box_width = self._calculate_artwork_size()
+            image_width = pixbuf.get_width()
+            width = min(image_width, box_width)
 
-        self.image.set_from_pixbuf(pix2)
-        del pix2
-        del pixbuf
+            (pix2, w, h) = img.get_pixbuf_of_size(pixbuf, width)
+            pix2 = img.do_style_cover(self.config, pix2, w, h)
+            pix2 = img.pixbuf_add_border(pix2)
+
+            self.image.set_from_pixbuf(pix2)
+            del pix2
+            del pixbuf
 
     def on_artwork_reset(self, artwork_obj):
         self.image.set_from_icon_set(ui.icon('sonata-cd-large'), -1)
