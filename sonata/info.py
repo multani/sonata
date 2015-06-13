@@ -198,6 +198,7 @@ class Info:
         ui.change_cursor(None)
 
     def on_viewport_resize(self, _widget, _event):
+        self.set_lyrics_allocation()
         self.on_artwork_changed(None, self.pixbuf)
 
     def toggle_more(self):
@@ -472,16 +473,32 @@ class Info:
         italic_tag.set_property('style', Pango.Style.ITALIC)
         tag_table.add(italic_tag)
 
+    def set_lyrics_allocation(self):
+        notebook_width = self.info_area.get_allocation().width
+
+        lyrics_requisition = self.lyrics_text.get_preferred_size()[1]
+        lyrics_width = lyrics_requisition.width
+        lyrics_height = lyrics_requisition.height
+
+        if lyrics_width > 0.5 * notebook_width:
+            lyrics_width = 0.5 * notebook_width
+            self.lyrics_scrolledwindow.set_size_request(lyrics_width, lyrics_height)
+        self.lyrics_scrolledwindow.set_min_content_width(lyrics_width)
+
     def _calculate_artwork_size(self):
         if self._imagebox.get_size_request()[0] == -1:
             notebook_width = self.info_area.get_allocation().width
+
             lyrics_width = self.info_lyrics.get_allocation().width
+
             grid = self.info_song_grid
             grid_allocation = grid.get_allocation()
             grid_height = grid_allocation.height
             grid_width = grid.get_preferred_width_for_height(grid_height)[1]
-            fullwidth = notebook_width - lyrics_width - (grid_width)
-            return max(min(0.5 * notebook_width, fullwidth), 150)
+
+            image_max_width = notebook_width - lyrics_width - grid_width
+
+            return max(min(0.5 * notebook_width, image_max_width), 150)
         else:
             return 150
 
