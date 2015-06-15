@@ -480,14 +480,18 @@ class Info:
         lyrics_width = lyrics_requisition.width
         lyrics_height = lyrics_requisition.height
 
-        if lyrics_width > 0.5 * notebook_width:
-            lyrics_width = 0.5 * notebook_width
+        if lyrics_width > 0.5 * notebook_width + 10:
+            lyrics_width = 0.5 * notebook_width + 10
+            self.lyrics_scrolledwindow.set_size_request(lyrics_width, lyrics_height)
+        else:
             self.lyrics_scrolledwindow.set_size_request(lyrics_width, lyrics_height)
         self.lyrics_scrolledwindow.set_min_content_width(lyrics_width)
 
     def _calculate_artwork_size(self):
         if self._imagebox.get_size_request()[0] == -1:
-            notebook_width = self.info_area.get_allocation().width
+            notebook_allocation = self.info_area.get_allocation()
+            notebook_width = notebook_allocation.width
+            notebook_height = notebook_allocation.height
 
             lyrics_width = self.info_lyrics.get_allocation().width
 
@@ -496,18 +500,23 @@ class Info:
             grid_height = grid_allocation.height
             grid_width = grid.get_preferred_width_for_height(grid_height)[1]
 
-            image_max_width = notebook_width - lyrics_width - grid_width
+            image_max_width = notebook_width - lyrics_width - grid_width - 10
+            image_max_height = notebook_height - 40
 
-            return max(min(0.5 * notebook_width, image_max_width), 150)
+            box_max_width = max(min(0.5 * notebook_width, image_max_width), 150)
+            box_max_height = max(image_max_height, 150)
+
+            return min(box_max_height, box_max_width)
         else:
             return 150
 
     def on_artwork_changed(self, artwork_obj, pixbuf):
         if pixbuf is not None:
             self.pixbuf = pixbuf
-            box_width = self._calculate_artwork_size()
             image_width = pixbuf.get_width()
-            width = min(image_width, box_width)
+            image_height = pixbuf.get_height()
+            box_size = self._calculate_artwork_size()
+            width = min(min(image_height,image_width), box_size)
 
             (pix2, w, h) = img.get_pixbuf_of_size(pixbuf, width)
             pix2 = img.do_style_cover(self.config, pix2, w, h)
@@ -518,6 +527,7 @@ class Info:
             del pixbuf
 
     def on_artwork_reset(self, artwork_obj):
+        self.pixbuf = None
         self.image.set_from_icon_set(ui.icon('sonata-cd-large'), -1)
 
 
