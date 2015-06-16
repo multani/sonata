@@ -199,6 +199,7 @@ class Info:
 
     def on_viewport_resize(self, _widget, _event):
         self.set_lyrics_allocation()
+        self.set_song_info_allocation()
         self.on_artwork_changed(None, self.pixbuf)
 
     def toggle_more(self):
@@ -484,6 +485,15 @@ class Info:
             lyrics_width = 0.5 * notebook_width + 20
         self.lyrics_scrolledwindow.set_size_request(lyrics_width, lyrics_height)
         self.lyrics_scrolledwindow.set_min_content_width(lyrics_width)
+
+    def set_song_info_allocation(self):
+        names = ('title', 'artist', 'album', 'date',
+                 'track', 'genre', 'bitrate')
+        max_width = 0
+        for name in names:
+            text = len(self.info_labels[name].get_text())
+            max_width = max(max_width, text)
+        self.info_labels['file'].set_max_width_chars(2 * max_width)
 
     def _calculate_artwork_size(self):
         if self._imagebox.get_size_request()[0] == -1:
