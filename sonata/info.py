@@ -480,11 +480,9 @@ class Info:
         lyrics_width = lyrics_requisition.width
         lyrics_height = lyrics_requisition.height
 
-        if lyrics_width > 0.5 * notebook_width + 10:
-            lyrics_width = 0.5 * notebook_width + 10
-            self.lyrics_scrolledwindow.set_size_request(lyrics_width, lyrics_height)
-        else:
-            self.lyrics_scrolledwindow.set_size_request(lyrics_width, lyrics_height)
+        if lyrics_width > 0.5 * notebook_width + 20:
+            lyrics_width = 0.5 * notebook_width + 20
+        self.lyrics_scrolledwindow.set_size_request(lyrics_width, lyrics_height)
         self.lyrics_scrolledwindow.set_min_content_width(lyrics_width)
 
     def _calculate_artwork_size(self):
@@ -500,7 +498,7 @@ class Info:
             grid_height = grid_allocation.height
             grid_width = grid.get_preferred_width_for_height(grid_height)[1]
 
-            image_max_width = notebook_width - lyrics_width - grid_width - 10
+            image_max_width = notebook_width - lyrics_width - grid_width - 20
             image_max_height = notebook_height - 40
 
             box_max_width = max(min(0.5 * notebook_width, image_max_width), 150)
