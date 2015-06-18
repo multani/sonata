@@ -493,7 +493,7 @@ class Info:
 
     def set_song_info_allocation(self):
         names = ('title', 'artist', 'album', 'date',
-                 'track', 'genre', 'bitrate')
+                 'track', 'genre')
         max_width = 0
         for name in names:
             text = len(self.info_labels[name].get_text())
