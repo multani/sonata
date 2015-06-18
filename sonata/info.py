@@ -82,7 +82,11 @@ class Info:
 
         self.active = False
 
-        self.pixbuf = None # Unscaled pixbuf for on_viewport_resize
+        self._pixbuf = None # Unscaled pixbuf for on_viewport_resize
+
+        self.COVER_MIN_SIZE = 150
+        self.COVER_HEIGHT_OFFSET = 40
+        self.LYRICS_WIDTH_OFFSET = 20
 
         # Info tab
         self.builder = ui.builder('info')
@@ -200,7 +204,7 @@ class Info:
     def on_viewport_resize(self, _widget, _event):
         self.set_lyrics_allocation()
         self.set_song_info_allocation()
-        self.on_artwork_changed(None, self.pixbuf)
+        self.on_artwork_changed(None, self._pixbuf)
 
     def toggle_more(self):
         if self.config.info_song_more:
@@ -481,8 +485,8 @@ class Info:
         lyrics_width = lyrics_requisition.width
         lyrics_height = lyrics_requisition.height
 
-        if lyrics_width > 0.5 * notebook_width + 20:
-            lyrics_width = 0.5 * notebook_width + 20
+        if lyrics_width > 0.5 * notebook_width + self.LYRICS_WIDTH_OFFSET:
+            lyrics_width = 0.5 * notebook_width + self.LYRICS_WIDTH_OFFSET
         self.lyrics_scrolledwindow.set_size_request(lyrics_width, lyrics_height)
         self.lyrics_scrolledwindow.set_min_content_width(lyrics_width)
 
@@ -508,19 +512,19 @@ class Info:
             grid_height = grid_allocation.height
             grid_width = grid.get_preferred_width_for_height(grid_height)[1]
 
-            image_max_width = notebook_width - lyrics_width - grid_width - 20
-            image_max_height = notebook_height - 40
+            image_max_width = notebook_width - lyrics_width - grid_width - self.LYRICS_WIDTH_OFFSET
+            image_max_height = notebook_height - self.COVER_HEIGHT_OFFSET
 
-            box_max_width = max(min(0.5 * notebook_width, image_max_width), 150)
-            box_max_height = max(image_max_height, 150)
+            box_max_width = max(min(0.5 * notebook_width, image_max_width), self.COVER_MIN_SIZE)
+            box_max_height = max(image_max_height, self.COVER_MIN_SIZE)
 
             return min(box_max_height, box_max_width)
         else:
-            return 150
+            return self.COVER_MIN_SIZE
 
     def on_artwork_changed(self, artwork_obj, pixbuf):
         if pixbuf is not None:
-            self.pixbuf = pixbuf
+            self._pixbuf = pixbuf
             image_width = pixbuf.get_width()
             image_height = pixbuf.get_height()
             box_size = self._calculate_artwork_size()
@@ -535,7 +539,7 @@ class Info:
             del pixbuf
 
     def on_artwork_reset(self, artwork_obj):
-        self.pixbuf = None
+        self._pixbuf = None
         self.image.set_from_icon_set(ui.icon('sonata-cd-large'), -1)
 
 
