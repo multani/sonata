@@ -87,6 +87,7 @@ class Info:
         self.COVER_MIN_SIZE = 150
         self.COVER_HEIGHT_OFFSET = 40
         self.LYRICS_WIDTH_OFFSET = 20
+        self.LYRICS_TEXT_OFFSET = 5
 
         # Info tab
         self.builder = ui.builder('info')
@@ -487,7 +488,7 @@ class Info:
 
         if lyrics_width > 0.5 * notebook_width + self.LYRICS_WIDTH_OFFSET:
             lyrics_width = 0.5 * notebook_width + self.LYRICS_WIDTH_OFFSET
-        self.lyrics_scrolledwindow.set_size_request(lyrics_width, lyrics_height)
+        self.lyrics_scrolledwindow.set_size_request(lyrics_width + self.LYRICS_TEXT_OFFSET, lyrics_height)
         self.lyrics_scrolledwindow.set_min_content_width(lyrics_width)
 
     def set_song_info_allocation(self):
