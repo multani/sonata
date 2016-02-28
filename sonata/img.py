@@ -98,7 +98,7 @@ def composite_case(pix, w, h):
     # Rather than merely compositing the case on top of the artwork,
     # we will scale the artwork so that it isn't covered by the case:
     spine_ratio = 60 / 600 # From original png
-    spine_width = int(w * spine_ratio)
+    spine_width = int(w * spine_ratio / 2)
     #case_icon = Gtk.IconFactory.lookup_default('sonata-case')
 
     ## We use the fullscreenalbumimage because it's the biggest we have
@@ -107,11 +107,9 @@ def composite_case(pix, w, h):
     i = Gtk.Image.new_from_pixbuf(pix)
     case_pb = i.render_icon_pixbuf('sonata-case', -1)
     case = case_pb.scale_simple(w, h, GdkPixbuf.InterpType.BILINEAR)
-    # Scale pix and shift to the right on a transparent pixbuf:
-    pix = pix.scale_simple(w - spine_width, h, GdkPixbuf.InterpType.BILINEAR)
     blank = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, True, 8, w, h)
     blank.fill(0x00000000)
-    pix.copy_area(0, 0, pix.get_width(), pix.get_height(), blank,
+    pix.copy_area(0, 0, pix.get_width() - spine_width, pix.get_height(), blank,
                   spine_width, 0)
     # Composite case and scaled pix:
     case.composite(blank, 0, 0, w, h, 0, 0, 1, 1,
