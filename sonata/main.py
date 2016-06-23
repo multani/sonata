@@ -3146,9 +3146,8 @@ class FullscreenApp:
         self.window.hide()
 
     def on_artwork_changed(self, artwork_obj, pixbuf):
-        self.set_text()
-        self.set_image()
         self.currentpb = pixbuf
+        self.set_image()
 
     def reset(self, *args, **kwargs):
         self.image.set_from_icon_set(ui.icon('sonata-cd'), -1)
