@@ -1,3 +1,14 @@
+Sonata is looking for new maintainers!
+======================================
+
+I (`@multani <https://github.com/multani/>`_) don't use Sonata much anymore and
+as a consequence, I've been very slow to answer even to the few bugs reported
+and pull requests from external contributors.
+
+If you are still interested in Sonata and would like to see it alive again,
+please contact me by email to see what we can do!
+
+
 Sonata, an elegant GTK 3 client for the `Music Player Daemon`_
 ==============================================================
 
