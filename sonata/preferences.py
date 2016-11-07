@@ -516,6 +516,7 @@ class Preferences():
         self.config.password.append(self.config.password[profile_num])
         self.config.musicdir.append(self.config.musicdir[profile_num])
         self._populate_profile_combo(profile_combo, len(self.config.profile_names)-1, remove_profiles)
+        self.populate_profiles_for_menu()
 
     def _remove_profile(self, _button, profile_combo, remove_profiles):
         profile_num = profile_combo.get_active()
@@ -528,6 +529,7 @@ class Preferences():
         self.config.port.pop(profile_num)
         self.config.password.pop(profile_num)
         self.config.musicdir.pop(profile_num)
+        self.populate_profiles_for_menu()
         if profile_num > 0:
             self._populate_profile_combo(profile_combo, profile_num-1, remove_profiles)
         else:
