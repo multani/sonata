@@ -699,6 +699,7 @@ class Base:
         self.randommenu.connect('toggled', self.on_random_clicked)
         self.repeatmenu.connect('toggled', self.on_repeat_clicked)
         self.cursonglabel1.connect('notify::label', self.on_currsong_notify)
+        self.cursonglabel1.connect('notify::label', self.fullscreen.on_text_changed)
         self.progressbar.connect('notify::fraction',
                                  self.on_progressbar_notify_fraction)
         self.progressbar.connect('notify::text',
@@ -3146,9 +3147,11 @@ class FullscreenApp:
         self.window.hide()
 
     def on_artwork_changed(self, artwork_obj, pixbuf):
-        self.set_text()
-        self.set_image()
         self.currentpb = pixbuf
+        self.set_image()
+
+    def on_text_changed(self, line1, line2):
+        self.set_text()
 
     def reset(self, *args, **kwargs):
         self.image.set_from_icon_set(ui.icon('sonata-cd'), -1)
