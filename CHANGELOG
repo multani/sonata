@@ -35,6 +35,10 @@ Bug fixes
     * fix translation of of Glade dialogs (Peter Helbing)
       https://github.com/multani/sonata/pull/75
     * fix opening the About dialog (based on Rocus van Oosten report).
+    * fix refreshing profiles upon connections add/delete (Corentin Néau)
+      https://github.com/multani/sonata/pull/92
+    * fix update of cover and text in fullscreen mode (Corentin Néau)
+      https://github.com/multani/sonata/pull/93
 
 Internal changes
 ''''''''''''''''
