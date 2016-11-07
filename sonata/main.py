@@ -144,7 +144,8 @@ class Base:
         self.actionGroupProfiles = None
 
         self.skip_on_profiles_click = False
-        self.last_repeat = None
+        self.last_playlist_repeat = None
+        self.last_song_repeat = None
         self.last_random = None
         self.last_consume = None
         self.last_title = None
@@ -313,8 +314,10 @@ class Base:
         toggle_actions = [
             ('showmenu', None, _('S_how Sonata'), None, None,
              self.on_withdraw_app_toggle, not self.config.withdrawn),
-            ('repeatmenu', None, _('_Repeat'), None, None,
-             self.on_repeat_clicked, False),
+            ('repeatplaylistmenu', None, _('_Repeat playlist'), None, None,
+             self.on_repeat_playlist_clicked, False),
+            ('repeatsongmenu', None, _('Repeat s_ong'), None, None,
+             self.on_repeat_song_clicked, False),
             ('randommenu', None, _('Rando_m'), None, None,
              self.on_random_clicked, False),
             ('consumemenu', None, _('Consume'), None, None,
@@ -352,7 +355,8 @@ class Base:
                 <menuitem action="nextmenu"/>
                 <separator name="FM2"/>
                 <menu action="playmodemenu">
-                  <menuitem action="repeatmenu"/>
+                  <menuitem action="repeatplaylistmenu"/>
+                  <menuitem action="repeatsongmenu"/>
                   <menuitem action="randommenu"/>
                   <menuitem action="consumemenu"/>
                 </menu>
@@ -391,7 +395,8 @@ class Base:
                   <separator name="FM4"/>
                 </menu>
                 <separator name="FM1"/>
-                <menuitem action="repeatmenu"/>
+                <menuitem action="repeatplaylistmenu"/>
+                <menuitem action="repeatsongmenu"/>
                 <menuitem action="randommenu"/>
 				<menuitem action="consumemenu"/>
                 <menu action="updatemenu">
@@ -565,7 +570,8 @@ class Base:
         self.mainmenu = self.UIManager.get_widget('/mainmenu')
         self.randommenu = self.UIManager.get_widget('/mainmenu/randommenu')
         self.consumemenu = self.UIManager.get_widget('/mainmenu/consumemenu')
-        self.repeatmenu = self.UIManager.get_widget('/mainmenu/repeatmenu')
+        self.repeatplaylistmenu = self.UIManager.get_widget('/mainmenu/repeatplaylistmenu')
+        self.repeatsongmenu = self.UIManager.get_widget('/mainmenu/repeatsongmenu')
         self.imagemenu = self.UIManager.get_widget('/imagemenu')
         self.traymenu = self.UIManager.get_widget('/traymenu')
         self.librarymenu = self.UIManager.get_widget('/librarymenu')
@@ -697,7 +703,8 @@ class Base:
         self.volumebutton.connect('value-changed', self.on_volume_change)
         self.expander.connect('activate', self.on_expander_activate)
         self.randommenu.connect('toggled', self.on_random_clicked)
-        self.repeatmenu.connect('toggled', self.on_repeat_clicked)
+        self.repeatplaylistmenu.connect('toggled', self.on_repeat_playlist_clicked)
+        self.repeatsongmenu.connect('toggled', self.on_repeat_song_clicked)
         self.cursonglabel1.connect('notify::label', self.on_currsong_notify)
         self.cursonglabel1.connect('notify::label', self.fullscreen.on_text_changed)
         self.progressbar.connect('notify::fraction',
@@ -974,10 +981,16 @@ class Base:
                                 self.iterate_time_when_disconnected_or_stopped
                     self.songinfo = self.mpd.currentsong()
                     self.artwork.update_songinfo(self.songinfo)
-                    if not self.last_repeat \
-                       or self.last_repeat != self.status['repeat']:
-                        self.repeatmenu.set_active(
-                            self.status['repeat'] == '1')
+                    repeat_song = self.status['repeat'] == '1' \
+                                and self.status['single'] == '1'
+                    repeat_playlist = self.status['repeat'] == '1' \
+                                and self.status['single'] == '0'
+                    if not self.last_song_repeat \
+                       or self.last_song_repeat != repeat_song:
+                        self.repeatsongmenu.set_active(repeat_song)
+                    if not self.last_playlist_repeat \
+                       or self.last_playlist_repeat != repeat_playlist:
+                        self.repeatplaylistmenu.set_active(repeat_playlist)
                     if not self.last_random \
                        or self.last_random != self.status['random']:
                         self.randommenu.set_active(
@@ -995,7 +1008,8 @@ class Base:
                             if self.config.xfade > 30:
                                 self.config.xfade = 30
 
-                    self.last_repeat = self.status['repeat']
+                    self.last_song_repeat = repeat_song
+                    self.last_playlist_repeat = repeat_playlist
                     self.last_random = self.status['random']
                     self.last_consume = self.status['consume']
                     return
@@ -1724,6 +1738,7 @@ class Base:
                 info_file.write('Time: %s\n' % self.songinfo.time)
                 info_file.write('Volume: %s\n' % (self.status['volume'],))
                 info_file.write('Repeat: %s\n' % (self.status['repeat'],))
+                info_file.write('Single: %s\n' % (self.status['single'],))
                 info_file.write('Random: %s\n' % (self.status['random'],))
                 info_file.write('Consume: %s\n' % (self.status['consume'],))
                 info_file.close()
@@ -2577,9 +2592,18 @@ class Base:
             self.mpd.clear()
             self.iterate_now()
 
-    def on_repeat_clicked(self, widget):
+    def on_repeat_playlist_clicked(self, widget):
         if self.conn:
-            self.mpd.repeat(int(widget.get_active()))
+            is_active = widget.get_active()
+            self.mpd.repeat(int(is_active or self.repeatsongmenu.get_active()))
+            self.mpd.single(1 - is_active)
+
+    def on_repeat_song_clicked(self, widget):
+        if self.conn:
+            is_active = int(widget.get_active())
+            is_repeat_playlist_active = int(self.repeatplaylistmenu.get_active())
+            self.mpd.single(is_active)
+            self.mpd.repeat(int(is_active or is_repeat_playlist_active))
 
     def on_random_clicked(self, widget):
         if self.conn:
