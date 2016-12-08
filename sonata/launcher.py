@@ -30,7 +30,7 @@ import logging
 import os
 import platform
 import threading  # needed for interactive shell
-
+import gi
 
 def run():
     """Main entry point of Sonata"""
@@ -156,6 +156,7 @@ def run():
 
     if not args.skip_gui:
         # importing gtk does sys.setdefaultencoding("utf-8"), sets locale etc.
+        gi.require_version('Gtk', '3.0')
         from gi.repository import Gtk, Gdk
     else:
         class FakeModule:
