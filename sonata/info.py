@@ -479,6 +479,9 @@ class Info:
         else:
             new_width = 150
 
+        if self.config.resize_covers and new_width > self.config.resize_covers_value:
+            new_width = self.config.resize_covers_value
+
         (pix2, w, h) = img.get_pixbuf_of_size(pixbuf, new_width)
         pix2 = img.do_style_cover(self.config, pix2, w, h)
         pix2 = img.pixbuf_add_border(pix2)

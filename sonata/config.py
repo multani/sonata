@@ -131,6 +131,8 @@ class Config:
                 'minimize_to_systray': ('minimize', 'boolean', False),
                 'ontop': ('ontop', 'boolean', False),
                 'popup_option': ('popup_time', 'int', 2),
+                'resize_covers': ('resize', 'boolean', True),
+                'resize_covers_value': ('resize_value', 'int', 300),
                 'screen': ('screen', 'int', 0),
                 'show_covers': ('covers', 'boolean', True),
                 'show_header': ('show_header', 'boolean', True),

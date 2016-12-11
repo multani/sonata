@@ -2623,6 +2623,8 @@ class Base:
         display = preferences.Display_cbs
         display.stylized_toggled = self.prefs_stylized_toggled
         display.art_toggled = self.prefs_art_toggled
+        display.resize_toggled = self.prefs_resize_toggled
+        display.resize_changed = self.prefs_resize_changed
         display.playback_toggled = self.prefs_playback_toggled
         display.progress_toggled = self.prefs_progress_toggled
         display.statusbar_toggled = self.prefs_statusbar_toggled
@@ -2756,6 +2758,16 @@ class Base:
 
         # Force a resize of the info labels, if needed:
         GLib.idle_add(self.on_notebook_resize, self.notebook, None)
+
+    def prefs_resize_toggled(self, button, resize_prefs):
+        button_active = button.get_active()
+        resize_prefs.set_sensitive(button_active)
+        self.config.resize_covers = button_active
+        self.artwork.artwork_update()
+
+    def prefs_resize_changed(self, spinbutton):
+        self.config.resize_covers_value = spinbutton.get_value_as_int()
+        self.artwork.artwork_update()
 
     def prefs_stylized_toggled(self, button):
         self.config.covers_type = button.get_active()
