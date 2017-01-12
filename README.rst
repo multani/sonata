@@ -91,6 +91,11 @@ This development version of Sonata is also available in several distributions:
 
 * Archlinux: available in `AUR as sonata-git
   <https://aur.archlinux.org/packages/sonata-git/>`_
+* Fedora: `Sonata
+  <https://apps.fedoraproject.org/packages/sonata>`_::
+  
+    sudo yum install sonata
+    
 * Gentoo: available in the `stuff overlay`_::
 
     sudo layman -a stuff
