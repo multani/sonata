@@ -64,6 +64,7 @@ LIB_LEVEL_ARTIST = 1
 LIB_LEVEL_ALBUM = 2
 LIB_LEVEL_SONG = 3
 NUM_ARTISTS_FOR_VA = 2
+PREV_TRACK_RESTART = 5
 
 # the names of the plug-ins that will be enabled by default
 DEFAULT_PLUGINS = [
