@@ -1,7 +1,12 @@
 Future release (not yet released!)
 ----------------------------------
 
-Nothing yet, send patches!
+New features
+''''''''''''
+
+* Rewind to the begin of track when pressing the "Previous" button, if the song
+  has been read for more than 5 seconds (@supergln)
+  https://github.com/multani/sonata/pull/102
 
 
 1.7b1 (2016-01-31)

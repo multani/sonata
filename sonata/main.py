@@ -2516,6 +2516,14 @@ class Base:
 
     def mpd_prev(self, _widget, _key=None):
         if self.conn:
+            if self.status_is_play_or_pause():
+                # Try to rewind the song if we are advanced enough...
+                at, length = [int(c) for c in self.status['time'].split(':')]
+                if at >= consts.PREV_TRACK_RESTART:
+                    self.seek(int(self.status['song']), 0)
+                    return
+
+            # otherwise, just go to the previous song
             self.mpd.previous()
             self.iterate_now()
 
