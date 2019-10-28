@@ -1410,8 +1410,8 @@ class Base:
                 self.current.center_song_in_list()
 
         if self.prevstatus is None \
-           or self.status['volume'] != self.prevstatus['volume']:
-            self.volumebutton.set_value(int(self.status['volume']))
+           or self.status.get('volume') != self.prevstatus.get('volume'):
+            self.volumebutton.set_value(int(self.status.get('volume', 0)))
 
         if self.conn:
             if mpdh.mpd_is_updating(self.status):
