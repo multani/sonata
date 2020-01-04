@@ -906,6 +906,8 @@ class Base:
             # Clear sonata before we try to connect:
             self.mpd_disconnect()
             self.iterate_now()
+            # Disconnect again to avoid "Already connected" error
+            self.mpd_disconnect()
             # Now connect to new profile:
             self.config.profile_num = profile.get_current_value()
             self.on_connectkey_pressed(None)
