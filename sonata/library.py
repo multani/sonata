@@ -227,7 +227,10 @@ class Library:
         self.librarymenu.popup(None, None, self.library_view_position_menu,
                                button, 1, 0)
 
-    def library_view_position_menu(self, _menu, button):
+    def library_view_position_menu(self, _menu, *args):
+        # Depending on PyGObject version, args is either just the
+        # button that was our user_data, or [x, y, button].
+        button = args[-1]
         alloc = button.get_allocation()
         return (self.config.x + alloc.x,
                 self.config.y + alloc.y + alloc.height,
