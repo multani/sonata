@@ -782,12 +782,22 @@ class Library:
                 else:
                     items = self.mpd.list(itemtype, *s)
                 for item in items:
+                    if isinstance(item, dict):
+                        if itemtype in item:
+                            item = item[itemtype]
+                        else:
+                            continue
                     if len(item) > 0:
                         results.append(item)
         else:
             if genre is None and artist is None and album is None and year \
                is None:
                 for item in self.mpd.list(itemtype):
+                    if isinstance(item, dict):
+                        if itemtype in item:
+                            item = item[itemtype]
+                        else:
+                            continue
                     if len(item) > 0:
                         results.append(item)
         if ignore_case:
