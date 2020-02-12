@@ -281,7 +281,7 @@ class TagEditor:
                 if len(tag_value) == 0:
                     tag_value = '0'
                 tag_value = int(tag_value)
-            if field is 'comment':
+            if field == 'comment':
                 if len(tag_value) == 0:
                     tag_value = ' '
             setattr(tag, field, tag_value)
