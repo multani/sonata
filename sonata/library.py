@@ -224,8 +224,15 @@ class Library:
         self.librarymenu.attach_to_widget(self.libraryview, None)
 
     def library_view_popup(self, button):
-        self.librarymenu.popup(None, None, self.library_view_position_menu,
-                               button, 1, 0)
+        if hasattr(self.librarymenu, 'popup_at_widget'):
+            self.librarymenu.popup_at_widget(button,
+                                             Gdk.Gravity.CENTER,
+                                             Gdk.Gravity.NORTH_WEST,
+                                             None)
+        else:
+            self.librarymenu.popup(None, None,
+                                   self.library_view_position_menu,
+                                   button, 1, 0)
 
     def library_view_position_menu(self, _menu, button):
         alloc = button.get_allocation()
