@@ -224,10 +224,20 @@ class Library:
         self.librarymenu.attach_to_widget(self.libraryview, None)
 
     def library_view_popup(self, button):
-        self.librarymenu.popup(None, None, self.library_view_position_menu,
-                               button, 1, 0)
+        if hasattr(self.librarymenu, 'popup_at_widget'):
+            self.librarymenu.popup_at_widget(button,
+                                             Gdk.Gravity.CENTER,
+                                             Gdk.Gravity.NORTH_WEST,
+                                             None)
+        else:
+            self.librarymenu.popup(None, None,
+                                   self.library_view_position_menu,
+                                   button, 1, 0)
 
-    def library_view_position_menu(self, _menu, button):
+    def library_view_position_menu(self, _menu, *args):
+        # Depending on PyGObject version, args is either just the
+        # button that was our user_data, or [x, y, button].
+        button = args[-1]
         alloc = button.get_allocation()
         return (self.config.x + alloc.x,
                 self.config.y + alloc.y + alloc.height,
@@ -782,12 +792,22 @@ class Library:
                 else:
                     items = self.mpd.list(itemtype, *s)
                 for item in items:
+                    if isinstance(item, dict):
+                        if itemtype in item:
+                            item = item[itemtype]
+                        else:
+                            continue
                     if len(item) > 0:
                         results.append(item)
         else:
             if genre is None and artist is None and album is None and year \
                is None:
                 for item in self.mpd.list(itemtype):
+                    if isinstance(item, dict):
+                        if itemtype in item:
+                            item = item[itemtype]
+                        else:
+                            continue
                     if len(item) > 0:
                         results.append(item)
         if ignore_case:

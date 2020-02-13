@@ -8,3 +8,4 @@ Type=Application
 Icon=sonata
 Categories=GTK;AudioVideo;Player;
 StartupNotify=true
+Keywords=Player;Music;Audio;

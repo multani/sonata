@@ -2873,7 +2873,7 @@ class Base:
 
         # FIXME when new UI is done, the top branch expression wins
         if notebook.get_tab_label(tab).get_children and \
-            len(notebook.get_tab_label(tab).get_children()) is 2:
+            len(notebook.get_tab_label(tab).get_children()) == 2:
             child = notebook.get_tab_label(tab).get_children()[1]
         else:
             child = notebook.get_tab_label(tab).get_child().get_children()[1]
