@@ -21,6 +21,7 @@ import logging
 import operator
 import os
 import socket
+import sys
 
 from gi.repository import GObject
 import mpd
@@ -30,12 +31,18 @@ from sonata.misc import remove_list_duplicates
 
 class MPDClient:
     def __init__(self, client=None):
-        if client is None:
-            # Yeah, we really want some unicode returned, otherwise we'll have
-            # to do it by ourselves.
-            client = mpd.MPDClient(use_unicode=True)
-        else:
-            client.use_unicode = True
+
+        if sys.version_info < (3, 0):
+            if client is None:
+                # Yeah, we really want some unicode returned, otherwise
+                # we'll have to do it by ourselves.
+                client = mpd.MPDClient(use_unicode=True)
+            else:
+                client.use_unicode = True
+        elif client is None:
+            # On Python 3, python-mpd2 always uses Unicode
+            client = mpd.MPDClient()
+
         self._client = client
         self.logger = logging.getLogger(__name__)
 
