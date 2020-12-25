@@ -1,5 +1,9 @@
-Future release (not yet released!)
-----------------------------------
+1.7.0
+-----
+
+It's has been a beta since a long time, let's make it official :)
+
+Sonata now requires [python-mpd](https://github.com/Mic92/python-mpd2) >= 2.0.
 
 New features
 ''''''''''''
@@ -7,6 +11,33 @@ New features
 * Rewind to the begin of track when pressing the "Previous" button, if the song
   has been read for more than 5 seconds (@supergln)
   https://github.com/multani/sonata/pull/102
+* add "Shuffle by album"
+  https://github.com/multani/sonata/pull/59
+* repeat single song (Corentin Néau)
+  https://github.com/multani/sonata/pull/95
+
+
+Bug Fixes
+'''''''''
+
+* fix refreshing profiles upon connections add/delete (Corentin Néau)
+  https://github.com/multani/sonata/pull/92
+* fix update of cover and text in fullscreen mode (Corentin Néau)
+  https://github.com/multani/sonata/pull/93
+* removed Gtk CSS warnings (Benjamin Debeerst)
+  https://github.com/multani/sonata/pull/97
+* mpd does not report volume when state is stopped
+  https://github.com/multani/sonata/pull/105
+* Compatibility fix with newer Python, GObject, python-mpd (Simon McVittie)
+  https://github.com/multani/sonata/pull/107
+  https://github.com/multani/sonata/pull/108
+  https://github.com/multani/sonata/pull/109
+  https://github.com/multani/sonata/pull/110
+  https://github.com/multani/sonata/pull/112
+* Add keywords to the .desktop file (Javi Merino)
+  https://github.com/multani/sonata/pull/111
+* Improve downloading lyrics from LyricsWiki
+  https://github.com/multani/sonata/pull/115
 
 
 1.7b1 (2016-01-31)
@@ -18,10 +49,6 @@ New features
     * redirect to the localized Wikipedia according to the user's local,
       instead of redirecting to the English one.
       https://github.com/multani/sonata/issues/61
-    * add "Shuffle by album"
-      https://github.com/multani/sonata/pull/59
-    * repeat single song (Corentin Néau)
-      https://github.com/multani/sonata/pull/95
 
 
 Bug fixes
@@ -42,10 +69,6 @@ Bug fixes
     * fix translation of of Glade dialogs (Peter Helbing)
       https://github.com/multani/sonata/pull/75
     * fix opening the About dialog (based on Rocus van Oosten report).
-    * fix refreshing profiles upon connections add/delete (Corentin Néau)
-      https://github.com/multani/sonata/pull/92
-    * fix update of cover and text in fullscreen mode (Corentin Néau)
-      https://github.com/multani/sonata/pull/93
 
 Internal changes
 ''''''''''''''''
