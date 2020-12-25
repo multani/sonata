@@ -50,7 +50,7 @@ In order to run Sonata, you will need the following dependencies:
 * `PyGObject`_ (aka Python GObject Introspection) (3.7.4 or more recommended,
   earlier versions may also work)
 * GTK >= 3.4
-* `python-mpd2` >= 0.4.6
+* `python-mpd2` >= 2.0
 * MPD >= 0.15 (possibly on another computer)
 * tagpy >= 2013.1 for editing metadata (Optional)
 * dbus-python for multimedia keys (Optional)
@@ -124,7 +124,7 @@ Copyright
 =========
 
 * Copyright 2006-2009 Scott Horowitz <stonecrest@gmail.com>
-* Copyright 2009-2013 Jonathan Ballet <jon@multani.info>
+* Copyright 2009-2020 Jonathan Ballet <jon@multani.info>
 
 Sonata is currently developed by Jonathan Ballet <jon@multani.info> and other
 contributors. Many thanks to the past developers:

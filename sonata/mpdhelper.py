@@ -29,14 +29,8 @@ from sonata.misc import remove_list_duplicates
 
 
 class MPDClient:
-    def __init__(self, client=None):
-        if client is None:
-            # Yeah, we really want some unicode returned, otherwise we'll have
-            # to do it by ourselves.
-            client = mpd.MPDClient(use_unicode=True)
-        else:
-            client.use_unicode = True
-        self._client = client
+    def __init__(self):
+        self._client = mpd.MPDClient()
         self.logger = logging.getLogger(__name__)
 
     def __getattr__(self, attr):
