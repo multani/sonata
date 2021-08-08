@@ -1,0 +1,1546 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-07-08 19:07+0200\n"
+"PO-Revision-Date: 2021-08-08 22:23+0700\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n==0 || n==1);\n"
+"X-Generator: Poedit 2.2.4\n"
+"Last-Translator: \n"
+"Language: hi\n"
+
+#. define the shortcuts and their descriptions
+#. these are all gettextable
+#. Keep them here (not as XML) as they're more convenient this way
+#: ../sonata/about.py:41
+msgid "About Sonata"
+msgstr "सोनाटा के बारे में"
+
+#: ../sonata/about.py:42 ../sonata/ui/preferences.glade.h:5
+msgid "Preferences"
+msgstr "पसंद"
+
+#: ../sonata/about.py:43
+msgid "Fullscreen Artwork Mode"
+msgstr "फ़ुलस्क्रीन आर्टवर्क मोड"
+
+#: ../sonata/about.py:44
+msgid "Switch to [1st-5th] tab"
+msgstr "[१-५वें] टैब पर स्विच करें"
+
+#: ../sonata/about.py:45
+msgid "Connect to MPD"
+msgstr "एमपीडी से कनेक्ट करें"
+
+#: ../sonata/about.py:46
+msgid "Disconnect from MPD"
+msgstr "एमपीडी से डिस्कनेक्ट करें"
+
+#: ../sonata/about.py:47
+msgid "Randomize current playlist"
+msgstr "वर्तमान प्लेलिस्ट को रैंडमाइज करें"
+
+#: ../sonata/about.py:48
+msgid "Expand player"
+msgstr "खिलाड़ी का विस्तार करें"
+
+#: ../sonata/about.py:49
+msgid "Switch to previous tab"
+msgstr "पिछले टैब पर स्विच करें"
+
+#: ../sonata/about.py:50
+msgid "Switch to next tab"
+msgstr "अगले टैब पर स्विच करें"
+
+#: ../sonata/about.py:51
+msgid "Collapse player"
+msgstr "खिलाड़ी संक्षिप्त करें"
+
+#: ../sonata/about.py:52 ../sonata/ui/library.glade.h:2
+msgid "Search library"
+msgstr "खोज पुस्तकालय"
+
+#: ../sonata/about.py:53
+msgid "Quit"
+msgstr "छोड़ना"
+
+#: ../sonata/about.py:54
+msgid "Update entire library"
+msgstr "संपूर्ण पुस्तकालय अपडेट करें"
+
+#: ../sonata/about.py:55
+msgid "Display popup menu"
+msgstr "पॉपअप मेनू प्रदर्शित करें"
+
+#: ../sonata/about.py:56
+msgid "Minimize to system tray (if enabled)"
+msgstr "सिस्टम ट्रे को छोटा करें (यदि सक्षम हो)"
+
+#: ../sonata/about.py:58
+msgid "Previous track"
+msgstr "पिछला ट्रैक"
+
+#: ../sonata/about.py:59
+msgid "Next track"
+msgstr "अगला गाना"
+
+#: ../sonata/about.py:60
+msgid "Play/Pause"
+msgstr "खेल/ठहराव"
+
+#: ../sonata/about.py:61
+msgid "Stop"
+msgstr "रुकें"
+
+#: ../sonata/about.py:62
+msgid "Lower the volume"
+msgstr "वॉल्यूम घटाएं"
+
+#: ../sonata/about.py:63
+msgid "Raise the volume"
+msgstr "वॉल्यूम बढ़ाएं"
+
+#: ../sonata/about.py:65
+msgid "Play selected song"
+msgstr "चयनित गीत चलाएं"
+
+#: ../sonata/about.py:66
+msgid "Remove selected song(s)"
+msgstr "एक या अधिक चयनित गाने हटाएं"
+
+#: ../sonata/about.py:67
+msgid "Center currently playing song"
+msgstr "बीच में बज रहा गाना"
+
+#: ../sonata/about.py:68 ../sonata/about.py:77
+msgid "Edit selected song's tags"
+msgstr "संपादित करें चयनित गीत के टैग"
+
+#: ../sonata/about.py:69
+msgid "Save to new playlist"
+msgstr "नई प्लेलिस्ट में सेव करें"
+
+#: ../sonata/about.py:70
+msgid "Clear list"
+msgstr "स्पष्ट सूची"
+
+#: ../sonata/about.py:71
+msgid "Randomize list"
+msgstr "यादृच्छिक सूची"
+
+#: ../sonata/about.py:73
+msgid "Add selected song(s) or enter directory"
+msgstr "एक या अधिक चयनित गीत जोड़ें या निर्देशिका दर्ज करें"
+
+#: ../sonata/about.py:74
+msgid "Go to parent directory"
+msgstr "मूल निर्देशिका पर जाएं तो"
+
+#: ../sonata/about.py:75
+msgid "Add selected item(s)"
+msgstr "एक या अधिक चयनित आइटम जोड़ें"
+
+#: ../sonata/about.py:76
+msgid "Replace with selected item(s)"
+msgstr "एक या अधिक चयनित वस्तुओं से बदलें"
+
+#: ../sonata/about.py:78
+msgid "Add selected item(s) and play"
+msgstr "एक या अधिक चयनित आइटम जोड़ें और खेलें"
+
+#: ../sonata/about.py:79
+msgid "Replace with selected item(s) and play"
+msgstr "चयनित आइटम(रों) और खेलने के साथ बदलें"
+
+#: ../sonata/about.py:80
+msgid "Update selected item(s)/path(s)"
+msgstr "अद्यतन चयनित आइटम(ओं)/पथ(रों)"
+
+#: ../sonata/about.py:82 ../sonata/about.py:84
+msgid "Add selected playlist(s)"
+msgstr "एक या अधिक चयनित प्लेलिस्ट जोड़ें"
+
+#: ../sonata/about.py:83
+msgid "Remove selected playlist(s)"
+msgstr "एक या अधिक चयनित प्लेलिस्ट हटाएं"
+
+#: ../sonata/about.py:85
+msgid "Replace with selected playlist(s)"
+msgstr "एक या अधिक चयनित प्लेलिस्ट के साथ बदलें"
+
+#: ../sonata/about.py:86
+msgid "Add selected playlist(s) and play"
+msgstr "एक या अधिक चयनित प्लेलिस्ट जोड़ें और खेलें"
+
+#: ../sonata/about.py:90 ../sonata/about.py:92
+msgid "Add selected stream(s)"
+msgstr "एक या अधिक चयनित स्ट्रीम जोड़ें"
+
+#: ../sonata/about.py:91
+msgid "Remove selected stream(s)"
+msgstr "एक या अधिक चयनित स्ट्रीम निकालें"
+
+#: ../sonata/about.py:93
+msgid "Replace with selected stream(s)"
+msgstr "एक या अधिक चयनित स्ट्रीम से बदलें"
+
+#: ../sonata/about.py:94
+msgid "Add selected stream(s) and play"
+msgstr "एक या अधिक चयनित स्ट्रीम जोड़ें और चलाएं"
+
+#: ../sonata/about.py:98
+msgid "Edit playing song's tags"
+msgstr "गाने के टैग चलाना संपादित करें"
+
+#. define the main array- this adds headings to each section of
+#. shortcuts that will be displayed
+#: ../sonata/about.py:101
+msgid "Main Shortcuts"
+msgstr "बुनियादी शॉर्टकट"
+
+#: ../sonata/about.py:102
+msgid "Playback Shortcuts"
+msgstr "प्लेबैक शॉर्टकट"
+
+#: ../sonata/about.py:103
+msgid "Current Shortcuts"
+msgstr "वर्तमान शॉर्टकट"
+
+#: ../sonata/about.py:104
+msgid "Library Shortcuts"
+msgstr "पुस्तकालय शॉर्टकट"
+
+#: ../sonata/about.py:105
+msgid "Playlist Shortcuts"
+msgstr "प्लेलिस्ट शॉर्टकट"
+
+#: ../sonata/about.py:106
+msgid "Stream Shortcuts"
+msgstr "स्ट्रीम शॉर्टकट"
+
+#: ../sonata/about.py:107
+msgid "Info Shortcuts"
+msgstr "जानकारी शॉर्टकट"
+
+#: ../sonata/about.py:144
+msgid "{count} song."
+msgid_plural "{count} songs."
+msgstr[0] "{count} गीत।"
+msgstr[1] "{count} गाना।"
+
+#: ../sonata/about.py:147
+msgid "{count} album."
+msgid_plural "{count} albums."
+msgstr[0] "{count} अल्बम्स।"
+msgstr[1] "{count} एल्बम।"
+
+#: ../sonata/about.py:150
+msgid "{count} artist."
+msgid_plural "{count} artists."
+msgstr[0] "{count} कलाकार की।"
+msgstr[1] "{count} निष्पादक।"
+
+#: ../sonata/about.py:160
+msgid "{count} day of bliss."
+msgid_plural "{count} days of bliss."
+msgstr[0] "{count} आनंद के दिन।"
+msgstr[1] "{count} आनंद का दिन।"
+
+#: ../sonata/about.py:164
+msgid "{count} hour of bliss."
+msgid_plural "{count} hours of bliss."
+msgstr[0] "{count} आनंद के घंटे।"
+msgstr[1] "{count} आनंद की घड़ी।"
+
+#. toggle and popup and fullscreen need d-bus and don't always need gui
+#. version and help don't need anything and exit without gui
+#. hidden and visible are only applicable when gui is launched
+#. profile and no-start don't need anything
+#: ../sonata/cli.py:35
+msgid "%prog [OPTION]... [COMMAND]..."
+msgstr "%prog [विकल्प]... [कमांड]..."
+
+#: ../sonata/cli.py:36
+msgid "Commands:"
+msgstr "आदेश:"
+
+#: ../sonata/cli.py:37
+msgid "play song in playlist"
+msgstr "प्लेलिस्ट में गाना बजाएं"
+
+#: ../sonata/cli.py:38
+msgid "pause currently playing song"
+msgstr "वर्तमान में चल रहे गीत को थामने"
+
+#: ../sonata/cli.py:39
+msgid "stop currently playing song"
+msgstr "गाना बजाना बंद करो"
+
+#: ../sonata/cli.py:40
+msgid "play next song in playlist"
+msgstr "प्लेलिस्ट में अगला गाना बजाएं"
+
+#: ../sonata/cli.py:41
+msgid "play previous song in playlist"
+msgstr "प्लेलिस्ट में पिछला गाना चलाएं"
+
+#: ../sonata/cli.py:42
+msgid "toggle play/pause; plays if stopped"
+msgstr "टॉगल प्ले/पॉज़; खेलता है तो रुक जाता है"
+
+#: ../sonata/cli.py:43
+msgid "toggle repeat mode"
+msgstr "टॉगल रिपीट मोड"
+
+#: ../sonata/cli.py:44
+msgid "toggle random mode"
+msgstr "यादृच्छिक मोड टॉगल करें"
+
+#: ../sonata/cli.py:45
+msgid "display current song info"
+msgstr "वर्तमान गीत जानकारी प्रदर्शित करें"
+
+#: ../sonata/cli.py:46
+msgid "display MPD status"
+msgstr "एमपीडी स्थिति प्रदर्शित करें"
+
+#: ../sonata/cli.py:53
+msgid "popup song notification (requires D-Bus)"
+msgstr "पॉपअप गीत अधिसूचना (डी-बस की आवश्यकता है)"
+
+#: ../sonata/cli.py:56
+msgid "toggles whether the app is minimized to the tray or visible (requires D-Bus)"
+msgstr "टॉगल करता है कि ऐप को ट्रे में छोटा किया गया है या दृश्यमान है (डी-बस की आवश्यकता है)"
+
+#: ../sonata/cli.py:59
+msgid "go fullscreen (requires D-Bus)"
+msgstr "पूर्ण स्क्रीन पर जाएं (डी-बस की आवश्यकता है)"
+
+#: ../sonata/cli.py:62
+msgid "don't start app if D-Bus commands fail"
+msgstr "डी-बस कमांड विफल होने पर ऐप शुरू न करें"
+
+#: ../sonata/cli.py:65
+msgid "start app hidden (requires systray)"
+msgstr "प्रारंभ ऐप छिपा हुआ (सिस्ट्रे की आवश्यकता है)"
+
+#: ../sonata/cli.py:68
+msgid "start app visible (requires systray)"
+msgstr "ऐप दृश्यमान प्रारंभ करें (सिस्ट्रे की आवश्यकता है)"
+
+#: ../sonata/cli.py:70
+msgid "start with profile NUM"
+msgstr "प्रोफाइल नंबर से शुरू करें"
+
+#: ../sonata/cli.py:73
+msgid "start app with a interactive (ipython) shell"
+msgstr "एक इंटरैक्टिव (ipython) शेल के साथ ऐप शुरू करें"
+
+#: ../sonata/cli.py:76
+msgid "Increase log verbosity"
+msgstr "लॉग वर्बोसिटी बढ़ाएँ"
+
+#: ../sonata/cli.py:79
+msgid "Decrease log verbosity"
+msgstr "घटाएँ लॉग शब्दाडंबर"
+
+#: ../sonata/cli.py:99
+#, python-format
+msgid "unknown command %s"
+msgstr "अज्ञात आदेश %s"
+
+#: ../sonata/cli.py:105
+msgid "toggle and popup options require D-Bus.  Aborting."
+msgstr "टॉगल और पॉपअप विकल्पों के लिए डी-बस की आवश्यकता होती है। गर्भपात।"
+
+#: ../sonata/cli.py:127
+#, python-format
+msgid "Starting Sonata with profile %s..."
+msgstr "प्रोफ़ाइल के साथ सोनाटा शुरू करना %s..."
+
+#: ../sonata/cli.py:131
+#, python-format
+msgid "%d is not an available profile number."
+msgstr "%d उपलब्ध प्रोफाइल नंबर नहीं है।"
+
+#: ../sonata/cli.py:133
+#, python-format
+msgid "Profile numbers must be between 1 and %d."
+msgstr "प्रोफ़ाइल नंबर 1 और अंत के साथ शुरू करना चाहिए %d."
+
+#: ../sonata/cli.py:153 ../sonata/main.py:171
+msgid "Default Profile"
+msgstr "डिफॉल्ट प्रोफ़ाइल"
+
+#: ../sonata/cli.py:154
+msgid "by"
+msgstr "द्वारा"
+
+#: ../sonata/cli.py:154
+msgid "from"
+msgstr "से"
+
+#: ../sonata/cli.py:177
+msgid ""
+"Unable to connect to MPD.\n"
+"Please check your Sonata preferences or MPD_HOST/MPD_PORT environment variables."
+msgstr ""
+"एमपीडी से कनेक्ट करने में असमर्थ।\n"
+"कृपया अपनी सोनाटा प्राथमिकताएं या MPD_HOST/MPD_PORT पर्यावरण चर जांचें।"
+
+#: ../sonata/cli.py:216 ../sonata/library.py:60 ../sonata/ui/library.glade.h:5
+msgid "Title"
+msgstr "शीर्षक"
+
+#: ../sonata/cli.py:217 ../sonata/formatting.py:102 ../sonata/library.py:60 ../sonata/ui/library.glade.h:4
+msgid "Artist"
+msgstr "निष्पादक"
+
+#: ../sonata/cli.py:218 ../sonata/formatting.py:103 ../sonata/library.py:60 ../sonata/ui/library.glade.h:6
+msgid "Album"
+msgstr "एल्बम"
+
+#: ../sonata/cli.py:219
+msgid "Date"
+msgstr "तारीख"
+
+#: ../sonata/cli.py:220 ../sonata/formatting.py:104
+msgid "Track"
+msgstr "ट्रैक"
+
+#: ../sonata/cli.py:221 ../sonata/formatting.py:108 ../sonata/library.py:60 ../sonata/ui/library.glade.h:7
+msgid "Genre"
+msgstr "शैली"
+
+#: ../sonata/cli.py:222 ../sonata/formatting.py:111
+msgid "File"
+msgstr "फ़ाइल"
+
+#: ../sonata/cli.py:236 ../sonata/cli.py:238
+msgid "Time"
+msgstr "समय"
+
+#: ../sonata/cli.py:239
+msgid "Bitrate"
+msgstr "बिटरेट"
+
+#: ../sonata/cli.py:242
+msgid "MPD stopped"
+msgstr "एमपीडी रोक"
+
+#: ../sonata/cli.py:246
+msgid "Playing"
+msgstr "खेल रहे हैं"
+
+#: ../sonata/cli.py:247
+msgid "Paused"
+msgstr "रोके गए"
+
+#: ../sonata/cli.py:248 ../sonata/main.py:630 ../sonata/main.py:1640 ../sonata/main.py:1654
+msgid "Stopped"
+msgstr "रोका हुआ"
+
+#: ../sonata/cli.py:249
+msgid "State"
+msgstr "राज्य"
+
+#: ../sonata/cli.py:251
+msgid "Repeat:"
+msgstr "दोहराना:"
+
+#: ../sonata/cli.py:251 ../sonata/cli.py:253
+msgid "On"
+msgstr "पर"
+
+#: ../sonata/cli.py:252 ../sonata/cli.py:254
+msgid "Off"
+msgstr "बंद"
+
+#: ../sonata/cli.py:253
+msgid "Random:"
+msgstr "यादृच्छिक:"
+
+#: ../sonata/cli.py:255
+msgid "Volume"
+msgstr "आयतन"
+
+#: ../sonata/cli.py:256
+msgid "Crossfade"
+msgstr "क्रॉसफ़ेड"
+
+#: ../sonata/cli.py:257 ../sonata/preferences.py:194
+msgid "second"
+msgid_plural "seconds"
+msgstr[0] "सेकंड"
+msgstr[1] "दूसरा"
+
+#: ../sonata/dbus_plugin.py:101
+msgid ""
+"Sonata failed to connect to the D-BUS session bus: Unable to determine the address of the message bus (try 'man "
+"dbus-launch' and 'man dbus-daemon' for help)\")"
+msgstr ""
+"सोनाटा डी-बस सत्र बस से कनेक्ट करने में विफल रहा: संदेश बस का पता निर्धारित करने में असमर्थ (मदद के लिए 'मैन डीबीस-लॉन्च' और 'मैन "
+"डीबस-डेमन' आज़माएं)\")"
+
+#: ../sonata/dbus_plugin.py:121
+msgid "Failed to execute remote commands."
+msgstr "दूरस्थ आदेश निष्पादित करने में विफल।"
+
+#: ../sonata/dbus_plugin.py:123
+msgid "Starting Sonata instead..."
+msgstr "इसके बजाय, सोनाटा प्रक्षेपण..."
+
+#. TODO: should we log the exception here?
+#: ../sonata/dbus_plugin.py:126
+msgid "Maybe Sonata is not running?"
+msgstr "शायद सोनाटा काम नहीं कर रही है?"
+
+#: ../sonata/formatting.py:28
+msgid "Unknown"
+msgstr "अज्ञात"
+
+#: ../sonata/formatting.py:102
+msgid "Artist name"
+msgstr "कलाकार का नाम"
+
+#: ../sonata/formatting.py:103
+msgid "Album name"
+msgstr "एल्बम का नाम"
+
+#: ../sonata/formatting.py:104
+msgid "Track name"
+msgstr "ट्रैक का नाम"
+
+#: ../sonata/formatting.py:105
+msgid "Track number"
+msgstr "ट्रैक संख्या"
+
+#: ../sonata/formatting.py:105 ../sonata/formatting.py:106
+msgid "#"
+msgstr "#"
+
+#: ../sonata/formatting.py:106
+msgid "Disc number"
+msgstr "डिस्क संख्या"
+
+#: ../sonata/formatting.py:107
+msgid "Year"
+msgstr "साल"
+
+#: ../sonata/formatting.py:109
+msgid "File path"
+msgstr "फ़ाइल पथ"
+
+#: ../sonata/formatting.py:109 ../sonata/library.py:1028
+msgid "Path"
+msgstr "पथ"
+
+#: ../sonata/formatting.py:111
+msgid "File name"
+msgstr "फ़ाइल का नाम"
+
+#: ../sonata/formatting.py:113
+msgid "Stream name"
+msgstr "स्ट्रीम का नाम"
+
+#: ../sonata/formatting.py:113
+msgid "Stream"
+msgstr "धारा"
+
+#: ../sonata/formatting.py:114
+msgid "Song length"
+msgstr "गाने की लंबाई"
+
+#: ../sonata/formatting.py:114
+msgid "Len"
+msgstr "लंबाई"
+
+#: ../sonata/formatting.py:115
+msgid "Elapsed time (title only)"
+msgstr "बीता हुआ समय (केवल शीर्षक)"
+
+#: ../sonata/info.py:155
+msgid "hide"
+msgstr "छिपाना"
+
+#: ../sonata/info.py:158
+msgid "more"
+msgstr "अधिक"
+
+#: ../sonata/info.py:243
+msgid "Album name not set."
+msgstr "एल्बम का नाम सेट नहीं है।"
+
+#: ../sonata/info.py:247
+msgid "Album info not found."
+msgstr "एल्बम की जानकारी नहीं मिली।"
+
+#: ../sonata/info.py:309
+msgid "Lyrics not found"
+msgstr "गीत नहीं मिला"
+
+#: ../sonata/info.py:351
+msgid "Fetching lyrics..."
+msgstr "पाठ प्राप्त करना..."
+
+#: ../sonata/info.py:372
+msgid "Lyrics not found."
+msgstr "गीत नहीं मिला।"
+
+#: ../sonata/info.py:375
+msgid "No lyrics plug-in enabled."
+msgstr "कोई गीत प्लग-इन सक्षम नहीं है।"
+
+#: ../sonata/library.py:14
+msgid "Various Artists"
+msgstr "विभिन्न कलाकारों"
+
+#: ../sonata/library.py:59
+msgid "Untagged"
+msgstr "टैग नहीं किए गए"
+
+#: ../sonata/library.py:61 ../sonata/ui/library.glade.h:8
+msgid "Filename"
+msgstr "फ़ाइल नाम"
+
+#: ../sonata/library.py:61 ../sonata/ui/library.glade.h:9
+msgid "Everything"
+msgstr "हर चीज़"
+
+#: ../sonata/library.py:137
+msgid "Filesystem"
+msgstr "फाइल सिस्टम"
+
+#: ../sonata/library.py:139
+msgid "Albums"
+msgstr "एलबम"
+
+#: ../sonata/library.py:141
+msgid "Artists"
+msgstr "कलाकारों"
+
+#: ../sonata/library.py:143
+msgid "Genres"
+msgstr "शैलियां"
+
+#: ../sonata/library.py:922 ../sonata/main.py:1561
+msgid "{count} song"
+msgid_plural "{count} songs"
+msgstr[0] "{count} गीत"
+msgstr[1] "{count} गाना"
+
+#: ../sonata/library.py:924
+msgid "{count} second"
+msgid_plural "{count} seconds"
+msgstr[0] "{count} सेकंड"
+msgstr[1] "{count} दूसरा"
+
+#: ../sonata/library.py:926 ../sonata/main.py:1576
+msgid "{count} minute"
+msgid_plural "{count} minutes"
+msgstr[0] "{count} मिनट"
+msgstr[1] "{count} मिनट"
+
+#: ../sonata/library.py:928 ../sonata/main.py:1572
+msgid "{count} hour"
+msgid_plural "{count} hours"
+msgstr[0] "{count} घंटे"
+msgstr[1] "{count} घंटा"
+
+#: ../sonata/library.py:1028
+msgid "Song"
+msgstr "गाना"
+
+#. Constants
+#: ../sonata/main.py:93
+msgid "Current"
+msgstr "वर्तमान"
+
+#: ../sonata/main.py:94
+msgid "Library"
+msgstr "पुस्तकालय"
+
+#: ../sonata/main.py:95
+msgid "Playlists"
+msgstr "प्लेलिस्ट"
+
+#: ../sonata/main.py:96
+msgid "Streams"
+msgstr "धाराओं"
+
+#: ../sonata/main.py:97
+msgid "Info"
+msgstr "जानकारी"
+
+#: ../sonata/main.py:129 ../sonata/preferences.py:195 ../sonata/ui/preferences.glade.h:59
+msgid "Entire song"
+msgstr "पूरा गाना"
+
+#: ../sonata/main.py:171
+msgid "by %A from %B"
+msgstr "से %A इससे पहले %B"
+
+#: ../sonata/main.py:227
+msgid "_Sort List"
+msgstr "_क्रमबद्ध सूची"
+
+#: ../sonata/main.py:228
+msgid "Sa_ve Selected to"
+msgstr "चयन को इसमें सहेजें"
+
+#: ../sonata/main.py:229
+msgid "_Connection"
+msgstr "_यौगिक"
+
+#: ../sonata/main.py:230
+msgid "P_lay after"
+msgstr "बाद में खेलें"
+
+#: ../sonata/main.py:231
+msgid "Play _Mode"
+msgstr "प्ले_मोड"
+
+#: ../sonata/main.py:232
+msgid "_Update"
+msgstr "_अपडेट करें"
+
+#: ../sonata/main.py:233
+msgid "Use _Remote Image..."
+msgstr "_रिमोट इमेज का इस्तेमाल करें..."
+
+#: ../sonata/main.py:235
+msgid "Use _Local Image..."
+msgstr "_स्थानीय छवि का प्रयोग करें..."
+
+#: ../sonata/main.py:238
+msgid "_Fullscreen Mode"
+msgstr "_पूर्ण स्क्रीन मोड"
+
+#: ../sonata/main.py:239
+msgid "Reset Image"
+msgstr "छवि रीसेट करें"
+
+#: ../sonata/main.py:241
+msgid "_Play"
+msgstr "_खेल"
+
+#: ../sonata/main.py:243
+msgid "Pa_use"
+msgstr "_ठहराव"
+
+#: ../sonata/main.py:245
+msgid "_Stop"
+msgstr "_रोका हुआ"
+
+#: ../sonata/main.py:247
+msgid "Pre_vious"
+msgstr "_वापस"
+
+#: ../sonata/main.py:249
+msgid "_Next"
+msgstr "_अगला"
+
+#: ../sonata/main.py:251
+msgid "_Quit"
+msgstr "_छोड़ना"
+
+#: ../sonata/main.py:253
+msgid "_Remove"
+msgstr "_हटाएं"
+
+#: ../sonata/main.py:255
+msgid "_Clear"
+msgstr "_साफ़"
+
+#: ../sonata/main.py:257
+msgid "_Entire Library"
+msgstr "_संपूर्ण पुस्तकालय"
+
+#: ../sonata/main.py:259
+msgid "_Selected Items"
+msgstr "_चयनित उत्पाद"
+
+#: ../sonata/main.py:261
+msgid "_Preferences..."
+msgstr "_पसंद..."
+
+#: ../sonata/main.py:263
+msgid "_About..."
+msgstr "_लगभग..."
+
+#: ../sonata/main.py:264
+msgid "_Edit Tags..."
+msgstr "_जोड़ संपादित करें ..."
+
+#: ../sonata/main.py:266
+msgid "_Add"
+msgstr "_जोड़ें"
+
+#: ../sonata/main.py:268
+msgid "_Replace"
+msgstr "_बदलने के"
+
+#: ../sonata/main.py:270
+msgid "Add"
+msgstr "जोड़ें"
+
+#: ../sonata/main.py:272
+msgid "Replace"
+msgstr "परिवर्तन"
+
+#: ../sonata/main.py:274
+msgid "_Delete..."
+msgstr "_हटाना..."
+
+#: ../sonata/main.py:275
+msgid "Shuffle"
+msgstr "यादृच्छिक क्रम में"
+
+#: ../sonata/main.py:315
+msgid "S_how Sonata"
+msgstr "_प्रदर्शन Sonata"
+
+#: ../sonata/main.py:317
+msgid "_Repeat"
+msgstr "_दोहराना"
+
+#: ../sonata/main.py:319
+msgid "Rando_m"
+msgstr "_बेतरतीब"
+
+#: ../sonata/main.py:321
+msgid "Consume"
+msgstr "खेलने के बाद हटाएं"
+
+#: ../sonata/main.py:468
+msgid "By Artist"
+msgstr "द्वारा गायक"
+
+#: ../sonata/main.py:470
+msgid "By Album"
+msgstr "एल्बम द्वारा"
+
+#: ../sonata/main.py:472
+msgid "By Song Title"
+msgstr "गीत के शीर्षक से"
+
+#: ../sonata/main.py:474
+msgid "By File Name"
+msgstr "फ़ाइल नाम से"
+
+#: ../sonata/main.py:476
+msgid "By Dir & File Name"
+msgstr "निर्देशिका और फ़ाइल नाम से"
+
+#: ../sonata/main.py:478
+msgid "Reverse List"
+msgstr "रिवर्स लिस्ट"
+
+#: ../sonata/main.py:519
+msgid "_New..."
+msgstr "_नया..."
+
+#: ../sonata/main.py:521
+msgid "_Edit..."
+msgstr "_संपादित करें..."
+
+#: ../sonata/main.py:541
+msgid "_New Playlist..."
+msgstr "_नई प्लेलिस्ट..."
+
+#: ../sonata/main.py:543
+msgid "_Rename..."
+msgstr "_नाम बदलें..."
+
+#: ../sonata/main.py:586
+#, python-format
+msgid "Enabling new plug-in %s..."
+msgstr "नया प्लग-इन सक्षम करना %s..."
+
+#: ../sonata/main.py:589
+#, python-format
+msgid "Found new plug-in %s."
+msgstr "नया प्लग-इन मिला %s."
+
+#: ../sonata/main.py:634 ../sonata/main.py:1645 ../sonata/main.py:1862
+msgid "Click to expand"
+msgstr "विस्तार करने के लिए क्लिक करें"
+
+#: ../sonata/main.py:637 ../sonata/main.py:1643 ../sonata/main.py:1860
+msgid "Click to collapse"
+msgstr "संक्षिप्त करने के लिए क्लिक करें"
+
+#: ../sonata/main.py:644 ../sonata/main.py:1549 ../sonata/main.py:1650
+msgid "Not Connected"
+msgstr "जुड़े नहीं हैं"
+
+#: ../sonata/main.py:646 ../sonata/main.py:1547 ../sonata/main.py:1652
+msgid "No Read Permission"
+msgstr "पढ़ने की अनुमति नहीं"
+
+#: ../sonata/main.py:856
+msgid "MPD_HOST/PORT"
+msgstr "एमपीडी_होस्ट/पोर्ट"
+
+#: ../sonata/main.py:870
+msgid "Disconnect"
+msgstr "डिस्कनेक्ट"
+
+#: ../sonata/main.py:1568
+msgid "{count} day"
+msgid_plural "{count} days"
+msgstr[0] "{count} डेज"
+msgstr[1] "{count} दिन"
+
+#: ../sonata/main.py:1585
+msgid "(updating mpd)"
+msgstr "(एमपीडी अपडेट कर रहा है)"
+
+#: ../sonata/main.py:2248
+msgid "Images"
+msgstr "इमेजिस"
+
+#: ../sonata/main.py:2252
+msgid "All files"
+msgstr "सभी फाइलें"
+
+#: ../sonata/main.py:2372
+msgid "No artist or album name found."
+msgstr "कोई कलाकार या एल्बम नाम नहीं मिला।"
+
+#: ../sonata/main.py:2375
+msgid "No cover art found."
+msgstr "कोई आवरण कला नहीं मिली।"
+
+#: ../sonata/main.py:2609
+msgid "Delete the selected playlist?"
+msgid_plural "Delete the selected playlists?"
+msgstr[0] "चयनित प्लेलिस्ट हटाएं?"
+msgstr[1] "चयनित प्लेलिस्ट हटाएं?"
+
+#: ../sonata/main.py:2612
+msgid "Delete Playlist"
+msgid_plural "Delete Playlists"
+msgstr[0] "प्लेलिस्ट हटाएं"
+msgstr[1] "प्लेलिस्ट हटाएं"
+
+#: ../sonata/main.py:2626
+msgid "Delete the selected stream?"
+msgid_plural "Delete the selected streams?"
+msgstr[0] "चयनित स्ट्रीम हटाएं?"
+msgstr[1] "चयनित स्ट्रीम हटाएं?"
+
+#: ../sonata/main.py:2629
+msgid "Delete Stream"
+msgid_plural "Delete Streams"
+msgstr[0] "धाराएं हटाएं"
+msgstr[1] "स्ट्रीम हटाएं"
+
+#: ../sonata/main.py:2892
+msgid "Unable to launch a suitable browser."
+msgstr "उपयुक्त ब्राउज़र लॉन्च करने में असमर्थ।"
+
+#: ../sonata/main.py:2893
+msgid "Launch Browser"
+msgstr "ब्राउज़र लॉन्च करें"
+
+#: ../sonata/playlists.py:114 ../sonata/playlists.py:117
+msgid "Save Playlist"
+msgstr "प्लेलिस्ट सेव करें"
+
+#: ../sonata/playlists.py:139
+msgid "Existing Playlist"
+msgstr "मौजूदा प्लेलिस्ट"
+
+#: ../sonata/playlists.py:140
+msgid "Replace playlist"
+msgstr "प्लेलिस्ट बदलें"
+
+#: ../sonata/playlists.py:141
+msgid "Append songs"
+msgstr "गाने जोड़ें"
+
+#: ../sonata/playlists.py:215 ../sonata/playlists.py:218
+msgid "Rename Playlist"
+msgstr "प्लेलिस्ट का नाम बदलें"
+
+#: ../sonata/plugins/localmpd.py:98
+msgid "Processes"
+msgstr "प्रक्रियाओं"
+
+#: ../sonata/plugins/localmpd.py:99
+msgid "Files"
+msgstr "फ़ाइलें"
+
+#: ../sonata/plugins/localmpd.py:108
+msgid "Networking"
+msgstr "नेटवर्किंग"
+
+#: ../sonata/plugins/ui/localmpd.glade.h:1
+msgid "Local MPD"
+msgstr "स्थानीय एमपीडी"
+
+#: ../sonata/plugins/ui/localmpd.glade.h:2
+msgid "Edit /etc/mpd.conf"
+msgstr "संपादित करें /etc/mpd.conf"
+
+#: ../sonata/plugins/ui/localmpd.glade.h:3
+msgid "Restart the mpd service"
+msgstr "एमपीडी सेवा को पुनरारंभ करें"
+
+#: ../sonata/preferences.py:152
+msgid "Using MPD_HOST/PORT"
+msgstr "MPD_HOST/PORT का उपयोग करना"
+
+#: ../sonata/preferences.py:248 ../sonata/ui/preferences.glade.h:22
+msgid "SONG_DIR"
+msgstr "गानों की सूची"
+
+#: ../sonata/preferences.py:250 ../sonata/preferences.py:556
+msgid "custom"
+msgstr "अनुकूलित करें"
+
+#: ../sonata/preferences.py:371
+msgid "Info displayed only if all enclosed tags are defined"
+msgstr "सभी संलग्न टैग परिभाषित होने पर ही जानकारी प्रदर्शित होती है"
+
+#: ../sonata/preferences.py:376
+msgid "Creates columns in the current playlist"
+msgstr "वर्तमान प्लेलिस्ट में कॉलम बनाता है"
+
+#: ../sonata/preferences.py:421
+msgid "To save lyrics to the music file's directory, you must specify a valid music directory."
+msgstr "गीत को संगीत फ़ाइल की निर्देशिका में सहेजने के लिए, आपको एक मान्य संगीत निर्देशिका निर्दिष्ट करनी होगी।"
+
+#: ../sonata/preferences.py:421 ../sonata/preferences.py:428
+msgid "Music Dir Verification"
+msgstr "संगीत कैटलॉग की जाँच करना"
+
+#: ../sonata/preferences.py:428
+msgid "To save artwork to the music file's directory, you must specify a valid music directory."
+msgstr "आर्टवर्क को संगीत फ़ाइल की निर्देशिका में सहेजने के लिए, आपको एक मान्य संगीत निर्देशिका निर्दिष्ट करनी होगी।"
+
+#: ../sonata/preferences.py:494
+msgid "New Profile"
+msgstr "नई प्रोफ़ाइल"
+
+#: ../sonata/streams.py:105
+msgid "Edit Stream"
+msgstr "स्ट्रीम संपादित करें"
+
+#: ../sonata/streams.py:107 ../sonata/streams.py:150
+msgid "New Stream"
+msgstr "नई धारा"
+
+#: ../sonata/streams.py:149
+msgid "A stream with this name already exists. Would you like to replace it?"
+msgstr "इस नाम की एक धारा पहले से मौजूद है। क्या आप इसे बदलना चाहेंगे?"
+
+#: ../sonata/tagedit.py:98
+msgid "Taglib and/or tagpy not found, tag editing support disabled."
+msgstr "Taglib और/या tagpy नहीं मिला, टैग संपादन समर्थन अक्षम है।"
+
+#: ../sonata/tagedit.py:98 ../sonata/tagedit.py:107 ../sonata/tagedit.py:112 ../sonata/tagedit.py:137
+#: ../sonata/tagedit.py:141 ../sonata/tagedit.py:276
+msgid "Edit Tags"
+msgstr "जोड़ संपादित करें"
+
+#: ../sonata/tagedit.py:107
+msgid "Tagpy version < 0.91. Please upgrade to a newer version, tag editing support disabled."
+msgstr "Tagpy संस्करण <0.91। कृपया एक नए संस्करण में अपग्रेड करें, टैग संपादन समर्थन अक्षम है।"
+
+#: ../sonata/tagedit.py:112
+#, python-format
+msgid "The path %s does not exist. Please specify a valid music directory in preferences."
+msgstr "पथ %s मौजूद नहीं है। कृपया प्राथमिकताओं में एक मान्य संगीत निर्देशिका निर्दिष्ट करें।"
+
+#: ../sonata/tagedit.py:137
+#, python-format
+msgid "File '%s' not found. Please specify a valid music directory in preferences."
+msgstr "फ़ाइल '%s' नहीं मिली। कृपया प्राथमिकताओं में एक मान्य संगीत निर्देशिका निर्दिष्ट करें।"
+
+#: ../sonata/tagedit.py:141
+msgid "No music files with editable tags found."
+msgstr "संपादन योग्य टैग वाली कोई संगीत फ़ाइल नहीं मिली।"
+
+#: ../sonata/tagedit.py:254
+#, python-format
+msgid "Edit Tags - %s of %s"
+msgstr "जोड़ संपादित करें - %s का %s"
+
+#: ../sonata/tagedit.py:275
+msgid "Unable to save tag to music file."
+msgstr "संगीत फ़ाइल में टैग सहेजने में असमर्थ."
+
+#: ../sonata/tagedit.py:332
+msgid "Hide file path"
+msgstr "फ़ाइल पथ छुपाएं"
+
+#: ../sonata/tagedit.py:335
+msgid "Show file path"
+msgstr "फ़ाइल पथ दिखाएं"
+
+#: ../sonata/ui/about.glade.h:1
+msgid ""
+"Sonata, an elegant GTK+ client for the Music Player Daemon\n"
+"Copyright 2006-2008 Scott Horowitz <stonecrest@gmail.com>"
+msgstr ""
+"Sonata, म्यूजिक प्लेयर डेमॉन के लिए एक सुंदर GTK+ क्लाइंट\n"
+"Copyright 2006-2008 Scott Horowitz <stonecrest@gmail.com>"
+
+#: ../sonata/ui/about.glade.h:3
+msgid "An elegant music client for MPD."
+msgstr "एमपीडी के लिए एक सुंदर संगीत ग्राहक।"
+
+#: ../sonata/ui/about.glade.h:4
+msgid "_Shortcuts"
+msgstr "_शॉर्टकट"
+
+#: ../sonata/ui/about.glade.h:5
+msgid "Shortcuts"
+msgstr "शॉर्टकट"
+
+#: ../sonata/ui/current.glade.h:1
+msgid "Filter:"
+msgstr "फ़िल्टर:"
+
+#: ../sonata/ui/info.glade.h:1 ../sonata/ui/tagedit.glade.h:2
+msgid "Title:"
+msgstr "शीर्षक:"
+
+#: ../sonata/ui/info.glade.h:2 ../sonata/ui/sonata.glade.h:2 ../sonata/ui/tagedit.glade.h:3
+msgid "Artist:"
+msgstr "निष्पादक:"
+
+#: ../sonata/ui/info.glade.h:3 ../sonata/ui/sonata.glade.h:3 ../sonata/ui/tagedit.glade.h:4
+msgid "Album:"
+msgstr "एल्बम:"
+
+#: ../sonata/ui/info.glade.h:4
+msgid "Date:"
+msgstr "दिनांक:"
+
+#: ../sonata/ui/info.glade.h:5 ../sonata/ui/tagedit.glade.h:8
+msgid "Track:"
+msgstr "ट्रैक संख्या:"
+
+#: ../sonata/ui/info.glade.h:6 ../sonata/ui/tagedit.glade.h:6
+msgid "Genre:"
+msgstr "शैली:"
+
+#: ../sonata/ui/info.glade.h:7
+msgid "File:"
+msgstr "फ़ाइल:"
+
+#: ../sonata/ui/info.glade.h:8
+msgid "Bitrate:"
+msgstr "बिटरेट:"
+
+#: ../sonata/ui/info.glade.h:9
+msgid "Launch artist in Wikipedia"
+msgstr "विकिपीडिया पर कलाकार लॉन्च करें"
+
+#: ../sonata/ui/info.glade.h:10
+msgid "Launch album in Wikipedia"
+msgstr "विकिपीडिया में एल्बम लॉन्च करें"
+
+#: ../sonata/ui/info.glade.h:11
+msgid "Toggle extra tags"
+msgstr "अतिरिक्त टैग टॉगल करें"
+
+#: ../sonata/ui/info.glade.h:12
+msgid "Edit song tags"
+msgstr "गीत टैग संपादित करें"
+
+#: ../sonata/ui/info.glade.h:13
+msgid "(edit tags)"
+msgstr "(जोड़ संपादित करें)"
+
+#: ../sonata/ui/info.glade.h:14
+msgid "Song Info"
+msgstr "गाने की जानकारी"
+
+#: ../sonata/ui/info.glade.h:15
+msgid "Search Lyricwiki.org for lyrics"
+msgstr "गीत के लिए Lyricwiki.org खोजें"
+
+#: ../sonata/ui/info.glade.h:16
+msgid "(search)"
+msgstr "(तलाशी)"
+
+#: ../sonata/ui/info.glade.h:17
+msgid "Lyrics"
+msgstr "गाने के बोल"
+
+#: ../sonata/ui/info.glade.h:18
+msgid "Album Info"
+msgstr "एल्बम की जानकारी"
+
+#: ../sonata/ui/library.glade.h:1
+msgid "Search:"
+msgstr "तलाशी:"
+
+#: ../sonata/ui/library.glade.h:3
+msgid "Search terms"
+msgstr "खोज शब्द"
+
+#: ../sonata/ui/library.glade.h:10
+msgid "End Search"
+msgstr "खोज समाप्त करें"
+
+#: ../sonata/ui/playlists.glade.h:1
+msgid "Playlist name:"
+msgstr "प्लेलिस्ट का नाम:"
+
+#: ../sonata/ui/preferences.glade.h:1
+msgid "Custom Artwork"
+msgstr "कस्टम कलाकृति"
+
+#: ../sonata/ui/preferences.glade.h:2
+msgid "Artwork filename:"
+msgstr "कलाकृति फ़ाइल नाम:"
+
+#: ../sonata/ui/preferences.glade.h:3
+msgid "_About"
+msgstr "_कार्यक्रम के बारे में"
+
+#: ../sonata/ui/preferences.glade.h:4
+msgid "_Configure..."
+msgstr "_कॉन्फ़िगर करें..."
+
+#: ../sonata/ui/preferences.glade.h:6
+msgid "_Name:"
+msgstr "_नाम:"
+
+#: ../sonata/ui/preferences.glade.h:7
+msgid "_Host:"
+msgstr "_मेज़बान:"
+
+#: ../sonata/ui/preferences.glade.h:8
+msgid "_Port:"
+msgstr "_बंदरगाह:"
+
+#: ../sonata/ui/preferences.glade.h:9
+msgid "Leave blank if no password is required."
+msgstr "यदि पासवर्ड की आवश्यकता नहीं है तो खाली छोड़ दें।"
+
+#: ../sonata/ui/preferences.glade.h:10
+msgid "Pa_ssword:"
+msgstr "_कुंजिका:"
+
+#: ../sonata/ui/preferences.glade.h:11
+msgid "Select a Music Directory"
+msgstr "एक संगीत निर्देशिका चुनें"
+
+#: ../sonata/ui/preferences.glade.h:12
+msgid "_Music dir:"
+msgstr "_संगीत निर्देशिका:"
+
+#: ../sonata/ui/preferences.glade.h:13
+msgid "_Autoconnect on start"
+msgstr "_शुरू में स्वत: कनेक्ट"
+
+#: ../sonata/ui/preferences.glade.h:14
+msgid "MPD Connection"
+msgstr "एमपीडी कनेक्शन"
+
+#: ../sonata/ui/preferences.glade.h:15
+msgid "MPD"
+msgstr "एमपीडी"
+
+#: ../sonata/ui/preferences.glade.h:16
+msgid "_Playback/volume buttons"
+msgstr "_प्लेबैक/वॉल्यूम बटन"
+
+#: ../sonata/ui/preferences.glade.h:17
+msgid "Pr_ogressbar"
+msgstr "_प्रोगेस बार"
+
+#: ../sonata/ui/preferences.glade.h:18
+msgid "_Statusbar"
+msgstr "_स्टेटस बार"
+
+#: ../sonata/ui/preferences.glade.h:19
+msgid "System _tray icon"
+msgstr "सिस्टम _ट्रे आइकन"
+
+#: ../sonata/ui/preferences.glade.h:20
+msgid "Song Ly_rics"
+msgstr "_गाने के बोल"
+
+#: ../sonata/ui/preferences.glade.h:21
+msgid "Save lyrics to:"
+msgstr "गीत को इसमें सहेजें:"
+
+#: ../sonata/ui/preferences.glade.h:23
+msgid "_Album art"
+msgstr "_एलबम कला"
+
+#: ../sonata/ui/preferences.glade.h:24
+msgid "Artwork style:"
+msgstr "कलाकृति शैली:"
+
+#: ../sonata/ui/preferences.glade.h:25
+msgid "Standard"
+msgstr "मानक"
+
+#: ../sonata/ui/preferences.glade.h:26
+msgid "Stylized"
+msgstr "शैली"
+
+#: ../sonata/ui/preferences.glade.h:27
+msgid "Search locations:"
+msgstr "स्थान खोज:"
+
+#: ../sonata/ui/preferences.glade.h:28
+msgid "Local only"
+msgstr "केवल स्थानीय"
+
+#: ../sonata/ui/preferences.glade.h:29
+msgid "Local and remote"
+msgstr "स्थानीय और दूरस्थ"
+
+#: ../sonata/ui/preferences.glade.h:30
+msgid "Save art to:"
+msgstr "कला को इसमें सहेजें:"
+
+#: ../sonata/ui/preferences.glade.h:31
+msgid "Display"
+msgstr "प्रदर्शन"
+
+#: ../sonata/ui/preferences.glade.h:32
+msgid "_Show window on all workspaces"
+msgstr "_सभी कार्यस्थानों पर विंडो दिखाएं"
+
+#: ../sonata/ui/preferences.glade.h:33
+msgid "_Keep window above other windows"
+msgstr "_विंडो को अन्य विंडो के ऊपर रखें"
+
+#: ../sonata/ui/preferences.glade.h:34
+msgid "_Hide window titlebar"
+msgstr "_विंडो टाइटल बार छुपाएं"
+
+#: ../sonata/ui/preferences.glade.h:35
+msgid "_Minimize to system tray on close/escape"
+msgstr "_पास/एस्केप पर सिस्टम ट्रे को छोटा करें"
+
+#: ../sonata/ui/preferences.glade.h:36
+msgid ""
+"If enabled, closing Sonata will minimize it to the system tray. Note that it&apos;s currently impossible to detect "
+"if there actually is a system tray, so only check this if you have one."
+msgstr ""
+"यदि सक्षम किया गया है, तो सोनाटा को बंद करने से यह सिस्टम ट्रे में छोटा हो जाएगा। ध्यान दें कि यह&apos;वर्तमान में यह पता लगाना "
+"असंभव है कि क्या वास्तव में कोई सिस्टम ट्रे है, इसलिए इसे केवल तभी जांचें जब आपके पास एक हो।"
+
+#: ../sonata/ui/preferences.glade.h:37
+msgid ""
+"If enabled, closing Sonata will minimize it to the system tray. Note that it's currently impossible to detect if "
+"there actually is a system tray, so only check this if you have one."
+msgstr ""
+"यदि सक्षम किया गया है, तो सोनाटा को बंद करने से यह सिस्टम ट्रे में छोटा हो जाएगा। ध्यान दें कि वर्तमान में यह पता लगाना असंभव है कि "
+"क्या वास्तव में कोई सिस्टम ट्रे है, इसलिए इसे केवल तभी जांचें जब आपके पास एक हो।"
+
+#: ../sonata/ui/preferences.glade.h:38
+msgid "Window Behavior"
+msgstr "विंडो व्यवहार"
+
+#: ../sonata/ui/preferences.glade.h:39
+msgid "_Update MPD library on start"
+msgstr "_अपडेट एमपीडी लाइब्रेरी शुरू होने पर"
+
+#: ../sonata/ui/preferences.glade.h:40
+msgid "If enabled, Sonata will automatically update your MPD library when it starts up."
+msgstr "यदि सक्षम किया गया है, तो सोनाटा आपके एमपीडी पुस्तकालय के शुरू होने पर स्वचालित रूप से अपडेट कर देगा।"
+
+#: ../sonata/ui/preferences.glade.h:41
+msgid "S_top playback on exit"
+msgstr "_बाहर निकलने पर प्लेबैक रोकें"
+
+#: ../sonata/ui/preferences.glade.h:42
+msgid ""
+"MPD allows playback even when the client is not open. If enabled, Sonata will behave like a more conventional "
+"music player and, instead, stop playback upon exit."
+msgstr ""
+"एमपीडी प्लेबैक की अनुमति तब भी देता है जब क्लाइंट खुला न हो। सक्षम होने पर, सोनाटा अधिक पारंपरिक संगीत प्लेयर की तरह व्यवहार करेगी "
+"और इसके बजाय, बाहर निकलने पर प्लेबैक बंद कर देगी।"
+
+#: ../sonata/ui/preferences.glade.h:43
+msgid "_Write status file:"
+msgstr "_फाइल करने के लिए राज्य लिखें:"
+
+#: ../sonata/ui/preferences.glade.h:44
+msgid ""
+"If enabled, Sonata will create a xmms-infopipe like file containing information about the current song. Many "
+"applications support the xmms-info file (Instant Messengers, IRC Clients...)"
+msgstr ""
+"यदि सक्षम किया जाता है, तो सोनाटा एक xmms-infopipe जैसी फ़ाइल बनाएगी जिसमें वर्तमान गीत के बारे में जानकारी होगी। कई एप्लिकेशन "
+"xmms-info फ़ाइल (त्वरित संदेशवाहक, IRC क्लाइंट...) का समर्थन करते हैं"
+
+#: ../sonata/ui/preferences.glade.h:45
+msgid "Miscellaneous"
+msgstr "विविध"
+
+#: ../sonata/ui/preferences.glade.h:46
+msgid "Behavior"
+msgstr "व्यवहार"
+
+#: ../sonata/ui/preferences.glade.h:47
+msgid "C_urrent playlist:"
+msgstr "_वर्तमान प्लेलिस्ट:"
+
+#: ../sonata/ui/preferences.glade.h:48
+msgid "_Library:"
+msgstr "_पुस्तकालय:"
+
+#: ../sonata/ui/preferences.glade.h:49
+msgid "_Window title:"
+msgstr "_विंडो शीर्षक:"
+
+#: ../sonata/ui/preferences.glade.h:50
+msgid "Current _song line 1:"
+msgstr "वर्तमान _गीत पंक्ति 1:"
+
+#: ../sonata/ui/preferences.glade.h:51
+msgid "Current s_ong line 2:"
+msgstr "वर्तमान _गीत पंक्ति 2:"
+
+#: ../sonata/ui/preferences.glade.h:52
+msgid "<small>Available options:</small>"
+msgstr "<small>उपलब्ध विकल्प:</small>"
+
+#: ../sonata/ui/preferences.glade.h:53
+msgid "Song Formatting"
+msgstr "गीत स्वरूपण"
+
+#: ../sonata/ui/preferences.glade.h:54
+msgid "Format"
+msgstr "प्रारूप"
+
+#: ../sonata/ui/preferences.glade.h:55
+msgid "_Audioscrobbling (Last.fm)"
+msgstr "_ऑडियोस्क्रॉबलिंग (Last.fm)"
+
+#: ../sonata/ui/preferences.glade.h:56
+msgid "_Username:"
+msgstr "_उपयोगकर्ता नाम:"
+
+#: ../sonata/ui/preferences.glade.h:57
+msgid "_Password:"
+msgstr "_पासवर्ड:"
+
+#: ../sonata/ui/preferences.glade.h:58
+msgid "Popup _notification on song changes"
+msgstr "_गाने में बदलाव पर पॉप अप नोटिफिकेशन"
+
+#: ../sonata/ui/preferences.glade.h:60
+msgid "System tray"
+msgstr "सिस्टम ट्रे"
+
+#: ../sonata/ui/preferences.glade.h:61
+msgid "Top Left"
+msgstr "बाएं से बाएं"
+
+#: ../sonata/ui/preferences.glade.h:62
+msgid "Top Right"
+msgstr "ठीक तरह से ऊपर"
+
+#: ../sonata/ui/preferences.glade.h:63
+msgid "Bottom Left"
+msgstr "तली छोड़ें"
+
+#: ../sonata/ui/preferences.glade.h:64
+msgid "Bottom Right"
+msgstr "नीचे दाएं"
+
+#: ../sonata/ui/preferences.glade.h:65
+msgid "Screen Center"
+msgstr "स्क्रीन सेंटर"
+
+#: ../sonata/ui/preferences.glade.h:66
+msgid "C_rossfade"
+msgstr "क्रॉसफ़ेडिंग"
+
+#: ../sonata/ui/preferences.glade.h:67
+msgid "_Fade length:"
+msgstr "_लंबा क्षय:"
+
+#: ../sonata/ui/preferences.glade.h:68
+msgid "sec"
+msgstr "सेकंड"
+
+#: ../sonata/ui/preferences.glade.h:69
+msgid "Extras"
+msgstr "अतिरिक्त"
+
+#: ../sonata/ui/preferences.glade.h:70
+msgid "Enabled"
+msgstr "उपलब्ध"
+
+#: ../sonata/ui/preferences.glade.h:71
+msgid "Description"
+msgstr "विवरण"
+
+#: ../sonata/ui/preferences.glade.h:72
+msgid "Plugins"
+msgstr "प्लग-इन"
+
+#: ../sonata/ui/sonata.glade.h:1
+msgid "Choose Cover Art"
+msgstr "कवर आर्ट चुनें"
+
+#: ../sonata/ui/sonata.glade.h:4
+msgid "Edit search terms"
+msgstr "खोज की स्थिति बदलें"
+
+#: ../sonata/ui/sonata.glade.h:5
+msgid "Cover Art"
+msgstr "कवर आर्ट"
+
+#: ../sonata/ui/sonata.glade.h:6
+msgid "Open Image"
+msgstr "खुली छवि"
+
+#: ../sonata/ui/sonata.glade.h:7
+msgid "Lyrics Search"
+msgstr "गीत खोज"
+
+#: ../sonata/ui/sonata.glade.h:8
+msgid "Artist Name:"
+msgstr "कलाकार का नाम:"
+
+#: ../sonata/ui/sonata.glade.h:9
+msgid "Song Title:"
+msgstr "गीत शीर्षक:"
+
+#: ../sonata/ui/sonata.glade.h:10
+msgid "Playlist"
+msgstr "प्लेलिस्ट"
+
+#: ../sonata/ui/streams.glade.h:1
+msgid "Stream name:"
+msgstr "स्ट्रीम का नाम:"
+
+#: ../sonata/ui/streams.glade.h:2
+msgid "Stream URL:"
+msgstr "स्ट्रीम URL:"
+
+#: ../sonata/ui/tagedit.glade.h:1
+msgid "Save _All"
+msgstr "_सब कुछ बचाओ"
+
+#: ../sonata/ui/tagedit.glade.h:5
+msgid "Year:"
+msgstr "वर्ष:"
+
+#: ../sonata/ui/tagedit.glade.h:7
+msgid "Comment:"
+msgstr "टिप्पणी:"
