@@ -488,8 +488,7 @@ msgid ""
 "Sonata failed to connect to the D-BUS session bus: Unable to determine the address of the message bus (try 'man "
 "dbus-launch' and 'man dbus-daemon' for help)\")"
 msgstr ""
-"सोनाटा डी-बस सत्र बस से कनेक्ट करने में विफल रहा: संदेश बस का पता निर्धारित करने में असमर्थ (मदद के लिए 'मैन डीबीस-लॉन्च' और 'मैन "
-"डीबस-डेमन' आज़माएं)\")"
+"सोनाटा डी-बस सत्र बस से कनेक्ट करने में विफल रहा: संदेश बस का पता निर्धारित करने में असमर्थ (मदद के लिए 'man dbus-launch' और 'man dbus-daemon' आज़माएं)\")"
 
 #: ../sonata/dbus_plugin.py:121
 msgid "Failed to execute remote commands."
