@@ -1,7 +1,7 @@
 # Hindi translation of sonata.
 # Copyright (C) 2021 Dmitry gostsdmitry
 # This file is distributed under the same license as the sonata package.
-# Dmitry gostsdmitry <EMAIL@ADDRESS>, 2021.
+# Dmitry gostsdmitry <dmitrydmitry761@gmail.com>, 2021.
 #
 msgid ""
 msgstr ""
