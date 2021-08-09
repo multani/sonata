@@ -1,7 +1,7 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Hindi translation of sonata.
+# Copyright (C) 2007-2009 Dmitry gostsdmitry
+# This file is distributed under the same license as the sonata package.
+# Dmitry gostsdmitry <EMAIL@ADDRESS>, 2021.
 #
 msgid ""
 msgstr ""
