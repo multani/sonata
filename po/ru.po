@@ -1,43 +1,46 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-#
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
 # Translators:
-# DolphinStKom <dolphinstkom@gmail.com>, 2013
+# Jonathan Ballet <jon@multani.info>, 2021
+# Sergey Shlyapugin <shlyapugin@gmail.com>, 2021
+# Stanislav <dolphinstkom@gmail.com>, 2021
+# 
+#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Sonata\n"
+"Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-08-09 11:22+0200\n"
-"PO-Revision-Date: 2013-07-09 19:50+0000\n"
-"Last-Translator: DolphinStKom <dolphinstkom@gmail.com>\n"
-"Language-Team: Russian (http://www.transifex.com/projects/p/sonata/language/"
-"ru/)\n"
-"Language: ru\n"
+"PO-Revision-Date: 2021-08-09 08:38+0000\n"
+"Last-Translator: Stanislav <dolphinstkom@gmail.com>, 2021\n"
+"Language-Team: Russian (https://www.transifex.com/multani/teams/15398/ru/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Language: ru\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);\n"
 
 #. define the shortcuts and their descriptions
 #. these are all gettextable
 #. Keep them here (not as XML) as they're more convenient this way
 #: ../sonata/about.py:57
 msgid "About Sonata"
-msgstr "О Sonata"
+msgstr "О программе Sonata"
 
 #: ../sonata/about.py:58 ../sonata/ui/preferences.glade.h:5
 msgid "Preferences"
-msgstr "Настройки"
+msgstr "Диалог настройки"
 
 #: ../sonata/about.py:59
 msgid "Fullscreen Artwork Mode"
-msgstr "Развернуть в полноэкранный режим"
+msgstr "Полноэкранный режим"
 
 #: ../sonata/about.py:60
 msgid "Switch to [1st-5th] tab"
-msgstr "Переключиться на [1ю-5ю] закладку"
+msgstr "Переключиться на [1-ю - 5-ю] вкладку"
 
 #: ../sonata/about.py:61
 msgid "Connect to MPD"
@@ -57,11 +60,11 @@ msgstr "Развернуть плеер"
 
 #: ../sonata/about.py:65
 msgid "Switch to previous tab"
-msgstr "Предыдущая закладка"
+msgstr "Предыдущая вкладка"
 
 #: ../sonata/about.py:66
 msgid "Switch to next tab"
-msgstr "Следующая закладка"
+msgstr "Следующая вкладка"
 
 #: ../sonata/about.py:67
 msgid "Collapse player"
@@ -97,7 +100,7 @@ msgstr "Следующая песня"
 
 #: ../sonata/about.py:76
 msgid "Play/Pause"
-msgstr "Воспроизведение/Пауза"
+msgstr "Воспроизведение/пауза"
 
 #: ../sonata/about.py:77
 msgid "Stop"
@@ -117,11 +120,11 @@ msgstr "Воспроизвести выделенную песню"
 
 #: ../sonata/about.py:82
 msgid "Remove selected song(s)"
-msgstr "Удалить выбранную песню(-и)"
+msgstr "Удалить выбранные песни"
 
 #: ../sonata/about.py:83
 msgid "Center currently playing song"
-msgstr "Остановить проигрывание"
+msgstr "Центрировать текущую песню"
 
 #: ../sonata/about.py:84 ../sonata/about.py:93
 msgid "Edit selected song's tags"
@@ -149,19 +152,19 @@ msgstr "Перейти в родительский каталог"
 
 #: ../sonata/about.py:91
 msgid "Add selected item(s)"
-msgstr "Добавить выделенные песни"
+msgstr "Добавить выделенные позиции"
 
 #: ../sonata/about.py:92
 msgid "Replace with selected item(s)"
-msgstr "Заменить выбранными песнями"
+msgstr "Заменить выбранными позициями"
 
 #: ../sonata/about.py:94
 msgid "Add selected item(s) and play"
-msgstr "Добавить песни в список и проиграть"
+msgstr "Добавить выделенные позиции и проиграть"
 
 #: ../sonata/about.py:95
 msgid "Replace with selected item(s) and play"
-msgstr "Заменить выбранными песнями и проиграть"
+msgstr "Заменить выбранными позициями и проиграть"
 
 #: ../sonata/about.py:96
 msgid "Update selected item(s)/path(s)"
@@ -169,19 +172,19 @@ msgstr "Обновить выделенные позиции/пути"
 
 #: ../sonata/about.py:98 ../sonata/about.py:100
 msgid "Add selected playlist(s)"
-msgstr "Добавить отмеченные списки"
+msgstr "Добавить выделенные списки"
 
 #: ../sonata/about.py:99
 msgid "Remove selected playlist(s)"
-msgstr "Удалить отмеченные списки"
+msgstr "Удалить выделенные списки"
 
 #: ../sonata/about.py:101
 msgid "Replace with selected playlist(s)"
-msgstr "Заменить на отмеченные списки"
+msgstr "Заменить выделенными списками"
 
 #: ../sonata/about.py:102
 msgid "Add selected playlist(s) and play"
-msgstr "Добавить отмеченные списки и воспроизвести"
+msgstr "Добавить выделенные списки и проиграть"
 
 #: ../sonata/about.py:106 ../sonata/about.py:108
 msgid "Add selected stream(s)"
@@ -193,15 +196,15 @@ msgstr "Удалить выделенные потоки"
 
 #: ../sonata/about.py:109
 msgid "Replace with selected stream(s)"
-msgstr "Заменить выбранными потоками"
+msgstr "Заменить выделенными потоками"
 
 #: ../sonata/about.py:110
 msgid "Add selected stream(s) and play"
-msgstr "Добавить выделенные потоки и воспроизвести"
+msgstr "Добавить выделенные потоки и проиграть"
 
 #: ../sonata/about.py:114
 msgid "Edit playing song's tags"
-msgstr "Правка тегов воспроизводимой записи"
+msgstr "Править теги воспроизводимой записи"
 
 #. define the main array- this adds headings to each section of
 #. shortcuts that will be displayed
@@ -215,7 +218,7 @@ msgstr "Воспроизведение"
 
 #: ../sonata/about.py:119
 msgid "Current Shortcuts"
-msgstr "Текущий плейлист"
+msgstr "Текущий список"
 
 #: ../sonata/about.py:120
 msgid "Library Shortcuts"
@@ -240,6 +243,7 @@ msgid_plural "{count} songs."
 msgstr[0] "{count} песня."
 msgstr[1] "{count} песни."
 msgstr[2] "{count} песен."
+msgstr[3] "{count} песен."
 
 #: ../sonata/about.py:163
 #, python-brace-format
@@ -248,14 +252,16 @@ msgid_plural "{count} albums."
 msgstr[0] "{count} альбом."
 msgstr[1] "{count} альбома."
 msgstr[2] "{count} альбомов."
+msgstr[3] "{count} альбомов."
 
 #: ../sonata/about.py:166
 #, python-brace-format
 msgid "{count} artist."
 msgid_plural "{count} artists."
 msgstr[0] "{count} исполнитель."
-msgstr[1] "{count} исполнителя."
+msgstr[1] "{count} исполнителей."
 msgstr[2] "{count} исполнителей."
+msgstr[3] "{count} исполнителей."
 
 #: ../sonata/about.py:176
 #, python-brace-format
@@ -264,6 +270,7 @@ msgid_plural "{count} days of bliss."
 msgstr[0] "{count} день блаженства."
 msgstr[1] "{count} дня блаженства."
 msgstr[2] "{count} дней блаженства."
+msgstr[3] "{count} дней блаженства."
 
 #: ../sonata/about.py:180
 #, python-brace-format
@@ -272,6 +279,7 @@ msgid_plural "{count} hours of bliss."
 msgstr[0] "{count} час блаженства."
 msgstr[1] "{count} часа блаженства."
 msgstr[2] "{count} часов блаженства."
+msgstr[3] "{count} часов блаженства."
 
 #. toggle and popup and fullscreen need d-bus and don't always need gui
 #. version and help don't need anything and exit without gui
@@ -307,7 +315,8 @@ msgstr "перейти к предыдущей песне в ротации"
 
 #: ../sonata/cli.py:59
 msgid "toggle play/pause; plays if stopped"
-msgstr "переключить воспроизведение/пауза; воспроизвести или остановить"
+msgstr ""
+"переключить воспроизведение/паузу; начать воспроизведение, если остановлено"
 
 #: ../sonata/cli.py:60
 msgid "toggle repeat mode"
@@ -319,7 +328,7 @@ msgstr "переключить случайное воспроизведение
 
 #: ../sonata/cli.py:62
 msgid "display current song info"
-msgstr "отобразить информацию о песне"
+msgstr "отобразить информацию о текущей песне"
 
 #: ../sonata/cli.py:63
 msgid "display MPD status"
@@ -327,30 +336,28 @@ msgstr "отобразить состояние MPD"
 
 #: ../sonata/cli.py:70
 msgid "popup song notification (requires D-Bus)"
-msgstr "всплывающее уведомление (требуется наличие D-Bus)"
+msgstr "всплывающее уведомление (необходим D-Bus)"
 
 #: ../sonata/cli.py:73
 msgid ""
 "toggles whether the app is minimized to the tray or visible (requires D-Bus)"
-msgstr ""
-"переключить режимы, свернуть приложение в трей или показать (требует наличие "
-"D-Bus)"
+msgstr "свернуть приложение в трей / развернуть из трея (необходим D-Bus)"
 
 #: ../sonata/cli.py:76
 msgid "go fullscreen (requires D-Bus)"
-msgstr "перейти в полноэкранный режим (требует наличие D-Bus)"
+msgstr "перейти в полноэкранный режим (необходим D-Bus)"
 
 #: ../sonata/cli.py:79
 msgid "don't start app if D-Bus commands fail"
-msgstr "не запускайте приложение если D-Bus команды потерпели неудачу"
+msgstr "не запускать приложение, если команды D-Bus потерпели неудачу"
 
 #: ../sonata/cli.py:82
 msgid "start app hidden (requires systray)"
-msgstr "запустить приложение свернутым (требуется наличие включённого трея)"
+msgstr "запустить приложение скрытым (необходим трей)"
 
 #: ../sonata/cli.py:85
 msgid "start app visible (requires systray)"
-msgstr "запустить приложение на очно (требуется наличие включённого трея)"
+msgstr "запустить приложение видимым (необходим трей)"
 
 #: ../sonata/cli.py:87
 msgid "start with profile NUM"
@@ -362,30 +369,30 @@ msgstr "запустить приложение посредством инте�
 
 #: ../sonata/cli.py:93
 msgid "Increase log verbosity"
-msgstr "Увеличить детализацию отчета"
+msgstr "Увеличить детализацию журнала"
 
 #: ../sonata/cli.py:96
 msgid "Decrease log verbosity"
-msgstr "Уменьшить детализацию отчета"
+msgstr "Уменьшить детализацию журнала"
 
 #: ../sonata/cli.py:121
 #, python-format
 msgid "unknown command %s"
-msgstr "неизвестная команда выполнения %s"
+msgstr "неизвестная команда %s"
 
 #: ../sonata/cli.py:127
 msgid "toggle and popup options require D-Bus.  Aborting."
-msgstr "всплывающим и переключающим опциям необходим D-Bus. Отклонено."
+msgstr "всплывающим и переключающим опциям необходим D-Bus. Отмена."
 
 #: ../sonata/cli.py:149
 #, python-format
 msgid "Starting Sonata with profile %s..."
-msgstr "Sonata стартует с профилем %s..."
+msgstr "Запуск Sonata с профилем %s..."
 
 #: ../sonata/cli.py:153
 #, python-format
 msgid "%d is not an available profile number."
-msgstr "%d является не верным номером профиля."
+msgstr "%d не является доступным номером профиля."
 
 #: ../sonata/cli.py:155
 #, python-format
@@ -407,11 +414,10 @@ msgstr "из"
 #: ../sonata/cli.py:199
 msgid ""
 "Unable to connect to MPD.\n"
-"Please check your Sonata preferences or MPD_HOST/MPD_PORT environment "
-"variables."
+"Please check your Sonata preferences or MPD_HOST/MPD_PORT environment variables."
 msgstr ""
-"Невозможно подключиться к MPD.⏎\n"
-"Проверьте настройки Sonata либо переменные окружения MPD_HOST/MPD_PORT"
+"Ошибка подключения к MPD.\n"
+"Проверьте параметры Sonata либо переменные окружения MPD_HOST/MPD_PORT."
 
 #: ../sonata/cli.py:238 ../sonata/library.py:80 ../sonata/ui/library.glade.h:5
 msgid "Title"
@@ -429,7 +435,7 @@ msgstr "Альбом"
 
 #: ../sonata/cli.py:241
 msgid "Date"
-msgstr "Год"
+msgstr "Дата"
 
 #: ../sonata/cli.py:242 ../sonata/formatting.py:121
 msgid "Track"
@@ -503,6 +509,7 @@ msgid_plural "seconds"
 msgstr[0] "секунда"
 msgstr[1] "секунды"
 msgstr[2] "секунд"
+msgstr[3] "секунд"
 
 #: ../sonata/dbus_plugin.py:118
 msgid ""
@@ -510,9 +517,8 @@ msgid ""
 "address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for "
 "help)\")"
 msgstr ""
-"Sonata не смогла подключиться к D-Bus: Не удалось определить расположение "
-"шины сообщений (попробуйте найти решение проблемы с помощью консольных "
-"команд 'man dbus-launch' и 'man dbus-daemon')"
+"Sonata не смогла подключиться к D-Bus: не удалось определить расположение "
+"шины сообщений (попробуйте 'man dbus-launch' и 'man dbus-daemon' для помощи)"
 
 #: ../sonata/dbus_plugin.py:138
 msgid "Failed to execute remote commands."
@@ -520,12 +526,12 @@ msgstr "Сбой при выполнении удаленных команд."
 
 #: ../sonata/dbus_plugin.py:140
 msgid "Starting Sonata instead..."
-msgstr "Запуск Sonata с профилем..."
+msgstr "Запуск Sonata вместо этого..."
 
 #. TODO: should we log the exception here?
 #: ../sonata/dbus_plugin.py:143
 msgid "Maybe Sonata is not running?"
-msgstr "Возможно Sonata не запущена?"
+msgstr "Возможно, Sonata не запущена?"
 
 #: ../sonata/formatting.py:45
 msgid "Unknown"
@@ -569,7 +575,7 @@ msgstr "Путь"
 
 #: ../sonata/formatting.py:128
 msgid "File name"
-msgstr "Имя файла"
+msgstr "Название файла"
 
 #: ../sonata/formatting.py:130
 msgid "Stream name"
@@ -605,23 +611,23 @@ msgstr "Альбом без названия."
 
 #: ../sonata/info.py:291
 msgid "Album info not found."
-msgstr "Нет описания альбома."
+msgstr "Описание альбома не найдено."
 
 #: ../sonata/info.py:353
 msgid "Lyrics not found"
-msgstr "Текст не найден"
+msgstr "Текст песни не найден"
 
 #: ../sonata/info.py:518
 msgid "Fetching lyrics..."
-msgstr "Получение текста..."
+msgstr "Получение текста песни..."
 
 #: ../sonata/info.py:539
 msgid "Lyrics not found."
-msgstr "Текст не найден."
+msgstr "Текст песни не найден."
 
 #: ../sonata/info.py:542
 msgid "No lyrics plug-in enabled."
-msgstr "Нет текстов потому что плагин не включен."
+msgstr "Плагин получения текстов песен не включен."
 
 #: ../sonata/library.py:33
 msgid "Various Artists"
@@ -629,11 +635,11 @@ msgstr "Сборник"
 
 #: ../sonata/library.py:79
 msgid "Untagged"
-msgstr "Нет тегов"
+msgstr "Без тегов"
 
 #: ../sonata/library.py:81 ../sonata/ui/library.glade.h:8
 msgid "Filename"
-msgstr "Имя файла"
+msgstr "Название файла"
 
 #: ../sonata/library.py:81 ../sonata/ui/library.glade.h:9
 msgid "Everything"
@@ -662,6 +668,7 @@ msgid_plural "{count} songs"
 msgstr[0] "{count} песня"
 msgstr[1] "{count} песни"
 msgstr[2] "{count} песен"
+msgstr[3] "{count} песен"
 
 #: ../sonata/library.py:965
 #, python-brace-format
@@ -670,6 +677,7 @@ msgid_plural "{count} seconds"
 msgstr[0] "{count} секунда"
 msgstr[1] "{count} секунды"
 msgstr[2] "{count} секунд"
+msgstr[3] "{count}  секунд"
 
 #: ../sonata/library.py:967 ../sonata/main.py:1547
 #, python-brace-format
@@ -678,6 +686,7 @@ msgid_plural "{count} minutes"
 msgstr[0] "{count} минута"
 msgstr[1] "{count} минуты"
 msgstr[2] "{count} минут"
+msgstr[3] "{count} минут"
 
 #: ../sonata/library.py:969 ../sonata/main.py:1543
 #, python-brace-format
@@ -686,6 +695,7 @@ msgid_plural "{count} hours"
 msgstr[0] "{count} час"
 msgstr[1] "{count} часа"
 msgstr[2] "{count} часов"
+msgstr[3] "{count} часов"
 
 #: ../sonata/library.py:1069
 msgid "Song"
@@ -719,15 +729,15 @@ msgstr "На всю песню"
 
 #: ../sonata/main.py:172
 msgid "by %A from %B"
-msgstr "от %A из %B"
+msgstr "в исполнении %A из %B"
 
 #: ../sonata/main.py:225
 msgid "_Sort List"
-msgstr "Со_ртировать список"
+msgstr "_Сортировать список"
 
 #: ../sonata/main.py:226
 msgid "Sa_ve Selected to"
-msgstr "Сохранить выделеное в"
+msgstr "Сохранить выделенное в"
 
 #: ../sonata/main.py:227
 msgid "_Connection"
@@ -739,7 +749,7 @@ msgstr "Играть после"
 
 #: ../sonata/main.py:229
 msgid "Play _Mode"
-msgstr "Режим _Воспроизведения"
+msgstr "Режим _воспроизведения"
 
 #: ../sonata/main.py:230
 msgid "_Update"
@@ -747,15 +757,15 @@ msgstr "_Обновить"
 
 #: ../sonata/main.py:231
 msgid "Use _Remote Image..."
-msgstr "Изображение из _интернета..."
+msgstr "Использовать изображение из _интернета..."
 
 #: ../sonata/main.py:233
 msgid "Use _Local Image..."
-msgstr "_Локальное изображение..."
+msgstr "Использовать _локальное изображение..."
 
 #: ../sonata/main.py:236
 msgid "_Fullscreen Mode"
-msgstr "_Полноэкранный Режим"
+msgstr "_Полноэкранный режим"
 
 #: ../sonata/main.py:237
 msgid "Reset Image"
@@ -779,11 +789,11 @@ msgstr "_Назад"
 
 #: ../sonata/main.py:247
 msgid "_Next"
-msgstr "_Вперёд"
+msgstr "_Вперед"
 
 #: ../sonata/main.py:249
 msgid "_Quit"
-msgstr "Вы_ход"
+msgstr "_Выйти"
 
 #: ../sonata/main.py:251
 msgid "_Remove"
@@ -791,11 +801,11 @@ msgstr "_Удалить"
 
 #: ../sonata/main.py:253
 msgid "_Clear"
-msgstr "О_чистить"
+msgstr "_Очистить"
 
 #: ../sonata/main.py:255
 msgid "_Entire Library"
-msgstr "_Всю Фонотеку"
+msgstr "_Всю фонотеку"
 
 #: ../sonata/main.py:257
 msgid "_Selected Items"
@@ -803,15 +813,15 @@ msgstr "_Выделенные элементы"
 
 #: ../sonata/main.py:259
 msgid "_Preferences..."
-msgstr "_Настройки..."
+msgstr "_Настройка..."
 
 #: ../sonata/main.py:261
 msgid "_About..."
-msgstr "О п_рограмме"
+msgstr "_О программе..."
 
 #: ../sonata/main.py:262
 msgid "_Edit Tags..."
-msgstr "_Править теги"
+msgstr "_Править теги..."
 
 #: ../sonata/main.py:264
 msgid "_Add"
@@ -831,30 +841,27 @@ msgstr "Заменить"
 
 #: ../sonata/main.py:272
 msgid "_Delete..."
-msgstr "_Удалить"
+msgstr "_Удалить..."
 
 #: ../sonata/main.py:273
 msgid "Shuffle"
 msgstr "В случайном порядке"
 
 #: ../sonata/main.py:275
-#, fuzzy
 msgid "Shuffle Albums"
-msgstr "В случайном порядке"
+msgstr "Перемешать альбомы"
 
 #: ../sonata/main.py:315
 msgid "S_how Sonata"
 msgstr "_Показать Sonata"
 
 #: ../sonata/main.py:317
-#, fuzzy
 msgid "_Repeat playlist"
-msgstr "Заменить список"
+msgstr "_Повторять список"
 
 #: ../sonata/main.py:319
-#, fuzzy
 msgid "Repeat s_ong"
-msgstr "Повтор:"
+msgstr "_Повторять песню"
 
 #: ../sonata/main.py:321
 msgid "Rando_m"
@@ -878,11 +885,11 @@ msgstr "По названию"
 
 #: ../sonata/main.py:479
 msgid "By File Name"
-msgstr "По имени файла"
+msgstr "По названи файла"
 
 #: ../sonata/main.py:481
 msgid "By Dir & File Name"
-msgstr "По каталогу и имени файла"
+msgstr "По каталогу и названию файла"
 
 #: ../sonata/main.py:483
 msgid "Reverse List"
@@ -894,7 +901,7 @@ msgstr "Создать..."
 
 #: ../sonata/main.py:526
 msgid "_Edit..."
-msgstr "_Правка"
+msgstr "_Правка..."
 
 #: ../sonata/main.py:546
 msgid "_New Playlist..."
@@ -902,7 +909,7 @@ msgstr "_Новый список..."
 
 #: ../sonata/main.py:548
 msgid "_Rename..."
-msgstr "Пере_именовать"
+msgstr "_Переименовать..."
 
 #: ../sonata/main.py:592
 #, python-format
@@ -932,7 +939,7 @@ msgstr "Чтение не разрешено"
 
 #: ../sonata/main.py:863
 msgid "MPD_HOST/PORT"
-msgstr "MPD_ХОСТ/ПОРТ"
+msgstr "MPD_HOST/PORT"
 
 #: ../sonata/main.py:877
 msgid "Disconnect"
@@ -943,12 +950,13 @@ msgstr "Отключиться"
 msgid "{count} day"
 msgid_plural "{count} days"
 msgstr[0] "{count} день"
-msgstr[1] "{count} дня"
+msgstr[1] "{count} дней"
 msgstr[2] "{count} дней"
+msgstr[3] "{count} дней"
 
 #: ../sonata/main.py:1556
 msgid "(updating mpd)"
-msgstr "(обновляется база MPD)"
+msgstr "(обновление базы MPD)"
 
 #: ../sonata/main.py:2192
 msgid "Images"
@@ -969,9 +977,10 @@ msgstr "Обложка не найдена."
 #: ../sonata/main.py:2546
 msgid "Delete the selected playlist?"
 msgid_plural "Delete the selected playlists?"
-msgstr[0] "Удалить указанный список?"
-msgstr[1] "Удалить указанные списки?"
-msgstr[2] "Удалить указанные списки?"
+msgstr[0] "Удалить выбранный список?"
+msgstr[1] "Удалить выбранные списки?"
+msgstr[2] "Удалить выбранные списки?"
+msgstr[3] "Удалить выбранные списки?"
 
 #: ../sonata/main.py:2549
 msgid "Delete Playlist"
@@ -979,6 +988,7 @@ msgid_plural "Delete Playlists"
 msgstr[0] "Удалить список"
 msgstr[1] "Удалить списки"
 msgstr[2] "Удалить списки"
+msgstr[3] "Удалить списки"
 
 #: ../sonata/main.py:2563
 msgid "Delete the selected stream?"
@@ -986,6 +996,7 @@ msgid_plural "Delete the selected streams?"
 msgstr[0] "Удалить выбранный поток?"
 msgstr[1] "Удалить выбранные потоки?"
 msgstr[2] "Удалить выбранные потоки?"
+msgstr[3] "Удалить выбранные потоки?"
 
 #: ../sonata/main.py:2566
 msgid "Delete Stream"
@@ -993,6 +1004,7 @@ msgid_plural "Delete Streams"
 msgstr[0] "Удалить поток"
 msgstr[1] "Удалить потоки"
 msgstr[2] "Удалить потоки"
+msgstr[3] "Удалить потоки"
 
 #: ../sonata/main.py:2835
 msgid "Unable to launch a suitable browser."
@@ -1040,11 +1052,11 @@ msgstr "Локальный MPD"
 
 #: ../sonata/plugins/ui/localmpd.glade.h:2
 msgid "Edit /etc/mpd.conf"
-msgstr "Редактировать настройки в /etc/mpd.conf"
+msgstr "Редактировать /etc/mpd.conf"
 
 #: ../sonata/plugins/ui/localmpd.glade.h:3
 msgid "Restart the mpd service"
-msgstr "Перезагрузить службы MPD"
+msgstr "Перезапустить службу MPD"
 
 #: ../sonata/preferences.py:169
 msgid "Using MPD_HOST/PORT"
@@ -1052,7 +1064,7 @@ msgstr "Используется MPD_HOST/PORT"
 
 #: ../sonata/preferences.py:265 ../sonata/ui/preferences.glade.h:22
 msgid "SONG_DIR"
-msgstr "ПАПКА_ПЕСЕН"
+msgstr "SONG_DIR"
 
 #: ../sonata/preferences.py:267 ../sonata/preferences.py:575
 msgid "custom"
@@ -1068,11 +1080,11 @@ msgstr "Создать столбцы в текущем списке"
 
 #: ../sonata/preferences.py:438
 msgid ""
-"To save lyrics to the music file's directory, you must specify a valid music "
-"directory."
+"To save lyrics to the music file's directory, you must specify a valid music"
+" directory."
 msgstr ""
-"Чтобы сохранять тексты песен в каталог с музыкой Вы должны правильно указать "
-"музыкальную директорию."
+"Чтобы сохранять тексты песен в каталоги с файлами, надо правильно указать "
+"каталог с музыкой."
 
 #: ../sonata/preferences.py:438 ../sonata/preferences.py:445
 msgid "Music Dir Verification"
@@ -1083,8 +1095,8 @@ msgid ""
 "To save artwork to the music file's directory, you must specify a valid "
 "music directory."
 msgstr ""
-"Чтобы сохранять обложки в каталог с музыкой Вы должны правильно указать "
-"музыкальную директорию."
+"Чтобы сохранять обложки в каталоги с файлами, надо правильно указать каталог"
+" с музыкой."
 
 #: ../sonata/preferences.py:511
 msgid "New Profile"
@@ -1100,11 +1112,11 @@ msgstr "Создать поток"
 
 #: ../sonata/streams.py:221
 msgid "A stream with this name already exists. Would you like to replace it?"
-msgstr "Поток с таким названием уже существует. Хотите ли Вы заменить его?"
+msgstr "Поток с таким названием уже существует. Заменить его?"
 
 #: ../sonata/tagedit.py:115
 msgid "Taglib and/or tagpy not found, tag editing support disabled."
-msgstr "Библиотеки Taglib и/или Tagpy не найдены. Правка тегов отключена."
+msgstr "Библиотеки taglib и/или tagpy не найдены. Правка тегов отключена."
 
 #: ../sonata/tagedit.py:115 ../sonata/tagedit.py:124 ../sonata/tagedit.py:129
 #: ../sonata/tagedit.py:154 ../sonata/tagedit.py:158 ../sonata/tagedit.py:293
@@ -1113,11 +1125,11 @@ msgstr "Править теги"
 
 #: ../sonata/tagedit.py:124
 msgid ""
-"Tagpy version < 0.91. Please upgrade to a newer version, tag editing support "
-"disabled."
+"Tagpy version < 0.91. Please upgrade to a newer version, tag editing support"
+" disabled."
 msgstr ""
-"Версия библиотеки Tagpy < 0.91. Пожалуйста обновите библиотеку, правка тегов "
-"отключена."
+"Версия библиотеки tagpy < 0.91. Пожалуйста, обновите библиотеку. Правка "
+"тегов отключена."
 
 #: ../sonata/tagedit.py:129
 #, python-format
@@ -1125,16 +1137,16 @@ msgid ""
 "The path %s does not exist. Please specify a valid music directory in "
 "preferences."
 msgstr ""
-"Путь %s не действителен. Пожалуйста укажите правильную музыкальную "
-"директорию в настройках."
+"Путь %s не существует. Пожалуйста, укажите правильный каталог с музыкой в "
+"диалоге настройки."
 
 #: ../sonata/tagedit.py:154
 #, python-format
 msgid ""
 "File '%s' not found. Please specify a valid music directory in preferences."
 msgstr ""
-"Файл '%s' не найден. Пожалуйста укажите правильную музыкальную директорию в "
-"настройках."
+"Файл '%s' не найден. Пожалуйста, укажите правильный каталог с музыкой в "
+"диалоге настройки."
 
 #: ../sonata/tagedit.py:158
 msgid "No music files with editable tags found."
@@ -1162,7 +1174,7 @@ msgid ""
 "Sonata, an elegant GTK+ client for the Music Player Daemon\n"
 "Copyright 2006-2008 Scott Horowitz <stonecrest@gmail.com>"
 msgstr ""
-"Sonata, элегантный GTK+ клиент для Music Player Daemon⏎\n"
+"Sonata, элегантный GTK-клиент для Music Player Daemon\n"
 "Copyright © 2006-2008 Scott Horowitz <stonecrest@gmail.com>"
 
 #: ../sonata/ui/about.glade.h:3
@@ -1171,11 +1183,11 @@ msgstr "Прекрасный клиент для MPD."
 
 #: ../sonata/ui/about.glade.h:4
 msgid "_Shortcuts"
-msgstr "_Гор. клавиши"
+msgstr "_Горячие клавиши"
 
 #: ../sonata/ui/about.glade.h:5
 msgid "Shortcuts"
-msgstr "Гор. клавиши"
+msgstr "Горячие клавиши"
 
 #: ../sonata/ui/current.glade.h:1
 msgid "Filter:"
@@ -1197,11 +1209,11 @@ msgstr "Альбом:"
 
 #: ../sonata/ui/info.glade.h:4
 msgid "Date:"
-msgstr "Год:"
+msgstr "Дата:"
 
 #: ../sonata/ui/info.glade.h:5 ../sonata/ui/tagedit.glade.h:8
 msgid "Track:"
-msgstr "№ дорожки:"
+msgstr "Дорожка:"
 
 #: ../sonata/ui/info.glade.h:6 ../sonata/ui/tagedit.glade.h:6
 msgid "Genre:"
@@ -1241,7 +1253,7 @@ msgstr "О песне"
 
 #: ../sonata/ui/info.glade.h:15
 msgid "Search Lyricwiki.org for lyrics"
-msgstr "Поиск текстов на Lyricwiki.org"
+msgstr "Поиск текста песни на Lyricwiki.org"
 
 #: ../sonata/ui/info.glade.h:16
 msgid "(search)"
@@ -1249,7 +1261,7 @@ msgstr "(поиск)"
 
 #: ../sonata/ui/info.glade.h:17
 msgid "Lyrics"
-msgstr "Тексты"
+msgstr "Текст песни"
 
 #: ../sonata/ui/info.glade.h:18
 msgid "Album Info"
@@ -1273,23 +1285,23 @@ msgstr "Название списка:"
 
 #: ../sonata/ui/preferences.glade.h:1
 msgid "Custom Artwork"
-msgstr "Особая обложка "
+msgstr "Особая обложка"
 
 #: ../sonata/ui/preferences.glade.h:2
 msgid "Artwork filename:"
-msgstr "Имя файла обложки:"
+msgstr "Название файла обложки:"
 
 #: ../sonata/ui/preferences.glade.h:3
 msgid "_About"
-msgstr "О п_рограмме"
+msgstr "_О программе"
 
 #: ../sonata/ui/preferences.glade.h:4
 msgid "_Configure..."
-msgstr "_Настройки..."
+msgstr "_Настройка..."
 
 #: ../sonata/ui/preferences.glade.h:6
 msgid "_Name:"
-msgstr "_Имя:"
+msgstr "_Название:"
 
 #: ../sonata/ui/preferences.glade.h:7
 msgid "_Host:"
@@ -1301,7 +1313,7 @@ msgstr "_Порт:"
 
 #: ../sonata/ui/preferences.glade.h:9
 msgid "Leave blank if no password is required."
-msgstr "Оставьте поле пустым если пароль не требуется."
+msgstr "Оставьте поле пустым, если пароль не нужен."
 
 #: ../sonata/ui/preferences.glade.h:10
 msgid "Pa_ssword:"
@@ -1309,11 +1321,11 @@ msgstr "_Пароль:"
 
 #: ../sonata/ui/preferences.glade.h:11
 msgid "Select a Music Directory"
-msgstr "Выберите Каталог с музыкой"
+msgstr "Выберите каталог с музыкой"
 
 #: ../sonata/ui/preferences.glade.h:12
 msgid "_Music dir:"
-msgstr "_Музыкальная директория:"
+msgstr "_Каталог с музыкой:"
 
 #: ../sonata/ui/preferences.glade.h:13
 msgid "_Autoconnect on start"
@@ -1329,15 +1341,15 @@ msgstr "MPD"
 
 #: ../sonata/ui/preferences.glade.h:16
 msgid "_Playback/volume buttons"
-msgstr "Кно_пки воспроизведения и регулятор громкости"
+msgstr "_Кнопки воспроизведения и громкости"
 
 #: ../sonata/ui/preferences.glade.h:17
 msgid "Pr_ogressbar"
-msgstr "Индикат_ор позиции"
+msgstr "_Индикатор позиции"
 
 #: ../sonata/ui/preferences.glade.h:18
 msgid "_Statusbar"
-msgstr "_Статусная строка"
+msgstr "_Строка состояния"
 
 #: ../sonata/ui/preferences.glade.h:19
 msgid "System _tray icon"
@@ -1345,15 +1357,15 @@ msgstr "Иконка в _трее"
 
 #: ../sonata/ui/preferences.glade.h:20
 msgid "Song Ly_rics"
-msgstr "_Тексты"
+msgstr "_Тексты песен"
 
 #: ../sonata/ui/preferences.glade.h:21
 msgid "Save lyrics to:"
-msgstr "Сохранять тексты в:"
+msgstr "Сохранять тексты песен в:"
 
 #: ../sonata/ui/preferences.glade.h:23
 msgid "_Album art"
-msgstr "_Альбом"
+msgstr "_Обложка альбома"
 
 #: ../sonata/ui/preferences.glade.h:24
 msgid "Artwork style:"
@@ -1397,7 +1409,7 @@ msgstr "_Поверх остальных окон"
 
 #: ../sonata/ui/preferences.glade.h:34
 msgid "_Hide window titlebar"
-msgstr "_Спрятать заголовок окна"
+msgstr "_Прятать заголовок окна"
 
 #: ../sonata/ui/preferences.glade.h:35
 msgid "_Minimize to system tray on close/escape"
@@ -1406,8 +1418,8 @@ msgstr "_Сворачивать в трей при закрытии/нажати
 #: ../sonata/ui/preferences.glade.h:36
 msgid ""
 "If enabled, closing Sonata will minimize it to the system tray. Note that "
-"it&apos;s currently impossible to detect if there actually is a system tray, "
-"so only check this if you have one."
+"it&apos;s currently impossible to detect if there actually is a system tray,"
+" so only check this if you have one."
 msgstr ""
 "Если выбрано, то при закрытии Sonata будет сворачиваться в трей. Имейте в "
 "виду, что на данный момент невозможно определить, есть ли у вас трей, так "
@@ -1429,18 +1441,18 @@ msgstr "Поведение окна"
 
 #: ../sonata/ui/preferences.glade.h:39
 msgid "_Update MPD library on start"
-msgstr "О_бновлять фонотеку MPD при запуске"
+msgstr "_Обновлять фонотеку MPD при запуске"
 
 #: ../sonata/ui/preferences.glade.h:40
 msgid ""
-"If enabled, Sonata will automatically update your MPD library when it starts "
-"up."
+"If enabled, Sonata will automatically update your MPD library when it starts"
+" up."
 msgstr ""
 "Если отмечено, Sonata будет автоматически обновлять фонотеку MPD при старте."
 
 #: ../sonata/ui/preferences.glade.h:41
 msgid "S_top playback on exit"
-msgstr "Ос_танавливать воспроизведение при выходе"
+msgstr "_Останавливать воспроизведение при выходе"
 
 #: ../sonata/ui/preferences.glade.h:42
 msgid ""
@@ -1448,8 +1460,8 @@ msgid ""
 "will behave like a more conventional music player and, instead, stop "
 "playback upon exit."
 msgstr ""
-"MPD позволяет проигрывание даже если клиент не запущен. Если включено, "
-"Sonata будет похожа на обычный плеер и останавливать воспроизведение при "
+"MPD позволяет проигрывание, даже если клиент не запущен. Если включено, "
+"Sonata будет похожа на обычный плеер с остановкой воспроизведения при "
 "выходе."
 
 #: ../sonata/ui/preferences.glade.h:43
@@ -1464,7 +1476,7 @@ msgid ""
 msgstr ""
 "Если отмечено, Sonata будет создавать XMMS-подобный файл информации о "
 "текущей песне. Такой файл используется многими приложениями (программы "
-"обмена мгновенными сообщениями, клиенты IRC...)."
+"обмена мгновенными сообщениями, клиенты IRC...)"
 
 #: ../sonata/ui/preferences.glade.h:45
 msgid "Miscellaneous"
@@ -1484,19 +1496,19 @@ msgstr "_Фонотека:"
 
 #: ../sonata/ui/preferences.glade.h:49
 msgid "_Window title:"
-msgstr "Заголо_вок окна:"
+msgstr "_Заголовок окна:"
 
 #: ../sonata/ui/preferences.glade.h:50
 msgid "Current _song line 1:"
-msgstr "Текущая _запись строка 1:"
+msgstr "Текущая _песня, строка 1:"
 
 #: ../sonata/ui/preferences.glade.h:51
 msgid "Current s_ong line 2:"
-msgstr "Текущая з_апись строка 2:"
+msgstr "Текущая п_есня, строка 2:"
 
 #: ../sonata/ui/preferences.glade.h:52
 msgid "<small>Available options:</small>"
-msgstr "<small>Доступные опции:</small>"
+msgstr "<small>Доступные варианты:</small>"
 
 #: ../sonata/ui/preferences.glade.h:53
 msgid "Song Formatting"
@@ -1508,11 +1520,11 @@ msgstr "Форматирование"
 
 #: ../sonata/ui/preferences.glade.h:55
 msgid "_Audioscrobbling (Last.fm)"
-msgstr "_Аудио скробблинг (посредством Last.fm)"
+msgstr "_Аудиоскробблинг (Last.fm)"
 
 #: ../sonata/ui/preferences.glade.h:56
 msgid "_Username:"
-msgstr "_Идентификатор:"
+msgstr "_Пользователь:"
 
 #: ../sonata/ui/preferences.glade.h:57
 msgid "_Password:"
@@ -1544,7 +1556,7 @@ msgstr "Справа внизу"
 
 #: ../sonata/ui/preferences.glade.h:65
 msgid "Screen Center"
-msgstr "Центр экрана"
+msgstr "По центру экрана"
 
 #: ../sonata/ui/preferences.glade.h:66
 msgid "C_rossfade"
@@ -1564,7 +1576,7 @@ msgstr "Дополнительно"
 
 #: ../sonata/ui/preferences.glade.h:70
 msgid "Enabled"
-msgstr "Доступно"
+msgstr "Включено"
 
 #: ../sonata/ui/preferences.glade.h:71
 msgid "Description"
@@ -1576,11 +1588,11 @@ msgstr "Плагины"
 
 #: ../sonata/ui/sonata.glade.h:1
 msgid "Choose Cover Art"
-msgstr "Выбрать Обложку"
+msgstr "Выбрать обложку"
 
 #: ../sonata/ui/sonata.glade.h:4
 msgid "Edit search terms"
-msgstr "Править условия поиска"
+msgstr "Изменить условия поиска"
 
 #: ../sonata/ui/sonata.glade.h:5
 msgid "Cover Art"
@@ -1588,11 +1600,11 @@ msgstr "Обложка"
 
 #: ../sonata/ui/sonata.glade.h:6
 msgid "Open Image"
-msgstr "Открыть Изображение"
+msgstr "Открыть изображение"
 
 #: ../sonata/ui/sonata.glade.h:7
 msgid "Lyrics Search"
-msgstr "Поиск Текстов"
+msgstr "Поиск текста песни"
 
 #: ../sonata/ui/sonata.glade.h:8
 msgid "Artist Name:"
@@ -1604,7 +1616,7 @@ msgstr "Название песни:"
 
 #: ../sonata/ui/sonata.glade.h:10
 msgid "Playlist"
-msgstr "Списки"
+msgstr "Список"
 
 #: ../sonata/ui/streams.glade.h:1
 msgid "Stream name:"
@@ -1612,11 +1624,11 @@ msgstr "Название потока:"
 
 #: ../sonata/ui/streams.glade.h:2
 msgid "Stream URL:"
-msgstr "URL потока:"
+msgstr "Адрес потока:"
 
 #: ../sonata/ui/tagedit.glade.h:1
 msgid "Save _All"
-msgstr "Сохранить _Всё"
+msgstr "Сохранить _всё"
 
 #: ../sonata/ui/tagedit.glade.h:5
 msgid "Year:"
