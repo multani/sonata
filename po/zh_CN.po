@@ -1,20 +1,25 @@
-# Simplified Chinese translation for Sonata.
+# SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the Sonata package.
-# Desmond O. Chang <dochang@gmail.com>, 2007-2008.
-#
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# Translators:
+# Jonathan Ballet <jon@multani.info>, 2021
+# Dmitry <dmitrydmitry761@gmail.com>, 2021
+# 
+#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Sonata 1.6\n"
+"Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-08-09 11:22+0200\n"
-"PO-Revision-Date: 2009-03-25 06:25+0800\n"
-"Last-Translator: Desmond O. Chang <dochang@gmail.com>\n"
-"Language-Team: Simplified Chinese\n"
-"Language: \n"
+"PO-Revision-Date: 2021-08-09 08:38+0000\n"
+"Last-Translator: Dmitry <dmitrydmitry761@gmail.com>, 2021\n"
+"Language-Team: Chinese (China) (https://www.transifex.com/multani/teams/15398/zh_CN/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: zh_CN\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #. define the shortcuts and their descriptions
@@ -234,153 +239,133 @@ msgstr "曲目信息快捷键"
 #, python-brace-format
 msgid "{count} song."
 msgid_plural "{count} songs."
-msgstr[0] ""
+msgstr[0] "{count} 歌曲。"
 
 #: ../sonata/about.py:163
 #, python-brace-format
 msgid "{count} album."
 msgid_plural "{count} albums."
-msgstr[0] ""
+msgstr[0] "{count} 专辑。"
 
 #: ../sonata/about.py:166
 #, python-brace-format
 msgid "{count} artist."
 msgid_plural "{count} artists."
-msgstr[0] ""
+msgstr[0] "{count} 艺术家。"
 
 #: ../sonata/about.py:176
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "{count} day of bliss."
 msgid_plural "{count} days of bliss."
-msgstr[0] "天的幸福"
+msgstr[0] "{count} 幸福的日子。"
 
 #: ../sonata/about.py:180
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "{count} hour of bliss."
 msgid_plural "{count} hours of bliss."
-msgstr[0] "个小时的幸福"
+msgstr[0] "{count} 数小时的幸福。"
 
 #. toggle and popup and fullscreen need d-bus and don't always need gui
 #. version and help don't need anything and exit without gui
 #. hidden and visible are only applicable when gui is launched
 #. profile and no-start don't need anything
 #: ../sonata/cli.py:52
-#, fuzzy
 msgid "%prog [OPTION]... [COMMAND]..."
-msgstr "用法： sonata [选项]... [命令]..."
+msgstr "%prog [选项]... [命令]..."
 
 #: ../sonata/cli.py:53
-#, fuzzy
 msgid "Commands:"
-msgstr "命令"
+msgstr "团队:"
 
 #: ../sonata/cli.py:54
-#, fuzzy
 msgid "play song in playlist"
-msgstr "播放列表中的曲目"
+msgstr "播放播放列表中的歌曲"
 
 #: ../sonata/cli.py:55
-#, fuzzy
 msgid "pause currently playing song"
-msgstr "暂停当前播放的曲目"
+msgstr "暂停当前​​歌曲"
 
 #: ../sonata/cli.py:56
-#, fuzzy
 msgid "stop currently playing song"
-msgstr "停止当前播放的曲目"
+msgstr "停止播放这首歌"
 
 #: ../sonata/cli.py:57
-#, fuzzy
 msgid "play next song in playlist"
-msgstr "播放队列中的下一曲目"
+msgstr "播放播放列表中的下一首歌曲"
 
 #: ../sonata/cli.py:58
-#, fuzzy
 msgid "play previous song in playlist"
-msgstr "播放队列中的上一曲目"
+msgstr "播放播放列表中的上一首歌曲"
 
 #: ../sonata/cli.py:59
-#, fuzzy
 msgid "toggle play/pause; plays if stopped"
-msgstr "切换播放/暂停；如果已停止就播放"
+msgstr "切换播放/暂停；停止时播放"
 
 #: ../sonata/cli.py:60
-#, fuzzy
 msgid "toggle repeat mode"
 msgstr "切换重复模式"
 
 #: ../sonata/cli.py:61
-#, fuzzy
 msgid "toggle random mode"
 msgstr "切换随机模式"
 
 #: ../sonata/cli.py:62
-#, fuzzy
 msgid "display current song info"
-msgstr "显示当前曲目信息"
+msgstr "显示当前歌曲信息"
 
 #: ../sonata/cli.py:63
-#, fuzzy
 msgid "display MPD status"
 msgstr "显示 MPD 状态"
 
 #: ../sonata/cli.py:70
-#, fuzzy
 msgid "popup song notification (requires D-Bus)"
-msgstr "弹出曲目提示（需要 D-Bus）"
+msgstr "弹出歌曲通知（需要 D-Bus）"
 
 #: ../sonata/cli.py:73
-#, fuzzy
 msgid ""
 "toggles whether the app is minimized to the tray or visible (requires D-Bus)"
-msgstr "到托盘或可见（需要 D-Bus）"
+msgstr "切换应用程序是最小化到托盘还是可见（需要 D-Bus）"
 
 #: ../sonata/cli.py:76
-#, fuzzy
 msgid "go fullscreen (requires D-Bus)"
-msgstr "到托盘或可见（需要 D-Bus）"
+msgstr "进入全屏模式（需要 D-Bus）"
 
 #: ../sonata/cli.py:79
-#, fuzzy
 msgid "don't start app if D-Bus commands fail"
-msgstr "如果 D-Bus 命令失败，不启动应用程序"
+msgstr "如果 D-Bus 命令不起作用，则不要启动应用程序"
 
 #: ../sonata/cli.py:82
-#, fuzzy
 msgid "start app hidden (requires systray)"
-msgstr "启动应用程序时隐藏（需要系统托盘）"
+msgstr "秘密启动应用程序（需要系统托盘）"
 
 #: ../sonata/cli.py:85
-#, fuzzy
 msgid "start app visible (requires systray)"
-msgstr "启动应用程序时可见（需要系统托盘）"
+msgstr "启动应用程序可见（需要系统托盘）"
 
 #: ../sonata/cli.py:87
-#, fuzzy
 msgid "start with profile NUM"
-msgstr "以档案 NUM 启动"
+msgstr "以个人资料编号开头"
 
 #: ../sonata/cli.py:90
 msgid "start app with a interactive (ipython) shell"
-msgstr ""
+msgstr "使用交互式 壳 (ipython) 运行应用程序。"
 
 #: ../sonata/cli.py:93
 msgid "Increase log verbosity"
-msgstr ""
+msgstr "增加日志粒度"
 
 #: ../sonata/cli.py:96
 msgid "Decrease log verbosity"
-msgstr ""
+msgstr "减少日志详细程度"
 
 #: ../sonata/cli.py:121
 #, python-format
 msgid "unknown command %s"
-msgstr ""
+msgstr "未知的命令%s"
 
 #: ../sonata/cli.py:127
-#, fuzzy
 msgid "toggle and popup options require D-Bus.  Aborting."
-msgstr "参数 toggle 和 popup 需要 D-Bus。放弃中。"
+msgstr "切换和弹出选项需要D-Bus。 正在中止"
 
 #: ../sonata/cli.py:149
 #, python-format
@@ -403,17 +388,16 @@ msgstr "默认档案"
 
 #: ../sonata/cli.py:176
 msgid "by"
-msgstr "by"
+msgstr "在"
 
 #: ../sonata/cli.py:176
 msgid "from"
-msgstr "from"
+msgstr "从"
 
 #: ../sonata/cli.py:199
 msgid ""
 "Unable to connect to MPD.\n"
-"Please check your Sonata preferences or MPD_HOST/MPD_PORT environment "
-"variables."
+"Please check your Sonata preferences or MPD_HOST/MPD_PORT environment variables."
 msgstr ""
 "不能连接到 MPD。\n"
 "请检查你的偏好设置或环境变量 MPD_HOST/MPD_PORT 。"
@@ -479,9 +463,8 @@ msgid "State"
 msgstr "状态"
 
 #: ../sonata/cli.py:273
-#, fuzzy
 msgid "Repeat:"
-msgstr "重复"
+msgstr "重复："
 
 #: ../sonata/cli.py:273 ../sonata/cli.py:275
 msgid "On"
@@ -492,9 +475,8 @@ msgid "Off"
 msgstr "关"
 
 #: ../sonata/cli.py:275
-#, fuzzy
 msgid "Random:"
-msgstr "随机"
+msgstr "随机的："
 
 #: ../sonata/cli.py:277
 msgid "Volume"
@@ -510,14 +492,13 @@ msgid_plural "seconds"
 msgstr[0] "秒"
 
 #: ../sonata/dbus_plugin.py:118
-#, fuzzy
 msgid ""
 "Sonata failed to connect to the D-BUS session bus: Unable to determine the "
 "address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for "
 "help)\")"
 msgstr ""
-"Sonata 连接到 D-BUS session bus 失败：无法决定 message bus 的地址（尝试 'man "
-"dbus-launch' 和 'man dbus-daemon' 来获取帮助）"
+"Sonata 无法连接到 D-BUS 会话总线：无法确定消息总线的地址（尝试“man dbus-launch” 和 “man dbus-daemon” "
+"寻求帮助）”）"
 
 #: ../sonata/dbus_plugin.py:138
 msgid "Failed to execute remote commands."
@@ -525,7 +506,7 @@ msgstr "执行远程命令失败。"
 
 #: ../sonata/dbus_plugin.py:140
 msgid "Starting Sonata instead..."
-msgstr "正在启动 Sonata ……"
+msgstr "正在启动 Sonata…"
 
 #. TODO: should we log the exception here?
 #: ../sonata/dbus_plugin.py:143
@@ -590,7 +571,7 @@ msgstr "曲目长度"
 
 #: ../sonata/formatting.py:131
 msgid "Len"
-msgstr "长度"
+msgstr "Len"
 
 #: ../sonata/formatting.py:132
 msgid "Elapsed time (title only)"
@@ -621,13 +602,12 @@ msgid "Fetching lyrics..."
 msgstr "歌词获取中..."
 
 #: ../sonata/info.py:539
-#, fuzzy
 msgid "Lyrics not found."
-msgstr "未发现歌词"
+msgstr "找不到歌词。"
 
 #: ../sonata/info.py:542
 msgid "No lyrics plug-in enabled."
-msgstr ""
+msgstr "不包括歌词插件。"
 
 #: ../sonata/library.py:33
 msgid "Various Artists"
@@ -662,28 +642,28 @@ msgid "Genres"
 msgstr "风格"
 
 #: ../sonata/library.py:963 ../sonata/main.py:1532
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "{count} song"
 msgid_plural "{count} songs"
-msgstr[0] "整首曲目"
+msgstr[0] "{count} 歌曲"
 
 #: ../sonata/library.py:965
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "{count} second"
 msgid_plural "{count} seconds"
-msgstr[0] "秒"
+msgstr[0] "{count} 秒"
 
 #: ../sonata/library.py:967 ../sonata/main.py:1547
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "{count} minute"
 msgid_plural "{count} minutes"
-msgstr[0] "分钟"
+msgstr[0] "{count} 分钟"
 
 #: ../sonata/library.py:969 ../sonata/main.py:1543
 #, python-brace-format
 msgid "{count} hour"
 msgid_plural "{count} hours"
-msgstr[0] ""
+msgstr[0] "{count} 小时"
 
 #: ../sonata/library.py:1069
 msgid "Song"
@@ -717,44 +697,43 @@ msgstr "整首曲目"
 
 #: ../sonata/main.py:172
 msgid "by %A from %B"
-msgstr ""
+msgstr "在%A从 %B"
 
 #: ../sonata/main.py:225
 msgid "_Sort List"
-msgstr "排序列表(_S)"
+msgstr "排序列表"
 
 #: ../sonata/main.py:226
-#, fuzzy
 msgid "Sa_ve Selected to"
-msgstr "更新选择的项(_S)"
+msgstr "保存选择到"
 
 #: ../sonata/main.py:227
 msgid "_Connection"
-msgstr "连接(_C)"
+msgstr "连接"
 
 #: ../sonata/main.py:228
 msgid "P_lay after"
-msgstr "在动作执行后播放(_l)"
+msgstr "在动作执行后播放"
 
 #: ../sonata/main.py:229
 msgid "Play _Mode"
-msgstr ""
+msgstr "游戏模式"
 
 #: ../sonata/main.py:230
 msgid "_Update"
-msgstr "更新(_U)"
+msgstr "更新"
 
 #: ../sonata/main.py:231
 msgid "Use _Remote Image..."
-msgstr "使用远程图像(_R)..."
+msgstr "使用远程图像..."
 
 #: ../sonata/main.py:233
 msgid "Use _Local Image..."
-msgstr "使用本地图像(_L)..."
+msgstr "使用本地图像..."
 
 #: ../sonata/main.py:236
 msgid "_Fullscreen Mode"
-msgstr "全屏模式(_F)"
+msgstr "全屏模式"
 
 #: ../sonata/main.py:237
 msgid "Reset Image"
@@ -762,63 +741,63 @@ msgstr "重置图像"
 
 #: ../sonata/main.py:239
 msgid "_Play"
-msgstr "播放(_P)"
+msgstr "播放"
 
 #: ../sonata/main.py:241
 msgid "Pa_use"
-msgstr "暂停(_u)"
+msgstr "暂停"
 
 #: ../sonata/main.py:243
 msgid "_Stop"
-msgstr "停止(_S)"
+msgstr "停止"
 
 #: ../sonata/main.py:245
 msgid "Pre_vious"
-msgstr "上一首(_v)"
+msgstr "上一首"
 
 #: ../sonata/main.py:247
 msgid "_Next"
-msgstr "下一首(_N)"
+msgstr "下一首"
 
 #: ../sonata/main.py:249
 msgid "_Quit"
-msgstr "退出(_Q)"
+msgstr "退出"
 
 #: ../sonata/main.py:251
 msgid "_Remove"
-msgstr "删除(_R)"
+msgstr "删除"
 
 #: ../sonata/main.py:253
 msgid "_Clear"
-msgstr "清除(_C)"
+msgstr "清除"
 
 #: ../sonata/main.py:255
 msgid "_Entire Library"
-msgstr "更新数据库全部(_E)"
+msgstr "整个图书馆"
 
 #: ../sonata/main.py:257
 msgid "_Selected Items"
-msgstr "更新选择的项(_S)"
+msgstr "刷新多个选定项目"
 
 #: ../sonata/main.py:259
 msgid "_Preferences..."
-msgstr "偏好(_P)..."
+msgstr "偏好..."
 
 #: ../sonata/main.py:261
 msgid "_About..."
-msgstr "关于(_A)..."
+msgstr "关于..."
 
 #: ../sonata/main.py:262
 msgid "_Edit Tags..."
-msgstr "编辑标签(_E)..."
+msgstr "更改快捷方式/多个快捷方式..."
 
 #: ../sonata/main.py:264
 msgid "_Add"
-msgstr "添加(_A)"
+msgstr "添加"
 
 #: ../sonata/main.py:266
 msgid "_Replace"
-msgstr "替换(_R)"
+msgstr "替换"
 
 #: ../sonata/main.py:268
 msgid "Add"
@@ -830,38 +809,35 @@ msgstr "替换"
 
 #: ../sonata/main.py:272
 msgid "_Delete..."
-msgstr "删除(_D)..."
+msgstr "删除..."
 
 #: ../sonata/main.py:273
 msgid "Shuffle"
 msgstr "乱序"
 
 #: ../sonata/main.py:275
-#, fuzzy
 msgid "Shuffle Albums"
-msgstr "乱序"
+msgstr "随机播放专辑"
 
 #: ../sonata/main.py:315
 msgid "S_how Sonata"
-msgstr "显示(_h) Sonata"
+msgstr "显示 Sonata"
 
 #: ../sonata/main.py:317
-#, fuzzy
 msgid "_Repeat playlist"
-msgstr "替换播放列表"
+msgstr "重复播放列表"
 
 #: ../sonata/main.py:319
-#, fuzzy
 msgid "Repeat s_ong"
-msgstr "重复"
+msgstr "重复歌曲"
 
 #: ../sonata/main.py:321
 msgid "Rando_m"
-msgstr "随机(_m)"
+msgstr "随机"
 
 #: ../sonata/main.py:323
 msgid "Consume"
-msgstr ""
+msgstr "耗"
 
 #: ../sonata/main.py:473
 msgid "By Artist"
@@ -889,29 +865,29 @@ msgstr "反转列表"
 
 #: ../sonata/main.py:524
 msgid "_New..."
-msgstr "新建(_N)..."
+msgstr "新建..."
 
 #: ../sonata/main.py:526
 msgid "_Edit..."
-msgstr "编辑(_E)..."
+msgstr "编辑..."
 
 #: ../sonata/main.py:546
 msgid "_New Playlist..."
-msgstr "新建播放列表(_N)..."
+msgstr "新建播放列表..."
 
 #: ../sonata/main.py:548
 msgid "_Rename..."
-msgstr "重命名(_R)..."
+msgstr "重命名..."
 
 #: ../sonata/main.py:592
 #, python-format
 msgid "Enabling new plug-in %s..."
-msgstr ""
+msgstr "启用新插件 %s..."
 
 #: ../sonata/main.py:595
 #, python-format
 msgid "Found new plug-in %s."
-msgstr ""
+msgstr "发现新插件 %s。"
 
 #: ../sonata/main.py:640 ../sonata/main.py:1616 ../sonata/main.py:1834
 msgid "Click to expand"
@@ -941,7 +917,7 @@ msgstr "断开连接"
 #, python-brace-format
 msgid "{count} day"
 msgid_plural "{count} days"
-msgstr[0] ""
+msgstr[0] "{count} 天数"
 
 #: ../sonata/main.py:1556
 msgid "(updating mpd)"
@@ -1013,29 +989,27 @@ msgstr "重命名播放列表"
 
 #: ../sonata/plugins/localmpd.py:98
 msgid "Processes"
-msgstr ""
+msgstr "流程"
 
 #: ../sonata/plugins/localmpd.py:99
-#, fuzzy
 msgid "Files"
-msgstr "文件"
+msgstr "档案"
 
 #: ../sonata/plugins/localmpd.py:108
 msgid "Networking"
-msgstr ""
+msgstr "联网"
 
 #: ../sonata/plugins/ui/localmpd.glade.h:1
-#, fuzzy
 msgid "Local MPD"
-msgstr "仅限本地"
+msgstr "本地 MPD"
 
 #: ../sonata/plugins/ui/localmpd.glade.h:2
 msgid "Edit /etc/mpd.conf"
-msgstr ""
+msgstr "编辑 /etc/mpd.conf"
 
 #: ../sonata/plugins/ui/localmpd.glade.h:3
 msgid "Restart the mpd service"
-msgstr ""
+msgstr "重启 mpd 服务"
 
 #: ../sonata/preferences.py:169
 msgid "Using MPD_HOST/PORT"
@@ -1059,8 +1033,8 @@ msgstr "在当前播放列表建立分栏"
 
 #: ../sonata/preferences.py:438
 msgid ""
-"To save lyrics to the music file's directory, you must specify a valid music "
-"directory."
+"To save lyrics to the music file's directory, you must specify a valid music"
+" directory."
 msgstr "要将歌词保存到音乐文件的目录中，你必须指定一个有效的音乐目录。"
 
 #: ../sonata/preferences.py:438 ../sonata/preferences.py:445
@@ -1100,31 +1074,31 @@ msgstr "编辑标签"
 
 #: ../sonata/tagedit.py:124
 msgid ""
-"Tagpy version < 0.91. Please upgrade to a newer version, tag editing support "
-"disabled."
+"Tagpy version < 0.91. Please upgrade to a newer version, tag editing support"
+" disabled."
 msgstr "TagPy 版本 < 0.91 ，不能编辑标签。请升级到较新的版本。"
 
 #: ../sonata/tagedit.py:129
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "The path %s does not exist. Please specify a valid music directory in "
 "preferences."
-msgstr "不存在。请在偏好设置中指定一个有效的音乐目录。"
+msgstr "路径 %s 不存在。 请在首选项中指定有效的音乐目录。"
 
 #: ../sonata/tagedit.py:154
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "File '%s' not found. Please specify a valid music directory in preferences."
-msgstr " 未找到。请在偏好设置中指定一个有效的音乐目录。"
+msgstr "文件 '%s' 未找到。 请在首选项中指定有效的音乐目录。"
 
 #: ../sonata/tagedit.py:158
 msgid "No music files with editable tags found."
 msgstr "没有可以编辑标签的音乐文件。"
 
 #: ../sonata/tagedit.py:271
-#, fuzzy, python-format
+#, python-format
 msgid "Edit Tags - %s of %s"
-msgstr "编辑标签"
+msgstr "编辑标签 - %s 从 %s"
 
 #: ../sonata/tagedit.py:292
 msgid "Unable to save tag to music file."
@@ -1143,6 +1117,8 @@ msgid ""
 "Sonata, an elegant GTK+ client for the Music Player Daemon\n"
 "Copyright 2006-2008 Scott Horowitz <stonecrest@gmail.com>"
 msgstr ""
+"Sonata，音乐播放器守护进程的优雅 GTK+ 客户端\n"
+"Copyright 2006-2008 Scott Horowitz <stonecrest@gmail.com>"
 
 #: ../sonata/ui/about.glade.h:3
 msgid "An elegant music client for MPD."
@@ -1150,58 +1126,49 @@ msgstr "一个精美的 MPD 客户端"
 
 #: ../sonata/ui/about.glade.h:4
 msgid "_Shortcuts"
-msgstr "快捷键(_S)"
+msgstr "快捷方式"
 
 #: ../sonata/ui/about.glade.h:5
 msgid "Shortcuts"
 msgstr "快捷键"
 
 #: ../sonata/ui/current.glade.h:1
-#, fuzzy
 msgid "Filter:"
-msgstr "过滤"
+msgstr "筛选："
 
 #: ../sonata/ui/info.glade.h:1 ../sonata/ui/tagedit.glade.h:2
-#, fuzzy
 msgid "Title:"
-msgstr "标题"
+msgstr "标题："
 
 #: ../sonata/ui/info.glade.h:2 ../sonata/ui/sonata.glade.h:2
 #: ../sonata/ui/tagedit.glade.h:3
-#, fuzzy
 msgid "Artist:"
-msgstr "艺术家"
+msgstr "执行人："
 
 #: ../sonata/ui/info.glade.h:3 ../sonata/ui/sonata.glade.h:3
 #: ../sonata/ui/tagedit.glade.h:4
-#, fuzzy
 msgid "Album:"
-msgstr "专辑"
+msgstr "专辑："
 
 #: ../sonata/ui/info.glade.h:4
-#, fuzzy
 msgid "Date:"
-msgstr "日期"
+msgstr "日期："
 
 #: ../sonata/ui/info.glade.h:5 ../sonata/ui/tagedit.glade.h:8
-#, fuzzy
 msgid "Track:"
-msgstr "音轨"
+msgstr "追踪："
 
 #: ../sonata/ui/info.glade.h:6 ../sonata/ui/tagedit.glade.h:6
-#, fuzzy
 msgid "Genre:"
-msgstr "风格"
+msgstr "款式："
 
 #: ../sonata/ui/info.glade.h:7
-#, fuzzy
 msgid "File:"
-msgstr "文件"
+msgstr "档案 : "
 
 #: ../sonata/ui/info.glade.h:8
-#, fuzzy
 msgid "Bitrate:"
-msgstr "比特率"
+msgstr "比特率："
 
 #: ../sonata/ui/info.glade.h:9
 msgid "Launch artist in Wikipedia"
@@ -1220,9 +1187,8 @@ msgid "Edit song tags"
 msgstr "编辑曲目标签"
 
 #: ../sonata/ui/info.glade.h:13
-#, fuzzy
 msgid "(edit tags)"
-msgstr "编辑标签"
+msgstr "（编辑标签）"
 
 #: ../sonata/ui/info.glade.h:14
 msgid "Song Info"
@@ -1233,9 +1199,8 @@ msgid "Search Lyricwiki.org for lyrics"
 msgstr "在 Lyricwiki.org 上搜索歌词"
 
 #: ../sonata/ui/info.glade.h:16
-#, fuzzy
 msgid "(search)"
-msgstr "搜索"
+msgstr "（搜索）"
 
 #: ../sonata/ui/info.glade.h:17
 msgid "Lyrics"
@@ -1246,9 +1211,8 @@ msgid "Album Info"
 msgstr "专辑信息"
 
 #: ../sonata/ui/library.glade.h:1
-#, fuzzy
 msgid "Search:"
-msgstr "搜索"
+msgstr "搜索 : "
 
 #: ../sonata/ui/library.glade.h:3
 msgid "Search terms"
@@ -1259,63 +1223,56 @@ msgid "End Search"
 msgstr "结束搜索"
 
 #: ../sonata/ui/playlists.glade.h:1
-#, fuzzy
 msgid "Playlist name:"
-msgstr "播放列表名字"
+msgstr "播放列表名称："
 
 #: ../sonata/ui/preferences.glade.h:1
 msgid "Custom Artwork"
 msgstr "自定义封面"
 
 #: ../sonata/ui/preferences.glade.h:2
-#, fuzzy
 msgid "Artwork filename:"
-msgstr "封面文件名"
+msgstr "封面文件名："
 
 #: ../sonata/ui/preferences.glade.h:3
 msgid "_About"
-msgstr "关于(_A)"
+msgstr "关于"
 
 #: ../sonata/ui/preferences.glade.h:4
 msgid "_Configure..."
-msgstr "配置(_C)..."
+msgstr "配置..."
 
 #: ../sonata/ui/preferences.glade.h:6
-#, fuzzy
 msgid "_Name:"
-msgstr "名字(_N)"
+msgstr "名称："
 
 #: ../sonata/ui/preferences.glade.h:7
-#, fuzzy
 msgid "_Host:"
-msgstr "主机(_H)"
+msgstr "主："
 
 #: ../sonata/ui/preferences.glade.h:8
-#, fuzzy
 msgid "_Port:"
-msgstr "端口(_P)"
+msgstr "港："
 
 #: ../sonata/ui/preferences.glade.h:9
 msgid "Leave blank if no password is required."
 msgstr "如果不需要口令则留空。"
 
 #: ../sonata/ui/preferences.glade.h:10
-#, fuzzy
 msgid "Pa_ssword:"
-msgstr "口令(_s)"
+msgstr "密码："
 
 #: ../sonata/ui/preferences.glade.h:11
 msgid "Select a Music Directory"
 msgstr "选择音乐目录"
 
 #: ../sonata/ui/preferences.glade.h:12
-#, fuzzy
 msgid "_Music dir:"
-msgstr "音乐目录(_M)"
+msgstr "音乐目录："
 
 #: ../sonata/ui/preferences.glade.h:13
 msgid "_Autoconnect on start"
-msgstr "启动时自动连接(_A)"
+msgstr "启动时自动连接"
 
 #: ../sonata/ui/preferences.glade.h:14
 msgid "MPD Connection"
@@ -1327,23 +1284,23 @@ msgstr "MPD"
 
 #: ../sonata/ui/preferences.glade.h:16
 msgid "_Playback/volume buttons"
-msgstr "播放/音量按钮(_P)"
+msgstr "播放/音量按钮"
 
 #: ../sonata/ui/preferences.glade.h:17
 msgid "Pr_ogressbar"
-msgstr "进度条(_o)"
+msgstr "进度条"
 
 #: ../sonata/ui/preferences.glade.h:18
 msgid "_Statusbar"
-msgstr "状态栏(_S)"
+msgstr "状态栏"
 
 #: ../sonata/ui/preferences.glade.h:19
 msgid "System _tray icon"
-msgstr "系统托盘(_t)"
+msgstr "系统托盘"
 
 #: ../sonata/ui/preferences.glade.h:20
 msgid "Song Ly_rics"
-msgstr "歌词(_r)"
+msgstr "歌曲歌词"
 
 #: ../sonata/ui/preferences.glade.h:21
 msgid "Save lyrics to:"
@@ -1351,7 +1308,7 @@ msgstr "保存歌词到："
 
 #: ../sonata/ui/preferences.glade.h:23
 msgid "_Album art"
-msgstr "专辑封面(_A)"
+msgstr "专辑封面"
 
 #: ../sonata/ui/preferences.glade.h:24
 msgid "Artwork style:"
@@ -1387,38 +1344,33 @@ msgstr "显示"
 
 #: ../sonata/ui/preferences.glade.h:32
 msgid "_Show window on all workspaces"
-msgstr "在所有工作区显示窗口(_S)"
+msgstr "在所有工作区显示窗口"
 
 #: ../sonata/ui/preferences.glade.h:33
 msgid "_Keep window above other windows"
-msgstr "将窗口置于其它窗口上方(_K)"
+msgstr "将窗口置于其它窗口上方"
 
 #: ../sonata/ui/preferences.glade.h:34
 msgid "_Hide window titlebar"
-msgstr "隐藏窗口标题栏(_H)"
+msgstr "隐藏窗口标题栏"
 
 #: ../sonata/ui/preferences.glade.h:35
 msgid "_Minimize to system tray on close/escape"
-msgstr "关闭时最小化到系统托盘(_M)"
+msgstr "关闭时最小化到系统托盘"
 
 #: ../sonata/ui/preferences.glade.h:36
-#, fuzzy
 msgid ""
 "If enabled, closing Sonata will minimize it to the system tray. Note that "
-"it&apos;s currently impossible to detect if there actually is a system tray, "
-"so only check this if you have one."
-msgstr ""
-"如果启用，Sonata 关闭时将会最小化到系统托盘上。注意目前它还不能检测到是否真的"
-"有系统托盘，所以仅当你有系统托盘时才选择此选项。"
+"it&apos;s currently impossible to detect if there actually is a system tray,"
+" so only check this if you have one."
+msgstr "如果启用，关闭 Sonata 会将其最小化到系统托盘。 请注意，目前无法检测是否确实存在系统托盘，因此只有在您有系统托盘时才进行检查。 "
 
 #: ../sonata/ui/preferences.glade.h:37
 msgid ""
 "If enabled, closing Sonata will minimize it to the system tray. Note that "
 "it's currently impossible to detect if there actually is a system tray, so "
 "only check this if you have one."
-msgstr ""
-"如果启用，Sonata 关闭时将会最小化到系统托盘上。注意目前它还不能检测到是否真的"
-"有系统托盘，所以仅当你有系统托盘时才选择此选项。"
+msgstr "如果启用，Sonata 关闭时将会最小化到系统托盘上。注意目前它还不能检测到是否真的有系统托盘，所以仅当你有系统托盘时才选择此选项。"
 
 #: ../sonata/ui/preferences.glade.h:38
 msgid "Window Behavior"
@@ -1426,30 +1378,28 @@ msgstr "窗口行为"
 
 #: ../sonata/ui/preferences.glade.h:39
 msgid "_Update MPD library on start"
-msgstr "启动时更新 MPD 数据库(_U)"
+msgstr "启动时更新 MPD 数据库"
 
 #: ../sonata/ui/preferences.glade.h:40
 msgid ""
-"If enabled, Sonata will automatically update your MPD library when it starts "
-"up."
+"If enabled, Sonata will automatically update your MPD library when it starts"
+" up."
 msgstr "如果启用，Sonata 将在启动时自动更新你的 MPD 数据库。"
 
 #: ../sonata/ui/preferences.glade.h:41
 msgid "S_top playback on exit"
-msgstr "退出时停止播放(_t)"
+msgstr "退出时停止播放"
 
 #: ../sonata/ui/preferences.glade.h:42
 msgid ""
 "MPD allows playback even when the client is not open. If enabled, Sonata "
 "will behave like a more conventional music player and, instead, stop "
 "playback upon exit."
-msgstr ""
-"即使客户端没有打开，MPD 仍然允许播放。如果启用此选项，Sonata 将更像一个习惯上"
-"的音乐播放器，在退出的时候停止播放。"
+msgstr "即使客户端没有打开，MPD 仍然允许播放。如果启用此选项，Sonata 将更像一个习惯上的音乐播放器，在退出的时候停止播放。"
 
 #: ../sonata/ui/preferences.glade.h:43
 msgid "_Write status file:"
-msgstr "将状态写入文件(_W)："
+msgstr "将状态写入文件："
 
 #: ../sonata/ui/preferences.glade.h:44
 msgid ""
@@ -1457,8 +1407,8 @@ msgid ""
 "information about the current song. Many applications support the xmms-info "
 "file (Instant Messengers, IRC Clients...)"
 msgstr ""
-"如果启用，Sonata 将建立一个类似管道的文件 xmms-info，包含关于当前曲目的信息。"
-"许多应用程序支持 xmms-info 文件（即时通讯软件、IRC 客户端……）"
+"如果启用，Sonata 将建立一个类似管道的文件 xmms-info，包含关于当前曲目的信息。许多应用程序支持 xmms-info "
+"文件（即时通讯软件、IRC 客户端……）"
 
 #: ../sonata/ui/preferences.glade.h:45
 msgid "Miscellaneous"
@@ -1470,28 +1420,27 @@ msgstr "行为"
 
 #: ../sonata/ui/preferences.glade.h:47
 msgid "C_urrent playlist:"
-msgstr "当前播放列表(_u)："
+msgstr "当前播放列表："
 
 #: ../sonata/ui/preferences.glade.h:48
 msgid "_Library:"
-msgstr "数据库(_L)："
+msgstr "数据库："
 
 #: ../sonata/ui/preferences.glade.h:49
 msgid "_Window title:"
-msgstr "窗口标题(_W)："
+msgstr "窗口标题："
 
 #: ../sonata/ui/preferences.glade.h:50
 msgid "Current _song line 1:"
-msgstr "当前曲目第一行(_s)："
+msgstr "当前曲目第一行："
 
 #: ../sonata/ui/preferences.glade.h:51
 msgid "Current s_ong line 2:"
-msgstr "当前曲目第二行(_o)："
+msgstr "当前曲目第二行："
 
 #: ../sonata/ui/preferences.glade.h:52
-#, fuzzy
 msgid "<small>Available options:</small>"
-msgstr "可用选项"
+msgstr "<small>可用选项：</small>"
 
 #: ../sonata/ui/preferences.glade.h:53
 msgid "Song Formatting"
@@ -1503,19 +1452,19 @@ msgstr "格式"
 
 #: ../sonata/ui/preferences.glade.h:55
 msgid "_Audioscrobbling (Last.fm)"
-msgstr "_Audioscrobbling (Last.fm)"
+msgstr "收集有关音乐曲目的信息 (Audioscrobbling) (Last.fm)"
 
 #: ../sonata/ui/preferences.glade.h:56
 msgid "_Username:"
-msgstr "用户名(_U)："
+msgstr "用户名："
 
 #: ../sonata/ui/preferences.glade.h:57
 msgid "_Password:"
-msgstr "口令(_P)："
+msgstr "口令："
 
 #: ../sonata/ui/preferences.glade.h:58
 msgid "Popup _notification on song changes"
-msgstr "当曲目改变时弹出提示(_n)"
+msgstr "关于歌曲更改的弹出通知"
 
 #: ../sonata/ui/preferences.glade.h:60
 msgid "System tray"
@@ -1543,12 +1492,11 @@ msgstr "屏幕中央"
 
 #: ../sonata/ui/preferences.glade.h:66
 msgid "C_rossfade"
-msgstr "淡入淡出(_r)"
+msgstr "音量减小间隔在曲目结束时（Crossfade）"
 
 #: ../sonata/ui/preferences.glade.h:67
-#, fuzzy
 msgid "_Fade length:"
-msgstr "淡入淡出长度(_F)"
+msgstr "褪色长度："
 
 #: ../sonata/ui/preferences.glade.h:68
 msgid "sec"
@@ -1559,9 +1507,8 @@ msgid "Extras"
 msgstr "其它"
 
 #: ../sonata/ui/preferences.glade.h:70
-#, fuzzy
 msgid "Enabled"
-msgstr "启用渐变"
+msgstr "启用"
 
 #: ../sonata/ui/preferences.glade.h:71
 msgid "Description"
@@ -1569,7 +1516,7 @@ msgstr "描述"
 
 #: ../sonata/ui/preferences.glade.h:72
 msgid "Plugins"
-msgstr ""
+msgstr "插件"
 
 #: ../sonata/ui/sonata.glade.h:1
 msgid "Choose Cover Art"
@@ -1592,39 +1539,33 @@ msgid "Lyrics Search"
 msgstr "歌词搜索"
 
 #: ../sonata/ui/sonata.glade.h:8
-#, fuzzy
 msgid "Artist Name:"
-msgstr "艺术家"
+msgstr "艺人姓名："
 
 #: ../sonata/ui/sonata.glade.h:9
-#, fuzzy
 msgid "Song Title:"
-msgstr "曲目标题"
+msgstr "歌名："
 
 #: ../sonata/ui/sonata.glade.h:10
 msgid "Playlist"
 msgstr "播放列表"
 
 #: ../sonata/ui/streams.glade.h:1
-#, fuzzy
 msgid "Stream name:"
-msgstr "流媒体名字"
+msgstr "流名称："
 
 #: ../sonata/ui/streams.glade.h:2
-#, fuzzy
 msgid "Stream URL:"
-msgstr "流媒体 URL"
+msgstr "流 URL："
 
 #: ../sonata/ui/tagedit.glade.h:1
 msgid "Save _All"
-msgstr "保存全部(_A)"
+msgstr "保存全部"
 
 #: ../sonata/ui/tagedit.glade.h:5
-#, fuzzy
 msgid "Year:"
-msgstr "年份"
+msgstr "年："
 
 #: ../sonata/ui/tagedit.glade.h:7
-#, fuzzy
 msgid "Comment:"
-msgstr "注解"
+msgstr "评论："
