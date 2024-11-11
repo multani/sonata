@@ -5,7 +5,6 @@ if sys.version_info <= (3, 2):
     sys.stderr.write("Sonata requires Python 3.2+\n")
     sys.exit(1)
 
-from distutils.dep_util import newer
 import glob
 import os
 from setuptools import setup, Extension
@@ -16,6 +15,16 @@ tests_require = []
 if sys.version_info < (3, 3):
     # Available as unittest.mock since 3.3
     tests_require.append('mock')
+
+
+def newer(source, generated):
+    if (
+        os.path.exists(generated)
+        and os.path.getmtime(source) < os.path.getmtime(generated)
+    ):
+        return False
+
+    return True
 
 
 def capture(cmd):
