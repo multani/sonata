@@ -5,9 +5,8 @@ if sys.version_info <= (3, 2):
     sys.stderr.write("Sonata requires Python 3.2+\n")
     sys.exit(1)
 
-import glob
 import os
-from setuptools import setup, Extension
+from setuptools import setup
 from sonata.version import version
 
 
