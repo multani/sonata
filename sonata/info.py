@@ -82,6 +82,13 @@ class Info:
 
         self.active = False
 
+        self._pixbuf = None # Unscaled pixbuf for on_viewport_resize
+
+        self.COVER_MIN_SIZE = 150
+        self.COVER_HEIGHT_OFFSET = 40
+        self.LYRICS_WIDTH_OFFSET = 20
+        self.LYRICS_TEXT_OFFSET = 5
+
         # Info tab
         self.builder = ui.builder('info')
         self.css_provider = ui.css_provider('info')
@@ -194,6 +201,11 @@ class Info:
 
     def on_link_leave(self, _widget, _event):
         ui.change_cursor(None)
+
+    def on_viewport_resize(self, _widget, _event):
+        self.set_lyrics_allocation()
+        self.set_song_info_allocation()
+        self.on_artwork_changed(None, self._pixbuf)
 
     def toggle_more(self):
         if self.config.info_song_more:
@@ -467,27 +479,68 @@ class Info:
         italic_tag.set_property('style', Pango.Style.ITALIC)
         tag_table.add(italic_tag)
 
-    def on_artwork_changed(self, artwork_obj, pixbuf):
+    def set_lyrics_allocation(self):
+        notebook_width = self.info_area.get_allocation().width
+
+        lyrics_requisition = self.lyrics_text.get_preferred_size()[1]
+        lyrics_width = lyrics_requisition.width
+        lyrics_height = lyrics_requisition.height
+
+        if lyrics_width > 0.5 * notebook_width + self.LYRICS_WIDTH_OFFSET:
+            lyrics_width = 0.5 * notebook_width + self.LYRICS_WIDTH_OFFSET
+        self.lyrics_scrolledwindow.set_size_request(lyrics_width + self.LYRICS_TEXT_OFFSET, lyrics_height)
+        self.lyrics_scrolledwindow.set_min_content_width(lyrics_width)
+
+    def set_song_info_allocation(self):
+        names = ('title', 'artist', 'album', 'date',
+                 'track', 'genre')
+        max_width = 0
+        for name in names:
+            text = len(self.info_labels[name].get_text())
+            max_width = max(max_width, text)
+        self.info_labels['file'].set_max_width_chars(2 * max_width)
+
+    def _calculate_artwork_size(self):
         if self._imagebox.get_size_request()[0] == -1:
-            notebook_width = self.info_song_grid.get_parent().get_allocation().width
+            notebook_allocation = self.info_area.get_allocation()
+            notebook_width = notebook_allocation.width
+            notebook_height = notebook_allocation.height
+
+            lyrics_width = self.info_lyrics.get_allocation().width
+
             grid = self.info_song_grid
             grid_allocation = grid.get_allocation()
             grid_height = grid_allocation.height
-            grid_width = grid.get_preferred_width_for_height(grid_height)[0]
-            fullwidth = notebook_width - (grid_width + 120)
-            new_width = max(fullwidth, 150)
+            grid_width = grid.get_preferred_width_for_height(grid_height)[1]
+
+            image_max_width = notebook_width - lyrics_width - grid_width - self.LYRICS_WIDTH_OFFSET
+            image_max_height = notebook_height - self.COVER_HEIGHT_OFFSET
+
+            box_max_width = max(min(0.5 * notebook_width, image_max_width), self.COVER_MIN_SIZE)
+            box_max_height = max(image_max_height, self.COVER_MIN_SIZE)
+
+            return min(box_max_height, box_max_width)
         else:
-            new_width = 150
+            return self.COVER_MIN_SIZE
 
-        (pix2, w, h) = img.get_pixbuf_of_size(pixbuf, new_width)
-        pix2 = img.do_style_cover(self.config, pix2, w, h)
-        pix2 = img.pixbuf_add_border(pix2)
+    def on_artwork_changed(self, artwork_obj, pixbuf):
+        if pixbuf is not None:
+            self._pixbuf = pixbuf
+            image_width = pixbuf.get_width()
+            image_height = pixbuf.get_height()
+            box_size = self._calculate_artwork_size()
+            width = min(min(image_height,image_width), box_size)
 
-        self.image.set_from_pixbuf(pix2)
-        del pix2
-        del pixbuf
+            (pix2, w, h) = img.get_pixbuf_of_size(pixbuf, width)
+            pix2 = img.do_style_cover(self.config, pix2, w, h)
+            pix2 = img.pixbuf_add_border(pix2)
+
+            self.image.set_from_pixbuf(pix2)
+            del pix2
+            del pixbuf
 
     def on_artwork_reset(self, artwork_obj):
+        self._pixbuf = None
         self.image.set_from_icon_set(ui.icon('sonata-cd-large'), -1)
 
 
