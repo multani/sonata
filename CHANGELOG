@@ -1,11 +1,21 @@
-1.7.1 (Unreleased)
+1.7.1 (2025-04-27)
 ------------------
+
+New features
+''''''''''''
+
+* Compatible with Python 3.12
 
 Breaking changes
 ''''''''''''''''
 
 * Remove the "lyricswiki" plugin: LyricWiki completely closed down in on
   September 21, 2020.
+
+Bug Fixes
+'''''''''
+
+* Updated translations
 
 
 1.7.0 (2020-12-25)
