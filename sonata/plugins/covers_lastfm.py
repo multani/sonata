@@ -35,15 +35,13 @@ def on_cover_fetch(artist, album, on_save_cb, on_err_cb):
     opener.addheaders = [("User-Agent", make_user_agent())]
 
     # First, find the link to the master release of this album
-    search_url = "http://ws.audioscrobbler.com/2.0/?%s" % (
-        urllib.parse.urlencode({
-            "method": "album.getInfo",
-            "artist": artist,
-            "album": album,
-            "api_key": API_KEY,
-            "format": "json",
-        }))
-
+    i= { "artist": artist, "api_key": API_KEY, "format": "json" }
+    if not album:
+         i.update({"method": "artist.getInfo" })
+    else:
+         i.update({"method": "album.getInfo", "album" : album })
+    
+    search_url = "http://ws.audioscrobbler.com/2.0/?%s" % (urllib.parse.urlencode(i))
     logger.debug("Querying %r...", search_url)
     response = opener.open(search_url)
     lastfm = json.loads(response.read().decode('utf-8'))
@@ -53,7 +51,11 @@ def on_cover_fetch(artist, album, on_save_cb, on_err_cb):
                        lastfm['message'], lastfm['error'])
         return
 
-    for image in lastfm['album']['image']:
+    if not album:
+        i = lastfm['artist']
+    else:
+        i = lastfm['album']
+    for image in i['image']:
         if image['size'] != 'mega':
             continue
 
