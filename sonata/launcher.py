@@ -191,7 +191,6 @@ def run():
 
 
     def on_application_activate(application):
-        Gdk.threads_enter()
         windows = application.get_windows()
 
         if windows:
@@ -200,7 +199,6 @@ def run():
         else:
             sonata = main.Base(args)
             sonata.window.set_application(application)
-        Gdk.threads_leave()
 
     app = Gtk.Application(application_id="org.MPD.Sonata")
     app.connect("activate", on_application_activate)
