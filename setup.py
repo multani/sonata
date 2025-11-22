@@ -1,19 +1,13 @@
 #!/usr/bin/env python
 
 import sys
-if sys.version_info <= (3, 2):
-    sys.stderr.write("Sonata requires Python 3.2+\n")
+if sys.version_info <= (3, 3):
+    sys.stderr.write("Sonata requires Python 3.3+\n")
     sys.exit(1)
 
 import os
 from setuptools import setup
 from sonata.version import version
-
-
-tests_require = []
-if sys.version_info < (3, 3):
-    # Available as unittest.mock since 3.3
-    tests_require.append('mock')
 
 
 def newer(source, generated):
@@ -74,12 +68,12 @@ setup(
     description='GTK+ client for the Music Player Daemon (MPD).',
     author='Scott Horowitz',
     author_email='stonecrest@gmail.com',
+    license='GNU General Public License (GPL)',
     url='http://www.nongnu.org/sonata/',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: X11 Applications',
         'Intended Audience :: End Users/Desktop',
-        'License :: GNU General Public License (GPL)',
         'Operating System :: Linux',
         'Programming Language :: Python',
         'Topic :: Multimedia :: Sound :: Players',
@@ -101,8 +95,6 @@ setup(
             'sonata=sonata.launcher:run',
         ]
     },
-    test_suite='sonata.tests',
-    tests_require=tests_require,
 )
 try:
     os.remove("sonata/genversion.py")

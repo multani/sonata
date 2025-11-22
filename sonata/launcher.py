@@ -20,8 +20,8 @@
 """Sonata is a simple GTK+ client for the Music Player Daemon."""
 
 import sys
-if sys.version_info <= (3, 2):
-    sys.stderr.write("Sonata requires Python 3.2+\n")
+if sys.version_info <= (3, 3):
+    sys.stderr.write("Sonata requires Python 3.3+\n")
     sys.exit(1)
 
 import gettext
