@@ -35,7 +35,7 @@ import threading
 
 from gi.repository import Gtk, Gdk, GdkPixbuf, Gio, GLib, Pango
 
-import pkg_resources
+import importlib.resources
 
 import sonata.mpdhelper as mpdh
 
@@ -188,7 +188,7 @@ class Base:
         self.provider = ui.css_provider('sonata')
 
         icon_factory_src = ui.builder_string('icons')
-        icon_path = pkg_resources.resource_filename(__name__, "pixmaps")
+        icon_path = importlib.resources.files(__name__).joinpath("pixmaps")
         icon_factory_src = icon_factory_src.format(base_path=icon_path)
         self.builder.add_from_string(icon_factory_src)
         icon_factory = self.builder.get_object('sonata_iconfactory')

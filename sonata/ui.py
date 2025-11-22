@@ -18,7 +18,7 @@
 
 import logging
 import os
-import pkg_resources
+import importlib.resources
 import sys
 
 from gi.repository import Gtk, Gdk
@@ -30,8 +30,7 @@ logger = logging.getLogger(__name__)
 def builder(ui_file, relative_to='.'):
     builder = Gtk.Builder()
     builder.set_translation_domain('sonata')
-    ui_path = pkg_resources.resource_filename(
-        'sonata', os.path.join(relative_to, 'ui', ui_file + ".glade"))
+    ui_path = str(importlib.resources.files('sonata') / os.path.join(relative_to, 'ui', ui_file + ".glade"))
     logger.debug('Loading %s', ui_path)
     builder.add_from_file(ui_path)
 
@@ -39,8 +38,7 @@ def builder(ui_file, relative_to='.'):
 
 def css_provider(css_file, relative_to='.'):
     provider = Gtk.CssProvider()
-    css_path = pkg_resources.resource_filename(
-        'sonata', os.path.join(relative_to, 'ui', css_file + ".css"))
+    css_path = str(importlib.resources.files('sonata') / os.path.join(relative_to, 'ui', css_file + ".css"))
     logger.debug('Loading %s', css_path)
     provider.load_from_path(css_path)
     screen = Gdk.Screen.get_default()
@@ -51,8 +49,7 @@ def css_provider(css_file, relative_to='.'):
     return provider
 
 def builder_string(ui_file, relative_to='.'):
-    ui_path = pkg_resources.resource_filename(
-        'sonata', os.path.join(relative_to, 'ui', ui_file + ".glade"))
+    ui_path = str(importlib.resources.files('sonata') / os.path.join(relative_to, 'ui', ui_file + ".glade"))
     logger.debug('Loading %s', ui_path)
 
     with open(ui_path, 'r') as builder_file:
