@@ -1,7 +1,16 @@
-1.7.2 (Unreleased)
+1.7.2 (2025-11-23)
 ------------------
 
---
+Breaking changes
+''''''''''''''''
+
+* Requires Python 3.3 or newer
+
+Bug Fixes
+'''''''''
+
+* Remove setup warnings
+
 
 1.7.1 (2025-04-27)
 ------------------
