@@ -39,11 +39,15 @@ def _version():
     else:
         try:
             dir = os.path.dirname(__file__)
+            # Get git version like v1.7.0-19-g9433
             version = Popen(["git", "describe", "--abbrev=4", "HEAD"],
                              cwd=dir, stdout=PIPE,
                              stderr=PIPE).communicate()[0].decode('utf-8')
             if not version:
                 raise OSError
+            # Switch to python-compatible version like v1.7.0.post19.g9433 (v stripped below)
+            tag, dist, commit = version.split("-")
+            version = tag + ".post" + dist + "+" + commit
         except OSError:
             version = default_version
     return version.strip()[1:]
