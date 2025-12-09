@@ -1,7 +1,11 @@
-1.7.3 (unreleased)
-------------------
+1.7.3
+-----
 
---
+Bug Fixes
+'''''''''
+
+* Fix launcher GDK locks, preventing the application from starting up with
+  recent GTK/GLib versions
 
 
 1.7.2 (2025-11-23)
