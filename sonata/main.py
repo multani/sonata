@@ -687,6 +687,7 @@ class Base:
         self.traytips.connect('button_press_event', self.on_traytips_press)
         self.window.connect('delete_event', self.on_delete_event)
         self.window.connect('configure_event', self.on_window_configure)
+        self.window.connect('size-allocate', self.info.on_viewport_resize)
         self.window.connect('key-press-event', self.on_topwindow_keypress)
         self.imageeventbox.connect('button_press_event',
                                    self.on_image_activate)
