@@ -117,13 +117,7 @@ class TagEditor:
                 return
             # Set default tag encoding to utf8.. fixes some reported bugs.
             import tagpy.id3v2 as id3v2
-            id3v2.FrameFactory.instance().setDefaultTextEncoding(tagpy.StringType.UTF8)
-
-        # Make sure tagpy is at least 0.91
-        if hasattr(tagpy.Tag.title, '__call__'):
-            ui.show_msg(self.window, _("Tagpy version < 0.91. Please upgrade to a newer version, tag editing support disabled."), _("Edit Tags"), 'editTagsError', Gtk.ButtonsType.CLOSE, response_cb=ui.dialog_destroy)
-            ui.change_cursor(None)
-            return
+            id3v2.FrameFactory.instance().setDefaultTextEncoding(id3v2._tagpy.StringType.UTF8)
 
         if not os.path.isdir(music_dir):
             ui.show_msg(self.window, _("The path %s does not exist. Please specify a valid music directory in preferences.") % music_dir, _("Edit Tags"), 'editTagsError', Gtk.ButtonsType.CLOSE, response_cb=ui.dialog_destroy)
