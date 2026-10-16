@@ -1,4 +1,12 @@
-1.7.3
+(unreleased)
+------------
+
+Bug Fixes
+'''''''''
+
+* Fix support for tagpy >= 2022.1 (#167)
+
+1.7.3 (2025-12-09)
 -----
 
 Bug Fixes
