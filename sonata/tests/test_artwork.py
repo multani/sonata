@@ -28,6 +28,12 @@ import os
 import shutil
 import tempfile
 
+import gi
+gi.require_version('Gdk', '3.0')
+gi.require_version('GdkPixbuf', '2.0')
+gi.require_version('Gtk', '3.0')
+gi.require_version('Pango', '1.0')
+
 from sonata.artwork import artwork_path
 from sonata.artwork import ArtworkLocator
 from sonata import consts
