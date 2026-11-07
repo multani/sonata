@@ -1,27 +1,25 @@
-# French translations for sonata package.
-# Copyright (C) 2007 THE sonata'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the sonata package.
-#
-# Floréal M <somewhere@webend.net>, 2006-2007.
-# Cyril Brulebois <cyril.brulebois@enst-bretagne.fr>, 2007.
-# Mike Massonnet <mmassonnet@gmail.com>, 2007-2009.
-#
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# Translators:
+# Jonathan Ballet <jon@multani.info>, 2025
+# 
+#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Sonata 1.6.1\n"
+"Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-08-09 11:22+0200\n"
-"PO-Revision-Date: 2013-01-09 18:24+0730\n"
-"Last-Translator: Jonathan Ballet <jon@multani.info>\n"
-"Language-Team: Transifex (https://www.transifex.com/projects/p/sonata/"
-"language/fr/)\n"
-"Language: fr_FR\n"
+"PO-Revision-Date: 2025-07-27 15:34+0000\n"
+"Last-Translator: Jonathan Ballet <jon@multani.info>, 2025\n"
+"Language-Team: French (https://app.transifex.com/multani/teams/15398/fr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Poedit-SourceCharset: utf-8\n"
-"X-Generator: Poedit 1.5.4\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
 
 #. define the shortcuts and their descriptions
 #. these are all gettextable
@@ -242,6 +240,7 @@ msgid "{count} song."
 msgid_plural "{count} songs."
 msgstr[0] "{count} chanson."
 msgstr[1] "{count} chansons."
+msgstr[2] "{count} chansons."
 
 #: ../sonata/about.py:163
 #, python-brace-format
@@ -249,6 +248,7 @@ msgid "{count} album."
 msgid_plural "{count} albums."
 msgstr[0] "{count} album."
 msgstr[1] "{count} albums."
+msgstr[2] "{count} albums."
 
 #: ../sonata/about.py:166
 #, python-brace-format
@@ -256,6 +256,7 @@ msgid "{count} artist."
 msgid_plural "{count} artists."
 msgstr[0] "{count} artiste."
 msgstr[1] "{count} artistes."
+msgstr[2] "{count} artistes."
 
 #: ../sonata/about.py:176
 #, python-brace-format
@@ -263,6 +264,7 @@ msgid "{count} day of bliss."
 msgid_plural "{count} days of bliss."
 msgstr[0] "{count} jour de bonheur."
 msgstr[1] "{count} jours de bonheur"
+msgstr[2] "{count} jours de bonheur"
 
 #: ../sonata/about.py:180
 #, python-brace-format
@@ -270,6 +272,7 @@ msgid "{count} hour of bliss."
 msgid_plural "{count} hours of bliss."
 msgstr[0] "{count} heure de bonheur."
 msgstr[1] "{count} heures de bonheur."
+msgstr[2] "{count} heures de bonheur."
 
 #. toggle and popup and fullscreen need d-bus and don't always need gui
 #. version and help don't need anything and exit without gui
@@ -407,12 +410,10 @@ msgstr "de"
 #: ../sonata/cli.py:199
 msgid ""
 "Unable to connect to MPD.\n"
-"Please check your Sonata preferences or MPD_HOST/MPD_PORT environment "
-"variables."
+"Please check your Sonata preferences or MPD_HOST/MPD_PORT environment variables."
 msgstr ""
 "Impossible de se connecter à MPD.\n"
-"Vérifiez vos paramètres dans les préférences de Sonata ou les variables "
-"d'environnement MPD_HOST/MPD_PORT."
+"Vérifiez vos paramètres dans les préférences de Sonata ou les variables d'environnement MPD_HOST/MPD_PORT."
 
 #: ../sonata/cli.py:238 ../sonata/library.py:80 ../sonata/ui/library.glade.h:5
 msgid "Title"
@@ -503,6 +504,7 @@ msgid "second"
 msgid_plural "seconds"
 msgstr[0] "seconde"
 msgstr[1] "secondes"
+msgstr[2] "secondes"
 
 #: ../sonata/dbus_plugin.py:118
 msgid ""
@@ -510,8 +512,8 @@ msgid ""
 "address of the message bus (try 'man dbus-launch' and 'man dbus-daemon' for "
 "help)\")"
 msgstr ""
-"Sonata n'a pas pu se connecter à la session D-BUS : Impossible de déterminer "
-"l'adresse du bus (essayez « man dbus-launch » et « man dbus-daemon » pour "
+"Sonata n'a pas pu se connecter à la session D-BUS : Impossible de déterminer"
+" l'adresse du bus (essayez « man dbus-launch » et « man dbus-daemon » pour "
 "obtenir de l'aide sur son fonctionnement)"
 
 #: ../sonata/dbus_plugin.py:138
@@ -661,6 +663,7 @@ msgid "{count} song"
 msgid_plural "{count} songs"
 msgstr[0] "{count} chanson"
 msgstr[1] "{count} chansons"
+msgstr[2] "{count} chansons"
 
 #: ../sonata/library.py:965
 #, python-brace-format
@@ -668,6 +671,7 @@ msgid "{count} second"
 msgid_plural "{count} seconds"
 msgstr[0] "{count} seconde"
 msgstr[1] "{count} secondes"
+msgstr[2] "{count} secondes"
 
 #: ../sonata/library.py:967 ../sonata/main.py:1547
 #, python-brace-format
@@ -675,6 +679,7 @@ msgid "{count} minute"
 msgid_plural "{count} minutes"
 msgstr[0] "{count} minute"
 msgstr[1] "{count} minutes"
+msgstr[2] "{count} minutes"
 
 #: ../sonata/library.py:969 ../sonata/main.py:1543
 #, python-brace-format
@@ -682,6 +687,7 @@ msgid "{count} hour"
 msgid_plural "{count} hours"
 msgstr[0] "{count} heure."
 msgstr[1] "{count} heures."
+msgstr[2] "{count} heures."
 
 #: ../sonata/library.py:1069
 msgid "Song"
@@ -723,7 +729,7 @@ msgstr "Trier la li_ste"
 
 #: ../sonata/main.py:226
 msgid "Sa_ve Selected to"
-msgstr "_Sauvegarder les élément(s) sélectionné(s) vers"
+msgstr "Sau_vegarder les élément(s) sélectionné(s) vers"
 
 #: ../sonata/main.py:227
 msgid "_Connection"
@@ -834,23 +840,20 @@ msgid "Shuffle"
 msgstr "Aléatoire"
 
 #: ../sonata/main.py:275
-#, fuzzy
 msgid "Shuffle Albums"
-msgstr "Aléatoire"
+msgstr "Mélanger les albums"
 
 #: ../sonata/main.py:315
 msgid "S_how Sonata"
 msgstr "_Montrer Sonata"
 
 #: ../sonata/main.py:317
-#, fuzzy
 msgid "_Repeat playlist"
-msgstr "Remplacer la liste de lecture"
+msgstr "_Répéter la liste de lecture"
 
 #: ../sonata/main.py:319
-#, fuzzy
 msgid "Repeat s_ong"
-msgstr "Répéter :"
+msgstr "Répéter la chans_on"
 
 #: ../sonata/main.py:321
 msgid "Rando_m"
@@ -940,6 +943,7 @@ msgid "{count} day"
 msgid_plural "{count} days"
 msgstr[0] "{count} jour."
 msgstr[1] "{count} jours."
+msgstr[2] "{count} jours."
 
 #: ../sonata/main.py:1556
 msgid "(updating mpd)"
@@ -966,24 +970,28 @@ msgid "Delete the selected playlist?"
 msgid_plural "Delete the selected playlists?"
 msgstr[0] "Supprimer la liste de lecture sélectionnée ?"
 msgstr[1] "Supprimer les listes de lecture sélectionnées ?"
+msgstr[2] "Supprimer les listes de lecture sélectionnées ?"
 
 #: ../sonata/main.py:2549
 msgid "Delete Playlist"
 msgid_plural "Delete Playlists"
 msgstr[0] "Supprimer la liste de lecture"
 msgstr[1] "Supprimer les listes de lecture"
+msgstr[2] "Supprimer les listes de lecture"
 
 #: ../sonata/main.py:2563
 msgid "Delete the selected stream?"
 msgid_plural "Delete the selected streams?"
 msgstr[0] "Supprimer le flux sélectionné ?"
 msgstr[1] "Supprimer les flux sélectionnés ?"
+msgstr[2] "Supprimer les flux sélectionnés ?"
 
 #: ../sonata/main.py:2566
 msgid "Delete Stream"
 msgid_plural "Delete Streams"
 msgstr[0] "Supprimer le flux"
 msgstr[1] "Supprimer les flux"
+msgstr[2] "Supprimer les flux"
 
 #: ../sonata/main.py:2835
 msgid "Unable to launch a suitable browser."
@@ -1060,11 +1068,11 @@ msgstr "Crée des colonnes dans la liste courante"
 
 #: ../sonata/preferences.py:438
 msgid ""
-"To save lyrics to the music file's directory, you must specify a valid music "
-"directory."
+"To save lyrics to the music file's directory, you must specify a valid music"
+" directory."
 msgstr ""
-"Pour sauver les paroles, vous devez indiquer un répertoire de musique valide "
-"dans les préférences."
+"Pour sauver les paroles, vous devez indiquer un répertoire de musique valide"
+" dans les préférences."
 
 #: ../sonata/preferences.py:438 ../sonata/preferences.py:445
 msgid "Music Dir Verification"
@@ -1097,17 +1105,18 @@ msgstr "Un flux homonyme existe déjà. Voulez-vous le remplacer ?"
 #: ../sonata/tagedit.py:115
 msgid "Taglib and/or tagpy not found, tag editing support disabled."
 msgstr ""
-"Taglib et/ou taggy non trouvé, l'édition des étiquettes ne sera pas possible."
+"Taglib et/ou taggy non trouvé, l'édition des étiquettes ne sera pas "
+"possible."
 
 #: ../sonata/tagedit.py:115 ../sonata/tagedit.py:124 ../sonata/tagedit.py:129
 #: ../sonata/tagedit.py:154 ../sonata/tagedit.py:158 ../sonata/tagedit.py:293
 msgid "Edit Tags"
-msgstr "Éditer les Étiquettes"
+msgstr "Éditer les étiquettes"
 
 #: ../sonata/tagedit.py:124
 msgid ""
-"Tagpy version < 0.91. Please upgrade to a newer version, tag editing support "
-"disabled."
+"Tagpy version < 0.91. Please upgrade to a newer version, tag editing support"
+" disabled."
 msgstr ""
 "Tagpy < 0.91. Veuillez mettre à jour vers une version plus récente, support "
 "des tags désactivés."
@@ -1399,8 +1408,8 @@ msgstr "_Réduire dans la zone de notification à la fermeture"
 #: ../sonata/ui/preferences.glade.h:36
 msgid ""
 "If enabled, closing Sonata will minimize it to the system tray. Note that "
-"it&apos;s currently impossible to detect if there actually is a system tray, "
-"so only check this if you have one."
+"it&apos;s currently impossible to detect if there actually is a system tray,"
+" so only check this if you have one."
 msgstr ""
 "Si activé, à la fermeture, Sonata se minimisera dans la zone de "
 "notification. NB : il est impossible de détecter la présence d'une zone de "
@@ -1426,8 +1435,8 @@ msgstr "Mettre à jour la _bibliothèque de MPD au démarrage"
 
 #: ../sonata/ui/preferences.glade.h:40
 msgid ""
-"If enabled, Sonata will automatically update your MPD library when it starts "
-"up."
+"If enabled, Sonata will automatically update your MPD library when it starts"
+" up."
 msgstr ""
 "Si activé, Sonata mettra à jour automatiquement votre bibliothèque MPD lors "
 "de son démarrage."
@@ -1443,8 +1452,8 @@ msgid ""
 "playback upon exit."
 msgstr ""
 "MPD permet d'écouter de la musique même quand le client n'est pas lancé. Si "
-"cette option est activée, Sonata se comportera comme un lecteur traditionnel "
-"et stoppera la lecture à sa fermeture."
+"cette option est activée, Sonata se comportera comme un lecteur traditionnel"
+" et stoppera la lecture à sa fermeture."
 
 #: ../sonata/ui/preferences.glade.h:43
 msgid "_Write status file:"
