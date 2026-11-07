@@ -413,6 +413,7 @@ class Base:
               <popup name="librarymenu">
                 <menuitem action="filesystemview"/>
                 <menuitem action="artistview"/>
+                <menuitem action="albumartistview"/>
                 <menuitem action="genreview"/>
                 <menuitem action="albumview"/>
               </popup>
